@@ -1,0 +1,29 @@
+# ---- 编译产物 ----
+build/
+build-meson/
+*.dll
+*.so
+*.dylib
+*.o
+*.obj
+*.a
+*.lib
+*.exe
+
+# ---- 编译日志 ----
+*.log
+build-*.log
+
+# ---- 测试/临时输出 ----
+smoke/
+demo/
+*.tmp
+
+# ---- 编辑器与系统 ----
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
