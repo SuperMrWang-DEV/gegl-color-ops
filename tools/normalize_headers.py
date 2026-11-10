@@ -107,10 +107,11 @@ OPS = {
     ),
     "vibrance-hyper": (
         "lb:vibrance-hyper", "Vibrance", "Vibrance",
-        "自然饱和度：优先提升低饱和区，保护高饱和与肤色",
-        ["双曲函数给出自适应增益，再乘全局线性饱和度"],
+        "自然饱和度：提升低饱和区，抑制高饱和与肤色，不破坏色相",
+        ["LAB 下按源图色度 C* 取双曲增益，叠加肤色色相窗；",
+         "色度沿固定色相放大后按色域二分收敛，避免裁剪扭色"],
         "GeglOperationPointFilter",
-        None,
+        "Adobe Camera Raw / Photoshop 的 Vibrance",
     ),
     "xyz-multiply": (
         "lb:xyz-multiply", "XYZ Multiply", "XYZ Multiply",

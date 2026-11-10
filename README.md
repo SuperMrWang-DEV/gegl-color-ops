@@ -47,7 +47,7 @@ gegl-color-ops/
 | `lb:lab-levels` | LAB Levels | LAB Levels | Filter | LAB 三通道各自黑白场 + 伽马 |
 | `lb:exposure` | Exposure | Exposure | Filter | PS 曝光：EV、偏移、伽马 |
 | `lb:rgb-domain-grayscale` | Grayscale | Grayscale | Point | PS 黑白：六色权重转灰 + 可选着色 |
-| `lb:vibrance-hyper` | Vibrance | Vibrance | Point | 双曲自然饱和度，保护高饱和与肤色 |
+| `lb:vibrance-hyper` | Vibrance | Vibrance | Point | LAB 自然饱和度：色度双曲蒙版 + 肤色保护窗 + 色域收敛不扭色相 |
 | `lb:xyz-multiply` | XYZ Multiply | XYZ Multiply | Point | 以参考色做正片叠底（XYZ 域） |
 
 每个算子的算法说明、参数含义见 `ops/<算子名>/README.md`（原始文档）。
