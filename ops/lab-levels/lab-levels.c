@@ -1,12 +1,17 @@
 /* ===========================================================================
- * SuperMrWang · GEGL Operation
+ * SuperMrWang · GEGL 算子 / GEGL Operation
  * ---------------------------------------------------------------------------
- * id     : lb:lab-levels
- * 菜单   : LAB Levels
- * 作用   : LAB 三通道各自设输入 / 输出黑白场与伽马
- * 算法   : L/a/b 分别做 levels 映射后合并，a/b 以 0.5 为中性轴
- * 类型   : GeglOperationFilter
- * 许可   : GPL-3.0-or-later，见工程根目录 LICENSE
+ * id         lb:lab-levels
+ * menu       LAB Levels
+ * purpose    LAB 三通道各自设输入 / 输出黑白场与伽马
+ *            Independent input/output black-white points and gamma for each
+ *            LAB channel.
+ * algorithm  L/a/b 分别做 levels 映射后合并，a/b 以 0.5 为中性轴
+ *            Levels are applied per L/a/b channel and then merged; a and b
+ *            use 0.5 as the neutral axis.
+ * type       GeglOperationFilter（需整块区域 / whole-region）
+ * license    GPL-3.0-or-later，见工程根目录 LICENSE
+ *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
 
 #include "config.h"
@@ -171,7 +176,8 @@ static inline gfloat levels_channel(gfloat val,
 static void
 prepare(GeglOperation *op)
 {
-  /* 固定格式，和hslseven统一，不再动态继承色彩空间 */
+  /* 固定格式，与 hsl-seven 统一，不再动态继承输入色彩空间
+   * Fixed format like hsl-seven: no dynamic colour-space inheritance. */
   gegl_operation_set_format(op, "input",  babl_format("RGBA float"));
   gegl_operation_set_format(op, "output", babl_format("RGBA float"));
 }
@@ -186,7 +192,8 @@ process(GeglOperation       *op,
   if (!roi || roi->width <= 0 || roi->height <= 0)
     return TRUE;
 
-  /* process内部读取参数，彻底移除user_data并发竞争问题 */
+  /* 参数在 process 内部读取，彻底消除了 user_data 的并发竞争
+   * Parameters are read inside process(), so the user_data race is gone. */
   gdouble L_in_black, L_in_white, L_gamma, L_out_black, L_out_white;
   gdouble a_in_black, a_in_white, a_gamma, a_out_black, a_out_white;
   gdouble b_in_black, b_in_white, b_gamma, b_out_black, b_out_white;

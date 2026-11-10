@@ -1,13 +1,19 @@
 /* ===========================================================================
- * SuperMrWang · GEGL Operation
+ * SuperMrWang · GEGL 算子 / GEGL Operation
  * ---------------------------------------------------------------------------
- * id     : lb:color-mask-select
- * 菜单   : Mask by Color
- * 作用   : PS 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览
- * 算法   : 九组预设色或图像取色 → 色距判定 → fuzziness / feather 生成 alpha
- * 类型   : GeglOperationPointFilter
- * 参考   : Photoshop「色彩范围」(Color Range)
- * 许可   : GPL-3.0-or-later，见工程根目录 LICENSE
+ * id         lb:color-mask-select
+ * menu       Mask by Color
+ * purpose    PS 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览
+ *            PS Color Range: build a mask from a picked colour, a fuzziness
+ *            radius and feathering, with an optional red overlay preview.
+ * algorithm  九组预设色或图像取色 → 色距判定 → fuzziness / feather 生成 alpha
+ *            Nine preset colours or a colour sampled from the image ->
+ *            distance test -> alpha from 'fuzziness' and 'feather'.
+ * type       GeglOperationPointFilter（逐像素 / per-pixel）
+ * reference  Photoshop「色彩范围」(Color Range)
+ *            Photoshop Color Range
+ * license    GPL-3.0-or-later，见工程根目录 LICENSE
+ *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
 
 #include "config.h"

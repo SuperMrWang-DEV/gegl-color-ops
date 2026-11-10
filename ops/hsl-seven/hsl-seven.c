@@ -1,14 +1,21 @@
 /* ===========================================================================
- * SuperMrWang · GEGL Operation
+ * SuperMrWang · GEGL 算子 / GEGL Operation
  * ---------------------------------------------------------------------------
- * id     : lb:hsl-seven
- * 菜单   : HSL 7 Bands
- * 作用   : 红/橙/黄/绿/青/蓝/紫七段色相各自调 H/S/L，ACR 风格
- * 算法   : 21 个滑块按色相段加权叠加，段间由 feather 平滑过渡；
- *          低于 min-saturation 的灰像素可选择跳过
- * 类型   : GeglOperationPointFilter
- * 参考   : Camera Raw 的 HSL 面板
- * 许可   : GPL-3.0-or-later，见工程根目录 LICENSE
+ * id         lb:hsl-seven
+ * menu       HSL 7 Bands
+ * purpose    红/橙/黄/绿/青/蓝/紫七段色相各自调 H/S/L，ACR 风格
+ *            Seven hue bands (red, orange, yellow, green, cyan, blue,
+ *            purple), each with its own H/S/L shift, Camera Raw style.
+ * algorithm  21 个滑块按色相段加权叠加，段间由 feather 平滑过渡；低于
+ *            min-saturation 的灰像素可选择跳过
+ *            The 21 sliders are weighted by hue band and summed, with
+ *            'feather' cross-fading adjacent bands. Pixels below
+ *            'min-saturation' can be skipped.
+ * type       GeglOperationPointFilter（逐像素 / per-pixel）
+ * reference  Camera Raw 的 HSL 面板
+ *            Adobe Camera Raw HSL panel
+ * license    GPL-3.0-or-later，见工程根目录 LICENSE
+ *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
 
 #include "config.h"
@@ -17,7 +24,8 @@
 
 #ifdef GEGL_PROPERTIES
 
-/* 全局通用参数 */
+/* 全局通用参数
+ * Global shared parameters */
 property_double (hue_feather, _("Hue Transition Feather"), 12.0)
     value_range (0.0, 50.0)
     ui_range (0.0, 50.0)
@@ -28,7 +36,7 @@ property_double (saturation_min, _("Min Saturation Filter"), 0.0)
     ui_range (0.0, 100.0)
     description (_("Grayscale pixels below this saturation will not be modified"))
 
-/* ---- Red --------------------------------------------------------------- */
+/* ---- 红 / red ---------------------------------------------------------- */
 property_double (red_hue, _("Red Hue"), 0.0)
     value_range (-100.0, 100.0)
 property_double (red_sat, _("Red Saturation"), 0.0)
@@ -36,7 +44,7 @@ property_double (red_sat, _("Red Saturation"), 0.0)
 property_double (red_lum, _("Red Luminance"), 0.0)
     value_range (-100.0, 100.0)
 
-/* ---- Orange ------------------------------------------------------------ */
+/* ---- 橙 / orange ------------------------------------------------------- */
 property_double (orange_hue, _("Orange Hue"), 0.0)
     value_range (-100.0, 100.0)
 property_double (orange_sat, _("Orange Saturation"), 0.0)
@@ -44,7 +52,7 @@ property_double (orange_sat, _("Orange Saturation"), 0.0)
 property_double (orange_lum, _("Orange Luminance"), 0.0)
     value_range (-100.0, 100.0)
 
-/* ---- Yellow ------------------------------------------------------------ */
+/* ---- 黄 / yellow ------------------------------------------------------- */
 property_double (yellow_hue, _("Yellow Hue"), 0.0)
     value_range (-100.0, 100.0)
 property_double (yellow_sat, _("Yellow Saturation"), 0.0)
@@ -52,7 +60,7 @@ property_double (yellow_sat, _("Yellow Saturation"), 0.0)
 property_double (yellow_lum, _("Yellow Luminance"), 0.0)
     value_range (-100.0, 100.0)
 
-/* ---- Green ------------------------------------------------------------- */
+/* ---- 绿 / green -------------------------------------------------------- */
 property_double (green_hue, _("Green Hue"), 0.0)
     value_range (-100.0, 100.0)
 property_double (green_sat, _("Green Saturation"), 0.0)
@@ -60,7 +68,7 @@ property_double (green_sat, _("Green Saturation"), 0.0)
 property_double (green_lum, _("Green Luminance"), 0.0)
     value_range (-100.0, 100.0)
 
-/* ---- Cyan -------------------------------------------------------------- */
+/* ---- 青 / cyan --------------------------------------------------------- */
 property_double (cyan_hue, _("Cyan Hue"), 0.0)
     value_range (-100.0, 100.0)
 property_double (cyan_sat, _("Cyan Saturation"), 0.0)
@@ -68,7 +76,7 @@ property_double (cyan_sat, _("Cyan Saturation"), 0.0)
 property_double (cyan_lum, _("Cyan Luminance"), 0.0)
     value_range (-100.0, 100.0)
 
-/* ---- Blue -------------------------------------------------------------- */
+/* ---- 蓝 / blue --------------------------------------------------------- */
 property_double (blue_hue, _("Blue Hue"), 0.0)
     value_range (-100.0, 100.0)
 property_double (blue_sat, _("Blue Saturation"), 0.0)
@@ -76,7 +84,7 @@ property_double (blue_sat, _("Blue Saturation"), 0.0)
 property_double (blue_lum, _("Blue Luminance"), 0.0)
     value_range (-100.0, 100.0)
 
-/* ---- Purple ------------------------------------------------------------ */
+/* ---- 紫 / purple ------------------------------------------------------- */
 property_double (purple_hue, _("Purple Hue"), 0.0)
     value_range (-100.0, 100.0)
 property_double (purple_sat, _("Purple Saturation"), 0.0)
@@ -92,7 +100,8 @@ property_double (purple_lum, _("Purple Luminance"), 0.0)
 
 #include "gegl-op.h"
 
-/* 复用RGB->HSV转换 */
+/* 复用 RGB → HSV 转换
+ * reuse the RGB -> HSV conversion */
 static inline void
 rgb_to_hsv(gfloat r, gfloat g, gfloat b, gfloat *h, gfloat *s, gfloat *v)
 {
@@ -119,9 +128,12 @@ rgb_to_hsv(gfloat r, gfloat g, gfloat b, gfloat *h, gfloat *s, gfloat *v)
 static inline gfloat
 smooth_step(gfloat val, gfloat a, gfloat b)
 {
-  /* a == b 时退化为阶跃函数，避免 (val - a) / (b - a) 除 0。
-   * 对 sat_mask 来说：sat_min=0 -> a=b=0，
-   * s=0 返回 0，纯黑/灰跳过；s>0 返回 1，正常参与。 */
+  /* a == b 时退化为阶跃函数，避免 (val - a) / (b - a) 出现除零。
+   * 对 sat_mask 来说：sat_min = 0 时 a = b = 0，s = 0 返回 0（纯黑/灰跳
+   * 过），s > 0 返回 1（正常参与）。
+   * When a == b it degenerates to a step function, so (val - a) / (b - a)
+   * never divides by zero. For sat_mask: sat_min = 0 gives a = b = 0, so s
+   * = 0 returns 0 (black/grey skipped) and s > 0 returns 1 (takes part). */
   if (b <= a)
     return (val <= a) ? 0.0f : 1.0f;
 
@@ -131,7 +143,8 @@ smooth_step(gfloat val, gfloat a, gfloat b)
   gfloat t = (val - a) / (b - a);
   return t * t * (3.0f - 2.0f * t);
 }
-/* 色相环形包裹 0~1 */
+/* 色相环形包裹到 0~1
+ * wrap hue onto the 0..1 circle */
 static inline gfloat
 hue_wrap(gfloat h)
 {
@@ -140,7 +153,8 @@ hue_wrap(gfloat h)
   return h;
 }
 
-/* HSV边界钳位 */
+/* HSV 边界钳位
+ * clamp the HSV components */
 static inline void
 hsv_clamp(gfloat *h, gfloat *s, gfloat *v)
 {
@@ -149,7 +163,8 @@ hsv_clamp(gfloat *h, gfloat *s, gfloat *v)
   *v = CLAMP(*v, 0.0f, 1.0f);
 }
 
-/* 通用环形色相区间权重计算（支持跨0红色区间） */
+/* 通用环形色相区间权重（支持跨 0 的红色区间）
+ * generic circular hue-range weight (handles the red range that crosses 0) */
 static inline gfloat
 get_hue_weight(gfloat h, gfloat h_start, gfloat h_end, gfloat feather)
 {
@@ -157,7 +172,8 @@ get_hue_weight(gfloat h, gfloat h_start, gfloat h_end, gfloat feather)
   gfloat f = feather * 0.01f;
 
   if (h_start > h_end) {
-    /* 计算距离区间两端的平滑权重 */
+    /* 按到区间两端的距离算平滑权重
+     * smooth weight from the distance to either end of the range */
     gfloat w_right = smooth_step(h, h_start - f, h_start);      // 接近 1 侧
     gfloat w_left  = 1.0f - smooth_step(h, h_end, h_end + f);   // 接近 0 侧，注意反转
     w = CLAMP(w_right + w_left, 0.0f, 1.0f);
@@ -171,7 +187,8 @@ get_hue_weight(gfloat h, gfloat h_start, gfloat h_end, gfloat feather)
   return CLAMP(w, 0.0f, 1.0f);
 }
 
-/* HSV转回RGBA */
+/* HSV 转回 RGBA
+ * HSV back to RGBA */
 static inline void
 hsv_to_rgb(gfloat h, gfloat s, gfloat v, gfloat *r, gfloat *g, gfloat *b)
 {
@@ -214,21 +231,29 @@ process(GeglOperation       *op,
   if (!roi || roi->width <= 0 || roi->height <= 0)
     return TRUE;
 
-  /* 全局参数 */
+  /* 全局参数
+   * global parameters */
   gdouble hue_ft, sat_min_ui;
-  /* Red */
+  /* 红
+   * red */
   gdouble red_h, red_s, red_l;
-  /* Orange */
+  /* 橙
+   * orange */
   gdouble ora_h, ora_s, ora_l;
-  /* Yellow */
+  /* 黄
+   * yellow */
   gdouble yel_h, yel_s, yel_l;
-  /* Green */
+  /* 绿
+   * green */
   gdouble gre_h, gre_s, gre_l;
-  /* Cyan */
+  /* 青
+   * cyan */
   gdouble cya_h, cya_s, cya_l;
-  /* Blue */
+  /* 蓝
+   * blue */
   gdouble blu_h, blu_s, blu_l;
-  /* Purple */
+  /* 紫
+   * purple */
   gdouble pur_h, pur_s, pur_l;
 
   g_object_get(G_OBJECT(op),
@@ -250,7 +275,8 @@ process(GeglOperation       *op,
   gfloat *in_line  = g_new(gfloat, stride);
   gfloat *out_line = g_new(gfloat, stride);
 
-  /* ACR标准七色色相区间 H 0~1 */
+  /* ACR 标准七色色相区间，H 取 0~1
+   * ACR's seven standard hue ranges, H in 0..1 */
   typedef struct {
     gfloat start;
     gfloat end;
@@ -260,19 +286,26 @@ process(GeglOperation       *op,
   } ColorRange;
 
   ColorRange ranges[7] = {
-    /* Red cross 0 */
+    /* 红（跨 0）
+     * red, crossing 0 */
     {0.92f, 0.08f, red_h, red_s, red_l},
-    /* Orange */
+    /* 橙
+     * orange */
     {0.08f, 0.18f, ora_h, ora_s, ora_l},
-    /* Yellow */
+    /* 黄
+     * yellow */
     {0.18f, 0.28f, yel_h, yel_s, yel_l},
-    /* Green */
+    /* 绿
+     * green */
     {0.28f, 0.48f, gre_h, gre_s, gre_l},
-    /* Cyan */
+    /* 青
+     * cyan */
     {0.48f, 0.62f, cya_h, cya_s, cya_l},
-    /* Blue */
+    /* 蓝
+     * blue */
     {0.62f, 0.78f, blu_h, blu_s, blu_l},
-    /* Purple */
+    /* 紫
+     * purple */
     {0.78f, 0.92f, pur_h, pur_s, pur_l},
   };
 
@@ -293,7 +326,8 @@ process(GeglOperation       *op,
       gfloat h, s, v;
       rgb_to_hsv(r, g, b, &h, &s, &v);
 
-      /* 灰度过滤：饱和度低于阈值完全不调整 */
+      /* 灰度过滤：饱和度低于阈值时完全不调整
+       * grey filter: below the saturation threshold nothing is adjusted */
       gfloat sat_mask = smooth_step(s, sat_min_thr * 0.5f, sat_min_thr);
       if (sat_mask < 0.001f)
       {
@@ -307,7 +341,8 @@ process(GeglOperation       *op,
       gfloat orig_h = h;
       gfloat orig_s = s;
 
-      /* 遍历7个色系叠加调整 */
+      /* 遍历 7 个色系叠加调整
+       * loop over the seven bands and accumulate */
       for (gint i = 0; i < 7; i++)
       {
         ColorRange cr = ranges[i];
@@ -315,15 +350,18 @@ process(GeglOperation       *op,
         w *= sat_mask;
         if (w < 0.001f) continue;
 
-        /* 色相偏移 -100~100 → ±0.15色相环 */
+        /* 色相偏移 -100~100 → 色环上 ±0.15
+         * hue shift -100..100 -> +-0.15 of the hue circle */
         gfloat h_delta = cr.h_off * 0.0015f * w;
         h += h_delta;
 
-        /* 饱和度缩放 -100=0x ~ +100=2x */
+        /* 饱和度缩放：-100 = 0x，+100 = 2x
+         * saturation scale: -100 = 0x, +100 = 2x */
         gfloat s_mult = (1.0f + cr.s_scale * 0.01f);
         s = orig_s * (1.0f - w) + s * s_mult * w;
 
-        /* 明度偏移 ±100 */
+        /* 明度偏移 ±100
+         * lightness shift, +-100 */
         gfloat v_delta = cr.l_off * 0.005f * w;
         v += v_delta;
       }

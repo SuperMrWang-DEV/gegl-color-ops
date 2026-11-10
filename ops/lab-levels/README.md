@@ -29,12 +29,12 @@ After installation, **restart GIMP** to activate the plugin.
 
 #### Method 1: Menu Bar (Recommended)
 
-Menu path: `Colors → SuperMrWang → lab-levels`
+Menu path: `Colors → SuperMrWang → LAB Levels`
 
 #### Method 2: GEGL Operation
 
 1. Go to `Filters → Generic → GEGL Operations`
-2. In the search box, enter: `lab-levels`
+2. In the search box, enter: `lb:lab-levels`
 3. Select it and click `OK` to apply
 
 ---
@@ -63,10 +63,10 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/
 
 #### 方法一：菜单打开（推荐）
 
-菜单路径：`颜色 → SuperMrWang → lab-levels`
+菜单路径：`颜色 → SuperMrWang → LAB Levels`
 
 #### 方法二：GEGL 操作打开
 
 1. 顶部菜单点击：`滤镜 → 通用 → GEGL 操作`
-2. 在弹出窗口的搜索框输入：`lab-levels`
+2. 在弹出窗口的搜索框输入：`lb:lab-levels`
 3. 选中后点击「确定」即可使用插件

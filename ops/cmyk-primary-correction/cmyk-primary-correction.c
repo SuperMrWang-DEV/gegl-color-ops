@@ -1,14 +1,23 @@
 /* ===========================================================================
- * SuperMrWang · GEGL Operation
+ * SuperMrWang · GEGL 算子 / GEGL Operation
  * ---------------------------------------------------------------------------
- * id     : lb:cmyk-primary-correction
- * 菜单   : CMYK Primary
- * 作用   : PS 可选颜色：红/黄/绿/青/蓝/品红/白/中性/黑九组各自独立记忆 C/M/Y/K
- * 算法   : RGB → CMYK；九组色域分别算权重，逐像素把九组偏移同时叠加，
- *          支持绝对 / 相对两种模式，灰阶不受影响
- * 类型   : GeglOperationPointFilter
- * 参考   : Photoshop「可选颜色」(Selective Color)
- * 许可   : GPL-3.0-or-later，见工程根目录 LICENSE
+ * id         lb:cmyk-primary-correction
+ * menu       CMYK Primary
+ * purpose    PS 可选颜色：红/黄/绿/青/蓝/品红/白/中性/黑九组各自独立记忆
+ *            C/M/Y/K
+ *            PS Selective Color: nine ranges (red, yellow, green, cyan, blue,
+ *            magenta, white, neutral, black), each keeping its own C/M/Y/K
+ *            values.
+ * algorithm  RGB → CMYK；九组色域分别算权重，逐像素把九组偏移同时叠加，支持绝
+ *            对 / 相对两种模式，灰阶不受影响
+ *            RGB -> CMYK. All nine ranges are weighted per pixel and their
+ *            offsets are summed simultaneously; absolute and relative modes
+ *            are supported and greys are left untouched.
+ * type       GeglOperationPointFilter（逐像素 / per-pixel）
+ * reference  Photoshop「可选颜色」(Selective Color)
+ *            Photoshop Selective Color
+ * license    GPL-3.0-or-later，见工程根目录 LICENSE
+ *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
 
 #include "config.h"
@@ -17,16 +26,21 @@
 
 #ifdef GEGL_PROPERTIES
 
-/* ---- 全局选项 ---------------------------------------------------------- */
+/* ---- 全局选项 / global options ----------------------------------------- */
 
 property_boolean (absolute, _("Absolute Mode"), FALSE)
     description (_("PS 'Absolute' checkbox: 100 means a hard +100% ink step "
                    "instead of a relative one"))
 
-/* ---- 九组色域各自一份 C/M/Y/K ------------------------------------------
- * PS 的「可选颜色」是 9 个页签各存一套 C/M/Y/K，切换页签不会丢掉别组的
- * 数值，且九组同时作用。这里用 36 个独立属性如实还原该行为。
+/* ---- 九组色域各自一份 C/M/Y/K / nine ranges, one set each --------------
+ * PS 的「可选颜色」有 9 个页签，各存一套 C/M/Y/K；切换页签不会丢掉别组的
+ * 数值，而且九组同时作用。这里用 36 个独立属性如实还原该行为。
+ * PS Selective Color keeps one C/M/Y/K set per tab: switching tabs never
+ * drops another tab's values and all nine act at once. 36 separate
+ * properties reproduce that faithfully.
  * 顺序与 PS 一致：红 / 黄 / 绿 / 青 / 蓝 / 品红 / 白 / 中性 / 黑
+ * Order matches PS: red, yellow, green, cyan, blue, magenta, white,
+ * neutral, black.
  */
 
 property_double (reds_cyan,    _("Reds – Cyan"),    0.0)
@@ -118,7 +132,7 @@ property_double (blacks_black,   _("Blacks – Black"),   0.0)
 
 #include "gegl-op.h"
 
-/* ---- 九组色域 ---------------------------------------------------------- */
+/* ---- 九组色域数据 / the nine ranges ------------------------------------ */
 
 typedef enum
 {
@@ -134,13 +148,16 @@ typedef enum
   SEC_COUNT
 } SectionId;
 
-/* 每组一份 C/M/Y/K，下标 0=C 1=M 2=Y 3=K，取值 -1~1 */
+/* 每组一份 C/M/Y/K，下标 0=C 1=M 2=Y 3=K，取值 -1~1
+ * one C/M/Y/K set per group, index 0=C 1=M 2=Y 3=K, range -1..1 */
 typedef struct
 {
   gfloat v[4];
 } SectionAdjust;
 
-/* 属性名用到的段名与通道名，顺序必须与上面一致 */
+/* 拼接属性名用的段名与通道名，顺序必须与上表一致
+ * segment and channel names used to build property names; the order must
+ * match the table above */
 static const gchar *section_ids[SEC_COUNT] = {
   "reds", "yellows", "greens", "cyans", "blues",
   "magentas", "whites", "neutrals", "blacks"
@@ -150,12 +167,12 @@ static const gchar *channel_ids[4] = {
   "cyan", "magenta", "yellow", "black"
 };
 
-/* ---- 单像素 RGB 三通道 + 最大/中间/最小分量信息 ------------------------ */
+/* ---- 单像素 RGB 分量信息 / per-pixel RGB components -------------------- */
 
 typedef struct {
   gfloat r, g, b;
   gfloat max_val, mid_val, min_val;
-  gint max_idx, mid_idx, min_idx;   /* 0=r,1=g,2=b */
+  gint max_idx, mid_idx, min_idx;   /* 0=红 1=绿 2=蓝 / 0=r 1=g 2=b */
 } RgbInfo;
 
 static inline gfloat clampf(gfloat v, gfloat low, gfloat high)
@@ -165,19 +182,21 @@ static inline gfloat clampf(gfloat v, gfloat low, gfloat high)
   return v;
 }
 
-/* Java ColorUtils.round 移植，限幅到区间 */
+/* 移植 Java 的 ColorUtils.round，并限幅到区间
+ * ported from Java ColorUtils.round, clamped to the range */
 static inline gfloat color_round_clamp(gfloat val, gfloat upper, gfloat lower)
 {
   return clampf(val, lower, upper);
 }
 
-/* 单通道修正量，对应 Java selectiveColorChannel */
+/* 单通道修正量，对应 Java 的 selectiveColorChannel
+ * per-channel delta, mirrors Java selectiveColorChannel */
 static gfloat
-channel_delta(gfloat   ch_val,   /* 当前通道 0~1 */
-              gfloat   range,    /* 色域权重 0~1 */
+channel_delta(gfloat   ch_val,   /* 当前通道 0~1 / current channel 0..1 */
+              gfloat   range,    /* 色域权重 0~1 / range weight 0..1 */
               gboolean is_abs,
-              gfloat   arg,      /* C/M/Y 参数 -1~1 */
-              gfloat   karg)     /* K 参数 -1~1 */
+              gfloat   arg,      /* C/M/Y 参数 -1~1 / C/M/Y argument -1..1 */
+              gfloat   karg)     /* K 参数 -1~1 / K argument -1..1 */
 {
   gfloat m = is_abs ? 1.0f : (1.0f - ch_val);
 
@@ -186,7 +205,8 @@ channel_delta(gfloat   ch_val,   /* 当前通道 0~1 */
   return clamped * range;
 }
 
-/* 分解像素 RGB，按 min/mid/max 排序并记下索引 */
+/* 分解像素 RGB：按 min/mid/max 排序并记下各自索引
+ * decompose the pixel RGB, sort into min/mid/max and keep the indices */
 static void
 split_rgb(gfloat r, gfloat g, gfloat b, RgbInfo *info)
 {
@@ -213,7 +233,8 @@ split_rgb(gfloat r, gfloat g, gfloat b, RgbInfo *info)
   info->max_val = vals[2]; info->max_idx = idxs[2];
 }
 
-/* 当前像素落在某个色域的权重 0~1，移植 Java 逻辑 */
+/* 当前像素落在某个色域的权重 0~1，移植 Java 逻辑
+ * weight 0..1 of this pixel for one range, ported from the Java code */
 static gfloat
 calc_weight_range(const RgbInfo *rgb, gint section)
 {
@@ -254,7 +275,7 @@ calc_weight_range(const RgbInfo *rgb, gint section)
   return clampf(range, 0.0f, 1.0f);
 }
 
-/* ---- 读取九组参数 ------------------------------------------------------ */
+/* ---- 读取九组参数 / read the nine parameter sets ----------------------- */
 
 static void
 read_adjustments(GeglOperation *op, SectionAdjust adj[SEC_COUNT],
@@ -287,7 +308,8 @@ read_adjustments(GeglOperation *op, SectionAdjust adj[SEC_COUNT],
 static void
 prepare(GeglOperation *op)
 {
-  /* 浮点 RGBA 输入输出 */
+  /* 浮点 RGBA 输入输出
+   * float RGBA in and out */
   gegl_operation_set_format(op, "input",  babl_format("RGBA float"));
   gegl_operation_set_format(op, "output", babl_format("RGBA float"));
 }
@@ -333,7 +355,9 @@ process(GeglOperation       *op,
 
       gfloat dr = 0.0f, dg = 0.0f, db = 0.0f;
 
-      /* 九组同时叠加：某像素同时属于「红」和「白」时两者都生效，与 PS 一致 */
+      /* 九组同时叠加：像素同时属于「红」和「白」时两组都生效，与 PS 一致
+       * all nine add up: a pixel that is both red and white gets both, as
+       * in PS */
       for (gint s = 0; s < SEC_COUNT; s++)
       {
         gfloat w;

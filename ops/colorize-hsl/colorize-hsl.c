@@ -1,14 +1,21 @@
 /* ===========================================================================
- * SuperMrWang · GEGL Operation
+ * SuperMrWang · GEGL 算子 / GEGL Operation
  * ---------------------------------------------------------------------------
- * id     : lb:colorize-hsl
- * 菜单   : Colorize
- * 作用   : 单色罩染：替换色相与饱和度，保留画面原有明暗结构
- * 算法   : 三通道 Overlay 叠灰层调明度 → 取 HSL 的 L → 换 H/S → 回 RGB；
- *          输出的像素间差异只来自 L
- * 类型   : GeglOperationFilter
- * 参考   : Photoshop「颜色」调整层 + Overlay 着色
- * 许可   : GPL-3.0-or-later，见工程根目录 LICENSE
+ * id         lb:colorize-hsl
+ * menu       Colorize
+ * purpose    单色罩染：替换色相与饱和度，保留画面原有明暗结构
+ *            Monochrome tint: substitute hue and saturation while keeping the
+ *            original luminance structure.
+ * algorithm  三通道 Overlay 叠灰层调明度 → 取 HSL 的 L → 换 H/S → 回 RGB；输
+ *            出的像素间差异只来自 L
+ *            Overlay every channel with a grey layer to shape lightness, take
+ *            L from HSL, substitute H/S, convert back to RGB. The output
+ *            varies between pixels only in L.
+ * type       GeglOperationFilter（需整块区域 / whole-region）
+ * reference  Photoshop「颜色」调整层 + Overlay 着色
+ *            Photoshop Color fill layer over an Overlay-blended grey
+ * license    GPL-3.0-or-later，见工程根目录 LICENSE
+ *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
 
 #include "config.h"
@@ -53,7 +60,7 @@ static inline gdouble clamp01(gdouble v)
   return v;
 }
 
-/* ---- RGB 0..1 -> HSL (H:0..360, S:0..1, L:0..1) ------------------------ */
+/* ---- RGB → HSL --------------------------------------------------------- */
 static void rgb_to_hsl(gdouble r, gdouble g, gdouble b,
                        gdouble *h_out, gdouble *s_out, gdouble *l_out)
 {
@@ -82,7 +89,7 @@ static void rgb_to_hsl(gdouble r, gdouble g, gdouble b,
   *l_out = l;
 }
 
-/* ---- HSL -> RGB 0..1 --------------------------------------------------- */
+/* ---- HSL → RGB --------------------------------------------------------- */
 static void hsl_to_rgb(gdouble h, gdouble s, gdouble l,
                        gdouble *r_out, gdouble *g_out, gdouble *b_out)
 {
@@ -107,15 +114,18 @@ static void hsl_to_rgb(gdouble h, gdouble s, gdouble l,
   *b_out = b + m;
 }
 
-/* ---- Overlay 明度调整 ---------------------------------------------------
- *   v   : 底层通道值 0..1
- *   a   : 上层纯灰 0..1，由 light_slider [-100,100] 映射
- *   Overlay 公式：v<=0.5 时 out = 2*v*a；否则 out = 1 - 2*(1-v)*(1-a)
- *   返回 0..1
+/* ---- Overlay 明度调整 / Overlay lightness ------------------------------
+ * v   : 底层通道值 0..1 / base channel value 0..1
+ * a   : 上层纯灰 0..1，由 light_slider [-100,100] 映射
+ *       grey layer 0..1, mapped from light_slider [-100,100]
+ * Overlay：v<=0.5 时 out = 2*v*a，否则 out = 1 - 2*(1-v)*(1-a)
+ *          out = 2*v*a when v<=0.5, else 1 - 2*(1-v)*(1-a)
+ * 返回 0..1 / returns 0..1
  */
 static inline gdouble adjust_channel(gdouble v, gdouble light_slider)
 {
-  /* 滑块映射到Overlay上层灰度 a: [-100,100] → [0,1] */
+  /* 滑块映射到 Overlay 上层灰度 a：[-100,100] → [0,1]
+   * slider -> Overlay grey layer a: [-100,100] maps to [0,1] */
   gdouble a = (light_slider + 100.0) / 200.0;
 
   gdouble out;
@@ -134,21 +144,21 @@ static void colorize_kernel(gfloat inR, gfloat inG, gfloat inB,
                             gdouble target_h, gdouble target_s, gdouble light_slider,
                             gfloat *outR, gfloat *outG, gfloat *outB)
 {
-  /* ---- Step 1: 先对 RGB 通道做Overlay明度调整 -------------------------- */
+  /* ---- 第 1 步：RGB 各通道先做 Overlay 调明度 / Step 1: Overlay on RGB - */
   gdouble r_adj = adjust_channel(inR, light_slider);
   gdouble g_adj = adjust_channel(inG, light_slider);
   gdouble b_adj = adjust_channel(inB, light_slider);
 
-  /* ---- Step 2: 将调整后的 RGB 转为 HSL，取 L --------------------------- */
+  /* ---- 第 2 步：转 HSL 取 L / Step 2: RGB -> HSL, take L --------------- */
   gdouble h_orig, s_orig, L_adj;
   rgb_to_hsl(r_adj, g_adj, b_adj, &h_orig, &s_orig, &L_adj);
 
-  /* ---- Step 3: 只替换 H 和 S，L 用调整后的值 --------------------------- */
+  /* ---- 第 3 步：换 H、S，保留 L / Step 3: swap H and S ---------------- */
   gdouble final_h = target_h;             /* 0..360 */
-  gdouble final_s = target_s / 100.0;     /* 0..1  */
-  gdouble final_l = L_adj;                /* 来自调整后的 RGB 的 L */
+  gdouble final_s = target_s / 100.0;     /* 0..1 */
+  gdouble final_l = L_adj;                /* 取调整后 RGB 的 L / L from the adjusted RGB */
 
-  /* ---- Step 4: HSL -> RGB ---------------------------------------------- */
+  /* ---- 第 4 步：HSL → RGB / Step 4 ------------------------------------- */
   gdouble r2, g2, b2;
   hsl_to_rgb(final_h, final_s, final_l, &r2, &g2, &b2);
 

@@ -1,14 +1,21 @@
 /* ===========================================================================
- * SuperMrWang · GEGL Operation
+ * SuperMrWang · GEGL 算子 / GEGL Operation
  * ---------------------------------------------------------------------------
- * id     : lb:vibrance-hyper
- * 菜单   : Vibrance
- * 作用   : 自然饱和度：提升低饱和区，抑制高饱和与肤色，不破坏色相
- * 算法   : LAB 下按源图色度 C* 取双曲增益，叠加肤色色相窗；
- *          色度沿固定色相放大后按色域二分收敛，避免裁剪扭色
- * 类型   : GeglOperationPointFilter
- * 参考   : Adobe Camera Raw / Photoshop 的 Vibrance
- * 许可   : GPL-3.0-or-later，见工程根目录 LICENSE
+ * id         lb:vibrance-hyper
+ * menu       Natural Saturation
+ * purpose    自然饱和度：提升低饱和区，抑制高饱和与肤色，不破坏色相
+ *            Natural saturation: lift muted colours while holding back highly
+ *            saturated ones and skin tones, without moving hue.
+ * algorithm  LAB 下按源图色度 C* 取双曲增益，叠加肤色色相窗；色度沿固定色相放
+ *            大后按色域二分收敛，避免裁剪扭色
+ *            In LAB a hyperbolic gain is driven by the source chroma C*,
+ *            gated by a skin-hue window. Chroma grows along a fixed hue and
+ *            is bisected back into gamut instead of being clipped.
+ * type       GeglOperationPointFilter（逐像素 / per-pixel）
+ * reference  Adobe Camera Raw / Photoshop 的 Vibrance
+ *            Adobe Camera Raw / Photoshop Vibrance
+ * license    GPL-3.0-or-later，见工程根目录 LICENSE
+ *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
 
 #include "config.h"
@@ -53,17 +60,17 @@ property_double (skin_protect, _("Skin Protection"), 0.7)
 
 typedef struct
 {
-  gdouble vibrance;      /* 已归一到 -2 .. 2（= 滑杆 / 50） */
+  gdouble vibrance;      /* 已归一到 -2..2（滑杆/50） / normalised to -2..2 (slider / 50) */
   gdouble saturation;
   gdouble atten;
-  gdouble skin;          /* 肤色保护强度 0 .. 1 */
+  gdouble skin;          /* 肤色保护强度 0..1 / skin protection 0..1 */
   gboolean has_alpha;
 } VibranceParams;
 
-/* ---- 色域边界容差：小于它的溢出当成在色域内，避免末位抖动 -------------- */
+/* ---- 色域边界容差（小于它视为在色域内，避免末位抖动）/ gamut tolerance - */
 #define GAMUT_EPS 1e-4f
 
-/* ---- LAB 转换（D65，线性 sRGB 输入） ----------------------------------- */
+/* ---- LAB 转换（D65，线性输入）/ LAB conversion (D65) ------------------ */
 
 static inline gfloat lab_forward_func (gfloat t)
 {
@@ -107,7 +114,7 @@ static void lab_to_rgb (gfloat L, gfloat a, gfloat b,
   *b_out = x *  0.0556434f + y * -0.2040259f + z *  1.0572252f;
 }
 
-/* ---- 蒙版 -------------------------------------------------------------- */
+/* ---- 蒙版 / masks ------------------------------------------------------ */
 
 static inline gfloat smoothstep01 (gfloat e0, gfloat e1, gfloat x)
 {
@@ -119,15 +126,22 @@ static inline gfloat smoothstep01 (gfloat e0, gfloat e1, gfloat x)
   return t * t * (3.0f - 2.0f * t);
 }
 
-/* 色度蒙版：C* 越大权重越低。读的是【源图】色度，与 Saturation 互不影响。
- * 指数 1.3 让 60 以上掉得比纯双曲线更快，避免高饱和区还在被推。 */
+/* 色度蒙版：C* 越大权重越低，读的是「源图」色度，与 Saturation 互不影响。
+ * 指数 1.3 让 60 以上的色度掉得比纯双曲线更快，避免高饱和区还在被推
+ * Chroma mask: the larger C*, the lower the weight. It reads the SOURCE
+ * chroma, so Saturation cannot bias it. The 1.3 exponent makes chroma
+ * above 60 fall off faster than a plain hyperbola, so vivid colours stop
+ * being pushed. */
 static inline gfloat chroma_mask (gfloat chroma, gfloat atten)
 {
   return 1.0f / (1.0f + atten * powf (chroma / 50.0f, 1.3f));
 }
 
-/* 肤色蒙版：LAB 色相 55° 附近（橙/肤色带）且色度落在肤色区间时降权。
- * 用 smoothstep 做软窗，不会出现一刀切的硬边。 */
+/* 肤色蒙版：LAB 色相落在 55° 附近（橙/肤色带）且色度处于肤色区间时降权。用
+ * smoothstep 做软窗，不会出现一刀切的硬边
+ * Skin mask: lower the weight when the LAB hue sits near 55 deg (the
+ * orange/skin band) and the chroma falls inside the skin range. smoothstep
+ * makes it a soft window without a hard edge. */
 static inline gfloat skin_mask (gfloat a, gfloat b, gfloat chroma, gfloat strength)
 {
   gfloat hue, dist, w_hue, w_chroma;
@@ -150,7 +164,7 @@ static inline gfloat skin_mask (gfloat a, gfloat b, gfloat chroma, gfloat streng
   return 1.0f - strength * w_hue * w_chroma;
 }
 
-/* ---- 色域收敛：沿固定色相、固定 L 把色度缩到 sRGB 内 ------------------- */
+/* ---- 色域收敛：沿固定色相与 L 把色度收进 sRGB / gamut convergence ------ */
 
 static inline gboolean in_gamut (gfloat L, gfloat a, gfloat b)
 {
@@ -163,8 +177,11 @@ static inline gboolean in_gamut (gfloat L, gfloat a, gfloat b)
          bb >= -GAMUT_EPS && bb <= 1.0f + GAMUT_EPS;
 }
 
-/* 返回能让 (L, a*k, b*k) 留在色域内的最大 k ∈ [0,1]。
- * 这一步替代硬裁剪：色相与明度完全不动，只是少加一点饱和度。 */
+/* 返回能让 (L, a*k, b*k) 留在色域内的最大 k ∈ [0,1]。这一步替代硬裁剪：色
+ * 相与明度完全不动，只是少加一点饱和度
+ * Return the largest k in [0,1] that keeps (L, a*k, b*k) inside the gamut.
+ * This replaces hard clipping: hue and lightness stay put, only a little
+ * saturation is given up. */
 static inline gfloat gamut_limit (gfloat L, gfloat a, gfloat b)
 {
   gfloat lo, hi;
@@ -189,7 +206,7 @@ static inline gfloat gamut_limit (gfloat L, gfloat a, gfloat b)
   return lo;
 }
 
-/* ---- 主处理 ------------------------------------------------------------ */
+/* ---- 主处理 / main processing ------------------------------------------ */
 
 static void prepare (GeglOperation *operation)
 {
@@ -244,10 +261,13 @@ static inline void process_pixel (VibranceParams *p, const gfloat *src, gfloat *
 
   chroma = sqrtf (a * a + b * b);
 
-  /* 蒙版全部基于源图：色度取 C*，色相取 h_ab */
+  /* 蒙版全部基于源图：色度取 C*，色相取 h_ab
+   * all masks come from the source image: chroma from C*, hue from h_ab */
   mask = chroma_mask (chroma, p->atten) * skin_mask (a, b, chroma, p->skin);
 
-  /* 全局饱和度与自然饱和度相乘，互不污染 */
+  /* 全局饱和度与自然饱和度相乘，两者互不污染
+   * global saturation multiplies the natural gain; neither pollutes the
+   * other */
   scale = p->saturation * (1.0f + p->vibrance * mask);
 
   if (scale == 1.0f)
@@ -258,11 +278,15 @@ static inline void process_pixel (VibranceParams *p, const gfloat *src, gfloat *
       return;
     }
 
-  /* 沿原色相放大色度：等价于 a *= scale、b *= scale，不需要三角运算 */
+  /* 沿原色相放大色度，等价于 a *= scale、b *= scale，不需要三角运算
+   * grow chroma along the original hue; that equals a *= scale and b *=
+   * scale, no trigonometry needed */
   a *= scale;
   b *= scale;
 
-  /* 出界就沿同一条色相射线收回来，不做逐通道裁剪 */
+  /* 出界就沿同一条色相射线收回来，不做逐通道裁剪
+   * if it leaves the gamut, pull it back along the same hue ray instead of
+   * clipping per channel */
   k = gamut_limit (L, a, b);
   if (k < 1.0f)
     {
@@ -324,12 +348,12 @@ static void gegl_op_class_init (GeglOpClass *klass)
 
   gegl_operation_class_set_keys (oc,
     "name",            "lb:vibrance-hyper",
-    "title",           _("Vibrance"),
+    "title",           _("Natural Saturation"),
     "categories",      "color",
     "description",     _("Natural saturation in LAB: chroma-driven hyperbola mask plus "
                          "skin-hue protection, gamut-limited so hue and lightness never shift"),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang",
-    "gimp:menu-label", _("Vibrance"),
+    "gimp:menu-label", _("Natural Saturation"),
     NULL);
 }
 

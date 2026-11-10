@@ -1,14 +1,21 @@
 /* ===========================================================================
- * SuperMrWang · GEGL Operation
+ * SuperMrWang · GEGL 算子 / GEGL Operation
  * ---------------------------------------------------------------------------
- * id     : lb:channel-range-to-alpha
- * 菜单   : Range → Alpha
- * 作用   : 按通道数值区间（0–255）生成 alpha，实现「混合颜色带」式透明控制
- * 算法   : 选定 RGB / 亮度 / LAB L·A·B 通道，区间内不透明，
- *          区间外按 fuzziness 与 feather 平滑衰减
- * 类型   : GeglOperationPointFilter
- * 参考   : Photoshop「混合颜色带」(Blend If)
- * 许可   : GPL-3.0-or-later，见工程根目录 LICENSE
+ * id         lb:channel-range-to-alpha
+ * menu       Range → Alpha
+ * purpose    按通道数值区间（0–255）生成 alpha，实现「混合颜色带」式透明控制
+ *            Build alpha from a numeric range (0-255) of one channel, i.e.
+ *            Blend-If style transparency.
+ * algorithm  选定 RGB / 亮度 / LAB L·A·B 通道，区间内不透明，区间外按
+ *            fuzziness 与 feather 平滑衰减
+ *            Pick an RGB, luminance or LAB L/a/b channel. Values inside the
+ *            range stay opaque, values outside fade out by 'fuzziness' and
+ *            'feather'.
+ * type       GeglOperationPointFilter（逐像素 / per-pixel）
+ * reference  Photoshop「混合颜色带」(Blend If)
+ *            Photoshop Blend If
+ * license    GPL-3.0-or-later，见工程根目录 LICENSE
+ *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
 
 #include "config.h"
@@ -31,12 +38,13 @@ enum_start (channel_enum)
   enum_value (CHANNEL_LAB_B,  "lab-b",   N_("LAB B (Yellow-Blue)"))
 enum_end (ChannelEnum)
 
-/* 滑块范围统一 0~255，内部自动映射 LAB 值域 */
-/* Slider range unified 0~255, internally maps LAB value range automatically. */
-/* 滑块显示名称采用 Photoshop 风格：阴影/高光 的最小/最大值 */
-/* Slider labels follow Photoshop style: Shadow/Highlight Min/Max. */
-/* 内部属性名保持为 l1, l2, r1, r2 以便代码复用 */
-/* Internal property names remain l1, l2, r1, r2 for code simplicity. */
+/* 滑块范围统一 0~255，内部自动映射 LAB 值域
+ * Slider range is 0~255 everywhere; the LAB value range is mapped
+ * internally. */
+/* 滑块显示名沿用 Photoshop 风格：阴影/高光的最小值与最大值
+ * Slider labels follow Photoshop: Shadow Min/Max and Highlight Min/Max. */
+/* 内部属性名保持 l1、l2、r1、r2，方便代码复用
+ * Internal property names stay l1, l2, r1, r2 to keep the code simple. */
 
 property_double (l1, _("Shadow Min"), 0.0)
     value_range (0.0, 255.0)
@@ -62,19 +70,19 @@ property_double (r2, _("Highlight Max"), 255.0)
 
 #include "gegl-op.h"
 
-/* 最小间隔 1.0（0~255量程） */
-/* Minimum step 1.0 (0~255 range) */
+/* 最小间隔 1.0（0~255 量程）
+ * Minimum step 1.0 on the 0~255 scale */
 #define MIN_STEP 1.0f
-/* LAB 值域常量 */
-/* LAB value range constants */
+/* LAB 值域常量
+ * LAB value-range constants */
 #define LAB_L_MIN 0.0f
 #define LAB_L_MAX 100.0f
 #define LAB_AB_MIN -128.0f
 #define LAB_AB_MAX 127.0f
 
 
-/* sRGB 转 XYZ 辅助伽马校正 */
-/* sRGB to XYZ helper: gamma correction */
+/* sRGB → XYZ 的伽马校正辅助函数
+ * sRGB to XYZ helper: gamma correction */
 static inline gfloat srgb_to_linear(gfloat val)
 {
   if (val <= 0.04045f)
@@ -83,8 +91,8 @@ static inline gfloat srgb_to_linear(gfloat val)
     return powf((val + 0.055f) / 1.055f, 2.4f);
 }
 
-/* 线性RGB(sRGB D65) → CIE XYZ */
-/* Linear RGB (sRGB D65) → CIE XYZ */
+/* 线性 RGB（sRGB D65）→ CIE XYZ
+ * Linear RGB (sRGB D65) -> CIE XYZ */
 static void rgb_to_xyz(gfloat r, gfloat g, gfloat b,
                        gfloat *x, gfloat *y, gfloat *z)
 {
@@ -92,15 +100,15 @@ static void rgb_to_xyz(gfloat r, gfloat g, gfloat b,
   gfloat lg = srgb_to_linear(g);
   gfloat lb = srgb_to_linear(b);
 
-  /* D65 转换矩阵 */
-  /* D65 conversion matrix */
+  /* D65 转换矩阵
+   * D65 conversion matrix */
   *x = 0.4124564f * lr + 0.3575761f * lg + 0.1804375f * lb;
   *y = 0.2126729f * lr + 0.7151522f * lg + 0.0721750f * lb;
   *z = 0.0193339f * lr + 0.1191920f * lg + 0.9503041f * lb;
 }
 
-/* XYZ → LAB D65 白点 */
-/* XYZ → LAB, D65 white point */
+/* XYZ → LAB（D65 白点）
+ * XYZ -> LAB with the D65 white point */
 static inline gfloat lab_f(gfloat t)
 {
   const gfloat t0 = powf(6.0f / 29.0f, 3.0f);
@@ -113,8 +121,8 @@ static inline gfloat lab_f(gfloat t)
 static void xyz_to_lab(gfloat x, gfloat y, gfloat z,
                        gfloat *L, gfloat *a, gfloat *b)
 {
-  /* D65 白点 */
-  /* D65 white point */
+  /* D65 白点
+   * D65 white point */
   const gfloat xn = 0.95047f;
   const gfloat yn = 1.00000f;
   const gfloat zn = 1.08883f;
@@ -128,8 +136,8 @@ static void xyz_to_lab(gfloat x, gfloat y, gfloat z,
   *b = 200.0f * (fy - fz);
 }
 
-/* 入口：RGBA float(0~1) 直接输出 LAB L/A/B */
-/* Entry: RGBA float (0~1) directly outputs LAB L/A/B */
+/* 入口：输入 RGBA float（0~1），直接给出 LAB 的 L/A/B
+ * entry point: RGBA float (0~1) in, LAB L/A/B out */
 static void rgb_to_lab(gfloat r, gfloat g, gfloat b,
                        gfloat *lab_L, gfloat *lab_A, gfloat *lab_B)
 {
@@ -138,15 +146,15 @@ static void rgb_to_lab(gfloat r, gfloat g, gfloat b,
   xyz_to_lab(x, y, z, lab_L, lab_A, lab_B);
 }
 
-/* 标准灰度亮度 */
-/* Standard gray luminance */
+/* 标准灰度亮度
+ * standard grey luminance */
 static inline gfloat luminance(gfloat r, gfloat g, gfloat b)
 {
     return 0.299f * r + 0.587f * g + 0.114f * b;
 }
 
-/* 透明度计算 (Blend If 算法) */
-/* Alpha calculation (Blend If algorithm) */
+/* 透明度计算（Blend If 算法）
+ * alpha computation (Blend If algorithm) */
 static inline gfloat blend_if_alpha(gfloat x, gfloat l1, gfloat l2, gfloat r1, gfloat r2)
 {
     if (x < l1 || x > r2)
@@ -174,9 +182,10 @@ static void prepare(GeglOperation *operation)
     gegl_operation_set_format(operation, "output", babl_format("RGBA float"));
 }
 
-/* 统一矫正滑块顺序，防止区间错乱 */
-/* Unified slider order correction to prevent interval confusion */
-/* l1=Shadow Min, l2=Shadow Max, r1=Highlight Min, r2=Highlight Max */
+/* 统一矫正滑块顺序，防止区间反转
+ * clamp the slider order so the ranges cannot invert */
+/* l1=阴影下限 l2=阴影上限 r1=高光下限 r2=高光上限
+ * l1=Shadow Min, l2=Shadow Max, r1=Highlight Min, r2=Highlight Max */
 static void clamp_slider_order(gdouble *l1, gdouble *l2, gdouble *r1, gdouble *r2)
 {
     *l1 = CLAMP(*l1, 0.0, 255.0);
@@ -192,8 +201,8 @@ static void clamp_slider_order(gdouble *l1, gdouble *l2, gdouble *r1, gdouble *r
         *r2 = *r1 + MIN_STEP;
 }
 
-/* 将LAB值域映射到0~255滑块区间 */
-/* Map LAB value range to 0~255 slider interval */
+/* 把 LAB 值域映射到 0~255 的滑块区间
+ * map the LAB range onto the 0~255 slider range */
 static inline gfloat labL_to_0_255(gfloat L)
 {
     gfloat norm = (L - LAB_L_MIN) / (LAB_L_MAX - LAB_L_MIN);

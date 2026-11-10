@@ -24,7 +24,7 @@ gegl-color-ops/
 ├── meson.build           # 等价工程，供 Linux/macOS 或 CI 使用
 ├── common/config.h       # 所有算子共用的版本宏 / GETTEXT_PACKAGE
 ├── ops/<算子名>/          # 每个算子一个目录：<算子名>.c + 原始说明 + 截图
-├── tools/                # 测试图生成、逐算子冒烟、对照表拼接、文件头重排
+├── tools/                # 测试图生成、逐算子冒烟、对照表、文件头重排、注释双语化
 ├── build/                # 编译产物（build.sh 生成，可随时删）
 └── LICENSE               # GPL-3.0
 ```
@@ -45,9 +45,9 @@ gegl-color-ops/
 | `lb:colorize-hsl` | Colorize | Colorize | Filter | HSL 罩染，保留明暗结构 |
 | `lb:color-mask-select` | Mask by Color | Color Mask Select | Point | PS 色彩范围：按选色 + 容差 + 羽化出蒙版 |
 | `lb:lab-levels` | LAB Levels | LAB Levels | Filter | LAB 三通道各自黑白场 + 伽马 |
-| `lb:exposure` | Exposure | Exposure | Filter | PS 曝光：EV、偏移、伽马 |
-| `lb:rgb-domain-grayscale` | Grayscale | Grayscale | Point | PS 黑白：六色权重转灰 + 可选着色 |
-| `lb:vibrance-hyper` | Vibrance | Vibrance | Point | LAB 自然饱和度：色度双曲蒙版 + 肤色保护窗 + 色域收敛不扭色相 |
+| `lb:exposure` | Exposure EV | Exposure EV | Filter | PS 曝光：EV、偏移、伽马 |
+| `lb:rgb-domain-grayscale` | Black & White | Black & White | Point | PS 黑白：六色权重转灰 + 可选着色 |
+| `lb:vibrance-hyper` | Natural Saturation | Natural Saturation | Point | LAB 自然饱和度：色度双曲蒙版 + 肤色保护窗 + 色域收敛不扭色相 |
 | `lb:xyz-multiply` | XYZ Multiply | XYZ Multiply | Point | 以参考色做正片叠底（XYZ 域） |
 
 每个算子的算法说明、参数含义见 `ops/<算子名>/README.md`（原始文档）。
@@ -68,27 +68,43 @@ title            <短名>                    搜索动作 / fx 名用；需要�
 `Channel Mixer Plus`、`Mask by Color` 属固定叫法，保留。模型/来源（HSL、PS、RGB、ACR）
 一律写进 `description`，避免菜单与选项面板被括号撑宽。
 
+**不得与 GIMP / GEGL 自带算子重名**。GIMP 3 自带 `Exposure`（`gegl:exposure`）、
+`Vibrance`（`gegl:vibrance`）、`Make Gray`（`gegl:gray`），所以本工程的三个算子改名为
+`Exposure EV`、`Black & White`、`Natural Saturation`。新增算子前先跑一次
+`gegl --list-all` + `gegl --info` 查标题，或用下面的片段一次列出所有重名：
+
+```bash
+for op in $(gegl --list-all); do gegl --info "$op"; done | grep '^title ' | sort | uniq -d
+```
+
 **2. `GEGL_OP_NAME` 必须带 `lb_` 前缀**
 
 它决定注册的 GType 名，GEGL 用裸字符串注册，不带命名空间会与核心算子撞名——
 例如写成 `exposure` 会撞上 GEGL 自带的 `gegl:exposure`，后果是该算子**静默加载失败**
 （`gegl --info` 查不到，但编译、安装全都没报错）。所以统一 `lb_<snake_case>`。
 
-**3. 文件头注释盒（78 列）**
+**3. 文件头注释盒（78 列，中英双语）**
 
 ```c
 /* ===========================================================================
- * SuperMrWang · GEGL Operation
+ * SuperMrWang · GEGL 算子 / GEGL Operation
  * ---------------------------------------------------------------------------
- * id     : lb:xxx
- * 菜单   : 菜单名
- * 作用   : 一句话说清做什么
- * 算法   : 核心思路，可换行续写，续行与首行左对齐
- * 类型   : GeglOperationPointFilter / GeglOperationFilter
- * 参考   : 算法来源（可选，没有就整行省略）
- * 许可   : GPL-3.0-or-later，见工程根目录 LICENSE
+ * id         lb:xxx
+ * menu       菜单名
+ * purpose    一句话说清做什么
+ *            One line on what the op does.
+ * algorithm  核心思路，可续行
+ *            Core idea, wrapped in English.
+ * type       GeglOperationPointFilter（逐像素 / per-pixel）
+ * reference  算法来源（可选，没有就整段省略）
+ * license    GPL-3.0-or-later，见工程根目录 LICENSE
+ *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
 ```
+
+字段固定 6 个（`id` / `menu` / `purpose` / `algorithm` / `type` / `reference` / `license`），
+每段**先中文、后英文**，工具按 78 列自动折行（CJK 记 2 列，URL 不拆）。
+`tools/normalize_headers.py` 里的 `OPS` 表就是唯一数据源，改元数据只改那一处。
 
 **4. include 顺序固定**
 
@@ -108,6 +124,28 @@ title            <短名>                    搜索动作 / fx 名用；需要�
 ```
 
 原来混用 `// ====`、`/* ---- */`、`// 注释` 的写法已统一成上面这种，整行注释也一律 `/* */`。
+分隔线同样双语：`/* ---- 主处理 / main processing ---- */`。
+
+**6. 所有注释中英双语**
+
+```c
+/* 中文说明 / English note */          // 一行放得下就单行
+/* 中文说明
+ * English note. */                  // 否则中文在上、英文在下
+gfloat a = 1.0f;   /* 中文 / English */   // 行尾注释同理
+```
+
+维护用 `tools/i18n_blocks.py`（按「注释块」定位，不碰代码）：
+
+```bash
+python tools/i18n_blocks.py todo                     # 找出缺中文或缺英文的块
+python tools/i18n_blocks.py scan <算子名>             # 列出块号 / 行号 / 原文
+python tools/i18n_blocks.py apply <算子名> <map.json> # 按块号替换（写盘前校验代码字符未变）
+python tools/i18n_blocks.py check                    # 与 git HEAD 比对代码本体是否零改动
+```
+
+映射文件里 `{"zh": "...", "en": "..."}` 由工具自动排版，`{"div": "名称"}` 生成分隔线，
+`{"tail": "..."}` 只改行尾注释，`null` 表示删除该块（用于合并重复的中英两块）。
 
 ## 构建
 

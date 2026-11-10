@@ -1,15 +1,30 @@
 /* ===========================================================================
- * SuperMrWang · GEGL Operation
+ * SuperMrWang · GEGL 算子 / GEGL Operation
  * ---------------------------------------------------------------------------
- * id     : lb:color-balance
- * 菜单   : Color Balance
- * 作用   : PS 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴
- * 算法   : 在 8bit sRGB 伽马域反推 PS 曲线，两种模式：
- *          原版 = 三区间独立通道曲线；MATLAB 版 = 零和矩阵（保明度）
- *          输入须为伽马编码 sRGB，勿在前置节点用 linear-rgb
- * 类型   : GeglOperationFilter
- * 参考   : zhuanlan.zhihu.com/p/679776283 、/p/59450298（PS 色彩平衡原理）
- * 许可   : GPL-3.0-or-later，见工程根目录 LICENSE
+ * id         lb:color-balance
+ * menu       Color Balance
+ * purpose    PS 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴
+ *            PS Color Balance: shadow, midtone and highlight each carry three
+ *            axis pairs (C-R, M-G, Y-B).
+ * algorithm  在 8bit sRGB 伽马域反推 PS 曲线，两种模式：原版 = 三区间独立通道
+ *            曲线；MATLAB 版 = 零和矩阵（保明度）。输入须为伽马编码 sRGB，勿
+ *            在前置节点用 linear-rgb
+ *            Reverse-engineered PS curves in 8-bit sRGB gamma space, two
+ *            modes: original = independent per-region channel curves, MATLAB
+ *            = zero-sum matrix that preserves luminosity. Feed gamma-encoded
+ *            sRGB; do not insert linear-rgb before this op.
+ * type       GeglOperationFilter（需整块区域 / whole-region）
+ * reference  色彩平衡调整图层的本质-背后的数学原理（王先生的副业）
+ *            https://zhuanlan.zhihu.com/p/679776283
+ *            Photoshop 中的色彩平衡调整图层的原理分析（章佳杰）
+ *            https://zhuanlan.zhihu.com/p/59450298
+ *            The math behind the Color Balance layer / Wang's side project
+ *            https://zhuanlan.zhihu.com/p/679776283
+ *            How the Photoshop Color Balance layer really works / Zhang
+ *            Jiajie
+ *            https://zhuanlan.zhihu.com/p/59450298
+ * license    GPL-3.0-or-later，见工程根目录 LICENSE
+ *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
 
 #include "config.h"
@@ -106,7 +121,7 @@ static inline gfloat gammaCorrection255(gfloat input8, gdouble gamma)
     return (gfloat)outi;
 }
 
-/* ---- Highlight curve functions (unchanged) ----------------------------- */
+/* ---- 高光曲线（未改动）/ highlight curves (unchanged) ------------------ */
 static inline gfloat highlightRight(gdouble value, gfloat input8)
 {
     gfloat result = (1.0f / (1.0f - 0.004f * (gfloat)value)) * input8;
@@ -124,7 +139,7 @@ static inline gfloat highlight(gdouble value, gfloat input8)
         return highlightLeft(value, input8);
 }
 
-/* ---- Midtone curve functions (unchanged) ------------------------------- */
+/* ---- 中间调曲线（未改动）/ midtone curves (unchanged) ------------------ */
 static inline gfloat midtoneRight(gdouble value, gfloat input8)
 {
     return gammaCorrection255(input8, 1.0 - (0.005 * value));
@@ -141,7 +156,7 @@ static inline gfloat midtone(gdouble value, gfloat input8)
         return midtoneLeft(value, input8);
 }
 
-/* ---- Shadow curve functions (unchanged) -------------------------------- */
+/* ---- 阴影曲线（未改动）/ shadow curves (unchanged) --------------------- */
 static inline gfloat shadowRight(gdouble value, gfloat input8)
 {
     return gammaCorrection255(input8, 1.0 - (0.003 * value));
@@ -164,9 +179,11 @@ static inline gfloat shadow(gdouble value, gfloat input8)
 
 /**
  * colorbalance_8bit_kernel
- * CHANGED: No brightness region split, NO weighting/interpolation.
- * Shadow, Midtone, Highlight curves apply sequentially in full to every pixel.
- * Every pixel goes through all three curves one after another.
+ * 改动：不再按亮度分区，也不做加权插值；阴影、中间调、高光三条曲线
+ * 依次完整作用到每个像素。
+ * CHANGED: no brightness region split, no weighting or interpolation. The
+ * shadow, midtone and highlight curves apply in full, one after another, to
+ * every pixel.
  */
 static inline gfloat colorbalance_8bit_kernel(gfloat inFloat,
                                               gdouble shd,
@@ -175,7 +192,8 @@ static inline gfloat colorbalance_8bit_kernel(gfloat inFloat,
 {
     gfloat val = inFloat * 255.0f;
 
-    /* 全部像素依次应用三条曲线，全程生效，不分明暗 */
+    /* 所有像素依次穿过三条曲线，全程生效，不分明暗
+     * every pixel runs through all three curves, no tonal split */
     val = shadow(shd, val);
     val = midtone(mid, val);
     val = highlight(hlt, val);
@@ -186,8 +204,8 @@ static inline gfloat colorbalance_8bit_kernel(gfloat inFloat,
 
 /**
  * normalize_three_median
- * 三个值排序，减去中位数。
- * 三值相等时全部变成 0。
+ * 三个值先排序，再各自减去中位数；三值相等时全部变成 0。
+ * Sort the three values and subtract the median; equal inputs collapse to 0.
  */
 static inline void normalize_three_median(gdouble *v)
 {
@@ -205,17 +223,23 @@ static inline void normalize_three_median(gdouble *v)
 }
 
 /*
- * ===== MATLAB-style preserve luminosity functions =====
- * Based on the MATLAB algorithm:
- *   1. Normalize coefficients by subtracting median
- *   2. Highlights: matrix method -> per-channel alpha -> out = in / (1 - alpha)
- *   3. Shadows:   matrix method -> per-channel alpha -> out = (in - alpha) / (1 - alpha)
- *   4. Midtones:  matrix method -> per-channel gamma -> out = in ^ gamma
+ * ===== MATLAB 风格保明度函数 / MATLAB preserve luminosity =====
+ * 依据 MATLAB 算法：
+ *   1. 系数减去中位数做归一化 / normalize coefficients by the median
+ *   2. 高光：矩阵 -> 每通道 alpha -> in / (1 - alpha)
+ *      highlights: matrix -> alpha per channel -> in / (1 - alpha)
+ *   3. 阴影：矩阵 -> 每通道 alpha -> (in - alpha) / (1 - alpha)
+ *      shadows: matrix -> alpha per channel -> (in - alpha) / (1 - alpha)
+ *   4. 中间调：矩阵 -> 每通道 gamma -> in ^ gamma
+ *      midtones: matrix -> gamma per channel -> in ^ gamma
  */
 
 /**
  * compute_highlights_alpha
- * MATLAB algorithm for highlights:
+ * 高光的 MATLAB 算法：先把系数拆成正、负两部分，再按矩阵列求和得到
+ * 每通道一个 alpha。
+ * MATLAB algorithm for highlights: split the coefficients into pos/neg parts,
+ * then sum the matrix columns to get one alpha per channel.
  *   alpha = k * coef  (k = 0.0039230)
  *   pos = max(alpha, 0), neg = max(-alpha, 0)
  *   Matrix = diag(pos)*I + diag(neg)*M_offdiag
@@ -242,7 +266,9 @@ static inline void compute_highlights_alpha(const gdouble *coef, gdouble *alpha_
 
 /**
  * compute_shadows_alpha
- * MATLAB algorithm for shadows:
+ * 阴影的 MATLAB 算法：与高光方向相反，负系数进对角、正系数进非对角。
+ * MATLAB algorithm for shadows: the opposite of highlights, negative
+ * coefficients go to the diagonal and positive ones off it.
  *   alpha = k * coef  (k = 0.0039230)
  *   pos = max(alpha, 0), neg = max(-alpha, 0)
  *   Matrix = diag(neg)*I + diag(pos)*M_offdiag
@@ -269,7 +295,9 @@ static inline void compute_shadows_alpha(const gdouble *coef, gdouble *alpha_out
 
 /**
  * compute_midtones_gamma
- * MATLAB algorithm for midtones:
+ * 中间调的 MATLAB 算法：由三通道 alpha 通过反对角矩阵换成每通道 gamma。
+ * MATLAB algorithm for midtones: turn the three alphas into one gamma per
+ * channel through the anti-diagonal matrix.
  *   alpha = k * coef  (k = 0.0033944)
  *   gamma = exp(sum(diag(-alpha) * M))
  *     where M = [1,-1,-1; -1,1,-1; -1,-1,1]
@@ -350,8 +378,9 @@ process(GeglOperation       *op,
 
       if (preserve_lum)
       {
-          /* ---- MATLAB-style preserve luminosity ------------------------ */
-          /* Step 1: Normalize coefficients by subtracting median */
+          /* ---- MATLAB 保明度 / preserve luminosity --------------------- */
+          /* 第 1 步：系数减中位数归一化
+           * Step 1: normalize the coefficients by the median */
           gdouble shd_in[3] = { shd_cr, shd_mg, shd_yb };
           gdouble mid_in[3] = { mid_cr, mid_mg, mid_yb };
           gdouble hlt_in[3] = { hlt_cr, hlt_mg, hlt_yb };
@@ -360,13 +389,15 @@ process(GeglOperation       *op,
           normalize_three_median(mid_in);
           normalize_three_median(hlt_in);
 
-          /* Step 2: Compute per-channel coefficients */
+          /* 第 2 步：算每通道系数
+           * Step 2: compute per-channel coefficients */
           gdouble hlt_alpha[3], shd_alpha[3], mid_gamma[3];
           compute_highlights_alpha(hlt_in, hlt_alpha);
           compute_shadows_alpha(shd_in, shd_alpha);
           compute_midtones_gamma(mid_in, mid_gamma);
 
-          /* Step 3: Apply highlights -> out = in / (1 - alpha) */
+          /* 第 3 步：应用高光，out = in / (1 - alpha)
+           * Step 3: apply highlights -> out = in / (1 - alpha) */
           r_out = r_in / (1.0f - (gfloat)hlt_alpha[0]);
           g_out = g_in / (1.0f - (gfloat)hlt_alpha[1]);
           b_out = b_in / (1.0f - (gfloat)hlt_alpha[2]);
@@ -374,7 +405,8 @@ process(GeglOperation       *op,
           g_out = CLAMP(g_out, 0.0f, 1.0f);
           b_out = CLAMP(b_out, 0.0f, 1.0f);
 
-          /* Step 4: Apply shadows -> out = (in - alpha) / (1 - alpha) */
+          /* 第 4 步：应用阴影，out = (in - alpha) / (1 - alpha)
+           * Step 4: apply shadows -> out = (in - alpha) / (1 - alpha) */
           r_out = (r_out - (gfloat)shd_alpha[0]) / (1.0f - (gfloat)shd_alpha[0]);
           g_out = (g_out - (gfloat)shd_alpha[1]) / (1.0f - (gfloat)shd_alpha[1]);
           b_out = (b_out - (gfloat)shd_alpha[2]) / (1.0f - (gfloat)shd_alpha[2]);
@@ -382,7 +414,8 @@ process(GeglOperation       *op,
           g_out = CLAMP(g_out, 0.0f, 1.0f);
           b_out = CLAMP(b_out, 0.0f, 1.0f);
 
-          /* Step 5: Apply midtones -> out = in ^ gamma */
+          /* 第 5 步：应用中间调，out = in ^ gamma
+           * Step 5: apply midtones -> out = in ^ gamma */
           r_out = powf(r_out, (gfloat)mid_gamma[0]);
           g_out = powf(g_out, (gfloat)mid_gamma[1]);
           b_out = powf(b_out, (gfloat)mid_gamma[2]);
@@ -392,7 +425,9 @@ process(GeglOperation       *op,
       }
       else
       {
-          /* Original PS behavior: independent channel kernel, use raw sliders */
+          /* 原版 PS 行为：独立通道内核，直接用滑块原值
+           * Original PS behaviour: independent channel kernel on raw
+           * sliders */
           r_out = colorbalance_8bit_kernel(r_in, shd_cr, mid_cr, hlt_cr);
           g_out = colorbalance_8bit_kernel(g_in, shd_mg, mid_mg, hlt_mg);
           b_out = colorbalance_8bit_kernel(b_in, shd_yb, mid_yb, hlt_yb);

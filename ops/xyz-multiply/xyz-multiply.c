@@ -1,13 +1,19 @@
 /* ===========================================================================
- * SuperMrWang · GEGL Operation
+ * SuperMrWang · GEGL 算子 / GEGL Operation
  * ---------------------------------------------------------------------------
- * id     : lb:xyz-multiply
- * 菜单   : XYZ Multiply
- * 作用   : 以参考色在 XYZ 域做正片叠底，白点可选 D50/D55/D65/D75
- * 算法   : sRGB → XYZ 乘叠 → 回 sRGB，opacity 控制混合比例
- * 类型   : GeglOperationPointFilter
- * 参考   : 正片叠底 (Multiply) 的 XYZ 域实现
- * 许可   : GPL-3.0-or-later，见工程根目录 LICENSE
+ * id         lb:xyz-multiply
+ * menu       XYZ Multiply
+ * purpose    以参考色在 XYZ 域做正片叠底，白点可选 D50/D55/D65/D75
+ *            Multiply blend against a reference colour in XYZ space; the
+ *            white point can be D50/D55/D65/D75.
+ * algorithm  sRGB → XYZ 乘叠 → 回 sRGB，opacity 控制混合比例
+ *            sRGB -> XYZ, multiply, back to sRGB; 'opacity' sets the blend
+ *            amount.
+ * type       GeglOperationPointFilter（逐像素 / per-pixel）
+ * reference  正片叠底 (Multiply) 的 XYZ 域实现
+ *            Multiply blend, implemented in XYZ space
+ * license    GPL-3.0-or-later，见工程根目录 LICENSE
+ *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
 
 #include "config.h"
@@ -47,13 +53,15 @@ typedef struct {
   gfloat X, Y, Z;
 } WhitePoint;
 
-/* 全部4种白点常量 */
+/* 四种白点常量
+ * the four white-point constants */
 static const WhitePoint WP_D50  = {0.96422f, 1.00000f, 0.82521f};
 static const WhitePoint WP_D55  = {0.95682f, 1.00000f, 0.92149f};
 static const WhitePoint WP_D65  = {0.95047f, 1.00000f, 1.08883f};
 static const WhitePoint WP_D75  = {0.94972f, 1.00000f, 1.22638f};
 
-/* Bradford 基础矩阵 D65 <-> D50 */
+/* Bradford 基础矩阵：D65 ↔ D50
+ * Bradford base matrix, D65 <-> D50 */
 static const gfloat CAT_BRADFORD[3][3] = {
   { 1.0478112f,  0.0228866f, -0.0501270f},
   { 0.0295424f,  0.9904844f, -0.0170491f},
@@ -97,7 +105,8 @@ static inline gfloat srgb_gamma(gfloat val)
   return 1.055f * powf(val, 1.0f/2.4f) - 0.055f;
 }
 
-/* sRGB → D65 XYZ */
+/* sRGB → D65 XYZ
+ * sRGB -> D65 XYZ */
 static void srgb_float_to_xyz_d65(gfloat r, gfloat g, gfloat b, gfloat *X, gfloat *Y, gfloat *Z)
 {
   gfloat lr = srgb_ungamma(r);
@@ -106,7 +115,8 @@ static void srgb_float_to_xyz_d65(gfloat r, gfloat g, gfloat b, gfloat *X, gfloa
   mat3_mul_vec(MAT_SRGB_TO_XYZ, lr, lg, lb, X, Y, Z);
 }
 
-/* D65 XYZ → sRGB */
+/* D65 XYZ → sRGB
+ * D65 XYZ -> sRGB */
 static void xyz_d65_to_srgb_float(gfloat X, gfloat Y, gfloat Z, gfloat *r, gfloat *g, gfloat *b)
 {
   gfloat lr, lg, lb;
@@ -119,7 +129,8 @@ static void xyz_d65_to_srgb_float(gfloat X, gfloat Y, gfloat Z, gfloat *r, gfloa
   *b = srgb_gamma(lb);
 }
 
-/* 获取选中枚举对应的白点结构体 */
+/* 取选中枚举对应的白点结构体
+ * white-point struct for the selected enum */
 static WhitePoint get_wp_from_enum(WPSelectType mode)
 {
   switch(mode)
@@ -131,12 +142,14 @@ static WhitePoint get_wp_from_enum(WPSelectType mode)
   }
 }
 
-/* 通用：D65 XYZ 转目标白点XYZ（Bradford） */
+/* 通用：D65 XYZ → 目标白点 XYZ（Bradford）
+ * generic: D65 XYZ -> target white-point XYZ (Bradford) */
 static void xyz_d65_to_target_wp(gfloat x65, gfloat y65, gfloat z65,
                                  const WhitePoint target_wp,
                                  gfloat *tX, gfloat *tY, gfloat *tZ)
 {
-  /* 简化通用Bradford适配（行业通用简化实现） */
+  /* 简化的通用 Bradford 适配（业界常用简化实现）
+   * simplified generic Bradford adaptation, as commonly implemented */
   gfloat sr = x65 / WP_D65.X;
   gfloat sg = y65 / WP_D65.Y;
   gfloat sb = z65 / WP_D65.Z;
@@ -150,7 +163,8 @@ static void xyz_d65_to_target_wp(gfloat x65, gfloat y65, gfloat z65,
   mat3_mul_vec(CAT_INV_BRADFORD, sr, sg, sb, tX, tY, tZ);
 }
 
-/* 通用：目标白点XYZ 转回 D65 XYZ */
+/* 通用：目标白点 XYZ → D65 XYZ
+ * generic: target white-point XYZ -> D65 XYZ */
 static void target_wp_to_xyz_d65(gfloat tX, gfloat tY, gfloat tZ,
                                  const WhitePoint target_wp,
                                  gfloat *x65, gfloat *y65, gfloat *z65)
@@ -168,7 +182,8 @@ static void target_wp_to_xyz_d65(gfloat tX, gfloat tY, gfloat tZ,
   mat3_mul_vec(CAT_INV_BRADFORD, sr, sg, sb, x65, y65, z65);
 }
 
-/* 混合函数不变 */
+/* 混合函数不变
+ * blend function unchanged */
 static void xyz_multiply_blend(gfloat bX, gfloat bY, gfloat bZ,
                                gfloat oX, gfloat oY, gfloat oZ,
                                const WhitePoint wp,
@@ -218,10 +233,12 @@ process(GeglOperation       *op,
   gfloat ovb = (gfloat)ovb_d;
   gfloat opac_f = (gfloat)opacity;
 
-  /* 获取当前选中白点 */
+  /* 取当前选中的白点
+   * fetch the selected white point */
   WhitePoint wp = get_wp_from_enum(wmode);
 
-  /* 预计算叠加色XYZ（转换到目标白点空间） */
+  /* 预计算叠加色的 XYZ（已转到目标白点空间）
+   * precompute the overlay colour in target white-point XYZ */
   gfloat oX65, oY65, oZ65;
   srgb_float_to_xyz_d65(ovr, ovg, ovb, &oX65, &oY65, &oZ65);
   gfloat oX, oY, oZ;
@@ -245,17 +262,20 @@ process(GeglOperation       *op,
       gfloat b = in_line[p+2];
       gfloat a = in_line[p+3];
 
-      /* 原图sRGB → D65 XYZ → 转换到目标白点空间 */
+      /* 原图 sRGB → D65 XYZ → 目标白点空间
+       * source sRGB -> D65 XYZ -> target white-point space */
       gfloat bX65, bY65, bZ65;
       srgb_float_to_xyz_d65(r, g, b, &bX65, &bY65, &bZ65);
       gfloat bX, bY, bZ;
       xyz_d65_to_target_wp(bX65, bY65, bZ65, wp, &bX, &bY, &bZ);
 
-      /* 目标白点空间相乘混合 */
+      /* 在目标白点空间做正片叠底
+       * multiply inside the target white-point space */
       gfloat mX, mY, mZ;
       xyz_multiply_blend(bX, bY, bZ, oX, oY, oZ, wp, opac_f, &mX, &mY, &mZ);
 
-      /* 混合结果转回D65 → sRGB输出 */
+      /* 结果转回 D65 → sRGB 输出
+       * convert back to D65 -> sRGB output */
       gfloat mX65, mY65, mZ65;
       target_wp_to_xyz_d65(mX, mY, mZ, wp, &mX65, &mY65, &mZ65);
       gfloat or_, og, ob;

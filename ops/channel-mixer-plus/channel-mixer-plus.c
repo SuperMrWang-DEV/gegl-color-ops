@@ -1,13 +1,20 @@
 /* ===========================================================================
- * SuperMrWang · GEGL Operation
+ * SuperMrWang · GEGL 算子 / GEGL Operation
  * ---------------------------------------------------------------------------
- * id     : lb:channel-mixer-plus
- * 菜单   : Channel Mixer Plus
- * 作用   : PS 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移
- * 算法   : 3×3 混合矩阵 + 每通道 offset；monochrome 打开时改用单组系数转灰
- * 类型   : GeglOperationPointFilter
- * 参考   : GEGL 官方 channel-mixer（补 RGB offset、去 preserve luminosity）
- * 许可   : GPL-3.0-or-later，见工程根目录 LICENSE
+ * id         lb:channel-mixer-plus
+ * menu       Channel Mixer Plus
+ * purpose    PS 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移
+ *            PS Channel Mixer: every output channel is a weighted sum of
+ *            R/G/B, plus a constant offset per channel.
+ * algorithm  3×3 混合矩阵 + 每通道 offset；monochrome 打开时改用单组系数转灰
+ *            A 3x3 mixing matrix plus one offset per channel; with
+ *            'monochrome' a single set of coefficients produces grey.
+ * type       GeglOperationPointFilter（逐像素 / per-pixel）
+ * reference  GEGL 官方 channel-mixer（补 RGB offset、去 preserve luminosity）
+ *            GEGL core channel-mixer, with per-channel offsets added and
+ *            keep-luminosity dropped
+ * license    GPL-3.0-or-later，见工程根目录 LICENSE
+ *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
 
 #include "config.h"
@@ -16,11 +23,13 @@
 
 #ifdef GEGL_PROPERTIES
 
-/* New: PS Monochrome toggle */
+/* 新增：PS 单色开关
+ * New: PS Monochrome toggle */
 property_boolean (monochrome, _("Monochrome"), FALSE)
   description(_("Produce grayscale monochrome image (PS style single channel mixer)"))
 
-/* Monochrome shared mixing coefficients (only used when monochrome=TRUE) */
+/* 单色共用的混合系数（仅 monochrome=TRUE 时生效）
+ * Monochrome shared mixing coefficients (only used when monochrome=TRUE) */
 property_double (mono_r, _("Red"), 0.33)
   description(_("Red channel contribution for monochrome output"))
   value_range (-2.0, 2.0)
@@ -37,7 +46,8 @@ property_double (mono_offset, _("Monochrome Offset"), 0.0)
   description(_("Constant offset added to monochrome gray value"))
   value_range (-1.0, 1.0)
 
-/* Red output channel (normal color mode only) */
+/* 红色输出通道（仅普通彩色模式）
+ * Red output channel (normal colour mode only) */
 property_double (rr_gain, _("Red in Red channel"), 1.0)
   description(_("Set the red amount for the red channel"))
   value_range (-2.0, 2.0)
@@ -54,7 +64,8 @@ property_double (r_offset, _("Red Offset"), 0.0)
   description(_("Constant offset added to red output channel"))
   value_range (-1.0, 1.0)
 
-/* Green output channel (normal color mode only) */
+/* 绿色输出通道（仅普通彩色模式）
+ * Green output channel (normal colour mode only) */
 property_double (gr_gain, _("Red in Green channel"), 0.0)
   description(_("Set the red amount for the green channel"))
   value_range (-2.0, 2.0)
@@ -71,7 +82,8 @@ property_double (g_offset, _("Green Offset"), 0.0)
   description(_("Constant offset added to green output channel"))
   value_range (-1.0, 1.0)
 
-/* Blue output channel (normal color mode only) */
+/* 蓝色输出通道（仅普通彩色模式）
+ * Blue output channel (normal colour mode only) */
 property_double (br_gain, _("Red in Blue channel"), 0.0)
   description(_("Set the red amount for the blue channel"))
   value_range (-2.0, 2.0)
@@ -110,7 +122,8 @@ typedef struct
   CmChannelType  green;
   CmChannelType  blue;
 
-  /* New monochrome params */
+  /* 新增的单色参数
+   * New monochrome params */
   gboolean monochrome;
   gdouble mono_r;
   gdouble mono_g;
@@ -132,14 +145,16 @@ static void prepare (GeglOperation *operation)
 
   mix = (CmParamsType*) o->user_data;
 
-  /* Read monochrome config */
+  /* 读取单色配置
+   * Read the monochrome configuration */
   mix->monochrome = o->monochrome;
   mix->mono_r     = o->mono_r;
   mix->mono_g     = o->mono_g;
   mix->mono_b     = o->mono_b;
   mix->mono_offset= o->mono_offset;
 
-  /* Normal color channel gains & offsets */
+  /* 普通彩色模式的通道增益与偏移
+   * Normal colour channel gains and offsets */
   mix->red.red_gain     = o->rr_gain;
   mix->red.green_gain   = o->rg_gain;
   mix->red.blue_gain    = o->rb_gain;
@@ -195,7 +210,8 @@ cm_mix_pixel (CmChannelType *ch,
   return (gfloat) c;
 }
 
-/* New: calculate monochrome gray value */
+/* 新增：计算单色灰度值
+ * New: compute the monochrome grey value */
 static inline gfloat
 cm_mono_gray (CmParamsType *mix, gfloat r, gfloat g, gfloat b)
 {
@@ -212,14 +228,16 @@ cm_process_pixel (CmParamsType  *mix,
   if (mix->monochrome)
     {
       gfloat gray = cm_mono_gray (mix, s[0], s[1], s[2]);
-      /* R=G=B 实现单色灰度图 */
+      /* 令 R=G=B 得到单色灰度图
+       * R=G=B produces the monochrome grey image */
       d[0] = gray;
       d[1] = gray;
       d[2] = gray;
     }
   else
     {
-      /* Original color mixing logic */
+      /* 原有的彩色混合逻辑
+       * Original colour mixing logic */
       d[0] = cm_mix_pixel (&mix->red,   s[0], s[1], s[2]);
       d[1] = cm_mix_pixel (&mix->green, s[0], s[1], s[2]);
       d[2] = cm_mix_pixel (&mix->blue,  s[0], s[1], s[2]);

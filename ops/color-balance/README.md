@@ -29,12 +29,12 @@ After installation, **restart GIMP** to activate the plugin.
 
 #### Method 1: Menu Bar (Recommended)
 
-Menu path: `Colors → SuperMrWang → PS ColorBalance`
+Menu path: `Colors → SuperMrWang → Color Balance`
 
 #### Method 2: GEGL Operation
 
 1. Go to `Filters → Generic → GEGL Operations`
-2. In the search box, enter: `PS ColorBalance`
+2. In the search box, enter: `lb:color-balance`
 3. Select it and click `OK` to apply
 
 ---
@@ -63,10 +63,34 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/
 
 #### 方法一：菜单打开（推荐）
 
-菜单路径：`颜色 → SuperMrWang → PS ColorBalance`
+菜单路径：`颜色 → SuperMrWang → Color Balance`
 
 #### 方法二：GEGL 操作打开
 
 1. 顶部菜单点击：`滤镜 → 通用 → GEGL 操作`
-2. 在弹出窗口的搜索框输入：`PS ColorBalance`
+2. 在弹出窗口的搜索框输入：`lb:color-balance`
 3. 选中后点击「确定」即可使用插件
+
+---
+
+## 参考 / References
+
+算法反推自 Photoshop 色彩平衡调整层，主要依据下面两篇文章：
+
+The algorithm was reverse-engineered from the Photoshop Color Balance layer,
+based mainly on these two articles:
+
+1. 色彩平衡调整图层的本质-背后的数学原理 - 王先生的副业 - 知乎
+   https://zhuanlan.zhihu.com/p/679776283
+2. Photoshop 中的色彩平衡调整图层的原理分析 - 章佳杰 - 知乎
+   https://zhuanlan.zhihu.com/p/59450298
+
+- 第 1 篇给出 PS 三段（阴影 / 中间调 / 高光）独立通道曲线的推导，对应本算子的
+  原版模式（`preserve-luminosity` 关闭）。
+- 第 2 篇给出零和矩阵与保明度的处理方式，对应本算子的 MATLAB 模式
+  （`preserve-luminosity` 打开）。
+
+- Article 1 derives the three separate shadow/midtone/highlight channel curves,
+  which is this op's original mode (preserve-luminosity off).
+- Article 2 works out the zero-sum matrix that keeps luminosity, which is this
+  op's MATLAB mode (preserve-luminosity on).

@@ -1,13 +1,20 @@
 /* ===========================================================================
- * SuperMrWang · GEGL Operation
+ * SuperMrWang · GEGL 算子 / GEGL Operation
  * ---------------------------------------------------------------------------
- * id     : lb:rgb-domain-grayscale
- * 菜单   : Grayscale
- * 作用   : PS 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色
- * 算法   : RGB 三通道按六色权重加权求和，-200~300 区间与 PS 界面对齐
- * 类型   : GeglOperationPointFilter
- * 参考   : Photoshop「黑白」(Black & White)
- * 许可   : GPL-3.0-or-later，见工程根目录 LICENSE
+ * id         lb:rgb-domain-grayscale
+ * menu       Black & White
+ * purpose    PS 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色
+ *            PS Black & White: six hue sliders (red, yellow, green, cyan,
+ *            blue, magenta) weight the grey conversion, with optional
+ *            tinting.
+ * algorithm  RGB 三通道按六色权重加权求和，-200~300 区间与 PS 界面对齐
+ *            The three RGB channels are summed with six hue weights; the
+ *            -200..300 slider range matches the PS dialog.
+ * type       GeglOperationPointFilter（逐像素 / per-pixel）
+ * reference  Photoshop「黑白」(Black & White)
+ *            Photoshop Black & White
+ * license    GPL-3.0-or-later，见工程根目录 LICENSE
+ *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
 
 #include "config.h"
@@ -16,7 +23,10 @@
 
 #ifdef GEGL_PROPERTIES
 
-/* 6色滑块：总范围、UI可视范围统一 -200 ~ 300，默认值对应PS原版百分比 */
+/* 6 个色相滑块：取值范围与 UI 可视范围统一为 -200 ~ 300，默认值对应 PS 原
+ * 版的百分比
+ * Six hue sliders: value range and UI range are both -200..300; the
+ * defaults match the PS percentages. */
 property_double (red, _("Red"), 40.0)
   value_range (-200.0, 300.0)
   ui_range (-200.0, 300.0)
@@ -53,7 +63,7 @@ property_double (magenta, _("Magenta"), 80.0)
   ui_steps (1.0, 10.0)
   description (_("Magenta color ratio (PS default 80 = 0.8)"))
 
-/* ---- 着色控制属性 ------------------------------------------------------ */
+/* ---- 着色控制属性 / tint controls -------------------------------------- */
 property_boolean (tint_enabled, _("Tint Enabled"), FALSE)
   description (_("Enable tinting mode"))
 
@@ -74,39 +84,44 @@ property_double (tint_strength, _("Tint Strength"), 1.0)
 
 #include "gegl-op.h"
 
-/* ---- 枚举定义：通道索引 ------------------------------------------------ */
+/* ---- 枚举定义：通道索引 / enum: channel indices ------------------------ */
 typedef enum {
   CH_R = 0,
   CH_G = 1,
   CH_B = 2
 } ChanIdx;
 
-/* ---- 【修复】线性RGB着色算法（PS 真实实现） ---------------------------- */
+/* ---- 线性 RGB 着色算法（PS 的真实实现）/ linear-RGB tint (what PS does) */
 static void
 tint_pixel (gfloat gray, const gfloat tint_rgb[3], gfloat strength, gfloat out[3])
 {
-  /* PS 着色 = 灰度作为亮度，混合目标颜色（线性光模式） */
+  /* PS 的着色 = 把灰度当亮度，用线性光模式混合目标色
+   * PS tint = treat the grey as luminance and blend the target colour in
+   * linear light */
   gfloat r = tint_rgb[0];
   gfloat g = tint_rgb[1];
   gfloat b = tint_rgb[2];
 
-  /* 线性亮度混合（和 PS 完全一致） */
+  /* 线性亮度混合（与 PS 完全一致）
+   * linear luminance blend, identical to PS */
   out[0] = gray * r;
   out[1] = gray * g;
   out[2] = gray * b;
 
-  /* 强度插值 */
+  /* 按强度插值
+   * interpolate by strength */
   out[0] = gray + (out[0] - gray) * strength;
   out[1] = gray + (out[1] - gray) * strength;
   out[2] = gray + (out[2] - gray) * strength;
 
-  /* 安全裁剪 */
+  /* 安全裁剪
+   * safe clamp */
   out[0] = CLAMP(out[0], 0.0f, 1.0f);
   out[1] = CLAMP(out[1], 0.0f, 1.0f);
   out[2] = CLAMP(out[2], 0.0f, 1.0f);
 }
 
-/* ---- GEGL 操作标准接口 ------------------------------------------------- */
+/* ---- GEGL 算子标准接口 / GEGL operation interface ---------------------- */
 static void
 prepare (GeglOperation *operation)
 {
@@ -124,7 +139,7 @@ process (GeglOperation       *operation,
   if (!roi || roi->width == 0 || roi->height == 0)
     return TRUE;
 
-  /* ---- 1. 获取所有属性 ------------------------------------------------- */
+  /* ---- 1. 取出全部属性 / 1. fetch every property ----------------------- */
   gdouble red, yellow, green, cyan, blue, magenta;
   gboolean tint_enabled;
   gdouble tint_strength;
@@ -143,7 +158,8 @@ process (GeglOperation       *operation,
                 "tint_strength", &tint_strength,
                 NULL);
 
-  /* ✅ 修复：gegl_color_get_rgba 需要 gdouble (double) 类型 */
+  /* 修复：gegl_color_get_rgba 需要 gdouble（double）类型的存储
+   * fix: gegl_color_get_rgba needs gdouble (double) storage */
   if (tint_enabled && tint_color_obj) {
     gdouble r, g, b, a;
     gegl_color_get_rgba(tint_color_obj, &r, &g, &b, &a);
@@ -153,7 +169,7 @@ process (GeglOperation       *operation,
   }
   g_clear_object(&tint_color_obj);
 
-  /* ---- 2. 将滑块值转换为计算系数 --------------------------------------- */
+  /* ---- 2. 滑块值换算成系数 / 2. slider values -> coefficients ---------- */
   gfloat r_ratio = red / 100.0f;
   gfloat y_ratio = yellow / 100.0f;
   gfloat g_ratio = green / 100.0f;
@@ -161,7 +177,7 @@ process (GeglOperation       *operation,
   gfloat b_ratio = blue / 100.0f;
   gfloat m_ratio = magenta / 100.0f;
 
-  /* ---- 3. 准备输入/输出缓冲区 ------------------------------------------ */
+  /* ---- 3. 准备输入/输出缓冲区 / 3. prepare the buffers ----------------- */
   gint n_pixels = roi->width * roi->height;
   gfloat *in_data  = g_new (gfloat, n_pixels * 4);
   gfloat *out_data = g_new (gfloat, n_pixels * 4);
@@ -172,7 +188,7 @@ process (GeglOperation       *operation,
                    GEGL_AUTO_ROWSTRIDE,
                    GEGL_ABYSS_NONE);
 
-  /* ---- 4. 主循环：黑白计算 + 干净着色 ---------------------------------- */
+  /* ---- 4. 主循环：黑白计算 + 干净着色 / 4. loop: grey + tint ----------- */
   for (gint i = 0; i < n_pixels; i++)
     {
       gint idx = i * 4;
@@ -181,12 +197,15 @@ process (GeglOperation       *operation,
       gfloat b = in_data[idx + 2];
       gfloat a = in_data[idx + 3];
 
-      /* 1. 存储通道数值+索引，排序找max/mid/min对应的通道 */
+      /* 1. 记下三个通道的数值与索引，排序后得到 max/mid/min 各自对应的通道
+       * 1. keep each channel value with its index, sort to find which is
+       * max/mid/min */
       gfloat vals[3] = {r, g, b};
       ChanIdx idx0 = CH_R, idx1 = CH_G, idx2 = CH_B;
       ChanIdx maxChan, midChan, minChan;
 
-      /* 冒泡排序，从大到小 */
+      /* 冒泡排序，从大到小
+       * bubble sort, largest first */
       if (vals[idx0] < vals[idx1]) { ChanIdx t = idx0; idx0 = idx1; idx1 = t; }
       if (vals[idx0] < vals[idx2]) { ChanIdx t = idx0; idx0 = idx2; idx2 = t; }
       if (vals[idx1] < vals[idx2]) { ChanIdx t = idx1; idx1 = idx2; idx2 = t; }
@@ -198,7 +217,8 @@ process (GeglOperation       *operation,
 
       gfloat ratio_max, ratio_max_mid;
 
-      /* 2. 根据【最大值通道+中间值通道】匹配比率 */
+      /* 2. 用「最大值通道 + 中间值通道」的组合去匹配权重
+       * 2. match the weights against the max/mid channel pair */
       if ((maxChan == CH_R && midChan == CH_G) || (maxChan == CH_G && midChan == CH_R)) {
         ratio_max = (maxChan == CH_R) ? r_ratio : g_ratio;
         ratio_max_mid = y_ratio;
@@ -213,11 +233,13 @@ process (GeglOperation       *operation,
         ratio_max_mid = 1.0f;
       }
 
-      /* 3. 计算灰度（你原本的逻辑完全正确） */
+      /* 3. 计算灰度（原有逻辑，保持不动）
+       * 3. compute the grey value (original logic, left untouched) */
       gfloat gray = (maxv - midv) * ratio_max + (midv - minv) * ratio_max_mid + minv;
       gray = CLAMP(gray, 0.0f, 1.0f);
 
-      /* 4. 【修复】干净着色 */
+      /* 4. 干净着色，不再二次污染
+       * 4. tint without polluting the result */
       if (tint_enabled && tint_strength > 0.0f) {
         gfloat tinted[3];
         tint_pixel(gray, tint_rgb, (gfloat)tint_strength, tinted);
@@ -233,7 +255,7 @@ process (GeglOperation       *operation,
       out_data[idx+3] = a;
     }
 
-  /* ---- 5. 写回输出缓冲区并清理 ----------------------------------------- */
+  /* ---- 5. 写回输出并清理 / 5. write back and clean up ------------------ */
   gegl_buffer_set (output, roi, 0,
                    babl_format ("RGBA float"),
                    out_data,
@@ -244,7 +266,7 @@ process (GeglOperation       *operation,
   return TRUE;
 }
 
-/* ---- GEGL 操作类初始化 ------------------------------------------------- */
+/* ---- GEGL 算子类初始化 / operation class init -------------------------- */
 static void
 gegl_op_class_init (GeglOpClass *klass)
 {
@@ -256,11 +278,11 @@ gegl_op_class_init (GeglOpClass *klass)
 
   gegl_operation_class_set_keys (op_class,
     "name",            "lb:rgb-domain-grayscale",
-    "title",           _("Grayscale"),
+    "title",           _("Black & White"),
     "description",     _("PS Black & White: six color weights (red/yellow/green/cyan/blue/magenta) "
                          "in RGB domain, optional tint"),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang",
-    "gimp:menu-label", _("Grayscale"),
+    "gimp:menu-label", _("Black & White"),
     NULL);
 }
 

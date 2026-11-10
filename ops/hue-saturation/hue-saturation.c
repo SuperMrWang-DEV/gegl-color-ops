@@ -1,14 +1,22 @@
 /* ===========================================================================
- * SuperMrWang · GEGL Operation
+ * SuperMrWang · GEGL 算子 / GEGL Operation
  * ---------------------------------------------------------------------------
- * id     : lb:hue-saturation
- * 菜单   : Hue/Saturation
- * 作用   : 全局或按红/黄/绿/青/蓝/品红六个色相区间调整色相、饱和度、明度
- * 算法   : RGB → HSL → 偏移 H/S/L → RGB；六区间按三角色相权重混合，
- *          overlap 控制区间互相渗透的宽度；无彩像素跳过，避免灰阶染色
- * 类型   : GeglOperationPointFilter（逐像素，可多线程分块）
- * 参考   : GIMP 内置「色相-饱和度」（HSL 空间重写）
- * 许可   : GPL-3.0-or-later，见工程根目录 LICENSE
+ * id         lb:hue-saturation
+ * menu       Hue/Saturation
+ * purpose    全局或按红/黄/绿/青/蓝/品红六个色相区间调整色相、饱和度、明度
+ *            Adjust hue, saturation and lightness globally, or inside six hue
+ *            ranges (red, yellow, green, cyan, blue, magenta).
+ * algorithm  RGB → HSL → 偏移 H/S/L → RGB；六区间按三角色相权重混合，overlap
+ *            控制区间互相渗透的宽度；无彩像素跳过，避免灰阶染色
+ *            RGB -> HSL, add the H/S/L offsets, back to RGB. The six ranges
+ *            are blended with triangular hue weights, and 'overlap' sets how
+ *            far each range bleeds into its neighbours. Achromatic pixels are
+ *            skipped so greys are never tinted.
+ * type       GeglOperationPointFilter（逐像素 / per-pixel）
+ * reference  GIMP 内置「色相-饱和度」（HSL 空间重写）
+ *            GIMP Hue-Saturation dialog, reimplemented in HSL space
+ * license    GPL-3.0-or-later，见工程根目录 LICENSE
+ *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
 
 #include "config.h"
@@ -126,7 +134,7 @@ property_double (magenta_lightness, _("Magenta lightness"), 0.0)
 
 #include "gegl-op.h"
 
-/* ---------------------------------------------------------------- helpers */
+/* ---- 辅助函数 / helpers ------------------------------------------------ */
 
 static inline gfloat
 wrap_degrees (gfloat d)
@@ -154,7 +162,8 @@ hue_channel (gfloat m1, gfloat m2, gfloat h)
   return m1;
 }
 
-/* perceptual RGB (input assumed in [0,1]) -> H in [0,360), S/L in [0,1] */
+/* 感知 RGB（假定输入在 [0,1]）→ H∈[0,360)，S/L∈[0,1]
+ * perceptual RGB (input assumed in [0,1]) -> H in [0,360), S/L in [0,1] */
 static inline void
 rgb_to_hsl (gfloat r, gfloat g, gfloat b,
             gfloat *hue, gfloat *sat, gfloat *lig)
@@ -207,8 +216,11 @@ hsl_to_rgb (gfloat h, gfloat s, gfloat l,
   }
 }
 
-/* Triangular weights for the six hue ranges, normalised so they sum to 1.
- * half_width is in degrees; >= 60 guarantees full coverage of the hue circle. */
+/* 六个色相区间的三角权重，归一化后之和为 1。half_width 以度为单位，取 60
+ * 以上即可完整覆盖整个色环
+ * Triangular weights for the six hue ranges, normalised to sum to 1.
+ * half_width is in degrees; 60 or more guarantees full coverage of the hue
+ * circle. */
 static inline void
 hue_weights (gfloat hue, gfloat half_width, gfloat w[6])
 {
@@ -234,22 +246,26 @@ hue_weights (gfloat hue, gfloat half_width, gfloat w[6])
     }
   else
     {
-      /* degenerate fallback: snap to the nearest range */
+      /* 退化兜底：归到最近的区间
+       * degenerate fallback: snap to the nearest range */
       gint nearest = (gint) (wrap_degrees (hue + 30.0f) / 60.0f) % 6;
       for (i = 0; i < 6; i++)
         w[i] = (i == nearest) ? 1.0f : 0.0f;
     }
 }
 
-/* -------------------------------------------------------------- operation */
+/* ---- 算子定义 / operation ---------------------------------------------- */
 
 static void
 prepare (GeglOperation *operation)
 {
   const Babl *space = gegl_operation_get_source_space (operation, "input");
 
-  /* Perceptual (non-linear) RGB: hue/saturation maths must not run in linear
-   * light, otherwise mid-tones shift the wrong way compared to GIMP's filter. */
+  /* 感知（非线性）RGB：色相/饱和度的运算不能放在线性光下做，否则中间调会相
+   * 对 GIMP 滤镜反向偏移
+   * Perceptual (non-linear) RGB: hue/saturation maths must not run in
+   * linear light, otherwise mid-tones shift the wrong way compared with
+   * GIMP's filter. */
   gegl_operation_set_format (operation, "input",
                              babl_format_with_space ("R~G~B~A float", space));
   gegl_operation_set_format (operation, "output",
@@ -282,7 +298,9 @@ process (GeglOperation       *operation,
                                 (gfloat) o->green_lightness, (gfloat) o->cyan_lightness,
                                 (gfloat) o->blue_lightness, (gfloat) o->magenta_lightness };
 
-  /* half_width 60deg == the six ranges tile the hue circle exactly;
+  /* half_width 取 60° 时六个区间刚好无缝铺满色环；overlap 让它们变宽，相邻
+   * 区间互相渗透
+   * half_width 60deg makes the six ranges tile the hue circle exactly;
    * overlap widens them so neighbours blend into each other. */
   const gfloat half_width = 60.0f * (1.0f + (gfloat) o->overlap);
 
@@ -297,7 +315,8 @@ process (GeglOperation       *operation,
 
   if (! per_range && identity)
     {
-      /* nothing to do: plain copy keeps alpha untouched */
+      /* 无需处理：直接拷贝，alpha 保持不变
+       * nothing to do: a plain copy keeps alpha untouched */
       memcpy (out_buf, in_buf, (size_t) n_pixels * 4 * sizeof (gfloat));
       return TRUE;
     }
@@ -330,7 +349,8 @@ process (GeglOperation       *operation,
 
       if (s < 1.0e-5f)
         {
-          /* achromatic pixel: hue is meaningless, keep it grey */
+          /* 无彩像素：色相没有意义，保持原来的灰
+           * achromatic pixel: hue is meaningless, keep it grey */
           dh = 0.0f;
           ds = 0.0f;
         }

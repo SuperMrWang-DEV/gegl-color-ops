@@ -1,14 +1,21 @@
 /* ===========================================================================
- * SuperMrWang · GEGL Operation
+ * SuperMrWang · GEGL 算子 / GEGL Operation
  * ---------------------------------------------------------------------------
- * id     : lb:exposure
- * 菜单   : Exposure
- * 作用   : PS 曝光：EV、偏移、伽马三段式调整
- * 算法   : 在 8bit sRGB 伽马域反推 PS 曝光层公式；
- *          输入须为伽马编码 sRGB，勿在前置节点用 linear-rgb
- * 类型   : GeglOperationFilter
- * 参考   : Photoshop「曝光」调整层
- * 许可   : GPL-3.0-or-later，见工程根目录 LICENSE
+ * id         lb:exposure
+ * menu       Exposure EV
+ * purpose    PS 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）
+ *            PS Exposure: EV, offset and gamma in three stages, measured in
+ *            exposure stops.
+ * algorithm  在 8bit sRGB 伽马域反推 PS 曝光层公式；输入须为伽马编码 sRGB，勿
+ *            在前置节点用 linear-rgb
+ *            Reverse-engineered from the PS Exposure layer in 8-bit sRGB
+ *            gamma space. Feed gamma-encoded sRGB; do not insert linear-rgb
+ *            before this op.
+ * type       GeglOperationFilter（需整块区域 / whole-region）
+ * reference  Photoshop「曝光」调整层
+ *            Photoshop Exposure adjustment layer
+ * license    GPL-3.0-or-later，见工程根目录 LICENSE
+ *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
 
 #include "config.h"
@@ -58,16 +65,19 @@ static inline gfloat exposure_8bit_kernel(gfloat in,
   gfloat v1, v2, out;
   in = MAX(sanitize_f(in), 0.0f);
 
-  /* Step 1: Exposure */
+  /* 第 1 步：曝光
+   * Step 1: exposure */
   v1 = in * powf(2.0f, (gfloat)exposure / GAMMA_SRGB);
 
-  /* Step2: Offset, convert to linear space */
+  /* 第 2 步：偏移，并转到线性空间
+   * Step 2: offset, then convert to linear space */
   gfloat lin = powf(MAX(v1, FLOAT_EPS), GAMMA_SRGB);
   lin += (gfloat)offset;
   lin = CLAMP(lin, 0.0f, 1.0f);
   v2 = powf(lin, 1.0f / GAMMA_SRGB);
 
-  /* Step3: Gamma correction */
+  /* 第 3 步：伽马校正
+   * Step 3: gamma correction */
   gfloat safe_g = MAX((gfloat)gamma, SAFE_GAMMA_MIN);
   out = powf(MAX(v2, FLOAT_EPS), 1.0f / safe_g);
 
@@ -77,7 +87,8 @@ static inline gfloat exposure_8bit_kernel(gfloat in,
 static void
 prepare(GeglOperation *op)
 {
-  /* Fixed format, same as hslseven */
+  /* 固定格式，与 hsl-seven 一致
+   * Fixed format, same as hsl-seven */
   gegl_operation_set_format(op, "input",  babl_format("RGBA float"));
   gegl_operation_set_format(op, "output", babl_format("RGBA float"));
 }
@@ -92,7 +103,8 @@ process(GeglOperation       *op,
   if (!roi || roi->width <= 0 || roi->height <= 0)
     return TRUE;
 
-  /* Read parameters exactly like hslseven: g_object_get inside process */
+  /* 参数在 process 内部读取，与 hsl-seven 的做法一致
+   * Read parameters inside process(), exactly like hsl-seven */
   gdouble exposure;
   gdouble offset;
   gdouble gamma;
@@ -111,7 +123,8 @@ process(GeglOperation       *op,
   {
     GeglRectangle row_rect = { roi->x, roi->y + y, roi->width, 1 };
 
-    /* Read scanline */
+    /* 读入一行扫描线
+     * Read one scanline */
     gegl_buffer_get(in_buf, &row_rect, 1.0f, babl_format("RGBA float"),
                      in_line, GEGL_AUTO_ROWSTRIDE, GEGL_ABYSS_NONE);
 
@@ -123,14 +136,16 @@ process(GeglOperation       *op,
       gfloat b = in_line[px + 2];
       gfloat a = in_line[px + 3];
 
-      /* Run PS 8bit exposure algorithm */
+      /* 执行 PS 8bit 曝光算法
+       * Run the PS 8-bit exposure algorithm */
       out_line[px + 0] = exposure_8bit_kernel(r, exposure, offset, gamma);
       out_line[px + 1] = exposure_8bit_kernel(g, exposure, offset, gamma);
       out_line[px + 2] = exposure_8bit_kernel(b, exposure, offset, gamma);
       out_line[px + 3] = sanitize_f(a);
     }
 
-    /* Write scanline */
+    /* 写出一行扫描线
+     * Write the scanline back */
     gegl_buffer_set(out_buf, &row_rect, 0, babl_format("RGBA float"),
                      out_line, GEGL_AUTO_ROWSTRIDE);
   }
@@ -151,10 +166,10 @@ gegl_op_class_init(GeglOpClass *klass)
 
   gegl_operation_class_set_keys(oclass,
     "name",            "lb:exposure",
-    "title",           _("Exposure"),
+    "title",           _("Exposure EV"),
     "description",     _("Replicate Photoshop Exposure Adjustment Layer (8-bit sRGB algorithm). Directly works on standard sRGB layers. Do NOT add linear-rgb conversion node before operation."),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang",
-    "gimp:menu-label", _("Exposure"),
+    "gimp:menu-label", _("Exposure EV"),
     NULL);
 }
 
