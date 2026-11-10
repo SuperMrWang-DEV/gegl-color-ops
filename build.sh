@@ -94,3 +94,16 @@ done
 
 echo "· 共 $total 个算子，失败 $fail 个"
 [ "$fail" -eq 0 ] || exit 1
+
+# ---------- 4. 双输入测试 runner（工具，不是算子） ----------
+# gegl 命令行只支持单输入，两个 input+aux 的算子需要自己建图才能测
+if [ -f "$ROOT/tools/auxrun.c" ]; then
+  if eval "$TOOLCHAIN" -O2 -Wall -I"$ROOT/common" \
+        "$ROOT/tools/auxrun.c" $CFLAGS_GEGL $LIBS_GEGL -lm \
+        -o "$OUT/auxrun$([ "$EXT" = dll ] && echo .exe)" 2>"$OUT/.build-auxrun.log"; then
+    printf '  OK   %-26s -> build/auxrun\n' "tools/auxrun"
+    rm -f "$OUT/.build-auxrun.log"
+  else
+    printf '  WARN %-26s 编译失败（不影响算子，见 build/.build-auxrun.log）\n' "tools/auxrun"
+  fi
+fi

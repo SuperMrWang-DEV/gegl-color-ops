@@ -1,0 +1,21 @@
+{
+  "0": {"zh": "四种白点常量", "en": "the four white-point constants"},
+  "1": {"zh": "Bradford 基础矩阵：D65 ↔ D50", "en": "Bradford base matrix, D65 <-> D50"},
+  "2": {"zh": "sRGB → D65 XYZ", "en": "sRGB -> D65 XYZ"},
+  "3": {"zh": "D65 XYZ → sRGB", "en": "D65 XYZ -> sRGB"},
+  "4": {"zh": "取选中枚举对应的白点结构体", "en": "white-point struct for the selected enum"},
+  "5": {"zh": "通用：D65 XYZ → 目标白点 XYZ（Bradford）",
+        "en": "generic: D65 XYZ -> target white-point XYZ (Bradford)"},
+  "6": {"zh": "简化的通用 Bradford 适配（业界常用简化实现）",
+        "en": "simplified generic Bradford adaptation, as commonly implemented"},
+  "7": {"zh": "通用：目标白点 XYZ → D65 XYZ",
+        "en": "generic: target white-point XYZ -> D65 XYZ"},
+  "8": {"zh": "混合函数不变", "en": "blend function unchanged"},
+  "9": {"zh": "取当前选中的白点", "en": "fetch the selected white point"},
+  "10": {"zh": "预计算叠加色的 XYZ（已转到目标白点空间）",
+         "en": "precompute the overlay colour in target white-point XYZ"},
+  "11": {"zh": "原图 sRGB → D65 XYZ → 目标白点空间",
+         "en": "source sRGB -> D65 XYZ -> target white-point space"},
+  "12": {"zh": "在目标白点空间做正片叠底", "en": "multiply inside the target white-point space"},
+  "13": {"zh": "结果转回 D65 → sRGB 输出", "en": "convert back to D65 -> sRGB output"}
+}

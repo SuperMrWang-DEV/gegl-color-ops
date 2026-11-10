@@ -1,0 +1,6 @@
+{
+  "0": {"zh": "固定格式，与 hsl-seven 统一，不再动态继承输入色彩空间",
+        "en": "Fixed format like hsl-seven: no dynamic colour-space inheritance."},
+  "1": {"zh": "参数在 process 内部读取，彻底消除了 user_data 的并发竞争",
+        "en": "Parameters are read inside process(), so the user_data race is gone."}
+}

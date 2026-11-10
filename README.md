@@ -3,9 +3,9 @@
 [![GIMP 3](https://img.shields.io/badge/GIMP-3.x-5C5543?logo=gimp&logoColor=white)](https://www.gimp.org/)
 [![GEGL 0.4](https://img.shields.io/badge/GEGL-0.4-2C4C6B)](https://gegl.org/)
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
-[![Operations](https://img.shields.io/badge/operations-13-brightgreen)](#算子清单)
+[![Operations](https://img.shields.io/badge/operations-15-brightgreen)](#算子清单)
 
-一组逆向实现的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **13 个**，统一 `lb:` 命名空间，
+一组逆向实现的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **15 个**，统一 `lb:` 命名空间，
 在 GIMP 里位于 **图像 → 颜色 → SuperMrWang**。
 
 每个算子都是单文件 C（含 `#ifdef GEGL_PROPERTIES` 段），直接编译成 GEGL 插件模块，
@@ -49,8 +49,19 @@ gegl-color-ops/
 | `lb:rgb-domain-grayscale` | Black & White | Black & White | Point | PS 黑白：六色权重转灰 + 可选着色 |
 | `lb:vibrance-hyper` | Natural Saturation | Natural Saturation | Point | LAB 自然饱和度：色度双曲蒙版 + 肤色保护窗 + 色域收敛不扭色相 |
 | `lb:xyz-multiply` | XYZ Multiply | XYZ Multiply | Point | 以参考色做正片叠底（XYZ 域） |
+| `lb:apply-image` | Apply Image | Apply Image | Composer | PS 应用图像：aux 层按 26 种混合模式压到本层，可只作用单通道 |
+| `lb:calculations` | Calculations | Calculations | Composer | PS 计算：两路通道混合出灰/alpha 蒙版，双源可各自反相 |
 
 每个算子的算法说明、参数含义见 `ops/<算子名>/README.md`（原始文档）。
+
+**两个双输入算子**（`apply-image` / `calculations`）用 `GeglOperationPointComposer`，
+除 `input` 外还有一个 `aux` pad：
+
+- GIMP 里 aux 由滤镜对话框的输入选择器指定（GIMP 3 会打印 `aux_label` 的名字）；
+  这类滤镜**只能合并应用**，不能做非破坏性 fx，是 GIMP 目前的限制。
+- aux 没接时自动退化为「源 = 本图」，此时等于同图内做通道混合——计算最常用的场景。
+- gegl 命令行不支持双输入，测这两个算子要用 `build/auxrun`（`./build.sh` 顺带编译，
+  源码见 `tools/auxrun.c`）。
 
 ## 命名与代码风格约定
 
@@ -242,13 +253,16 @@ python tools/make_test_image.py out.png     # 生成色环+灰阶+明度测试�
 ./tools/smoke.sh                            # 每个算子用默认参数渲染一遍，抓崩溃/黑图
 python tools/contact_sheet.py sheet.png build/smoke/*.png   # 拼成带标签的对照表
 python tools/check_gamma_domain.py          # 数值回归：确认算子跑在感知（伽马）域
+python tools/check_blend.py                 # 数值回归：双输入算子的混合公式（16 用例）
 python tools/normalize_headers.py           # 预览文件头/命名重排，加 --write 落盘
 ```
 
 `smoke.sh` 只保证"不崩、有输出"；`check_gamma_domain.py` 用纯色小图对期望值
-（黑白纯红 102、曝光 +1EV → 176 等），防止再退回线性光。两个脚本都会自动找
-gegl 可执行文件，不在 PATH 也能跑；`smoke.sh` 还支持 `OPS_DIR=` 指向旧版 DLL
-目录做前后对照（配合 `OUT_DIR=`）。
+（黑白纯红 102、曝光 +1EV → 176 等），防止再退回线性光；`check_blend.py` 用
+`build/auxrun` 建双输入图，逐个核对混合公式（正片叠底 128×200=100、深色模式
+取整像素、色相模式只换色相等）。这些脚本都会自动找 gegl 可执行文件，不在 PATH
+也能跑；`smoke.sh` / `check_blend.py` 还支持 `OPS_DIR=` 指向旧版 DLL 目录做前后
+对照（配合 `OUT_DIR=`）。
 
 ## 新增一个算子
 

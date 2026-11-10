@@ -1,0 +1,11 @@
+{
+  "0": {"zh": "第 1 步：曝光", "en": "Step 1: exposure"},
+  "1": {"zh": "第 2 步：偏移，并转到线性空间", "en": "Step 2: offset, then convert to linear space"},
+  "2": {"zh": "第 3 步：伽马校正", "en": "Step 3: gamma correction"},
+  "3": {"zh": "固定格式，与 hsl-seven 一致", "en": "Fixed format, same as hsl-seven"},
+  "4": {"zh": "参数在 process 内部读取，与 hsl-seven 的做法一致",
+        "en": "Read parameters inside process(), exactly like hsl-seven"},
+  "5": {"zh": "读入一行扫描线", "en": "Read one scanline"},
+  "6": {"zh": "执行 PS 8bit 曝光算法", "en": "Run the PS 8-bit exposure algorithm"},
+  "7": {"zh": "写出一行扫描线", "en": "Write the scanline back"}
+}
