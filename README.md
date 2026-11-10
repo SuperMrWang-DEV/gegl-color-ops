@@ -24,6 +24,7 @@ gegl-color-ops/
 ├── meson.build           # 等价工程，供 Linux/macOS 或 CI 使用
 ├── common/config.h       # 所有算子共用的版本宏 / GETTEXT_PACKAGE
 ├── ops/<算子名>/          # 每个算子一个目录：<算子名>.c + 原始说明 + 截图
+├── plugin/ps-blend/      # Python 插件：应用图像/计算的完整复刻版（见下）
 ├── tools/                # 测试图生成、逐算子冒烟、对照表、文件头重排、注释双语化
 ├── build/                # 编译产物（build.sh 生成，可随时删）
 └── LICENSE               # GPL-3.0
@@ -62,6 +63,26 @@ gegl-color-ops/
 - aux 没接时自动退化为「源 = 本图」，此时等于同图内做通道混合——计算最常用的场景。
 - gegl 命令行不支持双输入，测这两个算子要用 `build/auxrun`（`./build.sh` 顺带编译，
   源码见 `tools/auxrun.c`）。
+
+### Python 插件版：plugin/ps-blend
+
+GEGL 算子只接住了像素计算那一半；**输入选择**（任意打开图像的任意图层/通道、
+遮罩指向第三张图）和**结果落地**（直接生成选区/新建 Alpha 通道）是插件 API 的
+主场。`plugin/ps-blend` 是一对 Python-Fu 插件，把 PS 对话框完整搬过来：
+
+- `Apply Image PS` / `Calculations PS`，位于 **颜色 → SuperMrWang**
+- 源可以是任意打开图像的任意图层；通道含 Gray/R/G/B/Alpha/图层蒙版
+- 计算结果四选一：活动选区 / 新建 Alpha 通道 / 新建灰度图层 / 写入图层 alpha
+- 像素内核 `tools/psblend_core.c` 编成 `psblend_core.dll` 由 ctypes 调用，公式
+  直接 include `common/blend.h`——**GEGL 算子与 Python 插件保证同一结果**；
+  没有编译产物时自动退化为纯 Python（一致但慢）
+
+```bash
+./install-plugin.sh          # 装到 %APPDATA%/GIMP/3.x/plug-ins，重启 GIMP 生效
+```
+
+交互模式弹自定义对话框；批处理可用注册参数（`blend` 0..25 按 PS 顺序、
+`source-image`/`source-layer` 等，见 `do_create_procedure`）。
 
 ## 命名与代码风格约定
 

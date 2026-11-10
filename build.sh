@@ -107,3 +107,17 @@ if [ -f "$ROOT/tools/auxrun.c" ]; then
     printf '  WARN %-26s 编译失败（不影响算子，见 build/.build-auxrun.log）\n' "tools/auxrun"
   fi
 fi
+
+# ---------- 5. Python 插件的 C 加速内核 ----------
+# plugin/ps-blend 的像素内核与 GEGL 算子共用 common/blend.h；编译失败时插件
+# 自动退化为纯 Python（结果一致，只是慢）
+if [ -f "$ROOT/tools/psblend_core.c" ] && [ -d "$ROOT/plugin/ps-blend" ]; then
+  if eval "$TOOLCHAIN" -shared -O2 -Wall -I"$ROOT/common" \
+        "$ROOT/tools/psblend_core.c" $CFLAGS_GEGL $LIBS_GEGL -lm \
+        -o "$ROOT/plugin/ps-blend/psblend_core.$EXT" 2>"$OUT/.build-psblend_core.log"; then
+    printf '  OK   %-26s -> plugin/ps-blend/psblend_core.%s\n' "psblend_core" "$EXT"
+    rm -f "$OUT/.build-psblend_core.log"
+  else
+    printf '  WARN %-26s 编译失败，Python 插件将用纯 Python 内核\n' "psblend_core"
+  fi
+fi
