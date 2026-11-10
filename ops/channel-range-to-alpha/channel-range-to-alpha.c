@@ -176,10 +176,21 @@ static inline gfloat blend_if_alpha(gfloat x, gfloat l1, gfloat l2, gfloat r1, g
     return CLAMP(alpha, 0.0f, 1.0f);
 }
 
+/* 感知（非线性）格式：滑块按 0–255 的 8bit 值标定，必须拿伽马值，否则 babl
+ * 会喂线性光，区间范围整体位移
+ * Perceptual (non-linear) format: the sliders are calibrated against 8-bit
+ * 0..255 values, so the op must see gamma-encoded samples. */
+static const Babl *
+perceptual_format (GeglOperation *op)
+{
+  return babl_format_with_space ("R~G~B~A float",
+                                 gegl_operation_get_source_space (op, "input"));
+}
+
 static void prepare(GeglOperation *operation)
 {
-    gegl_operation_set_format(operation, "input", babl_format("RGBA float"));
-    gegl_operation_set_format(operation, "output", babl_format("RGBA float"));
+    gegl_operation_set_format(operation, "input", perceptual_format(operation));
+    gegl_operation_set_format(operation, "output", perceptual_format(operation));
 }
 
 /* 统一矫正滑块顺序，防止区间反转
@@ -243,7 +254,7 @@ static gboolean process(
     gfloat *in_buffer = g_malloc0(buf_size);
     gfloat *out_buffer = g_malloc0(buf_size);
 
-    gegl_buffer_get(input, roi, 1.0, babl_format("RGBA float"),
+    gegl_buffer_get(input, roi, 1.0, perceptual_format(op),
                     in_buffer, GEGL_AUTO_ROWSTRIDE, GEGL_ABYSS_NONE);
 
     for (gint i = 0; i < n_pixels; i++)
@@ -301,7 +312,7 @@ static gboolean process(
         out_buffer[i*4 + 3] = a * mask_alpha;
     }
 
-    gegl_buffer_set(output, roi, 0, babl_format("RGBA float"),
+    gegl_buffer_set(output, roi, 0, perceptual_format(op),
                     out_buffer, GEGL_AUTO_ROWSTRIDE);
 
     g_free(in_buffer);

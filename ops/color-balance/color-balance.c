@@ -7,12 +7,12 @@
  *            PS Color Balance: shadow, midtone and highlight each carry three
  *            axis pairs (C-R, M-G, Y-B).
  * algorithm  在 8bit sRGB 伽马域反推 PS 曲线，两种模式：原版 = 三区间独立通道
- *            曲线；MATLAB 版 = 零和矩阵（保明度）。输入须为伽马编码 sRGB，勿
- *            在前置节点用 linear-rgb
+ *            曲线；MATLAB 版 = 零和矩阵（保明度）。算子自行钉成感知（伽马）
+ *            格式，无需前置 linear-rgb
  *            Reverse-engineered PS curves in 8-bit sRGB gamma space, two
  *            modes: original = independent per-region channel curves, MATLAB
- *            = zero-sum matrix that preserves luminosity. Feed gamma-encoded
- *            sRGB; do not insert linear-rgb before this op.
+ *            = zero-sum matrix that preserves luminosity. The op pins itself
+ *            to the perceptual (gamma) format; no linear-rgb node needed.
  * type       GeglOperationFilter（需整块区域 / whole-region）
  * reference  色彩平衡调整图层的本质-背后的数学原理（王先生的副业）
  *            https://zhuanlan.zhihu.com/p/679776283
@@ -320,11 +320,22 @@ static inline void compute_midtones_gamma(const gdouble *coef, gdouble *gamma_ou
     gamma_out[2] = exp(a[0] + a[1] - a[2]);
 }
 
+/* 感知（非线性）格式：公式按 8bit sRGB 伽马域推导，必须拿伽马值，否则 babl
+ * 会喂线性光，数值与 PS 对不上
+ * Perceptual (non-linear) format: the maths was derived in the 8-bit sRGB
+ * gamma domain. Linear light from babl would drift away from Photoshop. */
+static const Babl *
+perceptual_format (GeglOperation *op)
+{
+  return babl_format_with_space ("R~G~B~A float",
+                                 gegl_operation_get_source_space (op, "input"));
+}
+
 static void
 prepare(GeglOperation *op)
 {
-  gegl_operation_set_format(op, "input",  babl_format("RGBA float"));
-  gegl_operation_set_format(op, "output", babl_format("RGBA float"));
+  gegl_operation_set_format(op, "input",  perceptual_format(op));
+  gegl_operation_set_format(op, "output", perceptual_format(op));
 }
 
 static gboolean
@@ -363,7 +374,7 @@ process(GeglOperation       *op,
   {
     GeglRectangle row_rect = { roi->x, roi->y + y, roi->width, 1 };
 
-    gegl_buffer_get(in_buf, &row_rect, 1.0f, babl_format("RGBA float"),
+    gegl_buffer_get(in_buf, &row_rect, 1.0f, perceptual_format(op),
                      in_line, GEGL_AUTO_ROWSTRIDE, GEGL_ABYSS_NONE);
 
     for (gint x = 0; x < roi->width; x++)
@@ -443,7 +454,7 @@ process(GeglOperation       *op,
       out_line[px + 3] = sanitize_f(a);
     }
 
-    gegl_buffer_set(out_buf, &row_rect, 0, babl_format("RGBA float"),
+    gegl_buffer_set(out_buf, &row_rect, 0, perceptual_format(op),
                      out_line, GEGL_AUTO_ROWSTRIDE);
   }
 
@@ -465,7 +476,7 @@ gegl_op_class_init(GeglOpClass *klass)
     "name",            "lb:color-balance",
     "title",           _("Color Balance"),
     "description",     _("PS Color Balance: shadow/midtone/highlight C-R, M-G, Y-B "
-                         "on 8-bit sRGB gamma data. Do NOT use linear-rgb before this op."),
+                         "on 8-bit sRGB gamma data. Pins itself to the perceptual format."),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang",
     "gimp:menu-label", _("Color Balance"),
     NULL);

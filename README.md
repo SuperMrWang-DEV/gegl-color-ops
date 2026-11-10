@@ -126,7 +126,27 @@ for op in $(gegl --list-all); do gegl --info "$op"; done | grep '^title ' | sort
 原来混用 `// ====`、`/* ---- */`、`// 注释` 的写法已统一成上面这种，整行注释也一律 `/* */`。
 分隔线同样双语：`/* ---- 主处理 / main processing ---- */`。
 
-**6. 所有注释中英双语**
+**7. 色彩域：逐像素运算一律用感知（伽马）格式**
+
+```c
+/* 输入/输出钉成感知格式，公式拿到的才是伽马值
+ * Pin the pads to the perceptual format so the maths sees gamma values */
+static const Babl *
+perceptual_format (GeglOperation *op)
+{
+  return babl_format_with_space ("R~G~B~A float",
+                                 gegl_operation_get_source_space (op, "input"));
+}
+```
+
+babl 的 `RGBA float` 是**线性光**；按 8bit sRGB 伽马域逆向的公式若声明它，
+babl 会把伽马值转成线性值再喂进来，结果整体偏移（黑白纯红 red=40 应为 102，
+实测 170；曝光 +1EV 只顶 0.45 档）。曾把 8 个算子钉成线性光，2026-11-10 全部
+改回感知格式（`R~G~B~A float`，随图像色彩空间走，`hue-saturation` 一直是对的）。
+例外：`vibrance-hyper`、`lab-levels` 内部自己做线性 RGB→XYZ，天然需要线性光，
+保留 `RGBA float`。
+
+**8. 所有注释中英双语**
 
 ```c
 /* 中文说明 / English note */          // 一行放得下就单行
@@ -221,10 +241,14 @@ GEGL_PATH="$PWD/build;/d/fastsoftware/GIMP 3/lib/gegl-0.4" gegl in.png -o out.pn
 python tools/make_test_image.py out.png     # 生成色环+灰阶+明度测试图
 ./tools/smoke.sh                            # 每个算子用默认参数渲染一遍，抓崩溃/黑图
 python tools/contact_sheet.py sheet.png build/smoke/*.png   # 拼成带标签的对照表
+python tools/check_gamma_domain.py          # 数值回归：确认算子跑在感知（伽马）域
 python tools/normalize_headers.py           # 预览文件头/命名重排，加 --write 落盘
 ```
 
-`smoke.sh` 只保证"不崩、有输出"；算法正确性仍建议在 GIMP 里对着实拍图看。
+`smoke.sh` 只保证"不崩、有输出"；`check_gamma_domain.py` 用纯色小图对期望值
+（黑白纯红 102、曝光 +1EV → 176 等），防止再退回线性光。两个脚本都会自动找
+gegl 可执行文件，不在 PATH 也能跑；`smoke.sh` 还支持 `OPS_DIR=` 指向旧版 DLL
+目录做前后对照（配合 `OUT_DIR=`）。
 
 ## 新增一个算子
 

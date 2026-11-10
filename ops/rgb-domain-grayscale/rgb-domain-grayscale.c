@@ -122,11 +122,22 @@ tint_pixel (gfloat gray, const gfloat tint_rgb[3], gfloat strength, gfloat out[3
 }
 
 /* ---- GEGL 算子标准接口 / GEGL operation interface ---------------------- */
+/* 感知（非线性）格式：公式按 8bit sRGB 伽马域推导，必须拿伽马值，否则 babl
+ * 会喂线性光，数值与 PS 对不上
+ * Perceptual (non-linear) format: the maths was derived in the 8-bit sRGB
+ * gamma domain. Linear light from babl would drift away from Photoshop. */
+static const Babl *
+perceptual_format (GeglOperation *op)
+{
+  return babl_format_with_space ("R~G~B~A float",
+                                 gegl_operation_get_source_space (op, "input"));
+}
+
 static void
 prepare (GeglOperation *operation)
 {
-  gegl_operation_set_format (operation, "input", babl_format ("RGBA float"));
-  gegl_operation_set_format (operation, "output", babl_format ("RGBA float"));
+  gegl_operation_set_format (operation, "input", perceptual_format(operation));
+  gegl_operation_set_format (operation, "output", perceptual_format(operation));
 }
 
 static gboolean
@@ -183,7 +194,7 @@ process (GeglOperation       *operation,
   gfloat *out_data = g_new (gfloat, n_pixels * 4);
 
   gegl_buffer_get (input, roi, 1.0,
-                   babl_format ("RGBA float"),
+                   perceptual_format(operation),
                    in_data,
                    GEGL_AUTO_ROWSTRIDE,
                    GEGL_ABYSS_NONE);
@@ -257,7 +268,7 @@ process (GeglOperation       *operation,
 
   /* ---- 5. 写回输出并清理 / 5. write back and clean up ------------------ */
   gegl_buffer_set (output, roi, 0,
-                   babl_format ("RGBA float"),
+                   perceptual_format(operation),
                    out_data,
                    GEGL_AUTO_ROWSTRIDE);
 

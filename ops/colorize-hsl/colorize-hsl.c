@@ -167,10 +167,21 @@ static void colorize_kernel(gfloat inR, gfloat inG, gfloat inB,
   *outB = (gfloat)clamp01(b2);
 }
 
+/* 感知（非线性）格式：公式按 8bit sRGB 伽马域推导，必须拿伽马值，否则 babl
+ * 会喂线性光，数值与 PS 对不上
+ * Perceptual (non-linear) format: the maths was derived in the 8-bit sRGB
+ * gamma domain. Linear light from babl would drift away from Photoshop. */
+static const Babl *
+perceptual_format (GeglOperation *op)
+{
+  return babl_format_with_space ("R~G~B~A float",
+                                 gegl_operation_get_source_space (op, "input"));
+}
+
 static void prepare(GeglOperation *op)
 {
-  gegl_operation_set_format(op, "input",  babl_format("RGBA float"));
-  gegl_operation_set_format(op, "output", babl_format("RGBA float"));
+  gegl_operation_set_format(op, "input",  perceptual_format(op));
+  gegl_operation_set_format(op, "output", perceptual_format(op));
 }
 
 static gboolean
@@ -198,7 +209,7 @@ process(GeglOperation       *op,
   {
     GeglRectangle row_rect = { roi->x, roi->y + y, roi->width, 1 };
 
-    gegl_buffer_get(in_buf, &row_rect, 1.0f, babl_format("RGBA float"),
+    gegl_buffer_get(in_buf, &row_rect, 1.0f, perceptual_format(op),
                     in_line, GEGL_AUTO_ROWSTRIDE, GEGL_ABYSS_NONE);
 
     for (gint x = 0; x < roi->width; x++)
@@ -218,7 +229,7 @@ process(GeglOperation       *op,
       out_line[px + 3] = sanitize_f(a);
     }
 
-    gegl_buffer_set(out_buf, &row_rect, 0, babl_format("RGBA float"),
+    gegl_buffer_set(out_buf, &row_rect, 0, perceptual_format(op),
                     out_line, GEGL_AUTO_ROWSTRIDE);
   }
 

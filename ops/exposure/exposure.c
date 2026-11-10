@@ -6,11 +6,11 @@
  * purpose    PS 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）
  *            PS Exposure: EV, offset and gamma in three stages, measured in
  *            exposure stops.
- * algorithm  在 8bit sRGB 伽马域反推 PS 曝光层公式；输入须为伽马编码 sRGB，勿
- *            在前置节点用 linear-rgb
+ * algorithm  在 8bit sRGB 伽马域反推 PS 曝光层公式；算子自行把输入钉成感知
+ *            （伽马）格式，无需前置 linear-rgb
  *            Reverse-engineered from the PS Exposure layer in 8-bit sRGB
- *            gamma space. Feed gamma-encoded sRGB; do not insert linear-rgb
- *            before this op.
+ *            gamma space. The op pins its pads to the perceptual (gamma)
+ *            format, so no linear-rgb node is needed up front.
  * type       GeglOperationFilter（需整块区域 / whole-region）
  * reference  Photoshop「曝光」调整层
  *            Photoshop Exposure adjustment layer
@@ -84,13 +84,24 @@ static inline gfloat exposure_8bit_kernel(gfloat in,
   return CLAMP(out, 0.0f, 1.0f);
 }
 
+/* 感知（非线性）格式：公式按 8bit sRGB 伽马域逆向，必须拿伽马值，否则 babl
+ * 会喂线性光，EV 与偏移都会偏
+ * Perceptual (non-linear) format: the formula was reverse-engineered in the
+ * 8-bit sRGB gamma domain. Feeding linear light shifts EV and offset. */
+static const Babl *
+perceptual_format (GeglOperation *op)
+{
+  return babl_format_with_space ("R~G~B~A float",
+                                 gegl_operation_get_source_space (op, "input"));
+}
+
 static void
 prepare(GeglOperation *op)
 {
-  /* 固定格式，与 hsl-seven 一致
-   * Fixed format, same as hsl-seven */
-  gegl_operation_set_format(op, "input",  babl_format("RGBA float"));
-  gegl_operation_set_format(op, "output", babl_format("RGBA float"));
+  /* 输入输出都钉成感知格式
+   * Pin both pads to the perceptual format */
+  gegl_operation_set_format(op, "input",  perceptual_format(op));
+  gegl_operation_set_format(op, "output", perceptual_format(op));
 }
 
 static gboolean
@@ -125,7 +136,7 @@ process(GeglOperation       *op,
 
     /* 读入一行扫描线
      * Read one scanline */
-    gegl_buffer_get(in_buf, &row_rect, 1.0f, babl_format("RGBA float"),
+    gegl_buffer_get(in_buf, &row_rect, 1.0f, perceptual_format(op),
                      in_line, GEGL_AUTO_ROWSTRIDE, GEGL_ABYSS_NONE);
 
     for (gint x = 0; x < roi->width; x++)
@@ -146,7 +157,7 @@ process(GeglOperation       *op,
 
     /* 写出一行扫描线
      * Write the scanline back */
-    gegl_buffer_set(out_buf, &row_rect, 0, babl_format("RGBA float"),
+    gegl_buffer_set(out_buf, &row_rect, 0, perceptual_format(op),
                      out_line, GEGL_AUTO_ROWSTRIDE);
   }
 
@@ -167,7 +178,7 @@ gegl_op_class_init(GeglOpClass *klass)
   gegl_operation_class_set_keys(oclass,
     "name",            "lb:exposure",
     "title",           _("Exposure EV"),
-    "description",     _("Replicate Photoshop Exposure Adjustment Layer (8-bit sRGB algorithm). Directly works on standard sRGB layers. Do NOT add linear-rgb conversion node before operation."),
+    "description",     _("Replicate Photoshop Exposure Adjustment Layer (8-bit sRGB algorithm). Works on standard sRGB layers; the op pins itself to the perceptual (gamma) format, no linear-rgb node needed."),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang",
     "gimp:menu-label", _("Exposure EV"),
     NULL);

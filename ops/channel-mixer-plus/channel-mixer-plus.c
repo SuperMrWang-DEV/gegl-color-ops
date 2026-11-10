@@ -136,6 +136,10 @@ typedef struct
 static void prepare (GeglOperation *operation)
 {
   const Babl *input_format = gegl_operation_get_source_format (operation, "input");
+  /* 感知（非线性）格式：通道增益按 8bit 伽马域标定，线性光下灰阶会整体变亮
+   * Perceptual (non-linear) format: the gains are calibrated in the 8-bit
+   * gamma domain; in linear light the greys lift noticeably. */
+  const Babl *space = gegl_operation_get_source_space (operation, "input");
   GeglProperties *o = GEGL_PROPERTIES (operation);
   CmParamsType *mix;
   const Babl *format;
@@ -173,12 +177,14 @@ static void prepare (GeglOperation *operation)
   if (input_format == NULL || babl_format_has_alpha (input_format))
     {
       mix->has_alpha = TRUE;
-      format = babl_format_with_space ("RGBA float", input_format);
+      format = babl_format_with_space ("R~G~B~A float", space);
     }
   else
     {
       mix->has_alpha = FALSE;
-      format = babl_format_with_space ("RGB float", input_format);
+      /* babl 只有带 alpha 的感知格式 R~G~B~A，无 alpha 图也走它
+       * babl only ships the perceptual format with alpha, so use it either way */
+      format = babl_format_with_space ("R~G~B~A float", space);
     }
 
   gegl_operation_set_format (operation, "input", format);
