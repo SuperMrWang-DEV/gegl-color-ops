@@ -57,7 +57,7 @@ gegl-color-ops/
 | `lb:channel-mixer-plus` | Channel Mixer Plus | Channel Mixer Plus | Point | PS 通道混合器 + 通道 offset + 单色模式 |
 | `lb:channel-range-to-alpha` | Range → Alpha | Channel Range to Alpha | Point | 通道数值区间 → alpha（混合颜色带） |
 | `lb:cmyk-primary-correction` | CMYK Primary | CMYK Primary Correction | Point | 可选颜色：九组色域各存一份 C/M/Y/K，同时生效 |
-| `lb:color-balance` | Color Balance | Color Balance | Filter | PS 色彩平衡：阴影/中间调/高光的 C-R、M-G、Y-B |
+| `lb:color-balance` | Color Balance | Color Balance | Filter | PS 色彩平衡：三区间指数相乘合成一条逐通道曲线，单段残差 0.30 码 |
 | `lb:colorize-hsl` | Colorize PS | Colorize (Photoshop) | Point | PS 色相/饱和度「着色」实测复刻：扔掉原有 H/S，只留输入 L 的单色调，残差 0.03 码 |
 | `lb:color-mask-select` | Mask by Color | Color Mask Select | Point | PS 色彩范围：按选色 + 容差 + 羽化出蒙版 |
 | `lb:lab-levels` | LAB Levels | LAB Levels | Filter | LAB 三通道各自黑白场 + 伽马 |
@@ -310,6 +310,8 @@ python tools/make_test_image.py out.png     # 生成色环+灰阶+明度测试�
 python tools/contact_sheet.py sheet.png build/smoke/*.png   # 拼成带标签的对照表
 python tools/check_gamma_domain.py          # 数值回归：感知（伽马）域 + 全图像素核对
 python tools/check_blend.py                 # 数值回归：双输入算子的混合公式（16 用例）
+python tools/check_color_balance_fine.py    # 与 PS 实测比对：色彩平衡（--all 跑全部 609 档）
+python tools/check_color_balance_ps.py      # 与 PS 实测比对：色彩平衡（含保留明度）
 python tools/normalize_headers.py           # 预览文件头/命名重排，加 --write 落盘
 python tools/make_dist.py                   # 把 build/ 整理成 dist/（含 manifest + 校验和）
 ./tools/check-linux.sh                      # 在 Linux/WSL 里验证 .so 能加载并渲染（不开 GIMP）

@@ -6,13 +6,18 @@
  * purpose    PS 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴
  *            PS Color Balance: shadow, midtone and highlight each carry three
  *            axis pairs (C-R, M-G, Y-B).
- * algorithm  在 8bit sRGB 伽马域反推 PS 曲线，两种模式：原版 = 三区间独立通道
- *            曲线；MATLAB 版 = 零和矩阵（保明度）。算子自行钉成感知（伽马）
- *            格式，无需前置 linear-rgb
- *            Reverse-engineered PS curves in 8-bit sRGB gamma space, two
- *            modes: original = independent per-region channel curves, MATLAB
- *            = zero-sum matrix that preserves luminosity. The op pins itself
- *            to the perceptual (gamma) format; no linear-rgb node needed.
+ * algorithm  两种模式。原版（默认）= 逐通道「电平」曲线：三个区间的参数合并成一条
+ *            幂律，指数相乘（G = g_shd·g_mid·g_hlt），黑场取阴影负值、白场
+ *            取高光正值，近黑端再补一段趾部；保明度 = 零和矩阵（MATLAB
+ *            版，未改动）。算子自行钉成感知（伽马）格式，无需前置
+ *            linear-rgb。
+ *            Two modes. Original (default) = per-channel levels-style curve:
+ *            the three ranges merge into one power law whose exponents
+ *            multiply (G = g_shd·g_mid·g_hlt), black point from a negative
+ *            shadow slider, white point from a positive highlight slider, plus
+ *            one near-black toe correction. Preserve-luminosity = zero-sum
+ *            matrix (MATLAB version, untouched). The op pins itself to the
+ *            perceptual (gamma) format; no linear-rgb node needed.
  * type       GeglOperationFilter（需整块区域 / whole-region）
  * reference  色彩平衡调整图层的本质-背后的数学原理（王先生的副业）
  *            https://zhuanlan.zhihu.com/p/679776283
@@ -87,6 +92,7 @@ property_boolean (preserve_luminosity, _("Preserve Luminosity"), FALSE)
 #define GEGL_OP_NAME     lb_color_balance
 #define GEGL_OP_C_SOURCE color-balance.c
 #include "gegl-op.h"
+#include "cb-tables.h"
 
 #ifndef MAX
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
@@ -104,102 +110,197 @@ static inline gfloat sanitize_f(gfloat v)
   return v;
 }
 
-static inline gfloat trimResult(gfloat value)
+/* ===========================================================================
+ * 非保明度路径：PS 色彩平衡的逐通道曲线
+ * The non-preserve-luminosity path: Photoshop's per-channel curves
+ * ---------------------------------------------------------------------------
+ * 实测结论（PS 26.10；16 位、每个整数滑杆档、三个区间 201 档 + 9 个组合档；
+ * 1024 px 连续斜坡探针，见 cb-cal/）：
+ *
+ * 1. 逐通道独立。一个通道只有一条曲线，只由该通道在三个区间上的滑杆决定，
+ *    与另外两个通道无关（单通道斜坡带与灰阶带的输出逐位相同）。
+ * 2. 曲线是「电平」形式的幂律：
+ *
+ *        base(v) = 255 · clamp( ((v − b) / (W − b))^G )
+ *
+ *    只有两处会挪动端点，其余情况 b = 0、W = 255：
+ *        b = |s_shd|       仅阴影为负值时抬起黑场
+ *        W = 255 − s_hlt   仅高光为正值时压低白场
+ * 3. 三个区间不是依次串联，而是把指数乘起来：
+ *
+ *        G = g_shd · g_mid · g_hlt
+ *
+ *    整幅图只有一条复合曲线，黑场取阴影负值、白场取高光正值。
+ *    中间调最强（±100 → 2^∓1），阴影与高光只有它一半量级（±100 → 2^∓0.5）。
+ *    （旧版按「高光 → 中间调 → 阴影 依次作用」实现，组合档最多差 112 码；
+ *      改成指数相乘后 9 个组合档全部 ≤ 0.6 码。）
+ * 4. 近黑端还有一段「趾部」：G < 1 时幂律在 0 处的斜率是无穷，PS 实际是有限
+ *    斜率起步。它等价于 [b, h0] 上的一段三次 Hermite：
+ *
+ *        h0  = b + H · (W − b)
+ *        y1  = 255 · H^G         区间右端值
+ *        m0s = Su · H            起点斜率（已乘区间长度）
+ *        m1s = G · y1            右端斜率（已乘区间长度，等于 base′(h0)·(h0−b)）
+ *
+ *    Su、H 都只随复合指数 G 变化（表 CB_TOE 的第 1、2 列），与「这个 G 是哪个
+ *    区间给的」无关：单区间与组合档落在同一条 Su(G) 上。G ≥ 0.85 时 H 已经衰减
+ *    到 0，趾部自然消失；G > 1 时幂律本来就是零斜率起步，也不需要。
+ *    忽略这一段时最坏误差 16 码（中间调 +100，v≈4），补上后 ≤ 0.3 码。
+ *
+ * 1. Each channel has its own curve, independent of the other two channels
+ *    (a single-channel ramp and a grey ramp give bit-identical output).
+ * 2. Every curve is a levels-style power law, see base() above; b/W only move
+ *    for shadow-negative and highlight-positive.
+ * 3. The three ranges are not chained: their exponents multiply into one
+ *    composite curve, G = g_shd · g_mid · g_hlt (the old "highlight ->
+ *    midtone -> shadow" chaining was off by up to 112 codes on combos).
+ * 4. Near black the power law is replaced by one cubic Hermite on [b, h0],
+ *    where h0 = b + H(G)·(W − b) and the initial slope is Su(G). Both H and Su
+ *    depend on the composite exponent only; skipping this correction costs up
+ *    to 16 codes around v = 4, with it the worst case is 0.3.
+ * ======================================================================== */
+
+#define CB_LUTN 4097            /* 复合曲线采样点数 / samples per curve */
+
+typedef struct
 {
-    if (value < 0.0f) return 0.0f;
-    if (value > 255.0f) return 255.0f;
-    return value;
+  gboolean identity;
+  gfloat   lut[3][CB_LUTN];     /* [通道][索引]，输入 0…255 → 输出 0…255 */
+} CbParams;
+
+/* 滑杆 → 指数：表里存的是整数档，浮点滑杆在相邻两档之间线性插值
+ * Slider -> exponent. The table is per integer step; fractional sliders are
+ * interpolated linearly between neighbours. */
+static inline gdouble
+cb_exponent (gint range, gdouble s)
+{
+  gint    neg = (s < 0.0) ? 1 : 0;
+  gdouble a   = fabs (s);
+  gint    i;
+  gdouble f, g0, g1;
+
+  if (a > 100.0)
+    a = 100.0;
+  i = (gint) a;
+  f = a - (gdouble) i;
+  if (i >= 100)
+    return (gdouble) CB_G[range][neg][100];
+
+  g0 = (gdouble) CB_G[range][neg][i];
+  g1 = (gdouble) CB_G[range][neg][i + 1];
+  return g0 + (g1 - g0) * f;
 }
 
-static inline gfloat gammaCorrection255(gfloat input8, gdouble gamma)
+/* 在 CB_TOE 上按 G 线性插值取一列（col 1 = Su，col 2 = H），两端 clamp
+ * Linear interpolation over CB_TOE in G; col 1 is Su, col 2 is H. */
+static inline gdouble
+cb_toe_lookup (gdouble g, gint col)
 {
-    input8 = CLAMP(input8, 0.0f, 255.0f);
-    gfloat normalized = input8 / 255.0f;
-    gfloat corrected = powf(normalized, (gfloat)gamma);
-    gint outi = (gint)(corrected * 255.0f + 0.5f);
-    if (outi > 255) outi = 255;
-    return (gfloat)outi;
+  gint i;
+
+  if (g <= (gdouble) CB_TOE[0][0])
+    return (gdouble) CB_TOE[0][col];
+  if (g >= (gdouble) CB_TOE[CB_NTOE - 1][0])
+    return (gdouble) CB_TOE[CB_NTOE - 1][col];
+
+  for (i = 0; i + 1 < CB_NTOE; i++)
+    {
+      gdouble g0 = (gdouble) CB_TOE[i][0], g1 = (gdouble) CB_TOE[i + 1][0];
+
+      if (g >= g0 && g <= g1)
+        {
+          gdouble v0 = (gdouble) CB_TOE[i][col];
+          gdouble v1 = (gdouble) CB_TOE[i + 1][col];
+
+          return v0 + (v1 - v0) * (g - g0) / (g1 - g0);
+        }
+    }
+  return (gdouble) CB_TOE[CB_NTOE - 1][col];
 }
 
-/* ---- 高光曲线（未改动）/ highlight curves (unchanged) ------------------ */
-static inline gfloat highlightRight(gdouble value, gfloat input8)
+/* 电平式幂律 / the levels-style power law */
+static inline gdouble
+cb_base (gdouble v, gdouble G, gdouble b, gdouble W)
 {
-    gfloat result = (1.0f / (1.0f - 0.004f * (gfloat)value)) * input8;
-    return trimResult(result);
-}
-static inline gfloat highlightLeft(gdouble value, gfloat input8)
-{
-    return gammaCorrection255(input8, 1.0 - (0.004 * value));
-}
-static inline gfloat highlight(gdouble value, gfloat input8)
-{
-    if (value >= 0)
-        return highlightRight(value, input8);
-    else
-        return highlightLeft(value, input8);
+  gdouble x;
+
+  if (v <= b)
+    return 0.0;
+  x = (v - b) / (W - b);
+  if (x <= 0.0)
+    return 0.0;
+  if (x >= 1.0)
+    return 255.0;
+  return 255.0 * pow (x, G);
 }
 
-/* ---- 中间调曲线（未改动）/ midtone curves (unchanged) ------------------ */
-static inline gfloat midtoneRight(gdouble value, gfloat input8)
+/* [b, h0] 上的三次 Hermite（t 已归一化，两个斜率都乘过区间长度）
+ * Cubic Hermite on [b, h0]; t is normalised, both slopes are pre-scaled. */
+static inline gdouble
+cb_hermite (gdouble t, gdouble m0s, gdouble y1, gdouble m1s)
 {
-    return gammaCorrection255(input8, 1.0 - (0.005 * value));
-}
-static inline gfloat midtoneLeft(gdouble value, gfloat input8)
-{
-    return gammaCorrection255(input8, 1.0 - (0.01 * value));
-}
-static inline gfloat midtone(gdouble value, gfloat input8)
-{
-    if (value >=0)
-        return midtoneRight(value, input8);
-    else
-        return midtoneLeft(value, input8);
+  return (t * t * t - 2.0 * t * t + t) * m0s
+       + (-2.0 * t * t * t + 3.0 * t * t) * y1
+       + (t * t * t - t * t) * m1s;
 }
 
-/* ---- 阴影曲线（未改动）/ shadow curves (unchanged) --------------------- */
-static inline gfloat shadowRight(gdouble value, gfloat input8)
+/* 把一条复合曲线折成 LUT / fold one composite curve into a LUT */
+static void
+cb_build_curve (gfloat *lut, gdouble s_shd, gdouble s_mid, gdouble s_hlt)
 {
-    return gammaCorrection255(input8, 1.0 - (0.003 * value));
-}
-static inline gfloat shadowLeft(gdouble value, gdouble value_param, gfloat input8)
-{
-    gfloat temp = 0.004f * fabs((gfloat)value_param);
-    gfloat temp1 = (input8 / 255.0f) - temp;
-    gfloat temp2 = 1.0f - temp;
-    gfloat result = (temp1 / temp2) * 255.0f;
-    return trimResult(result);
-}
-static inline gfloat shadow(gdouble value, gfloat input8)
-{
-    if (value >=0)
-        return shadowRight(value, input8);
-    else
-        return shadowLeft(value, value, input8);
+  gdouble  G  = cb_exponent (0, s_shd) * cb_exponent (1, s_mid)
+              * cb_exponent (2, s_hlt);
+  gdouble  b  = (s_shd < 0.0) ? -s_shd : 0.0;
+  gdouble  W  = (s_hlt > 0.0) ? 255.0 - s_hlt : 255.0;
+  gdouble  h0 = 0.0, y1 = 0.0, m0s = 0.0, m1s = 0.0;
+  gboolean toe = FALSE;
+  gint     i;
+
+  if (G < 0.995 && W - b > 1.0)
+    {
+      gdouble hf = cb_toe_lookup (G, 2);       /* 趾部宽度占 (W−b) 的比例 */
+
+      if (hf > 1e-3)
+        {
+          h0  = b + hf * (W - b);
+          y1  = 255.0 * pow (hf, G);
+          m0s = cb_toe_lookup (G, 1) * hf;
+          m1s = G * y1;
+          toe = TRUE;
+        }
+    }
+
+  for (i = 0; i < CB_LUTN; i++)
+    {
+      gdouble v = (gdouble) i * (255.0 / (gdouble) (CB_LUTN - 1));
+      gdouble o;
+
+      if (toe && v < h0)
+        o = (v <= b) ? 0.0
+                     : cb_hermite ((v - b) / (h0 - b), m0s, y1, m1s);
+      else
+        o = cb_base (v, G, b, W);
+
+      lut[i] = (gfloat) CLAMP (o, 0.0, 255.0);
+    }
 }
 
-/**
- * colorbalance_8bit_kernel
- * 改动：不再按亮度分区，也不做加权插值；阴影、中间调、高光三条曲线
- * 依次完整作用到每个像素。
- * CHANGED: no brightness region split, no weighting or interpolation. The
- * shadow, midtone and highlight curves apply in full, one after another, to
- * every pixel.
- */
-static inline gfloat colorbalance_8bit_kernel(gfloat inFloat,
-                                              gdouble shd,
-                                              gdouble mid,
-                                              gdouble hlt)
+/* 查表 + 线性插值 / lookup with linear interpolation */
+static inline gfloat
+cb_lookup (const gfloat *lut, gfloat v)
 {
-    gfloat val = inFloat * 255.0f;
+  gfloat x, f;
+  gint   i;
 
-    /* 所有像素依次穿过三条曲线，全程生效，不分明暗
-     * every pixel runs through all three curves, no tonal split */
-    val = shadow(shd, val);
-    val = midtone(mid, val);
-    val = highlight(hlt, val);
+  if (v <= 0.0f)
+    return lut[0];
+  if (v >= 255.0f)
+    return lut[CB_LUTN - 1];
 
-    gfloat out8 = trimResult(val);
-    return out8 / 255.0f;
+  x = v * (gfloat) (CB_LUTN - 1) / 255.0f;
+  i = (gint) x;
+  f = x - (gfloat) i;
+  return lut[i] + (lut[i + 1] - lut[i]) * f;
 }
 
 /**
@@ -334,8 +435,51 @@ perceptual_format (GeglOperation *op)
 static void
 prepare(GeglOperation *op)
 {
+  GeglProperties *o = GEGL_PROPERTIES (op);
+  CbParams       *p = (CbParams *) o->user_data;
+  gdouble         shd[3], mid[3], hlt[3];
+  gint            c;
+
+  /* 非保明度路径的三条复合曲线只取决于滑杆，整幅图像共用，
+   * 所以在 prepare() 里折成三张 LUT；process() 只剩查表 + 插值。
+   * The three composite curves depend on the sliders only, so they are folded
+   * into three LUTs here; the process loop is left with one lookup per
+   * channel. */
+  if (! p)
+    {
+      p = g_slice_new0 (CbParams);
+      o->user_data = p;
+    }
+
+  shd[0] = o->shadow_cr;    shd[1] = o->shadow_mg;    shd[2] = o->shadow_yb;
+  mid[0] = o->midtone_cr;   mid[1] = o->midtone_mg;   mid[2] = o->midtone_yb;
+  hlt[0] = o->highlight_cr; hlt[1] = o->highlight_mg; hlt[2] = o->highlight_yb;
+
+  p->identity = TRUE;
+  for (c = 0; c < 3; c++)
+    if (shd[c] != 0.0 || mid[c] != 0.0 || hlt[c] != 0.0)
+      p->identity = FALSE;
+
+  if (! p->identity)
+    for (c = 0; c < 3; c++)
+      cb_build_curve (p->lut[c], shd[c], mid[c], hlt[c]);
+
   gegl_operation_set_format(op, "input",  perceptual_format(op));
   gegl_operation_set_format(op, "output", perceptual_format(op));
+}
+
+static void
+finalize (GObject *object)
+{
+  GeglProperties *o = GEGL_PROPERTIES (object);
+
+  if (o->user_data)
+    {
+      g_slice_free (CbParams, o->user_data);
+      o->user_data = NULL;
+    }
+
+  G_OBJECT_CLASS (gegl_op_parent_class)->finalize (object);
 }
 
 static gboolean
@@ -352,6 +496,7 @@ process(GeglOperation       *op,
   gdouble mid_cr, mid_mg, mid_yb;
   gdouble hlt_cr, hlt_mg, hlt_yb;
   gboolean preserve_lum;
+  CbParams *p = (CbParams *) GEGL_PROPERTIES (op)->user_data;
 
   g_object_get(G_OBJECT(op),
     "shadow-cr", &shd_cr,
@@ -436,12 +581,21 @@ process(GeglOperation       *op,
       }
       else
       {
-          /* 原版 PS 行为：独立通道内核，直接用滑块原值
-           * Original PS behaviour: independent channel kernel on raw
-           * sliders */
-          r_out = colorbalance_8bit_kernel(r_in, shd_cr, mid_cr, hlt_cr);
-          g_out = colorbalance_8bit_kernel(g_in, shd_mg, mid_mg, hlt_mg);
-          b_out = colorbalance_8bit_kernel(b_in, shd_yb, mid_yb, hlt_yb);
+          /* 原版 PS 行为：逐通道复合曲线，prepare() 里已折成 LUT
+           * Original PS behaviour: per-channel composite curve, already folded
+           * into a LUT in prepare(). */
+          if (p && ! p->identity)
+            {
+              r_out = cb_lookup (p->lut[0], r_in * 255.0f) * (1.0f / 255.0f);
+              g_out = cb_lookup (p->lut[1], g_in * 255.0f) * (1.0f / 255.0f);
+              b_out = cb_lookup (p->lut[2], b_in * 255.0f) * (1.0f / 255.0f);
+            }
+          else
+            {
+              r_out = r_in;
+              g_out = g_in;
+              b_out = b_in;
+            }
       }
 
       r_out = CLAMP(r_out, 0.0f, 1.0f);
@@ -471,12 +625,17 @@ gegl_op_class_init(GeglOpClass *klass)
 
   oclass->prepare = prepare;
   fclass->process = process;
+  G_OBJECT_CLASS (klass)->finalize = finalize;
 
   gegl_operation_class_set_keys(oclass,
     "name",            "lb:color-balance",
     "title",           _("Color Balance"),
-    "description",     _("PS Color Balance: shadow/midtone/highlight C-R, M-G, Y-B "
-                         "on 8-bit sRGB gamma data. Pins itself to the perceptual format."),
+    "description",     _("PS Color Balance: shadow/midtone/highlight C-R, M-G, Y-B. "
+                         "Per-channel levels-style curve: the three range exponents "
+                         "multiply into one power law (black point from a negative "
+                         "shadow slider, white point from a positive highlight "
+                         "slider) plus a near-black toe, measured against "
+                         "Photoshop. Pins itself to the perceptual format."),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang",
     "gimp:menu-label", _("Color Balance"),
     NULL);
