@@ -6,6 +6,13 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SRC="$ROOT/plugin/ps-blend"
 
+# .disabled 标记 = 源码保留但暂时不安装（删掉标记即恢复）
+if [ -f "$SRC/.disabled" ]; then
+  echo "· plugin/ps-blend 已标记停用（plugin/ps-blend/.disabled），跳过安装"
+  echo "  恢复方法：rm plugin/ps-blend/.disabled && ./install-plugin.sh"
+  exit 0
+fi
+
 DST="${1:-}"
 if [ -z "$DST" ]; then
   for d in "$APPDATA/GIMP"/3.* "$HOME/AppData/Roaming/GIMP"/3.*; do

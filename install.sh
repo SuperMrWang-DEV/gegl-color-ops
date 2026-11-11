@@ -56,6 +56,8 @@ if [ "$VERIFY" = "1" ]; then
 
   fail=0
   for c in "$ROOT"/ops/*/*.c; do
+    # 带 .disabled 标记的算子不编译也不安装，不能算失败
+    [ -f "$(dirname "$c")/.disabled" ] && continue
     name="$(basename "$c" .c)"
     op="$(grep -m1 -oE '"[a-z0-9]+:[A-Za-z0-9._-]+"' "$c" | tr -d '"')"
     if "$GEGL_BIN" --info "${op:-$name}" >/dev/null 2>&1; then

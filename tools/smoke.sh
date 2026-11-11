@@ -45,6 +45,11 @@ fi
 
 ok=0; fail=0
 for c in "$ROOT"/ops/*/*.c; do
+  # 带 .disabled 标记的算子没有编译产物，跳过（与 build.sh 保持一致）
+  if [ -f "$(dirname "$c")/.disabled" ]; then
+    printf '  SKIP %s（临时停用）\n' "$(basename "$c" .c)"
+    continue
+  fi
   name="$(basename "$c" .c)"
   op="$(grep -m1 -oE '"[a-z0-9]+:[A-Za-z0-9._-]+"' "$c" | tr -d '"')"
   if "$GEGL_BIN" "$IN" -o "$OUT/$name.png" -- "${op:-$name}" >/dev/null 2>"$OUT/$name.err"; then

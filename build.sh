@@ -77,7 +77,13 @@ echo "· gegl-0.4 $(pkg-config --modversion gegl-0.4) / 输出 $OUT/*.$EXT"
 # ---------- 3. 逐个编译 ops/<name>/<name>.c ----------
 fail=0; total=0
 for c in "$ROOT"/ops/*/*.c; do
-  dir="$(dirname "$c")"; name="$(basename "$c" .c)"; total=$((total+1))
+  dir="$(dirname "$c")"; name="$(basename "$c" .c)"
+  # 目录里有 .disabled 标记 = 源码保留但暂时不编译（删掉标记即恢复）
+  if [ -f "$dir/.disabled" ]; then
+    printf '  SKIP %-26s （临时停用，见 ops/%s/.disabled）\n' "${dir##*/}" "${dir##*/}"
+    continue
+  fi
+  total=$((total+1))
   # -I<算子目录>  ：让 gegl-op.h 通过 GEGL_OP_C_SOURCE 自包含该 .c
   # -I<common>    ：共用 config.h
   if eval "$TOOLCHAIN" -shared -O2 -fPIC -Wall \
@@ -111,7 +117,8 @@ fi
 # ---------- 5. Python 插件的 C 加速内核 ----------
 # plugin/ps-blend 的像素内核与 GEGL 算子共用 common/blend.h；编译失败时插件
 # 自动退化为纯 Python（结果一致，只是慢）
-if [ -f "$ROOT/tools/psblend_core.c" ] && [ -d "$ROOT/plugin/ps-blend" ]; then
+if [ -f "$ROOT/tools/psblend_core.c" ] && [ -d "$ROOT/plugin/ps-blend" ] \
+   && [ ! -f "$ROOT/plugin/ps-blend/.disabled" ]; then
   if eval "$TOOLCHAIN" -shared -O2 -Wall -I"$ROOT/common" \
         "$ROOT/tools/psblend_core.c" $CFLAGS_GEGL $LIBS_GEGL -lm \
         -o "$ROOT/plugin/ps-blend/psblend_core.$EXT" 2>"$OUT/.build-psblend_core.log"; then

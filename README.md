@@ -3,9 +3,10 @@
 [![GIMP 3](https://img.shields.io/badge/GIMP-3.x-5C5543?logo=gimp&logoColor=white)](https://www.gimp.org/)
 [![GEGL 0.4](https://img.shields.io/badge/GEGL-0.4-2C4C6B)](https://gegl.org/)
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
-[![Operations](https://img.shields.io/badge/operations-15-brightgreen)](#算子清单)
+[![Operations](https://img.shields.io/badge/operations-13-brightgreen)](#算子清单)
 
-一组逆向实现的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **15 个**，统一 `lb:` 命名空间，
+一组逆向实现的 GEGL 颜色算子（GIMP 3 的滤镜内核），当前启用 **13 个**（另有应用图像 / 计算 2 个暂时停用，
+源码保留），统一 `lb:` 命名空间，
 在 GIMP 里位于 **图像 → 颜色 → SuperMrWang**。
 
 每个算子都是单文件 C（含 `#ifdef GEGL_PROPERTIES` 段），直接编译成 GEGL 插件模块，
@@ -24,7 +25,7 @@ gegl-color-ops/
 ├── meson.build           # 等价工程，供 Linux/macOS 或 CI 使用
 ├── common/config.h       # 所有算子共用的版本宏 / GETTEXT_PACKAGE
 ├── ops/<算子名>/          # 每个算子一个目录：<算子名>.c + 原始说明 + 截图
-├── plugin/ps-blend/      # Python 插件：应用图像/计算的完整复刻版（见下）
+├── plugin/ps-blend/      # Python 插件：应用图像/计算的完整复刻版（当前已停用，源码保留）
 ├── tools/                # 测试图生成、逐算子冒烟、对照表、文件头重排、注释双语化
 ├── build/                # 编译产物（build.sh 生成，可随时删）
 └── LICENSE               # GPL-3.0
@@ -55,7 +56,7 @@ gegl-color-ops/
 
 每个算子的算法说明、参数含义见 `ops/<算子名>/README.md`（原始文档）。
 
-**两个双输入算子**（`apply-image` / `calculations`）用 `GeglOperationPointComposer`，
+**两个双输入算子**（`apply-image` / `calculations`，自 2026-11-11 起临时停用，见下文「临时停用与恢复」）用 `GeglOperationPointComposer`，
 除 `input` 外还有一个 `aux` pad：
 
 - GIMP 里 aux 由滤镜对话框的输入选择器指定（GIMP 3 会打印 `aux_label` 的名字）；
@@ -248,6 +249,24 @@ meson setup build-meson && ninja -C build-meson
 ```bash
 GEGL_PATH="$PWD/build;/d/fastsoftware/GIMP 3/lib/gegl-0.4" gegl in.png -o out.png -- lb:exposure exposure=1.0
 ```
+
+## 临时停用与恢复
+
+想先让某个算子/插件从 GIMP 里消失、但源码继续留在工程里，就在它的目录放一个 `.disabled` 标记：
+
+```bash
+touch ops/apply-image/.disabled        # 停用这个 GEGL 算子
+touch plugin/ps-blend/.disabled        # 停用 Python 插件
+```
+
+- `build.sh` 会跳过带标记的算子目录（打印 `SKIP`），`build/` 里不再产出它的 `.dll`，
+  `install.sh` 也就装不到它；`install-plugin.sh` 见到标记直接退出。
+- 已经装进 `%LOCALAPPDATA%\gegl-0.4\plug-ins` 或 GIMP `plug-ins` 的旧模块不会被脚本清理，
+  必须手动删掉那个 `.dll` / 插件目录，否则 GIMP 重启后照样加载。
+- 恢复：删掉 `.disabled`，重跑 `./build.sh && ./install.sh`（插件版再 `./install-plugin.sh`）。
+
+**当前状态（2026-11-11）**：`lb:apply-image`、`lb:calculations`、`plugin/ps-blend` 已临时停用，
+源码完好；移走的二进制放在 `backup/disabled-20261111-apply-calc/`（`backup/` 不进仓库）。
 
 ## 在 GIMP 菜单位置
 
