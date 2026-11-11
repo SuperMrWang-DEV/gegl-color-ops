@@ -35,3 +35,46 @@ jobs:
 
       - name: 验证 .so 能被 GEGL 加载并渲染
         run: ./tools/check-linux.sh
+
+      - name: 上传 Linux 包
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-x64
+          path: build/*.so
+          retention-days: 90
+
+  macos:
+    name: macOS (Apple Silicon) / homebrew GEGL
+    runs-on: macos-14
+    env:
+      PKG_CONFIG_PATH: /opt/homebrew/lib/pkgconfig
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 GEGL
+        run: |
+          brew install gegl
+          brew list --versions gegl
+
+      - name: 显示 GEGL 版本
+        run: pkg-config --modversion gegl-0.4
+
+      - name: 编译全部算子
+        run: ./build.sh
+
+      - name: 确认产出 13 个 .so（macOS 上 GEGL 也只认 .so，不是 .dylib）
+        run: |
+          n=$(ls build/*.so | wc -l)
+          echo "built: $n"
+          ls -la build/*.so | awk '{print $5, $9}'
+          test "$n" -eq 13
+
+      - name: 验证 .so 能被 GEGL 加载并渲染
+        run: ./tools/check-linux.sh
+
+      - name: 上传 macOS 包
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-arm64
+          path: build/*.so
+          retention-days: 90

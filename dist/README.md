@@ -9,9 +9,21 @@ GCC、MSYS2、meson 那一套。内容与当前分支的源码同步（`tools/ma
 |---|---|---|
 | Windows x64 | [`windows-x64/`](windows-x64) 里的 13 个 `.dll` | `%LOCALAPPDATA%\gegl-0.4\plug-ins` |
 | Linux x86_64 | [`linux-x64/`](linux-x64) 里的 13 个 `.so` | `~/.local/share/gegl-0.4/plug-ins` |
+| macOS (Apple Silicon) | 本目录暂无，见下方「macOS 怎么拿」 | `~/Library/Application Support/gegl-0.4/plug-ins` |
 
 - GIMP Flatpak（Linux）：放进 `~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins`
-- macOS：暂无预编译包，请按根目录 `README.md` 自行编译
+
+## macOS 怎么拿
+
+macOS 包由 GitHub Actions 在 Apple Silicon 云机器（`macos-14`）上编译：仓库
+**每次 push 都会构建**，产物以 artifact 形式挂在 Actions 运行页
+（`macos-arm64`，13 个 `.so`）——GitHub 上打开 Actions → 选最新一次 run →
+Artifacts 里下载。 GEGL 装不上 GIMP 的 Homebrew 版时，这些 `.so` 也能给用
+Homebrew GIMP 的用户直接放到 `~/Library/Application Support/gegl-0.4/plug-ins`。
+
+注意：macOS 上 GEGL 同样只加载 `.so`（GLib 的 `G_MODULE_SUFFIX` 在 Darwin 也是
+`so`），不会是 `.dylib`；build.sh 已经按这个规则处理。
+CI 里同样跑加载 + 恒等渲染验证，绿灯才算数。
 
 放完**重启 GIMP**，滤镜出现在「图像 → 颜色 → SuperMrWang」下。
 
@@ -34,6 +46,7 @@ gegl --info lb:hue-saturation
 |---|---|---|
 | `windows-x64` | MSYS2 mingw-w64 gcc 13，GEGL 0.4.72 头文件 | 64 位 GIMP 3（GEGL 0.4.x） |
 | `linux-x64` | Ubuntu 24.04，gcc 13，GEGL 0.4.48 | x86_64，**glibc ≥ 2.39**（Ubuntu 24.04+、Fedora 40+、Debian 13、Arch）；更老的发行版请自己编译 |
+| `macos-arm64`（CI artifact） | GitHub Actions macos-14，clang，Homebrew GEGL | Apple Silicon（M1/M2/M3/M4），装了 Homebrew GIMP 或带 GEGL 的应用 |
 
 两点实话说在前面：
 

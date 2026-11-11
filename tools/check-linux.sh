@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# 在 Linux（原生或 WSL）里验证 build/*.so 能否被 GEGL 加载并正确渲染，不需要开 GIMP。
+# 验证 build/*.so 能否被 GEGL 加载并正确渲染，不需要开 GIMP。Linux（原生或 WSL）
+# 和 macOS CI 都能用；macOS 上 gcc 会被解析成 clang，一样能编 ldcheck。
 #   用法: ./tools/check-linux.sh
 #         OPS_DIR=dist/linux-x64 ./tools/check-linux.sh    # 验已打包的产物
 set -euo pipefail
@@ -8,7 +9,8 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OPS="${OPS_DIR:-$ROOT/build}"
 OUT="${OUT_DIR:-$ROOT/build}"
 
-command -v gcc >/dev/null || { echo "✗ 需要 gcc" >&2; exit 1; }
+CC="${CC:-gcc}"
+command -v "$CC" >/dev/null || { echo "✗ 需要 $CC" >&2; exit 1; }
 pkg-config --exists gegl-0.4 || { echo "✗ 需要 gegl-0.4 开发头文件（apt install libgegl-dev）" >&2; exit 1; }
 [ -d "$OPS" ] || { echo "✗ 找不到模块目录 $OPS，先编译" >&2; exit 1; }
 
@@ -17,7 +19,7 @@ pkg-config --exists gegl-0.4 || { echo "✗ 需要 gegl-0.4 开发头文件（ap
 SYS_OPS="$(pkg-config --variable=libdir gegl-0.4)/gegl-0.4"
 
 mkdir -p "$OUT"
-gcc "$ROOT/tools/ldcheck.c" $(pkg-config --cflags --libs gegl-0.4) -o "$OUT/ldcheck"
+"$CC" "$ROOT/tools/ldcheck.c" $(pkg-config --cflags --libs gegl-0.4) -o "$OUT/ldcheck"
 
 IDs=()
 for c in "$ROOT"/ops/*/*.c; do
