@@ -64,6 +64,7 @@ gegl-color-ops/
 | `lb:exposure` | Exposure EV | Exposure EV | Filter | PS 曝光：EV、偏移、伽马 |
 | `lb:rgb-domain-grayscale` | Black & White | Black & White | Point | PS 黑白：六色权重转灰 + 可选着色 |
 | `lb:vibrance-hyper` | Natural Saturation | Natural Saturation | Point | LAB 自然饱和度：色度双曲蒙版 + 肤色保护窗 + 色域收敛不扭色相 |
+| `lb:vibrance-ps` | Vibrance PS | Vibrance (Photoshop) | Point | PS 自然饱和度实测复刻：ΔS = A(v)·S^p·(1−S)^q，叠红带与亮度项，16 位标定 |
 | `lb:xyz-multiply` | XYZ Multiply | XYZ Multiply | Point | 以参考色做正片叠底（XYZ 域） |
 | `lb:apply-image` | Apply Image | Apply Image | Composer | PS 应用图像：aux 层按 26 种混合模式压到本层，可只作用单通道 |
 | `lb:calculations` | Calculations | Calculations | Composer | PS 计算：两路通道混合出灰/alpha 蒙版，双源可各自反相 |

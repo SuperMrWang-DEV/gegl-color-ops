@@ -7,8 +7,8 @@ GCC、MSYS2、meson 那一套。内容与当前分支的源码同步（`tools/ma
 
 | 系统 | 下载 | 放到 |
 |---|---|---|
-| Windows x64 | [`windows-x64/`](windows-x64) 里的 13 个 `.dll` | `%LOCALAPPDATA%\gegl-0.4\plug-ins` |
-| Linux x86_64 | [`linux-x64/`](linux-x64) 里的 13 个 `.so` | `~/.local/share/gegl-0.4/plug-ins` |
+| Windows x64 | [`windows-x64/`](windows-x64) 里的 14 个 `.dll` | `%LOCALAPPDATA%\gegl-0.4\plug-ins` |
+| Linux x86_64 | [`linux-x64/`](linux-x64) 里的 14 个 `.so` | `~/.local/share/gegl-0.4/plug-ins` |
 | macOS (Apple Silicon) | 本目录暂无，见下方「macOS 怎么拿」 | `~/Library/Application Support/gegl-0.4/plug-ins` |
 
 - GIMP Flatpak（Linux）：放进 `~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins`
@@ -17,7 +17,7 @@ GCC、MSYS2、meson 那一套。内容与当前分支的源码同步（`tools/ma
 
 macOS 包由 GitHub Actions 在 Apple Silicon 云机器（`macos-15`）上编译：仓库
 **每次 push 都会构建**，产物以 artifact 形式挂在 Actions 运行页
-（`macos-arm64`，13 个 `.dylib`）——GitHub 上打开 Actions → 选最新一次 run →
+（`macos-arm64`，14 个 `.dylib`）——GitHub 上打开 Actions → 选最新一次 run →
 Artifacts 里下载。装了 Homebrew GIMP 的用户把这些 `.dylib` 放到
 `~/Library/Application Support/gegl-0.4/plug-ins` 即可。
 
@@ -46,14 +46,14 @@ gegl --info lb:hue-saturation
 |---|---|---|
 | `windows-x64` | MSYS2 mingw-w64 gcc 13，GEGL 0.4.72 头文件 | 64 位 GIMP 3（GEGL 0.4.x） |
 | `linux-x64` | Ubuntu 24.04，gcc 13，GEGL 0.4.48 | x86_64，**glibc ≥ 2.39**（Ubuntu 24.04+、Fedora 40+、Debian 13、Arch）；更老的发行版请自己编译 |
-| `macos-arm64`（CI artifact） | GitHub Actions macos-14，clang，Homebrew GEGL | Apple Silicon（M1/M2/M3/M4），装了 Homebrew GIMP 或带 GEGL 的应用 |
+| `macos-arm64`（CI artifact） | GitHub Actions macos-15，clang，Homebrew GEGL | Apple Silicon（M1/M2/M3/M4），装了 Homebrew GIMP 或带 GEGL 的应用 |
 
 两点实话说在前面：
 
 1. Linux 包是在 Ubuntu 24.04 上编的，因为它链的是较新的 glibc，Ubuntu 22.04 之类
    老系统会报 `GLIBC_2.39 not found`。要兼容更老的发行版，用 CI 或自己的机器编一次。
 2. Linux 包**没有在 GIMP 图形界面里逐个点过**，只在 GEGL 0.4.48 环境下用一个 C 程序
-   验证：13 个算子全部注册成功、恒等渲染数值与原图一致。GIMP 里看不到时，先用上面的
+   验证：当时 13 个算子全部注册成功、恒等渲染数值与原图一致（`lb:vibrance-ps` 是之后加的，只做了构建 + 入口符号检查）。GIMP 里看不到时，先用上面的
    `gegl --info` 确认算子是否被加载。
 
 ## 校验完整性
