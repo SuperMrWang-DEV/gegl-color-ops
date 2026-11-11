@@ -3,9 +3,9 @@
 [![GIMP 3](https://img.shields.io/badge/GIMP-3.x-5C5543?logo=gimp&logoColor=white)](https://www.gimp.org/)
 [![GEGL 0.4](https://img.shields.io/badge/GEGL-0.4-2C4C6B)](https://gegl.org/)
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
-[![Operations](https://img.shields.io/badge/operations-17-brightgreen)](#算子清单)
+[![Operations](https://img.shields.io/badge/operations-18-brightgreen)](#算子清单)
 
-一组逆向实现的 GEGL 颜色算子（GIMP 3 的滤镜内核），当前启用 **17 个**（另有应用图像 / 计算 2 个暂时停用，
+一组逆向实现的 GEGL 颜色算子（GIMP 3 的滤镜内核），当前启用 **18 个**（另有应用图像 / 计算 2 个暂时停用，
 源码保留），统一 `lb:` 命名空间，
 在 GIMP 里位于 **图像 → 颜色 → SuperMrWang**。
 
@@ -69,6 +69,7 @@ gegl-color-ops/
 | `lb:brightness-contrast-ps` | Brightness/Contrast PS | Brightness/Contrast (Photoshop) | Point | PS 亮度/对比度实测复刻：新版两条曲线族查表 + 旧版闭式（pivot 89、b 夹 ±100） |
 | `lb:xyz-multiply` | Photo Filter | Photo Filter | Point | **即 PS 照片滤镜**（实测复刻）：滤镜色在 D50 XYZ 域正片叠底，密度 + 保留明度（W3C SetLum）；不保留明度档 ≤0.71 码 |
 | `lb:shadows-highlights` | Shadows/Highlights | Shadows/Highlights | Filter | PS 阴影/高光实测复刻：边缘感知邻域亮度决定提亮提多少，含色调宽度、颜色、中间调对比度、修剪黑白 |
+| `lb:color-temperature-tint` | Color Temperature & Tint | Color Temperature & Tint | Point | PS 2026「色彩与自然饱和度」里的色温 / 色调：冷↔暖、绿↔洋红，中性灰跟着偏色、黑白不动 |
 | `lb:apply-image` | Apply Image | Apply Image | Composer | PS 应用图像：aux 层按 26 种混合模式压到本层，可只作用单通道 |
 | `lb:calculations` | Calculations | Calculations | Composer | PS 计算：两路通道混合出灰/alpha 蒙版，双源可各自反相 |
 
@@ -224,7 +225,7 @@ python tools/i18n_blocks.py check                    # 与 git HEAD 比对代码
 
 ```bash
 cd gegl-color-ops
-./build.sh                 # 产物在 build/ 下，17 个 .dll/.so/.dylib
+./build.sh                 # 产物在 build/ 下，18 个 .dll/.so/.dylib
 ```
 
 脚本会自动探测 `gegl-0.4.pc`（先试 `D:/fastsoftware/GIMP 3/lib/pkgconfig` 等常见位置），也可手动指定：
@@ -288,7 +289,7 @@ touch plugin/ps-blend/.disabled        # 停用 Python 插件
 
 ## 在 GIMP 菜单位置
 
-17 个算子全部注册在同一个菜单目录下：
+18 个算子全部注册在同一个菜单目录下：
 
 ```
 图像 → 颜色 → SuperMrWang → <各算子>

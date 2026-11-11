@@ -28,6 +28,7 @@ ops = [
   ['brightness-contrast-ps',  'brightness-contrast-ps',  'lb-brightness-contrast.c'],
   ['xyz-multiply',            'xyz-multiply',            'xyz-multiply.c'],
   ['shadows-highlights',      'shadows-highlights',      'shadows-highlights.c'],
+  ['color-temperature-tint',   'color-temperature-tint',   'color-temperature-tint.c'],
 ]
 
 foreach op : ops

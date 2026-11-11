@@ -215,6 +215,27 @@ OPS = {
         ref_en="Photoshop Image > Adjustments > Shadows/Highlights (script entry "
                "adaptCorrect)",
     ),
+    "color-temperature-tint": dict(
+        id="lb:color-temperature-tint", label="Color Temperature & Tint",
+        title="Color Temperature & Tint (Photoshop)",
+        purpose_zh="PS 2026「色彩与自然饱和度」里的色温 / 色调：中性灰跟着偏蓝-黄、"
+                   "绿-洋红，黑白两端不动",
+        purpose_en="The Temperature and Tint sliders of Photoshop 2026's Color and "
+                   "vibrance layer: neutrals drift blue-yellow or green-magenta while "
+                   "the black and white endpoints stay put.",
+        algo_zh="编码值解码到线性 → 3 次多项式（20 项）→ clamp → 编码。系数在 17×17 的"
+                "(色温,色调) 网格上实测，运行时双线性插值后烘成 33³ LUT，逐像素只查表；"
+                "截断样本用带删失的迭代回归拟合，硬裁切交给 clamp",
+        algo_en="Encoded values are decoded to linear, run through a 3rd-order "
+                "polynomial (20 terms), clamped and encoded. Coefficients are measured "
+                "on a 17x17 (temperature, tint) grid, interpolated at run time and "
+                "baked into a 33^3 LUT, so the per-pixel work is a lookup. Censored "
+                "samples are fitted with an iterated hinge regression and the hard "
+                "clip is left to the clamp.",
+        type="GeglOperationPointFilter（逐像素 / per-pixel）",
+        ref_zh="Photoshop 2026（27.0）「色彩与自然饱和度」调整图层（实测逆向）",
+        ref_en="Photoshop 2026 (27.0) Color and vibrance adjustment layer",
+    ),
     "xyz-multiply": dict(
         id="lb:xyz-multiply", label="XYZ Multiply", title="XYZ Multiply",
         purpose_zh="以参考色在 XYZ 域做正片叠底，白点可选 D50/D55/D65/D75",
