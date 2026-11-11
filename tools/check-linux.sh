@@ -37,5 +37,5 @@ for c in "$ROOT"/ops/*/*.c; do
   [ -n "$id" ] && IDs+=("$id")
 done
 
-echo "· 模块目录 ${OPS}（$(ls "$OPS"/*.$SUF 2>/dev/null | wc -l) 个 .$SUF）"
+echo "· 模块目录 ${OPS}（$(ls "$OPS"/*.$SUF 2>/dev/null | wc -l) 个 .${SUF}）"
 GEGL_PATH="$OPS:$SYS_OPS" "$OUT/ldcheck" "${IDs[@]}"
