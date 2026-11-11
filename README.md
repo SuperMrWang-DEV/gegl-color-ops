@@ -67,7 +67,7 @@ gegl-color-ops/
 | `lb:vibrance-hyper` | Natural Saturation | Natural Saturation | Point | LAB 自然饱和度：色度双曲蒙版 + 肤色保护窗 + 色域收敛不扭色相 |
 | `lb:vibrance-ps` | Vibrance PS | Vibrance (Photoshop) | Point | PS 自然饱和度实测复刻：ΔS = A(v)·S^p·(1−S)^q，叠红带与亮度项，16 位标定 |
 | `lb:brightness-contrast-ps` | Brightness/Contrast PS | Brightness/Contrast (Photoshop) | Point | PS 亮度/对比度实测复刻：新版两条曲线族查表 + 旧版闭式（pivot 89、b 夹 ±100） |
-| `lb:xyz-multiply` | XYZ Multiply | XYZ Multiply | Point | 以参考色做正片叠底（XYZ 域）；整条链路折成一个 3×3 矩阵 |
+| `lb:xyz-multiply` | Photo Filter | Photo Filter | Point | **即 PS 照片滤镜**（实测复刻）：滤镜色在 D50 XYZ 域正片叠底，密度 + 保留明度（W3C SetLum）；不保留明度档 ≤0.71 码 |
 | `lb:apply-image` | Apply Image | Apply Image | Composer | PS 应用图像：aux 层按 26 种混合模式压到本层，可只作用单通道 |
 | `lb:calculations` | Calculations | Calculations | Composer | PS 计算：两路通道混合出灰/alpha 蒙版，双源可各自反相 |
 

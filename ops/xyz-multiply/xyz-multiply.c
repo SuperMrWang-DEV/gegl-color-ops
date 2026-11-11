@@ -2,23 +2,25 @@
  * SuperMrWang · GEGL 算子 / GEGL Operation
  * ---------------------------------------------------------------------------
  * id         lb:xyz-multiply
- * menu       XYZ Multiply
- * purpose    以参考色在 XYZ 域做正片叠底，白点可选 D50/D55/D65/D75
- *            Multiply blend against a reference colour in XYZ space; the
- *            white point can be D50/D55/D65/D75.
- * algorithm  整条链路在线性 sRGB 里等价于一个常数 3×3 矩阵：先线性化，
- *            乘以 M，再回伽马域。M = XYZ2sRGB · A⁻¹ · diag(k) · A · sRGB2XYZ，
- *            其中 A 是 D65 → 目标白点（简化 Bradford），k 是「正片叠底 + 不
- *            透明度」合成出的逐通道系数。M 每次 process 只算一次；逐像素只剩
- *            3 次查表 + 9 乘 6 加 + 3 次查表。
- *            The whole chain collapses to one constant 3x3 matrix in linear
- *            sRGB: linearise, multiply by M, re-encode. M is built once per
- *            process call from the white point, overlay colour and opacity;
- *            per pixel only three table lookups, nine multiply-adds and three
- *            table lookups remain.
+ * menu       Photo Filter
+ * purpose    PS「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，
+ *            另有保留明度开关。
+ *            Photoshop's Photo Filter: multiply the filter colour in XYZ space,
+ *            density as opacity, with an optional preserve-luminosity switch.
+ * algorithm  与 PS 实测对齐（标定记录见 photo-filter-cal/）：
+ *              1. 线性化 sRGB，用标准 Bradford 转到 D50 的 XYZ
+ *              2. 逐通道乘 k = (1-d) + d·(filt_XYZ / W50)，d = 密度
+ *              3. 转回编码值；若开了保留明度，再做 W3C 的 SetLum + ClipColor
+ *            前两步在线性 sRGB 里等价于一个常数 3×3 矩阵
+ *            M = XYZ2sRGB · A⁻¹ · diag(k) · A · sRGB2XYZ，每 process 只算一次；
+ *            逐像素只剩 3 次查表 + 9 乘 6 加 + 3 次查表（+ 保留明度的几条）。
+ *            Matches Photoshop, measured end to end: linearise, adapt to D50
+ *            XYZ with standard Bradford, multiply per channel by
+ *            k = (1-d)+d·(filt/W50), re-encode, then optionally restore the
+ *            encoded Rec.601 luma. Steps 1-2 collapse into one constant 3x3
+ *            matrix built once per process call.
  * type       GeglOperationPointFilter（逐像素 / per-pixel）
- * reference  正片叠底 (Multiply) 的 XYZ 域实现
- *            Multiply blend, implemented in XYZ space
+ * reference  PS 照片滤镜标定：photo-filter-cal/（灰阶 + 彩色探针，12 + 6 档）
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
  *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
@@ -29,24 +31,27 @@
 
 #ifdef GEGL_PROPERTIES
 
-property_color (overlay_color, _("Overlay Color"), "rgba(1.0,1.0,1.0,1.0)")
-    description (_("Reference color for XYZ multiply blend"))
+property_color (overlay_color, _("Filter Color"), "rgba(1.0,1.0,1.0,1.0)")
+    description (_("Filter colour, i.e. the Photo Filter preset colour"))
 
 property_enum (white_mode, _("White Point"),
-               WPSelectType, wp_select_enum, WHITE_D65)
-    description (_("CIE standard illuminant white point"))
+               WPSelectType, wp_select_enum, WHITE_D50)
+    description (_("CIE standard illuminant white point (Photoshop uses D50)"))
 
 enum_start (wp_select_enum)
-  enum_value (WHITE_D50, "d50", N_("D50 (Print ICC)"))
+  enum_value (WHITE_D50, "d50", N_("D50 (Photoshop / print ICC)"))
   enum_value (WHITE_D55, "d55", N_("D55 (Old daylight)"))
-  enum_value (WHITE_D65, "d65", N_("D65 (sRGB Screen)"))
+  enum_value (WHITE_D65, "d65", N_("D65 (sRGB screen)"))
   enum_value (WHITE_D75, "d75", N_("D75 Cool proof light"))
 enum_end (WPSelectType)
 
-property_double (opacity, _("Opacity"), 1.0)
+property_double (opacity, _("Density"), 1.0)
     value_range (0.0, 1.0)
     ui_range (0.0, 1.0)
-    description (_("Blend opacity of multiply layer"))
+    description (_("Filter density (Photoshop's 0-100% divided by 100)"))
+
+property_boolean (preserve_luminosity, _("Preserve Luminosity"), TRUE)
+    description (_("Keep the original luminance, like Photoshop's default checkbox"))
 
 #else
 
@@ -67,17 +72,26 @@ static const WhitePoint WP_D55  = {0.95682f, 1.00000f, 0.92149f};
 static const WhitePoint WP_D65  = {0.95047f, 1.00000f, 1.08883f};
 static const WhitePoint WP_D75  = {0.94972f, 1.00000f, 1.22638f};
 
-/* Bradford 基础矩阵：D65 ↔ D50
- * Bradford base matrix, D65 <-> D50 */
-static const gfloat CAT_BRADFORD[3][3] = {
-  { 1.0478112f,  0.0228866f, -0.0501270f},
-  { 0.0295424f,  0.9904844f, -0.0170491f},
-  {-0.0092345f,  0.0150436f,  0.7521316f}
+/* Bradford 锥响应矩阵及其逆。
+ *
+ * 老代码里有一组 CAT_BRADFORD（1.0478112, 0.0228866, …）被当成"锥响应"用，其实
+ * 那组数正是 **D65→D50 的适配矩阵本身**（拿下面这套矩阵按 D50 白点算一遍就能
+ * 复现到 7e-8）。把它当锥响应喂进去，推出的 A 完全是另一个矩阵，D50 档的偏色
+ * 就是这么来的。现在按标准锥响应现算，4 个白点都成立。
+ *
+ * Bradford cone response. The old CAT_BRADFORD table (1.0478112, 0.0228866, …)
+ * is the D65->D50 adaptation matrix itself, not the cone response -- using it as
+ * the cone response produced a completely different A, which is where the D50
+ * colour shift came from. */
+static const gfloat BRADFORD_CONE[3][3] = {
+  { 0.8951000f,  0.2664000f, -0.1614000f},
+  {-0.7502000f,  1.7135000f,  0.0367000f},
+  { 0.0389000f, -0.0685000f,  1.0296000f}
 };
-static const gfloat CAT_INV_BRADFORD[3][3] = {
-  { 0.9555766f, -0.0230393f,  0.0631636f},
-  {-0.0282895f,  1.0099416f,  0.0210077f},
-  { 0.0122982f, -0.0204830f,  1.3299098f}
+static const gfloat BRADFORD_CONE_INV[3][3] = {
+  { 0.9869929f, -0.1470543f,  0.1599627f},
+  { 0.4323053f,  0.5183603f,  0.0492912f},
+  {-0.0085287f,  0.0400428f,  0.9684867f}
 };
 
 static const gfloat MAT_SRGB_TO_XYZ[3][3] = {
@@ -207,30 +221,38 @@ static WhitePoint get_wp_from_enum(WPSelectType mode)
   }
 }
 
-/* 简化 Bradford 适配矩阵（D65 ↔ 目标白点），与原实现逐项一致，只是预先乘成
- * 一个 3×3：
+/* 标准 Bradford 白点适配（D65 ↔ 目标白点），预先乘成一个 3×3：
  *
- *   正向 A  = B⁻¹ · diag(wp/W65) · B · diag(1/W65)
- *   反向 A⁻¹ = B⁻¹ · diag(W65/wp) · B · diag(1/wp)
+ *   A   = B⁻¹ · diag(ρ_wp / ρ_65) · B      （D65 → 目标白点）
+ *   A⁻¹ = B⁻¹ · diag(ρ_65 / ρ_wp) · B
  *
- * The simplified Bradford adaptation written out by the original code, folded
- * into one 3x3 (same expression, same operation order, just pre-multiplied).
+ * 其中 ρ = B·W 是两个白点在 Bradford 锥响应空间里的坐标。
+ *
+ * 旧写法是 `B⁻¹ · diag(wp/W65) · B · diag(1/W65)` —— 既没走锥响应（直接拿
+ * 白点坐标当锥响应），又多除了一次 W65，于是 D65 时 A 退化成 diag(1/W65) 而
+ * 不是单位阵，A·A⁻¹ 也偏离单位阵最多 0.16。α=0 时画面仍会偏色就是它造成的。
+ * 改成标准形式后 A(D65) = I 严格成立。
+ *
+ * Standard Bradford adaptation folded into one 3x3. The old expression skipped
+ * the cone response and divided by the white point twice, so A degenerated to
+ * diag(1/W65) at D65 and A·A⁻¹ was off by up to 0.16 -- which is why alpha=0
+ * still shifted colours. The standard form gives A(D65) = I exactly.
  * ------------------------------------------------------------------------- */
 static void
 wp_matrix (const WhitePoint wp, gboolean inverse, gfloat out[3][3])
 {
   const gfloat w[3]  = { wp.X, wp.Y, wp.Z };
   const gfloat d[3]  = { WP_D65.X, WP_D65.Y, WP_D65.Z };
-  gfloat bd[3][3];
+  gfloat cs[3], cd[3], D[3][3] = {{0.0f}}, t[3][3];
+
+  mat3_mul_vec (BRADFORD_CONE, d[0], d[1], d[2], &cs[0], &cs[1], &cs[2]);
+  mat3_mul_vec (BRADFORD_CONE, w[0], w[1], w[2], &cd[0], &cd[1], &cd[2]);
 
   for (gint i = 0; i < 3; i++)
-    {
-      gfloat si = inverse ? (d[i] / w[i]) : (w[i] / d[i]);
+    D[i][i] = inverse ? (cs[i] / cd[i]) : (cd[i] / cs[i]);
 
-      for (gint j = 0; j < 3; j++)
-        bd[i][j] = CAT_BRADFORD[i][j] * si / (inverse ? w[j] : d[j]);
-    }
-  mat3_mul_mat(CAT_INV_BRADFORD, bd, out);
+  mat3_mul_mat (D, BRADFORD_CONE, t);
+  mat3_mul_mat (BRADFORD_CONE_INV, t, out);
 }
 
 /* 目标白点空间里「正片叠底 + 不透明度」合成出的逐通道系数
@@ -301,11 +323,13 @@ process(GeglOperation       *op,
   WPSelectType wmode;
   GeglColor *overlay_color;
   gdouble opacity;
+  gboolean preserve_lum;
 
   g_object_get(G_OBJECT(op),
     "white-mode", &wmode,
     "overlay-color", &overlay_color,
     "opacity", &opacity,
+    "preserve-luminosity", &preserve_lum,
     NULL);
 
   gdouble ovr_d, ovg_d, ovb_d, ova_d;
@@ -319,14 +343,22 @@ process(GeglOperation       *op,
   gfloat *in_line  = g_new(gfloat, stride);
   gfloat *out_line = g_new(gfloat, stride);
 
-  /* 不透明度为 0 时不能走「直接复制」的快路：M = XYZ2sRGB · A⁻¹ · A · sRGB2XYZ
-   * 里的 A⁻¹ 是原插件的简化 Bradford 逆，并非 A 的真逆（A·A⁻¹ 偏离单位阵最多
-   * 0.16），所以链路在 α=0 处并不严格等于恒等。为保证与参考实现逐档一致、且
-   * 不透明度扫过 0 时不出现跳变，这里照常算 —— 代价只是一条常数矩阵。
-   * Do not short-circuit at opacity 0: A⁻¹ is the upstream plugin's simplified
-   * Bradford inverse, not a true inverse (A·A⁻¹ deviates from identity by up to
-   * 0.16), so the chain is not exactly identity at alpha=0. Computing it keeps
-   * parity with the reference and avoids a jump when the slider crosses 0. */
+  /* 白点矩阵修好之后 A·A⁻¹ = I，α=0 时链路严格恒等，可以安全走直通
+   * with the white-point matrix fixed, A·A⁻¹ = I, so alpha=0 is a true identity */
+  if (opac_f <= 0.0f)
+  {
+    for (gint y = 0; y < roi->height; y++)
+    {
+      GeglRectangle row = { roi->x, roi->y + y, roi->width, 1 };
+      gegl_buffer_get(in_buf, &row, 1.0f, fmt, in_line,
+                      GEGL_AUTO_ROWSTRIDE, GEGL_ABYSS_NONE);
+      gegl_buffer_set(out_buf, &row, 0, fmt, in_line, GEGL_AUTO_ROWSTRIDE);
+    }
+    g_free(in_line);
+    g_free(out_line);
+    return TRUE;
+  }
+
   ensure_srgb_luts ();
 
   /* 白点 + 叠加色 + 不透明度 → 一个常数矩阵，每次 process 只算一次
@@ -364,9 +396,52 @@ process(GeglOperation       *op,
       gfloat Y = m10 * lr + m11 * lg + m12 * lb;
       gfloat Z = m20 * lr + m21 * lg + m22 * lb;
 
-      out_line[p+0] = srgb_gamma(X);
-      out_line[p+1] = srgb_gamma(Y);
-      out_line[p+2] = srgb_gamma(Z);
+      gfloat r8 = srgb_gamma(X);
+      gfloat g8 = srgb_gamma(Y);
+      gfloat b8 = srgb_gamma(Z);
+
+      if (preserve_lum)
+        {
+          /* W3C / PDF 的 Luminosity 混合模式：SetLum + ClipColor，权重是
+           * Rec.601 的 0.3/0.59/0.11，全部作用在**编码值**上。
+           *
+           * 这是实测出来的：128 灰 + 纯红密度 100% 时 PS 给 (218,90,90)，
+           * SetLum 手算恰是 (217.6, 89.6, 89.6)；换成 Lab 保 L*、乘性还原、
+           * Rec.709 权重都对不上（中位误差 5～45 码）。
+           *
+           * W3C Luminosity blending on encoded values with Rec.601 weights.
+           * 128 grey through a 100% red filter gives (218,90,90) in Photoshop,
+           * which is exactly what SetLum computes. */
+          gfloat target = 0.3f * in_line[p+0] + 0.59f * in_line[p+1] + 0.11f * in_line[p+2];
+          gfloat dsh    = target - (0.3f * r8 + 0.59f * g8 + 0.11f * b8);
+
+          r8 += dsh;
+          g8 += dsh;
+          b8 += dsh;
+
+          gfloat lo = MIN (r8, MIN (g8, b8));
+          gfloat hi = MAX (r8, MAX (g8, b8));
+
+          if (lo < 0.0f)
+            {
+              gfloat k = (target - lo > 1e-6f) ? target / (target - lo) : 0.0f;
+              r8 = target + (r8 - target) * k;
+              g8 = target + (g8 - target) * k;
+              b8 = target + (b8 - target) * k;
+            }
+
+          if (hi > 1.0f)
+            {
+              gfloat k = (hi - target > 1e-6f) ? (1.0f - target) / (hi - target) : 0.0f;
+              r8 = target + (r8 - target) * k;
+              g8 = target + (g8 - target) * k;
+              b8 = target + (b8 - target) * k;
+            }
+        }
+
+      out_line[p+0] = r8;
+      out_line[p+1] = g8;
+      out_line[p+2] = b8;
       out_line[p+3] = in_line[p+3];
     }
 
@@ -389,10 +464,11 @@ gegl_op_class_init(GeglOpClass *klass)
 
   gegl_operation_class_set_keys(oclass,
     "name",            "lb:xyz-multiply",
-    "title",           _("XYZ Multiply"),
-    "description",     _("XYZ multiply blend with D50 D55 D65 D75 illuminant white points"),
+    "title",           _("Photo Filter"),
+    "description",     _("Photoshop's Photo Filter: filter colour multiplied in XYZ space, "
+                         "with density and preserve-luminosity"),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang",
-    "gimp:menu-label", _("XYZ Multiply"),
+    "gimp:menu-label", _("Photo Filter"),
     NULL);
 }
 

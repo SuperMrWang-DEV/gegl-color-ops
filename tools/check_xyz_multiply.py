@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""lb:xyz-multiply 数值验收：与一份独立写的 Python 实现逐像素比对。
+"""lb:xyz-multiply（即 PS 照片滤镜）数值验收：与独立写的 Python 实现逐像素比对。
 
-参考实现照着头注释里的算法直写（sRGB → D65 XYZ → 目标白点 → 正片叠底 →
-回 D65 → sRGB），刻意不采用算子内部「折叠成一个 3×3 矩阵」的写法，这样
-既能验证矩阵折叠没算错，也能挡住以后改 LUT 引入的漂移。
+参考实现照着头注释的算法直写（sRGB → D65 XYZ → 标准 Bradford 转到目标白点 →
+逐通道乘 → 转回 → sRGB → 可选 SetLum），刻意不采用算子内部「折叠成一个 3×3
+矩阵」的写法，这样既能验证矩阵折叠没算错，也能挡住以后改 LUT 引入的漂移。
+
+与 PS 本身的端到端比对见 tools/check_photo_filter.py。
 
 用法：
-    python tools/check_xyz_multiply.py            # 6 组参数
-    python tools/check_xyz_multiply.py --all      # 加白点 × 不透明度全组合
+    python tools/check_xyz_multiply.py            # 8 组参数
+    python tools/check_xyz_multiply.py --all      # 白点 × 颜色 × 不透明度 × 保留明度
 """
 import os
 import subprocess
@@ -39,16 +41,20 @@ M_S2X = [[0.4124564, 0.3575761, 0.1804375],
 M_X2S = [[3.2404542, -1.5371385, -0.4985314],
          [-0.9692660, 1.8760108, 0.0415560],
          [0.0556434, -0.2040259, 1.0572252]]
-B = [[1.0478112, 0.0228866, -0.0501270],
-     [0.0295424, 0.9904844, -0.0170491],
-     [-0.0092345, 0.0150436, 0.7521316]]
-BINV = [[0.9555766, -0.0230393, 0.0631636],
-        [-0.0282895, 1.0099416, 0.0210077],
-        [0.0122982, -0.0204830, 1.3299098]]
+BRADFORD_CONE = [[0.8951, 0.2664, -0.1614],
+                 [-0.7502, 1.7135, 0.0367],
+                 [0.0389, -0.0685, 1.0296]]
+BRADFORD_CONE_INV = [[0.9869929, -0.1470543, 0.1599627],
+                     [0.4323053, 0.5183603, 0.0492912],
+                     [-0.0085287, 0.0400428, 0.9684867]]
 
 
 def mv(m, v):
     return [m[i][0] * v[0] + m[i][1] * v[1] + m[i][2] * v[2] for i in range(3)]
+
+
+def mm(a, b):
+    return [[sum(a[i][k] * b[k][j] for k in range(3)) for j in range(3)] for i in range(3)]
 
 
 def ung(v):
@@ -60,42 +66,56 @@ def gam(v):
     return 12.92 * v if v <= 0.0031308 else 1.055 * v ** (1.0 / 2.4) - 0.055
 
 
-def d65_to_wp(xyz, wp):
-    s = [xyz[i] / W65[i] for i in range(3)]
-    t = [wp[i] / W65[i] for i in range(3)]
-    s = mv(B, s)
-    s = [s[i] * t[i] for i in range(3)]
-    return mv(BINV, s)
+def bradford(src_wp, dst_wp):
+    """标准 Bradford：B⁻¹ · diag(ρ_dst/ρ_src) · B，ρ = B·W（B 是锥响应矩阵）"""
+    cs = mv(BRADFORD_CONE, src_wp)
+    cd = mv(BRADFORD_CONE, dst_wp)
+    s = [cd[i] / cs[i] for i in range(3)]
+    d = [[s[i] if i == j else 0.0 for j in range(3)] for i in range(3)]
+    return mm(BRADFORD_CONE_INV, mm(d, BRADFORD_CONE))
 
 
-def wp_to_d65(xyz, wp):
-    s = [xyz[i] / wp[i] for i in range(3)]
-    t = [W65[i] / wp[i] for i in range(3)]
-    s = mv(B, s)
-    s = [s[i] * t[i] for i in range(3)]
-    return mv(BINV, s)
+def set_lum(c, l):
+    """W3C Luminosity：SetLum + ClipColor，刻度 0…1，权重 Rec.601"""
+    def lum(v):
+        return 0.3 * v[0] + 0.59 * v[1] + 0.11 * v[2]
+
+    d = l - lum(c)
+    c = [v + d for v in c]
+    n, x = min(c), max(c)
+    if n < 0.0 and (l - n):
+        c = [l + (v - l) * l / (l - n) for v in c]
+    if x > 1.0 and (x - l):
+        c = [l + (v - l) * (1.0 - l) / (x - l) for v in c]
+    return c
 
 
-def reference(rgb, wp_name, overlay, alpha):
+def reference(rgb, wp_name, overlay, alpha, preserve=True):
     wp = WP[wp_name]
-    o = d65_to_wp(mv(M_S2X, [ung(c) for c in overlay]), wp)
-    b = d65_to_wp(mv(M_S2X, [ung(c) for c in rgb]), wp)
-    m = [b[i] * ((1.0 - alpha) + alpha * o[i] / wp[i]) for i in range(3)]
-    lin = mv(M_X2S, wp_to_d65(m, wp))
-    return [gam(c) for c in lin]
+    a = bradford(W65, wp)
+    ai = bradford(wp, W65)
+    o = mv(a, mv(M_S2X, [ung(c) for c in overlay]))
+    v = mv(a, mv(M_S2X, [ung(c) for c in rgb]))
+    m = [v[i] * ((1.0 - alpha) + alpha * o[i] / wp[i]) for i in range(3)]
+    out = [gam(c) for c in mv(M_X2S, mv(ai, m))]
+    if preserve:
+        out = set_lum(out, 0.3 * rgb[0] + 0.59 * rgb[1] + 0.11 * rgb[2])
+    return out
 
 
 CASES = [
-    ("d65", (1.0, 1.0, 1.0), 1.0),
-    ("d50", (0.8, 0.7, 0.55), 1.0),
-    ("d65", (0.2, 0.9, 0.4), 0.35),
-    ("d75", (0.9, 0.5, 0.2), 1.0),
-    ("d55", (0.5, 0.5, 0.5), 0.7),
-    ("d50", (0.05, 0.02, 0.9), 0.0),
+    ("d50", (1.0, 1.0, 1.0), 1.0, True),
+    ("d50", (1.0, 0.0, 0.0), 1.0, False),
+    ("d50", (1.0, 0.0, 0.0), 1.0, True),
+    ("d50", (0.8, 0.7, 0.55), 0.5, True),
+    ("d65", (0.2, 0.9, 0.4), 0.35, False),
+    ("d75", (0.9, 0.5, 0.2), 1.0, True),
+    ("d55", (0.5, 0.5, 0.5), 0.7, False),
+    ("d65", (0.05, 0.02, 0.9), 0.0, True),
 ]
-ALL_CASES = [(w, c, a) for w in ("d50", "d55", "d65", "d75")
+ALL_CASES = [(w, c, a, p) for w in ("d50", "d55", "d65", "d75")
              for c in ((1.0, 1.0, 1.0), (0.8, 0.7, 0.55), (0.15, 0.6, 0.95))
-             for a in (1.0, 0.5, 0.0)]
+             for a in (1.0, 0.5, 0.0) for p in (True, False)]
 
 
 def find_gegl():
@@ -123,12 +143,13 @@ def env_for_gegl(exe):
     return env
 
 
-def render(dst, wp, overlay, alpha, probe):
+def render(dst, wp, overlay, alpha, preserve, probe):
     exe = find_gegl()
     cmd = [exe, probe, "-o", dst, "--", "lb:xyz-multiply",
            "white-mode=%s" % wp,
            "overlay-color=rgba(%.3f,%.3f,%.3f,1.0)" % overlay,
-           "opacity=%g" % alpha]
+           "opacity=%g" % alpha,
+           "preserve-luminosity=%s" % ("true" if preserve else "false")]
     r = subprocess.run(cmd, env=env_for_gegl(exe), capture_output=True, text=True)
     if r.returncode != 0 or not os.path.exists(dst):
         raise SystemExit("gegl 渲染失败：\n%s\n%s" % (r.stdout, r.stderr))
@@ -152,17 +173,16 @@ def main():
     probe = os.path.join(tmp, "probe.png")
     make_probe(probe)
 
-    src = read_png(probe)
-    w, h, get = src
+    w, h, get = read_png(probe)
 
-    print("%-6s %-20s %5s %8s %8s %8s" %
-          ("白点", "叠加色", "不透明", "最大差", "95%", "中位"))
+    print("%-5s %-20s %5s %4s %8s %8s %8s" %
+          ("白点", "滤镜色", "密度", "保明", "最大差", "95%", "中位"))
     worst_all = 0.0
-    for wp, overlay, alpha in cases:
+    for wp, overlay, alpha, preserve in cases:
         dst = os.path.join(tmp, "o.png")
         if os.path.exists(dst):
             os.remove(dst)
-        render(dst, wp, overlay, alpha, probe)
+        render(dst, wp, overlay, alpha, preserve, probe)
         w2, h2, got = read_png(dst)
         assert (w, h) == (w2, h2), "尺寸不一致"
 
@@ -171,13 +191,13 @@ def main():
             for x in range(w):
                 p = get(x, y)
                 q = got(x, y)
-                ref = reference([p[i] / 255.0 for i in range(3)], wp, overlay, alpha)
+                ref = reference([p[i] / 255.0 for i in range(3)], wp, overlay, alpha, preserve)
                 diffs.append(max(abs(ref[i] * 255.0 - q[i]) for i in range(3)))
         diffs.sort()
         mx = diffs[-1]
         worst_all = max(worst_all, mx)
-        print("%-6s %-20s %5.2f %8.2f %8.2f %8.2f" %
-              (wp, "(%.2f,%.2f,%.2f)" % overlay, alpha,
+        print("%-5s %-20s %5.2f %4s %8.2f %8.2f %8.2f" %
+              (wp, "(%.2f,%.2f,%.2f)" % overlay, alpha, "是" if preserve else "否",
                mx, diffs[int(len(diffs) * 0.95)], diffs[len(diffs) // 2]))
 
     print("\n最大差 %.2f 码（0.03 码 ≈ 1 个 16 位 LSB）" % worst_all)
