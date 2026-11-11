@@ -14,6 +14,12 @@ OUT="${OUT_DIR:-$ROOT/build}"
 
 CC="${CC:-gcc}"
 command -v "$CC" >/dev/null || { echo "✗ 需要 $CC" >&2; exit 1; }
+
+# GEGL 0.4.60+ 的模块扫描在 macOS 只认 .dylib，其它平台是 .so（geglmoduledb.c）
+case "$(uname -s)" in
+  Darwin) SUF=dylib ;;
+  *)      SUF=so ;;
+esac
 pkg-config --exists gegl-0.4 || { echo "✗ 需要 gegl-0.4 开发头文件（apt install libgegl-dev）" >&2; exit 1; }
 [ -d "$OPS" ] || { echo "✗ 找不到模块目录 ${OPS}，先编译" >&2; exit 1; }
 
@@ -31,5 +37,5 @@ for c in "$ROOT"/ops/*/*.c; do
   [ -n "$id" ] && IDs+=("$id")
 done
 
-echo "· 模块目录 ${OPS}（$(ls "$OPS"/*.so 2>/dev/null | wc -l) 个 .so）"
+echo "· 模块目录 ${OPS}（$(ls "$OPS"/*.$SUF 2>/dev/null | wc -l) 个 .$SUF）"
 GEGL_PATH="$OPS:$SYS_OPS" "$OUT/ldcheck" "${IDs[@]}"

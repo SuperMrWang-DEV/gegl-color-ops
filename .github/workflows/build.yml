@@ -67,11 +67,11 @@ jobs:
       - name: 编译全部算子
         run: ./build.sh
 
-      - name: 确认产出 13 个 .so（macOS 上 GEGL 也只认 .so，不是 .dylib）
+      - name: 确认产出 13 个 .dylib（GEGL 0.4.60+ 在 macOS 只认 .dylib，不是 .so）
         run: |
-          n=$(ls build/*.so | wc -l)
+          n=$(ls build/*.dylib | wc -l)
           echo "built: $n"
-          ls -la build/*.so | awk '{print $5, $9}'
+          ls -la build/*.dylib | awk '{print $5, $9}'
           test "$n" -eq 13
 
       - name: 验证 .so 能被 GEGL 加载并渲染
@@ -81,6 +81,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: macos-arm64
-          path: build/*.so
+          path: build/*.dylib
           retention-days: 90
 

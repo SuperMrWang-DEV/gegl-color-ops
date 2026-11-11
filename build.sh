@@ -65,10 +65,12 @@ fi
 echo "· 编译器 $TOOLCHAIN ($("$TOOLCHAIN" -dumpversion))"
 
 # ---------- 2. 按平台决定后缀 ----------
-# 注意：macOS 也必须是 .so —— GLib 的 G_MODULE_SUFFIX 在 Darwin 上同样是 "so"，
-# GEGL 只扫描 *.so；编成 .dylib 会静默不被加载（macOS 的 DYLD 库后缀与此无关）。
+# macOS 必须是 .dylib：GEGL 0.4.60+ 的模块扫描（geglmoduledb.c）在 __APPLE__ 下
+# 只认 *.dylib，后缀不符会静默跳过、一个 warning 都不打；GLib 的 G_MODULE_SUFFIX
+# 已被 GEGL 弃用（Linux 上仍是 so）。
 case "$(uname -s)" in
   MINGW*|MSYS*|CYGWIN*) EXT=dll ;;
+  Darwin)               EXT=dylib ;;
   *)                    EXT=so ;;
 esac
 

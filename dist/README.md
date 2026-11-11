@@ -15,15 +15,15 @@ GCC、MSYS2、meson 那一套。内容与当前分支的源码同步（`tools/ma
 
 ## macOS 怎么拿
 
-macOS 包由 GitHub Actions 在 Apple Silicon 云机器（`macos-14`）上编译：仓库
+macOS 包由 GitHub Actions 在 Apple Silicon 云机器（`macos-15`）上编译：仓库
 **每次 push 都会构建**，产物以 artifact 形式挂在 Actions 运行页
-（`macos-arm64`，13 个 `.so`）——GitHub 上打开 Actions → 选最新一次 run →
-Artifacts 里下载。 GEGL 装不上 GIMP 的 Homebrew 版时，这些 `.so` 也能给用
-Homebrew GIMP 的用户直接放到 `~/Library/Application Support/gegl-0.4/plug-ins`。
+（`macos-arm64`，13 个 `.dylib`）——GitHub 上打开 Actions → 选最新一次 run →
+Artifacts 里下载。装了 Homebrew GIMP 的用户把这些 `.dylib` 放到
+`~/Library/Application Support/gegl-0.4/plug-ins` 即可。
 
-注意：macOS 上 GEGL 同样只加载 `.so`（GLib 的 `G_MODULE_SUFFIX` 在 Darwin 也是
-`so`），不会是 `.dylib`；build.sh 已经按这个规则处理。
-CI 里同样跑加载 + 恒等渲染验证，绿灯才算数。
+注意：**macOS 上 GEGL 0.4.60+ 只加载 `.dylib`**（GEGL 自己的模块扫描写死了
+平台后缀，`.so` 会被静默跳过；Linux 上仍是 `.so`）。build.sh 按平台输出正确
+后缀；CI 里同样跑加载 + 恒等渲染验证，绿灯才算数。
 
 放完**重启 GIMP**，滤镜出现在「图像 → 颜色 → SuperMrWang」下。
 
