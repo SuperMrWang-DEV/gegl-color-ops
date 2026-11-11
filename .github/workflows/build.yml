@@ -23,8 +23,12 @@ jobs:
 
       - name: 编译全部算子
         run: |
-          meson setup build --buildtype=release
-          ninja -C build
+          meson setup build-meson --buildtype=release
+          ninja -C build-meson
+          # 模块复制到干净的 build/：GEGL 0.4.60+ 会扫描 GEGL_PATH 里的 *.json
+          # 注册 JSON 算子，meson 的 intro-*.json（顶层是数组）会让它 g_assert 崩溃
+          mkdir -p build
+          cp build-meson/*.so build/
 
       - name: 确认产出 13 个模块
         run: |
