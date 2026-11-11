@@ -34,8 +34,12 @@ def write_png(path, rgb, w=4, h=4):
                 + chunk(b"IEND", b""))
 
 
-def read_first_pixel(path):
-    """返回首个像素的 8bit RGB（结果可能是 8 或 16 位，统一归一到 0..255）。"""
+def read_pixels(path):
+    """返回 (w, h, [[r,g,b], ...] 8bit, depth)。
+
+    必须逐行全读：曾经只查首像素，漏掉过「无 alpha 图按 3 通道步长走 4 通道
+    缓冲」的错位 bug —— 首像素永远是对的，往后累积偏移才是马赛克。
+    """
     data = open(path, "rb").read()
     i, idat = 8, b""
     w = h = depth = ctype = 0
@@ -50,21 +54,21 @@ def read_first_pixel(path):
     raw = zlib.decompress(idat)
     ch = {0: 1, 2: 3, 4: 2, 6: 4}[ctype]
     bpp_ch = depth // 8
-    stride = w * ch * bpp_ch
+    bpp = ch * bpp_ch
+    stride = w * bpp
 
-    # 逐行反滤波（GEGL 存盘时常用 Paeth），只需要首行但整行都要还原
     prev = bytearray(stride)
     pos = 0
-    line = bytearray(stride)
+    rows = []
     for _y in range(h):
         ftype = raw[pos]
         pos += 1
         line = bytearray(raw[pos:pos + stride])
         pos += stride
         for x in range(stride):
-            a = line[x - ch * bpp_ch] if x >= ch * bpp_ch else 0
+            a = line[x - bpp] if x >= bpp else 0
             b = prev[x]
-            c = prev[x - ch * bpp_ch] if x >= ch * bpp_ch else 0
+            c = prev[x - bpp] if x >= bpp else 0
             if ftype == 1:
                 line[x] = (line[x] + a) & 0xFF
             elif ftype == 2:
@@ -77,12 +81,11 @@ def read_first_pixel(path):
                 pred = a if (pa <= pb and pa <= pc) else (b if pb <= pc else c)
                 line[x] = (line[x] + pred) & 0xFF
         prev = line
-        break
-
-    px = list(line[:ch * bpp_ch])
-    if depth == 16:
-        return [px[k * 2] * 256 + px[k * 2 + 1] for k in range(ch)], 16
-    return list(px), 8
+        if depth == 16:
+            rows.append([line[k * 2] * 256 + line[k * 2 + 1] for k in range(w * ch)])
+        else:
+            rows.append(list(line))
+    return w, h, rows, depth
 
 
 def to8(values, depth):
@@ -103,7 +106,7 @@ def run(op, src, dst, **params):
 
 
 CASES = [
-    # (说明, 算子, 输入色, 参数, 期望 8bit 值, 容差)
+    # (说明, 算子, 输入色, 参数, 期望 8bit R 值, 容差)
     ("黑白：纯红 red=40 yellow=60 → 40%",
      "lb:rgb-domain-grayscale", (255, 0, 0),
      dict(red=40, yellow=60, green=40, cyan=60, blue=20, magenta=80), 102, 2),
@@ -113,6 +116,16 @@ CASES = [
      "lb:hue-saturation", (200, 120, 60), dict(), 200, 2),
     ("自然饱和度：零参数恒等",
      "lb:vibrance-hyper", (200, 120, 60), dict(), 200, 2),
+    # 通道混合器专测「无 alpha 图」：输入是 3 通道 PNG，若 process 按 3 个 float
+    # 步长走 4 通道缓冲，首像素对、往后逐像素错位，整图呈马赛克。
+    ("通道混合器：无 alpha 恒等",
+     "lb:channel-mixer-plus", (200, 120, 60), dict(), 200, 2),
+    ("通道混合器：R←G 互换",
+     "lb:channel-mixer-plus", (200, 120, 60),
+     dict(rr_gain=0, rg_gain=1, gr_gain=1, gg_gain=0), 120, 2),
+    ("通道混合器：单色 0.3/0.6/0.1",
+     "lb:channel-mixer-plus", (200, 120, 60),
+     dict(monochrome=1, mono_r=0.3, mono_g=0.6, mono_b=0.1), 138, 2),
 ]
 
 
@@ -123,17 +136,26 @@ def main():
     os.makedirs(TMP)
 
     bad = 0
-    print("%-34s %-8s %-8s %s" % ("用例", "实测", "期望", "结果"))
+    print("%-34s %-8s %-8s %s" % ("用例", "最差", "期望", "结果"))
     for i, (label, op, rgb, params, expect, tol) in enumerate(CASES):
         src = os.path.join(TMP, "in%d.png" % i)
         dst = os.path.join(TMP, "out%d.png" % i)
         write_png(src, rgb)
         run(op, src, dst, **params)
-        px, depth = read_first_pixel(dst)
-        got = to8(px, depth)[0]
-        ok = abs(got - expect) <= tol
+        w, h, rows, depth = read_pixels(dst)
+        # 逐像素核对，不能用首像素（错位 bug 的首像素永远是对的）
+        worst, worst_xy = None, None
+        ch = len(rows[0]) // w if w else 0
+        for y in range(h):
+            for x in range(w):
+                r = to8([rows[y][x * ch]], depth)[0]
+                if worst is None or abs(r - expect) > abs(worst - expect):
+                    worst, worst_xy = r, (x, y)
+        ok = abs(worst - expect) <= tol
         bad += 0 if ok else 1
-        print("%-34s %-8.0f %-8d %s" % (label, got, expect, "OK" if ok else "FAIL"))
+        print("%-34s %-8.0f %-8d %s%s"
+              % (label, worst, expect, "OK" if ok else "FAIL",
+                 "" if ok else "  @%s" % (worst_xy,)))
 
     print("\n%d/%d 通过" % (len(CASES) - bad, len(CASES)))
     return 0 if bad == 0 else 1

@@ -18,7 +18,7 @@ ops = [
   ['colorize-hsl',            'colorize-hsl.c'],
   ['hsl-seven',               'hsl-seven.c'],
   ['lab-levels',              'lab-levels.c'],
-  ['exposure',                'exposure.c'],
+  ['exposure',                'lb-exposure.c'],
   ['rgb-domain-grayscale',    'rgb-domain-grayscale.c'],
   ['vibrance-hyper',          'vibrance-hyper.c'],
   ['xyz-multiply',            'xyz-multiply.c'],

@@ -43,7 +43,7 @@ property_double (gamma, _("Gamma Correction"), 1.0)
 
 #define GEGL_OP_FILTER
 #define GEGL_OP_NAME     lb_exposure
-#define GEGL_OP_C_SOURCE exposure.c
+#define GEGL_OP_C_SOURCE lb-exposure.c
 #include "gegl-op.h"
 
 #define GAMMA_SRGB      2.2f

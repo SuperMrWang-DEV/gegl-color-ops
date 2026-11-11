@@ -129,13 +129,10 @@ typedef struct
   gdouble mono_g;
   gdouble mono_b;
   gdouble mono_offset;
-
-  gboolean       has_alpha;
 } CmParamsType;
 
 static void prepare (GeglOperation *operation)
 {
-  const Babl *input_format = gegl_operation_get_source_format (operation, "input");
   /* 感知（非线性）格式：通道增益按 8bit 伽马域标定，线性光下灰阶会整体变亮
    * Perceptual (non-linear) format: the gains are calibrated in the 8-bit
    * gamma domain; in linear light the greys lift noticeably. */
@@ -174,18 +171,15 @@ static void prepare (GeglOperation *operation)
   mix->blue.blue_gain   = o->bb_gain;
   mix->blue.offset      = o->b_offset;
 
-  if (input_format == NULL || babl_format_has_alpha (input_format))
-    {
-      mix->has_alpha = TRUE;
-      format = babl_format_with_space ("R~G~B~A float", space);
-    }
-  else
-    {
-      mix->has_alpha = FALSE;
-      /* babl 只有带 alpha 的感知格式 R~G~B~A，无 alpha 图也走它
-       * babl only ships the perceptual format with alpha, so use it either way */
-      format = babl_format_with_space ("R~G~B~A float", space);
-    }
+  /* 输入/输出一律钉成 R~G~B~A float：babl 的感知格式只提供带 alpha 的版本，
+   * 所以源图有没有 alpha 都是 4 通道，process() 的步长恒为 4。
+   * 之前按源格式决定 3/4 通道步长，无 alpha 图会按 3 个 float 推进 4 个 float
+   * 的缓冲区，整行数据错位——GIMP 里表现为马赛克。
+   * Both pads are always R~G~B~A float: babl only ships the perceptual
+   * format with alpha, so alpha-less inputs are 4-channel too and the stride
+   * in process() is always 4. Driving that stride from the source format made
+   * 3-channel images walk a 4-channel buffer, shifting every row (mosaic). */
+  format = babl_format_with_space ("R~G~B~A float", space);
 
   gegl_operation_set_format (operation, "input", format);
   gegl_operation_set_format (operation, "output", format);
@@ -268,25 +262,15 @@ process (GeglOperation       *op,
   in = in_buf;
   out = out_buf;
 
-  if (mix->has_alpha)
+  /* 固定 4 通道步长，与 prepare() 里钉的 R~G~B~A float 保持一致
+   * Fixed 4-channel stride, matching the R~G~B~A float pinned in prepare() */
+  while (samples--)
     {
-      while (samples--)
-        {
-          cm_process_pixel (mix, in, out);
-          out[3] = in[3];
+      cm_process_pixel (mix, in, out);
+      out[3] = in[3];
 
-          in += 4;
-          out += 4;
-        }
-    }
-  else
-    {
-      while (samples--)
-        {
-          cm_process_pixel (mix, in, out);
-          in += 3;
-          out += 3;
-        }
+      in += 4;
+      out += 4;
     }
 
   return TRUE;
