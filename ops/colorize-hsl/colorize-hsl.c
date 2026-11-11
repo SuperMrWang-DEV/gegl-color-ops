@@ -2,18 +2,17 @@
  * SuperMrWang · GEGL 算子 / GEGL Operation
  * ---------------------------------------------------------------------------
  * id         lb:colorize-hsl
- * menu       Colorize
- * purpose    单色罩染：替换色相与饱和度，保留画面原有明暗结构
- *            Monochrome tint: substitute hue and saturation while keeping the
- *            original luminance structure.
- * algorithm  三通道 Overlay 叠灰层调明度 → 取 HSL 的 L → 换 H/S → 回 RGB；输
- *            出的像素间差异只来自 L
- *            Overlay every channel with a grey layer to shape lightness, take
- *            L from HSL, substitute H/S, convert back to RGB. The output
- *            varies between pixels only in L.
- * type       GeglOperationFilter（需整块区域 / whole-region）
- * reference  Photoshop「颜色」调整层 + Overlay 着色
- *            Photoshop Color fill layer over an Overlay-blended grey
+ * menu       Colorize (Photoshop)
+ * purpose    复刻 Photoshop「色相/饱和度」里的「着色」复选框
+ *            Reproduce the Colorize checkbox of Photoshop's Hue/Saturation.
+ * algorithm  RGB → HSL 只取 L → 按明度滑杆改 L → 用滑杆的 H/S 与原 L 回 RGB。
+ *            像素原有的色相与饱和度被完全丢弃，只保留明暗结构。
+ *            Take L from HSL, move it with the lightness slider, then convert
+ *            back with the slider's H/S. The pixel's own hue and saturation are
+ *            discarded entirely; only its lightness survives.
+ * type       GeglOperationPointFilter（逐像素 / per-pixel）
+ * reference  Photoshop 26.10.0 Hue/Saturation + Colorize，实测标定见
+ *            ../colorize-cal/RESULTS.md
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
  *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
@@ -25,234 +24,155 @@
 #ifdef GEGL_PROPERTIES
 
 property_double (hue, _("Hue"), 0.0) \
-    description (_("Target Hue (0~360)")) \
+    description (_("Absolute hue of the tint, in degrees. The slider clamps at "
+                   "0 and 360, it does not wrap: -20 gives red, not 340.")) \
     value_range (0.0, 360.0) \
     ui_range (0.0, 360.0)
 
-property_double (saturation, _("Saturation"), 50.0) \
-    description (_("Target Saturation (0~100)")) \
+property_double (saturation, _("Saturation"), 25.0) \
+    description (_("Absolute HSL saturation of the tint, in percent")) \
     value_range (0.0, 100.0) \
     ui_range (0.0, 100.0)
 
 property_double (lightness, _("Lightness"), 0.0) \
-    description (_("Lightness adjustment, Overlay blend solid gray layer (-100 ~ +100)")) \
+    description (_("Moves HSL lightness: positive pulls towards white, "
+                   "negative towards black")) \
     value_range (-100.0, 100.0) \
     ui_range (-100.0, 100.0)
 
 #else
 
-#define GEGL_OP_FILTER
+#define GEGL_OP_POINT_FILTER
 #define GEGL_OP_NAME     lb_colorize_hsl
 #define GEGL_OP_C_SOURCE colorize-hsl.c
 #include "gegl-op.h"
 
-static inline gfloat sanitize_f(gfloat v)
+static inline gfloat
+clamp01 (gfloat v)
 {
-  if (!isfinite(v))
+  if (!isfinite (v))
     return 0.0f;
+  if (v < 0.0f)
+    return 0.0f;
+  if (v > 1.0f)
+    return 1.0f;
   return v;
 }
 
-static inline gdouble clamp01(gdouble v)
+/* ---- 只要 HSL 的 L / HSL lightness only --------------------------------
+ * 着色把 H 与 S 整个换掉，所以输入唯一还用得上的就是 L = (max+min)/2。
+ * Colorize replaces H and S outright, so the only thing carried over from
+ * the input is L = (max + min) / 2.
+ */
+static inline gfloat
+hsl_lightness (gfloat r, gfloat g, gfloat b)
 {
-  if (v < 0.0) return 0.0;
-  if (v > 1.0) return 1.0;
-  return v;
-}
-
-/* ---- RGB → HSL --------------------------------------------------------- */
-static void rgb_to_hsl(gdouble r, gdouble g, gdouble b,
-                       gdouble *h_out, gdouble *s_out, gdouble *l_out)
-{
-  gdouble mx = MAX(MAX(r, g), b);
-  gdouble mn = MIN(MIN(r, g), b);
-  gdouble delta = mx - mn;
-  gdouble h = 0.0, s = 0.0;
-  gdouble l = (mx + mn) * 0.5;
-
-  if (delta > 0.0)
-  {
-    s = (l > 0.5) ? delta / (2.0 - mx - mn) : delta / (mx + mn);
-
-    if (mx == r)
-      h = (g - b) / delta + (g < b ? 6.0 : 0.0);
-    else if (mx == g)
-      h = (b - r) / delta + 2.0;
-    else
-      h = (r - g) / delta + 4.0;
-
-    h *= 60.0;
-  }
-
-  *h_out = h;
-  *s_out = s;
-  *l_out = l;
+  gfloat mx = MAX (MAX (r, g), b);
+  gfloat mn = MIN (MIN (r, g), b);
+  return (mx + mn) * 0.5f;
 }
 
 /* ---- HSL → RGB --------------------------------------------------------- */
-static void hsl_to_rgb(gdouble h, gdouble s, gdouble l,
-                       gdouble *r_out, gdouble *g_out, gdouble *b_out)
+static inline void
+hsl_to_rgb (gfloat h, gfloat s, gfloat l,
+            gfloat *r_out, gfloat *g_out, gfloat *b_out)
 {
-  h = fmod(h, 360.0);
-  if (h < 0.0) h += 360.0;
+  gfloat c  = (1.0f - fabsf (2.0f * l - 1.0f)) * s;
+  gfloat hp = h / 60.0f;
+  gfloat x  = c * (1.0f - fabsf (fmodf (hp, 2.0f) - 1.0f));
+  gfloat m  = l - c * 0.5f;
+  gfloat r, g, b;
 
-  gdouble c  = (1.0 - fabs(2.0 * l - 1.0)) * s;
-  gdouble hp = h / 60.0;
-  gdouble x  = c * (1.0 - fabs(fmod(hp, 2.0) - 1.0));
-  gdouble m  = l - c * 0.5;
-  gdouble r, g, b;
-
-  if      (hp < 1.0) { r = c;   g = x;   b = 0.0; }
-  else if (hp < 2.0) { r = x;   g = c;   b = 0.0; }
-  else if (hp < 3.0) { r = 0.0; g = c;   b = x;   }
-  else if (hp < 4.0) { r = 0.0; g = x;   b = c;   }
-  else if (hp < 5.0) { r = x;   g = 0.0; b = c;   }
-  else               { r = c;   g = 0.0; b = x;   }
+  if      (hp < 1.0f) { r = c;   g = x;   b = 0.0f; }
+  else if (hp < 2.0f) { r = x;   g = c;   b = 0.0f; }
+  else if (hp < 3.0f) { r = 0.0f; g = c;  b = x;    }
+  else if (hp < 4.0f) { r = 0.0f; g = x;  b = c;    }
+  else if (hp < 5.0f) { r = x;   g = 0.0f; b = c;   }
+  else                { r = c;   g = 0.0f; b = x;   }
 
   *r_out = r + m;
   *g_out = g + m;
   *b_out = b + m;
 }
 
-/* ---- Overlay 明度调整 / Overlay lightness ------------------------------
- * v   : 底层通道值 0..1 / base channel value 0..1
- * a   : 上层纯灰 0..1，由 light_slider [-100,100] 映射
- *       grey layer 0..1, mapped from light_slider [-100,100]
- * Overlay：v<=0.5 时 out = 2*v*a，否则 out = 1 - 2*(1-v)*(1-a)
- *          out = 2*v*a when v<=0.5, else 1 - 2*(1-v)*(1-a)
- * 返回 0..1 / returns 0..1
- */
-static inline gdouble adjust_channel(gdouble v, gdouble light_slider)
+static void
+prepare (GeglOperation *operation)
 {
-  /* 滑块映射到 Overlay 上层灰度 a：[-100,100] → [0,1]
-   * slider -> Overlay grey layer a: [-100,100] maps to [0,1] */
-  gdouble a = (light_slider + 100.0) / 200.0;
+  const Babl *space = gegl_operation_get_source_space (operation, "input");
 
-  gdouble out;
-  if (v <= 0.5)
-  {
-    out = 2.0 * v * a;
-  }
-  else
-  {
-    out = 1.0 - 2.0 * (1.0 - v) * (1.0 - a);
-  }
-  return clamp01(out);
-}
-
-static void colorize_kernel(gfloat inR, gfloat inG, gfloat inB,
-                            gdouble target_h, gdouble target_s, gdouble light_slider,
-                            gfloat *outR, gfloat *outG, gfloat *outB)
-{
-  /* ---- 第 1 步：RGB 各通道先做 Overlay 调明度 / Step 1: Overlay on RGB - */
-  gdouble r_adj = adjust_channel(inR, light_slider);
-  gdouble g_adj = adjust_channel(inG, light_slider);
-  gdouble b_adj = adjust_channel(inB, light_slider);
-
-  /* ---- 第 2 步：转 HSL 取 L / Step 2: RGB -> HSL, take L --------------- */
-  gdouble h_orig, s_orig, L_adj;
-  rgb_to_hsl(r_adj, g_adj, b_adj, &h_orig, &s_orig, &L_adj);
-
-  /* ---- 第 3 步：换 H、S，保留 L / Step 3: swap H and S ---------------- */
-  gdouble final_h = target_h;             /* 0..360 */
-  gdouble final_s = target_s / 100.0;     /* 0..1 */
-  gdouble final_l = L_adj;                /* 取调整后 RGB 的 L / L from the adjusted RGB */
-
-  /* ---- 第 4 步：HSL → RGB / Step 4 ------------------------------------- */
-  gdouble r2, g2, b2;
-  hsl_to_rgb(final_h, final_s, final_l, &r2, &g2, &b2);
-
-  *outR = (gfloat)clamp01(r2);
-  *outG = (gfloat)clamp01(g2);
-  *outB = (gfloat)clamp01(b2);
-}
-
-/* 感知（非线性）格式：公式按 8bit sRGB 伽马域推导，必须拿伽马值，否则 babl
- * 会喂线性光，数值与 PS 对不上
- * Perceptual (non-linear) format: the maths was derived in the 8-bit sRGB
- * gamma domain. Linear light from babl would drift away from Photoshop. */
-static const Babl *
-perceptual_format (GeglOperation *op)
-{
-  return babl_format_with_space ("R~G~B~A float",
-                                 gegl_operation_get_source_space (op, "input"));
-}
-
-static void prepare(GeglOperation *op)
-{
-  gegl_operation_set_format(op, "input",  perceptual_format(op));
-  gegl_operation_set_format(op, "output", perceptual_format(op));
+  /* 公式是在 sRGB 伽马刻度上标定的，必须拿感知（非线性）格式；线性光会跑偏
+   * The model was calibrated on gamma-encoded sRGB, so ask for a perceptual
+   * (non-linear) format; linear light would drift. */
+  gegl_operation_set_format (operation, "input",
+                             babl_format_with_space ("R~G~B~A float", space));
+  gegl_operation_set_format (operation, "output",
+                             babl_format_with_space ("R~G~B~A float", space));
 }
 
 static gboolean
-process(GeglOperation       *op,
-        GeglBuffer          *in_buf,
-        GeglBuffer          *out_buf,
-        const GeglRectangle *roi,
-        gint                 level)
+process (GeglOperation       *operation,
+         void                *in_buf,
+         void                *out_buf,
+         glong                n_pixels,
+         const GeglRectangle *roi,
+         gint                 level)
 {
-  if (!roi || roi->width <= 0 || roi->height <= 0)
-    return TRUE;
+  GeglProperties *o = GEGL_PROPERTIES (operation);
+  gfloat * GEGL_ALIGNED in_pixel  = in_buf;
+  gfloat * GEGL_ALIGNED out_pixel = out_buf;
 
-  gdouble slider_h, slider_s, slider_l;
-  g_object_get(G_OBJECT(op),
-               "hue",        &slider_h,
-               "saturation", &slider_s,
-               "lightness",  &slider_l,
-               NULL);
+  /* 色相滑杆在着色模式下是绝对值，且两端是钳位不是回绕：实测 -20 给出纯红
+   * The hue slider is absolute in colorize mode and clamps instead of
+   * wrapping: -20 measures as pure red, not 340. */
+  gfloat h = (gfloat) CLAMP (o->hue, 0.0, 360.0);
+  gfloat s = (gfloat) CLAMP (o->saturation, 0.0, 100.0) * 0.01f;
+  gfloat t = (gfloat) CLAMP (o->lightness, -100.0, 100.0) * 0.01f;
 
-  gint stride = roi->width * 4;
-  gfloat *in_line  = g_new(gfloat, stride);
-  gfloat *out_line = g_new(gfloat, stride);
+  if (h >= 360.0f)
+    h = 0.0f;
 
-  for (gint y = 0; y < roi->height; y++)
-  {
-    GeglRectangle row_rect = { roi->x, roi->y + y, roi->width, 1 };
-
-    gegl_buffer_get(in_buf, &row_rect, 1.0f, perceptual_format(op),
-                    in_line, GEGL_AUTO_ROWSTRIDE, GEGL_ABYSS_NONE);
-
-    for (gint x = 0; x < roi->width; x++)
+  for (glong i = 0; i < n_pixels; i++)
     {
-      gint px = x * 4;
-      gfloat r = in_line[px + 0];
-      gfloat g = in_line[px + 1];
-      gfloat b = in_line[px + 2];
-      gfloat a = in_line[px + 3];
+      gfloat L  = hsl_lightness (in_pixel[0], in_pixel[1], in_pixel[2]);
+      /* 明度滑杆：正向往白拉，负向往黑压。两条都是 L 的线性函数，中点
+       * L=0.5 时位移正好是 t/2，终点不动 —— 与实测逐点一致。
+       * Lightness: positive pulls toward white, negative toward black. Both
+       * are linear in L; at L=0.5 the shift is exactly t/2 and the end point
+       * stays put, which is what the measurements show. */
+      gfloat Lp = (t > 0.0f) ? L + t * (1.0f - L) : L * (1.0f + t);
+      gfloat r, g, b;
 
-      gfloat ro, go, bo;
-      colorize_kernel(r, g, b, slider_h, slider_s, slider_l, &ro, &go, &bo);
+      hsl_to_rgb (h, s, Lp, &r, &g, &b);
 
-      out_line[px + 0] = sanitize_f(ro);
-      out_line[px + 1] = sanitize_f(go);
-      out_line[px + 2] = sanitize_f(bo);
-      out_line[px + 3] = sanitize_f(a);
+      out_pixel[0] = clamp01 (r);
+      out_pixel[1] = clamp01 (g);
+      out_pixel[2] = clamp01 (b);
+      out_pixel[3] = in_pixel[3];
+
+      in_pixel  += 4;
+      out_pixel += 4;
     }
 
-    gegl_buffer_set(out_buf, &row_rect, 0, perceptual_format(op),
-                    out_line, GEGL_AUTO_ROWSTRIDE);
-  }
-
-  g_free(in_line);
-  g_free(out_line);
   return TRUE;
 }
 
 static void
-gegl_op_class_init(GeglOpClass *klass)
+gegl_op_class_init (GeglOpClass *klass)
 {
-  GeglOperationClass       *oclass = GEGL_OPERATION_CLASS(klass);
-  GeglOperationFilterClass *fclass = GEGL_OPERATION_FILTER_CLASS(klass);
+  GeglOperationClass       *oclass = GEGL_OPERATION_CLASS (klass);
+  GeglOperationPointFilterClass *fclass = GEGL_OPERATION_POINT_FILTER_CLASS (klass);
 
   oclass->prepare = prepare;
   fclass->process = process;
 
-  gegl_operation_class_set_keys(oclass,
+  gegl_operation_class_set_keys (oclass,
     "name",            "lb:colorize-hsl",
-    "title",           _("Colorize"),
-    "description",     _("Colorize with Overlay-based lightness adjustment: keep HSL lightness, replace hue/saturation."),
+    "title",           _("Colorize (Photoshop)"),
+    "description",     _("Photoshop's Colorize: keep the HSL lightness of each "
+                         "pixel, replace hue and saturation with the slider "
+                         "values."),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang",
-    "gimp:menu-label", _("Colorize"),
+    "gimp:menu-label", _("Colorize PS"),
     NULL);
 }
 

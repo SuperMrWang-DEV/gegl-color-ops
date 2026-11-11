@@ -1,72 +1,59 @@
-> 本文件是该滤镜的原始说明文档（构建命令按旧目录结构书写，已过时）。
-> 统一构建方式请见工程根目录 `README.md` 与 `build.sh`。
+# lb:colorize-hsl · Colorize (Photoshop)
 
-# GEGL_GIMP_PLUGIN_colorize
+复刻 Photoshop「色相/饱和度」对话框里的**「着色」复选框**，按实测标定，不是凭经验的
+近似（旧版实现用「颜色填充层 + Overlay 叠灰」，与 PS 无关，偏差很大，已废弃）。
+标定过程与数据见 `colorize-cal/RESULTS.md`。
 
-![colorize](assets/pic.png "colorize")
+- GEGL id：`lb:colorize-hsl`
+- 菜单：`Colors → SuperMrWang → Colorize PS`
+- 类型：`GeglOperationPointFilter`（逐像素，无邻域）
+- 参数：`hue`（0…360，绝对色相）、`saturation`（0…100，绝对值）、`lightness`（−100…100）
 
-## English
+## 算法
 
-### 1. Compile & Install Commands
+在 **sRGB 编码值**（`R~G~B~A float`，感知域而非线性光）上取 HSL 的 L，然后：
 
-#### Native Linux (System installed GIMP)
-
-```bash
-sh build_linux.sh
-cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins
+```
+t  = lightness / 100
+L' = L + t·(1−L)      (t > 0)
+L' = L·(1+t)          (t < 0)
+out = HSL2RGB(hue, saturation/100, L')
 ```
 
-#### Flatpak Linux (Flatpak GIMP)
+就这些。三条结论撑起整个模型：
 
-```bash
-sh build_linux.sh
-cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/
-```
+1. **输入像素的 H 与 S 被完全丢弃。** 等 L、等 S、色相绕一整圈的色环，过完着色后
+   同一带内输出离散度是 **0.00 码** —— 输出只由输入 L 决定。
+2. **三根滑杆都是绝对量，不是增量。** 色相 0/30/60/120/180/240/300 精确落回同名
+   色相；饱和度 25/50/75 落回 HSL S = 0.250/0.500/0.750；明度 0 时 `L' = L`。
+3. **明度滑杆是 L 的线性函数**，中点 L=0.5 时位移正好 t/2，两端不动。0 和 1 之外
+   自动钳位（l=+100 全白、l=−100 全黑）。
 
-### 2. How to Open the Plugin (2 Methods)
+色相滑杆**不回绕**：负值被钳到 0（实测 −20 给出纯红，不是 340°）。这一条已在算子
+里显式处理，`value_range` 也限定在 0…360。
 
-After installation, **restart GIMP** to activate the plugin.
+## 验收
 
-#### Method 1: Menu Bar (Recommended)
+`python tools/check_colorize_ps.py` —— gegl CLI 渲染标定图，与 PS 26.10 的 16 位
+导出逐像素比（单位：8 位码）：
 
-Menu path: `Colors → SuperMrWang → Colorize`
+| 指标 | 结果 |
+|---|---|
+| 参数组合 | 104 组（明度步长 5 全扫、饱和度步长 5、色相步长 20 + 非整数档、8 组三滑杆组合） |
+| 样本数 | 每组 512×256，合计 1363 万像素 |
+| 中位偏差 | 0.008 码 |
+| 95% 偏差 | 0.016 码 |
+| 最大偏差 | 0.03 码 |
 
-#### Method 2: GEGL Operation
+0.03 码就是 1 个 16 位 LSB（65535 满量程的 1/65535 ≈ 0.0039 码 × 8），来自 PS 那边
+的浮点截断，不是模型误差。
 
-1. Go to `Filters → Generic → GEGL Operations`
-2. In the search box, enter: `lb:colorize-hsl`
-3. Select it and click `OK` to apply
+> 注意：`tools/contact_sheet.py` 的 `read_png` 把 16 位按 `v*255//65535` **整数下取整**，
+> 会把 32895 读成 127 而不是 128，凭空造出 1 码的假偏差。验收脚本因此改用
+> `bc-cal/readpng.py` 的浮点读取（`v/257`）。
 
----
+## 与 `lb:hue-saturation` 的区别
 
-## 中文
-
-### 1. 编译与安装命令
-
-#### Linux 原生版（系统包安装的GIMP）
-
-```bash
-sh build_linux.sh
-cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins
-```
-
-#### Linux Flatpak 容器版（应用商店Flatpak GIMP）
-
-```bash
-sh build_linux.sh
-cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/
-```
-
-### 2. 插件打开方式（两种方法）
-
-安装完成后**重启 GIMP**，插件即可使用。
-
-#### 方法一：菜单打开（推荐）
-
-菜单路径：`颜色 → SuperMrWang → Colorize`
-
-#### 方法二：GEGL 操作打开
-
-1. 顶部菜单点击：`滤镜 → 通用 → GEGL 操作`
-2. 在弹出窗口的搜索框输入：`lb:colorize-hsl`
-3. 选中后点击「确定」即可使用插件
+`lb:hue-saturation` 是**增量**模式（在像素自己的 H/S/L 上加偏移，六个色相区间可分别
+调），对应 PS 未勾选「着色」时的行为。`lb:colorize-hsl` 是**绝对**模式：扔掉原有的
+颜色，只保留明暗，整幅图变成一个单色调。两者互补，不能互相替代。

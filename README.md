@@ -58,7 +58,7 @@ gegl-color-ops/
 | `lb:channel-range-to-alpha` | Range → Alpha | Channel Range to Alpha | Point | 通道数值区间 → alpha（混合颜色带） |
 | `lb:cmyk-primary-correction` | CMYK Primary | CMYK Primary Correction | Point | 可选颜色：九组色域各存一份 C/M/Y/K，同时生效 |
 | `lb:color-balance` | Color Balance | Color Balance | Filter | PS 色彩平衡：阴影/中间调/高光的 C-R、M-G、Y-B |
-| `lb:colorize-hsl` | Colorize | Colorize | Filter | HSL 罩染，保留明暗结构 |
+| `lb:colorize-hsl` | Colorize PS | Colorize (Photoshop) | Point | PS 色相/饱和度「着色」实测复刻：扔掉原有 H/S，只留输入 L 的单色调，残差 0.03 码 |
 | `lb:color-mask-select` | Mask by Color | Color Mask Select | Point | PS 色彩范围：按选色 + 容差 + 羽化出蒙版 |
 | `lb:lab-levels` | LAB Levels | LAB Levels | Filter | LAB 三通道各自黑白场 + 伽马 |
 | `lb:exposure` | Exposure EV | Exposure EV | Filter | PS 曝光：EV、偏移、伽马 |
