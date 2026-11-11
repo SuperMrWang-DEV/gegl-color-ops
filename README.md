@@ -26,10 +26,24 @@ gegl-color-ops/
 ├── common/config.h       # 所有算子共用的版本宏 / GETTEXT_PACKAGE
 ├── ops/<算子名>/          # 每个算子一个目录：<算子名>.c + 原始说明 + 截图
 ├── plugin/ps-blend/      # Python 插件：应用图像/计算的完整复刻版（当前已停用，源码保留）
+├── dist/                 # 编好的模块，给不想编译的人直接下载（windows-x64 / linux-x64）
 ├── tools/                # 测试图生成、逐算子冒烟、对照表、文件头重排、注释双语化
 ├── build/                # 编译产物（build.sh 生成，可随时删）
 └── LICENSE               # GPL-3.0
 ```
+
+## 直接下载（免编译）
+
+不想装工具链的，[`dist/`](dist/README.md) 里已经是编好的模块：
+
+| 系统 | 取这个 | 放到 |
+|---|---|---|
+| Windows x64 | `dist/windows-x64/*.dll` | `%LOCALAPPDATA%\gegl-0.4\plug-ins` |
+| Linux x86_64 | `dist/linux-x64/*.so` | `~/.local/share/gegl-0.4/plug-ins` |
+
+放完重启 GIMP。平台要求（glibc 版本之类）、每个文件对应哪个滤镜、怎么校验，
+见 [`dist/README.md`](dist/README.md) 与 `dist/manifest.csv`；重新打包用
+`python tools/make_dist.py`。
 
 ## 算子清单
 
@@ -292,13 +306,18 @@ touch plugin/ps-blend/.disabled        # 停用 Python 插件
 python tools/make_test_image.py out.png     # 生成色环+灰阶+明度测试图
 ./tools/smoke.sh                            # 每个算子用默认参数渲染一遍，抓崩溃/黑图
 python tools/contact_sheet.py sheet.png build/smoke/*.png   # 拼成带标签的对照表
-python tools/check_gamma_domain.py          # 数值回归：确认算子跑在感知（伽马）域
+python tools/check_gamma_domain.py          # 数值回归：感知（伽马）域 + 全图像素核对
 python tools/check_blend.py                 # 数值回归：双输入算子的混合公式（16 用例）
 python tools/normalize_headers.py           # 预览文件头/命名重排，加 --write 落盘
+python tools/make_dist.py                   # 把 build/ 整理成 dist/（含 manifest + 校验和）
+./tools/check-linux.sh                      # 在 Linux/WSL 里验证 .so 能加载并渲染（不开 GIMP）
 ```
 
 `smoke.sh` 只保证"不崩、有输出"；`check_gamma_domain.py` 用纯色小图对期望值
-（黑白纯红 102、曝光 +1EV → 176 等），防止再退回线性光；`check_blend.py` 用
+（黑白纯红 102、曝光 +1EV → 176、通道混合器恒等/R←G/单色等），并且**逐像素核对整张图**
+而不是只看首像素——2026-11-11 那个「无 alpha 图出现马赛克」的 bug 就是首像素永远正确、
+从第二个像素开始错位，只看一个点查不出来；
+`check_blend.py` 用
 `build/auxrun` 建双输入图，逐个核对混合公式（正片叠底 128×200=100、深色模式
 取整像素、色相模式只换色相等）。这些脚本都会自动找 gegl 可执行文件，不在 PATH
 也能跑；`smoke.sh` / `check_blend.py` 还支持 `OPS_DIR=` 指向旧版 DLL 目录做前后
@@ -308,6 +327,7 @@ python tools/normalize_headers.py           # 预览文件头/命名重排，加
 
 1. 建目录 `ops/<你的算子名>/`，放 `<你的算子名>.c`（单文件两段式：`#ifdef GEGL_PROPERTIES` / `#else`）；
 2. 文件内三处命名必须自洽：`GEGL_OP_C_SOURCE <同目录文件名>`、`GEGL_OP_NAME <下划线标识>`、`"name", "lb:<算子名>"`；
+   文件名还不能和 GEGL 内置算子的源文件名同名（GType 由文件名生成，见「与旧布局的对应关系」里 exposure 的例子），需要时加前缀改成 `lb-xxx.c`；
 3. `./build.sh` 会自动发现并编译——**不需要改任何脚本或清单**；
 4. 需要额外头文件就放 `common/`（已默认加入 include 路径）。
 
@@ -330,6 +350,14 @@ python tools/normalize_headers.py           # 预览文件头/命名重排，加
 
 旧布局产出的 DLL 文件名与新布局不同（如 `channelrangetoalpha.dll`、`color_balance.dll`、`hslseven.dll`），
 装新版后请把插件目录里这些**旧文件名**的模块删掉，否则同一个 GEGL id 会被加载两次。
+同理，`exposure` 已改名为 `lb-exposure`（见下），旧的 `exposure.dll` / `exposure.so` 也要删。
+
+**为什么 exposure 要改名**：GEGL 给每个算子生成的 GType 名是 `GeglOp<源文件名>.c`，
+不看 `GEGL_OP_NAME`。源文件叫 `exposure.c` 时生成的类型名与 GEGL 内置 `gegl:exposure`
+完全相同，Linux（GEGL 0.4.48）下的表现是控制台报
+`Two different plugins tried to register 'GeglOpexposure_c'`，然后整个 .so 静默不生效
+（`gegl --info lb:exposure` 查不到），Windows 上恰好没撞上而已。改名成 `lb-exposure.c`
+之后两边都干净——这也是 `tools/check-linux.sh` 存在的原因：不开 GIMP 也能发现这种问题。
 
 ## 许可证
 

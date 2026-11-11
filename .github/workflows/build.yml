@@ -32,3 +32,6 @@ jobs:
           echo "built: $n"
           ls -la build/*.so | awk '{print $5, $9}'
           test "$n" -eq 13
+
+      - name: 验证 .so 能被 GEGL 加载并渲染
+        run: ./tools/check-linux.sh
