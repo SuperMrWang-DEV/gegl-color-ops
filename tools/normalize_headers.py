@@ -197,6 +197,24 @@ OPS = {
         ref_zh="Adobe Camera Raw / Photoshop 的 Vibrance",
         ref_en="Adobe Camera Raw / Photoshop Vibrance",
     ),
+    "shadows-highlights": dict(
+        id="lb:shadows-highlights", label="Shadows/Highlights", title="Shadows/Highlights",
+        purpose_zh="按**邻域**亮度分别提亮阴影、压暗高光，而不是只看像素值本身",
+        purpose_en="Lift shadows and pull highlights back according to the local "
+                   "neighbourhood, not the pixel value alone.",
+        algo_zh="边缘感知双边（17 级量化 guide + σ=1.1424·半径 的高斯）求邻域亮度 → "
+                "1 − BetaCDF 色调遮罩 → 自屏幕曲线 1 − (1−v)^q → 原色差缩放回填 → "
+                "中间调 S 曲线 → 直方图两端拉伸",
+        algo_en="An edge-aware bilateral (17 quantised guide levels, sigma = 1.1424 x "
+                "radius Gaussian) gives the neighbourhood luma, which drives a "
+                "1 - BetaCDF tonal mask and a screen-with-itself curve "
+                "1 - (1-v)^q; the original chroma difference is scaled back in, then "
+                "midtone S-curve and histogram-end stretching.",
+        type="GeglOperationFilter（空间域，按条带处理 / spatial, row strips）",
+        ref_zh="Photoshop「图像 → 调整 → 阴影/高光」（脚本入口 adaptCorrect）",
+        ref_en="Photoshop Image > Adjustments > Shadows/Highlights (script entry "
+               "adaptCorrect)",
+    ),
     "xyz-multiply": dict(
         id="lb:xyz-multiply", label="XYZ Multiply", title="XYZ Multiply",
         purpose_zh="以参考色在 XYZ 域做正片叠底，白点可选 D50/D55/D65/D75",

@@ -7,13 +7,14 @@ GCC、MSYS2、meson 那一套。内容与当前分支的源码同步（`tools/ma
 
 | 系统 | 下载 | 放到 |
 |---|---|---|
-| Windows x64 | [`windows-x64/`](windows-x64) 里的 16 个 `.dll` | `%LOCALAPPDATA%\gegl-0.4\plug-ins` |
+| Windows x64 | [`windows-x64/`](windows-x64) 里的 17 个 `.dll` | `%LOCALAPPDATA%\gegl-0.4\plug-ins` |
 | Linux x86_64 | [`linux-x64/`](linux-x64) 里的 14 个 `.so` | `~/.local/share/gegl-0.4/plug-ins` |
 | macOS (Apple Silicon) | 本目录暂无，见下方「macOS 怎么拿」 | `~/Library/Application Support/gegl-0.4/plug-ins` |
 
-> **Linux 侧暂时少两个**：`color-lookup` 和 `xyz-multiply`。前者是这台构建机没有
-> Linux 环境，后者是算法在 2026-11-11 按 PS 照片滤镜重写过、旧的 `.so` 行为与文档
-> 不一致，所以先撤下而不是发个错的。需要时在 Linux 上跑一次 `./build.sh` 即可补齐。
+> **Linux 侧暂时少三个**：`color-lookup`、`xyz-multiply`、`shadows-highlights`。
+> 这台构建机没有 Linux 环境，前两个此前已撤下（旧的 `.so` 行为与文档不一致），
+> 新增的阴影/高光则从来没在 Linux 上编过。需要时在 Linux 上跑一次 `./build.sh`
+> 即可补齐。
 
 - GIMP Flatpak（Linux）：放进 `~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins`
 

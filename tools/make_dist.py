@@ -4,7 +4,7 @@
     python tools/make_dist.py            # 复制 + 生成清单/校验和
     python tools/make_dist.py --check     # 只核对 dist/ 与 build/ 是否一致
 
-dist/ 里只放"用户拿去就能用"的二进制：16 个 GEGL 模块（.dll / .so）。
+dist/ 里只放"用户拿去就能用"的二进制：17 个 GEGL 模块（.dll / .so）。
 带 .disabled 标记的算子（应用图像 / 计算）不参与，所以不会出现在包里。
 """
 import hashlib
