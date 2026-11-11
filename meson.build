@@ -24,6 +24,7 @@ ops = [
   ['rgb-domain-grayscale',    'rgb-domain-grayscale',    'rgb-domain-grayscale.c'],
   ['vibrance-hyper',          'vibrance-hyper',          'vibrance-hyper.c'],
   ['vibrance-ps',             'vibrance-ps',             'vibrance-ps.c'],
+  ['brightness-contrast-ps',  'brightness-contrast-ps',  'lb-brightness-contrast.c'],
   ['xyz-multiply',            'xyz-multiply',            'xyz-multiply.c'],
 ]
 

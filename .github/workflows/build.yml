@@ -30,12 +30,12 @@ jobs:
           mkdir -p build
           cp build-meson/*.so build/
 
-      - name: 确认产出 14 个模块
+      - name: 确认产出 15 个模块
         run: |
           n=$(ls build/*.so | wc -l)
           echo "built: $n"
           ls -la build/*.so | awk '{print $5, $9}'
-          test "$n" -eq 14
+          test "$n" -eq 15
 
       - name: 验证 .so 能被 GEGL 加载并渲染
         run: ./tools/check-linux.sh
@@ -67,12 +67,12 @@ jobs:
       - name: 编译全部算子
         run: ./build.sh
 
-      - name: 确认产出 14 个 .dylib（GEGL 0.4.60+ 在 macOS 只认 .dylib，不是 .so）
+      - name: 确认产出 15 个 .dylib（GEGL 0.4.60+ 在 macOS 只认 .dylib，不是 .so）
         run: |
           n=$(ls build/*.dylib | wc -l)
           echo "built: $n"
           ls -la build/*.dylib | awk '{print $5, $9}'
-          test "$n" -eq 14
+          test "$n" -eq 15
 
       - name: 验证 .so 能被 GEGL 加载并渲染
         run: ./tools/check-linux.sh

@@ -7,8 +7,8 @@ GCC、MSYS2、meson 那一套。内容与当前分支的源码同步（`tools/ma
 
 | 系统 | 下载 | 放到 |
 |---|---|---|
-| Windows x64 | [`windows-x64/`](windows-x64) 里的 14 个 `.dll` | `%LOCALAPPDATA%\gegl-0.4\plug-ins` |
-| Linux x86_64 | [`linux-x64/`](linux-x64) 里的 14 个 `.so` | `~/.local/share/gegl-0.4/plug-ins` |
+| Windows x64 | [`windows-x64/`](windows-x64) 里的 15 个 `.dll` | `%LOCALAPPDATA%\gegl-0.4\plug-ins` |
+| Linux x86_64 | [`linux-x64/`](linux-x64) 里的 15 个 `.so` | `~/.local/share/gegl-0.4/plug-ins` |
 | macOS (Apple Silicon) | 本目录暂无，见下方「macOS 怎么拿」 | `~/Library/Application Support/gegl-0.4/plug-ins` |
 
 - GIMP Flatpak（Linux）：放进 `~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins`
@@ -17,7 +17,7 @@ GCC、MSYS2、meson 那一套。内容与当前分支的源码同步（`tools/ma
 
 macOS 包由 GitHub Actions 在 Apple Silicon 云机器（`macos-15`）上编译：仓库
 **每次 push 都会构建**，产物以 artifact 形式挂在 Actions 运行页
-（`macos-arm64`，14 个 `.dylib`）——GitHub 上打开 Actions → 选最新一次 run →
+（`macos-arm64`，15 个 `.dylib`）——GitHub 上打开 Actions → 选最新一次 run →
 Artifacts 里下载。装了 Homebrew GIMP 的用户把这些 `.dylib` 放到
 `~/Library/Application Support/gegl-0.4/plug-ins` 即可。
 
