@@ -319,22 +319,14 @@ process(GeglOperation       *op,
   gfloat *in_line  = g_new(gfloat, stride);
   gfloat *out_line = g_new(gfloat, stride);
 
-  /* 不透明度为 0：整条链路退化成恒等，直接复制，省掉全部运算
-   * opacity 0 leaves the image untouched; copy instead of computing */
-  if (opac_f <= 0.0f)
-  {
-    for (gint y = 0; y < roi->height; y++)
-    {
-      GeglRectangle row = { roi->x, roi->y + y, roi->width, 1 };
-      gegl_buffer_get(in_buf, &row, 1.0f, fmt, in_line,
-                      GEGL_AUTO_ROWSTRIDE, GEGL_ABYSS_NONE);
-      gegl_buffer_set(out_buf, &row, 0, fmt, in_line, GEGL_AUTO_ROWSTRIDE);
-    }
-    g_free(in_line);
-    g_free(out_line);
-    return TRUE;
-  }
-
+  /* 不透明度为 0 时不能走「直接复制」的快路：M = XYZ2sRGB · A⁻¹ · A · sRGB2XYZ
+   * 里的 A⁻¹ 是原插件的简化 Bradford 逆，并非 A 的真逆（A·A⁻¹ 偏离单位阵最多
+   * 0.16），所以链路在 α=0 处并不严格等于恒等。为保证与参考实现逐档一致、且
+   * 不透明度扫过 0 时不出现跳变，这里照常算 —— 代价只是一条常数矩阵。
+   * Do not short-circuit at opacity 0: A⁻¹ is the upstream plugin's simplified
+   * Bradford inverse, not a true inverse (A·A⁻¹ deviates from identity by up to
+   * 0.16), so the chain is not exactly identity at alpha=0. Computing it keeps
+   * parity with the reference and avoids a jump when the slider crosses 0. */
   ensure_srgb_luts ();
 
   /* 白点 + 叠加色 + 不透明度 → 一个常数矩阵，每次 process 只算一次
