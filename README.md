@@ -3,9 +3,9 @@
 [![GIMP 3](https://img.shields.io/badge/GIMP-3.x-5C5543?logo=gimp&logoColor=white)](https://www.gimp.org/)
 [![GEGL 0.4](https://img.shields.io/badge/GEGL-0.4-2C4C6B)](https://gegl.org/)
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
-[![Operations](https://img.shields.io/badge/operations-13-brightgreen)](#算子清单)
+[![Operations](https://img.shields.io/badge/operations-16-brightgreen)](#算子清单)
 
-一组逆向实现的 GEGL 颜色算子（GIMP 3 的滤镜内核），当前启用 **13 个**（另有应用图像 / 计算 2 个暂时停用，
+一组逆向实现的 GEGL 颜色算子（GIMP 3 的滤镜内核），当前启用 **16 个**（另有应用图像 / 计算 2 个暂时停用，
 源码保留），统一 `lb:` 命名空间，
 在 GIMP 里位于 **图像 → 颜色 → SuperMrWang**。
 
@@ -58,6 +58,7 @@ gegl-color-ops/
 | `lb:channel-range-to-alpha` | Range → Alpha | Channel Range to Alpha | Point | 通道数值区间 → alpha（混合颜色带） |
 | `lb:cmyk-primary-correction` | CMYK Primary | CMYK Primary Correction | Point | 可选颜色：九组色域各存一份 C/M/Y/K，同时生效 |
 | `lb:color-balance` | Color Balance | Color Balance | Filter | PS 色彩平衡：三区间指数相乘合成一条逐通道曲线，单段残差 0.30 码 |
+| `lb:color-lookup` | Color Lookup | Color Lookup | Filter | PS 颜色查找：按 .cube 3D LUT（可带 1D shaper）查表，三线性 / 四面体可选 |
 | `lb:colorize-hsl` | Colorize PS | Colorize (Photoshop) | Point | PS 色相/饱和度「着色」实测复刻：扔掉原有 H/S，只留输入 L 的单色调，残差 0.03 码 |
 | `lb:color-mask-select` | Mask by Color | Color Mask Select | Point | PS 色彩范围：按选色 + 容差 + 羽化出蒙版 |
 | `lb:lab-levels` | LAB Levels | LAB Levels | Filter | LAB 三通道各自黑白场 + 伽马 |
@@ -222,7 +223,7 @@ python tools/i18n_blocks.py check                    # 与 git HEAD 比对代码
 
 ```bash
 cd gegl-color-ops
-./build.sh                 # 产物在 build/ 下，13 个 .dll/.so/.dylib
+./build.sh                 # 产物在 build/ 下，16 个 .dll/.so/.dylib
 ```
 
 脚本会自动探测 `gegl-0.4.pc`（先试 `D:/fastsoftware/GIMP 3/lib/pkgconfig` 等常见位置），也可手动指定：
@@ -286,7 +287,7 @@ touch plugin/ps-blend/.disabled        # 停用 Python 插件
 
 ## 在 GIMP 菜单位置
 
-13 个算子全部注册在同一个菜单目录下：
+16 个算子全部注册在同一个菜单目录下：
 
 ```
 图像 → 颜色 → SuperMrWang → <各算子>

@@ -30,7 +30,7 @@ jobs:
           mkdir -p build
           cp build-meson/*.so build/
 
-      - name: 确认产出 15 个模块
+      - name: 确认产出 16 个模块
         run: |
           n=$(ls build/*.so | wc -l)
           echo "built: $n"
@@ -67,7 +67,7 @@ jobs:
       - name: 编译全部算子
         run: ./build.sh
 
-      - name: 确认产出 15 个 .dylib（GEGL 0.4.60+ 在 macOS 只认 .dylib，不是 .so）
+      - name: 确认产出 16 个 .dylib（GEGL 0.4.60+ 在 macOS 只认 .dylib，不是 .so）
         run: |
           n=$(ls build/*.dylib | wc -l)
           echo "built: $n"
