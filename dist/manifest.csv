@@ -1,19 +1,19 @@
 platform,file,op_id,title,bytes,sha256
-windows-x64,channel-mixer-plus.dll,lb:channel-mixer-plus,Channel Mixer Plus,107148,570ee79d06b169eaa01ddcef0c716fb4279ccfab704aa56e4c8267b329f440ba
-windows-x64,channel-range-to-alpha.dll,lb:channel-range-to-alpha,Channel Range to Alpha,129726,d62031eb9257b7fff39e28ce891db15a481ee052bccfdb0cf29b7cd23e5c42db
-windows-x64,cmyk-primary-correction.dll,lb:cmyk-primary-correction,CMYK Primary Correction,114659,e718eb798d6395c2466c79bd404223f384696ff56069cdd51d524b17853cb5bc
-windows-x64,color-balance.dll,lb:color-balance,Color Balance,140623,57a41bcab2dc04bb0ecc4861e77a5eb2f92069f60baed1fab8769a01f0358e83
-windows-x64,color-mask-select.dll,lb:color-mask-select,Color Mask Select,108670,ea78d8c692cb6517524dad6903da3bf6729edf261676f61a3e6e4a80fdb2ab3a
-windows-x64,colorize-hsl.dll,lb:colorize-hsl,Colorize (Photoshop),103326,2e551cab108ff2967a267c7cbf927f1ca5f4f4d607cdc1aeedbcaf755f26f357
-windows-x64,hsl-seven.dll,lb:hsl-seven,HSL 7 Bands,109680,a4ee17a8fafd3b2d02b61221e174e7d2eaa8abc758c3aad7efd0de1724ae1107
-windows-x64,hue-saturation.dll,lb:hue-saturation,Hue/Saturation,109994,97a7f5109cf7f5743c0ec6cf0642f1b30022007782018abfda0786085387ede5
-windows-x64,lab-levels.dll,lb:lab-levels,LAB Levels,137743,65d3866f67e91af6ef5909b8c53fe187f73248ac507b9d642522cd2696e1d840
-windows-x64,lb-brightness-contrast.dll,lb:brightness-contrast-ps,Brightness/Contrast (Photoshop),129619,0dd57394f19ab68ff1ab0e01e8f9593d2cd0232b023a1a9c0bc7f8be2ff30f82
-windows-x64,lb-exposure.dll,lb:exposure,Exposure EV,126347,4642f07c97a7013d2616eff77ea90f0624b40cbb3ad065447f957e13a62cbf4e
-windows-x64,rgb-domain-grayscale.dll,lb:rgb-domain-grayscale,Black & White,108038,cab575661d080eaf109e776669acd4732deaaaf7f595e6ca8e697547e4335545
-windows-x64,vibrance-hyper.dll,lb:vibrance-hyper,Natural Saturation,136093,2ed09f7d19339763a66104254bcd0863d82a46c395bbe82396ddec33aaf0a63e
-windows-x64,vibrance-ps.dll,lb:vibrance-ps,Vibrance (Photoshop),132296,a70d65885d85d23c21a46e717e05ccd13cb8ac6b25315fd136a07b0a2ac022f4
-windows-x64,xyz-multiply.dll,lb:xyz-multiply,XYZ Multiply,131971,ecef7c9f504aabd7044870c188d039cbaa4f0db62c7c50f2c250d4dd004073a9
+windows-x64,channel-mixer-plus.dll,lb:channel-mixer-plus,Channel Mixer Plus,107148,c34ec8d419faf4318fe4a826e243f9cba4a1be458d93abf9da80d0bea1d5a28f
+windows-x64,channel-range-to-alpha.dll,lb:channel-range-to-alpha,Channel Range to Alpha,129726,583ff3dc224cf7b1cbceb8c8163971a5fbb309a08e7166816401b1b8d84ca33e
+windows-x64,cmyk-primary-correction.dll,lb:cmyk-primary-correction,CMYK Primary Correction,114659,5a9b6245be447f8e2f915943e6972edd77c979af336f53c284e7bcbd8ae3f5d2
+windows-x64,color-balance.dll,lb:color-balance,Color Balance,140623,4fb9228dd5f152b635a760d4db7a9c3e07b2fa78d94188aa43ad0c2d678ed16e
+windows-x64,color-mask-select.dll,lb:color-mask-select,Color Mask Select,108670,68d75c8586c050411b6a85f08d4912a4382483778c50b36e7e94341a82470a4f
+windows-x64,colorize-hsl.dll,lb:colorize-hsl,Colorize (Photoshop),103326,635df75a78b9b8cc20b34fa63b2a7565b75e54e2783b5323554c0d8fdb647558
+windows-x64,hsl-seven.dll,lb:hsl-seven,HSL 7 Bands,109680,b6c1479842354e7be2be2746c83cb754b08b841e703b745eb9ecc5286b491e7f
+windows-x64,hue-saturation.dll,lb:hue-saturation,Hue/Saturation,109994,d87722a90ac9afd4f63fe14413d2a06a0484703586ceeb2ce509f78c52d33b95
+windows-x64,lab-levels.dll,lb:lab-levels,LAB Levels,137743,34202aa852c743e357f1cc25b3c4fec779b1db75fa8339e287083a83876da5dc
+windows-x64,lb-brightness-contrast.dll,lb:brightness-contrast-ps,Brightness/Contrast (Photoshop),129619,6df6202fcaa97790d7f4ca2553da850b711fa98b2a2b79102bebb806192be900
+windows-x64,lb-exposure.dll,lb:exposure,Exposure EV,126347,15ad32b59f3116b2c5a7b8522d1d490e0328830cb19e9c346807aa0b6271c036
+windows-x64,rgb-domain-grayscale.dll,lb:rgb-domain-grayscale,Black & White,108038,1f6b932129077c7da7270c37fc61789663448b7f19e83c00de4fdedc7245ccc4
+windows-x64,vibrance-hyper.dll,lb:vibrance-hyper,Natural Saturation,136093,160492fb8efc80ea29945b44b2ff87f738596b52e2972105c96bc5c88cdbd5a1
+windows-x64,vibrance-ps.dll,lb:vibrance-ps,Vibrance (Photoshop),132296,fe4e4855618bd75edd7e44968a97e20195000c887801dac11ba1df18b5fea570
+windows-x64,xyz-multiply.dll,lb:xyz-multiply,XYZ Multiply,133461,1f8143f60a5dbf5623d61b0e982887ab274b068b43fa883ed36735e9d5447513
 linux-x64,channel-mixer-plus.so,lb:channel-mixer-plus,Channel Mixer Plus,22056,1b71ca30a949243af9bee5a20cb9c30b6e34cfd0cdfa6965365bfb0d68e00f04
 linux-x64,channel-range-to-alpha.so,lb:channel-range-to-alpha,Channel Range to Alpha,26816,2b791d8b1db107d961d6d0c118063c7b460ad01477488a9d2d8d6bd820ea4082
 linux-x64,cmyk-primary-correction.so,lb:cmyk-primary-correction,CMYK Primary Correction,34856,44d19245891873a630309a278d11264d28b74c5b351e85b67b12391889ca8bcc

@@ -66,7 +66,7 @@ gegl-color-ops/
 | `lb:vibrance-hyper` | Natural Saturation | Natural Saturation | Point | LAB 自然饱和度：色度双曲蒙版 + 肤色保护窗 + 色域收敛不扭色相 |
 | `lb:vibrance-ps` | Vibrance PS | Vibrance (Photoshop) | Point | PS 自然饱和度实测复刻：ΔS = A(v)·S^p·(1−S)^q，叠红带与亮度项，16 位标定 |
 | `lb:brightness-contrast-ps` | Brightness/Contrast PS | Brightness/Contrast (Photoshop) | Point | PS 亮度/对比度实测复刻：新版两条曲线族查表 + 旧版闭式（pivot 89、b 夹 ±100） |
-| `lb:xyz-multiply` | XYZ Multiply | XYZ Multiply | Point | 以参考色做正片叠底（XYZ 域） |
+| `lb:xyz-multiply` | XYZ Multiply | XYZ Multiply | Point | 以参考色做正片叠底（XYZ 域）；整条链路折成一个 3×3 矩阵 |
 | `lb:apply-image` | Apply Image | Apply Image | Composer | PS 应用图像：aux 层按 26 种混合模式压到本层，可只作用单通道 |
 | `lb:calculations` | Calculations | Calculations | Composer | PS 计算：两路通道混合出灰/alpha 蒙版，双源可各自反相 |
 
@@ -312,6 +312,7 @@ python tools/check_gamma_domain.py          # 数值回归：感知（伽马）�
 python tools/check_blend.py                 # 数值回归：双输入算子的混合公式（16 用例）
 python tools/check_color_balance_fine.py    # 与 PS 实测比对：色彩平衡（--all 跑全部 609 档）
 python tools/check_color_balance_ps.py      # 与 PS 实测比对：色彩平衡（含保留明度）
+python tools/check_xyz_multiply.py --all    # 数值回归：XYZ 正片叠底（36 组白点×叠加色×不透明度）
 python tools/normalize_headers.py           # 预览文件头/命名重排，加 --write 落盘
 python tools/make_dist.py                   # 把 build/ 整理成 dist/（含 manifest + 校验和）
 ./tools/check-linux.sh                      # 在 Linux/WSL 里验证 .so 能加载并渲染（不开 GIMP）
