@@ -19,6 +19,7 @@ ops = [
   ['color-balance',           'color-balance',           'color-balance.c'],
   ['color-lookup',            'color-lookup',            'color-lookup.c'],
   ['color-grading',           'color-grading',           'color-grading.c'],
+  ['levels-ps',               'levels-ps',               'levels-ps.c'],
   ['colorize-hsl',            'colorize-hsl',            'colorize-hsl.c'],
   ['hsl-seven',               'hsl-seven',               'hsl-seven.c'],
   ['lab-levels',              'lab-levels',              'lab-levels.c'],
