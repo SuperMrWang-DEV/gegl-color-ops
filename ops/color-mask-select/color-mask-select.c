@@ -6,9 +6,19 @@
  * purpose    PS 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览
  *            PS Color Range: build a mask from a picked colour, a fuzziness
  *            radius and feathering, with an optional red overlay preview.
- * algorithm  九组预设色或图像取色 → 色距判定 → fuzziness / feather 生成 alpha
- *            Nine preset colours or a colour sampled from the image ->
- *            distance test -> alpha from 'fuzziness' and 'feather'.
+ * algorithm  统一模型：每个模式先把像素换算成「与目标的不匹配度」d ∈ [0,1]
+ *            （0 = 精确匹配），色系预设按色环距离、高光/中间调/阴影按亮度、
+ *            自定颜色按感知 RGB 距离；fuzziness 定容差窗 w = fz/200
+ *            （fz=200 时窗宽到互补色/纯黑↔纯白），
+ *            alpha = 1 - smoothstep(d, w*(1-feather), w)；色系预设再乘
+ *            饱和度门限（灰阶无色相，不该被选中），可反相，可红色叠加预览
+ *            Unified model: each mode maps a pixel to a mismatch d in [0,1]
+ *            (0 = exact match) - hue-wheel distance for the colour presets,
+ *            luminance for highlights/midtones/shadows, perceptual RGB
+ *            distance for the picked colour. Fuzziness sets the window
+ *            w = fz/100 and alpha = 1 - smoothstep(d, w*(1-feather), w).
+ *            Colour presets are gated by saturation (grays have no hue);
+ *            invertible, with an optional red overlay preview.
  * type       GeglOperationPointFilter（逐像素 / per-pixel）
  * reference  Photoshop「色彩范围」(Color Range)
  *            Photoshop Color Range
@@ -42,8 +52,10 @@ enum_end (MaskSelectType)
 property_color (custom_color, _("Custom Color"), "rgba(1.0, 0.0, 0.0, 1.0)")
     description (_("Color picked from image"))
 
-property_boolean (preview_red_mask, _("Red Overlay Preview"), TRUE)
-    description (_("Show red overlay like Photoshop"))
+property_boolean (preview_red_mask, _("Red Overlay Preview"), FALSE)
+    description (_("Blend the mask in as a red overlay. Turn on while adjusting "
+                   "to preview, off to write the mask into the layer alpha. "
+                   "Applying with this on bakes the red blend into the layer"))
 
 property_double (fuzziness, _("Fuzziness"), 50.0)
     value_range (0.0, 200.0)
@@ -56,6 +68,11 @@ property_double (feather, _("Feather"), 10.0)
 property_double (saturation_min, _("Min Saturation"), 0.0)
     value_range (0.0, 100.0)
     ui_range (0.0, 100.0)
+    description (_("Pixels below this saturation never match a colour preset "
+                   "(grays have no hue). 0 uses a small fixed floor"))
+
+property_boolean (invert, _("Invert"), FALSE)
+    description (_("Invert the mask like Photoshop's Invert checkbox"))
 
 #else
 
@@ -89,6 +106,14 @@ rgb_to_hsv(gfloat r, gfloat g, gfloat b, gfloat *h, gfloat *s, gfloat *v)
   }
 }
 
+/* 标准灰度亮度（伽马域加权，与 8bit 直觉一致）
+ * Standard grey luminance, gamma-domain weighted */
+static inline gfloat
+luminance(gfloat r, gfloat g, gfloat b)
+{
+  return 0.299f * r + 0.587f * g + 0.114f * b;
+}
+
 static inline gfloat
 color_dist(gfloat r1, gfloat g1, gfloat b1, gfloat r2, gfloat g2, gfloat b2)
 {
@@ -101,10 +126,26 @@ color_dist(gfloat r1, gfloat g1, gfloat b1, gfloat r2, gfloat g2, gfloat b2)
 static inline gfloat
 smooth_step(gfloat val, gfloat a, gfloat b)
 {
+  /* 退化区间必须有守卫：以前 a==b 时 0/0 出 NaN，灰阶像素的 alpha 全变 0，
+   * 白/黑/中间调三个模式整体报废。老 bug，2026-11-12 修复时加的守卫。
+   * Degenerate ranges must be guarded: a==b used to produce NaN via 0/0,
+   * which zeroed the alpha of every gray pixel. */
+  if (b <= a)
+    return (val <= a) ? 0.0f : 1.0f;
   if (val < a) return 0.0f;
   if (val > b) return 1.0f;
   gfloat t = (val - a) / (b - a);
   return t * t * (3.0f - 2.0f * t);
+}
+
+/* 色环距离：把 [0,1) 的色相差映射到 0（同色）…1（互补色）
+ * Hue distance on the colour wheel: 0 for the same hue, 1 for complementary */
+static inline gfloat
+hue_dist(gfloat h, gfloat center)
+{
+  gfloat d = fabsf(h - center);
+  if (d > 0.5f) d = 1.0f - d;
+  return d * 2.0f;
 }
 
 /* 感知（非线性）格式：公式按 8bit sRGB 伽马域推导，必须拿伽马值，否则 babl
@@ -138,6 +179,7 @@ process(GeglOperation       *op,
   MaskSelectType mode;
   GeglColor *custom_color;
   gboolean preview_red;
+  gboolean do_invert;
   gdouble fuzz, feather, sat_min;
 
   g_object_get(G_OBJECT(op),
@@ -147,6 +189,7 @@ process(GeglOperation       *op,
     "fuzziness", &fuzz,
     "feather", &feather,
     "saturation-min", &sat_min,
+    "invert", &do_invert,
     NULL);
 
   gdouble cr, cg, cb;
@@ -156,6 +199,20 @@ process(GeglOperation       *op,
   gfloat fz = fuzz * 0.01f;
   gfloat ft = feather * 0.01f;
   gfloat st = sat_min * 0.01f;
+
+  /* 容差窗 w = fuzziness/200，即 fz=200 时窗宽到最大不匹配度（色相互补、
+   * 纯黑↔纯白），fz=50 约为 ±45° 色相 / 亮度 0.75 端，语义在所有模式一致。
+   * feather 控制窗内缘的过渡带宽。
+   * Window w = fuzziness/200 so fz=200 reaches the farthest mismatch
+   * (complementary hue, pure white↔pure black); feather controls the soft
+   * band inside the window. Same meaning in every mode. */
+  const gfloat w = CLAMP(fz * 0.5f, 0.0f, 1.0f);
+  const gfloat w_lo = w * (1.0f - CLAMP(ft, 0.0f, 1.0f));
+  /* 色系预设的饱和度门限：灰阶没有色相，不该被色相匹配选中。
+   * 默认 0 时用一个固定小底限，避免 0/0。
+   * Saturation gate for hue presets: grays have no hue. */
+  const gfloat sg_lo = st * 0.5f;
+  const gfloat sg_hi = MAX(st, 0.05f);
 
   gint stride = roi->width * 4;
   gfloat *in_line  = g_new(gfloat, stride);
@@ -177,47 +234,63 @@ process(GeglOperation       *op,
 
       rgb_to_hsv(r, g, b, &h, &s, &v);
 
-      gfloat score = 0.0f;
+      /* d：与目标的不匹配度，0 = 精确匹配，1 = 完全不匹配
+       * d: mismatch to the target colour, 0 = exact match */
+      gfloat d = 1.0f;
+      gboolean hue_mode = FALSE;
 
       switch (mode)
       {
         case MASK_RED:
-          score = r - MAX(g, b);
-          break;
-        case MASK_GREEN:
-          score = g - MAX(r, b);
-          break;
-        case MASK_BLUE:
-          score = b - MAX(r, g);
-          break;
-        case MASK_CYAN:
-          score = MIN(g, b) - r;
-          break;
-        case MASK_MAGENTA:
-          score = MIN(r, b) - g;
+          d = hue_dist(h, 0.0f);
+          hue_mode = TRUE;
           break;
         case MASK_YELLOW:
-          score = MIN(r, g) - b;
+          d = hue_dist(h, 1.0f / 6.0f);
+          hue_mode = TRUE;
+          break;
+        case MASK_GREEN:
+          d = hue_dist(h, 2.0f / 6.0f);
+          hue_mode = TRUE;
+          break;
+        case MASK_CYAN:
+          d = hue_dist(h, 3.0f / 6.0f);
+          hue_mode = TRUE;
+          break;
+        case MASK_BLUE:
+          d = hue_dist(h, 4.0f / 6.0f);
+          hue_mode = TRUE;
+          break;
+        case MASK_MAGENTA:
+          d = hue_dist(h, 5.0f / 6.0f);
+          hue_mode = TRUE;
           break;
         case MASK_WHITE:
-          score = v - 0.5f;
+          d = 1.0f - luminance(r, g, b);
           break;
         case MASK_BLACK:
-          score = 0.5f - v;
+          d = luminance(r, g, b);
           break;
         case MASK_GRAY:
-          score = 1.0f - (fabsf(r-g) + fabsf(g-b) + fabsf(r-b)) * 0.5f;
+          d = 2.0f * fabsf(luminance(r, g, b) - 0.5f);
           break;
         case MASK_CUSTOM:
-          score = 1.0f - color_dist(r, g, b, cr, cg, cb);
+          d = color_dist(r, g, b, cr, cg, cb) / 1.7320508f;
           break;
         default:
-          score = 0.0f;
+          d = 1.0f;
       }
 
-      gfloat sat_ok  = smooth_step(s, st * 0.5f, st);
-      gfloat alpha   = smooth_step(score, -fz * ft, fz);
-      alpha = CLAMP(alpha * sat_ok, 0.0f, 1.0f);
+      gfloat alpha;
+      if (w >= 1.0f)
+        alpha = 1.0f;   /* fz=200：连精确互补色也选上 / fz=200 picks everything */
+      else
+        alpha = 1.0f - smooth_step(d, w_lo, w);
+      if (hue_mode)
+        alpha *= smooth_step(s, sg_lo, sg_hi);
+      alpha = CLAMP(alpha, 0.0f, 1.0f);
+      if (do_invert)
+        alpha = 1.0f - alpha;
 
       if (preview_red) {
         out_line[p+0] = r * (1.0f - alpha) + 1.0f * alpha;
