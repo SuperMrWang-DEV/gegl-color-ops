@@ -58,6 +58,7 @@ gegl-color-ops/
 | `lb:channel-range-to-alpha` | Range → Alpha | Channel Range to Alpha | Point | 通道数值区间 → alpha（混合颜色带） |
 | `lb:cmyk-primary-correction` | CMYK Primary | CMYK Primary Correction | Point | 可选颜色：九组色域各存一份 C/M/Y/K，同时生效 |
 | `lb:color-balance` | Color Balance | Color Balance | Filter | PS 色彩平衡：三区间指数相乘合成一条逐通道曲线，单段残差 0.30 码 |
+| `lb:color-grading` | Color Grading | Color Grading | Point | ACR 颜色分级：阴影/中间调/高光/全局四轮盘 + 明度 + Blending/Balance，按亮度分带（模型对齐，未逐码标定） |
 | `lb:color-lookup` | Color Lookup | Color Lookup | Filter | PS 颜色查找：按 .cube 3D LUT（可带 1D shaper）查表，三线性 / 四面体可选 |
 | `lb:colorize-hsl` | Colorize PS | Colorize (Photoshop) | Point | PS 色相/饱和度「着色」实测复刻：扔掉原有 H/S，只留输入 L 的单色调，残差 0.03 码 |
 | `lb:color-mask-select` | Mask by Color | Color Mask Select | Point | PS 色彩范围：高光/阴影/中间调按「阈值 + 容差」实测复刻（平均 2.1 码），色系/自定色走容差窗 |
@@ -316,6 +317,7 @@ python tools/check_blend.py                 # 数值回归：双输入算子的�
 python tools/check_color_balance_fine.py    # 与 PS 实测比对：色彩平衡（--all 跑全部 609 档）
 python tools/check_color_balance_ps.py      # 与 PS 实测比对：色彩平衡（含保留明度）
 python tools/check_color_mask_select.py     # 与 PS 实测比对：色彩范围的高光/阴影/中间调曲线
+python tools/check_color_grading.py         # 行为验证：颜色分级（恒等/分带/落位/Blending/Balance/全局）
 python tools/check_xyz_multiply.py --all    # 数值回归：XYZ 正片叠底（36 组白点×叠加色×不透明度）
 python tools/normalize_headers.py           # 预览文件头/命名重排，加 --write 落盘
 python tools/make_dist.py                   # 把 build/ 整理成 dist/（含 manifest + 校验和）

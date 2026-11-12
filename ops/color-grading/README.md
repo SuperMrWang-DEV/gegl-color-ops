@@ -1,0 +1,61 @@
+# lb:color-grading — 颜色分级（ACR Color Grading 风格）
+
+2026-11-12 新增。复刻 Adobe Camera Raw / Lightroom Classic 的
+**Color Grading（颜色分级）**面板：阴影 / 中间调 / 高光 / 全局四个轮盘
+（色相 + 饱和度），各带独立的明度滑杆，外加 Blending 与 Balance。
+
+## 菜单位置
+
+`Colors → SuperMrWang → Color Grading`
+
+## 参数（14 项，与 ACR 面板一一对应）
+
+| 参数 | 范围 | 默认 | 说明 |
+|---|---|---|---|
+| Global Hue / Saturation / Luminance | 0–360 / 0–100 / −100–100 | 0 / 0 / 0 | 全局轮盘，整幅画面均匀生效 |
+| Shadows Hue / Saturation / Luminance | 同上 | 0 / 0 / 0 | 阴影轮盘 |
+| Midtones Hue / Saturation / Luminance | 同上 | 0 / 0 / 0 | 中间调轮盘 |
+| Highlights Hue / Saturation / Luminance | 同上 | 0 / 0 / 0 | 高光轮盘 |
+| Blending | 0–100 | 50 | 相邻亮度带的交叉淡化宽度（0 = 硬分界） |
+| Balance | −100–100 | 0 | 平移阴影/高光的势力范围（正 = 偏高光） |
+
+## 算法模型
+
+按像素的 Rec.709 亮度（伽马域）分带：
+
+- 分界默认：阴影/中间调 **0.3**，中间调/高光 **0.7**；
+- Blending 把两条硬边界铺成 smoothstep 过渡（100 → 各 ±0.25），
+  中间调权重 = 1 − 阴影 − 高光；
+- Balance ±100 把两条分界一起平移 ±0.25。
+
+每个轮盘的一次染色（乘以带权重 w）：
+
+- 明度：`V += Lw × 0.005 × w`（与 `lb:hsl-seven` 同系数）；
+- 染色强度 `t = Sat/100 × w`：色相向轮盘色相**收敛**（t=1 完全落位），
+  饱和度 `s += (1−s) × t`（只加不减，对应 Sat 滑杆无负半区）；
+- 低饱和像素的色相额外向轮盘色相靠拢（`f = t + (1−t)·max(0, 1−s/t)`），
+  纯灰像素直接落到轮盘色相上——否则灰像素的「原色相」是任意的，
+  会染出错色相。
+
+执行顺序：全局轮盘（权重 1）先做，三个带再做。
+
+## 标定状态（诚实声明）
+
+本机 PS 2025 **未装 Camera Raw 插件**，无法像 colorize / color-mask-select
+那样逐码标定。分界 0.3/0.7、过渡 ±0.25、Rec.709 亮度等均为按 ACR 公开
+行为设定的合理模型，**不是黑盒实测值**。结构、参数语义与 ACR 面板
+一一对应；数值行为由 `tools/check_color_grading.py` 按设计模型验证。
+
+## 验证
+
+```bash
+python tools/check_color_grading.py    # 行为验证 11 项（恒等 / 分带 / 落位 / Blending / Balance / 全局）
+python tools/smoke.sh                  # 全算子冒烟
+```
+
+## 已知限制
+
+- 轮盘没有独立的「范围」滑杆（ACR 悬停轮盘可调亮度范围端点）；
+  分界固定 0.3/0.7，只能用 Blending/Balance 调整过渡与偏移。
+- 亮度分带用的是像素自身亮度（Rec.709 伽马域），不是邻域亮度；
+  要「按邻域」的效果请用 `lb:shadows-highlights`。
