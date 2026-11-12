@@ -10,13 +10,16 @@
  * algorithm  两路 RGBA 逐像素混合：先取目标/源通道（RGB、亮度、alpha 或合成），
  *            按混合模式算出结果，再用 mask × opacity 混回原值。源层可能比
  *            主图层小或带偏移，用 aux 缓冲区的 extent 判断哪些像素真的有源，
- *            没盖到的像素原样输出。
+ *            没盖到的像素原样输出；源层范围内的透明像素也不参与（alpha 当
+ *            覆盖率），这样只有「源层真有像素」的地方才被改动。
  *            Two RGBA streams are blended per pixel: pick the target and
  *            source channels (RGB, luma, alpha or composite), run the blend
  *            mode, then mix the result back by mask x opacity. The source may
  *            be smaller than the target or offset; the aux buffer's extent is
- *            used to tell which pixels have a source at all, and the uncovered
- *            ones are passed through untouched.
+ *            used to tell which area belongs to the source, while the source
+ *            alpha (as coverage) tells which pixels actually have pixels.
+ *            Only where the source is present and not transparent does the
+ *            target change.
  * type       GeglOperationComposer（input + aux 双输入 / two inputs）
  * reference  Photoshop「图像 → 应用图像」/ Image > Apply Image
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
@@ -197,10 +200,35 @@ apply_pixel (const AiParams *p,
       return;
     }
 
+  /* 源层的透明像素不参与作用：源层的缓冲区范围（extent）只说明「这块地方
+   * 属于源层」，不说明「这块地方有像素」。源层是抠图、文字层或带透明背景
+   * 的图层时，透明区的 RGB 是 0，照常走 multiply 会把目标乘成黑色——用户
+   * 看到的「相交区域也变了」就是这个。alpha 兼作覆盖率，抠图边缘还能平滑
+   * 过渡，不会出现硬边。
+   * Transparent source pixels must not take part. The aux extent only says
+   * the area belongs to the source layer, not that it holds pixels: on a
+   * cut-out or text layer the transparent areas are RGB 0, and letting them
+   * run through multiply blackens the target. The alpha doubles as coverage,
+   * so soft matte edges fade instead of showing a hard seam. */
+  if (sa <= 0.0f)
+    {
+      out[0] = ir;
+      out[1] = ig;
+      out[2] = ib;
+      out[3] = ia;
+      return;
+    }
+
+  /* 源通道本身就是 alpha 时，这个 alpha 是数据而不是覆盖率，不能再乘一次，
+   * 否则等于 alpha 平方
+   * When the source channel is alpha itself, that value is the data, not the
+   * coverage; multiplying again would square it. */
+  const gfloat cov = (p->sch == LB_CH_ALPHA) ? 1.0f : sa;
+
   /* 遮罩可取自源层或本层，两者都已在手边，不必再开第三个 pad
    * The mask is read from either connected layer, so no third pad is
    * needed to cover both halves of PS's mask options. */
-  gfloat mask = 1.0f;
+  gfloat mask = cov;
   if (p->use_mask)
     {
       mask = (p->mfrom == AI_MASK_INPUT)
@@ -208,6 +236,7 @@ apply_pixel (const AiParams *p,
                : lb_channel (sr, sg, sb, sa, p->mch);
       if (p->inv_mask)
         mask = 1.0f - mask;
+      mask *= cov;
     }
 
   if (p->tch == LB_CH_COMPOSITE && p->sch == LB_CH_COMPOSITE)
@@ -342,15 +371,27 @@ process (GeglOperation       *op,
       gegl_buffer_get (input, &band, 1.0, fmt, in_band,
                        band_stride, GEGL_ABYSS_NONE);
 
-      /* 本块内「真的有源」的列/行区间（相对块左上角）。aux 的 extent 就是
+      /* 源覆盖区之外显式清零：aux_band 只在源矩形里被写入，剩下的是上一块
+       * 的残留，万一覆盖判断有漏，垃圾数据会直接混进结果。清成 0 等于全透明，
+       * 正好被 apply_pixel 的 alpha 判断挡住。
+       * Zero the part the source does not cover: aux_band is only filled
+       * inside the source rect, and stale bytes from the previous band would
+       * otherwise slip into the blend if the coverage test ever missed.
+       * Zero means transparent, which the alpha test rejects. */
+      memset (aux_band, 0, sizeof (gfloat) * (gsize) w * nh * 4);
+
+      /* 本块内「属于源层」的列/行区间（相对块左上角）。aux 的 extent 就是
        * 源图层自己的大小和位置：图层比主图小、或者带偏移时，没盖到的地方
        * 不能被当成「透明黑」参与混合——multiply 会把那里涂黑，normal 会
-       * 把它擦成透明。
-       * Rows and columns of this band that actually have a source, relative
-       * to the band's top-left. The aux extent is the source layer's own
-       * size and position: where a smaller or offset layer does not reach,
-       * the pixels must not join the blend as transparent black (multiply
-       * would blacken them, normal would erase them). */
+       * 把它擦成透明。这只做粗筛，源层内部透明的地方由 apply_pixel 里的
+       * alpha 判断兜住。
+       * Rows and columns of this band that belong to the source, relative to
+       * the band's top-left. The aux extent is the source layer's own size
+       * and position: where a smaller or offset layer does not reach, the
+       * pixels must not join the blend as transparent black (multiply would
+       * blacken them, normal would erase them). This is only the coarse
+       * filter; transparent pixels inside the layer are handled by the alpha
+       * test in apply_pixel. */
       gint cx0 = 0, cx1 = 0, cy0 = 0, cy1 = 0;
 
       if (!has_aux)

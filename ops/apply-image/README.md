@@ -43,6 +43,12 @@ PS 的遮罩可以指向**第三张**图（既不是目标也不是源），GEGL
 
 - **aux 没接时**源退化为本图，可以用来做「同图内通道互混」；
   Without an aux connected the source falls back to the input itself.
+- **源层的透明像素（alpha = 0）不参与作用**：源层是抠图、文字层或带透明背景
+  的图层时，透明区的 RGB 是 0，照常混合会把目标乘成黑色。alpha 同时当作覆盖率，
+  半透明的柔边会渐隐而不是留硬边。
+  Transparent source pixels take no part: on a cut-out or text layer the holes
+  hold RGB 0, which would blacken the target under multiply. The alpha doubles
+  as coverage, so soft mattes fade instead of leaving a hard edge.
 - 目标是单通道时只改那一个通道，其余原样保留；源是合成时取亮度作标量。
   With a single-channel target only that channel changes; a composite source is
   reduced to luminance.
@@ -60,10 +66,11 @@ PS 的遮罩可以指向**第三张**图（既不是目标也不是源），GEGL
 PS 的应用图像要求两个图层**像素尺寸完全一致**，尺寸不同时源图层直接灰掉；
 GIMP 里图层可以比画布小、也可以带偏移，所以这里得自己定规则：
 
-- 算子按 `aux` 缓冲区自己的 extent（即源图层的大小和位置）判断哪些像素真的
-  有源，**没盖到的像素原样输出**；
-- 盖到的地方照常混合，包括源图层自身透明（alpha = 0）的像素——那里仍然是
-  参与混合的，只是按它自己的像素值算。
+- 算子按 `aux` 缓冲区自己的 extent（即源图层的大小和位置）做**粗筛**，没盖到
+  的像素原样输出；
+- 盖到的范围内，再由源像素的 alpha 决定**真正有没有像素**：alpha = 0 的地方
+  原样输出，alpha 介于 0 和 1 之间按覆盖率减弱。只有「既属于源层、又有像素」
+  的地方才被改动，这才是 PS 意义上「只有相交部分起作用」。
 
 早先版本用的是 `GeglOperationPointComposer`，`process` 只拿到一段裸指针，
 看不到 aux 的 extent，界外被 GEGL 补成透明黑再参与混合：正片叠底会把外侧涂
@@ -71,19 +78,25 @@ GIMP 里图层可以比画布小、也可以带偏移，所以这里得自己定
 的是真正的 `GeglBuffer`，`gegl_buffer_get_extent(aux)` 就能取到图层尺寸，
 `tools/auxrun` 也补了 `aux-x` / `aux-y` 用来模拟带偏移的源层。
 
+extent 只能说明「这块地方属于源层」，说明不了「这块地方有像素」——抠图的透明
+洞也在 extent 里面，光看 extent 会把洞一起乘黑。所以两者要配合用。
+
 Photoshop requires both layers to have exactly the same pixel size and greys the
 source out otherwise; GIMP layers may be smaller than the canvas or offset, so
-the rule here is: the aux buffer's own extent decides which pixels have a
-source, and the uncovered ones are passed through untouched. The older
+the rule here is two-stage: the aux buffer's own extent is the coarse filter,
+and the source alpha decides which pixels inside that area really carry pixels.
+Uncovered and transparent pixels are passed through untouched. The older
 point-composer version only received a raw pointer for the aux, could not see
 its extent, and treated the outside as transparent black — multiply blackened
-it, normal erased it.
+it, normal erased it. The extent alone is not enough: a cut-out's holes lie
+inside the extent, so pure extent logic would still blacken them.
 
 ## 测试 / Testing
 
 ```bash
 ./build.sh
-python tools/check_blend.py     # 含 11 个应用图像用例：混合模式、遮罩、通道、源层尺寸/偏移
+python tools/check_blend.py     # 26 个用例，其中 19 个属于应用图像：混合模式、遮罩、
+                               # 通道、源层尺寸/偏移、源层透明与半透明覆盖率
 ```
 
 PS's mask may point at a *third* image. A GEGL composer only exposes two inputs,

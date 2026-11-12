@@ -87,6 +87,22 @@ psblend_apply (const float *in, const float *aux, const float *mask,
           continue;
         }
 
+      /* 源层透明像素不参与作用：源层是抠图 / 文字层时，透明区的 RGB 是 0，
+       * 照常混合会把目标涂黑。alpha 兼作覆盖率，边缘还能平滑过渡。与 GEGL
+       * 版 lb:apply-image 保持一致。
+       * Transparent source pixels take no part. On a cut-out or text layer
+       * the holes hold RGB 0, which would blacken the target. The alpha also
+       * serves as coverage, and matches the GEGL op. */
+      if (sa <= 0.0f)
+        {
+          out[j] = ir; out[j + 1] = ig; out[j + 2] = ib; out[j + 3] = ia;
+          continue;
+        }
+
+      /* 源通道本身就是 alpha 时它是数据不是覆盖率，不再乘一次
+       * With the alpha channel as the source it is data, not coverage */
+      const gfloat cov = (sch == 4) ? 1.0f : sa;
+
       /* 遮罩：mask 缓冲缺省时退回 aux 的 Gray（与插件侧约定一致）
        * Mask: fall back to the aux buffer's Gray when none is given */
       if (use_mask)
@@ -94,10 +110,10 @@ psblend_apply (const float *in, const float *aux, const float *mask,
           gfloat v = (mask != NULL)
             ? ps_ch (0, mask[j], mask[j + 1], mask[j + 2], mask[j + 3])
             : ps_ch (0, sr, sg, sb, sa);
-          k = lb_clamp01 (opacity * ((inv_mask) ? 1.0f - v : v));
+          k = lb_clamp01 (opacity * ((inv_mask) ? 1.0f - v : v) * cov);
         }
       else
-        k = opacity;
+        k = lb_clamp01 (opacity * cov);
 
       if (tch == 0)
         {

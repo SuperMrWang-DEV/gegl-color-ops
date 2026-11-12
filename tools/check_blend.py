@@ -23,10 +23,17 @@ GIMP_BIN = r"D:/fastsoftware/GIMP 3/bin"
 
 
 def write_png(path, rgba, w=4, h=4):
-    """rgba 长度 3 写 RGB，长度 4 写 RGBA。"""
-    px = bytes(rgba)
-    raw = (b"\x00" + px * w) * h
-    ctype = 6 if len(rgba) == 4 else 2
+    """rgba 长度 3 时自动补不透明 alpha，统一写 RGBA。"""
+    if len(rgba) == 3:
+        rgba = tuple(rgba) + (255,)
+    write_png_pixels(path, [rgba] * (w * h), w, h)
+
+
+def write_png_pixels(path, pixels, w=4, h=4):
+    """pixels 是 w*h 个 (r,g,b,a)，用来做「逐像素不同 alpha」的源层。"""
+    px = b"".join(bytes(p) for p in pixels)
+    raw = b"".join(b"\x00" + px[y * w * 4:(y + 1) * w * 4] for y in range(h))
+    ctype = 6
 
     def chunk(tag, data):
         return (struct.pack(">I", len(data)) + tag + data +
@@ -194,6 +201,34 @@ COVERAGE_CASES = [
      [(0, 0, (10, 10, 128)), (3, 3, (10, 10, 128))], 2),
 ]
 
+# 源层的透明像素：extent 只说明「这块地方属于源层」，不说明「这块有像素」。
+# 抠图 / 文字层的透明区 RGB 是 0，若照常参与 multiply 会把目标乘成纯黑——
+# 表现为「相交区域里本不该动的地方也变了」。
+# Transparent source pixels: the extent only says the area belongs to the
+# source layer, not that it holds pixels. RGB 0 in a cut-out's holes would
+# blacken the target under multiply.
+# (说明, 主图, aux 逐像素, 尺寸, 参数, [(x, y, 期望 RGB), ...], 容差)
+def _aux_with_hole():
+    """4x4 源层，只有 (1,1) 有像素，其余 alpha=0（抠图 / 文字层的透明区）。"""
+    px = [(0, 0, 0, 0)] * 16
+    px[5] = (200, 100, 50, 255)
+    return px
+
+
+ALPHA_CASES = [
+    ("应用图像 · 源层透明处不作用", (10, 10, 128, 255),
+     _aux_with_hole(), (4, 4), dict(blend_mode="normal"),
+     [(1, 1, (200, 100, 50)), (0, 0, (10, 10, 128)),
+      (2, 2, (10, 10, 128))], 2),
+    ("应用图像 · 透明洞不被 multiply 涂黑", (128, 128, 128, 255),
+     _aux_with_hole(), (4, 4), dict(blend_mode="multiply"),
+     [(1, 1, (100, 50, 25)), (0, 0, (128, 128, 128)),
+      (2, 2, (128, 128, 128))], 2),
+    ("应用图像 · 半透明源按覆盖率混合", (128, 128, 128, 255),
+     [(200, 100, 50, 128)] * 16, (4, 4), dict(blend_mode="normal"),
+     [(0, 0, (164, 114, 89))], 2),
+]
+
 
 def main():
     verbose = "-v" in sys.argv
@@ -257,7 +292,35 @@ def main():
         print("%-38s %-18s %-18s %s" % (label, "  ".join(shown), "", "OK" if ok else "FAIL"))
 
     ok_n = len(CASES) + len(COVERAGE_CASES) - bad
-    print("\n%d/%d 通过" % (ok_n, len(CASES) + len(COVERAGE_CASES)))
+
+    # ---- 源层透明像素 ----
+    for i, (label, cin, auxpx, size, params, probes, tol) in enumerate(ALPHA_CASES):
+        src = os.path.join(TMP, "ain%d.png" % i)
+        aux = os.path.join(TMP, "aaux%d.png" % i)
+        dst = os.path.join(TMP, "aout%d.png" % i)
+        write_png_pixels(src, [cin] * (size[0] * size[1]), size[0], size[1])
+        write_png_pixels(aux, auxpx, size[0], size[1])
+        if os.path.exists(dst):
+            os.remove(dst)
+        run(dst, "lb:apply-image", src, aux, **params)
+
+        ok = True
+        shown = []
+        for px_, py_, expect in probes:
+            got = to8(*read_pixel(dst, px_, py_))
+            n = min(len(got), len(expect))
+            good = all(abs(got[k] - expect[k]) <= tol for k in range(n))
+            ok = ok and good
+            shown.append("%d,%d→%s%s" % (px_, py_,
+                                         " ".join("%.0f" % v for v in got),
+                                         "" if good else "✗"))
+        bad += 0 if ok else 1
+        if ok and not verbose:
+            continue
+        print("%-38s %-18s %-18s %s" % (label, "  ".join(shown), "", "OK" if ok else "FAIL"))
+
+    ok_n = len(CASES) + len(COVERAGE_CASES) + len(ALPHA_CASES) - bad
+    print("\n%d/%d 通过" % (ok_n, len(CASES) + len(COVERAGE_CASES) + len(ALPHA_CASES)))
     return 0 if bad == 0 else 1
 
 

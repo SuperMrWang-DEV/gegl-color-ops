@@ -71,7 +71,7 @@ gegl-color-ops/
 | `lb:xyz-multiply` | Photo Filter | Photo Filter | Blend | Point | **即 PS 照片滤镜**（实测复刻）：滤镜色在 D50 XYZ 域正片叠底，密度 + 保留明度（W3C SetLum）；不保留明度档 ≤0.71 码 |
 | `lb:shadows-highlights` | Shadows/Highlights | Shadows/Highlights | Tone | Filter | PS 阴影/高光实测复刻：边缘感知邻域亮度决定提亮提多少，含色调宽度、颜色、中间调对比度、修剪黑白 |
 | `lb:color-temperature-tint` | Color Temperature & Tint | Color Temperature & Tint | Color | Point | PS 2026「色彩与自然饱和度」里的色温 / 色调：冷↔暖、绿↔洋红，中性灰跟着偏色、黑白不动 |
-| `lb:apply-image` | Apply Image | Apply Image | Blend | Composer | PS 应用图像：aux 层按 26 种混合模式压到本层，可只作用单通道 |
+| `lb:apply-image` | Apply Image | Apply Image | Blend | Composer | PS 应用图像：aux 层按 26 种混合模式压到本层，可只作用单通道；源层没盖到和透明的地方原样输出 |
 | `lb:calculations` | Calculations | Calculations | Blend | Composer | PS 计算：两路通道混合出灰/alpha 蒙版，双源可各自反相 |
 
 每个算子的算法说明、参数含义见 `ops/<算子名>/README.md`（原始文档）。
@@ -81,6 +81,10 @@ gegl-color-ops/
 东西可混」，所以用 `GeglOperationComposer`（`process` 拿到的是 `GeglBuffer`，可以
 `gegl_buffer_get_extent(aux)`）；`calculations` 输出的是整幅蒙版，缺的源按黑算，
 用开销更小的 `GeglOperationPointComposer` 就够。
+
+`apply-image` 的「有没有东西可混」分两层看：extent 是粗筛（图层盖到哪），源像素的
+alpha 是细筛（这块地方真有像素吗）。抠图层的透明洞里 RGB 是 0，只看 extent 会把洞
+一起乘黑——就是「相交区域里本不该动的地方也变了」。
 
 - GIMP 里 aux 由滤镜对话框的输入选择器指定（GIMP 3 会打印 `aux_label` 的名字）；
   这类滤镜**只能合并应用**，不能做非破坏性 fx，是 GIMP 目前的限制。

@@ -254,6 +254,17 @@ def apply_image(inb, auxb, maskb, n, blend, tch, sch, opacity,
             out[j], out[j + 1], out[j + 2], out[j + 3] = ir, ig, ib, ia
             continue
 
+        # 源层透明像素不参与作用：抠图 / 文字层的洞里是 RGB 0，照常混合会把
+        # 目标涂黑。alpha 兼作覆盖率，与 GEGL 版 lb:apply-image 一致。
+        # Transparent source pixels take no part; the alpha also acts as
+        # coverage, matching the GEGL op.
+        if sa <= 0.0:
+            out[j], out[j + 1], out[j + 2], out[j + 3] = ir, ig, ib, ia
+            continue
+
+        # 源通道就是 alpha 时它是数据不是覆盖率 / alpha as data, not coverage
+        cov = 1.0 if sch == CH_ALPHA else sa
+
         if use_mask:
             k = opacity
             if maskb is not None:
@@ -261,9 +272,9 @@ def apply_image(inb, auxb, maskb, n, blend, tch, sch, opacity,
             else:
                 v = _ch_value(0, sr, sg, sb, sa)
             k *= (1.0 - v) if inv_mask else v
-            k = _clamp01(k)
+            k = _clamp01(k * cov)
         else:
-            k = opacity
+            k = _clamp01(opacity * cov)
 
         if tch == 0:
             if blend >= HUE_START or blend in (DARKER_COLOR, LIGHTER_COLOR):
