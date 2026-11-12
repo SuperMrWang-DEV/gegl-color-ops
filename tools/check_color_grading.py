@@ -9,12 +9,14 @@
   4. Blending = 0 是硬分界，Blending = 100 出现宽过渡
   5. Balance 正值把阴影/高光的势力范围往中间推
   6. 全局轮盘对所有亮度均匀生效
+  7. 色相扫掠 + 互补轮盘色无接缝（相邻列不出现跳变条纹——早期的
+     「色相收敛」模型在互补色相处会因旋转方向翻转而爆条纹，已改为
+     向轮盘色混合）
 
 探针是一张 512x4 的灰阶渐变（灰阶的 Rec.709 luma = 自身灰度，分带位置好算）。
 
     python tools/check_color_grading.py
 """
-import math
 import os
 import subprocess
 import sys
@@ -83,6 +85,18 @@ def make_probe(path):
     write_png(path, W, H, rows)
 
 
+def make_hue_probe(path):
+    """色相 0→360 扫掠，s=0.8 v=0.6：用来看色相方向是否连续。"""
+    rows = []
+    for y in range(H):
+        row = bytearray()
+        for x in range(W):
+            r, g, b = hsv_to_rgb(x / (W - 1.0), 0.8, 0.6)
+            row += bytes((round(r * 255), round(g * 255), round(b * 255)))
+        rows.append(row)
+    write_png(path, W, H, rows)
+
+
 def x_for_gray(g):
     """灰度 g 在探针里的 x 坐标"""
     return max(0, min(W - 1, round(g / 255.0 * (W - 1))))
@@ -95,7 +109,7 @@ def render(exe, env, args, dst):
         raise SystemExit("gegl 渲染失败 %s\n%s\n%s" % (args, r.stdout, r.stderr))
 
 
-# ---------- Python 侧复刻 C 模型（只对灰像素，r=g=b） ----------
+# ---------- Python 侧复刻 C 模型（RGB 入、RGB 出，轮盘色混合） ----------
 
 def smooth_step(val, a, b):
     if b <= a:
@@ -108,24 +122,19 @@ def smooth_step(val, a, b):
     return t * t * (3.0 - 2.0 * t)
 
 
-def roundf(x):
-    """C roundf：半数远离零"""
-    return math.floor(x + 0.5) if x >= 0 else math.ceil(x - 0.5)
-
-
-def apply_wheel(h, s, v, hue_deg, sat_ui, lum_ui, w):
-    if w < 0.001:
-        return h, s, v
-    v = v + lum_ui * 0.005 * w
-    t = sat_ui * 0.01 * w
-    if t < 0.001:
-        return h, s, v
-    hw = hue_deg / 360.0
-    f = t + (1.0 - t) * max(0.0, 1.0 - s / t)
-    d = hw - h
-    d -= roundf(d)
-    h = h + d * f
-    s = s + (1.0 - s) * t
+def rgb_to_hsv(r, g, b):
+    cmax, cmin = max(r, g, b), min(r, g, b)
+    delta = cmax - cmin
+    v = cmax
+    s = delta / cmax if cmax > 0 else 0.0
+    h = 0.0
+    if delta > 0:
+        if cmax == r:   h = (g - b) / delta
+        elif cmax == g: h = 2.0 + (b - r) / delta
+        else:           h = 4.0 + (r - g) / delta
+        h /= 6.0
+        if h < 0:
+            h += 1.0
     return h, s, v
 
 
@@ -145,10 +154,27 @@ def hsv_to_rgb(h, s, v):
     return tuple(ch + m for ch in rgb)
 
 
-def expected_gray(g, **kw):
-    """灰度 g 经 color-grading 后的期望 RGB（0…255 刻度）。"""
-    v0 = g / 255.0
-    L = v0                                    # 灰阶 Rec.709 luma = 自身
+def apply_wheel(rgb, hue_deg, sat_ui, lum_ui, w):
+    """与 C 的 apply_wheel 逐行对应：V 调整后，向同明度的轮盘纯色混合。"""
+    if w < 0.001:
+        return rgb
+    r, g, b = rgb
+    h, s, v = rgb_to_hsv(r, g, b)
+    v = min(1.0, max(0.0, v + lum_ui * 0.005 * w))
+    t = sat_ui * 0.01 * w
+    if t < 0.001:
+        return hsv_to_rgb(h, s, v)
+    t = min(t, 1.0)
+    base = hsv_to_rgb(h, s, v)
+    tint = hsv_to_rgb(hue_deg / 360.0, 1.0, v)
+    return tuple(base[i] * (1.0 - t) + tint[i] * t for i in range(3))
+
+
+def expected_rgb(rgb255, **kw):
+    """像素经 color-grading 后的期望 RGB（0…255 刻度）。"""
+    r, g, b = [c / 255.0 for c in rgb255]
+    L = 0.2126 * r + 0.7152 * g + 0.0722 * b
+    L = min(1.0, max(0.0, L))
     feather = min(100.0, max(0.0, kw.get("blending", 50.0))) * 0.0025
     shift = min(100.0, max(-100.0, kw.get("balance", 0.0))) * 0.0025
     split1, split2 = 0.30 - shift, 0.70 - shift
@@ -156,13 +182,16 @@ def expected_gray(g, **kw):
     w_hi = smooth_step(L, split2 - feather, split2 + feather)
     w_md = min(1.0, max(0.0, 1.0 - w_sh - w_hi))
 
-    h, s, v = 0.0, 0.0, v0                    # 灰像素 delta=0 → h=0（C 同款）
-    h, s, v = apply_wheel(h, s, v, kw.get("global_hue", 0), kw.get("global_sat", 0), kw.get("global_lum", 0), 1.0)
-    h, s, v = apply_wheel(h, s, v, kw.get("shadow_hue", 0), kw.get("shadow_sat", 0), kw.get("shadow_lum", 0), w_sh)
-    h, s, v = apply_wheel(h, s, v, kw.get("mid_hue", 0), kw.get("mid_sat", 0), kw.get("mid_lum", 0), w_md)
-    h, s, v = apply_wheel(h, s, v, kw.get("high_hue", 0), kw.get("high_sat", 0), kw.get("high_lum", 0), w_hi)
-    rgb = hsv_to_rgb(h, s, v)
-    return tuple(ch * 255.0 for ch in rgb)
+    cur = (r, g, b)
+    cur = apply_wheel(cur, kw.get("global_hue", 0), kw.get("global_sat", 0), kw.get("global_lum", 0), 1.0)
+    cur = apply_wheel(cur, kw.get("shadow_hue", 0), kw.get("shadow_sat", 0), kw.get("shadow_lum", 0), w_sh)
+    cur = apply_wheel(cur, kw.get("mid_hue", 0), kw.get("mid_sat", 0), kw.get("mid_lum", 0), w_md)
+    cur = apply_wheel(cur, kw.get("high_hue", 0), kw.get("high_sat", 0), kw.get("high_lum", 0), w_hi)
+    return tuple(c * 255.0 for c in cur)
+
+
+def expected_gray(g, **kw):
+    return expected_rgb((g, g, g), **kw)
 
 
 def px(img, x):
@@ -262,6 +291,17 @@ def main():
          [("g=20 (模型期望)", 20, expected_gray(20, global_hue=30, global_sat=60)),
           ("g=128 (模型期望)", 128, expected_gray(128, global_hue=30, global_sat=60)),
           ("g=240 (模型期望)", 240, expected_gray(240, global_hue=30, global_sat=60))])
+
+    # 色相扫掠 + 互补轮盘色（180°）：相邻列不允许出现跳变条纹
+    PROBE = os.path.join(tmp, "hue.png")
+    make_hue_probe(PROBE)
+    dst = os.path.join(tmp, "hue-out.png")
+    render(exe, env, ["global-hue=180", "global-sat=40"], dst)
+    himg = read_png(dst)
+    mx = max(diff(px(himg, x - 1), px(himg, x)) for x in range(1, W))
+    results.append(("互补色相无接缝", mx <= 8,
+                    ["    色相扫掠相邻列最大跳变 %.1f 码（阈值 8）  %s"
+                     % (mx, "OK" if mx <= 8 else "✗")]))
 
     npass = sum(1 for _, ok, _ in results if ok)
     for name, ok, notes in results:

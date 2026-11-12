@@ -18,10 +18,10 @@
  *               mid 权重 = 1 − shadow − highlight（钳到 ≥0）。
  *            3. 染色（每个带 / 全局各做一次，权重 w 相乘）：
  *               - 明度滑杆：V += Lw·0.005·w（与 hsl-seven 同系数，±100 → ±0.5）；
- *               - 轮盘强度 t = Sat/100·w：色相向轮盘色相收敛（t=1 完全落位），
- *                 饱和度 s += (1−s)·t —— 只加不减，对应 Sat 滑杆没有负半区；
- *                 低饱和像素的色相额外向轮盘色相靠拢（f = t + (1−t)·max(0, 1−s/t)），
- *                 纯灰像素直接落到轮盘色相上，避免灰像素染出错色相。
+ *               - 染色强度 t = Sat/100·w：往「同明度的轮盘纯色」混合，
+ *                 rgb = rgb·(1−t) + tint·t，tint = HSV(轮盘色相, 1, V)。
+ *                 灰像素于是自然吃到染色，与轮盘色接近互补的色相则去饱和，
+ *                 色相上不做插值 → 没有「旋转方向翻转」的接缝（见 apply_wheel）。
  *            4. 全局轮盘权重恒为 1，先做；三个带再做。
  *
  *            ACR 无法在本机标定（未装 Camera Raw 插件），分界 0.3/0.7、
@@ -109,24 +109,6 @@ property_double (balance, _("Balance"), 0.0)
 
 #include "gegl-op.h"
 
-/* HSV 边界钳位（沿用 hsl-seven 的写法）
- * clamp the HSV components (same as hsl-seven) */
-static inline gfloat
-hue_wrap(gfloat h)
-{
-  h = fmodf(h, 1.0f);
-  if (h < 0.0f) h += 1.0f;
-  return h;
-}
-
-static inline void
-hsv_clamp(gfloat *h, gfloat *s, gfloat *v)
-{
-  *h = hue_wrap(*h);
-  *s = CLAMP(*s, 0.0f, 1.0f);
-  *v = CLAMP(*v, 0.0f, 1.0f);
-}
-
 static inline gfloat
 smooth_step(gfloat val, gfloat a, gfloat b)
 {
@@ -167,41 +149,70 @@ hsv_to_rgb(gfloat h, gfloat s, gfloat v, gfloat *r, gfloat *g, gfloat *b)
   *b += m;
 }
 
-/* 一个轮盘（带权重 w）的一次染色。h/s/v 就地修改。
- * One wheel application with range weight w; h/s/v are modified in place. */
+/* 一个轮盘（带权重 w）的一次染色。r/g/b 就地修改。
+ * One wheel application with range weight w; r/g/b are modified in place.
+ *
+ * 染色 = 往像素里混入「同明度的轮盘纯色」：
+ *   t    = Sat/100 × w              （混合比例）
+ *   tint = HSV(轮盘色相, 1, 当前 V)  （保持明度结构，不改变黑白关系）
+ *   rgb  = rgb·(1−t) + tint·t
+ * 不在色相上做插值，因此不存在「互补色相处旋转方向翻转」的接缝——
+ * 轮盘色与像素色接近互补时，混合自然会去饱和（掺灰），而不是绕半圈。
+ * 这与轮盘「给画面加一层颜色」的物理语义一致。
+ *
+ * The tint is a plain mix towards the wheel colour at the pixel's own value:
+ *   t    = Sat/100 * w,  tint = HSV(wheel hue, 1, current V)
+ *   rgb  = rgb*(1-t) + tint*t
+ * No hue interpolation, so no seam where the rotation direction flips for
+ * complementary hues: mixing towards the complement desaturates, which is
+ * what a wheel physically does to a picture. */
 static inline void
-apply_wheel(gfloat *h, gfloat *s, gfloat *v,
+apply_wheel(gfloat *r, gfloat *g, gfloat *b,
             gfloat hue_deg, gfloat sat_ui, gfloat lum_ui, gfloat w)
 {
   if (w < 0.001f)
     return;
 
+  gfloat rr = *r, gg = *g, bb = *b;
+  gfloat cmax = MAX(MAX(rr, gg), bb);
+  gfloat cmin = MIN(MIN(rr, gg), bb);
+  gfloat delta = cmax - cmin;
+  gfloat v = cmax;
+  gfloat s = (cmax > 0.0f) ? delta / cmax : 0.0f;
+  gfloat h = 0.0f;
+  if (delta > 0.0f) {
+    if (cmax == rr)
+      h = (gg - bb) / delta;
+    else if (cmax == gg)
+      h = 2.0f + (bb - rr) / delta;
+    else
+      h = 4.0f + (rr - gg) / delta;
+    h /= 6.0f;
+    if (h < 0.0f) h += 1.0f;
+  }
+
   /* 明度滑杆：±100 → V ±0.5（与 hsl-seven 的 lightness 系数一致）
    * Luminance slider: +-100 -> V +-0.5 (same coefficient as hsl-seven) */
-  *v += lum_ui * 0.005f * w;
+  v = CLAMP(v + lum_ui * 0.005f * w, 0.0f, 1.0f);
 
   gfloat t = sat_ui * 0.01f * w;
   if (t < 0.001f)
+  {
+    hsv_to_rgb(h, s, v, &rr, &gg, &bb);
+    *r = rr; *g = gg; *b = bb;
     return;
+  }
+  t = MIN(t, 1.0f);
 
-  /* 轮盘色相（度 → 0~1 圈）
-   * wheel hue, degrees -> 0..1 circle */
-  gfloat hw = hue_deg / 360.0f;
+  gfloat tr, tg, tb;
+  hsv_to_rgb(hue_deg / 360.0f, 1.0f, v, &tr, &tg, &tb);
 
-  /* 色相收敛比例：轮盘强度 t 为基础；原本低饱和的像素额外向轮盘色相
-   * 靠拢（s=0 时比例到 1，纯灰直接落位），避免灰像素染出错色相。
-   * Hue convergence fraction: t as the base; low-saturation pixels
-   * converge further (fraction 1 at s=0, so greys land on the wheel
-   * hue instead of an arbitrary one). */
-  gfloat f = t + (1.0f - t) * MAX(0.0f, 1.0f - *s / t);
-
-  gfloat d = hw - *h;
-  d -= roundf(d);            /* 包到 [-0.5, 0.5] / wrap to [-0.5, 0.5] */
-  *h += d * f;
-
-  /* 饱和度只加不减，对应 ACR 的 Sat 滑杆没有负半区
-   * saturation only grows, matching ACR's non-negative Sat slider */
-  *s += (1.0f - *s) * t;
+  /* 先把明度变化落回 RGB，再与轮盘色混合
+   * apply the luminance change to RGB first, then mix the wheel colour in */
+  hsv_to_rgb(h, s, v, &rr, &gg, &bb);
+  *r = rr * (1.0f - t) + tr * t;
+  *g = gg * (1.0f - t) + tg * t;
+  *b = bb * (1.0f - t) + tb * t;
 }
 
 /* 感知（非线性）格式：公式按 8bit sRGB 伽马域推导，必须拿伽马值，否则 babl
@@ -282,34 +293,12 @@ process(GeglOperation       *op,
       gfloat w_hi = smooth_step(L, split2 - feather, split2 + feather);
       gfloat w_md = CLAMP(1.0f - w_sh - w_hi, 0.0f, 1.0f);
 
-      /* RGB → HSV（hsl-seven 同款转换，cmax/cmin）
-       * RGB -> HSV, same cmax/cmin conversion as hsl-seven */
-      gfloat cmax = MAX(MAX(r, g), b);
-      gfloat cmin = MIN(MIN(r, g), b);
-      gfloat delta = cmax - cmin;
-      gfloat v = cmax;
-      gfloat s = (cmax > 0.0f) ? delta / cmax : 0.0f;
-      gfloat h = 0.0f;
-      if (delta > 0.0f) {
-        if (cmax == r)
-          h = (g - b) / delta;
-        else if (cmax == g)
-          h = 2.0f + (b - r) / delta;
-        else
-          h = 4.0f + (r - g) / delta;
-        h /= 6.0f;
-        if (h < 0.0f) h += 1.0f;
-      }
-
       /* 全局轮盘（权重 1）→ 三个亮度带
        * global wheel (weight 1), then the three tonal ranges */
-      apply_wheel(&h, &s, &v, g_hue, g_sat, g_lum, 1.0f);
-      apply_wheel(&h, &s, &v, s_hue, s_sat, s_lum, w_sh);
-      apply_wheel(&h, &s, &v, m_hue, m_sat, m_lum, w_md);
-      apply_wheel(&h, &s, &v, h_hue, h_sat, h_lum, w_hi);
-
-      hsv_clamp(&h, &s, &v);
-      hsv_to_rgb(h, s, v, &r, &g, &b);
+      apply_wheel(&r, &g, &b, g_hue, g_sat, g_lum, 1.0f);
+      apply_wheel(&r, &g, &b, s_hue, s_sat, s_lum, w_sh);
+      apply_wheel(&r, &g, &b, m_hue, m_sat, m_lum, w_md);
+      apply_wheel(&r, &g, &b, h_hue, h_sat, h_lum, w_hi);
 
       out_line[p+0] = r;
       out_line[p+1] = g;
