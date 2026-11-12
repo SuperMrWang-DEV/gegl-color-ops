@@ -24,8 +24,7 @@ gegl-color-ops/
 ├── meson.build           # 等价工程，供 Linux/macOS 或 CI 使用
 ├── common/config.h       # 所有算子共用的版本宏 / GETTEXT_PACKAGE
 ├── ops/<算子名>/          # 每个算子一个目录：<算子名>.c + 原始说明 + 截图
-├── plugin/ps-blend/      # Python 插件：应用图像/计算的完整复刻版（当前已停用，源码保留）
-├── plugin/lb-calculations/  # Python 插件：计算的薄壳，像素交给 GEGL 算子
+├── plugin/ps-blend/      # Python 插件：应用图像/计算的完整复刻版（四种落地：选区/通道/灰度层/图层 alpha）
 ├── dist/                 # 编好的模块，给不想编译的人直接下载（windows-x64 / linux-x64）
 ├── tools/                # 测试图生成、逐算子冒烟、对照表、文件头重排、注释双语化
 ├── build/                # 编译产物（build.sh 生成，可随时删）
@@ -116,26 +115,6 @@ GEGL 算子只接住了像素计算那一半；**输入选择**（任意打开�
 
 交互模式弹自定义对话框；批处理可用注册参数（`blend` 0..25 按 PS 顺序、
 `source-image`/`source-layer` 等，见 `do_create_procedure`）。
-
-### 计算的薄壳：plugin/lb-calculations
-
-`plugin/ps-blend` 自带像素内核，算子那边修一次 bug 就要手工同步三处。薄壳是
-反过来：**像素全交给 GEGL 算子 `lb:calculations`**，插件只负责把结果落到选区 /
-Alpha 通道 / 灰度层 / 图层 alpha。
-
-- 菜单 **颜色 → SuperMrWang → Calculations (GEGL)...**，和 `Calculations PS...`
-  并排
-- 源仍是任意打开图像的任意图层；遮罩可选第三张图（代价是跑两趟）
-- 算子的透明像素处理、26 种混合模式、通道枚举全部自动继承
-
-```bash
-./install.sh && ./install-plugin.sh   # 算子 + 插件都装上，重启 GIMP 生效
-python tools/check_thin_calc.py       # 需在 GIMP 的 python-fu 里跑，见文件头
-```
-
-实现要点与 GIMP 3 Python 的坑（`Gegl.init()` 必须调、`buffer-sink` 的
-gpointer、`blit_buffer`、选区缓冲是 `Y float`）记在
-`plugin/lb-calculations/README.md`。
 
 ## 命名与代码风格约定
 
@@ -317,9 +296,10 @@ touch plugin/ps-blend/.disabled        # 停用 Python 插件
   必须手动删掉那个 `.dll` / 插件目录，否则 GIMP 重启后照样加载。
 - 恢复：删掉 `.disabled`，重跑 `./build.sh && ./install.sh`（插件版再 `./install-plugin.sh`）。
 
-**当前状态（2026-11-12）**：只有 `plugin/ps-blend` 还带 `.disabled`。两个 GEGL 算子已在
-修掉「源图层尺寸」与「通道编号」两个 bug 后恢复启用（见 `5d0e267`），旧二进制留在
-`backup/disabled-20261111-apply-calc/`（`backup/` 不进仓库）。
+**当前状态（2026-11-12）**：全部恢复启用——两个 GEGL 算子已在修掉「源图层尺寸」
+与「通道编号」两个 bug 后恢复（见 `5d0e267`），`plugin/ps-blend` 也已删掉
+`.disabled` 重新安装；旧二进制留在 `backup/disabled-20261111-apply-calc/`
+（`backup/` 不进仓库）。
 
 插件停用期间照样可以跑它的回归——`tools/check_ps_blend_plugin.py` 直接按文件路径加载
 `plugin/ps-blend/ps-blend.py`，不依赖是否安装：
