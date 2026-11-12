@@ -25,6 +25,7 @@ gegl-color-ops/
 ├── common/config.h       # 所有算子共用的版本宏 / GETTEXT_PACKAGE
 ├── ops/<算子名>/          # 每个算子一个目录：<算子名>.c + 原始说明 + 截图
 ├── plugin/ps-blend/      # Python 插件：应用图像/计算的完整复刻版（当前已停用，源码保留）
+├── plugin/lb-calculations/  # Python 插件：计算的薄壳，像素交给 GEGL 算子
 ├── dist/                 # 编好的模块，给不想编译的人直接下载（windows-x64 / linux-x64）
 ├── tools/                # 测试图生成、逐算子冒烟、对照表、文件头重排、注释双语化
 ├── build/                # 编译产物（build.sh 生成，可随时删）
@@ -115,6 +116,26 @@ GEGL 算子只接住了像素计算那一半；**输入选择**（任意打开�
 
 交互模式弹自定义对话框；批处理可用注册参数（`blend` 0..25 按 PS 顺序、
 `source-image`/`source-layer` 等，见 `do_create_procedure`）。
+
+### 计算的薄壳：plugin/lb-calculations
+
+`plugin/ps-blend` 自带像素内核，算子那边修一次 bug 就要手工同步三处。薄壳是
+反过来：**像素全交给 GEGL 算子 `lb:calculations`**，插件只负责把结果落到选区 /
+Alpha 通道 / 灰度层 / 图层 alpha。
+
+- 菜单 **颜色 → SuperMrWang → Calculations (GEGL)...**，和 `Calculations PS...`
+  并排
+- 源仍是任意打开图像的任意图层；遮罩可选第三张图（代价是跑两趟）
+- 算子的透明像素处理、26 种混合模式、通道枚举全部自动继承
+
+```bash
+./install.sh && ./install-plugin.sh   # 算子 + 插件都装上，重启 GIMP 生效
+python tools/check_thin_calc.py       # 需在 GIMP 的 python-fu 里跑，见文件头
+```
+
+实现要点与 GIMP 3 Python 的坑（`Gegl.init()` 必须调、`buffer-sink` 的
+gpointer、`blit_buffer`、选区缓冲是 `Y float`）记在
+`plugin/lb-calculations/README.md`。
 
 ## 命名与代码风格约定
 
@@ -291,7 +312,7 @@ touch plugin/ps-blend/.disabled        # 停用 Python 插件
 ```
 
 - `build.sh` 会跳过带标记的算子目录（打印 `SKIP`），`build/` 里不再产出它的 `.dll`，
-  `install.sh` 也就装不到它；`install-plugin.sh` 见到标记直接退出。
+  `install.sh` 也就装不到它；`install-plugin.sh` 逐个 `plugin/` 子目录安装，见到标记跳过。
 - 已经装进 `%LOCALAPPDATA%\gegl-0.4\plug-ins` 或 GIMP `plug-ins` 的旧模块不会被脚本清理，
   必须手动删掉那个 `.dll` / 插件目录，否则 GIMP 重启后照样加载。
 - 恢复：删掉 `.disabled`，重跑 `./build.sh && ./install.sh`（插件版再 `./install-plugin.sh`）。

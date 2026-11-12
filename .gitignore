@@ -14,6 +14,10 @@ build-meson/
 *.log
 build-*.log
 
+# ---- Python 缓存（插件被 importlib 加载时会生成） ----
+__pycache__/
+*.pyc
+
 # ---- 测试/临时输出 ----
 smoke/
 demo/
