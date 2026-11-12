@@ -3,12 +3,13 @@
  * ---------------------------------------------------------------------------
  * id         lb:hsl-seven
  * menu       HSL 7 Bands
- * purpose    红/橙/黄/绿/青/蓝/紫七段色相各自调 H/S/L，ACR 风格
- *            Seven hue bands (red, orange, yellow, green, cyan, blue,
- *            purple), each with its own H/S/L shift, Camera Raw style.
- * algorithm  21 个滑块按色相段加权叠加，段间由 feather 平滑过渡；低于
+ * purpose    红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，ACR 风格
+ *            Eight hue bands (red, orange, yellow, green, cyan, blue,
+ *            purple, magenta), each with its own H/S/L shift, Camera Raw
+ *            style.
+ * algorithm  24 个滑块按色相段加权叠加，段间由 feather 平滑过渡；低于
  *            min-saturation 的灰像素可选择跳过
- *            The 21 sliders are weighted by hue band and summed, with
+ *            The 24 sliders are weighted by hue band and summed, with
  *            'feather' cross-fading adjacent bands. Pixels below
  *            'min-saturation' can be skipped.
  * type       GeglOperationPointFilter（逐像素 / per-pixel）
@@ -90,6 +91,14 @@ property_double (purple_hue, _("Purple Hue"), 0.0)
 property_double (purple_sat, _("Purple Saturation"), 0.0)
     value_range (-100.0, 100.0)
 property_double (purple_lum, _("Purple Luminance"), 0.0)
+    value_range (-100.0, 100.0)
+
+/* ---- 洋红 / magenta ---------------------------------------------------- */
+property_double (magenta_hue, _("Magenta Hue"), 0.0)
+    value_range (-100.0, 100.0)
+property_double (magenta_sat, _("Magenta Saturation"), 0.0)
+    value_range (-100.0, 100.0)
+property_double (magenta_lum, _("Magenta Luminance"), 0.0)
     value_range (-100.0, 100.0)
 
 #else
@@ -266,6 +275,9 @@ process(GeglOperation       *op,
   /* 紫
    * purple */
   gdouble pur_h, pur_s, pur_l;
+  /* 洋红
+   * magenta */
+  gdouble mag_h, mag_s, mag_l;
 
   g_object_get(G_OBJECT(op),
     "hue-feather", &hue_ft,
@@ -278,6 +290,7 @@ process(GeglOperation       *op,
     "cyan-hue", &cya_h, "cyan-sat", &cya_s, "cyan-lum", &cya_l,
     "blue-hue", &blu_h, "blue-sat", &blu_s, "blue-lum", &blu_l,
     "purple-hue", &pur_h, "purple-sat", &pur_s, "purple-lum", &pur_l,
+    "magenta-hue", &mag_h, "magenta-sat", &mag_s, "magenta-lum", &mag_l,
     NULL);
 
   gfloat sat_min_thr = sat_min_ui * 0.01f;
@@ -286,8 +299,11 @@ process(GeglOperation       *op,
   gfloat *in_line  = g_new(gfloat, stride);
   gfloat *out_line = g_new(gfloat, stride);
 
-  /* ACR 标准七色色相区间，H 取 0~1
-   * ACR's seven standard hue ranges, H in 0..1 */
+  /* ACR 标准八色色相区间，H 取 0~1。紫 / 洋红由原紫段 0.78~0.92 对半拆分
+   * 而来，其余六段边界与七段版完全一致。
+   * ACR's eight standard hue ranges, H in 0..1. Purple / magenta split the
+   * old 0.78..0.92 band in half; the other six are unchanged from the
+   * seven-band layout. */
   typedef struct {
     gfloat start;
     gfloat end;
@@ -296,7 +312,7 @@ process(GeglOperation       *op,
     gdouble l_off;
   } ColorRange;
 
-  ColorRange ranges[7] = {
+  ColorRange ranges[8] = {
     /* 红（跨 0）
      * red, crossing 0 */
     {0.92f, 0.08f, red_h, red_s, red_l},
@@ -317,7 +333,10 @@ process(GeglOperation       *op,
     {0.62f, 0.78f, blu_h, blu_s, blu_l},
     /* 紫
      * purple */
-    {0.78f, 0.92f, pur_h, pur_s, pur_l},
+    {0.78f, 0.85f, pur_h, pur_s, pur_l},
+    /* 洋红
+     * magenta */
+    {0.85f, 0.92f, mag_h, mag_s, mag_l},
   };
 
   for (gint y = 0; y < roi->height; y++)
@@ -352,9 +371,9 @@ process(GeglOperation       *op,
       gfloat orig_h = h;
       gfloat orig_s = s;
 
-      /* 遍历 7 个色系叠加调整
-       * loop over the seven bands and accumulate */
-      for (gint i = 0; i < 7; i++)
+      /* 遍历 8 个色系叠加调整
+       * loop over the eight bands and accumulate */
+      for (gint i = 0; i < 8; i++)
       {
         ColorRange cr = ranges[i];
         gfloat w = get_hue_weight(orig_h, cr.start, cr.end, hue_ft);
@@ -407,10 +426,10 @@ gegl_op_class_init(GeglOpClass *klass)
 
   gegl_operation_class_set_keys(oclass,
     "name",            "lb:hsl-seven",
-    "title",           _("HSL 7 Bands"),
-    "description",     _("Red Orange Yellow Green Cyan Blue Purple independent Hue/Sat/Lum"),
+    "title",           _("HSL 8 Bands"),
+    "description",     _("Red Orange Yellow Green Cyan Blue Purple Magenta independent Hue/Sat/Lum"),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang",
-    "gimp:menu-label", _("HSL 7 Bands"),
+    "gimp:menu-label", _("HSL 8 Bands"),
     NULL);
 }
 

@@ -3,6 +3,10 @@
 
 # GEGL_GIMP_PLUGIN_hslseven
 
+> 2026-11-12：按 ACR 8 段混色器补齐洋红段——原紫段 0.78~0.92 对半拆为
+> 紫 0.78~0.85 与洋红 0.85~0.92。旧 7 段属性名与边界行为不变，算子 id
+> 仍为 `lb:hsl-seven`（GIMP 存进 XCF 的字符串，不能改）。
+
 ![hslseven](assets/hslseven.png "hslseven")
 
 ## English
@@ -29,7 +33,7 @@ After installation, **restart GIMP** to activate the plugin.
 
 #### Method 1: Menu Bar (Recommended)
 
-Menu path: `Colors → SuperMrWang → HSL 7 Bands`
+Menu path: `Colors → SuperMrWang → HSL 8 Bands`
 
 #### Method 2: GEGL Operation
 
@@ -63,7 +67,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/
 
 #### 方法一：菜单打开（推荐）
 
-菜单路径：`颜色 → SuperMrWang → HSL 7 Bands`
+菜单路径：`颜色 → SuperMrWang → HSL 8 Bands`
 
 #### 方法二：GEGL 操作打开
 
