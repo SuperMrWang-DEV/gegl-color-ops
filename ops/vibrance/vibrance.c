@@ -1,8 +1,8 @@
 /* ===========================================================================
  * SuperMrWang · GEGL 算子 / GEGL Operation
  * ---------------------------------------------------------------------------
- * id         lb:vibrance-ps
- * menu       Vibrance (Photoshop)
+ * id         lb:vibrance
+ * menu       Vibrance
  * purpose    按 Photoshop「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱
  *            和主动收手、红带（肤色）额外保护、浅色少给一点，色相与明度不动
  *            Reproduce Photoshop's Vibrance: muted colours gain the most, vivid
@@ -76,11 +76,11 @@ property_double (tint, _("Tint"), 0.0)
 
 #define GEGL_OP_POINT_FILTER
 #define GEGL_OP_NAME     lb_vibrance_ps
-#define GEGL_OP_C_SOURCE vibrance-ps.c
+#define GEGL_OP_C_SOURCE vibrance.c
 
 #include "gegl-op.h"
 #include "vibrance-tables.h"
-#include "ps-temp-tint.h"
+#include "temp-tint.h"
 
 /* 逐像素参数：v 对整张图是常量，所以每条「随 v 变化」的曲线都在 prepare()
  * 里先按当前 v 折叠成一条（11 个点），process() 只剩一维插值。
@@ -490,14 +490,14 @@ gegl_op_class_init (GeglOpClass *klass)
   gc->finalize = finalize;
 
   gegl_operation_class_set_keys (oc,
-    "name",            "lb:vibrance-ps",
-    "title",           _("Vibrance (Photoshop)"),
+    "name",            "lb:vibrance",
+    "title",           _("Vibrance"),
     "categories",      "color:enhance",
     "description",     _("Photoshop's Vibrance, matched by measurement: "
                          "dS = A(v)·S^p·(1-S)^q with tabulated red-band and "
                          "lightness terms, gamut-safe by construction"),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Color",
-    "gimp:menu-label", _("Vibrance PS"),
+    "gimp:menu-label", _("Vibrance"),
     NULL);
 }
 

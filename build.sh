@@ -118,16 +118,16 @@ if [ -f "$ROOT/tools/auxrun.c" ]; then
 fi
 
 # ---------- 5. Python 插件的 C 加速内核 ----------
-# plugin/ps-blend 的像素内核与 GEGL 算子共用 common/blend.h；编译失败时插件
+# plugin/blend 的像素内核与 GEGL 算子共用 common/blend.h；编译失败时插件
 # 自动退化为纯 Python（结果一致，只是慢）
-if [ -f "$ROOT/tools/psblend_core.c" ] && [ -d "$ROOT/plugin/ps-blend" ] \
-   && [ ! -f "$ROOT/plugin/ps-blend/.disabled" ]; then
+if [ -f "$ROOT/tools/blend_core.c" ] && [ -d "$ROOT/plugin/blend" ] \
+   && [ ! -f "$ROOT/plugin/blend/.disabled" ]; then
   if eval "$TOOLCHAIN" -shared -O2 -Wall -I"$ROOT/common" \
-        "$ROOT/tools/psblend_core.c" $CFLAGS_GEGL $LIBS_GEGL -lm \
-        -o "$ROOT/plugin/ps-blend/psblend_core.$EXT" 2>"$OUT/.build-psblend_core.log"; then
-    printf '  OK   %-26s -> plugin/ps-blend/psblend_core.%s\n' "psblend_core" "$EXT"
-    rm -f "$OUT/.build-psblend_core.log"
+        "$ROOT/tools/blend_core.c" $CFLAGS_GEGL $LIBS_GEGL -lm \
+        -o "$ROOT/plugin/blend/blend_core.$EXT" 2>"$OUT/.build-blend_core.log"; then
+    printf '  OK   %-26s -> plugin/blend/blend_core.%s\n' "blend_core" "$EXT"
+    rm -f "$OUT/.build-blend_core.log"
   else
-    printf '  WARN %-26s 编译失败，Python 插件将用纯 Python 内核\n' "psblend_core"
+    printf '  WARN %-26s 编译失败，Python 插件将用纯 Python 内核\n' "blend_core"
   fi
 fi

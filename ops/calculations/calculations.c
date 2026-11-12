@@ -4,7 +4,7 @@
  * id         lb:calculations
  * menu       Calculations
  * purpose    PS 计算：两路通道按混合模式合成，输出灰度图或 alpha 蒙版
- *            PS Calculations: blend two channels with a blend mode and output
+ *            Calculations: blend two channels with a blend mode and output
  *            a grey image or an alpha mask.
  * algorithm  主输入取 source1 通道、aux 取 source2 通道，按混合模式算出标量，
  *            再按 mask × opacity 混回 source1；source2 的 alpha 当覆盖率，源层
@@ -259,7 +259,7 @@ gegl_op_class_init (GeglOpClass *klass)
   gegl_operation_class_set_keys (oclass,
     "name",            "lb:calculations",
     "title",           _("Calculations"),
-    "description",     _("PS Calculations: blend two channels into a grey or alpha "
+    "description",     _("Calculations: blend two channels into a grey or alpha "
                          "mask, 26 blend modes, per-source invert, mask and opacity."),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Blend",
     "gimp:menu-label", _("Calculations"),

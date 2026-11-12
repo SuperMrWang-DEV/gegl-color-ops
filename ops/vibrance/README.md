@@ -1,10 +1,10 @@
-# lb:vibrance-ps · Vibrance (Photoshop)
+# lb:vibrance · Vibrance
 
 按实测逆向出来的 Photoshop「自然饱和度」，不是凭经验的近似。同一张标定图分别过
 PS 26.10 和本算子，像素级逐位对比见文末「验收」。
 
-- GEGL id：`lb:vibrance-ps`
-- 菜单：`Colors → SuperMrWang → Color → Vibrance PS`
+- GEGL id：`lb:vibrance`
+- 菜单：`Colors → SuperMrWang → Color → Vibrance`
 - 类型：`GeglOperationPointFilter`（逐像素，无邻域）
 - 参数：`vibrance`（−100…100）、`protect_reds`、`compensate_lightness`、
   `color_vibrance`（2026 引擎开关）、`temperature`（−100…100）、`tint`（−100…100）
@@ -27,7 +27,7 @@ PS 2026（27.0）把自然饱和度图层改名成「色彩与自然饱和度」
 调完的结果中位差 **1.4 码**；反过来先 Vibrance 再白平衡，差 **36 码**。
 
 色温 / 色调这一段不在这里重写，直接用 `lb:color-temperature-tint` 的表
-（`common/ps-temp-tint.h`，同一份系数、同一套烘焙代码），所以两个算子的白平衡
+（`common/temp-tint.h`，同一份系数、同一套烘焙代码），所以两个算子的白平衡
 结果天然一致。那个算子的精度与已知偏差见 `ops/color-temperature-tint/README.md`。
 
 `temperature` / `tint` 都为 0 时走纯 Vibrance 路径，`prepare()` 里把 LUT 直接
@@ -127,5 +127,5 @@ PS 自己在那一线附近硬裁切、相邻档位整通道从 255 塌到 0，�
 
 `vibrance-hyper` 是 LAB 域的**外观建模**（色度双曲蒙版 + 肤色窗 + 色域收敛），
 调出来的手感好、参数可解释，但不保证和 PS 数值一致。
-`vibrance-ps` 是**数值复刻**：和 PS 对得上，但没有可调的艺术性参数。
+`vibrance` 是**数值复刻**：和 PS 对得上，但没有可调的艺术性参数。
 两个并存，按需要选。

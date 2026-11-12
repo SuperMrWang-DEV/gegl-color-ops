@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """把色温 / 色调的标定结果导出成 C 头文件。
 
-产物：common/ps-temp-tint.h
+产物：common/temp-tint.h
   - pt_grid[][]      ：17 档参数网格
   - pt_coef[][][][]  ：网格点上的 3 次多项式系数（20 项 × 3 通道）
   - pt_coefs()       ：按 (temp,tint) 双线性插值系数
@@ -12,7 +12,7 @@
 （线性值被压到负值后切成 0）由 clamp 精确复现。早先在编码域直接拟合
 编码值，裁切只能被逼近成一团糊，负色温区域的中位误差到过 90 码。
 
-放在 common/ 下是因为两个算子都要用：色温/色调算子直接用，vibrance-ps 在
+放在 common/ 下是因为两个算子都要用：色温/色调算子直接用，vibrance 在
 新引擎模式下把它作为前置步骤。
 """
 import json
@@ -20,7 +20,7 @@ import os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, '..', '..', 'vibrance-cal', 'temp_tint_grid17_lin.json')
-DST = os.path.join(HERE, '..', 'common', 'ps-temp-tint.h')
+DST = os.path.join(HERE, '..', 'common', 'temp-tint.h')
 DEG = 3
 TERMS = (DEG + 1) * (DEG + 2) * (DEG + 3) // 6
 

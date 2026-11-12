@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""验收 lb:vibrance-ps：用 gegl CLI 渲染标定图，与 Photoshop 的真实输出逐像素比对。
+"""验收 lb:vibrance：用 gegl CLI 渲染标定图，与 Photoshop 的真实输出逐像素比对。
 
     python tools/check_vibrance_ps.py            # 跑 ±60 / ±100 四档
     python tools/check_vibrance_ps.py 60 25 -40  # 指定档位
@@ -51,7 +51,7 @@ def gegl_env(exe):
 
 
 def render(exe, env, v, dst):
-    cmd = [exe, PROBE, "-o", dst, "--", "lb:vibrance-ps", "vibrance=%g" % v]
+    cmd = [exe, PROBE, "-o", dst, "--", "lb:vibrance", "vibrance=%g" % v]
     r = subprocess.run(cmd, env=env, capture_output=True, text=True)
     if r.returncode != 0 or not os.path.exists(dst):
         raise SystemExit("gegl 渲染失败 v=%g\n%s\n%s" % (v, r.stdout, r.stderr))

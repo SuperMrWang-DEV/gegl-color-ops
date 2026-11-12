@@ -217,7 +217,7 @@ OPS = {
     ),
     "color-temperature-tint": dict(
         id="lb:color-temperature-tint", label="Color Temperature & Tint",
-        title="Color Temperature & Tint (Photoshop)",
+        title="Color Temperature & Tint",
         purpose_zh="PS 2026「色彩与自然饱和度」里的色温 / 色调：中性灰跟着偏蓝-黄、"
                    "绿-洋红，黑白两端不动",
         purpose_en="The Temperature and Tint sliders of Photoshop 2026's Color and "

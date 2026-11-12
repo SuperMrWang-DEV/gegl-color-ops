@@ -1,8 +1,8 @@
 /* ===========================================================================
  * SuperMrWang · GEGL 算子 / GEGL Operation
  * ---------------------------------------------------------------------------
- * id         lb:levels-ps
- * menu       Levels PS
+ * id         lb:levels
+ * menu       Levels
  * purpose    PS 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /
  *            白场」，数值刻度 0–255，与 PS 对话框的数字框一一对应
  *            PS Levels: composite plus per-channel input black / gamma /
@@ -119,7 +119,7 @@ property_double (blue_out_high, _("蓝 输出白场"), 255.0)
 
 #define GEGL_OP_POINT_FILTER
 #define GEGL_OP_NAME     lb_levels_ps
-#define GEGL_OP_C_SOURCE levels-ps.c
+#define GEGL_OP_C_SOURCE levels.c
 #include "gegl-op.h"
 
 /* 一组色阶参数（已归一化到 0–1）
@@ -269,11 +269,11 @@ gegl_op_class_init (GeglOpClass *klass)
   pclass->process = process;
 
   gegl_operation_class_set_keys (oclass,
-    "name",            "lb:levels-ps",
-    "title",           _("Levels PS"),
+    "name",            "lb:levels",
+    "title",           _("Levels"),
     "description",     _("Replicate Photoshop Levels (composite + per-channel input black/gamma/white and output black/white, 0-255 units). Evaluated in the 8-bit sRGB gamma domain, so the numbers agree with the PS dialog."),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Tone",
-    "gimp:menu-label", _("Levels PS"),
+    "gimp:menu-label", _("Levels"),
     NULL);
 }
 

@@ -3,7 +3,7 @@
 
     python tools/gen_vibrance_tables.py [模型路径] [-o 输出路径]
 
-默认读 ../vibrance-cal/vibrance_model.json，写 ops/vibrance-ps/vibrance-tables.h。
+默认读 ../vibrance-cal/vibrance_model.json，写 ops/vibrance/vibrance-tables.h。
 
 为什么要重采样：模型里每条曲线的 S 采样点并不统一（v=5 只有 5 个点，v=100 有
 9 个），而算子要按像素做双线性插值，必须有一张公共网格。这里用与
@@ -17,7 +17,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 DEFAULT_MODEL = os.path.join(os.path.dirname(ROOT), "vibrance-cal", "vibrance_model.json")
-DEFAULT_OUT = os.path.join(ROOT, "ops", "vibrance-ps", "vibrance-tables.h")
+DEFAULT_OUT = os.path.join(ROOT, "ops", "vibrance", "vibrance-tables.h")
 
 # 公共 S 网格（百分数）：取各档采样点的并集，再加上两端的 0 / 100，
 # 这样原采样点全部落在网格上，重采样不引入额外误差。

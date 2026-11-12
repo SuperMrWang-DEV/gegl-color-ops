@@ -7,9 +7,9 @@
            源可以是任意打开图像的任意图层/通道，遮罩可指向第三张图，计算
            的结果可以直接变成选区或新建 Alpha 通道——这些是 GEGL 算子
            （lb:apply-image / lb:calculations）做不了的部分。
-           Pixel math lives in psblend.py（优先 psblend_core.dll 加速，公式
+           Pixel math lives in blend_kernel.py（优先 blend_core.dll 加速，公式
            与 GEGL 算子共用 common/blend.h，两边结果一致）。
- menu      颜色 → SuperMrWang → Apply Image PS / Calculations PS
+ menu      颜色 → SuperMrWang → Apply Image / Calculations
  usage     交互模式弹自定义对话框；批处理用注册的参数（见 do_create_procedure）。
  license   GPL-3.0-or-later，见工程根目录 LICENSE
  ==========================================================================="""
@@ -28,7 +28,7 @@ _here = os.path.dirname(os.path.abspath(__file__))
 if _here not in sys.path:
     sys.path.insert(0, _here)
 
-import psblend
+import blend_kernel
 
 
 def _N_(message):
@@ -97,11 +97,11 @@ def resolve_layer(image, name):
 
 def source_drawable(layer, channel):
     """通道 = 图层蒙版时返回蒙版 drawable / the mask channel reads the mask"""
-    if channel == psblend.CH_MASK:
+    if channel == blend_kernel.CH_MASK:
         try:
             mask = layer.get_mask()
             if mask is not None:
-                return mask, psblend.CH_GRAY
+                return mask, blend_kernel.CH_GRAY
         except Exception:
             pass
     return layer, channel
@@ -246,7 +246,7 @@ def run_apply_image(image, drawable, p):
     else:
         mask = None
 
-    out = psblend.apply_image(inb, aux, mask, w * h,
+    out = blend_kernel.apply_image(inb, aux, mask, w * h,
                               p['blend'], p['tch'], sch,
                               p['opacity'] / 100.0,
                               1 if p['use_mask'] else 0,
@@ -282,7 +282,7 @@ def run_calculations(image, drawable, p):
     else:
         mask = None
 
-    grey = psblend.calculations(b1, b2, mask, iw * ih,
+    grey = blend_kernel.calculations(b1, b2, mask, iw * ih,
                                 c1, 1 if p['inv1'] else 0,
                                 c2, 1 if p['inv2'] else 0,
                                 p['blend'], p['opacity'] / 100.0,
@@ -302,10 +302,10 @@ def run_calculations(image, drawable, p):
     else:                                    # 写入图层 alpha / into layer alpha
         n = iw * ih
         for i in range(n):
-            # psblend.calculations 把结果放在 RGB 里、alpha 恒为 1，所以必须
+            # blend_kernel.calculations 把结果放在 RGB 里、alpha 恒为 1，所以必须
             # 先把灰度值取出来，再让 alpha = 原 alpha × 灰度值。原来写的是
             # alpha × 1，等于什么都没做。
-            # psblend.calculations returns the value in RGB with alpha fixed
+            # blend_kernel.calculations returns the value in RGB with alpha fixed
             # at 1, so the grey has to be read out first: alpha becomes
             # original alpha x grey. It used to be alpha x 1, i.e. a no-op.
             g = grey[i * 4 + 0]
@@ -420,7 +420,7 @@ def _mask_widgets(grid, row, title, current_image):
     use = _add_check(grid, row, title)
     use.set_halign(Gtk.Align.START)
     pick = _Picker(grid, row + 1, _("Mask source"), current_image,
-                   psblend.CHANNELS)
+                   blend_kernel.CHANNELS)
     invert = _add_check(grid, row + 2, _("Invert mask"))
     invert.set_halign(Gtk.Align.START)
     return use, pick, invert
@@ -455,7 +455,7 @@ class PsBlend(Gimp.PlugIn):
 
     def _ai_build(self, grid):
         image = self._image
-        ch = [c for c in psblend.CHANNELS]           # 含图层蒙版选项
+        ch = [c for c in blend_kernel.CHANNELS]           # 含图层蒙版选项
         tgt = [("rgb", _("RGB")), ("red", _("Red")), ("green", _("Green")),
                ("blue", _("Blue")), ("alpha", _("Alpha"))]
 
@@ -463,13 +463,13 @@ class PsBlend(Gimp.PlugIn):
         src = _Picker(grid, r, _("Source"), image, ch); r += 1
         tc = _add_combo(grid, r, _("Target"), tgt); r += 1
         bl = _add_combo(grid, r, _("Blending"),
-                        [(n, l) for n, l in psblend.BLENDS], 2); r += 1
+                        [(n, l) for n, l in blend_kernel.BLENDS], 2); r += 1
         op = _add_spin(grid, r, _("Opacity"), 0, 100, 100); r += 1
         kt = _add_check(grid, r, _("Preserve transparency")); r += 1
         kt.set_halign(Gtk.Align.START)
         use, pick, inv = _mask_widgets(grid, r, _("Mask"), image); r += 4
         res = _add_combo(grid, r, _("Result"),
-                         [(n, _(l)) for n, l in psblend.APPLY_RESULTS]); r += 1
+                         [(n, _(l)) for n, l in blend_kernel.APPLY_RESULTS]); r += 1
         return (src, tc, bl, op, kt, use, pick, inv, res)
 
     def _ai_collect(self, w):
@@ -485,8 +485,8 @@ class PsBlend(Gimp.PlugIn):
 
     def _calc_build(self, grid):
         image = self._image
-        ch = [c for c in psblend.CHANNELS]
-        results = [(n, _(l)) for n, l in psblend.CALC_RESULTS]
+        ch = [c for c in blend_kernel.CHANNELS]
+        results = [(n, _(l)) for n, l in blend_kernel.CALC_RESULTS]
 
         r = 0
         s1 = _Picker(grid, r, _("Source 1"), image, ch); r += 1
@@ -496,7 +496,7 @@ class PsBlend(Gimp.PlugIn):
         i2 = _add_check(grid, r, _("Invert source 2")); r += 1
         i2.set_halign(Gtk.Align.START)
         bl = _add_combo(grid, r, _("Blending"),
-                        [(n, l) for n, l in psblend.BLENDS], 2); r += 1
+                        [(n, l) for n, l in blend_kernel.BLENDS], 2); r += 1
         op = _add_spin(grid, r, _("Opacity"), 0, 100, 100); r += 1
         use, pick, inv = _mask_widgets(grid, r, _("Mask"), image); r += 4
         res = _add_combo(grid, r, _("Result"), results); r += 1
@@ -539,7 +539,7 @@ class PsBlend(Gimp.PlugIn):
             status = Gimp.PDBStatusType.SUCCESS
             error = GLib.Error()
         except Exception as exc:             # 出错就报，不留半截结果
-            Gimp.message("ps-blend: %s" % exc)
+            Gimp.message("blend: %s" % exc)
             status = Gimp.PDBStatusType.EXECUTION_ERROR
             error = GLib.Error(str(exc))
         Gimp.context_pop()
@@ -617,10 +617,10 @@ class PsBlend(Gimp.PlugIn):
 
         if name.endswith('apply-image'):
             procedure.set_documentation(
-                _("PS Apply Image: blend a layer from any open image onto "
+                _("Apply Image: blend a layer from any open image onto "
                   "this one, per channel, with mask and opacity"),
                 _("Replicates Photoshop Image > Apply Image."), name)
-            procedure.set_menu_label(_("Apply Image PS..."))
+            procedure.set_menu_label(_("Apply Image..."))
             procedure.add_menu_path("<Image>/Colors/SuperMrWang")
 
             procedure.add_int_argument("blend", _("Blend mode"),
@@ -665,10 +665,10 @@ class PsBlend(Gimp.PlugIn):
                                        0, 1, 0, GObject.ParamFlags.READWRITE)
         else:
             procedure.set_documentation(
-                _("PS Calculations: blend two channels from any open image "
+                _("Calculations: blend two channels from any open image "
                   "into a selection, channel, grey layer or layer alpha"),
                 _("Replicates Photoshop Image > Calculations."), name)
-            procedure.set_menu_label(_("Calculations PS..."))
+            procedure.set_menu_label(_("Calculations..."))
             procedure.add_menu_path("<Image>/Colors/SuperMrWang")
 
             # Source 1 / Source 2 各一套：通道、反相、图像、图层

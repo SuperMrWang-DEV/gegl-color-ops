@@ -3,7 +3,7 @@
 
     "D:/fastsoftware/GIMP 3/bin/gimp-console-3.2.exe" -i -c -d -f \
         --batch-interpreter=python-fu-eval \
-        -b "exec(open(r'<repo>/tools/check_ps_blend_plugin.py').read())" --quit
+        -b "exec(open(r'<repo>/tools/check_blend_plugin.py').read())" --quit
 
 必须跑在 GIMP 的 Python 里（要 Gimp / Gegl 的 GI 绑定），用系统 Python 会
 在 import gi 处失败。检查三件事：
@@ -37,17 +37,17 @@ def _find_repo():
     cands += [cwd, os.path.join(cwd, "SuperMrWang"),
               os.path.join(cwd, "..", "SuperMrWang")]
     for c in cands:
-        if os.path.exists(os.path.join(c, "plugin", "ps-blend", "ps-blend.py")):
+        if os.path.exists(os.path.join(c, "plugin", "blend", "blend.py")):
             return os.path.abspath(c)
     raise SystemExit("找不到仓库根目录：请在 <repo> 或 <repo>/tools 下运行")
 
 
-PLUG = os.path.join(_find_repo(), "plugin", "ps-blend", "ps-blend.py")
+PLUG = os.path.join(_find_repo(), "plugin", "blend", "blend.py")
 
-spec = importlib.util.spec_from_file_location("psblend_plugin", PLUG)
+spec = importlib.util.spec_from_file_location("blend_kernel_plugin", PLUG)
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
-import psblend  # 由插件目录 import 进来 / imported from the plugin dir
+import blend_kernel  # 由插件目录 import 进来 / imported from the plugin dir
 
 FAIL = []
 
@@ -92,9 +92,9 @@ src.set_offsets(2, 2)
 fill(tgt, (10, 10, 128, 255))
 fill(src, (200, 100, 50, 255))
 
-p = dict(blend=psblend.BLEND_INDEX['multiply'], opacity=100.0,
-         tch=psblend.CH_GRAY, sch=psblend.CH_GRAY, src_layer=src,
-         use_mask=False, mask_layer=None, mch=psblend.CH_GRAY,
+p = dict(blend=blend_kernel.BLEND_INDEX['multiply'], opacity=100.0,
+         tch=blend_kernel.CH_GRAY, sch=blend_kernel.CH_GRAY, src_layer=src,
+         use_mask=False, mask_layer=None, mch=blend_kernel.CH_GRAY,
          inv_mask=False, keep_transp=False, result=0)
 mod.run_apply_image(img, tgt, p)
 
@@ -104,8 +104,8 @@ check("应用图像·源层外原样（左上）", px(tgt, 0, 0), (10, 10, 128, 
 check("应用图像·源层外原样（右下）", px(tgt, 3, 3), (10, 10, 128, 255))
 
 # 单通道目标：只有 R 参与混合，且必须落在图层自己坐标系的 (0,0) = 画布 (1,1)
-p2 = dict(p, tch=psblend.CH_RED, sch=psblend.CH_RED,
-          blend=psblend.BLEND_INDEX['multiply'])
+p2 = dict(p, tch=blend_kernel.CH_RED, sch=blend_kernel.CH_RED,
+          blend=blend_kernel.BLEND_INDEX['multiply'])
 fill(tgt, (10, 10, 128, 255))
 mod.run_apply_image(img, tgt, p2)
 check("应用图像·单通道 R（画布 2,2）", px(tgt, 1, 1), (8, 10, 128, 255))
@@ -124,10 +124,10 @@ src2.set_offsets(1, 1)
 fill(lay, (200, 100, 50, 255))
 fill(src2, (200, 100, 50, 255))
 
-pc = dict(ch1=psblend.CH_GRAY, inv1=False, s1_layer=lay,
-          ch2=psblend.CH_GRAY, inv2=False, s2_layer=src2,
-          blend=psblend.BLEND_INDEX['multiply'], opacity=100.0,
-          use_mask=False, mask_layer=None, mch=psblend.CH_GRAY,
+pc = dict(ch1=blend_kernel.CH_GRAY, inv1=False, s1_layer=lay,
+          ch2=blend_kernel.CH_GRAY, inv2=False, s2_layer=src2,
+          blend=blend_kernel.BLEND_INDEX['multiply'], opacity=100.0,
+          use_mask=False, mask_layer=None, mch=blend_kernel.CH_GRAY,
           inv_mask=False, result=3)
 mod.run_calculations(img2, lay, pc)
 

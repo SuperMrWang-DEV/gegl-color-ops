@@ -25,7 +25,7 @@ vibrance），Action Manager 里还是老的 `vibrance` 类，只是多带 `temp
 | 17×17 参数网格 + 双线性插值 | 映射随 (色温, 色调) 变化很快，25 一档跨得太大（网格间误差 10–90 码）；加密到 12/13 一档后降到 1–5 码 |
 | 烘成 33³ LUT | 逐像素算 20 项 + 两次 `powf` 太慢，一张图只烘一次 |
 
-系数一共 17×17×20×3 = 17340 个数，在 `common/ps-temp-tint.h` 里，由
+系数一共 17×17×20×3 = 17340 个数，在 `common/temp-tint.h` 里，由
 `tools/gen_temp_tint_tables.py` 从 `vibrance-cal/temp_tint_grid17_lin.json`
 生成 —— 要改数值请改上游数据再重新生成，不要手抄。
 
@@ -70,7 +70,7 @@ vibrance），Action Manager 里还是老的 `vibrance` 类，只是多带 `temp
 | (−60, 60) | 58.2 | 148.1 | 207.0 | 255.0 |
 
 `(0,0)` 逐位相同，说明恒等分支没偷偷改像素。`v=0`（只有色温色调）时与
-`lb:vibrance-ps` 的新引擎路径是同一段代码，两边的表也是同一份。
+`lb:vibrance` 的新引擎路径是同一段代码，两边的表也是同一份。
 
 ## 已知偏差
 
@@ -104,10 +104,10 @@ Adobe RGB 里做三通道增益（内部样本中位 9.6–100 码）。多项�
 （约 7 万次 `powf`，量级是毫秒），`process()` 只剩每像素 8 次查表 + 7 次乘加。
 恒等参数直接 `memcpy`，不碰像素。
 
-## 与 `lb:vibrance-ps` 的关系
+## 与 `lb:vibrance` 的关系
 
 PS 2026 的「色彩与自然饱和度」是**先色温色调、再 Vibrance**的顺序（实验依据：
 把色温处理后的图喂给 PS 2025 的纯 Vibrance，与 PS 一次调完的结果中位差 1.4 码；
-顺序反了差 36 码）。`lb:vibrance-ps` 勾上 `color-vibrance`（默认）时走的就是
+顺序反了差 36 码）。`lb:vibrance` 勾上 `color-vibrance`（默认）时走的就是
 这个顺序，内部直接调用本算子的表；本算子单独暴露出来，是为了能插到别的管线里
 或单独调白平衡。

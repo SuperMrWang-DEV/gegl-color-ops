@@ -1,16 +1,16 @@
 /* ===========================================================================
  * SuperMrWang · PS 应用图像/计算的 ctypes 像素内核
  * ---------------------------------------------------------------------------
- * purpose    plugin/ps-blend/ 的 Python 插件调用本内核做逐像素混合。公式与
+ * purpose    plugin/blend/ 的 Python 插件调用本内核做逐像素混合。公式与
  *            common/blend.h 完全同源（include 同一个文件），GEGL 算子和
  *            Python 插件不会各算各的。
- *            Pixel kernel for the ps-blend Python plug-in, driven through
+ *            Pixel kernel for the blend Python plug-in, driven through
  *            ctypes. The maths includes common/blend.h directly, so the GEGL
  *            ops and the plug-in share one implementation.
  * channel    本内核使用插件侧的通道编号：0 Gray(亮度)、1 R、2 G、3 B、4 A；
- *            混合模式编号是 plugin/ps-blend/psblend.py BLENDS 列表的顺序
+ *            混合模式编号是 plugin/blend/blend_kernel.py BLENDS 列表的顺序
  *            （Photoshop 对话框顺序），这里映射回 blend.h 的 LB_BLEND_*。
- * build      由 build.sh 编到 plugin/ps-blend/psblend_core.dll（找不到编译器
+ * build      由 build.sh 编到 plugin/blend/blend_core.dll（找不到编译器
  *            或失败时插件自动退化为纯 Python，结果一致只是慢）。
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
  * ======================================================================== */
@@ -24,7 +24,7 @@
 #include <glib.h>
 #include "blend.h"
 
-/* psblend.py 的模式顺序 -> blend.h 的编号（两个枚举顺序刻意不同：
+/* blend_kernel.py 的模式顺序 -> blend.h 的编号（两个枚举顺序刻意不同：
  * Python 侧照 Photoshop 对话框排，blend.h 照可分离/不可分离排） */
 static const gint ps_blend_map[26] = {
   LB_BLEND_NORMAL, LB_BLEND_DARKEN, LB_BLEND_MULTIPLY,
@@ -66,7 +66,7 @@ ps_scalar (gint mode, gfloat a, gfloat b)
 
 /* ---- 应用图像 / Apply Image ---------------------------------------------- */
 PSEXPORT void
-psblend_apply (const float *in, const float *aux, const float *mask,
+blend_kernel_apply (const float *in, const float *aux, const float *mask,
                float *out, long n, int blend, int tch, int sch,
                float opacity, int use_mask, int inv_mask,
                int keep_transp, int grey_out)
@@ -176,7 +176,7 @@ psblend_apply (const float *in, const float *aux, const float *mask,
 
 /* ---- 计算 / Calculations -------------------------------------------------- */
 PSEXPORT void
-psblend_calc (const float *in, const float *aux, const float *mask,
+blend_kernel_calc (const float *in, const float *aux, const float *mask,
               float *out, long n, int ch1, int inv1, int ch2, int inv2,
               int blend, float opacity, int use_mask, int inv_mask)
 {

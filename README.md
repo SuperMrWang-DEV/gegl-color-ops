@@ -24,7 +24,7 @@ gegl-color-ops/
 ├── meson.build           # 等价工程，供 Linux/macOS 或 CI 使用
 ├── common/config.h       # 所有算子共用的版本宏 / GETTEXT_PACKAGE
 ├── ops/<算子名>/          # 每个算子一个目录：<算子名>.c + 原始说明 + 截图
-├── plugin/ps-blend/      # Python 插件：应用图像/计算的完整复刻版（四种落地：选区/通道/灰度层/图层 alpha）
+├── plugin/blend/      # Python 插件：应用图像/计算的完整复刻版（四种落地：选区/通道/灰度层/图层 alpha）
 ├── dist/                 # 编好的模块，给不想编译的人直接下载（windows-x64 / linux-x64）
 ├── tools/                # 测试图生成、逐算子冒烟、对照表、文件头重排、注释双语化
 ├── build/                # 编译产物（build.sh 生成，可随时删）
@@ -60,15 +60,15 @@ gegl-color-ops/
 | `lb:color-grading` | Color Grading | Color Grading | Color | Point | ACR 颜色分级：阴影/中间调/高光/全局四轮盘 + 明度 + Blending/Balance，按亮度分带（模型对齐，未逐码标定） |
 | `lb:color-lookup` | Color Lookup | Color Lookup | Blend | Filter | PS 颜色查找：按 .cube 3D LUT（可带 1D shaper）查表，三线性 / 四面体可选 |
 | `lb:match-color` | Match Color | Match Color | Color | Composer | PS 匹配颜色：Lab 统计迁移（Reinhard），亮度/颜色强度/渐隐/中和 |
-| `lb:colorize-hsl` | Colorize PS | Colorize (Photoshop) | Color | Point | PS 色相/饱和度「着色」实测复刻：扔掉原有 H/S，只留输入 L 的单色调，残差 0.03 码 |
+| `lb:colorize-hsl` | Colorize | Colorize | Color | Point | PS 色相/饱和度「着色」实测复刻：扔掉原有 H/S，只留输入 L 的单色调，残差 0.03 码 |
 | `lb:color-mask-select` | Mask by Color | Color Mask Select | Mask | Point | PS 色彩范围：高光/阴影/中间调按「阈值 + 容差」实测复刻（平均 2.1 码），色系/自定色走容差窗 |
 | `lb:lab-levels` | LAB Levels | LAB Levels | Tone | Filter | LAB 三通道各自黑白场 + 伽马 |
-| `lb:levels-ps` | Levels PS | Levels PS | Tone | Point | PS 色阶：复合 + R/G/B 四组输入黑/灰/白场与输出黑白场，0–255 刻度；gamma 方向经公开实测点验证（154@0.46→84、200@1.646→220） |
+| `lb:levels` | Levels | Levels | Tone | Point | PS 色阶：复合 + R/G/B 四组输入黑/灰/白场与输出黑白场，0–255 刻度；gamma 方向经公开实测点验证（154@0.46→84、200@1.646→220） |
 | `lb:exposure` | Exposure EV | Exposure EV | Tone | Filter | PS 曝光：EV、偏移、伽马 |
 | `lb:rgb-domain-grayscale` | Black & White | Black & White | Tone | Point | PS 黑白：六色权重转灰 + 可选着色 |
 | `lb:vibrance-hyper` | Natural Saturation | Natural Saturation | Color | Point | LAB 自然饱和度：色度双曲蒙版 + 肤色保护窗 + 色域收敛不扭色相 |
-| `lb:vibrance-ps` | Vibrance PS | Vibrance (Photoshop) | Color | Point | PS 自然饱和度实测复刻：ΔS = A(v)·S^p·(1−S)^q，叠红带与亮度项，16 位标定 |
-| `lb:brightness-contrast-ps` | Brightness/Contrast PS | Brightness/Contrast (Photoshop) | Tone | Point | PS 亮度/对比度实测复刻：新版两条曲线族查表 + 旧版闭式（pivot 89、b 夹 ±100） |
+| `lb:vibrance` | Vibrance | Vibrance | Color | Point | PS 自然饱和度实测复刻：ΔS = A(v)·S^p·(1−S)^q，叠红带与亮度项，16 位标定 |
+| `lb:brightness-contrast` | Brightness/Contrast | Brightness/Contrast | Tone | Point | PS 亮度/对比度实测复刻：新版两条曲线族查表 + 旧版闭式（pivot 89、b 夹 ±100） |
 | `lb:xyz-multiply` | Photo Filter | Photo Filter | Blend | Point | **即 PS 照片滤镜**（实测复刻）：滤镜色在 D50 XYZ 域正片叠底，密度 + 保留明度（W3C SetLum）；不保留明度档 ≤0.71 码 |
 | `lb:shadows-highlights` | Shadows/Highlights | Shadows/Highlights | Tone | Filter | PS 阴影/高光实测复刻：边缘感知邻域亮度决定提亮提多少，含色调宽度、颜色、中间调对比度、修剪黑白 |
 | `lb:color-temperature-tint` | Color Temperature & Tint | Color Temperature & Tint | Color | Point | PS 2026「色彩与自然饱和度」里的色温 / 色调：冷↔暖、绿↔洋红，中性灰跟着偏色、黑白不动 |
@@ -97,16 +97,16 @@ alpha 是细筛（这块地方真有像素吗）。抠图层的透明洞里 RGB 
 - gegl 命令行不支持双输入，测这两个算子要用 `build/auxrun`（`./build.sh` 顺带编译，
   源码见 `tools/auxrun.c`）。
 
-### Python 插件版：plugin/ps-blend
+### Python 插件版：plugin/blend
 
 GEGL 算子只接住了像素计算那一半；**输入选择**（任意打开图像的任意图层/通道、
 遮罩指向第三张图）和**结果落地**（直接生成选区/新建 Alpha 通道）是插件 API 的
-主场。`plugin/ps-blend` 是一对 Python-Fu 插件，把 PS 对话框完整搬过来：
+主场。`plugin/blend` 是一对 Python-Fu 插件，把 PS 对话框完整搬过来：
 
-- `Apply Image PS` / `Calculations PS`，位于 **颜色 → SuperMrWang**
+- `Apply Image` / `Calculations`，位于 **颜色 → SuperMrWang**
 - 源可以是任意打开图像的任意图层；通道含 Gray/R/G/B/Alpha/图层蒙版
 - 计算结果四选一：活动选区 / 新建 Alpha 通道 / 新建灰度图层 / 写入图层 alpha
-- 像素内核 `tools/psblend_core.c` 编成 `psblend_core.dll` 由 ctypes 调用，公式
+- 像素内核 `tools/blend_core.c` 编成 `blend_core.dll` 由 ctypes 调用，公式
   直接 include `common/blend.h`——**GEGL 算子与 Python 插件保证同一结果**；
   没有编译产物时自动退化为纯 Python（一致但慢）
 
@@ -288,7 +288,7 @@ GEGL_PATH="$PWD/build;/d/fastsoftware/GIMP 3/lib/gegl-0.4" gegl in.png -o out.pn
 
 ```bash
 touch ops/apply-image/.disabled        # 停用这个 GEGL 算子
-touch plugin/ps-blend/.disabled        # 停用 Python 插件
+touch plugin/blend/.disabled        # 停用 Python 插件
 ```
 
 - `build.sh` 会跳过带标记的算子目录（打印 `SKIP`），`build/` 里不再产出它的 `.dll`，
@@ -298,17 +298,17 @@ touch plugin/ps-blend/.disabled        # 停用 Python 插件
 - 恢复：删掉 `.disabled`，重跑 `./build.sh && ./install.sh`（插件版再 `./install-plugin.sh`）。
 
 **当前状态（2026-11-12）**：全部恢复启用——两个 GEGL 算子已在修掉「源图层尺寸」
-与「通道编号」两个 bug 后恢复（见 `5d0e267`），`plugin/ps-blend` 也已删掉
+与「通道编号」两个 bug 后恢复（见 `5d0e267`），`plugin/blend` 也已删掉
 `.disabled` 重新安装；旧二进制留在 `backup/disabled-20261111-apply-calc/`
 （`backup/` 不进仓库）。
 
-插件停用期间照样可以跑它的回归——`tools/check_ps_blend_plugin.py` 直接按文件路径加载
-`plugin/ps-blend/ps-blend.py`，不依赖是否安装：
+插件停用期间照样可以跑它的回归——`tools/check_blend_plugin.py` 直接按文件路径加载
+`plugin/blend/blend.py`，不依赖是否安装：
 
 ```bash
 "D:/fastsoftware/GIMP 3/bin/gimp-console-3.2.exe" -i -c -d -f \
     --batch-interpreter=python-fu-eval \
-    -b "exec(open(r'<repo>/tools/check_ps_blend_plugin.py').read())" --quit
+    -b "exec(open(r'<repo>/tools/check_blend_plugin.py').read())" --quit
 ```
 
 ## 在 GIMP 菜单位置

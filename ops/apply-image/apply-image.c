@@ -5,7 +5,7 @@
  * menu       Apply Image
  * purpose    PS 应用图像：把 aux 输入当成源，按混合模式、不透明度与遮罩压到
  *            主输入上，可选只作用于某一个通道
- *            PS Apply Image: blend the aux input over the main input with a
+ *            Apply Image: blend the aux input over the main input with a
  *            blend mode, opacity and mask, optionally per channel.
  * algorithm  两路 RGBA 逐像素混合：先取目标/源通道（RGB、亮度、alpha 或合成），
  *            按混合模式算出结果，再用 mask × opacity 混回原值。源层可能比
@@ -471,7 +471,7 @@ gegl_op_class_init (GeglOpClass *klass)
   gegl_operation_class_set_keys (oclass,
     "name",            "lb:apply-image",
     "title",           _("Apply Image"),
-    "description",     _("PS Apply Image: blend a second image over this one with "
+    "description",     _("Apply Image: blend a second image over this one with "
                          "26 blend modes, per-channel targets, mask and opacity. "
                          "Areas the source layer does not cover stay untouched."),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Blend",

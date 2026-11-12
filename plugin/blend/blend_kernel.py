@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""psblend · PS 应用图像/计算的像素内核（供 ps-blend.py 调用）
+"""blend_kernel · PS 应用图像/计算的像素内核（供 blend.py 调用）
 
-优先加载同目录的 psblend_core.dll/.so（ctypes，与 common/blend.h 同一套公式，
+优先加载同目录的 blend_core.dll/.so（ctypes，与 common/blend.h 同一套公式，
 速度约为纯 Python 的 50 倍）；没有编译产物时退化为纯 Python（结果一致，慢）。
 
 数学口径与 GEGL 的 lb:apply-image / lb:calculations 完全一致：
@@ -197,7 +197,7 @@ def _load_core():
         import ctypes
         here = os.path.dirname(os.path.abspath(__file__))
         path = None
-        for name in ("psblend_core.dll", "psblend_core.so", "psblend_core.dylib"):
+        for name in ("blend_core.dll", "blend_core.so", "blend_core.dylib"):
             cand = os.path.join(here, name)
             if os.path.exists(cand):
                 path = cand
@@ -206,13 +206,13 @@ def _load_core():
             return None
         lib = ctypes.CDLL(path)
         fp = ctypes.POINTER(ctypes.c_float)
-        lib.psblend_apply.restype = None
-        lib.psblend_apply.argtypes = [fp, fp, fp, fp, ctypes.c_long,
+        lib.blend_kernel_apply.restype = None
+        lib.blend_kernel_apply.argtypes = [fp, fp, fp, fp, ctypes.c_long,
                                       ctypes.c_int, ctypes.c_int, ctypes.c_int,
                                       ctypes.c_float, ctypes.c_int,
                                       ctypes.c_int, ctypes.c_int, ctypes.c_int]
-        lib.psblend_calc.restype = None
-        lib.psblend_calc.argtypes = [fp, fp, fp, fp, ctypes.c_long,
+        lib.blend_kernel_calc.restype = None
+        lib.blend_kernel_calc.argtypes = [fp, fp, fp, fp, ctypes.c_long,
                                      ctypes.c_int, ctypes.c_int, ctypes.c_int,
                                      ctypes.c_int, ctypes.c_int, ctypes.c_float,
                                      ctypes.c_int, ctypes.c_int]
@@ -236,7 +236,7 @@ def apply_image(inb, auxb, maskb, n, blend, tch, sch, opacity,
     if core is not None:
         out = array.array("f", bytes(n * 16))
         m = _ptr(maskb) if maskb is not None else None
-        core.psblend_apply(_ptr(inb), _ptr(auxb), m, _ptr(out),
+        core.blend_kernel_apply(_ptr(inb), _ptr(auxb), m, _ptr(out),
                            ctypes.c_long(n), blend, tch, sch,
                            ctypes.c_float(opacity), use_mask, inv_mask,
                            keep_transp, grey_out)
@@ -320,7 +320,7 @@ def calculations(inb, auxb, maskb, n, ch1, inv1, ch2, inv2, blend, opacity,
     if core is not None:
         out = array.array("f", bytes(n * 16))
         m = _ptr(maskb) if maskb is not None else None
-        core.psblend_calc(_ptr(inb), _ptr(auxb), m, _ptr(out), ctypes.c_long(n),
+        core.blend_kernel_calc(_ptr(inb), _ptr(auxb), m, _ptr(out), ctypes.c_long(n),
                           ch1, inv1, ch2, inv2, blend,
                           ctypes.c_float(opacity), use_mask, inv_mask)
         return out

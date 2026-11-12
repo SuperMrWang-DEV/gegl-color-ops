@@ -52,7 +52,7 @@ property_double (tint, _("Tint"), 0.0)
 #define GEGL_OP_C_SOURCE color-temperature-tint.c
 
 #include "gegl-op.h"
-#include "ps-temp-tint.h"
+#include "temp-tint.h"
 
 /* 33³ LUT 挂在 user_data 上：色温色调对整张图是常量，每张图只需要烘一次。
  * The 33³ LUT hangs off user_data: temperature/tint are constant for the whole
@@ -160,7 +160,7 @@ gegl_op_class_init (GeglOpClass *klass)
 
   gegl_operation_class_set_keys (oc,
     "name",            "lb:color-temperature-tint",
-    "title",           _("Color Temperature & Tint (Photoshop)"),
+    "title",           _("Color Temperature & Tint"),
     "categories",      "color:enhance",
     "description",     _("Photoshop 2026's Temperature and Tint sliders, matched "
                          "by measurement: a 3rd-order polynomial in linear light "

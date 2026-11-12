@@ -2,7 +2,7 @@
  * SuperMrWang · GEGL 算子 / GEGL Operation
  * ---------------------------------------------------------------------------
  * id         lb:colorize-hsl
- * menu       Colorize (Photoshop)
+ * menu       Colorize
  * purpose    复刻 Photoshop「色相/饱和度」里的「着色」复选框
  *            Reproduce the Colorize checkbox of Photoshop's Hue/Saturation.
  * algorithm  RGB → HSL 只取 L → 按明度滑杆改 L → 用滑杆的 H/S 与原 L 回 RGB。
@@ -167,12 +167,12 @@ gegl_op_class_init (GeglOpClass *klass)
 
   gegl_operation_class_set_keys (oclass,
     "name",            "lb:colorize-hsl",
-    "title",           _("Colorize (Photoshop)"),
+    "title",           _("Colorize"),
     "description",     _("Photoshop's Colorize: keep the HSL lightness of each "
                          "pixel, replace hue and saturation with the slider "
                          "values."),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Color",
-    "gimp:menu-label", _("Colorize PS"),
+    "gimp:menu-label", _("Colorize"),
     NULL);
 }
 

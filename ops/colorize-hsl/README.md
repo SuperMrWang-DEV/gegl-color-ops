@@ -1,11 +1,11 @@
-# lb:colorize-hsl · Colorize (Photoshop)
+# lb:colorize-hsl · Colorize
 
 复刻 Photoshop「色相/饱和度」对话框里的**「着色」复选框**，按实测标定，不是凭经验的
 近似（旧版实现用「颜色填充层 + Overlay 叠灰」，与 PS 无关，偏差很大，已废弃）。
 标定过程与数据见 `colorize-cal/RESULTS.md`。
 
 - GEGL id：`lb:colorize-hsl`
-- 菜单：`Colors → SuperMrWang → Color → Colorize PS`
+- 菜单：`Colors → SuperMrWang → Color → Colorize`
 - 类型：`GeglOperationPointFilter`（逐像素，无邻域）
 - 参数：`hue`（0…360，绝对色相）、`saturation`（0…100，绝对值）、`lightness`（−100…100）
 

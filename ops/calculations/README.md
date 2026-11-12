@@ -62,7 +62,7 @@ GEGL 算子只能产出像素，碰不到选区、通道、图层这些图像对
 需要成品的灰度图层当文档用，就在第 2 步选 `Mask (grey)`，然后「图层 → 复制图层 →
 粘贴为新图像」。
 
-`plugin/ps-blend` 里的 Python 插件版把这几步做成了对话框里的 Result 选项（选区 /
+`plugin/blend` 里的 Python 插件版把这几步做成了对话框里的 Result 选项（选区 /
 新建 Alpha 通道 / 灰图层 / 写入图层 alpha），但插件目前是停用状态，见根目录
 README「Python 插件版」。
 

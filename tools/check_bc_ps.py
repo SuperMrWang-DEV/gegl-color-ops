@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""验收 lb:brightness-contrast-ps：用 gegl CLI 渲染标定图，与 PS 实测输出逐像素比对。
+"""验收 lb:brightness-contrast：用 gegl CLI 渲染标定图，与 PS 实测输出逐像素比对。
 
 参考图的三种来源：
   ../bc-cal/out2/  单参数扫描（b 或 c，步长 5，16 位）
@@ -55,7 +55,7 @@ def gegl_env(exe):
 
 
 def render(exe, env, b, c, legacy, dst):
-    cmd = [exe, PROBE, "-o", dst, "--", "lb:brightness-contrast-ps",
+    cmd = [exe, PROBE, "-o", dst, "--", "lb:brightness-contrast",
            "brightness=%g" % b, "contrast=%g" % c,
            "legacy=%s" % ("true" if legacy else "false")]
     r = subprocess.run(cmd, env=env, capture_output=True, text=True)

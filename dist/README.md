@@ -7,15 +7,17 @@ GCC、MSYS2、meson 那一套。内容与当前分支的源码同步（`tools/ma
 
 | 系统 | 下载 | 放到 |
 |---|---|---|
-| Windows x64 | [`windows-x64/`](windows-x64) 里的 18 个 `.dll` | `%LOCALAPPDATA%\gegl-0.4\plug-ins` |
+| Windows x64 | [`windows-x64/`](windows-x64) 里的 23 个 `.dll` | `%LOCALAPPDATA%\gegl-0.4\plug-ins` |
 | Linux x86_64 | [`linux-x64/`](linux-x64) 里的 14 个 `.so` | `~/.local/share/gegl-0.4/plug-ins` |
 | macOS (Apple Silicon) | 本目录暂无，见下方「macOS 怎么拿」 | `~/Library/Application Support/gegl-0.4/plug-ins` |
 
-> **Linux 侧暂时少四个**：`color-lookup`、`xyz-multiply`、`shadows-highlights`、
-> `color-temperature-tint`。这台构建机没有 Linux 环境，前两个此前已撤下（旧的
-> `.so` 行为与文档不一致），后两个则从来没在 Linux 上编过（`color-temperature-tint`
-> 依赖的 `common/ps-temp-tint.h` 是纯 C 表，本身没有平台相关代码）。需要时在
-> Linux 上跑一次 `./build.sh` 即可补齐。
+> **Linux 侧是旧版构建、暂时缺 10 个**：现有 14 个 `.so` 是算子改名（去 PS 后缀）
+> 之前编译的——其中 `vibrance-ps.so` 内部注册的还是旧 id `lb:vibrance-ps`，
+> 其余 13 个 id 未变、可直接用。缺的 10 个：`levels`、`vibrance`（改名后尚未编译）、
+> `apply-image`、`calculations`、`match-color`、`color-grading`、`color-lookup`、
+> `xyz-multiply`、`shadows-highlights`、`color-temperature-tint`（后四个此前就没编过）。
+> 这台构建机没有 Linux 环境，需要时在 Linux 上跑一次 `./build.sh` 即可全部补齐
+> （`color-temperature-tint` 依赖的 `common/temp-tint.h` 是纯 C 表，无平台相关代码）。
 
 - GIMP Flatpak（Linux）：放进 `~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins`
 
@@ -23,7 +25,7 @@ GCC、MSYS2、meson 那一套。内容与当前分支的源码同步（`tools/ma
 
 macOS 包由 GitHub Actions 在 Apple Silicon 云机器（`macos-15`）上编译：仓库
 **每次 push 都会构建**，产物以 artifact 形式挂在 Actions 运行页
-（`macos-arm64`，18 个 `.dylib`）——GitHub 上打开 Actions → 选最新一次 run →
+（`macos-arm64`，与算子总数同步，当前 23 个 `.dylib`）——GitHub 上打开 Actions → 选最新一次 run →
 Artifacts 里下载。装了 Homebrew GIMP 的用户把这些 `.dylib` 放到
 `~/Library/Application Support/gegl-0.4/plug-ins` 即可。
 
@@ -60,7 +62,7 @@ gegl --info lb:hue-saturation
 1. Linux 包是在 Ubuntu 24.04 上编的，因为它链的是较新的 glibc，Ubuntu 22.04 之类
    老系统会报 `GLIBC_2.39 not found`。要兼容更老的发行版，用 CI 或自己的机器编一次。
 2. Linux 包**没有在 GIMP 图形界面里逐个点过**，只在 GEGL 0.4.48 环境下用一个 C 程序
-   验证：当时 13 个算子全部注册成功、恒等渲染数值与原图一致（`lb:vibrance-ps` 是之后加的，只做了构建 + 入口符号检查）。GIMP 里看不到时，先用上面的
+   验证：当时 13 个算子全部注册成功、恒等渲染数值与原图一致（`lb:vibrance` 是之后加的，只做了构建 + 入口符号检查）。GIMP 里看不到时，先用上面的
    `gegl --info` 确认算子是否被加载。
 
 ## 校验完整性

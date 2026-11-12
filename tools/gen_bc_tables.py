@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""从 bc-cal/bc_model.json 生成 ops/brightness-contrast-ps/bc-tables.h
+"""从 bc-cal/bc_model.json 生成 ops/brightness-contrast/bc-tables.h
 
 算子不手抄任何常数：改标定数据 → 重新跑这个脚本即可。
 表值是 8 位（0…254），与 Photoshop 内部 256 项 LUT 的粒度一致。
@@ -8,10 +8,10 @@ import json, os, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # 优先用工程内的副本（跟仓库一起走），没有就回退到标定目录
-SRC = os.path.join(ROOT, 'ops', 'brightness-contrast-ps', 'bc_model.json')
+SRC = os.path.join(ROOT, 'ops', 'brightness-contrast', 'bc_model.json')
 if not os.path.exists(SRC):
     SRC = os.path.join(os.path.dirname(ROOT), 'bc-cal', 'bc_model.json')
-DST = os.path.join(ROOT, 'ops', 'brightness-contrast-ps', 'bc-tables.h')
+DST = os.path.join(ROOT, 'ops', 'brightness-contrast', 'bc-tables.h')
 
 M = json.load(open(SRC, encoding='utf-8'))
 modern = M['modern']

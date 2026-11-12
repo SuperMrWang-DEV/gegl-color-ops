@@ -1,8 +1,8 @@
 /* ===========================================================================
  * SuperMrWang · GEGL 算子 / GEGL Operation
  * ---------------------------------------------------------------------------
- * id         lb:brightness-contrast-ps
- * menu       Brightness/Contrast (Photoshop)
+ * id         lb:brightness-contrast
+ * menu       Brightness/Contrast
  * purpose    复刻 Photoshop「亮度/对比度」，新版与旧版（「使用旧版」复选框）
  *            两套行为都在里面
  *            Reproduce Photoshop's Brightness/Contrast, both the modern
@@ -307,14 +307,14 @@ gegl_op_class_init (GeglOpClass *klass)
   gc->finalize = finalize;
 
   gegl_operation_class_set_keys (oc,
-    "name",            "lb:brightness-contrast-ps",
-    "title",           _("Brightness/Contrast (Photoshop)"),
+    "name",            "lb:brightness-contrast",
+    "title",           _("Brightness/Contrast"),
     "categories",      "color:tonemap",
     "description",     _("Photoshop's Brightness/Contrast, both the modern "
                          "curve and the legacy behaviour (offset + clip, "
                          "contrast about 89/255), matched by measurement"),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Tone",
-    "gimp:menu-label", _("Brightness/Contrast PS"),
+    "gimp:menu-label", _("Brightness/Contrast"),
     NULL);
 }
 

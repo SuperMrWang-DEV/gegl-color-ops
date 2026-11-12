@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""验收 lb:levels-ps（PS 色阶）。
+"""验收 lb:levels（PS 色阶）。
 
 模型（与 C 实现逐行一致，数值刻度 0–255）：
     t   = clamp((v - inLow) / (inHigh - inLow), 0, 1)
@@ -87,7 +87,7 @@ def make_probe(path):
 
 
 def render(exe, env, args, dst):
-    cmd = [exe, PROBE, "-o", dst, "--", "lb:levels-ps"] + args
+    cmd = [exe, PROBE, "-o", dst, "--", "lb:levels"] + args
     r = subprocess.run(cmd, env=env, capture_output=True, text=True)
     if r.returncode != 0 or not os.path.exists(dst):
         raise SystemExit("gegl 渲染失败 %s\n%s\n%s" % (args, r.stdout, r.stderr))
