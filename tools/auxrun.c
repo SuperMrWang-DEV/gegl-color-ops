@@ -9,8 +9,11 @@
  *            two-input ops cannot be driven from the command line.
  * usage      auxrun <out.png> <op> <in.png> <aux.png> [key=val ...]
  * note       key 用属性名（blend-mode），枚举给 nick（multiply），布尔给
- *            true/false。/ Property names use kebab-case, enums take their
- *            nick, booleans take true/false.
+ *            true/false；另有 aux-x / aux-y 把 aux 平移到指定位置，用来测
+ *            「源层比主图小 / 不在原点」这类尺寸不匹配的情况。
+ *            / Property names use kebab-case, enums take their nick,
+ *            booleans take true/false. aux-x / aux-y translate the aux image,
+ *            to test sources smaller than the target or off-origin.
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
  * ========================================================================== */
 
@@ -68,6 +71,13 @@ main (int argc, char **argv)
                                        "path", argv[3], NULL);
   GeglNode *aux = gegl_node_new_child (NULL, "operation", "gegl:load",
                                        "path", argv[4], NULL);
+  /* aux 先过一个 translate：aux-x / aux-y 用来模拟「源图层比主图层小、
+   * 还不在原点」，这类图层的缓冲区 extent 才是算子真正该看的边界。
+   * The aux goes through a translate node so aux-x / aux-y can emulate a
+   * source layer that is smaller than the target and off-origin; that
+   * buffer's extent is the boundary the op is supposed to respect. */
+  GeglNode *aux_tr = gegl_node_new_child (NULL, "operation", "gegl:translate",
+                                          NULL);
   GeglNode *op  = gegl_node_new_child (NULL, "operation", argv[2], NULL);
   GeglNode *sink = gegl_node_new_child (NULL, "operation", "gegl:save",
                                         "path", argv[1], NULL);
@@ -80,11 +90,16 @@ main (int argc, char **argv)
         continue;
 
       *eq = '\0';
-      set_prop (op, argv[i], eq + 1);
+      if (g_strcmp0 (argv[i], "aux-x") == 0 || g_strcmp0 (argv[i], "aux-y") == 0)
+        g_object_set (gegl_node_get_gegl_operation (aux_tr),
+                      argv[i] + 4, g_ascii_strtod (eq + 1, NULL), NULL);
+      else
+        set_prop (op, argv[i], eq + 1);
     }
 
   gegl_node_link (in, op);
-  gegl_node_connect (aux, "output", op, "aux");
+  gegl_node_link (aux, aux_tr);
+  gegl_node_connect (aux_tr, "output", op, "aux");
   gegl_node_link (op, sink);
 
   gegl_node_process (sink);
@@ -92,6 +107,7 @@ main (int argc, char **argv)
   g_object_unref (op);
   g_object_unref (in);
   g_object_unref (aux);
+  g_object_unref (aux_tr);
   g_object_unref (sink);
   gegl_exit ();
   return 0;

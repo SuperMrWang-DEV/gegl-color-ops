@@ -8,11 +8,16 @@
  *            PS Apply Image: blend the aux input over the main input with a
  *            blend mode, opacity and mask, optionally per channel.
  * algorithm  两路 RGBA 逐像素混合：先取目标/源通道（RGB、亮度、alpha 或合成），
- *            按混合模式算出结果，再用 mask × opacity 混回原值
+ *            按混合模式算出结果，再用 mask × opacity 混回原值。源层可能比
+ *            主图层小或带偏移，用 aux 缓冲区的 extent 判断哪些像素真的有源，
+ *            没盖到的像素原样输出。
  *            Two RGBA streams are blended per pixel: pick the target and
  *            source channels (RGB, luma, alpha or composite), run the blend
- *            mode, then mix the result back by mask x opacity.
- * type       GeglOperationPointComposer（input + aux 双输入 / two inputs）
+ *            mode, then mix the result back by mask x opacity. The source may
+ *            be smaller than the target or offset; the aux buffer's extent is
+ *            used to tell which pixels have a source at all, and the uncovered
+ *            ones are passed through untouched.
+ * type       GeglOperationComposer（input + aux 双输入 / two inputs）
  * reference  Photoshop「图像 → 应用图像」/ Image > Apply Image
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
  *            GPL-3.0-or-later, see LICENSE at the project root
@@ -116,7 +121,7 @@ property_enum (output_mode, _("Output"), LbAiOutput, lb_ai_output, AI_OUT_COMPOS
 
 #else
 
-#define GEGL_OP_POINT_COMPOSER
+#define GEGL_OP_COMPOSER
 #define GEGL_OP_NAME     lb_apply_image
 #define GEGL_OP_C_SOURCE apply-image.c
 #include "gegl-op.h"
@@ -152,145 +157,257 @@ prepare (GeglOperation *op)
   gegl_operation_set_format (op, "output", fmt);
 }
 
+/* ---- 参数快照 / parameter snapshot -------------------------------------- */
+
+typedef struct
+{
+  gint     blend, tch, sch, mch, mfrom, omode;
+  gfloat   opacity;
+  gboolean use_mask, inv_mask, keep_transp;
+} AiParams;
+
+/* ---- 单像素混合 / one pixel --------------------------------------------- */
+
+static inline void
+apply_pixel (const AiParams *p,
+             const gfloat   *in,
+             const gfloat   *src,
+             gfloat         *out)
+{
+  const gfloat ir = in[0];
+  const gfloat ig = in[1];
+  const gfloat ib = in[2];
+  const gfloat ia = in[3];
+
+  const gfloat sr = src[0];
+  const gfloat sg = src[1];
+  const gfloat sb = src[2];
+  const gfloat sa = src[3];
+
+  gfloat rr = ir, rg = ig, rb = ib, ra = ia;
+
+  /* 全透明像素：按 PS 的「保留透明区域」直接跳过
+   * Fully transparent pixels are skipped when preservation is on */
+  if (p->keep_transp && ia <= 0.0f)
+    {
+      out[0] = ir;
+      out[1] = ig;
+      out[2] = ib;
+      out[3] = ia;
+      return;
+    }
+
+  /* 遮罩可取自源层或本层，两者都已在手边，不必再开第三个 pad
+   * The mask is read from either connected layer, so no third pad is
+   * needed to cover both halves of PS's mask options. */
+  gfloat mask = 1.0f;
+  if (p->use_mask)
+    {
+      mask = (p->mfrom == AI_MASK_INPUT)
+               ? lb_channel (ir, ig, ib, ia, p->mch)
+               : lb_channel (sr, sg, sb, sa, p->mch);
+      if (p->inv_mask)
+        mask = 1.0f - mask;
+    }
+
+  if (p->tch == LB_CH_COMPOSITE && p->sch == LB_CH_COMPOSITE)
+    {
+      /* 合成 × 合成：三通道各自混合，色相类模式走整体算法
+       * Composite x composite: blend all three channels, hue-family
+       * modes go through the whole-pixel path. */
+      gfloat br, bg, bb;
+      lb_blend_rgb (p->blend, ir, ig, ib, sr, sg, sb, &br, &bg, &bb);
+      rr = lb_mix (ir, br, mask, p->opacity);
+      rg = lb_mix (ig, bg, mask, p->opacity);
+      rb = lb_mix (ib, bb, mask, p->opacity);
+    }
+  else if (p->tch != LB_CH_COMPOSITE)
+    {
+      /* 目标是单通道：源取标量（单通道取值，合成都取亮度）
+       * Single target channel: source becomes a scalar (its own channel,
+       * or luma when the source is the composite). */
+      const gfloat tv = lb_channel (ir, ig, ib, ia, p->tch);
+      const gfloat sv = (p->sch == LB_CH_COMPOSITE)
+                          ? lb_luma (sr, sg, sb)
+                          : lb_channel (sr, sg, sb, sa, p->sch);
+      const gfloat nv = lb_mix (tv, lb_blend_separable (p->blend, tv, sv),
+                                mask, p->opacity);
+
+      switch (p->tch)
+        {
+          case LB_CH_RED:   rr = nv; break;
+          case LB_CH_GREEN: rg = nv; break;
+          case LB_CH_BLUE:  rb = nv; break;
+          case LB_CH_ALPHA: ra = nv; break;
+          default:          break;
+        }
+    }
+  else
+    {
+      /* 目标合成、源单通道：用同一个标量去混每个通道（等同 PS 把某个通道
+       * 压进合成）
+       * Composite target with a single-channel source: the same scalar is
+       * blended into every channel, like PS pressing one channel onto the
+       * composite. */
+      const gfloat sv = lb_channel (sr, sg, sb, sa, p->sch);
+      gfloat bv[3];
+      bv[0] = lb_blend_separable (p->blend, ir, sv);
+      bv[1] = lb_blend_separable (p->blend, ig, sv);
+      bv[2] = lb_blend_separable (p->blend, ib, sv);
+
+      rr = lb_mix (ir, lb_clamp01 (bv[0]), mask, p->opacity);
+      rg = lb_mix (ig, lb_clamp01 (bv[1]), mask, p->opacity);
+      rb = lb_mix (ib, lb_clamp01 (bv[2]), mask, p->opacity);
+    }
+
+  if (p->omode == LB_OUT_COMPOSITE)
+    {
+      out[0] = lb_clamp01 (rr);
+      out[1] = lb_clamp01 (rg);
+      out[2] = lb_clamp01 (rb);
+      out[3] = lb_clamp01 (ra);
+    }
+  else
+    {
+      /* 蒙版输出：结果取混合后的亮度，灰版给图层蒙版用，alpha 版直接当
+       * 不透明度
+       * Mask output: the blended luma, either as grey (for a layer mask)
+       * or as alpha (for direct transparency). */
+      gfloat grey = lb_luma (rr, rg, rb);
+      out[0] = grey;
+      out[1] = grey;
+      out[2] = grey;
+      out[3] = (p->omode == LB_OUT_MASK_ALPHA) ? grey : 1.0f;
+    }
+}
+
 /* ---- 主处理 / main processing ------------------------------------------ */
+
+/* 按行块处理：整幅一次性取进内存在大图上会吃掉几百 MB，GEGL 也是按块
+ * 调 process 的。块高 32 行足够摊平 gegl_buffer_get 的调用开销。
+ * Process in bands of rows: pulling a whole image into memory costs hundreds
+ * of MB on large files, and GEGL calls process on tiles anyway. */
+#define AI_BAND 32
 
 static gboolean
 process (GeglOperation       *op,
-         void                *in_buf,
-         void                *aux_buf,
-         void                *out_buf,
-         glong                samples,
-         const GeglRectangle *roi,
+         GeglBuffer          *input,
+         GeglBuffer          *aux,
+         GeglBuffer          *output,
+         const GeglRectangle *result,
          gint                 level)
 {
   GeglProperties *o = GEGL_PROPERTIES (op);
+  const Babl     *fmt = perceptual_format (op);
+
+  AiParams p;
+  p.blend      = (gint) o->blend_mode;
+  p.tch        = (gint) o->target_channel;
+  p.sch        = (gint) o->source_channel;
+  p.mch        = (gint) o->mask_channel;
+  p.mfrom      = (gint) o->mask_from;
+  p.omode      = (gint) o->output_mode;
+  p.opacity    = (gfloat) (o->opacity / 100.0);
+  p.use_mask   = o->mask_enabled;
+  p.inv_mask   = o->invert_mask;
+  p.keep_transp = o->preserve_transparency;
 
   /* aux 没接时退化成「源 = 本图」，至少能当通道内的混合用
    * With no aux connected the source falls back to the input itself, so the
    * op still works as a within-image channel blend. */
-  gfloat *GEGL_ALIGNED in  = in_buf;
-  gfloat *GEGL_ALIGNED aux = aux_buf ? aux_buf : in_buf;
-  gfloat *GEGL_ALIGNED out = out_buf;
+  const gboolean has_aux = (aux != NULL);
+  const GeglRectangle aext = has_aux ? *gegl_buffer_get_extent (aux)
+                                     : *gegl_buffer_get_extent (input);
 
-  const gint   blend   = (gint) o->blend_mode;
-  const gint   tch     = (gint) o->target_channel;
-  const gint   sch     = (gint) o->source_channel;
-  const gint   mch     = (gint) o->mask_channel;
-  const gint   mfrom   = (gint) o->mask_from;
-  const gint   omode   = (gint) o->output_mode;
-  const gfloat opacity = (gfloat) (o->opacity / 100.0);
-  const gboolean use_mask = o->mask_enabled;
-  const gboolean inv_mask = o->invert_mask;
-  const gboolean keep_transp = o->preserve_transparency;
+  const gint w  = result->width;
+  const gint bh = MIN (AI_BAND, result->height);
 
-  for (glong n = 0; n < samples; n++)
+  gfloat *in_band  = g_new (gfloat, (gsize) w * bh * 4);
+  gfloat *aux_band = g_new (gfloat, (gsize) w * bh * 4);
+  gfloat *out_band = g_new (gfloat, (gsize) w * bh * 4);
+
+  /* 行距按整行宽算，不能用 GEGL_AUTO_ROWSTRIDE：它取的是 rect 的宽度，
+   * 而 aux 只覆盖块里的一小段时，取回来的行宽比 w 窄，后续按 w 索引会串行。
+   * The row stride has to follow the full band width. GEGL_AUTO_ROWSTRIDE
+   * uses the rect's own width instead, so a partial aux rect would come back
+   * packed narrower than w and every row after the first would be misread. */
+  const gint band_stride = (gint) (sizeof (gfloat) * 4 * (gsize) w);
+
+  for (gint y0 = 0; y0 < result->height; y0 += AI_BAND)
     {
-      const gfloat ir = in[n * 4 + 0];
-      const gfloat ig = in[n * 4 + 1];
-      const gfloat ib = in[n * 4 + 2];
-      const gfloat ia = in[n * 4 + 3];
+      const gint nh = MIN (AI_BAND, result->height - y0);
+      const GeglRectangle band = { result->x, result->y + y0, w, nh };
 
-      const gfloat sr = aux[n * 4 + 0];
-      const gfloat sg = aux[n * 4 + 1];
-      const gfloat sb = aux[n * 4 + 2];
-      const gfloat sa = aux[n * 4 + 3];
+      memset (in_band, 0, sizeof (gfloat) * (gsize) w * nh * 4);
+      gegl_buffer_get (input, &band, 1.0, fmt, in_band,
+                       band_stride, GEGL_ABYSS_NONE);
 
-      gfloat rr = ir, rg = ig, rb = ib, ra = ia;
+      /* 本块内「真的有源」的列/行区间（相对块左上角）。aux 的 extent 就是
+       * 源图层自己的大小和位置：图层比主图小、或者带偏移时，没盖到的地方
+       * 不能被当成「透明黑」参与混合——multiply 会把那里涂黑，normal 会
+       * 把它擦成透明。
+       * Rows and columns of this band that actually have a source, relative
+       * to the band's top-left. The aux extent is the source layer's own
+       * size and position: where a smaller or offset layer does not reach,
+       * the pixels must not join the blend as transparent black (multiply
+       * would blacken them, normal would erase them). */
+      gint cx0 = 0, cx1 = 0, cy0 = 0, cy1 = 0;
 
-      /* 全透明像素：按 PS 的「保留透明区域」直接跳过
-       * Fully transparent pixels are skipped when preservation is on */
-      if (keep_transp && ia <= 0.0f)
+      if (!has_aux)
         {
-          out[n * 4 + 0] = ir;
-          out[n * 4 + 1] = ig;
-          out[n * 4 + 2] = ib;
-          out[n * 4 + 3] = ia;
-          continue;
+          memcpy (aux_band, in_band, sizeof (gfloat) * (gsize) w * nh * 4);
+          cx1 = w;
+          cy1 = nh;
         }
-
-      /* 遮罩可取自源层或本层，两者都已在手边，不必再开第三个 pad
-       * The mask is read from either connected layer, so no third pad is
-       * needed to cover both halves of PS's mask options. */
-      gfloat mask = 1.0f;
-      if (use_mask)
+      else
         {
-          mask = (mfrom == AI_MASK_INPUT)
-                   ? lb_channel (ir, ig, ib, ia, mch)
-                   : lb_channel (sr, sg, sb, sa, mch);
-          if (inv_mask)
-            mask = 1.0f - mask;
-        }
+          cx0 = MAX (band.x, aext.x) - band.x;
+          cx1 = MIN (band.x + w, aext.x + aext.width) - band.x;
+          cy0 = MAX (band.y, aext.y) - band.y;
+          cy1 = MIN (band.y + nh, aext.y + aext.height) - band.y;
 
-      if (tch == LB_CH_COMPOSITE && sch == LB_CH_COMPOSITE)
-        {
-          /* 合成 × 合成：三通道各自混合，色相类模式走整体算法
-           * Composite x composite: blend all three channels, hue-family
-           * modes go through the whole-pixel path. */
-          gfloat br, bg, bb;
-          lb_blend_rgb (blend, ir, ig, ib, sr, sg, sb, &br, &bg, &bb);
-          rr = lb_mix (ir, br, mask, opacity);
-          rg = lb_mix (ig, bg, mask, opacity);
-          rb = lb_mix (ib, bb, mask, opacity);
-        }
-      else if (tch != LB_CH_COMPOSITE)
-        {
-          /* 目标是单通道：源取标量（单通道取值，合成都取亮度）
-           * Single target channel: source becomes a scalar (its own channel,
-           * or luma when the source is the composite). */
-          const gfloat tv = lb_channel (ir, ig, ib, ia, tch);
-          const gfloat sv = (sch == LB_CH_COMPOSITE)
-                              ? lb_luma (sr, sg, sb)
-                              : lb_channel (sr, sg, sb, sa, sch);
-          const gfloat nv = lb_mix (tv, lb_blend_separable (blend, tv, sv),
-                                    mask, opacity);
-
-          switch (tch)
+          if (cx1 <= cx0 || cy1 <= cy0)
             {
-              case LB_CH_RED:   rr = nv; break;
-              case LB_CH_GREEN: rg = nv; break;
-              case LB_CH_BLUE:  rb = nv; break;
-              case LB_CH_ALPHA: ra = nv; break;
-              default:          break;
+              cx1 = cx0 = 0;
+              cy1 = cy0 = 0;
+            }
+          else
+            {
+              GeglRectangle ar = { band.x + cx0, band.y + cy0,
+                                   cx1 - cx0, cy1 - cy0 };
+              gegl_buffer_get (aux, &ar, 1.0, fmt,
+                               aux_band + ((gsize) cy0 * w + cx0) * 4,
+                               band_stride, GEGL_ABYSS_NONE);
             }
         }
-      else
-        {
-          /* 目标合成、源单通道：用同一个标量去混每个通道（等同 PS 把某个通道
-           * 压进合成）
-           * Composite target with a single-channel source: the same scalar is
-           * blended into every channel, like PS pressing one channel onto the
-           * composite. */
-          const gfloat sv = lb_channel (sr, sg, sb, sa, sch);
-          gfloat bv[3];
-          bv[0] = lb_blend_separable (blend, ir, sv);
-          bv[1] = lb_blend_separable (blend, ig, sv);
-          bv[2] = lb_blend_separable (blend, ib, sv);
 
-          rr = lb_mix (ir, lb_clamp01 (bv[0]), mask, opacity);
-          rg = lb_mix (ig, lb_clamp01 (bv[1]), mask, opacity);
-          rb = lb_mix (ib, lb_clamp01 (bv[2]), mask, opacity);
+      for (gint row = 0; row < nh; row++)
+        {
+          for (gint col = 0; col < w; col++)
+            {
+              const gsize n = ((gsize) row * w + col) * 4;
+
+              if (row < cy0 || row >= cy1 || col < cx0 || col >= cx1)
+                {
+                  /* 源层没覆盖到这里：原样输出
+                   * Not covered by the source: pass through */
+                  out_band[n + 0] = in_band[n + 0];
+                  out_band[n + 1] = in_band[n + 1];
+                  out_band[n + 2] = in_band[n + 2];
+                  out_band[n + 3] = in_band[n + 3];
+                  continue;
+                }
+
+              apply_pixel (&p, in_band + n, aux_band + n, out_band + n);
+            }
         }
 
-      if (omode == LB_OUT_COMPOSITE)
-        {
-          out[n * 4 + 0] = lb_clamp01 (rr);
-          out[n * 4 + 1] = lb_clamp01 (rg);
-          out[n * 4 + 2] = lb_clamp01 (rb);
-          out[n * 4 + 3] = lb_clamp01 (ra);
-        }
-      else
-        {
-          /* 蒙版输出：结果取混合后的亮度，灰版给图层蒙版用，alpha 版直接当
-           * 不透明度
-           * Mask output: the blended luma, either as grey (for a layer mask)
-           * or as alpha (for direct transparency). */
-          gfloat grey = lb_luma (rr, rg, rb);
-          out[n * 4 + 0] = grey;
-          out[n * 4 + 1] = grey;
-          out[n * 4 + 2] = grey;
-          out[n * 4 + 3] = (omode == LB_OUT_MASK_ALPHA) ? grey : 1.0f;
-        }
+      gegl_buffer_set (output, &band, level, fmt, out_band, band_stride);
     }
+
+  g_free (in_band);
+  g_free (aux_band);
+  g_free (out_band);
 
   return TRUE;
 }
@@ -300,21 +417,22 @@ process (GeglOperation       *op,
 static void
 gegl_op_class_init (GeglOpClass *klass)
 {
-  GeglOperationClass         *oclass = GEGL_OPERATION_CLASS (klass);
-  GeglOperationPointComposerClass *cclass =
-    GEGL_OPERATION_POINT_COMPOSER_CLASS (klass);
+  GeglOperationClass        *oclass = GEGL_OPERATION_CLASS (klass);
+  GeglOperationComposerClass *cclass =
+    GEGL_OPERATION_COMPOSER_CLASS (klass);
 
   oclass->prepare = prepare;
   cclass->process = process;
 
-  GEGL_OPERATION_COMPOSER_CLASS (klass)->aux_label = _("Source");
-  GEGL_OPERATION_COMPOSER_CLASS (klass)->aux_description = _("Image blended onto the input (defaults to the input itself)");
+  cclass->aux_label = _("Source");
+  cclass->aux_description = _("Image blended onto the input (defaults to the input itself)");
 
   gegl_operation_class_set_keys (oclass,
     "name",            "lb:apply-image",
     "title",           _("Apply Image"),
     "description",     _("PS Apply Image: blend a second image over this one with "
-                         "26 blend modes, per-channel targets, mask and opacity."),
+                         "26 blend modes, per-channel targets, mask and opacity. "
+                         "Areas the source layer does not cover stay untouched."),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Blend",
     "gimp:menu-label", _("Apply Image"),
     NULL);

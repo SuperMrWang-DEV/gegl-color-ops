@@ -39,10 +39,6 @@ PS 的遮罩可以指向**第三张**图（既不是目标也不是源），GEGL
 两个输入，所以这里限定在「本层」或「源层」二选一——实际用法里这两处覆盖了
 绝大多数场合。
 
-PS's mask may point at a *third* image. A GEGL composer only exposes two inputs,
-so the mask is limited to either the target or the source, which covers the
-common cases.
-
 ## 行为细节 / Behaviour notes
 
 - **aux 没接时**源退化为本图，可以用来做「同图内通道互混」；
@@ -55,9 +51,41 @@ common cases.
 - 在 8bit sRGB 伽马域计算，与 PS 的混合模式定义同域；结果会裁到 0..1。
 - GIMP 里这类带 aux 的滤镜目前**只能合并应用**，不能保存成非破坏性 fx。
 
+```bash
+./build.sh              # 顺带编译出 build/auxrun（双输入 runner）
+```
+
+## 源图层的尺寸与位置 / Source layer size and position
+
+PS 的应用图像要求两个图层**像素尺寸完全一致**，尺寸不同时源图层直接灰掉；
+GIMP 里图层可以比画布小、也可以带偏移，所以这里得自己定规则：
+
+- 算子按 `aux` 缓冲区自己的 extent（即源图层的大小和位置）判断哪些像素真的
+  有源，**没盖到的像素原样输出**；
+- 盖到的地方照常混合，包括源图层自身透明（alpha = 0）的像素——那里仍然是
+  参与混合的，只是按它自己的像素值算。
+
+早先版本用的是 `GeglOperationPointComposer`，`process` 只拿到一段裸指针，
+看不到 aux 的 extent，界外被 GEGL 补成透明黑再参与混合：正片叠底会把外侧涂
+黑，正常模式会把外侧擦成透明。改成 `GeglOperationComposer` 后 `process` 拿到
+的是真正的 `GeglBuffer`，`gegl_buffer_get_extent(aux)` 就能取到图层尺寸，
+`tools/auxrun` 也补了 `aux-x` / `aux-y` 用来模拟带偏移的源层。
+
+Photoshop requires both layers to have exactly the same pixel size and greys the
+source out otherwise; GIMP layers may be smaller than the canvas or offset, so
+the rule here is: the aux buffer's own extent decides which pixels have a
+source, and the uncovered ones are passed through untouched. The older
+point-composer version only received a raw pointer for the aux, could not see
+its extent, and treated the outside as transparent black — multiply blackened
+it, normal erased it.
+
 ## 测试 / Testing
 
 ```bash
-./build.sh              # 顺带编译出 build/auxrun（双输入 runner）
-python tools/check_blend.py
+./build.sh
+python tools/check_blend.py     # 含 11 个应用图像用例：混合模式、遮罩、通道、源层尺寸/偏移
 ```
+
+PS's mask may point at a *third* image. A GEGL composer only exposes two inputs,
+so the mask is limited to either the target or the source, which covers the
+common cases.

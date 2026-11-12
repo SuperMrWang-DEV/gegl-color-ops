@@ -45,10 +45,16 @@ alpha 蒙版代替：把它当作图层的不透明度，或转成选区。PS �
 - 差值类模式（Difference / Subtract / Divide）在混合后裁到 0..1，与 8bit 行为一致。
 - 深色 / 浅色在单通道上下文里等价于变暗 / 变亮（只有一个通道，没有整像素概念）。
 - 灰蒙版输出 alpha = 1，alpha 蒙版输出 alpha = 灰度值。
+- **通道编号**：枚举第 0 位留给 Composite 占位（`enum_value_skip`，不出现在
+  下拉列表里），这样 `Red/Green/Blue/Luminance/Alpha` 的编号才和
+  `common/blend.h` 的 `LB_CH_*` 对得上。少这个占位会让整张表错一位——默认的
+  Luminance 实际取到蓝通道。
+- **源层比主图小 / 带偏移**：aux 没覆盖到的像素按黑色参与计算（蒙版那里就是
+  0）。PS 的计算要求两个来源同尺寸，这里不强制，缺的部分当黑。
 
 ## 测试 / Testing
 
 ```bash
 ./build.sh
-python tools/check_blend.py     # 含 3 个计算用例：叠底出灰、反相源 2、alpha 模式
+python tools/check_blend.py     # 含 7 个计算用例：叠底出灰、反相源 2、alpha 模式、四种通道取值
 ```

@@ -335,7 +335,7 @@ python tools/make_test_image.py out.png     # 生成色环+灰阶+明度测试�
 ./tools/smoke.sh                            # 每个算子用默认参数渲染一遍，抓崩溃/黑图
 python tools/contact_sheet.py sheet.png build/smoke/*.png   # 拼成带标签的对照表
 python tools/check_gamma_domain.py          # 数值回归：感知（伽马）域 + 全图像素核对
-python tools/check_blend.py                 # 数值回归：双输入算子的混合公式（16 用例）
+python tools/check_blend.py                 # 数值回归：双输入算子 23 用例（含通道映射、源层尺寸/偏移）
 python tools/check_color_balance_fine.py    # 与 PS 实测比对：色彩平衡（--all 跑全部 609 档）
 python tools/check_color_balance_ps.py      # 与 PS 实测比对：色彩平衡（含保留明度）
 python tools/check_color_mask_select.py     # 与 PS 实测比对：色彩范围的高光/阴影/中间调曲线

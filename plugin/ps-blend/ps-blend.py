@@ -110,8 +110,14 @@ def source_drawable(layer, channel):
 def read_rgba(drawable, rect):
     """读一块 RGBA 浮点数据；rect 为画布坐标 (x, y, w, h)，界外补 0。
 
+    注意：drawable.get_buffer() 的 extent 是图层本地坐标（实测恒为
+    0,0,宽,高，不含图层偏移），所以这里必须先减偏移再读。界外补 0 对应
+    PS 把缺的那块当黑色。
     Reads RGBA floats for a canvas-coordinate rect; out-of-bounds reads 0,
-    mirroring Photoshop pressing missing data as black. """
+    mirroring Photoshop pressing missing data as black. Note that
+    drawable.get_buffer() is in layer-local coordinates (its extent is always
+    0,0,width,height — the layer offset is not part of it), so the offset has
+    to be subtracted here."""
     x, y, w, h = rect
     out = array.array('f', bytes(w * h * 16))
     ox, oy = _offsets(drawable)
@@ -140,7 +146,14 @@ def read_rgba(drawable, rect):
 
 
 def write_rgba(drawable, rect, floats):
-    """把结果经 shadow buffer 写回，产生一条可撤销的记录"""
+    """把结果经 shadow buffer 写回，产生一条可撤销的记录。
+
+    rect 是**图层本地坐标**（通常就是 (0, 0, 宽, 高)）——shadow buffer 的
+    extent 同样是 0,0,宽,高，不含图层偏移。传画布坐标会让带偏移的图层整体
+    错位。
+    rect is in LAYER-LOCAL coordinates (normally (0, 0, width, height)): the
+    shadow buffer's extent is 0,0,width,height as well and carries no layer
+    offset. Passing canvas coordinates shifts any offset layer."""
     r = Gegl.Rectangle.new(rect[0], rect[1], rect[2], rect[3])
     shadow = drawable.get_shadow_buffer()
     shadow.set(r, "R'G'B'A float", floats.tobytes())
@@ -149,6 +162,42 @@ def write_rgba(drawable, rect, floats):
     shadow.flush()
     drawable.merge_shadow(True)
     drawable.update(rect[0], rect[1], rect[2], rect[3])
+
+
+def keep_uncovered(out, inb, rect, source):
+    """源图层没盖到的像素恢复成原值。
+
+    源层比目标图层小、或者不在原点时，read_rgba 会把界外补成 0，混合模式
+    用这些 0 去算（正片叠底会把那里涂黑、正常会把它擦成透明）。和 GEGL 版
+    lb:apply-image 的行为保持一致：没东西可混的地方原样保留。
+    Restore the target where the source layer does not reach. When the source
+    is smaller than the target or off-origin, read_rgba pads with 0 and the
+    blend mode works on that padding (multiply blackens it, normal erases
+    it). Matches lb:apply-image: nothing to blend means nothing changes."""
+    x, y, w, h = rect
+    sx, sy = _offsets(source)
+    sw, sh = _size(source)
+
+    y0, y1 = max(sy, y), min(sy + sh, y + h)        # 有效行 / covered rows
+    x0, x1 = max(sx, x), min(sx + sw, x + w)        # 有效列 / covered cols
+    if y1 <= y0 or x1 <= x0:
+        out[:] = inb[:]
+        return out
+
+    left = max(0, x0 - x)                            # 左侧空白列数
+    right = max(0, (x + w) - x1)                     # 右侧空白列数
+    for row in range(h):
+        d = row * w * 4
+        cy = y + row
+        if cy < y0 or cy >= y1:
+            out[d:d + w * 4] = inb[d:d + w * 4]
+            continue
+        if left:
+            out[d:d + left * 4] = inb[d:d + left * 4]
+        if right:
+            s = d + (w - right) * 4
+            out[s:s + right * 4] = inb[s:s + right * 4]
+    return out
 
 
 def new_grey_layer(image, rect, floats, name):
@@ -188,7 +237,7 @@ def run_apply_image(image, drawable, p):
         raise RuntimeError(_("No source layer"))
 
     sdrawable, sch = source_drawable(src, p['sch'])
-    inb = read_rgba(drawable, (0, 0, w, h))
+    inb = read_rgba(drawable, rect)          # 与 aux 同一套画布坐标
     aux = read_rgba(sdrawable, rect)
     mdrawable = mch = None
     if p['use_mask']:
@@ -204,6 +253,7 @@ def run_apply_image(image, drawable, p):
                               1 if p['inv_mask'] else 0,
                               1 if p['keep_transp'] else 0,
                               1 if p['result'] == 1 else 0)
+    keep_uncovered(out, inb, rect, sdrawable)
 
     image.undo_group_start()
     if p['result'] == 0:
@@ -252,11 +302,35 @@ def run_calculations(image, drawable, p):
     else:                                    # 写入图层 alpha / into layer alpha
         n = iw * ih
         for i in range(n):
+            # psblend.calculations 把结果放在 RGB 里、alpha 恒为 1，所以必须
+            # 先把灰度值取出来，再让 alpha = 原 alpha × 灰度值。原来写的是
+            # alpha × 1，等于什么都没做。
+            # psblend.calculations returns the value in RGB with alpha fixed
+            # at 1, so the grey has to be read out first: alpha becomes
+            # original alpha x grey. It used to be alpha x 1, i.e. a no-op.
+            g = grey[i * 4 + 0]
             grey[i * 4 + 0] = b1[i * 4 + 0]
             grey[i * 4 + 1] = b1[i * 4 + 1]
             grey[i * 4 + 2] = b1[i * 4 + 2]
-            grey[i * 4 + 3] = b1[i * 4 + 3] * grey[i * 4 + 3]
-        write_rgba(drawable, rect, grey)
+            grey[i * 4 + 3] = b1[i * 4 + 3] * g
+        # 结果是画布坐标，shadow buffer 是图层本地坐标：先裁再写，否则带偏移
+        # 或比画布小的图层会整体错位（以前这里直接把画布坐标传进 write_rgba）
+        # The result is in canvas coordinates while the shadow buffer is
+        # layer-local: crop before writing, or any offset / smaller layer
+        # comes out shifted (this used to hand canvas coords to write_rgba).
+        ox, oy = _offsets(drawable)
+        dw, dh = _size(drawable)
+        local = array.array('f', bytes(dw * dh * 16))
+        cx0 = max(0, -ox)
+        cx1 = min(dw, iw - ox)
+        for row in range(dh):
+            cy = oy + row
+            if cy < 0 or cy >= ih or cx1 <= cx0:
+                continue
+            s = (cy * iw + ox + cx0) * 4
+            d = (row * dw + cx0) * 4
+            local[d:d + (cx1 - cx0) * 4] = grey[s:s + (cx1 - cx0) * 4]
+        write_rgba(drawable, (0, 0, dw, dh), local)
     image.undo_group_end()
     Gimp.displays_flush()
 

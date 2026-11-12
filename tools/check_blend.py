@@ -39,8 +39,8 @@ def write_png(path, rgba, w=4, h=4):
                 + chunk(b"IEND", b""))
 
 
-def read_first_pixel(path):
-    """返回 (首像素通道列表, 位深)。结果可能是 8 或 16 位。"""
+def read_pixel(path, px=0, py=0):
+    """返回 ((r,g,b[,a]), 位深)。结果可能是 8 或 16 位。"""
     data = open(path, "rb").read()
     i, idat = 8, b""
     w = h = depth = ctype = 0
@@ -61,7 +61,7 @@ def read_first_pixel(path):
     prev = bytearray(stride)
     pos = 0
     line = bytearray(stride)
-    for _y in range(h):
+    for y in range(h):
         ftype = raw[pos]
         pos += 1
         line = bytearray(raw[pos:pos + stride])
@@ -82,12 +82,14 @@ def read_first_pixel(path):
                 pred = a if (pa <= pb and pa <= pc) else (b if pb <= pc else c)
                 line[x] = (line[x] + pred) & 0xFF
         prev = line
-        break
+        if y == py:
+            break
 
-    px = list(line[:bpp])
+    off = px * bpp
+    px_v = list(line[off:off + bpp])
     if depth == 16:
-        return [px[k * 2] * 256 + px[k * 2 + 1] for k in range(ch)], 16
-    return list(px), 8
+        return [px_v[k * 2] * 256 + px_v[k * 2 + 1] for k in range(ch)], 16
+    return list(px_v), 8
 
 
 def to8(values, depth):
@@ -153,6 +155,43 @@ CASES = [
     ("计算 · alpha 蒙版模式", "lb:calculations", GRAY_IN, GRAY_AUX,
      dict(blend_mode="multiply", output_mode="mask-alpha"),
      (100, 100, 100, 100), 2),
+
+    # 通道枚举曾经整体错一位：默认 Luminance 实际读成蓝通道。灰像素取哪个
+    # 通道都一样，所以上面三个用例全绿也发现不了，这里必须用彩色像素。
+    # The channel enum used to be off by one: the default Luminance read the
+    # blue channel. Grey pixels hide that, hence the colour cases below.
+    ("计算 · 默认通道是亮度非蓝", "lb:calculations", (10, 10, 128), (200, 100, 50),
+     dict(blend_mode="multiply"),
+     (9, 9, 9, 255), 2),
+    ("计算 · 通道 Red 取 R", "lb:calculations", (10, 10, 128), (200, 100, 50),
+     dict(blend_mode="difference", source1_channel="red",
+          source2_channel="red"), (190, 190, 190, 255), 2),
+    ("计算 · 通道 Blue 取 B", "lb:calculations", (10, 10, 128), (200, 100, 50),
+     dict(blend_mode="difference", source1_channel="blue",
+          source2_channel="blue"), (78, 78, 78, 255), 2),
+    ("计算 · 通道 Alpha", "lb:calculations", (10, 10, 128, 200),
+     (200, 100, 50, 100), dict(blend_mode="difference",
+                               source1_channel="alpha",
+                               source2_channel="alpha"), (100, 100, 100, 255), 2),
+]
+
+# 尺寸 / 位置不匹配：源层比主图小、或者不在原点时，没盖到的像素必须原样
+# 输出。之前 point composer 拿不到 aux 的 extent，界外被当成透明黑参与混
+# 合——multiply 会把那里涂黑，normal 会把它擦成透明。
+# (说明, 算子, 主图, 主图尺寸, aux, aux 尺寸, aux 偏移, 参数,
+#  [(x, y, 期望 RGB), ...], 容差)
+COVERAGE_CASES = [
+    ("应用图像 · 源层比主图小", "lb:apply-image", (10, 10, 128), (4, 4),
+     (200, 100, 50), (2, 2), (0, 0), dict(blend_mode="multiply"),
+     [(0, 0, (8, 4, 25)), (1, 1, (8, 4, 25)),
+      (2, 2, (10, 10, 128)), (3, 3, (10, 10, 128))], 2),
+    ("应用图像 · 源层带偏移", "lb:apply-image", (10, 10, 128), (4, 4),
+     (200, 100, 50), (2, 2), (1, 1), dict(blend_mode="normal"),
+     [(0, 0, (10, 10, 128)), (1, 1, (200, 100, 50)),
+      (2, 2, (200, 100, 50)), (3, 3, (10, 10, 128))], 2),
+    ("应用图像 · 源层完全在界外", "lb:apply-image", (10, 10, 128), (4, 4),
+     (200, 100, 50), (2, 2), (8, 8), dict(blend_mode="normal"),
+     [(0, 0, (10, 10, 128)), (3, 3, (10, 10, 128))], 2),
 ]
 
 
@@ -175,7 +214,7 @@ def main():
             os.remove(dst)
         run(dst, op, src, aux, **params)
 
-        px, depth = read_first_pixel(dst)
+        px, depth = read_pixel(dst)
         got = to8(px, depth)
         n = min(len(got), len(expect))
         ok = all(abs(got[k] - expect[k]) <= tol for k in range(n))
@@ -189,7 +228,36 @@ def main():
             "OK" if ok else "FAIL"))
 
     ok_n = len(CASES) - bad
-    print("\n%d/%d 通过" % (ok_n, len(CASES)))
+
+    # ---- 尺寸 / 位置覆盖 ----
+    for i, (label, op, cin, csize, caux, asize, aoff, params, probes,
+            tol) in enumerate(COVERAGE_CASES):
+        src = os.path.join(TMP, "cin%d.png" % i)
+        aux = os.path.join(TMP, "caux%d.png" % i)
+        dst = os.path.join(TMP, "cout%d.png" % i)
+        write_png(src, cin, csize[0], csize[1])
+        write_png(aux, caux, asize[0], asize[1])
+        if os.path.exists(dst):
+            os.remove(dst)
+        run(dst, op, src, aux, aux_x=aoff[0], aux_y=aoff[1], **params)
+
+        ok = True
+        shown = []
+        for px, py, expect in probes:
+            got = to8(*read_pixel(dst, px, py))
+            n = min(len(got), len(expect))
+            good = all(abs(got[k] - expect[k]) <= tol for k in range(n))
+            ok = ok and good
+            shown.append("%d,%d→%s%s" % (px, py,
+                                         " ".join("%.0f" % v for v in got),
+                                         "" if good else "✗"))
+        bad += 0 if ok else 1
+        if ok and not verbose:
+            continue
+        print("%-38s %-18s %-18s %s" % (label, "  ".join(shown), "", "OK" if ok else "FAIL"))
+
+    ok_n = len(CASES) + len(COVERAGE_CASES) - bad
+    print("\n%d/%d 通过" % (ok_n, len(CASES) + len(COVERAGE_CASES)))
     return 0 if bad == 0 else 1
 
 

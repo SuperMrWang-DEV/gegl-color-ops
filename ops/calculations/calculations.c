@@ -53,8 +53,19 @@ enum_start (lb_calc_blend)
   enum_value (CALC_BLEND_LUMINOSITY, "luminosity", "Luminosity")
 enum_end (LbCalcBlend)
 
-/* ---- 通道选择 / channel selection -------------------------------------- */
+/* ---- 通道选择 / channel selection --------------------------------------
+ * 枚举值直接当编号传给 lb_channel（它按 LB_CH_* 编号取通道），所以第 0 位
+ * 必须留给 Composite 占位——PS 的计算对话框没有 Composite 这一项，用
+ * enum_value_skip 占住编号但不进下拉列表。少了这个占位，整张表会整体错一
+ * 位：默认的 Luminance 实际取到蓝通道，Red 取到亮度。
+ * The enum values are passed straight to lb_channel, which indexes channels
+ * by LB_CH_* ids; slot 0 therefore has to stay reserved for Composite.
+ * Photoshop's Calculations dialog has no Composite entry, so enum_value_skip
+ * takes the slot without adding it to the drop-down. Without it the whole
+ * table shifts by one: the default Luminance actually reads Blue, Red reads
+ * Luminance. */
 enum_start (lb_calc_channel)
+  enum_value_skip (CALC_CH_COMPOSITE)
   enum_value (CALC_CH_RED,    "red",    "Red")
   enum_value (CALC_CH_GREEN,  "green",  "Green")
   enum_value (CALC_CH_BLUE,   "blue",   "Blue")
