@@ -179,7 +179,7 @@ gegl_op_class_init(GeglOpClass *klass)
     "name",            "lb:exposure",
     "title",           _("Exposure EV"),
     "description",     _("Replicate Photoshop Exposure Adjustment Layer (8-bit sRGB algorithm). Works on standard sRGB layers; the op pins itself to the perceptual (gamma) format, no linear-rgb node needed."),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang",
+    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Tone",
     "gimp:menu-label", _("Exposure EV"),
     NULL);
 }

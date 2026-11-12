@@ -1442,7 +1442,7 @@ gegl_op_class_init (GeglOpClass *klass)
                          "highlights back according to an edge-aware local "
                          "neighbourhood, with colour correction, midtone contrast "
                          "and black/white clipping."),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang",
+    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Tone",
     "gimp:menu-label", _("Shadows/Highlights"),
     NULL);
 }

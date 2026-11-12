@@ -5,7 +5,7 @@
 成一条 LUT，必须做空间域滤波。
 
 - GEGL id：`lb:shadows-highlights`
-- 菜单：`Colors → SuperMrWang → Shadows/Highlights`
+- 菜单：`Colors → SuperMrWang → Tone → Shadows/Highlights`
 - 类型：`GeglOperationFilter`（空间域，按 192 行一条带处理）
 - 参数（默认值照抄 PS）：阴影 `amount 35 / width 50 / radius 30`、高光 `0 / 50 / 30`、
   `color-correction 20`、`midtone-contrast 0`、`black-clip 0.01`、`white-clip 0.01`

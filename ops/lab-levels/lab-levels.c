@@ -281,7 +281,7 @@ gegl_op_class_init(GeglOpClass *klass)
     "title",           _("LAB Levels"),
     "categories",      "color",
     "description",     _("Independent levels adjustment for L,a,b channel, adjust tone and color separately"),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang",
+    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Tone",
     "gimp:menu-label", _("LAB Levels"),
     NULL);
 }

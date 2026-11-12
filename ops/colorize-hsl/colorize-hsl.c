@@ -171,7 +171,7 @@ gegl_op_class_init (GeglOpClass *klass)
     "description",     _("Photoshop's Colorize: keep the HSL lightness of each "
                          "pixel, replace hue and saturation with the slider "
                          "values."),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang",
+    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Color",
     "gimp:menu-label", _("Colorize PS"),
     NULL);
 }

@@ -4,7 +4,7 @@ PS「色阶」对话框的复刻：**复合 + R/G/B 四组**，每组都是
 「输入黑场 / 输入灰点 / 输入白场 + 输出黑场 / 输出白场」五个数，
 刻度 0–255，和 PS 的数字框一一对应。
 
-对应面板：`Colors → SuperMrWang → Levels PS`。
+对应面板：`Colors → SuperMrWang → Tone → Levels PS`。
 
 ## 模型
 

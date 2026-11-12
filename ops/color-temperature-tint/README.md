@@ -6,7 +6,7 @@ vibrance），Action Manager 里还是老的 `vibrance` 类，只是多带 `temp
 `tint` 两个整数键，所以这里把白平衡部分单独拆成一个算子，便于叠加到任何管线里。
 
 - GEGL id：`lb:color-temperature-tint`
-- 菜单：`Colors → SuperMrWang → Color Temperature & Tint PS`
+- 菜单：`Colors → SuperMrWang → Color → Color Temperature & Tint PS`
 - 类型：`GeglOperationPointFilter`（逐像素，无邻域）
 - 参数：`temperature`（−100…100，负冷正暖）、`tint`（−100…100，负绿正洋红）
 

@@ -5,7 +5,7 @@ PS 那侧只能手动跑脚本标定（见文末），所以这一支的数值�
 Python 参考实现**，而不是 PS 输出。
 
 - GEGL id：`lb:color-lookup`
-- 菜单：`Colors → SuperMrWang → Color Lookup`
+- 菜单：`Colors → SuperMrWang → Blend → Color Lookup`
 - 类型：`GeglOperationFilter`（按行扫描；LUT 在 `prepare()` 里加载并缓存）
 - 参数：`file`（.cube 路径）、`strength`（0…1，默认 1）、
   `interpolation`（`trilinear` 默认 / `tetrahedral`）

@@ -166,7 +166,7 @@ gegl_op_class_init (GeglOpClass *klass)
                          "by measurement: a 3rd-order polynomial in linear light "
                          "over a 17x17 parameter grid, clamped and baked into a "
                          "33^3 lookup table"),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang",
+    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Color",
     "gimp:menu-label", _("Color Temperature & Tint"),
     NULL);
 }

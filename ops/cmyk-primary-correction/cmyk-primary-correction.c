@@ -415,7 +415,7 @@ gegl_op_class_init(GeglOpClass *klass)
     "title",           _("CMYK Primary Correction"),
     "description",     _("PS Selective Color: 9 color ranges each keep their own C/M/Y/K "
                          "and all apply at once, absolute/relative mode"),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang",
+    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Color",
     "gimp:menu-label", _("CMYK Primary"),
     NULL);
 }

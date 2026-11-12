@@ -4,7 +4,7 @@
 PS 26.10 和本算子，像素级逐位对比见文末「验收」。
 
 - GEGL id：`lb:vibrance-ps`
-- 菜单：`Colors → SuperMrWang → Vibrance PS`
+- 菜单：`Colors → SuperMrWang → Color → Vibrance PS`
 - 类型：`GeglOperationPointFilter`（逐像素，无邻域）
 - 参数：`vibrance`（−100…100）、`protect_reds`、`compensate_lightness`、
   `color_vibrance`（2026 引擎开关）、`temperature`（−100…100）、`tint`（−100…100）

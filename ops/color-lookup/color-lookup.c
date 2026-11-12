@@ -628,7 +628,7 @@ gegl_op_class_init (GeglOpClass *klass)
     "name",            "lb:color-lookup",
     "title",           _("Color Lookup"),
     "description",     _("Colour lookup through an Adobe Cube LUT (.cube), the equivalent of the Photoshop Color Lookup adjustment layer. 1D shaper tables and trilinear / tetrahedral 3D sampling are supported."),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang",
+    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Blend",
     "gimp:menu-label", _("Color Lookup"),
     NULL);
 }

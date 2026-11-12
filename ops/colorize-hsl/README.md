@@ -5,7 +5,7 @@
 标定过程与数据见 `colorize-cal/RESULTS.md`。
 
 - GEGL id：`lb:colorize-hsl`
-- 菜单：`Colors → SuperMrWang → Colorize PS`
+- 菜单：`Colors → SuperMrWang → Color → Colorize PS`
 - 类型：`GeglOperationPointFilter`（逐像素，无邻域）
 - 参数：`hue`（0…360，绝对色相）、`saturation`（0…100，绝对值）、`lightness`（−100…100）
 

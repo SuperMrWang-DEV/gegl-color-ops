@@ -4,7 +4,7 @@
 同一张标定图分别过 PS 26.10 和本算子，逐像素对比见文末「验收」。
 
 - GEGL id：`lb:brightness-contrast-ps`
-- 菜单：`Colors → SuperMrWang → Brightness/Contrast PS`
+- 菜单：`Colors → SuperMrWang → Tone → Brightness/Contrast PS`
 - 类型：`GeglOperationPointFilter`（逐像素，无邻域）
 - 参数：`brightness`（−150…150）、`contrast`（−50…100）、`legacy`（默认关＝新版）
 

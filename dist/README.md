@@ -31,7 +31,8 @@ Artifacts 里下载。装了 Homebrew GIMP 的用户把这些 `.dylib` 放到
 平台后缀，`.so` 会被静默跳过；Linux 上仍是 `.so`）。build.sh 按平台输出正确
 后缀；CI 里同样跑加载 + 恒等渲染验证，绿灯才算数。
 
-放完**重启 GIMP**，滤镜出现在「图像 → 颜色 → SuperMrWang」下。
+放完**重启 GIMP**，滤镜出现在「图像 → 颜色 → SuperMrWang」下的
+Tone / Color / Blend / Mask 四个分组里。
 
 ## 可以只下一个
 

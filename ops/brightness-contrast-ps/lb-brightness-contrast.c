@@ -313,7 +313,7 @@ gegl_op_class_init (GeglOpClass *klass)
     "description",     _("Photoshop's Brightness/Contrast, both the modern "
                          "curve and the legacy behaviour (offset + clip, "
                          "contrast about 89/255), matched by measurement"),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang",
+    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Tone",
     "gimp:menu-label", _("Brightness/Contrast PS"),
     NULL);
 }

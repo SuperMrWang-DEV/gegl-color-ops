@@ -6,7 +6,7 @@
 
 ## 菜单位置
 
-`Colors → SuperMrWang → Color Grading`
+`Colors → SuperMrWang → Color → Color Grading`
 
 ## 参数（14 项，与 ACR 面板一一对应）
 

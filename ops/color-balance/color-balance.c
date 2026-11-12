@@ -636,7 +636,7 @@ gegl_op_class_init(GeglOpClass *klass)
                          "shadow slider, white point from a positive highlight "
                          "slider) plus a near-black toe, measured against "
                          "Photoshop. Pins itself to the perceptual format."),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang",
+    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Color",
     "gimp:menu-label", _("Color Balance"),
     NULL);
 }

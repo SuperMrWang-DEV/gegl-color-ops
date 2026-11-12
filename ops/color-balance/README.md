@@ -92,7 +92,7 @@ After installation, **restart GIMP** to activate the plugin.
 
 #### Method 1: Menu Bar (Recommended)
 
-Menu path: `Colors → SuperMrWang → Color Balance`
+Menu path: `Colors → SuperMrWang → Color → Color Balance`
 
 #### Method 2: GEGL Operation
 

@@ -33,7 +33,7 @@ After installation, **restart GIMP** to activate the plugin.
 
 #### Method 1: Menu Bar (Recommended)
 
-Menu path: `Colors → SuperMrWang → HSL 8 Bands`
+Menu path: `Colors → SuperMrWang → Color → HSL 8 Bands`
 
 #### Method 2: GEGL Operation
 
@@ -67,7 +67,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/
 
 #### 方法一：菜单打开（推荐）
 
-菜单路径：`颜色 → SuperMrWang → HSL 8 Bands`
+菜单路径：`颜色 → SuperMrWang → Color → HSL 8 Bands`
 
 #### 方法二：GEGL 操作打开
 

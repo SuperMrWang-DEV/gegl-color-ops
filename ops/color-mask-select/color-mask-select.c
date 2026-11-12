@@ -511,7 +511,7 @@ gegl_op_class_init(GeglOpClass *klass)
     "name",            "lb:color-mask-select",
     "title",           _("Color Mask Select"),
     "description",     _("Photoshop Color Range with color picker & red overlay"),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang",
+    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Mask",
     "gimp:menu-label", _("Mask by Color"),
     NULL);
 }

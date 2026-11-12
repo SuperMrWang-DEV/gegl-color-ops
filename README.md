@@ -50,30 +50,30 @@ gegl-color-ops/
 菜单名（`gimp:menu-label`）只留主名，**不带括号**——括号会把 GIMP 的菜单/选项面板撑宽。
 模型或来源这类信息写进 `description` 和本表最后一列，不塞进名字。
 
-| GEGL id | 菜单名 | 完整标题 | 类型 | 作用 |
-|---|---|---|---|---|
-| `lb:hue-saturation` | Hue/Saturation | Hue/Saturation | Point | HSL 色相/饱和度/明度，主控 + 六区间独立调 |
-| `lb:hsl-seven` | HSL 8 Bands | HSL 8 Bands | Point | 八段色相（含洋红）各调 H/S/L，ACR 风格；旧七段属性名不变 |
-| `lb:channel-mixer-plus` | Channel Mixer Plus | Channel Mixer Plus | Point | PS 通道混合器 + 通道 offset + 单色模式 |
-| `lb:channel-range-to-alpha` | Range → Alpha | Channel Range to Alpha | Point | 通道数值区间 → alpha（混合颜色带） |
-| `lb:cmyk-primary-correction` | CMYK Primary | CMYK Primary Correction | Point | 可选颜色：九组色域各存一份 C/M/Y/K，同时生效 |
-| `lb:color-balance` | Color Balance | Color Balance | Filter | PS 色彩平衡：三区间指数相乘合成一条逐通道曲线，单段残差 0.30 码 |
-| `lb:color-grading` | Color Grading | Color Grading | Point | ACR 颜色分级：阴影/中间调/高光/全局四轮盘 + 明度 + Blending/Balance，按亮度分带（模型对齐，未逐码标定） |
-| `lb:color-lookup` | Color Lookup | Color Lookup | Filter | PS 颜色查找：按 .cube 3D LUT（可带 1D shaper）查表，三线性 / 四面体可选 |
-| `lb:colorize-hsl` | Colorize PS | Colorize (Photoshop) | Point | PS 色相/饱和度「着色」实测复刻：扔掉原有 H/S，只留输入 L 的单色调，残差 0.03 码 |
-| `lb:color-mask-select` | Mask by Color | Color Mask Select | Point | PS 色彩范围：高光/阴影/中间调按「阈值 + 容差」实测复刻（平均 2.1 码），色系/自定色走容差窗 |
-| `lb:lab-levels` | LAB Levels | LAB Levels | Filter | LAB 三通道各自黑白场 + 伽马 |
-| `lb:levels-ps` | Levels PS | Levels PS | Point | PS 色阶：复合 + R/G/B 四组输入黑/灰/白场与输出黑白场，0–255 刻度；gamma 方向经公开实测点验证（154@0.46→84、200@1.646→220） |
-| `lb:exposure` | Exposure EV | Exposure EV | Filter | PS 曝光：EV、偏移、伽马 |
-| `lb:rgb-domain-grayscale` | Black & White | Black & White | Point | PS 黑白：六色权重转灰 + 可选着色 |
-| `lb:vibrance-hyper` | Natural Saturation | Natural Saturation | Point | LAB 自然饱和度：色度双曲蒙版 + 肤色保护窗 + 色域收敛不扭色相 |
-| `lb:vibrance-ps` | Vibrance PS | Vibrance (Photoshop) | Point | PS 自然饱和度实测复刻：ΔS = A(v)·S^p·(1−S)^q，叠红带与亮度项，16 位标定 |
-| `lb:brightness-contrast-ps` | Brightness/Contrast PS | Brightness/Contrast (Photoshop) | Point | PS 亮度/对比度实测复刻：新版两条曲线族查表 + 旧版闭式（pivot 89、b 夹 ±100） |
-| `lb:xyz-multiply` | Photo Filter | Photo Filter | Point | **即 PS 照片滤镜**（实测复刻）：滤镜色在 D50 XYZ 域正片叠底，密度 + 保留明度（W3C SetLum）；不保留明度档 ≤0.71 码 |
-| `lb:shadows-highlights` | Shadows/Highlights | Shadows/Highlights | Filter | PS 阴影/高光实测复刻：边缘感知邻域亮度决定提亮提多少，含色调宽度、颜色、中间调对比度、修剪黑白 |
-| `lb:color-temperature-tint` | Color Temperature & Tint | Color Temperature & Tint | Point | PS 2026「色彩与自然饱和度」里的色温 / 色调：冷↔暖、绿↔洋红，中性灰跟着偏色、黑白不动 |
-| `lb:apply-image` | Apply Image | Apply Image | Composer | PS 应用图像：aux 层按 26 种混合模式压到本层，可只作用单通道 |
-| `lb:calculations` | Calculations | Calculations | Composer | PS 计算：两路通道混合出灰/alpha 蒙版，双源可各自反相 |
+| GEGL id | 菜单名 | 完整标题 | 组 | 类型 | 作用 |
+|---|---|---|---|---|---|
+| `lb:hue-saturation` | Hue/Saturation | Hue/Saturation | Color | Point | HSL 色相/饱和度/明度，主控 + 六区间独立调 |
+| `lb:hsl-seven` | HSL 8 Bands | HSL 8 Bands | Color | Point | 八段色相（含洋红）各调 H/S/L，ACR 风格；旧七段属性名不变 |
+| `lb:channel-mixer-plus` | Channel Mixer Plus | Channel Mixer Plus | Blend | Point | PS 通道混合器 + 通道 offset + 单色模式 |
+| `lb:channel-range-to-alpha` | Range → Alpha | Channel Range to Alpha | Mask | Point | 通道数值区间 → alpha（混合颜色带） |
+| `lb:cmyk-primary-correction` | CMYK Primary | CMYK Primary Correction | Color | Point | 可选颜色：九组色域各存一份 C/M/Y/K，同时生效 |
+| `lb:color-balance` | Color Balance | Color Balance | Color | Filter | PS 色彩平衡：三区间指数相乘合成一条逐通道曲线，单段残差 0.30 码 |
+| `lb:color-grading` | Color Grading | Color Grading | Color | Point | ACR 颜色分级：阴影/中间调/高光/全局四轮盘 + 明度 + Blending/Balance，按亮度分带（模型对齐，未逐码标定） |
+| `lb:color-lookup` | Color Lookup | Color Lookup | Blend | Filter | PS 颜色查找：按 .cube 3D LUT（可带 1D shaper）查表，三线性 / 四面体可选 |
+| `lb:colorize-hsl` | Colorize PS | Colorize (Photoshop) | Color | Point | PS 色相/饱和度「着色」实测复刻：扔掉原有 H/S，只留输入 L 的单色调，残差 0.03 码 |
+| `lb:color-mask-select` | Mask by Color | Color Mask Select | Mask | Point | PS 色彩范围：高光/阴影/中间调按「阈值 + 容差」实测复刻（平均 2.1 码），色系/自定色走容差窗 |
+| `lb:lab-levels` | LAB Levels | LAB Levels | Tone | Filter | LAB 三通道各自黑白场 + 伽马 |
+| `lb:levels-ps` | Levels PS | Levels PS | Tone | Point | PS 色阶：复合 + R/G/B 四组输入黑/灰/白场与输出黑白场，0–255 刻度；gamma 方向经公开实测点验证（154@0.46→84、200@1.646→220） |
+| `lb:exposure` | Exposure EV | Exposure EV | Tone | Filter | PS 曝光：EV、偏移、伽马 |
+| `lb:rgb-domain-grayscale` | Black & White | Black & White | Tone | Point | PS 黑白：六色权重转灰 + 可选着色 |
+| `lb:vibrance-hyper` | Natural Saturation | Natural Saturation | Color | Point | LAB 自然饱和度：色度双曲蒙版 + 肤色保护窗 + 色域收敛不扭色相 |
+| `lb:vibrance-ps` | Vibrance PS | Vibrance (Photoshop) | Color | Point | PS 自然饱和度实测复刻：ΔS = A(v)·S^p·(1−S)^q，叠红带与亮度项，16 位标定 |
+| `lb:brightness-contrast-ps` | Brightness/Contrast PS | Brightness/Contrast (Photoshop) | Tone | Point | PS 亮度/对比度实测复刻：新版两条曲线族查表 + 旧版闭式（pivot 89、b 夹 ±100） |
+| `lb:xyz-multiply` | Photo Filter | Photo Filter | Blend | Point | **即 PS 照片滤镜**（实测复刻）：滤镜色在 D50 XYZ 域正片叠底，密度 + 保留明度（W3C SetLum）；不保留明度档 ≤0.71 码 |
+| `lb:shadows-highlights` | Shadows/Highlights | Shadows/Highlights | Tone | Filter | PS 阴影/高光实测复刻：边缘感知邻域亮度决定提亮提多少，含色调宽度、颜色、中间调对比度、修剪黑白 |
+| `lb:color-temperature-tint` | Color Temperature & Tint | Color Temperature & Tint | Color | Point | PS 2026「色彩与自然饱和度」里的色温 / 色调：冷↔暖、绿↔洋红，中性灰跟着偏色、黑白不动 |
+| `lb:apply-image` | Apply Image | Apply Image | Blend | Composer | PS 应用图像：aux 层按 26 种混合模式压到本层，可只作用单通道 |
+| `lb:calculations` | Calculations | Calculations | Blend | Composer | PS 计算：两路通道混合出灰/alpha 蒙版，双源可各自反相 |
 
 每个算子的算法说明、参数含义见 `ops/<算子名>/README.md`（原始文档）。
 
@@ -294,18 +294,39 @@ touch plugin/ps-blend/.disabled        # 停用 Python 插件
 18 个算子全部注册在同一个菜单目录下：
 
 ```
-图像 → 颜色 → SuperMrWang → <各算子>
+图像 → 颜色 → SuperMrWang → Tone / Color / Blend / Mask → <算子>
 ```
 
-对应源码里的两个 class key（每个 `ops/*/*.c` 都有，新增算子照抄即可）：
+22 个算子按「找算子时的念头」分四组，避免一个子菜单里平铺二十多项：
+
+| 组 | 想干什么 | 放什么 |
+|---|---|---|
+| `Tone` | 太暗 / 太灰 / 反差不对 | 色阶、LAB 色阶、曝光、亮度/对比度、阴影/高光、黑白 |
+| `Color` | 颜色不对 / 想加味道 | 色相饱和度、HSL 8 Bands、色彩平衡、颜色分级、色温色调、自然饱和度、Vibrance、可选颜色、着色 |
+| `Blend` | 要把两样东西合起来 | 应用图像、计算、通道混合器、照片滤镜、颜色查找 |
+| `Mask` | 要一个选区 | 色彩范围、通道区间 → alpha |
+
+对应源码里的两个 class key（每个 `ops/*/*.c` 都有）：
 
 ```c
-"gimp:menu-path",  "<Image>/Colors/SuperMrWang",
+"gimp:menu-path",  "<Image>/Colors/SuperMrWang/Tone",
 "gimp:menu-label", _("界面里显示的名字"),
 ```
 
-只想改目录名（比如换前缀）时，批量改这一处再 `./build.sh` 即可；
-`<Image>` 是图像菜单，`/Colors` 是"颜色"子菜单，`/SuperMrWang` 就是自建的分组。
+**别手改 22 个文件**。分组表在 `tools/set_menu_group.py` 里，改完跑一遍即可
+（按字节替换，仓库里 LF / CRLF 混用也不会把行尾搞乱）：
+
+```bash
+python tools/set_menu_group.py --check   # 先看现状与漏网
+python tools/set_menu_group.py           # 写入
+```
+
+`<Image>` 是图像菜单，`/Colors` 是"颜色"子菜单，`/SuperMrWang` 是自建分组，
+最后一节是组名。GIMP 3 的 `menu-path` 支持多级——内置就有
+`<Image>/Image/Mode/Color Profile`——组不存在时会自动建。
+
+改 `menu-path` **不影响 op id**：XCF 里已经用过的滤镜照旧能打开，
+只是菜单位置会变，需要重新 `./build.sh` 并重启 GIMP。
 
 ## 验证与回归（tools/）
 
@@ -322,6 +343,7 @@ python tools/check_color_grading.py         # 行为验证：颜色分级（恒�
 python tools/check_levels_ps.py             # 与 PS 实测点比对：色阶（含 gamma 方向与指数形式）
 python tools/check_xyz_multiply.py --all    # 数值回归：XYZ 正片叠底（36 组白点×叠加色×不透明度）
 python tools/normalize_headers.py           # 预览文件头/命名重排，加 --write 落盘
+python tools/set_menu_group.py --check      # 核对菜分组映射表与 ops 目录是否一一对应
 python tools/make_dist.py                   # 把 build/ 整理成 dist/（含 manifest + 校验和）
 ./tools/check-linux.sh                      # 在 Linux/WSL 里验证 .so 能加载并渲染（不开 GIMP）
 ```

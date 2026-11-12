@@ -29,7 +29,7 @@ After installation, **restart GIMP** to activate the plugin.
 
 #### Method 1: Menu Bar (Recommended)
 
-Menu path: `Colors → SuperMrWang → Black & White`
+Menu path: `Colors → SuperMrWang → Tone → Black & White`
 
 #### Method 2: GEGL Operation
 
@@ -63,7 +63,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/
 
 #### 方法一：菜单打开（推荐）
 
-菜单路径：`颜色 → SuperMrWang → Black & White`
+菜单路径：`颜色 → SuperMrWang → Tone → Black & White`
 
 #### 方法二：GEGL 操作打开
 

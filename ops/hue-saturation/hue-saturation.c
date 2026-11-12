@@ -384,7 +384,7 @@ gegl_op_class_init (GeglOpClass *klass)
                                  "categories",      "color:enhance",
                                  "description",     _("Adjust hue, saturation and lightness in HSL, "
                                                       "globally or per hue range (red/yellow/green/cyan/blue/magenta)."),
-                                 "gimp:menu-path",  "<Image>/Colors/SuperMrWang",
+                                 "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Color",
                                  "gimp:menu-label", _("Hue/Saturation"),
                                  NULL);
 }

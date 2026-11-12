@@ -1,6 +1,6 @@
 # Calculations · 计算
 
-> `lb:calculations` · 菜单 **颜色 → SuperMrWang → Calculations** · 双输入（input + aux）
+> `lb:calculations` · 菜单 **颜色 → SuperMrWang → Blend → Calculations** · 双输入（input + aux）
 
 对应 Photoshop 的 **图像 → 计算**：从两路各取一个通道（可以各自反相），按混合模式
 算出灰度结果，输出成灰蒙版或 alpha 蒙版。

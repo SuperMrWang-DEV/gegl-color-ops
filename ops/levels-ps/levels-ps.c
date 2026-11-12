@@ -272,7 +272,7 @@ gegl_op_class_init (GeglOpClass *klass)
     "name",            "lb:levels-ps",
     "title",           _("Levels PS"),
     "description",     _("Replicate Photoshop Levels (composite + per-channel input black/gamma/white and output black/white, 0-255 units). Evaluated in the 8-bit sRGB gamma domain, so the numbers agree with the PS dialog."),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang",
+    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Tone",
     "gimp:menu-label", _("Levels PS"),
     NULL);
 }

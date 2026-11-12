@@ -496,7 +496,7 @@ gegl_op_class_init (GeglOpClass *klass)
     "description",     _("Photoshop's Vibrance, matched by measurement: "
                          "dS = A(v)·S^p·(1-S)^q with tabulated red-band and "
                          "lightness terms, gamut-safe by construction"),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang",
+    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Color",
     "gimp:menu-label", _("Vibrance PS"),
     NULL);
 }
