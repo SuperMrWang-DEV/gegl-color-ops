@@ -60,7 +60,7 @@ gegl-color-ops/
 | `lb:color-balance` | Color Balance | Color Balance | Filter | PS 色彩平衡：三区间指数相乘合成一条逐通道曲线，单段残差 0.30 码 |
 | `lb:color-lookup` | Color Lookup | Color Lookup | Filter | PS 颜色查找：按 .cube 3D LUT（可带 1D shaper）查表，三线性 / 四面体可选 |
 | `lb:colorize-hsl` | Colorize PS | Colorize (Photoshop) | Point | PS 色相/饱和度「着色」实测复刻：扔掉原有 H/S，只留输入 L 的单色调，残差 0.03 码 |
-| `lb:color-mask-select` | Mask by Color | Color Mask Select | Point | PS 色彩范围：按选色 + 容差 + 羽化出蒙版 |
+| `lb:color-mask-select` | Mask by Color | Color Mask Select | Point | PS 色彩范围：高光/阴影/中间调按「阈值 + 容差」实测复刻（平均 2.1 码），色系/自定色走容差窗 |
 | `lb:lab-levels` | LAB Levels | LAB Levels | Filter | LAB 三通道各自黑白场 + 伽马 |
 | `lb:exposure` | Exposure EV | Exposure EV | Filter | PS 曝光：EV、偏移、伽马 |
 | `lb:rgb-domain-grayscale` | Black & White | Black & White | Point | PS 黑白：六色权重转灰 + 可选着色 |
@@ -315,6 +315,7 @@ python tools/check_gamma_domain.py          # 数值回归：感知（伽马）�
 python tools/check_blend.py                 # 数值回归：双输入算子的混合公式（16 用例）
 python tools/check_color_balance_fine.py    # 与 PS 实测比对：色彩平衡（--all 跑全部 609 档）
 python tools/check_color_balance_ps.py      # 与 PS 实测比对：色彩平衡（含保留明度）
+python tools/check_color_mask_select.py     # 与 PS 实测比对：色彩范围的高光/阴影/中间调曲线
 python tools/check_xyz_multiply.py --all    # 数值回归：XYZ 正片叠底（36 组白点×叠加色×不透明度）
 python tools/normalize_headers.py           # 预览文件头/命名重排，加 --write 落盘
 python tools/make_dist.py                   # 把 build/ 整理成 dist/（含 manifest + 校验和）

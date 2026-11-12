@@ -6,19 +6,42 @@
  * purpose    PS 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览
  *            PS Color Range: build a mask from a picked colour, a fuzziness
  *            radius and feathering, with an optional red overlay preview.
- * algorithm  统一模型：每个模式先把像素换算成「与目标的不匹配度」d ∈ [0,1]
- *            （0 = 精确匹配），色系预设按色环距离、高光/中间调/阴影按亮度、
- *            自定颜色按感知 RGB 距离；fuzziness 定容差窗 w = fz/200
- *            （fz=200 时窗宽到互补色/纯黑↔纯白），
- *            alpha = 1 - smoothstep(d, w*(1-feather), w)；色系预设再乘
- *            饱和度门限（灰阶无色相，不该被选中），可反相，可红色叠加预览
- *            Unified model: each mode maps a pixel to a mismatch d in [0,1]
- *            (0 = exact match) - hue-wheel distance for the colour presets,
- *            luminance for highlights/midtones/shadows, perceptual RGB
- *            distance for the picked colour. Fuzziness sets the window
- *            w = fz/100 and alpha = 1 - smoothstep(d, w*(1-feather), w).
- *            Colour presets are gated by saturation (grays have no hue);
- *            invertible, with an optional red overlay preview.
+ * algorithm  两条通路 / two paths:
+ *
+ *            1) 高光 / 阴影 / 中间调 —— 复刻 PS 实测行为（见下）。
+ *               PS 在这三个模式里有两个独立滑杆：「范围」是阈值，
+ *               「容差」把过渡带按比例推向亮度极端（纯黑 / 纯白）。
+ *               阈值本身是硬边界，容差才是柔边的来源。
+ *               Highlights / shadows / midtones follow the measured
+ *               Photoshop model: "range" is a hard threshold, "fuzziness"
+ *               widens the falloff band towards black or white.
+ *
+ *               亮度 = Rec.601 伽马域加权（0.299/0.587/0.114）。实测校准：
+ *               阈值 100 时 50% 交界落在 luma 100.9，阈值 150 时落在 149.0，
+ *               说明 PS 用的就是这套系数，不是 Lab L*。
+ *               Luminance is Rec.601 in the gamma domain (matches PS to ~1
+ *               code: limit 100 -> 50% at luma 100.9, limit 150 -> 149.0).
+ *
+ *               阴影   alpha = 1 - ramp((L - lim) / band), band = fz*(1-lim)
+ *               高光   alpha = 1 - ramp((lim - L) / band), band = fz*lim
+ *               中间调 alpha = (1 - ramp((low - L)/fz*low))
+ *                            * (1 - ramp((L - high)/fz*(1-high)))
+ *               其中 fz = fuzziness/200 ∈ [0,1]，band 走上限的「剩余量」，
+ *               所以 fz=1 时过渡带正好铺到纯黑/纯白。ramp(t) = smoothstep(t^1.2)：
+ *               实测 PS 的 50% 点落在带宽的 0.555 处，纯 smoothstep 是 0.5，
+ *               这个 1.2 次幂把中段误差从 10 码压到 1.7 码。
+ *               ramp(t) = smoothstep(t^1.2) because the measured 50% point
+ *               sits at 0.555 of the band, not 0.5.
+ *
+ *            2) 色系预设 / 自定颜色 —— 统一模型：先把像素换算成「与目标的不
+ *               匹配度」d ∈ [0,1]（0 = 精确匹配），色系按色环距离、自定色按
+ *               归一化 RGB 距离；fuzziness 定容差窗 w = fz（fz=1 时窗宽到
+ *               互补色 / 纯黑↔纯白），alpha = 1 - smoothstep(d, w*(1-feather), w)；
+ *               色系预设再乘饱和度门限（灰阶无色相，不该被选中）。
+ *               Colour presets and the picked colour keep the unified
+ *               mismatch-window model, gated by saturation for hue presets.
+ *
+ *            公共：可反相，可红色叠加预览 / invertible, optional red overlay.
  * type       GeglOperationPointFilter（逐像素 / per-pixel）
  * reference  Photoshop「色彩范围」(Color Range)
  *            Photoshop Color Range
@@ -60,6 +83,31 @@ property_boolean (preview_red_mask, _("Red Overlay Preview"), FALSE)
 property_double (fuzziness, _("Fuzziness"), 50.0)
     value_range (0.0, 200.0)
     ui_range (0.0, 200.0)
+    description (_("Width of the soft falloff. In the tonal modes this is "
+                   "Photoshop's Fuzziness: 0 gives a hard edge at the limit, "
+                   "200 (100 in Photoshop) reaches pure black / pure white"))
+
+/* 色调模式的「范围」滑杆，等价 PS 色彩范围里同名的两个框。
+ * 「阴影上限」同时是中间调的下限，语义按 PS 分开给，避免互相牵连。
+ * Tone-mode range sliders, one per Photoshop field. Kept separate so moving
+ * one does not silently move another mode's threshold. */
+property_int (shadows_limit, _("Shadows Upper Limit"), 64)
+    value_range (0, 255)
+    description (_("Luminance up to this value is fully selected in Shadows "
+                   "mode (Photoshop's Shadows range)"))
+
+property_int (highlights_limit, _("Highlights Lower Limit"), 192)
+    value_range (0, 255)
+    description (_("Luminance from this value up is fully selected in "
+                   "Highlights mode (Photoshop's Highlights range)"))
+
+property_int (midtone_low, _("Midtones Lower Limit"), 64)
+    value_range (0, 255)
+    description (_("Lower edge of the Midtones band"))
+
+property_int (midtone_high, _("Midtones Upper Limit"), 192)
+    value_range (0, 255)
+    description (_("Upper edge of the Midtones band"))
 
 property_double (feather, _("Feather"), 10.0)
     value_range (0.0, 100.0)
@@ -148,6 +196,100 @@ hue_dist(gfloat h, gfloat center)
   return d * 2.0f;
 }
 
+/* PS 色调模式的响应曲线：先 t^1.2 再 smoothstep。
+ * 实测（shadow 64/128/192 × 容差 25/50/75）50% 点落在带宽的 0.53–0.58，
+ * 恒定在 ~0.555，纯 smoothstep 的 0.5 会让中段偏亮最多 10 码。
+ * Photoshop's tonal response: smoothstep of t^1.2. The measured 50% point
+ * sits at 0.555 of the band (smoothstep alone would put it at 0.5). */
+static inline gfloat
+ps_tone_ramp (gfloat t)
+{
+  if (t <= 0.0f) return 0.0f;
+  if (t >= 1.0f) return 1.0f;
+  t = powf (t, 1.2f);
+  return t * t * (3.0f - 2.0f * t);
+}
+
+/* 亮度 → alpha 的查找表：色调模式只依赖亮度，参数在 process() 里是常量，
+ * 逐像素调用 powf 没必要。1024 级线性插值，量化误差 < 0.13 码。
+ * Luma -> alpha lookup table: the tonal modes depend on luminance only and
+ * the parameters are constant per process() call, so powf per pixel is waste.
+ * 1024 entries with linear interpolation, quantisation error < 0.13 code. */
+#define TONE_LUT 1024
+
+/* 亮度 → alpha 的唯一真源：查表和逐像素直算都走它。
+ * Single source of truth for luma -> alpha; both the LUT and the direct
+ * path call it. */
+static gfloat
+tone_alpha (gfloat         L,
+            MaskSelectType mode,
+            gfloat         low,
+            gfloat         high,
+            gfloat         fzv)
+{
+  switch (mode)
+  {
+    case MASK_BLACK:   /* 阴影：低于阈值全选，向上按剩余量铺开 */
+    {
+      gfloat band = fzv * (1.0f - low);
+      return (band <= 1e-5f) ? ((L <= low + 1e-4f) ? 1.0f : 0.0f)
+                             : 1.0f - ps_tone_ramp ((L - low) / band);
+    }
+    case MASK_WHITE:   /* 高光：高于阈值全选，向下按剩余量铺开 */
+    {
+      gfloat band = fzv * high;
+      return (band <= 1e-5f) ? ((L >= high - 1e-4f) ? 1.0f : 0.0f)
+                             : 1.0f - ps_tone_ramp ((high - L) / band);
+    }
+    default:           /* 中间调：两条边各自向外铺开，取交集 */
+    {
+      gfloat band_lo = fzv * low;
+      gfloat band_hi = fzv * (1.0f - high);
+      gfloat up = (band_lo <= 1e-5f) ? ((L >= low - 1e-4f) ? 1.0f : 0.0f)
+                                     : 1.0f - ps_tone_ramp ((low - L) / band_lo);
+      gfloat dn = (band_hi <= 1e-5f) ? ((L <= high + 1e-4f) ? 1.0f : 0.0f)
+                                     : 1.0f - ps_tone_ramp ((L - high) / band_hi);
+      return up * dn;
+    }
+  }
+}
+
+/* 有硬边界（容差 0，或阈值已经贴到极端）时不能走查表：1024 级线性插值会把
+ * 一个码宽的台阶抹成 30 多，实测对拍时正好压在台阶上就报 225 码的假误差。
+ * A hard edge must not go through the LUT: linear interpolation smears the
+ * one-code step across a sample, which showed up as a bogus 225-code error. */
+static gboolean
+tone_is_hard (MaskSelectType mode, gfloat low, gfloat high, gfloat fzv)
+{
+  if (mode == MASK_BLACK) return fzv * (1.0f - low) <= 1e-5f;
+  if (mode == MASK_WHITE) return fzv * high <= 1e-5f;
+  return fzv * low <= 1e-5f || fzv * (1.0f - high) <= 1e-5f;
+}
+
+static void
+build_tone_lut (gfloat         lut[TONE_LUT],
+                MaskSelectType mode,
+                gfloat         low,
+                gfloat         high,
+                gfloat         fzv)
+{
+  for (gint i = 0; i < TONE_LUT; i++)
+    lut[i] = CLAMP (tone_alpha ((gfloat) i / (TONE_LUT - 1),
+                                mode, low, high, fzv), 0.0f, 1.0f);
+}
+
+static inline gfloat
+tone_lookup (const gfloat lut[TONE_LUT], gfloat L)
+{
+  gfloat pos = CLAMP (L, 0.0f, 1.0f) * (TONE_LUT - 1);
+  gint   i   = (gint) pos;
+  gfloat fr  = pos - i;
+
+  if (G_UNLIKELY (i >= TONE_LUT - 1))
+    return lut[TONE_LUT - 1];
+  return lut[i] * (1.0f - fr) + lut[i + 1] * fr;
+}
+
 /* 感知（非线性）格式：公式按 8bit sRGB 伽马域推导，必须拿伽马值，否则 babl
  * 会喂线性光，数值与 PS 对不上
  * Perceptual (non-linear) format: the maths was derived in the 8-bit sRGB
@@ -181,6 +323,7 @@ process(GeglOperation       *op,
   gboolean preview_red;
   gboolean do_invert;
   gdouble fuzz, feather, sat_min;
+  gint sh_lim, hi_lim, mt_lo, mt_hi;
 
   g_object_get(G_OBJECT(op),
     "mask-mode", &mode,
@@ -189,6 +332,10 @@ process(GeglOperation       *op,
     "fuzziness", &fuzz,
     "feather", &feather,
     "saturation-min", &sat_min,
+    "shadows-limit", &sh_lim,
+    "highlights-limit", &hi_lim,
+    "midtone-low", &mt_lo,
+    "midtone-high", &mt_hi,
     "invert", &do_invert,
     NULL);
 
@@ -214,6 +361,38 @@ process(GeglOperation       *op,
   const gfloat sg_lo = st * 0.5f;
   const gfloat sg_hi = MAX(st, 0.05f);
 
+  /* 色调模式：阈值 + 容差 → 亮度响应查表。PS 的容差上限是 100，本算子沿用
+   * 统一的 0–200，所以这里除以 200 得到 0–1 的 fzv。
+   * Tonal modes: threshold + fuzziness -> luma response LUT. Photoshop caps
+   * its tonal fuzziness at 100; this op keeps the uniform 0-200 range, hence
+   * the /200 to normalise. */
+  const gboolean tone_mode = (mode == MASK_WHITE || mode == MASK_BLACK ||
+                              mode == MASK_GRAY);
+  gfloat   tone_lut[TONE_LUT];
+  gfloat   tone_low  = 0.0f;
+  gfloat   tone_high = 1.0f;
+  gboolean tone_hard = FALSE;
+
+  if (tone_mode)
+  {
+    if (mode == MASK_BLACK)
+      tone_low = (gfloat) sh_lim / 255.0f;       /* 阴影上限 */
+    else if (mode == MASK_WHITE)
+      tone_high = (gfloat) hi_lim / 255.0f;      /* 高光下限 */
+    else
+    {
+      tone_low  = (gfloat) mt_lo / 255.0f;
+      tone_high = (gfloat) mt_hi / 255.0f;
+      if (tone_low > tone_high)                  /* 拖反了也别出怪图 */
+      {
+        gfloat t = tone_low; tone_low = tone_high; tone_high = t;
+      }
+    }
+    tone_hard = tone_is_hard (mode, tone_low, tone_high, w);
+    if (!tone_hard)
+      build_tone_lut (tone_lut, mode, tone_low, tone_high, w);
+  }
+
   gint stride = roi->width * 4;
   gfloat *in_line  = g_new(gfloat, stride);
   gfloat *out_line = g_new(gfloat, stride);
@@ -234,60 +413,65 @@ process(GeglOperation       *op,
 
       rgb_to_hsv(r, g, b, &h, &s, &v);
 
-      /* d：与目标的不匹配度，0 = 精确匹配，1 = 完全不匹配
-       * d: mismatch to the target colour, 0 = exact match */
-      gfloat d = 1.0f;
-      gboolean hue_mode = FALSE;
-
-      switch (mode)
-      {
-        case MASK_RED:
-          d = hue_dist(h, 0.0f);
-          hue_mode = TRUE;
-          break;
-        case MASK_YELLOW:
-          d = hue_dist(h, 1.0f / 6.0f);
-          hue_mode = TRUE;
-          break;
-        case MASK_GREEN:
-          d = hue_dist(h, 2.0f / 6.0f);
-          hue_mode = TRUE;
-          break;
-        case MASK_CYAN:
-          d = hue_dist(h, 3.0f / 6.0f);
-          hue_mode = TRUE;
-          break;
-        case MASK_BLUE:
-          d = hue_dist(h, 4.0f / 6.0f);
-          hue_mode = TRUE;
-          break;
-        case MASK_MAGENTA:
-          d = hue_dist(h, 5.0f / 6.0f);
-          hue_mode = TRUE;
-          break;
-        case MASK_WHITE:
-          d = 1.0f - luminance(r, g, b);
-          break;
-        case MASK_BLACK:
-          d = luminance(r, g, b);
-          break;
-        case MASK_GRAY:
-          d = 2.0f * fabsf(luminance(r, g, b) - 0.5f);
-          break;
-        case MASK_CUSTOM:
-          d = color_dist(r, g, b, cr, cg, cb) / 1.7320508f;
-          break;
-        default:
-          d = 1.0f;
-      }
-
       gfloat alpha;
-      if (w >= 1.0f)
-        alpha = 1.0f;   /* fz=200：连精确互补色也选上 / fz=200 picks everything */
+
+      if (tone_mode)
+      {
+        /* 高光/阴影/中间调：纯亮度响应。羽化在这三个模式里没有对应概念
+         * （柔边由容差决定），所以不参与。
+         * Tonal modes: pure luma response. Feather has no counterpart here -
+         * in Photoshop the softness comes from fuzziness alone. */
+        gfloat lv = luminance (r, g, b);
+        alpha = tone_hard ? tone_alpha (lv, mode, tone_low, tone_high, w)
+                          : tone_lookup (tone_lut, lv);
+      }
       else
-        alpha = 1.0f - smooth_step(d, w_lo, w);
-      if (hue_mode)
-        alpha *= smooth_step(s, sg_lo, sg_hi);
+      {
+        /* d：与目标的不匹配度，0 = 精确匹配，1 = 完全不匹配
+         * d: mismatch to the target colour, 0 = exact match */
+        gfloat d = 1.0f;
+        gboolean hue_mode = FALSE;
+
+        switch (mode)
+        {
+          case MASK_RED:
+            d = hue_dist(h, 0.0f);
+            hue_mode = TRUE;
+            break;
+          case MASK_YELLOW:
+            d = hue_dist(h, 1.0f / 6.0f);
+            hue_mode = TRUE;
+            break;
+          case MASK_GREEN:
+            d = hue_dist(h, 2.0f / 6.0f);
+            hue_mode = TRUE;
+            break;
+          case MASK_CYAN:
+            d = hue_dist(h, 3.0f / 6.0f);
+            hue_mode = TRUE;
+            break;
+          case MASK_BLUE:
+            d = hue_dist(h, 4.0f / 6.0f);
+            hue_mode = TRUE;
+            break;
+          case MASK_MAGENTA:
+            d = hue_dist(h, 5.0f / 6.0f);
+            hue_mode = TRUE;
+            break;
+          case MASK_CUSTOM:
+            d = color_dist(r, g, b, cr, cg, cb) / 1.7320508f;
+            break;
+          default:
+            d = 1.0f;
+        }
+
+        if (w >= 1.0f)
+          alpha = 1.0f;   /* fz=200：连精确互补色也选上 / fz=200 picks everything */
+        else
+          alpha = 1.0f - smooth_step(d, w_lo, w);
+        if (hue_mode)
+          alpha *= smooth_step(s, sg_lo, sg_hi);
+      }
       alpha = CLAMP(alpha, 0.0f, 1.0f);
       if (do_invert)
         alpha = 1.0f - alpha;
