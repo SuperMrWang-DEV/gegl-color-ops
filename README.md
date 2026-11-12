@@ -5,7 +5,7 @@
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
 [![Operations](https://img.shields.io/badge/operations-22-brightgreen)](#算子清单)
 
-一组逆向实现的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **22 个**，统一 `lb:` 命名空间，
+一组逆向实现的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **23 个**，统一 `lb:` 命名空间，
 在 GIMP 里位于 **图像 → 颜色 → SuperMrWang**。
 
 每个算子都是单文件 C（含 `#ifdef GEGL_PROPERTIES` 段），直接编译成 GEGL 插件模块，
@@ -59,6 +59,7 @@ gegl-color-ops/
 | `lb:color-balance` | Color Balance | Color Balance | Color | Filter | PS 色彩平衡：三区间指数相乘合成一条逐通道曲线，单段残差 0.30 码 |
 | `lb:color-grading` | Color Grading | Color Grading | Color | Point | ACR 颜色分级：阴影/中间调/高光/全局四轮盘 + 明度 + Blending/Balance，按亮度分带（模型对齐，未逐码标定） |
 | `lb:color-lookup` | Color Lookup | Color Lookup | Blend | Filter | PS 颜色查找：按 .cube 3D LUT（可带 1D shaper）查表，三线性 / 四面体可选 |
+| `lb:match-color` | Match Color | Match Color | Color | Composer | PS 匹配颜色：Lab 统计迁移（Reinhard），亮度/颜色强度/渐隐/中和 |
 | `lb:colorize-hsl` | Colorize PS | Colorize (Photoshop) | Color | Point | PS 色相/饱和度「着色」实测复刻：扔掉原有 H/S，只留输入 L 的单色调，残差 0.03 码 |
 | `lb:color-mask-select` | Mask by Color | Color Mask Select | Mask | Point | PS 色彩范围：高光/阴影/中间调按「阈值 + 容差」实测复刻（平均 2.1 码），色系/自定色走容差窗 |
 | `lb:lab-levels` | LAB Levels | LAB Levels | Tone | Filter | LAB 三通道各自黑白场 + 伽马 |
@@ -237,7 +238,7 @@ python tools/i18n_blocks.py check                    # 与 git HEAD 比对代码
 
 ```bash
 cd gegl-color-ops
-./build.sh                 # 产物在 build/ 下，18 个 .dll/.so/.dylib
+./build.sh                 # 产物在 build/ 下，23 个 .dll/.so/.dylib
 ```
 
 脚本会自动探测 `gegl-0.4.pc`（先试 `D:/fastsoftware/GIMP 3/lib/pkgconfig` 等常见位置），也可手动指定：
@@ -312,13 +313,13 @@ touch plugin/ps-blend/.disabled        # 停用 Python 插件
 
 ## 在 GIMP 菜单位置
 
-18 个算子全部注册在同一个菜单目录下：
+23 个算子全部注册在同一个菜单目录下：
 
 ```
 图像 → 颜色 → SuperMrWang → Tone / Color / Blend / Mask → <算子>
 ```
 
-22 个算子按「找算子时的念头」分四组，避免一个子菜单里平铺二十多项：
+23 个算子按「找算子时的念头」分四组，避免一个子菜单里平铺二十多项：
 
 | 组 | 想干什么 | 放什么 |
 |---|---|---|

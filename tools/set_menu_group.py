@@ -29,7 +29,7 @@ GROUPS = {
               "shadows-highlights", "rgb-domain-grayscale"],
     "Color": ["hue-saturation", "hsl-seven", "color-balance", "color-grading",
               "color-temperature-tint", "vibrance-ps", "vibrance-hyper",
-              "cmyk-primary-correction", "colorize-hsl"],
+              "cmyk-primary-correction", "colorize-hsl", "match-color"],
     "Blend": ["apply-image", "calculations", "channel-mixer-plus",
               "xyz-multiply", "color-lookup"],
     "Mask":  ["color-mask-select", "channel-range-to-alpha"],
