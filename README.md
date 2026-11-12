@@ -3,10 +3,9 @@
 [![GIMP 3](https://img.shields.io/badge/GIMP-3.x-5C5543?logo=gimp&logoColor=white)](https://www.gimp.org/)
 [![GEGL 0.4](https://img.shields.io/badge/GEGL-0.4-2C4C6B)](https://gegl.org/)
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
-[![Operations](https://img.shields.io/badge/operations-18-brightgreen)](#算子清单)
+[![Operations](https://img.shields.io/badge/operations-22-brightgreen)](#算子清单)
 
-一组逆向实现的 GEGL 颜色算子（GIMP 3 的滤镜内核），当前启用 **18 个**（另有应用图像 / 计算 2 个暂时停用，
-源码保留），统一 `lb:` 命名空间，
+一组逆向实现的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **22 个**，统一 `lb:` 命名空间，
 在 GIMP 里位于 **图像 → 颜色 → SuperMrWang**。
 
 每个算子都是单文件 C（含 `#ifdef GEGL_PROPERTIES` 段），直接编译成 GEGL 插件模块，
@@ -77,8 +76,11 @@ gegl-color-ops/
 
 每个算子的算法说明、参数含义见 `ops/<算子名>/README.md`（原始文档）。
 
-**两个双输入算子**（`apply-image` / `calculations`，自 2026-11-11 起临时停用，见下文「临时停用与恢复」）用 `GeglOperationPointComposer`，
-除 `input` 外还有一个 `aux` pad：
+**两个双输入算子**（`apply-image` / `calculations`）除 `input` 外还有一个 `aux` pad。
+两者都是 composer，但基类不同：`apply-image` 要按源图层的大小和位置决定「这块有没有
+东西可混」，所以用 `GeglOperationComposer`（`process` 拿到的是 `GeglBuffer`，可以
+`gegl_buffer_get_extent(aux)`）；`calculations` 输出的是整幅蒙版，缺的源按黑算，
+用开销更小的 `GeglOperationPointComposer` 就够。
 
 - GIMP 里 aux 由滤镜对话框的输入选择器指定（GIMP 3 会打印 `aux_label` 的名字）；
   这类滤镜**只能合并应用**，不能做非破坏性 fx，是 GIMP 目前的限制。
@@ -286,8 +288,18 @@ touch plugin/ps-blend/.disabled        # 停用 Python 插件
   必须手动删掉那个 `.dll` / 插件目录，否则 GIMP 重启后照样加载。
 - 恢复：删掉 `.disabled`，重跑 `./build.sh && ./install.sh`（插件版再 `./install-plugin.sh`）。
 
-**当前状态（2026-11-11）**：`lb:apply-image`、`lb:calculations`、`plugin/ps-blend` 已临时停用，
-源码完好；移走的二进制放在 `backup/disabled-20261111-apply-calc/`（`backup/` 不进仓库）。
+**当前状态（2026-11-12）**：只有 `plugin/ps-blend` 还带 `.disabled`。两个 GEGL 算子已在
+修掉「源图层尺寸」与「通道编号」两个 bug 后恢复启用（见 `5d0e267`），旧二进制留在
+`backup/disabled-20261111-apply-calc/`（`backup/` 不进仓库）。
+
+插件停用期间照样可以跑它的回归——`tools/check_ps_blend_plugin.py` 直接按文件路径加载
+`plugin/ps-blend/ps-blend.py`，不依赖是否安装：
+
+```bash
+"D:/fastsoftware/GIMP 3/bin/gimp-console-3.2.exe" -i -c -d -f \
+    --batch-interpreter=python-fu-eval \
+    -b "exec(open(r'<repo>/tools/check_ps_blend_plugin.py').read())" --quit
+```
 
 ## 在 GIMP 菜单位置
 
