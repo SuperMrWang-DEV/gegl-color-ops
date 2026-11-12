@@ -70,9 +70,6 @@ property_double (r2, _("Highlight Max"), 255.0)
 
 #include "gegl-op.h"
 
-/* 最小间隔 1.0（0~255 量程）
- * Minimum step 1.0 on the 0~255 scale */
-#define MIN_STEP 1.0f
 /* LAB 值域常量
  * LAB value-range constants */
 #define LAB_L_MIN 0.0f
@@ -193,23 +190,27 @@ static void prepare(GeglOperation *operation)
     gegl_operation_set_format(operation, "output", perceptual_format(operation));
 }
 
-/* 统一矫正滑块顺序，防止区间反转
- * clamp the slider order so the ranges cannot invert */
+/* 统一矫正滑块顺序，防止区间反转；两滑块重合 = 硬边界，不强行掰开。
+ * 以前这里会把重合的滑块强制拉开 MIN_STEP，结果默认参数（0/0、255/255）
+ * 凭空多出一段 [0,1) 的羽化带，通道值为 0 的像素（纯黑、纯色的零通道）
+ * 不拖任何滑块就直接透明 —— 见 2026-11-12 的修复记录。
+ * Sort each pair so a range cannot invert; equal sliders mean a hard edge.
+ * Forcing overlapping sliders apart used to invent a phantom feather band
+ * at the defaults and made zero-valued pixels transparent without the user
+ * touching anything (fixed 2026-11-12). */
 /* l1=阴影下限 l2=阴影上限 r1=高光下限 r2=高光上限
  * l1=Shadow Min, l2=Shadow Max, r1=Highlight Min, r2=Highlight Max */
 static void clamp_slider_order(gdouble *l1, gdouble *l2, gdouble *r1, gdouble *r2)
 {
+    gdouble t;
+
     *l1 = CLAMP(*l1, 0.0, 255.0);
     *l2 = CLAMP(*l2, 0.0, 255.0);
     *r1 = CLAMP(*r1, 0.0, 255.0);
     *r2 = CLAMP(*r2, 0.0, 255.0);
 
-    if (*l2 <= *l1 + MIN_STEP)
-        *l2 = *l1 + MIN_STEP;
-    if (*r1 <= *l2 + MIN_STEP)
-        *r1 = *l2 + MIN_STEP;
-    if (*r2 <= *r1 + MIN_STEP)
-        *r2 = *r1 + MIN_STEP;
+    if (*l2 < *l1) { t = *l1; *l1 = *l2; *l2 = t; }
+    if (*r2 < *r1) { t = *r1; *r1 = *r2; *r2 = t; }
 }
 
 /* 把 LAB 值域映射到 0~255 的滑块区间
