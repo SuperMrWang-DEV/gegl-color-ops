@@ -72,7 +72,7 @@ gegl-color-ops/
 | `lb:shadows-highlights` | Shadows/Highlights | Shadows/Highlights | Tone | Filter | PS 阴影/高光实测复刻：边缘感知邻域亮度决定提亮提多少，含色调宽度、颜色、中间调对比度、修剪黑白 |
 | `lb:color-temperature-tint` | Color Temperature & Tint | Color Temperature & Tint | Color | Point | PS 2026「色彩与自然饱和度」里的色温 / 色调：冷↔暖、绿↔洋红，中性灰跟着偏色、黑白不动 |
 | `lb:apply-image` | Apply Image | Apply Image | Blend | Composer | PS 应用图像：aux 层按 26 种混合模式压到本层，可只作用单通道；源层没盖到和透明的地方原样输出 |
-| `lb:calculations` | Calculations | Calculations | Blend | Composer | PS 计算：两路通道混合出灰/alpha 蒙版，双源可各自反相 |
+| `lb:calculations` | Calculations | Calculations | Blend | Composer | PS 计算：两路通道混合出灰/alpha 蒙版，双源可各自反相；源 2 透明处蒙版为 0 |
 
 每个算子的算法说明、参数含义见 `ops/<算子名>/README.md`（原始文档）。
 
@@ -85,6 +85,10 @@ gegl-color-ops/
 `apply-image` 的「有没有东西可混」分两层看：extent 是粗筛（图层盖到哪），源像素的
 alpha 是细筛（这块地方真有像素吗）。抠图层的透明洞里 RGB 是 0，只看 extent 会把洞
 一起乘黑——就是「相交区域里本不该动的地方也变了」。
+
+`calculations` 输出的是蒙版，没有「原图」可保留，所以源 2 的 alpha 直接当覆盖率乘在
+结果上：透明处蒙版为 0（不选中），半透明柔边按比例衰减。两个算子的判据一致——源层
+没有像素的地方不让它的 RGB 0 参与运算，区别只在落点（保留原值 / 归零）。
 
 - GIMP 里 aux 由滤镜对话框的输入选择器指定（GIMP 3 会打印 `aux_label` 的名字）；
   这类滤镜**只能合并应用**，不能做非破坏性 fx，是 GIMP 目前的限制。

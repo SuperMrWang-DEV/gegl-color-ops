@@ -216,17 +216,29 @@ def _aux_with_hole():
 
 
 ALPHA_CASES = [
-    ("应用图像 · 源层透明处不作用", (10, 10, 128, 255),
+    ("应用图像 · 源层透明处不作用", "lb:apply-image", (10, 10, 128, 255),
      _aux_with_hole(), (4, 4), dict(blend_mode="normal"),
      [(1, 1, (200, 100, 50)), (0, 0, (10, 10, 128)),
       (2, 2, (10, 10, 128))], 2),
-    ("应用图像 · 透明洞不被 multiply 涂黑", (128, 128, 128, 255),
+    ("应用图像 · 透明洞不被 multiply 涂黑", "lb:apply-image", (128, 128, 128, 255),
      _aux_with_hole(), (4, 4), dict(blend_mode="multiply"),
      [(1, 1, (100, 50, 25)), (0, 0, (128, 128, 128)),
       (2, 2, (128, 128, 128))], 2),
-    ("应用图像 · 半透明源按覆盖率混合", (128, 128, 128, 255),
+    ("应用图像 · 半透明源按覆盖率混合", "lb:apply-image", (128, 128, 128, 255),
      [(200, 100, 50, 128)] * 16, (4, 4), dict(blend_mode="normal"),
      [(0, 0, (164, 114, 89))], 2),
+
+    # 计算输出的是蒙版，没有「原图」可保留：源 2 透明处直接给 0（不选中），
+    # 半透明按覆盖率衰减。计算默认通道是 Luminance。
+    # Calculations outputs a mask with no target to preserve, so source-2
+    # holes come out 0 (not selected) and half-transparent pixels scale down.
+    ("计算 · 源层透明处蒙版为 0", "lb:calculations", (128, 128, 128, 255),
+     _aux_with_hole(), (4, 4), dict(blend_mode="multiply"),
+     [(1, 1, (59, 59, 59)), (0, 0, (0, 0, 0)),
+      (2, 2, (0, 0, 0))], 2),
+    ("计算 · 半透明源按覆盖率衰减", "lb:calculations", (128, 128, 128, 255),
+     [(200, 100, 50, 128)] * 16, (4, 4), dict(blend_mode="multiply"),
+     [(0, 0, (30, 30, 30))], 2),
 ]
 
 
@@ -294,7 +306,8 @@ def main():
     ok_n = len(CASES) + len(COVERAGE_CASES) - bad
 
     # ---- 源层透明像素 ----
-    for i, (label, cin, auxpx, size, params, probes, tol) in enumerate(ALPHA_CASES):
+    for i, (label, op, cin, auxpx, size, params, probes,
+            tol) in enumerate(ALPHA_CASES):
         src = os.path.join(TMP, "ain%d.png" % i)
         aux = os.path.join(TMP, "aaux%d.png" % i)
         dst = os.path.join(TMP, "aout%d.png" % i)
@@ -302,7 +315,7 @@ def main():
         write_png_pixels(aux, auxpx, size[0], size[1])
         if os.path.exists(dst):
             os.remove(dst)
-        run(dst, "lb:apply-image", src, aux, **params)
+        run(dst, op, src, aux, **params)
 
         ok = True
         shown = []

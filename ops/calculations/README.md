@@ -49,6 +49,14 @@ alpha 蒙版代替：把它当作图层的不透明度，或转成选区。PS �
   下拉列表里），这样 `Red/Green/Blue/Luminance/Alpha` 的编号才和
   `common/blend.h` 的 `LB_CH_*` 对得上。少这个占位会让整张表错一位——默认的
   Luminance 实际取到蓝通道。
+- **源 2 的透明像素不参与计算**：源层是抠图、文字层或带透明背景的图层时，
+  透明区的 RGB 是 0，当作「黑数据」算进去会把蒙版算成一片黑。这里用源 2 的
+  alpha 当覆盖率：alpha = 0 处蒙版输出 0（不选中），半透明柔边按比例衰减。
+  源 2 通道选 Alpha 时，那个 alpha 是数据不是覆盖率，不重复相乘。
+  Transparent pixels of source 2 take no part: on a cut-out the holes hold
+  RGB 0, which would compute a solid black mask. Source 2's alpha is used as
+  coverage — 0 gives a 0 mask (not selected), and soft mattes fade. When
+  source 2's channel *is* alpha, that value is data, not coverage.
 - **源层比主图小 / 带偏移**：aux 没覆盖到的像素按黑色参与计算（蒙版那里就是
   0）。PS 的计算要求两个来源同尺寸，这里不强制，缺的部分当黑。
 
@@ -56,5 +64,6 @@ alpha 蒙版代替：把它当作图层的不透明度，或转成选区。PS �
 
 ```bash
 ./build.sh
-python tools/check_blend.py     # 含 7 个计算用例：叠底出灰、反相源 2、alpha 模式、四种通道取值
+python tools/check_blend.py     # 含 9 个计算用例：叠底出灰、反相源 2、alpha 模式、四种通道取值、
+                               # 源层透明与半透明覆盖率
 ```

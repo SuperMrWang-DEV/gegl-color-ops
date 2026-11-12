@@ -7,9 +7,12 @@
  *            PS Calculations: blend two channels with a blend mode and output
  *            a grey image or an alpha mask.
  * algorithm  主输入取 source1 通道、aux 取 source2 通道，按混合模式算出标量，
- *            再按 mask × opacity 混回 source1
+ *            再按 mask × opacity 混回 source1；source2 的 alpha 当覆盖率，源层
+ *            没有像素的地方给出 0（不选中）
  *            Take a channel from the input and one from aux, blend the two
  *            scalars, then mix the result back into source1 by mask x opacity.
+ *            Source 2's alpha acts as coverage, so where the source layer has
+ *            no pixels the mask comes out 0.
  * type       GeglOperationPointComposer（input + aux 双输入 / two inputs）
  * reference  Photoshop「图像 → 计算」/ Image > Calculations
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
@@ -215,10 +218,24 @@ process (GeglOperation       *op,
       const gfloat blended = lb_clamp01 (lb_blend_separable (blend, v1, v2));
       const gfloat grey    = lb_mix (v1, blended, mask, opacity);
 
-      out[n * 4 + 0] = grey;
-      out[n * 4 + 1] = grey;
-      out[n * 4 + 2] = grey;
-      out[n * 4 + 3] = (omode == CALC_OUT_MASK_ALPHA) ? grey : 1.0f;
+      /* 源 2 的透明像素没有数据可算：源层是抠图 / 文字层时透明区的 RGB 是 0，
+       * 让它们以「黑」的身份参与会把蒙版算成一片黑（和 apply-image 之前那个
+       * bug 同源）。这里把源 2 的 alpha 当覆盖率乘在结果上：alpha = 0 处蒙版
+       * 为 0（不选中），半透明柔边按比例衰减，不会出现硬台阶。
+       * 源 2 通道本身就是 alpha 时，alpha 是数据而不是覆盖率，不能再乘一次。
+       * Transparent pixels of source 2 carry no data: on a cut-out the holes
+       * are RGB 0, and feeding them in as "black" would compute a solid black
+       * mask. Source 2's alpha is used as coverage instead, so the holes come
+       * out 0 (not selected) and soft matte edges fade without a hard step.
+       * When source 2's channel is alpha itself that value is data, not
+       * coverage, and must not be applied twice. */
+      const gfloat cov = (ch2 == CALC_CH_ALPHA) ? 1.0f : sa;
+      const gfloat v   = grey * cov;
+
+      out[n * 4 + 0] = v;
+      out[n * 4 + 1] = v;
+      out[n * 4 + 2] = v;
+      out[n * 4 + 3] = (omode == CALC_OUT_MASK_ALPHA) ? v : 1.0f;
     }
 
   return TRUE;

@@ -355,5 +355,11 @@ def calculations(inb, auxb, maskb, n, ch1, inv1, ch2, inv2, blend, opacity,
         else:
             blended = _clamp01(_sep(blend, v1, v2))
         grey = v1 + (blended - v1) * k
+        # 源 2 的透明像素没有数据：alpha 当覆盖率，0 → 蒙版 0，柔边按比例衰减。
+        # 源 2 通道就是 alpha 时它是数据不是覆盖率。
+        # Transparent source-2 pixels carry no data; alpha is coverage (0 ->
+        # mask 0, soft edges fade). Alpha as the channel is data, not coverage.
+        if ch2 != CH_ALPHA:
+            grey *= auxb[j + 3]
         out[j], out[j + 1], out[j + 2], out[j + 3] = grey, grey, grey, 1.0
     return out

@@ -218,6 +218,15 @@ psblend_calc (const float *in, const float *aux, const float *mask,
         blended = lb_clamp01 (ps_scalar (mode, v1, v2));
       grey    = v1 + (blended - v1) * k;
 
+      /* 源 2 的透明像素没有数据：alpha 当覆盖率（0 → 蒙版 0，柔边按比例
+       * 衰减）；源 2 通道就是 alpha 时它是数据不是覆盖率。与 GEGL 版
+       * lb:calculations 一致。
+       * Transparent source-2 pixels carry no data; alpha acts as coverage.
+       * With alpha as the channel it is data, not coverage. Matches the
+       * GEGL op. */
+      if (ch2 != 4)
+        grey *= ps_ch (4, aux[j], aux[j + 1], aux[j + 2], aux[j + 3]);
+
       out[j] = grey; out[j + 1] = grey; out[j + 2] = grey; out[j + 3] = 1.0f;
     }
 }
