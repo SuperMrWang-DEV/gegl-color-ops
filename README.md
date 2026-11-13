@@ -208,8 +208,9 @@ babl 的 `RGBA float` 是**线性光**；按 8bit sRGB 伽马域逆向的公式�
 babl 会把伽马值转成线性值再喂进来，结果整体偏移（黑白纯红 red=40 应为 102，
 实测 170；曝光 +1EV 只顶 0.45 档）。曾把 8 个算子钉成线性光，2026-11-10 全部
 改回感知格式（`R~G~B~A float`，随图像色彩空间走，`hue-saturation` 一直是对的）。
-例外：`vibrance-hyper`、`lab-levels` 内部自己做线性 RGB→XYZ，天然需要线性光，
-保留 `RGBA float`。
+例外：`vibrance-hyper` 内部自己做线性 RGB→XYZ，天然需要线性光，
+保留 `RGBA float`；`lab-levels` 则直接在 babl `CIE Lab alpha float`
+（D50 白点，与 GIMP 原生 Lab 工具一致）上逐通道工作，也不属感知/线性之争。
 
 **8. 所有注释中英双语**
 

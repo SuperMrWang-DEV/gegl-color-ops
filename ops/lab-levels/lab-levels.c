@@ -6,13 +6,15 @@
  * purpose    LAB 三通道各自设输入 / 输出黑白场与伽马
  *            Independent input/output black-white points and gamma for each
  *            LAB channel.
- * algorithm  L 做标准 levels 映射；a/b 以 0 为中性轴分负/正半轴各自映射，
- *            gamma 绕中性轴转动（灰白像素不被动）；黑白场交叉自动交换，
- *            输出反向（负片）可用；alpha≤0 像素原样透传
- *            Levels per L/a/b channel; a and b pivot gamma around the
- *            neutral axis 0 (neutral pixels stay untouched), crossed
- *            black/white points are swapped, inverted output works and
- *            fully transparent pixels pass through unchanged.
+ * algorithm  在 babl "CIE Lab alpha float"（D50 白点）上逐通道 levels：
+ *            L 做标准映射；a/b 以 0 为中性轴分负/正半轴各自映射，gamma
+ *            绕中性轴转动（灰白像素不被动）；黑白场交叉自动交换，输出
+ *            反向（负片）可用；alpha≤0 像素原样透传；levels 查 LUT
+ *            Levels per L/a/b channel on babl CIE Lab (D50); a and b
+ *            pivot gamma around the neutral axis 0 (neutral pixels stay
+ *            untouched), crossed black/white points are swapped, inverted
+ *            output works, fully transparent pixels pass through, and the
+ *            levels maps are table-driven.
  * type       GeglOperationFilter（需整块区域 / whole-region）
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
  *            GPL-3.0-or-later, see LICENSE at the project root
@@ -96,66 +98,17 @@ property_double (b_out_white, _("b 输出上限"), 127.0)
 #define GEGL_OP_C_SOURCE lab-levels.c
 #include "gegl-op.h"
 
+#include <math.h>
+
 #define FLOAT_EPS    1e-12f
+#define LUT_N        4096
 
-static inline gfloat sanitize_f(gfloat v)
-{
-  if (!isfinite(v))
-    return 0.0f;
-  return v;
-}
-
-static inline gfloat lab_forward_func(gfloat t)
-{
-  t = MAX(t, FLOAT_EPS);
-  if (t > 0.008856f)
-    return cbrtf(t);
-  else
-    return 7.787f * t + 16.0f / 116.0f;
-}
-
-static inline gfloat lab_inverse_func(gfloat t)
-{
-  if (t > 0.206893f)
-    return t * t * t;
-  else
-    return (t - 16.0f / 116.0f) / 7.787f;
-}
-
-static void rgb_to_lab (gfloat r, gfloat g, gfloat b, gfloat *L, gfloat *a, gfloat *b_out)
-{
-  r = sanitize_f(r);
-  g = sanitize_f(g);
-  b = sanitize_f(b);
-
-  gfloat x, y, z;
-  x = r * 0.4124564f + g * 0.3575761f + b * 0.1804375f;
-  y = r * 0.2126729f + g * 0.7151522f + b * 0.0721750f;
-  z = r * 0.0193339f + g * 0.1191920f + b * 0.9503041f;
-
-  gfloat fx = lab_forward_func(x / 0.95047f);
-  gfloat fy = lab_forward_func(y / 1.00000f);
-  gfloat fz = lab_forward_func(z / 1.08883f);
-
-  *L = 116.0f * fy - 16.0f;
-  *a = 500.0f * (fx - fy);
-  *b_out = 200.0f * (fy - fz);
-}
-
-static void lab_to_rgb (gfloat L, gfloat a, gfloat b, gfloat *r, gfloat *g, gfloat *b_out)
-{
-  gfloat fy = (L + 16.0f) / 116.0f;
-  gfloat fx = fy + a / 500.0f;
-  gfloat fz = fy - b / 200.0f;
-
-  gfloat x = lab_inverse_func(fx) * 0.95047f;
-  gfloat y = lab_inverse_func(fy) * 1.00000f;
-  gfloat z = lab_inverse_func(fz) * 1.08883f;
-
-  *r  = x *  3.2404542f + y * -1.5371385f + z * -0.4985314f;
-  *g  = x * -0.9692660f + y *  1.8760108f + z *  0.0415560f;
-  *b_out = x *  0.0556434f + y * -0.2040259f + z *  1.0572252f;
-}
+/* ===========================================================================
+ * 色彩空间：直接在 babl 的 "CIE Lab alpha float"（D50 白点）上工作，
+ * RGB↔Lab 交给 babl——与 GIMP 原生 Lab 工具（指针/曲线）及 lb:match-color
+ * 使用同一套 Lab 数值口径，算子内部不再自带转换。
+ * 工作在 Lab 域等价于在感知域做 levels，不依赖“线性光”前提。
+ * =========================================================================== */
 
 static inline gfloat levels_channel(gfloat val,
                                     gfloat in_black,
@@ -221,13 +174,64 @@ static inline gfloat levels_channel_signed(gfloat val,
     return CLAMP(val, MIN(out_lo, out_hi), MAX(out_lo, out_hi));
 }
 
+/* ---- LUT：levels 是 1D 单调映射，逐像素 powf 换成查表 + 线性插值 ----
+ * 每次 process 重建（几千次 powf，微秒级），确定性重建保证跨块一致。 */
+
+static void
+lut_build(gfloat        *lut_L,
+          gfloat        *lut_a_neg, gfloat *lut_a_pos,
+          gfloat        *lut_b_neg, gfloat *lut_b_pos,
+          gdouble L_in_black,  gdouble L_in_white,  gdouble L_gamma,
+          gdouble L_out_black, gdouble L_out_white,
+          gdouble a_in_black,  gdouble a_in_white,  gdouble a_gamma,
+          gdouble a_out_black, gdouble a_out_white,
+          gdouble b_in_black,  gdouble b_in_white,  gdouble b_gamma,
+          gdouble b_out_black, gdouble b_out_white)
+{
+  for (gint i = 0; i < LUT_N; i++)
+  {
+    gfloat vL = (gfloat) i * 100.0f / (gfloat) (LUT_N - 1);
+    lut_L[i] = levels_channel(vL,
+                (gfloat) L_in_black, (gfloat) L_in_white, (gfloat) L_gamma,
+                (gfloat) L_out_black, (gfloat) L_out_white);
+
+    /* a/b 的绕轴映射在 0 处导数不连续（拐点），必须负/正半轴各建一表，
+     * 插值永不跨蝓 0——否则中性附近的微小输入会被插值过冲放大 */
+    gfloat vN = -128.0f + (gfloat) i * 128.0f / (gfloat) (LUT_N - 1);
+    gfloat vP = (gfloat) i * 127.0f / (gfloat) (LUT_N - 1);
+    lut_a_neg[i] = levels_channel_signed(vN,
+                (gfloat) a_in_black, (gfloat) a_in_white, (gfloat) a_gamma,
+                (gfloat) a_out_black, (gfloat) a_out_white);
+    lut_a_pos[i] = levels_channel_signed(vP,
+                (gfloat) a_in_black, (gfloat) a_in_white, (gfloat) a_gamma,
+                (gfloat) a_out_black, (gfloat) a_out_white);
+    lut_b_neg[i] = levels_channel_signed(vN,
+                (gfloat) b_in_black, (gfloat) b_in_white, (gfloat) b_gamma,
+                (gfloat) b_out_black, (gfloat) b_out_white);
+    lut_b_pos[i] = levels_channel_signed(vP,
+                (gfloat) b_in_black, (gfloat) b_in_white, (gfloat) b_gamma,
+                (gfloat) b_out_black, (gfloat) b_out_white);
+  }
+}
+
+static inline gfloat
+lut_sample(const gfloat *lut, gfloat v, gfloat lo, gfloat hi)
+{
+  gfloat t = (CLAMP(v, lo, hi) - lo) * (gfloat) (LUT_N - 1) / (hi - lo);
+  gint i0 = (gint) t;
+  if (i0 >= LUT_N - 1)
+    return lut[LUT_N - 1];
+  gfloat f = t - (gfloat) i0;
+  return lut[i0] * (1.0f - f) + lut[i0 + 1] * f;
+}
+
 static void
 prepare(GeglOperation *op)
 {
-  /* 固定格式，与 hsl-seven 统一，不再动态继承输入色彩空间
-   * Fixed format like hsl-seven: no dynamic colour-space inheritance. */
-  gegl_operation_set_format(op, "input",  babl_format("RGBA float"));
-  gegl_operation_set_format(op, "output", babl_format("RGBA float"));
+  /* 直接声明 Lab 格式：babl 负责输入到 Lab、输出回 RGB 的转换，
+   * 算子逐通道处理 L/a/b（D50 白点，与 GIMP 原生 Lab 工具一致）。 */
+  gegl_operation_set_format(op, "input",  babl_format("CIE Lab alpha float"));
+  gegl_operation_set_format(op, "output", babl_format("CIE Lab alpha float"));
 }
 
 static gboolean
@@ -266,6 +270,18 @@ process(GeglOperation       *op,
     "b-out-white",&b_out_white,
     NULL);
 
+  const Babl *fmt = babl_format("CIE Lab alpha float");
+
+  gfloat *lut_L      = g_new(gfloat, LUT_N);
+  gfloat *lut_a_neg  = g_new(gfloat, LUT_N);
+  gfloat *lut_a_pos  = g_new(gfloat, LUT_N);
+  gfloat *lut_b_neg  = g_new(gfloat, LUT_N);
+  gfloat *lut_b_pos  = g_new(gfloat, LUT_N);
+  lut_build(lut_L, lut_a_neg, lut_a_pos, lut_b_neg, lut_b_pos,
+            L_in_black, L_in_white, L_gamma, L_out_black, L_out_white,
+            a_in_black, a_in_white, a_gamma, a_out_black, a_out_white,
+            b_in_black, b_in_white, b_gamma, b_out_black, b_out_white);
+
   gint stride = roi->width * 4;
   gfloat *in_line  = g_new(gfloat, stride);
   gfloat *out_line = g_new(gfloat, stride);
@@ -274,54 +290,48 @@ process(GeglOperation       *op,
   {
     GeglRectangle row_rect = { roi->x, roi->y + y, roi->width, 1 };
 
-    gegl_buffer_get(in_buf, &row_rect, 1.0f, babl_format("RGBA float"),
+    gegl_buffer_get(in_buf, &row_rect, 1.0f, fmt,
                      in_line, GEGL_AUTO_ROWSTRIDE, GEGL_ABYSS_NONE);
 
     for (gint x = 0; x < roi->width; x++)
     {
       gint px = x * 4;
-      gfloat r = in_line[px + 0];
-      gfloat g = in_line[px + 1];
-      gfloat b = in_line[px + 2];
-      gfloat a = in_line[px + 3];
+      gfloat L  = in_line[px + 0];
+      gfloat ach = in_line[px + 1];
+      gfloat bb  = in_line[px + 2];
+      gfloat a   = in_line[px + 3];
 
-      /* 透明像素原样透传（透明处 RGB 无意义，不做无谓的映射） */
+      /* 透明像素原样透传（透明处色彩无意义，不做无谓的映射） */
       if (a <= 0.0f)
       {
-        out_line[px + 0] = sanitize_f(r);
-        out_line[px + 1] = sanitize_f(g);
-        out_line[px + 2] = sanitize_f(b);
+        out_line[px + 0] = L;
+        out_line[px + 1] = ach;
+        out_line[px + 2] = bb;
         out_line[px + 3] = 0.0f;
         continue;
       }
 
-      gfloat L, ach, bb;
-      rgb_to_lab(r,g,b,&L,&ach,&bb);
-
-      L  = levels_channel(L,
-        (gfloat)L_in_black,(gfloat)L_in_white,(gfloat)L_gamma,(gfloat)L_out_black,(gfloat)L_out_white);
-
-      ach  = levels_channel_signed(ach,
-        (gfloat)a_in_black,(gfloat)a_in_white,(gfloat)a_gamma,(gfloat)a_out_black,(gfloat)a_out_white);
-
-      bb = levels_channel_signed(bb,
-        (gfloat)b_in_black,(gfloat)b_in_white,(gfloat)b_gamma,(gfloat)b_out_black,(gfloat)b_out_white);
-
-      gfloat nr, ng, nb;
-      lab_to_rgb(L,ach,bb,&nr,&ng,&nb);
-
-      out_line[px + 0] = CLAMP(sanitize_f(nr), 0.0f, 1.0f);
-      out_line[px + 1] = CLAMP(sanitize_f(ng), 0.0f, 1.0f);
-      out_line[px + 2] = CLAMP(sanitize_f(nb), 0.0f, 1.0f);
-      out_line[px + 3] = sanitize_f(a);
+      out_line[px + 0] = lut_sample(lut_L, L, 0.0f, 100.0f);
+      out_line[px + 1] = (ach < 0.0f)
+          ? lut_sample(lut_a_neg, ach, -128.0f, 0.0f)
+          : lut_sample(lut_a_pos, ach, 0.0f, 127.0f);
+      out_line[px + 2] = (bb < 0.0f)
+          ? lut_sample(lut_b_neg, bb, -128.0f, 0.0f)
+          : lut_sample(lut_b_pos, bb, 0.0f, 127.0f);
+      out_line[px + 3] = a;
     }
 
-    gegl_buffer_set(out_buf, &row_rect, 0, babl_format("RGBA float"),
+    gegl_buffer_set(out_buf, &row_rect, 0, fmt,
                      out_line, GEGL_AUTO_ROWSTRIDE);
   }
 
   g_free(in_line);
   g_free(out_line);
+  g_free(lut_L);
+  g_free(lut_a_neg);
+  g_free(lut_a_pos);
+  g_free(lut_b_neg);
+  g_free(lut_b_pos);
   return TRUE;
 }
 
