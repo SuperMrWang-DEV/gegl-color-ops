@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""lb:gray-to-component 演示图：同一张灰度渐变，8 个模式各自的编码输出。
+"""lb:gray-to-component 演示图：同一张灰度渐变，各模式各自的编码输出。
 
 在 GIMP 控制台跑（需要 GEGL 里的 lb 算子）：
 
@@ -96,12 +96,18 @@ CASES = [
     ("01 hue", "hue", {}),
     ("02 saturation red", "saturation", {}),
     ("03 saturation cyan", "saturation", {"sat_hue": 210.0}),
-    ("04 lightness cie-l", "lightness", {}),
-    ("05 red channel", "red", {}),
-    ("06 green channel", "green", {}),
-    ("07 lch hue", "lch-hue", {}),
-    ("08 lch chroma", "lch-chroma", {}),
+    ("04 color sat100", "color", {}),
+    ("05 color sat45", "color", {"color_sat": 45.0}),
+    ("06 value", "value", {}),
+    ("07 lightness cie-l", "lightness", {}),
+    ("08 red channel", "red", {}),
+    ("09 green channel", "green", {}),
+    ("10 blue channel", "blue", {}),
+    ("11 lch hue", "lch-hue", {}),
+    ("12 lch chroma", "lch-chroma", {}),
 ]
+# 未单列的两种：luminance 与 lightness、lch-color 与 lch-hue 的输出逐字节
+# 相同（见 tools/check_gray_to_component.py 的 A 段），画出来是重复图
 
 paths = []
 for name, mode, props in CASES:

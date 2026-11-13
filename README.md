@@ -74,7 +74,7 @@ gegl-color-ops/
 | `lb:color-temperature-tint` | Color Temperature & Tint | Color Temperature & Tint | Color | Point | PS 2026「色彩与自然饱和度」里的色温 / 色调：冷↔暖、绿↔洋红，中性灰跟着偏色、黑白不动 |
 | `lb:apply-image` | Apply Image | Apply Image | Blend | Composer | PS 应用图像：aux 层按 26 种混合模式压到本层，可只作用单通道；源层没盖到和透明的地方原样输出 |
 | `lb:calculations` | Calculations | Calculations | Blend | Composer | PS 计算：两路通道混合出灰/alpha 蒙版，双源可各自反相；源 2 透明处蒙版为 0 |
-| `lb:gray-to-component` | Gray To Component | Gray To Component | Blend | Point | 通道灰度调色工作流的编码器：灰度 → 色相轮 / HSV 饱和度 / CIE 明度 / RGB 单通道 / CIE LCh 色相·色度，供分量混合模式精确还原（恒等往返 23/23） |
+| `lb:gray-to-component` | Gray To Component | Gray To Component | Blend | Point | 通道灰度调色工作流的编码器：灰度 → 色相轮 / HSV 饱和度·明度 / HSL 颜色 / CIE 明度·亮度 / RGB 单通道 / CIE LCh 色相·色度·颜色，覆盖 GIMP「颜色」组全部 9 个混合模式（恒等往返 39/39） |
 
 每个算子的算法说明、参数含义见 `ops/<算子名>/README.md`（原始文档）。
 

@@ -10,17 +10,31 @@
  *            re-encodes a decomposed component gray layer into a color
  *            layer that GIMP's component blend modes can read back.
  * algorithm  灰度 g∈[0,1] 按模式映射（编码公式经 hsl-cal 恒等往返校准，
- *            见 ops/gray-to-component/README.md）：
+ *            见 ops/gray-to-component/README.md）。覆盖 GIMP 3「颜色」组
+ *            全部 9 个混合模式：
  *            hue        hsl_to_rgb(g*360, 1, 0.5)——饱和度/亮度拉满的
- *                       色相轮，喂 Hue 模式恒等
+ *                       色相轮，喂 Hue 模式恒等（Hue 只读色相，饱和度被
+ *                       忽略，所以同一层也能喂 Color 模式，只是饱和度
+ *                       恒为满值）
  *            saturation hsv_to_rgb(sat_hue, g, 1)——红相 V=1 的饱和度
  *                       编码（HSV 语义！HSL 的 S 喂 Saturation 模式会
  *                       误差 214/255），喂 Saturation 模式恒等
+ *            color      hsl_to_rgb(g*360, color_sat, 0.5)——灰度携带色相，
+ *                       饱和度由 color_sat 固定（100% 时与 hue 同值），
+ *                       喂 Color 模式恒等（Color 只读 H+S，底层亮度保留）
+ *            value      (g,g,g) 中性灰直写——HSV 的 V 就是最大通道，灰度
+ *                       直写即 V=g，喂 Value 模式恒等
  *            lightness  Lab(g*100, 0, 0) 直写——喂 LCh Lightness 恒等
+ *            luminance  与 lightness 同一编码——中性灰的 CIE L 与 Y 单调
+ *                       对应，同一个 Lab(L,0,0) 同时给出正确的 L 和 Y，
+ *                       喂 Luminance 模式恒等
  *            red/green/blue  (g,0,0) 等单通道编码，用 Lighten 模式叠合还原
  *            lch-hue    Lab(lch_l, lch_c·cos(g·360°), lch_c·sin(g·360°))
  *                       ——喂 LCh Hue 恒等（HSL 色相与 CIE 色相不可线性
  *                       互转，HSL 轮直接喂 LCh Hue 误差 139/255）
+ *            lch-color  与 lch-hue 同一编码——LCh Color 只读 h+C，而
+ *                       lch-hue 的色度已由 lch_c 固定，输出逐字节相同；
+ *                       单列一条只为按 GIMP 的模式名对号入座
  *            lch-chroma Lab(lch_l, g·chroma_scale, lch_h 方向)——喂
  *                       LCh Chroma 恒等（chroma_scale 默认 100，与 GIMP
  *                       分解量程一致；sRGB 色域 C 可达 ~130，可调大）
@@ -28,7 +42,9 @@
  *            RGB 模式经 babl fish 转 Lab，与 GIMP 内部转换同源）。
  *            Lab/LCh 编码允许超出 sRGB 色域的值原样保留（float32）。
  * type       GeglOperationFilter（纯逐像素，无 aux，可挂非破坏滤镜）
- * reference  GIMP 3 分量混合模式（HSV 组 + LCh 组）
+ * reference  GIMP 3 图层混合模式「颜色」组（9 个：Hue / Saturation /
+ *            Color / Value / LCh Hue / LCh Chroma / LCh Color /
+ *            LCh Lightness / Luminance）
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
  *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
@@ -48,17 +64,27 @@ enum_start (lb_gtc_mode)
   enum_value (GTC_MODE_BLUE,       "blue",       "Blue channel")
   enum_value (GTC_MODE_LCH_HUE,    "lch-hue",    "LCh Hue (CIE wheel)")
   enum_value (GTC_MODE_LCH_CHROMA, "lch-chroma", "LCh Chroma")
+  enum_value (GTC_MODE_COLOR,      "color",      "Color (HSL hue + S)")
+  enum_value (GTC_MODE_VALUE,      "value",      "Value (HSV V)")
+  enum_value (GTC_MODE_LCH_COLOR,  "lch-color",  "LCh Color (hue, C fixed)")
+  enum_value (GTC_MODE_LUMINANCE,  "luminance",  "Luminance (CIE Y)")
 enum_end (LbGtcMode)
 
 property_enum (mode, _("Mode"), LbGtcMode, lb_gtc_mode, GTC_MODE_HUE)
-    description (_("编码模式：灰度映射为哪个分量。Hue/Saturation 配 HSV 组"
-                   "混合模式，Lightness/LCh 配 LCh 组，RGB 三通道用 Lighten "
-                   "叠合还原"))
+    description (_("编码模式：灰度映射为哪个分量。hue/saturation/color/"
+                   "value 配 HSV·HSL 组混合模式，lightness/luminance/lch-* "
+                   "配 LCh 组与 Luminance，RGB 三通道用 Lighten 叠合还原"))
 
 property_double (sat_hue, _("Saturation Hue"), 0.0)
     description (_("Saturation 模式使用的色相（度）；0=红，按需可改。该层只"
                    "提供饱和度信息，色相在混合还原时不进入结果"))
     value_range (0.0, 360.0)
+
+property_double (color_sat, _("Color Saturation"), 100.0)
+    description (_("Color 模式固定的饱和度百分比。Color 混合模式同时读取"
+                   "色相和饱和度，而单通道灰度只能携带其中一个：灰度携带"
+                   "色相，饱和度由本参数给定。100% 时输出与 hue 模式相同"))
+    value_range (0.0, 100.0)
 
 property_double (lch_l, _("LCh Lightness"), 54.0)
     description (_("LCh 模式使用的固定明度 L（0-100）。混合模式只读色相/"
@@ -66,8 +92,9 @@ property_double (lch_l, _("LCh Lightness"), 54.0)
     value_range (0.0, 100.0)
 
 property_double (lch_c, _("LCh Chroma"), 30.0)
-    description (_("LCh Hue 模式使用的固定色度 C。色度越大颜色越鲜艳，"
-                   "过大可能超出 sRGB 色域（float32 下仍可往返）"))
+    description (_("lch-hue / lch-color 模式使用的固定色度 C（两者编码相同）。"
+                   "色度越大颜色越鲜艳，过大可能超出 sRGB 色域"
+                   "（float32 下仍可往返）"))
     value_range (0.0, 132.0)
     ui_range (0.0, 100.0)
 
@@ -174,40 +201,48 @@ static inline void hsv_to_rgb(gfloat h_deg, gfloat s, gfloat v,
 static inline void gtc_rgb_for_mode(gint          mode,
                                     gfloat        gray,
                                     gdouble       sat_hue,
+                                    gdouble       color_sat,
                                     gfloat       *r,
                                     gfloat       *g,
-                                    gfloat       *b,
-                                    gboolean     *needs_fish)
+                                    gfloat       *b)
 {
-  *needs_fish = FALSE;
-
   switch (mode)
   {
     case GTC_MODE_HUE:
       hsl_to_rgb((gfloat)(gray * 360.0f), 1.0f, 0.5f, r, g, b);
-      *needs_fish = TRUE;
+      break;
+
+    case GTC_MODE_COLOR:
+      /* 灰度携带色相，饱和度由 color_sat 固定：Color 模式读 H+S、留底层
+       * 亮度，所以色相层只要把 S 说清楚就能单独驱动 Color 模式
+       * Hue from gray, saturation pinned by color_sat */
+      hsl_to_rgb((gfloat)(gray * 360.0f),
+                 (gfloat)(color_sat / 100.0), 0.5f, r, g, b);
       break;
 
     case GTC_MODE_SATURATION:
       /* 红相、V=1 的 HSV 饱和度编码：RGB=(1, 1-s, 1-s)
        * Red hue, V=1: the encoding GIMP's Saturation mode reads exactly */
       hsv_to_rgb((gfloat)sat_hue, gray, 1.0f, r, g, b);
-      *needs_fish = TRUE;
+      break;
+
+    case GTC_MODE_VALUE:
+      /* HSV 的 V 是最大通道，中性灰的最大通道就是它自己：灰度直写即 V=g。
+       * 与线性/感知域无关——同一像素值在两种域里读出的 V 一致
+       * V is the max channel, so a neutral gray carries V == g directly */
+      *r = *g = *b = gray;
       break;
 
     case GTC_MODE_RED:
       *r = gray; *g = 0.0f; *b = 0.0f;
-      *needs_fish = TRUE;
       break;
 
     case GTC_MODE_GREEN:
       *r = 0.0f; *g = gray; *b = 0.0f;
-      *needs_fish = TRUE;
       break;
 
     case GTC_MODE_BLUE:
       *r = 0.0f; *g = 0.0f; *b = gray;
-      *needs_fish = TRUE;
       break;
 
     default:
@@ -233,11 +268,12 @@ process (GeglOperation       *op,
   if (!roi || roi->width <= 0 || roi->height <= 0)
     return TRUE;
 
-  gdouble sat_hue, lch_l, lch_c, lch_h, chroma_scale;
+  gdouble sat_hue, color_sat, lch_l, lch_c, lch_h, chroma_scale;
   gint    mode;
   g_object_get (G_OBJECT (op),
                 "mode",         &mode,
                 "sat-hue",      &sat_hue,
+                "color-sat",    &color_sat,
                 "lch-l",        &lch_l,
                 "lch-c",        &lch_c,
                 "lch-h",        &lch_h,
@@ -259,7 +295,9 @@ process (GeglOperation       *op,
    * Precompute trig constants for Lab-domain modes */
   gfloat hue_cos = 0.0f, hue_sin = 0.0f;
   gboolean lab_domain = (mode == GTC_MODE_LIGHTNESS ||
+                         mode == GTC_MODE_LUMINANCE ||
                          mode == GTC_MODE_LCH_HUE ||
+                         mode == GTC_MODE_LCH_COLOR ||
                          mode == GTC_MODE_LCH_CHROMA);
   if (mode == GTC_MODE_LCH_CHROMA)
   {
@@ -267,8 +305,14 @@ process (GeglOperation       *op,
     hue_sin = sinf ((gfloat) lch_h * DEG2RAD);
   }
 
+  /* RGB 域模式整行交给 babl 转 Lab（与 GIMP 内部转换同源）。fish 在循环
+   * 外建一次：透明像素也要在 rgb_line 里落位，否则 babl_process 会用
+   * 未初始化的中间行把这一行的 alpha 一起冲掉
+   * Build the fish once: babl_process rewrites the whole row, so even
+   * transparent pixels must be written into rgb_line beforehand */
   const Babl *fish = NULL;
-  gboolean needs_fish = FALSE;
+  if (!lab_domain)
+    fish = babl_fish (babl_format ("R'G'B'A float"), fmt_out);
 
   for (gint y = 0; y < roi->height; y++)
   {
@@ -293,6 +337,13 @@ process (GeglOperation       *op,
         out_line[px_out + 1] = 0.0f;
         out_line[px_out + 2] = 0.0f;
         out_line[px_out + 3] = 0.0f;
+        if (!lab_domain)
+        {
+          rgb_line[px_out + 0] = 0.0f;
+          rgb_line[px_out + 1] = 0.0f;
+          rgb_line[px_out + 2] = 0.0f;
+          rgb_line[px_out + 3] = 0.0f;
+        }
         continue;
       }
 
@@ -301,16 +352,20 @@ process (GeglOperation       *op,
       if (lab_domain)
       {
         gfloat L, ca, cb;
-        if (mode == GTC_MODE_LIGHTNESS)
+        if (mode == GTC_MODE_LIGHTNESS || mode == GTC_MODE_LUMINANCE)
         {
+          /* 中性灰的 CIE L 与 CIE 亮度 Y 单调对应，同一个 Lab(L,0,0)
+           * 既让 LCh Lightness 读到 L、也让 Luminance 读到 Y
+           * Neutral Lab(L,0,0) carries both CIE L and the matching Y */
           L  = gc * 100.0f;
           ca = 0.0f;
           cb = 0.0f;
         }
-        else if (mode == GTC_MODE_LCH_HUE)
+        else if (mode == GTC_MODE_LCH_HUE || mode == GTC_MODE_LCH_COLOR)
         {
           /* h = g*360，L/C 固定。a=C·cos(h°), b=C·sin(h°) 是 CIE LCh 的
-           * 定义式，直写 Lab 与 babl 直写 LCH 等价
+           * 定义式，直写 Lab 与 babl 直写 LCH 等价。LCh Color 只读 h+C，
+           * 底色明度保留，所以这条编码同时喂得动 LCh Hue 与 LCh Color
            * h = g*360 with fixed L/C: exact LCh definition in Lab coords */
           gfloat h_rad = gc * 360.0f * DEG2RAD;
           L  = (gfloat) lch_l;
@@ -332,9 +387,7 @@ process (GeglOperation       *op,
       else
       {
         gfloat r, g, b;
-        gtc_rgb_for_mode (mode, gc, sat_hue, &r, &g, &b, &needs_fish);
-        if (needs_fish && fish == NULL)
-          fish = babl_fish (babl_format ("R'G'B'A float"), fmt_out);
+        gtc_rgb_for_mode (mode, gc, sat_hue, color_sat, &r, &g, &b);
 
         rgb_line[px_out + 0] = r;
         rgb_line[px_out + 1] = g;
@@ -372,7 +425,7 @@ gegl_op_class_init (GeglOpClass *klass)
   gegl_operation_class_set_keys (oclass,
     "name",            "lb:gray-to-component",
     "title",           _("Gray To Component"),
-    "description",     _("Re-encode a decomposed component gray layer into a color layer that GIMP's component blend modes (Hue / Saturation / Value / LCh group) read back exactly. Feed the result as a blend layer: Hue mode for 'hue', Saturation for 'saturation', LCh Lightness for 'lightness', LCh Hue / LCh Chroma for the lch modes, and Lighten to recombine the red/green/blue channel layers. Encoding formulas are calibrated by identity round-trip against GIMP 3 blend modes."),
+    "description",     _("Re-encode a decomposed component gray layer into a color layer that GIMP's color-group blend modes read back exactly. Feed the result as a blend layer: Hue mode for 'hue', Saturation for 'saturation', Color for 'color', Value for 'value', LCh Lightness for 'lightness', Luminance for 'luminance', LCh Hue / LCh Color for 'lch-hue' / 'lch-color', LCh Chroma for 'lch-chroma', and Lighten to recombine the red/green/blue channel layers. Encoding formulas are calibrated by identity round-trip against GIMP 3 blend modes."),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Blend",
     "gimp:menu-label", _("Gray To Component"),
     NULL);

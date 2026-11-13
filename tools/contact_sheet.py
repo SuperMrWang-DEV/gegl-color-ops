@@ -94,11 +94,21 @@ def draw_text(rows, x0, y0, s, scale=2, color=(20, 20, 20)):
         cx += 6 * scale
 
 def main():
-    args = [a for a in sys.argv[1:] if not a.startswith('--')]
     cols, scale = 4, 2
-    for a in sys.argv[1:]:
-        if a.startswith('--cols'):  cols = int(a.split('=')[-1] if '=' in a else 4)
-        if a.startswith('--scale'): scale = int(a.split('=')[-1] if '=' in a else 2)
+    args, i, argv = [], 0, sys.argv[1:]
+    while i < len(argv):
+        a = argv[i]
+        # --cols=N / --cols N 两种写法都收：早先只认等号，写 --cols 1 会把
+        # "1" 当图片路径读进来（FileNotFoundError: '1'）
+        if a in ('--cols', '--scale') and i + 1 < len(argv):
+            if a == '--cols':  cols  = int(argv[i + 1])
+            else:              scale = int(argv[i + 1])
+            i += 2
+            continue
+        if a.startswith('--cols='):   cols  = int(a.split('=', 1)[1])
+        elif a.startswith('--scale='): scale = int(a.split('=', 1)[1])
+        elif not a.startswith('--'):  args.append(a)
+        i += 1
     if len(args) < 2:
         print(__doc__); return 1
     out, paths = args[0], args[1:]

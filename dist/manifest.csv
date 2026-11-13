@@ -1,28 +1,28 @@
 platform,file,op_id,title,bytes,sha256
-windows-x64,apply-image.dll,lb:apply-image,Apply Image,117135,0f15a0f0b6a842b57885a698ce5505554d733782b6712dc9b2f07d126c857fd9
-windows-x64,calculations.dll,lb:calculations,Calculations,109496,3e018c76ea54a5d61ab054cded932ad4747443092ed9de53514957d1d04925f8
-windows-x64,channel-mixer-plus.dll,lb:channel-mixer-plus,Channel Mixer Plus,107148,8a6a2997ddd9ba5253cd98882ad8c3bf0c49f064aa364696076cc34a32a90e86
-windows-x64,channel-range-to-alpha.dll,lb:channel-range-to-alpha,Channel Range to Alpha,129726,7c4f157ef8cf95842e9bd55d5e4c744ed2f6bda519c16cd1b99c253b8c250143
-windows-x64,cmyk-primary-correction.dll,lb:cmyk-primary-correction,CMYK Primary Correction,114659,06f578795b698a6c8f2130d4998c9c43327d852dc8071cf2b211b956c5467f50
-windows-x64,color-balance.dll,lb:color-balance,Color Balance,140623,b3688668c60bc065b999417197a32175393ed680c4093b0522e96544f5fc63d1
-windows-x64,color-grading.dll,lb:color-grading,Color Grading,110213,bb17d19177e74d29c33a5ce13db3b26c7999d487009eee2e274322de27c31c7d
-windows-x64,color-lookup.dll,lb:color-lookup,Color Lookup,111990,ccf4322adcb7170a4a20f97edf2d7643e29c39a2811c0e2edf3c60e966879ee5
-windows-x64,color-mask-select.dll,lb:color-mask-select,Color Mask Select,135474,7e9bfaac1262ae1d3b9f253efbe7c4e40def7e8e15df40a9b7d3642256edc533
-windows-x64,color-temperature-tint.dll,lb:color-temperature-tint,Color Temperature & Tint,198501,3537aab4559179308eb20c361c66d5938d7cfd842520f121f0d4a02ad5a9222b
-windows-x64,colorize-hsl.dll,lb:colorize-hsl,Colorize,103326,ce27f67b114967c35617f9ec82802a49d0ce4985b911948d3379c0ac79d4e5be
-windows-x64,gray-to-component.dll,lb:gray-to-component,Gray To Component,108736,6ad304151d35c854671f19aa6071ef2e3e8cd635a63b6258c5c857abc796f1df
-windows-x64,hsl-seven.dll,lb:hsl-seven,HSL 8 Bands,110704,d6f7b5eb7d45aec78f5eb5443cedf546d665f964fa686cacf0924b1eecc6a7d7
-windows-x64,hue-saturation.dll,lb:hue-saturation,Hue/Saturation,109994,412004f9d74a02c934e451955c1c6931c2b6bf1ac393ca3b93181660d263448d
-windows-x64,lab-levels.dll,lb:lab-levels,LAB Levels,132426,4623a6473a206dc7f74c576d51fd27ba0ac3f971b96b11cad43e4c46e8ca7f6c
-windows-x64,lb-brightness-contrast.dll,lb:brightness-contrast,Brightness/Contrast,129619,9d676fd565868099b0ec889fdf130d3acd8d553dfdd090ee223a9eb3dd0a8af9
-windows-x64,lb-exposure.dll,lb:exposure,Exposure EV,126347,5dd6db90ac78eca7f61651a26401f90c8a3b66b89a594edd3dff232ec3a51735
-windows-x64,levels.dll,lb:levels,Levels,131495,0602524463d1b5c24be6c3b87b50dffd625efc21563a87066e59849df52a2e66
-windows-x64,match-color.dll,lb:match-color,Match Color,107603,4afa912909e1c8c99c76cea425fa5fa02ec4a8e309f89540b9e64c6fe43a760f
-windows-x64,rgb-domain-grayscale.dll,lb:rgb-domain-grayscale,Black & White,108038,052a146f2cd3675191cc5e2b570c2311b759d0eb04e2afd832675d789230205a
-windows-x64,shadows-highlights.dll,lb:shadows-highlights,Shadows/Highlights,167641,c384a31de5ae554321de1de7f50079e00c1301020a9782b5fffb60d9b15c3582
-windows-x64,vibrance-hyper.dll,lb:vibrance-hyper,Natural Saturation,136093,f97562753fc5186da0463e45cd9512b40e1ddc64b558fcb66db0c3af56e5735b
-windows-x64,vibrance.dll,lb:vibrance,Vibrance,206399,8d35da997fb8bbb8f097ebae25653d927891d0e0b1f8fcf76c4a2833e13b2bc7
-windows-x64,xyz-multiply.dll,lb:xyz-multiply,Photo Filter,134919,16c39bbc5285a16340de29733aea9c6aa6363cf0211d6dcbb883082c61f00115
+windows-x64,apply-image.dll,lb:apply-image,Apply Image,117135,4e7181eeb1778bc059820a190be5b4ad61e7d592aea044daa0125fceab83efc1
+windows-x64,calculations.dll,lb:calculations,Calculations,109496,3006ea93b73e9251f9e4c2622a30a05352aada2f24c725df97ebf8c01035206d
+windows-x64,channel-mixer-plus.dll,lb:channel-mixer-plus,Channel Mixer Plus,107148,e4da20751243fd8b09eb19db755dc0de0016099b2aaa9b9ca3e632afcaa06d72
+windows-x64,channel-range-to-alpha.dll,lb:channel-range-to-alpha,Channel Range to Alpha,129726,31aa00ba07a2d592d2c542e03a913c01ae86218ea6a05132923c6cf886ec4910
+windows-x64,cmyk-primary-correction.dll,lb:cmyk-primary-correction,CMYK Primary Correction,114659,86033102912b850af00568aa7a3e7935653f42adcacf2d3542abcffbfbbca550
+windows-x64,color-balance.dll,lb:color-balance,Color Balance,140623,7c8c97179acc2a76f210200bd9b3fb762346488f458cdb332791d2bdfb10032b
+windows-x64,color-grading.dll,lb:color-grading,Color Grading,110213,96dda0a946ae33ac1317d98d34925bd523d188cbe940a18c4eb3a077bd5fdb62
+windows-x64,color-lookup.dll,lb:color-lookup,Color Lookup,111990,09e1fb75cb6ee0bda3a700cd136eed3ed88f4d84f8480936e56172d798fdc166
+windows-x64,color-mask-select.dll,lb:color-mask-select,Color Mask Select,135474,4db16b141b82b69f24fccaf98252e8dc0dba5e63744931ad52bb23a9088978a0
+windows-x64,color-temperature-tint.dll,lb:color-temperature-tint,Color Temperature & Tint,198501,9d29afeb7605b8d30042daf164a2c899045857be6099d2b7d10899b39a78bc13
+windows-x64,colorize-hsl.dll,lb:colorize-hsl,Colorize,103326,adf853c7dc69b98d5f8e24a9dcd17fa67b3200b9e4d3ab91518f5bc963e7c496
+windows-x64,gray-to-component.dll,lb:gray-to-component,Gray To Component,110272,829e583d58fb3f60c530c065cdc9ded33ec9aeb9441da429ff8cbdfbffe6e81a
+windows-x64,hsl-seven.dll,lb:hsl-seven,HSL 8 Bands,110704,c9cf9272cbc1b9f8dedd2c4828f50ef99086495ebf2ab63f54b2ed2461276b1c
+windows-x64,hue-saturation.dll,lb:hue-saturation,Hue/Saturation,109994,7faeaeaa1f4bebbcfbf83ab4211c19b232e4f2493a8d0c3ceb4c399e2443c6e5
+windows-x64,lab-levels.dll,lb:lab-levels,LAB Levels,132426,b2caa77e22c8907b34be50b5ae59fab9ede57a2dbd6ad6466ba594bbf440dee7
+windows-x64,lb-brightness-contrast.dll,lb:brightness-contrast,Brightness/Contrast,129619,15926a6e8380e8b2c9fceebda134b2d868e8e83d266e4bbfc666384d341d5812
+windows-x64,lb-exposure.dll,lb:exposure,Exposure EV,126347,54d4603a542408dd7ccf7e53543437d69018b32a7edae50dbebe0a9ad3febde9
+windows-x64,levels.dll,lb:levels,Levels,131495,f3f286ba846c767c6f3cff109b02791593292700b03c0c3da1fc64b78a59e2cc
+windows-x64,match-color.dll,lb:match-color,Match Color,107603,319f8b8ac84406c996b191da6590acc43fc0b8e4798e4f136a9dff5988fb887e
+windows-x64,rgb-domain-grayscale.dll,lb:rgb-domain-grayscale,Black & White,108038,86b54151180a5fa6495aef6d9701c3e0f74a305addd1b785ac50d9ae983db3ad
+windows-x64,shadows-highlights.dll,lb:shadows-highlights,Shadows/Highlights,167641,23132ac21a242d28392e9d7b5a6a4c2bc268db55d4532189eddc20c1b958b8cd
+windows-x64,vibrance-hyper.dll,lb:vibrance-hyper,Natural Saturation,136093,e0f0dcc8a23c265a0290a517831a59e5a5bd732c91e0544faacc3c3dbd347c03
+windows-x64,vibrance.dll,lb:vibrance,Vibrance,206399,9fe609dc0bd9e086af1eb053dab8d7e174b2b965fc3fa72c241845f457646533
+windows-x64,xyz-multiply.dll,lb:xyz-multiply,Photo Filter,134919,2c3b3d804389a1d07f6b23c747735d2e8f7f87c0c6f01fe1c326a9ffa182aa30
 linux-x64,channel-mixer-plus.so,lb:channel-mixer-plus,Channel Mixer Plus,22056,1b71ca30a949243af9bee5a20cb9c30b6e34cfd0cdfa6965365bfb0d68e00f04
 linux-x64,channel-range-to-alpha.so,lb:channel-range-to-alpha,Channel Range to Alpha,26816,2b791d8b1db107d961d6d0c118063c7b460ad01477488a9d2d8d6bd820ea4082
 linux-x64,cmyk-primary-correction.so,lb:cmyk-primary-correction,CMYK Primary Correction,34856,44d19245891873a630309a278d11264d28b74c5b351e85b67b12391889ca8bcc
