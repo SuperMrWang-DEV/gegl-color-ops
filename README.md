@@ -5,7 +5,7 @@
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
 [![Operations](https://img.shields.io/badge/operations-22-brightgreen)](#算子清单)
 
-一组逆向实现的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **23 个**，统一 `lb:` 命名空间，
+一组逆向实现的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **24 个**，统一 `lb:` 命名空间，
 在 GIMP 里位于 **图像 → 颜色 → SuperMrWang**。
 
 每个算子都是单文件 C（含 `#ifdef GEGL_PROPERTIES` 段），直接编译成 GEGL 插件模块，
@@ -74,6 +74,7 @@ gegl-color-ops/
 | `lb:color-temperature-tint` | Color Temperature & Tint | Color Temperature & Tint | Color | Point | PS 2026「色彩与自然饱和度」里的色温 / 色调：冷↔暖、绿↔洋红，中性灰跟着偏色、黑白不动 |
 | `lb:apply-image` | Apply Image | Apply Image | Blend | Composer | PS 应用图像：aux 层按 26 种混合模式压到本层，可只作用单通道；源层没盖到和透明的地方原样输出 |
 | `lb:calculations` | Calculations | Calculations | Blend | Composer | PS 计算：两路通道混合出灰/alpha 蒙版，双源可各自反相；源 2 透明处蒙版为 0 |
+| `lb:gray-to-component` | Gray To Component | Gray To Component | Blend | Point | 通道灰度调色工作流的编码器：灰度 → 色相轮 / HSV 饱和度 / CIE 明度 / RGB 单通道 / CIE LCh 色相·色度，供分量混合模式精确还原（恒等往返 23/23） |
 
 每个算子的算法说明、参数含义见 `ops/<算子名>/README.md`（原始文档）。
 
@@ -239,7 +240,7 @@ python tools/i18n_blocks.py check                    # 与 git HEAD 比对代码
 
 ```bash
 cd gegl-color-ops
-./build.sh                 # 产物在 build/ 下，23 个 .dll/.so/.dylib
+./build.sh                 # 产物在 build/ 下，24 个 .dll/.so/.dylib
 ```
 
 脚本会自动探测 `gegl-0.4.pc`（先试 `D:/fastsoftware/GIMP 3/lib/pkgconfig` 等常见位置），也可手动指定：
@@ -314,19 +315,19 @@ touch plugin/blend/.disabled        # 停用 Python 插件
 
 ## 在 GIMP 菜单位置
 
-23 个算子全部注册在同一个菜单目录下：
+24 个算子全部注册在同一个菜单目录下：
 
 ```
 图像 → 颜色 → SuperMrWang → Tone / Color / Blend / Mask → <算子>
 ```
 
-23 个算子按「找算子时的念头」分四组，避免一个子菜单里平铺二十多项：
+24 个算子按「找算子时的念头」分四组，避免一个子菜单里平铺二十多项：
 
 | 组 | 想干什么 | 放什么 |
 |---|---|---|
 | `Tone` | 太暗 / 太灰 / 反差不对 | 色阶、LAB 色阶、曝光、亮度/对比度、阴影/高光、黑白 |
 | `Color` | 颜色不对 / 想加味道 | 色相饱和度、HSL 8 Bands、色彩平衡、颜色分级、色温色调、自然饱和度、Vibrance、可选颜色、着色 |
-| `Blend` | 要把两样东西合起来 | 应用图像、计算、通道混合器、照片滤镜、颜色查找 |
+| `Blend` | 要把两样东西合起来 | 应用图像、计算、通道混合器、照片滤镜、颜色查找、灰度转分量 |
 | `Mask` | 要一个选区 | 色彩范围、通道区间 → alpha |
 
 对应源码里的两个 class key（每个 `ops/*/*.c` 都有）：
@@ -336,7 +337,7 @@ touch plugin/blend/.disabled        # 停用 Python 插件
 "gimp:menu-label", _("界面里显示的名字"),
 ```
 
-**别手改 22 个文件**。分组表在 `tools/set_menu_group.py` 里，改完跑一遍即可
+**别手改 24 个文件**。分组表在 `tools/set_menu_group.py` 里，改完跑一遍即可
 （按字节替换，仓库里 LF / CRLF 混用也不会把行尾搞乱）：
 
 ```bash
@@ -364,6 +365,9 @@ python tools/check_color_balance_ps.py      # 与 PS 实测比对：色彩平衡
 python tools/check_color_mask_select.py     # 与 PS 实测比对：色彩范围的高光/阴影/中间调曲线
 python tools/check_color_grading.py         # 行为验证：颜色分级（恒等/分带/落位/Blending/Balance/全局）
 python tools/check_levels_ps.py             # 与 PS 实测点比对：色阶（含 gamma 方向与指数形式）
+python tools/check_lab_levels.py            # 数值回归：LAB 色阶（gimp-console 跑，21 项）
+python tools/check_match_color.py           # 数值回归：匹配颜色（gimp-console 跑，17 项）
+python tools/check_gray_to_component.py     # 数值回归 + 恒等往返：灰度转分量（gimp-console 跑，23 项）
 python tools/check_xyz_multiply.py --all    # 数值回归：XYZ 正片叠底（36 组白点×叠加色×不透明度）
 python tools/normalize_headers.py           # 预览文件头/命名重排，加 --write 落盘
 python tools/set_menu_group.py --check      # 核对菜分组映射表与 ops 目录是否一一对应

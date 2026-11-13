@@ -31,7 +31,7 @@ GROUPS = {
               "color-temperature-tint", "vibrance", "vibrance-hyper",
               "cmyk-primary-correction", "colorize-hsl", "match-color"],
     "Blend": ["apply-image", "calculations", "channel-mixer-plus",
-              "xyz-multiply", "color-lookup"],
+              "xyz-multiply", "color-lookup", "gray-to-component"],
     "Mask":  ["color-mask-select", "channel-range-to-alpha"],
 }
 

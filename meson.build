@@ -30,6 +30,7 @@ ops = [
   ['brightness-contrast',  'brightness-contrast',  'lb-brightness-contrast.c'],
   ['xyz-multiply',            'xyz-multiply',            'xyz-multiply.c'],
   ['shadows-highlights',      'shadows-highlights',      'shadows-highlights.c'],
+  ['gray-to-component',       'gray-to-component',       'gray-to-component.c'],
   ['color-temperature-tint',   'color-temperature-tint',   'color-temperature-tint.c'],
 ]
 
