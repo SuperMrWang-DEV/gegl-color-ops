@@ -6,9 +6,13 @@
  * purpose    LAB 三通道各自设输入 / 输出黑白场与伽马
  *            Independent input/output black-white points and gamma for each
  *            LAB channel.
- * algorithm  L/a/b 分别做 levels 映射后合并，a/b 以 0.5 为中性轴
- *            Levels are applied per L/a/b channel and then merged; a and b
- *            use 0.5 as the neutral axis.
+ * algorithm  L 做标准 levels 映射；a/b 以 0 为中性轴分负/正半轴各自映射，
+ *            gamma 绕中性轴转动（灰白像素不被动）；黑白场交叉自动交换，
+ *            输出反向（负片）可用；alpha≤0 像素原样透传
+ *            Levels per L/a/b channel; a and b pivot gamma around the
+ *            neutral axis 0 (neutral pixels stay untouched), crossed
+ *            black/white points are swapped, inverted output works and
+ *            fully transparent pixels pass through unchanged.
  * type       GeglOperationFilter（需整块区域 / whole-region）
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
  *            GPL-3.0-or-later, see LICENSE at the project root
@@ -52,7 +56,7 @@ property_double (a_in_white, _("a 输入白场"), 127.0)
     value_range (-120.0, 127.0)
 
 property_double (a_gamma, _("a Gamma"), 1.0)
-    description (_("a通道伽马，控制色彩中间调倾向"))
+    description (_("a通道伽马，绕中性轴转动，控制色彩中间调倾向"))
     value_range (0.10, 4.0)
     ui_range (0.20, 2.5)
 
@@ -73,7 +77,7 @@ property_double (b_in_white, _("b 输入白场"), 127.0)
     value_range (-120.0, 127.0)
 
 property_double (b_gamma, _("b Gamma"), 1.0)
-    description (_("b通道伽马，控制色彩中间调倾向"))
+    description (_("b通道伽马，绕中性轴转动，控制色彩中间调倾向"))
     value_range (0.10, 4.0)
     ui_range (0.20, 2.5)
 
@@ -160,6 +164,14 @@ static inline gfloat levels_channel(gfloat val,
                                     gfloat out_black,
                                     gfloat out_white)
 {
+    /* 输入黑白场交叉时自动交换（滑杆允许拉出交叉） */
+    if (in_black > in_white)
+    {
+        gfloat t = in_black;
+        in_black = in_white;
+        in_white = t;
+    }
+
     val = CLAMP(val, in_black, in_white);
 
     if(fabsf(in_white - in_black) < FLOAT_EPS)
@@ -169,8 +181,44 @@ static inline gfloat levels_channel(gfloat val,
     norm = powf(MAX(norm, FLOAT_EPS), 1.0f / gamma);
     val = out_black + norm * (out_white - out_black);
 
-    val = CLAMP(val, out_black, out_white);
-    return val;
+    /* 输出反向（负片式）时 clamp 到真实上下界，而不是压成单值 */
+    return CLAMP(val, MIN(out_black, out_white), MAX(out_black, out_white));
+}
+
+/* a/b 通道专用：gamma 绕中性轴 0 转动。负半轴 [in_black,0] 与正半轴
+ * [0,in_white] 各自归一化后做 gamma，再映射到输出半轴。中性像素
+ * （a=b=0 的灰白）在任意 gamma 下保持不动——这是 Lab 色阶与 RGB 色阶
+ * 的本质差异：a/b 的“中间调”是中性轴，不是数值范围的中点。 */
+static inline gfloat levels_channel_signed(gfloat val,
+                                           gfloat in_black,
+                                           gfloat in_white,
+                                           gfloat gamma,
+                                           gfloat out_black,
+                                           gfloat out_white)
+{
+    if (in_black > in_white)
+    {
+        gfloat t = in_black;
+        in_black = in_white;
+        in_white = t;
+    }
+
+    val = CLAMP(val, in_black, in_white);
+
+    gfloat in_lo = (val < 0.0f) ? in_black : 0.0f;
+    gfloat in_hi = (val < 0.0f) ? 0.0f     : in_white;
+    gfloat span  = in_hi - in_lo;
+    if (fabsf(span) < FLOAT_EPS)
+        return val;
+
+    gfloat norm = (val - in_lo) / span;
+    norm = powf(MAX(norm, FLOAT_EPS), 1.0f / gamma);
+
+    gfloat out_lo = (val < 0.0f) ? out_black : 0.0f;
+    gfloat out_hi = (val < 0.0f) ? 0.0f      : out_white;
+    val = out_lo + norm * (out_hi - out_lo);
+
+    return CLAMP(val, MIN(out_lo, out_hi), MAX(out_lo, out_hi));
 }
 
 static void
@@ -237,16 +285,26 @@ process(GeglOperation       *op,
       gfloat b = in_line[px + 2];
       gfloat a = in_line[px + 3];
 
+      /* 透明像素原样透传（透明处 RGB 无意义，不做无谓的映射） */
+      if (a <= 0.0f)
+      {
+        out_line[px + 0] = sanitize_f(r);
+        out_line[px + 1] = sanitize_f(g);
+        out_line[px + 2] = sanitize_f(b);
+        out_line[px + 3] = 0.0f;
+        continue;
+      }
+
       gfloat L, ach, bb;
       rgb_to_lab(r,g,b,&L,&ach,&bb);
 
       L  = levels_channel(L,
         (gfloat)L_in_black,(gfloat)L_in_white,(gfloat)L_gamma,(gfloat)L_out_black,(gfloat)L_out_white);
 
-      ach  = levels_channel(ach,
+      ach  = levels_channel_signed(ach,
         (gfloat)a_in_black,(gfloat)a_in_white,(gfloat)a_gamma,(gfloat)a_out_black,(gfloat)a_out_white);
 
-      bb = levels_channel(bb,
+      bb = levels_channel_signed(bb,
         (gfloat)b_in_black,(gfloat)b_in_white,(gfloat)b_gamma,(gfloat)b_out_black,(gfloat)b_out_white);
 
       gfloat nr, ng, nb;
