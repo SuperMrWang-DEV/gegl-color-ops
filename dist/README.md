@@ -3,7 +3,7 @@
 这里放的是**已经编译好的 GEGL 模块**，下载后扔进 GEGL 插件目录就能用，不需要装
 GCC、MSYS2、meson 那一套。内容与当前分支的源码同步（`tools/make_dist.py` 生成）。
 
-想要一次性拿齐（29 个 `.dll` 打成一个包、附安装说明）：
+想要一次性拿齐（28 个 `.dll` 打成一个包、附安装说明）：
 [`docs/download/gegl-color-ops-windows-x64.zip`](../docs/download/)（约 1.3 MB，
 由 `python tools/site_build.py` 顺带打包）。在线说明页：
 <https://superMrwang-dev.github.io/gegl-color-ops/>。
@@ -12,18 +12,14 @@ GCC、MSYS2、meson 那一套。内容与当前分支的源码同步（`tools/ma
 
 | 系统 | 下载 | 放到 |
 |---|---|---|
-| Windows x64 | [`windows-x64/`](windows-x64) 里的 29 个 `.dll` | `%LOCALAPPDATA%\gegl-0.4\plug-ins` |
-| Linux x86_64 | [`linux-x64/`](linux-x64) 里的 14 个 `.so` | `~/.local/share/gegl-0.4/plug-ins` |
+| Windows x64 | [`windows-x64/`](windows-x64) 里的 28 个 `.dll` | `%LOCALAPPDATA%\gegl-0.4\plug-ins` |
+| Linux x86_64 | [`linux-x64/`](linux-x64) 里的 28 个 `.so` | `~/.local/share/gegl-0.4/plug-ins` |
 | macOS (Apple Silicon) | 本目录暂无，见下方「macOS 怎么拿」 | `~/Library/Application Support/gegl-0.4/plug-ins` |
 
-> **Linux 侧是旧版构建、暂时缺 11 个**：现有 14 个 `.so` 是算子改名（去 PS 后缀）
-> 之前编译的——其中 `vibrance-ps.so` 内部注册的还是旧 id `lb:vibrance-ps`，
-> 其余 13 个 id 未变、可直接用。缺的 11 个：`levels`、`vibrance`（改名后尚未编译）、
-> `gray-to-component`、`apply-image`、`calculations`、`match-color`、`color-grading`、
-> `color-lookup`、`xyz-multiply`、`shadows-highlights`、`color-temperature-tint`
-> （后几个此前就没编过）。
-> 这台构建机没有 Linux 环境，需要时在 Linux 上跑一次 `./build.sh` 即可全部补齐
-> （`color-temperature-tint` 依赖的 `common/temp-tint.h` 是纯 C 表，无平台相关代码）。
+> **两端产物同源**：Windows 由本机 MSYS2 交叉编译，Linux 由 GitHub Actions 的
+> `ubuntu-latest` 编出后取回，模块名与 `manifest.csv` 一一对应。
+> `lb:gray-to-component` 已于 2026-11-15 废弃（源码保留在 `ops/` 下但不再编译），
+> 所以现在两端各 28 个，不是 29 个。
 
 - GIMP Flatpak（Linux）：放进 `~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins`
 
@@ -31,7 +27,7 @@ GCC、MSYS2、meson 那一套。内容与当前分支的源码同步（`tools/ma
 
 macOS 包由 GitHub Actions 在 Apple Silicon 云机器（`macos-15`）上编译：仓库
 **每次 push 都会构建**，产物以 artifact 形式挂在 Actions 运行页
-（`macos-arm64`，与算子总数同步，当前 24 个 `.dylib`）——GitHub 上打开 Actions → 选最新一次 run →
+（`macos-arm64`，与算子总数同步，当前 28 个 `.dylib`）——GitHub 上打开 Actions → 选最新一次 run →
 Artifacts 里下载。装了 Homebrew GIMP 的用户把这些 `.dylib` 放到
 `~/Library/Application Support/gegl-0.4/plug-ins` 即可。
 
@@ -67,9 +63,9 @@ gegl --info lb:hue-saturation
 
 1. Linux 包是在 Ubuntu 24.04 上编的，因为它链的是较新的 glibc，Ubuntu 22.04 之类
    老系统会报 `GLIBC_2.39 not found`。要兼容更老的发行版，用 CI 或自己的机器编一次。
-2. Linux 包**没有在 GIMP 图形界面里逐个点过**，只在 GEGL 0.4.48 环境下用一个 C 程序
-   验证：当时 13 个算子全部注册成功、恒等渲染数值与原图一致（`lb:vibrance` 是之后加的，只做了构建 + 入口符号检查）。GIMP 里看不到时，先用上面的
-   `gegl --info` 确认算子是否被加载。
+2. Linux 包**没有在 GIMP 图形界面里逐个点过**，但 CI 每次构建都会跑
+   `tools/check-linux.sh`：按源码目录（跳过 `.disabled`）逐个把算子建出来跑恒等渲染，
+   全绿才留下 artifact。GIMP 里看不到时，先用上面的 `gegl --info` 确认算子是否被加载。
 
 ## 校验完整性
 

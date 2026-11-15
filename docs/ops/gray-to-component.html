@@ -29,12 +29,16 @@
   <div class="meta">
     <code>lb:gray-to-component</code>
     <span class="tag t-blend">混合与通道</span>
-    <span>整块区域</span>
+    <span>整块区域</span> <span class="badge off">已废弃</span>
   </div>
+  <p class="dep-note"><b>已废弃</b>　本算子不再编译、不进安装包，本页仅作存档。现在每个色彩模式都有自己的分量色阶，不需要「灰度 → 彩色编码 → 混合模式」这套三步走。</p>
   <p class="lede">通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue /</p>
 </section>
 <div class="article-layout">
   <article class="prose">
+<blockquote><p><strong>已废弃（2026-11-15）</strong>　本算子不再编译，也不再进安装包；这篇文档只作存档。</p>
+<p>它补的是「通道分解 → 灰度 → 重新编码 → 混合模式还原」这条三步流程中间缺的一环。 现在每个色彩模式都有自己的分量色阶，直接在原图上按分量调，一步到位： <code>lb:hsl-levels</code>、<code>lb:hsb-levels</code>、<code>lb:lch-levels</code>、<code>lb:cmyk-levels</code>、<code>lb:hsi-levels</code>。</p>
+<p>停用标记在 <code>ops/gray-to-component/.disabled</code>（含废弃原因）；要临时恢复编译就删掉 这个文件再 <code>./build.sh</code>。下面的公式与实测结论对旧工程文件仍有参考价值。</p></blockquote>
 <p>通道灰度调色工作流里的<strong>编码器</strong>：把分解出来的分量灰度层，重新编码成 「携带该分量」的彩色层，交给 GIMP 的分量混合模式读回去。</p>
 <pre><code>原图 ──分解──&gt; 分量灰度层（H / S / L / C …）
                     │
@@ -69,11 +73,14 @@
 <ul><li>输出格式钉成 <code>CIE Lab alpha float</code>：Lab/LCh 模式<strong>零转换直写</strong>（a=C·cos h、 b=C·sin h 就是 CIE LCh 的定义式）；HSL/RGB 模式用 <code>babl_fish</code> 把整行转 Lab， 与 GIMP 内部转换同源，不引入自实现转换的漂移。</li><li><strong>RGB 域模式的透明像素必须在 <code>rgb_line</code> 里落位</strong>：整行交给 <code>babl_process</code> 时 它会重写 <code>out_line</code> 的每一个像素，只在 <code>out_line</code> 里写 0 会被中间行（未初始化） 覆盖，导致透明像素的 alpha 变成随机值。早先 2×1 的小用例靠堆内存恰好为 0 蒙过去了，换成 32×8 棋盘才暴露——现已修正。</li><li>无 aux pad，可直接作为 GIMP 3 非破坏滤镜挂在灰度图层上（不受 <code>Gimp.DrawableFilter</code> 拒收 aux 算子的限制），整条工作流全程非破坏。</li><li>透明像素（alpha≤0）输出保持透明。</li><li>输入 <code>YA float</code>：分解出的灰度层是 RGBA 时由 babl 自动转成 CIE 亮度。</li></ul>
     <div class="op-dl">
   <div>
-    <h3>只要这一个</h3>
-    <p>Windows 模块 <code>gray-to-component.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code> 后重启 GIMP。
-       整包在 <a href="../index.html#download">下载页</a>。</p>
+    <h3>已废弃，不提供下载</h3>
+    <p>这个算子不再编译，也不再进安装包。分量调色改用
+       <a href="hsl-levels.html">HSL</a>、<a href="hsb-levels.html">HSB</a>、
+       <a href="lch-levels.html">LCh</a>、<a href="cmyk-levels.html">CMYK</a>、
+       <a href="hsi-levels.html">HSI</a> 色阶，一步调完，不用先分解再编码。
+       源码仍保留在仓库 <code>ops/gray-to-component/</code>，废弃原因见那里的
+       <code>.disabled</code>。</p>
   </div>
-  <a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/gray-to-component.dll">下载 gray-to-component.dll</a>
 </div>
     <nav class="pager"><a class="prev" href="color-lookup.html"><span>上一个</span>Color Lookup</a><a class="next" href="color-mask-select.html"><span>下一个</span>Mask by Color</a></nav>
   </article>
@@ -97,7 +104,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
     <a href="../guide.html">安装指南</a>
-    <span class="muted">1bbe118</span>
+    <span class="muted">d0b2784</span>
   </div>
 </footer>
 </body>

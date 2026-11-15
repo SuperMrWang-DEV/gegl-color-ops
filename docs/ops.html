@@ -24,8 +24,8 @@
 <main id="main">
 <section class="page-head">
   <p class="eyebrow"><a href="index.html">首页</a> / 算子清单</p>
-  <h1>全部 29 个算子</h1>
-  <p class="lede">按 GIMP 菜单里的分组排列。点名字进算法说明。</p>
+  <h1>28 个算子</h1>
+  <p class="lede">按 GIMP 菜单里的分组排列。点名字进算法说明。其中 1 个已废弃，只作存档、不提供下载。</p>
 </section>
 <section class="prose wide">
 <h2 id="g-Tone"><span class="tag t-tone">影调与色阶</span> 先把明暗和分量拉开：色阶、曝光、对比、阴影高光。包括 HSL / HSB / LCH / CMYK / HSI 五条分量色阶。</h2>
@@ -65,7 +65,7 @@
 <tr><td><a href="ops/channel-mixer-plus.html"><b>Channel Mixer Plus</b></a></td><td><code>lb:channel-mixer-plus</code></td><td class="nowrap">逐像素</td><td>PS 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移</td></tr>
 <tr><td><a href="ops/xyz-multiply.html"><b>Photo Filter</b></a></td><td><code>lb:xyz-multiply</code></td><td class="nowrap">逐像素</td><td>PS「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。</td></tr>
 <tr><td><a href="ops/color-lookup.html"><b>Color Lookup</b></a></td><td><code>lb:color-lookup</code></td><td class="nowrap">整块区域</td><td>按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价 PS「颜色查找」调整图层；强度按 0..1 与原图线性混合</td></tr>
-<tr><td><a href="ops/gray-to-component.html"><b>Gray To Component</b></a></td><td><code>lb:gray-to-component</code></td><td class="nowrap">整块区域</td><td>通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue /</td></tr>
+<tr><td><a href="ops/gray-to-component.html"><b>Gray To Component</b></a> <span class="badge off">已废弃</span></td><td><code>lb:gray-to-component</code></td><td class="nowrap">整块区域</td><td>通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue /</td></tr>
 </tbody></table></div>
 <h2 id="g-Mask"><span class="tag t-mask">蒙版</span> 按颜色或数值区间取蒙版：色彩范围、通道区间到 alpha。</h2>
 <div class="table-wrap"><table class="op-table">
@@ -85,7 +85,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
     <a href="guide.html">安装指南</a>
-    <span class="muted">1bbe118</span>
+    <span class="muted">d0b2784</span>
   </div>
 </footer>
 </body>

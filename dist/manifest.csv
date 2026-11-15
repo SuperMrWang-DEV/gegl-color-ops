@@ -11,7 +11,6 @@ windows-x64,color-lookup.dll,lb:color-lookup,Color Lookup,111990,09e1fb75cb6ee0b
 windows-x64,color-mask-select.dll,lb:color-mask-select,Color Mask Select,135474,4db16b141b82b69f24fccaf98252e8dc0dba5e63744931ad52bb23a9088978a0
 windows-x64,color-temperature-tint.dll,lb:color-temperature-tint,Color Temperature & Tint,198501,9d29afeb7605b8d30042daf164a2c899045857be6099d2b7d10899b39a78bc13
 windows-x64,colorize-hsl.dll,lb:colorize-hsl,Colorize,103326,adf853c7dc69b98d5f8e24a9dcd17fa67b3200b9e4d3ab91518f5bc963e7c496
-windows-x64,gray-to-component.dll,lb:gray-to-component,Gray To Component,110272,829e583d58fb3f60c530c065cdc9ded33ec9aeb9441da429ff8cbdfbffe6e81a
 windows-x64,hsb-levels.dll,lb:hsb-levels,HSB Levels,130908,94b128f013ac9af01ed2dae9acffdcc0a0eef3a1045571f894eba6aa7454ecea
 windows-x64,hsi-levels.dll,lb:hsi-levels,HSI Levels,142894,e3f3b7223806ea9d2b3705cf7ecdef40a42d7fbaffb6d148fd32430690b43cd5
 windows-x64,hsl-levels.dll,lb:hsl-levels,HSL Levels,130908,a978cbc9a590a777b11a0e49cf448a706dcc8df6a14bfb52951f6a474a3e7e1b
@@ -40,7 +39,6 @@ linux-x64,color-lookup.so,lb:color-lookup,Color Lookup,31424,68544b6b96865b199b1
 linux-x64,color-mask-select.so,lb:color-mask-select,Color Mask Select,31576,752868c0ffd48703551c7e66144d0ac157f90b4b935d2187c2a1500f8e1a2033
 linux-x64,color-temperature-tint.so,lb:color-temperature-tint,Color Temperature & Tint,91808,2424325684e848b291e50b22b14fbca583b877493eba26333d0e99f930d15e34
 linux-x64,colorize-hsl.so,lb:colorize-hsl,Colorize,21784,9728ea7170018c44aa4d36f4e9f20a2d9af74cd2384386193ccefad91443e6a3
-linux-x64,gray-to-component.so,lb:gray-to-component,Gray To Component,30976,8a15e23cf6fdea5a8a44fb09edfd5029fdb76d8c045d900cca46614e091b04c4
 linux-x64,hsb-levels.so,lb:hsb-levels,HSB Levels,26160,4c182e387da7fbdbee8142aabd4366331df3af2731667bd441850ce22c53ace4
 linux-x64,hsi-levels.so,lb:hsi-levels,HSI Levels,26232,9cfe39b320ebb7f0ff982a0da5d3f8128762d9302ea5e8161a619578d027fac9
 linux-x64,hsl-levels.so,lb:hsl-levels,HSL Levels,26160,0c40284b2b21593b69b769e010fe8dc2ee3bc32f8d71ca8cd326efc3c8db2c7f

@@ -389,6 +389,16 @@ main::before {
 .op-dl h3 { font-size: 15px; margin: 0 0 4px; }
 .op-dl p { margin: 0; font-size: 14px; color: var(--muted); }
 
+/* 已废弃算子页顶部的存档提示 */
+.dep-note {
+  margin: 18px 0 0; padding: 12px 16px; font-size: 14px; line-height: 1.65;
+  color: var(--muted);
+  background: color-mix(in srgb, #f43f5e 8%, var(--panel));
+  border: 1px solid color-mix(in srgb, #f43f5e 24%, var(--line));
+  border-radius: 10px;
+}
+.dep-note b { color: #e11d48; }
+
 .pager {
   display: flex; justify-content: space-between; gap: 16px;
   margin-top: 36px; padding-top: 20px; border-top: 1px solid var(--line-soft);

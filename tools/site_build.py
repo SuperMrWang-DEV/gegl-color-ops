@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""把 ops/ 下的 29 个算子渲染成一套静态站点，输出到 docs/。
+"""把 ops/ 下的算子渲染成一套静态站点，输出到 docs/（带 .disabled 的标停用/废弃）。
 
 设计上把 docs/ 当作纯产物：每次运行整个目录重建，样式源在 tools/site/。
 所以改样式改 tools/site/style.css，别直接改 docs/assets/style.css。
@@ -134,6 +134,7 @@ def load_ops():
             "purpose_en": en,
             "type": TYPE_ZH.get(tm.group(1) if tm else "", tm.group(1) if tm else "算子"),
             "disabled": os.path.exists(os.path.join(d, ".disabled")),
+            "deprecated": is_deprecated(os.path.join(d, ".disabled")),
             "readme": os.path.join(d, "README.md"),
             "assets": os.path.join(d, "assets"),
         }
@@ -228,8 +229,26 @@ def page(title, body, root="", desc=""):
 VERSION = "dev"
 
 
+def is_deprecated(mark):
+    """`.disabled` 里标了 DEPRECATED 的是永久废弃，否则只是临时停用。"""
+    if not os.path.exists(mark):
+        return False
+    try:
+        with open(mark, encoding="utf-8", errors="replace") as fh:
+            return "DEPRECATED" in fh.read(400).upper()
+    except OSError:
+        return False
+
+
+def off_badge(op, temporary="停用"):
+    if not op.get("disabled"):
+        return ""
+    return '<span class="badge off">%s</span>' % (
+        "已废弃" if op.get("deprecated") else temporary)
+
+
 def card(op):
-    badge = '<span class="badge off">停用</span>' if op["disabled"] else ""
+    badge = off_badge(op)
     return """<a class="card" href="ops/{slug}.html">
   <div class="card-top">
     <span class="tag t-{g}">{gz}</span>
@@ -267,13 +286,17 @@ def group_section(g, ops):
 # --------------------------------------------------------------------------
 
 def build_index(ops, stats, version):
+    n_live = sum(1 for o in ops if not o.get("deprecated"))
+    n_dep = len(ops) - n_live
+    dep_note = ('<span class="muted">另有 %d 个已废弃，只作存档。</span>' % n_dep) if n_dep else ""
     by_g = "\n".join(group_section(g, ops) for g in SMG.GROUPS)
 
     hero = """<section class="hero">
   <p class="eyebrow">GIMP 3.x · GEGL 0.4 · GPL-3.0</p>
   <h1>给 GIMP 3 的一整套<br><span class="grad">色彩算子</span></h1>
   <p class="lede">{n} 个 <code>lb:</code> 前缀的 GEGL 算子，覆盖色阶、色彩平衡、自然饱和度、
-     白平衡、通道混合、蒙版生成。每个都是单文件 C，装完即用，能当非破坏滤镜挂在图层上。</p>
+     白平衡、通道混合、蒙版生成。每个都是单文件 C，装完即用，能当非破坏滤镜挂在图层上。
+     {dep}</p>
   <div class="cta">
     <a class="btn primary" href="#download">下载 Windows 包<span class="size">{size} MB</span></a>
     <a class="btn" href="#ops">浏览 {n} 个算子</a>
@@ -285,14 +308,14 @@ def build_index(ops, stats, version):
     <li><b>0</b> 依赖 · 免编译包</li>
     <li><b>{files}</b> 个 Windows 模块已随仓库发布</li>
   </ul>
-</section>""".format(n=len(ops), size=stats["zip_mb"], files=stats["win_files"])
+</section>""".format(n=n_live, dep=dep_note, size=stats["zip_mb"], files=stats["win_files"])
 
     steps = """<section class="steps" id="start">
   <h2>三分钟装上</h2>
   <ol class="step-list">
     <li>
       <h3>解开压缩包</h3>
-      <p>把 29 个 <code>.dll</code> 放进 GEGL 的用户插件目录，目录不存在就自己建一个：</p>
+      <p>把 {files} 个 <code>.dll</code> 放进 GEGL 的用户插件目录，目录不存在就自己建一个：</p>
       <pre><code>%LOCALAPPDATA%\\gegl-0.4\\plug-ins</code></pre>
     </li>
     <li>
@@ -305,7 +328,7 @@ def build_index(ops, stats, version):
          也可以按 <code>/</code> 搜算子名直接调。</p>
     </li>
   </ol>
-</section>"""
+</section>""".format(files=stats["win_files"])
 
     if stats.get("zip_linux_name"):
         lin_body = """<p>{lin} 个 <code>.so</code>（{lsize} MB）。解到
@@ -362,14 +385,16 @@ def build_index(ops, stats, version):
   <p class="section-lede">按「找算子时的念头」分了四组，和 GIMP 菜单里的分组一致。
      点任一算子进去看算法、参数与实测误差。</p>
 {by_g}
-</section>""".format(n=len(ops), by_g=by_g) + download + about
+</section>""".format(n=n_live, by_g=by_g) + download + about
 
     return page("gegl-color-ops · GIMP 3 色彩算子集", body,
                 desc="%d 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、"
-                     "白平衡、通道混合、蒙版。免编译包直接下载。" % len(ops))
+                     "白平衡、通道混合、蒙版。免编译包直接下载。" % n_live)
 
 
 def build_ops_index(ops, version):
+    n_live = sum(1 for o in ops if not o.get("deprecated"))
+    n_dep = len(ops) - n_live
     rows = []
     for g in SMG.GROUPS:
         members = [o for o in ops if o["group"] == g]
@@ -381,7 +406,7 @@ def build_ops_index(ops, version):
         rows.append("<thead><tr><th>菜单名</th><th>GEGL id</th><th>类型</th>"
                     "<th>做什么</th></tr></thead><tbody>")
         for o in members:
-            off = ' <span class="badge off">停用</span>' if o["disabled"] else ""
+            off = (" " + off_badge(o)) if o["disabled"] else ""
             rows.append('<tr><td><a href="ops/%s.html"><b>%s</b></a>%s</td>'
                         '<td><code>%s</code></td><td class="nowrap">%s</td><td>%s</td></tr>'
                         % (o["dir"], html.escape(o["menu"]), off, html.escape(o["id"]),
@@ -390,12 +415,13 @@ def build_ops_index(ops, version):
 
     body = """<section class="page-head">
   <p class="eyebrow"><a href="index.html">首页</a> / 算子清单</p>
-  <h1>全部 {n} 个算子</h1>
-  <p class="lede">按 GIMP 菜单里的分组排列。点名字进算法说明。</p>
+  <h1>{n} 个算子</h1>
+  <p class="lede">按 GIMP 菜单里的分组排列。点名字进算法说明。{dep}</p>
 </section>
 <section class="prose wide">
 {rows}
-</section>""".format(n=len(ops), rows="\n".join(rows))
+</section>""".format(n=n_live, rows="\n".join(rows),
+                   dep=("其中 %d 个已废弃，只作存档、不提供下载。" % n_dep) if n_dep else "")
     return page("算子清单 · gegl-color-ops", body, desc="全部算子的清单与一句话说明")
 
 
@@ -443,7 +469,7 @@ def build_article(op, version):
   <ul>%s</ul>
 </aside>""" % items
 
-    off = ' <span class="badge off">临时停用</span>' if op["disabled"] else ""
+    off = (" " + off_badge(op, "临时停用")) if op["disabled"] else ""
     meta = """<div class="meta">
     <code>{oid}</code>
     <span class="tag t-{g}">{gz}</span>
@@ -463,7 +489,20 @@ def build_article(op, version):
     nav.append("</nav>")
     nav = "".join(nav)
 
-    dl = """<div class="op-dl">
+    if op.get("deprecated"):
+        dl = """<div class="op-dl">
+  <div>
+    <h3>已废弃，不提供下载</h3>
+    <p>这个算子不再编译，也不再进安装包。分量调色改用
+       <a href="hsl-levels.html">HSL</a>、<a href="hsb-levels.html">HSB</a>、
+       <a href="lch-levels.html">LCh</a>、<a href="cmyk-levels.html">CMYK</a>、
+       <a href="hsi-levels.html">HSI</a> 色阶，一步调完，不用先分解再编码。
+       源码仍保留在仓库 <code>ops/gray-to-component/</code>，废弃原因见那里的
+       <code>.disabled</code>。</p>
+  </div>
+</div>"""
+    else:
+        dl = """<div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>{file}.dll</code>，放进 <code>%LOCALAPPDATA%\\gegl-0.4\\plug-ins</code> 后重启 GIMP。
@@ -472,11 +511,17 @@ def build_article(op, version):
   <a class="btn" href="{raw}/{file}.dll">下载 {file}.dll</a>
 </div>""".format(file=op["module"], raw=RAW)
 
+    warn = ""
+    if op.get("deprecated"):
+        warn = ('\n  <p class="dep-note"><b>已废弃</b>　本算子不再编译、不进安装包，'
+                '本页仅作存档。现在每个色彩模式都有自己的分量色阶，不需要「灰度 → '
+                '彩色编码 → 混合模式」这套三步走。</p>')
+
     body = """<section class="page-head">
   <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
      {gz}</p>
   <h1>{menu}</h1>
-  {meta}
+  {meta}{warn}
   <p class="lede">{blurb}</p>
 </section>
 <div class="article-layout">
@@ -488,7 +533,7 @@ def build_article(op, version):
   {toc}
 </div>""".format(gz=GROUP_ZH[op["group"]][1], menu=html.escape(op["menu"]), meta=meta,
                  blurb=op["purpose_html"], html=body_html, dl=dl, nav=nav,
-                 toc=toc_html)
+                 warn=warn, toc=toc_html)
 
     title = "%s · %s" % (op["menu"], "gegl-color-ops")
     return page(title, body, root="../", desc=op["purpose_text"][:120])

@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>gegl-color-ops · GIMP 3 色彩算子集</title>
-<meta name="description" content="29 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。">
+<meta name="description" content="28 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。">
 <meta property="og:title" content="gegl-color-ops · GIMP 3 色彩算子集">
-<meta property="og:description" content="29 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。">
+<meta property="og:description" content="28 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="feed.xml">
 </head>
@@ -25,25 +25,26 @@
 <section class="hero">
   <p class="eyebrow">GIMP 3.x · GEGL 0.4 · GPL-3.0</p>
   <h1>给 GIMP 3 的一整套<br><span class="grad">色彩算子</span></h1>
-  <p class="lede">29 个 <code>lb:</code> 前缀的 GEGL 算子，覆盖色阶、色彩平衡、自然饱和度、
-     白平衡、通道混合、蒙版生成。每个都是单文件 C，装完即用，能当非破坏滤镜挂在图层上。</p>
+  <p class="lede">28 个 <code>lb:</code> 前缀的 GEGL 算子，覆盖色阶、色彩平衡、自然饱和度、
+     白平衡、通道混合、蒙版生成。每个都是单文件 C，装完即用，能当非破坏滤镜挂在图层上。
+     <span class="muted">另有 1 个已废弃，只作存档。</span></p>
   <div class="cta">
     <a class="btn primary" href="#download">下载 Windows 包<span class="size">1.3 MB</span></a>
-    <a class="btn" href="#ops">浏览 29 个算子</a>
+    <a class="btn" href="#ops">浏览 28 个算子</a>
     <a class="btn ghost" href="guide.html">怎么装</a>
   </div>
   <ul class="facts">
-    <li><b>29</b> 个算子</li>
+    <li><b>28</b> 个算子</li>
     <li><b>4</b> 个分类</li>
     <li><b>0</b> 依赖 · 免编译包</li>
-    <li><b>29</b> 个 Windows 模块已随仓库发布</li>
+    <li><b>28</b> 个 Windows 模块已随仓库发布</li>
   </ul>
 </section><section class="steps" id="start">
   <h2>三分钟装上</h2>
   <ol class="step-list">
     <li>
       <h3>解开压缩包</h3>
-      <p>把 29 个 <code>.dll</code> 放进 GEGL 的用户插件目录，目录不存在就自己建一个：</p>
+      <p>把 28 个 <code>.dll</code> 放进 GEGL 的用户插件目录，目录不存在就自己建一个：</p>
       <pre><code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code></pre>
     </li>
     <li>
@@ -58,7 +59,7 @@
   </ol>
 </section>
 <section class="ops" id="ops">
-  <h2>29 个算子</h2>
+  <h2>28 个算子</h2>
   <p class="section-lede">按「找算子时的念头」分了四组，和 GIMP 菜单里的分组一致。
      点任一算子进去看算法、参数与实测误差。</p>
 
@@ -347,7 +348,7 @@
   <div class="card-top">
     <span class="tag t-blend">混合与通道</span>
     <code>lb:gray-to-component</code>
-    
+    <span class="badge off">已废弃</span>
   </div>
   <h3>Gray To Component</h3>
   <p>通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue…</p>
@@ -388,17 +389,17 @@
   <div class="dl-grid">
     <div class="dl primary-dl">
       <div class="dl-head"><h3>Windows x64</h3><span class="pill">推荐</span></div>
-      <p>29 个 <code>.dll</code>（1.3 MB）。解到
+      <p>28 个 <code>.dll</code>（1.3 MB）。解到
          <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，重启 GIMP 即可。</p>
       <a class="btn primary" href="download/gegl-color-ops-windows-x64.zip">下载 gegl-color-ops-windows-x64.zip</a>
-      <p class="muted small">校验：<code>SHA256 6b793ce34e27891ad487bc3426d588bf…</code></p>
+      <p class="muted small">校验：<code>SHA256 506dae0e4456b29c7561691e6863e69d…</code></p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>Linux x86_64</h3></div>
-      <p>29 个 <code>.so</code>（0.3 MB）。解到
+      <p>28 个 <code>.so</code>（0.3 MB）。解到
          <code>~/.local/share/gegl-0.4/plug-ins</code>，重启 GIMP 即可。</p>
       <a class="btn" href="download/gegl-color-ops-linux-x64.zip">下载 gegl-color-ops-linux-x64.zip</a>
-      <p class="muted small">校验：<code>SHA256 6d5ec6dc6593da9a5ff5f0a0e668882a…</code></p>
+      <p class="muted small">校验：<code>SHA256 0675b62fcf5cad7d924118c4413bf831…</code></p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>单个算子</h3></div>
@@ -430,7 +431,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
     <a href="guide.html">安装指南</a>
-    <span class="muted">1bbe118</span>
+    <span class="muted">d0b2784</span>
   </div>
 </footer>
 </body>

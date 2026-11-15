@@ -98,7 +98,11 @@ def main():
     for plat, ext in PLATFORMS:
         out = os.path.join(DIST, plat)
         os.makedirs(out, exist_ok=True)
-        built = sorted(f for f in os.listdir(BUILD) if f.endswith("." + ext))
+        # 只收源码表里的模块：build/ 可能残留已 .disabled 的旧产物，
+        # 全量复制会把它们又塞回包里。
+        stems = {m["stem"] for m in meta}
+        built = sorted(f for f in os.listdir(BUILD)
+                       if f.endswith("." + ext) and os.path.splitext(f)[0] in stems)
         if check:
             have = sorted(f for f in os.listdir(out) if f.endswith("." + ext))
             if built != have:
