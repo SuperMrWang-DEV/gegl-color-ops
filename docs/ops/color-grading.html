@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Color Grading · gegl-color-ops</title>
+<meta name="description" content="等价 ACR/Lightroom「颜色分级」：阴影 / 中间调 / 高光 / 全局四个轮盘（色相 + 饱和度）加各自的明度滑杆，按亮度分带给画面上色。">
+<meta property="og:title" content="Color Grading · gegl-color-ops">
+<meta property="og:description" content="等价 ACR/Lightroom「颜色分级」：阴影 / 中间调 / 高光 / 全局四个轮盘（色相 + 饱和度）加各自的明度滑杆，按亮度分带给画面上色。">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../index.html#ops">算子</a>
+    <a href="../guide.html">安装</a>
+    <a href="../index.html#download">下载</a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+</header>
+<main id="main">
+<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
+     色彩</p>
+  <h1>Color Grading</h1>
+  <div class="meta">
+    <code>lb:color-grading</code>
+    <span class="tag t-color">色彩</span>
+    <span>逐像素</span>
+  </div>
+  <p class="lede">等价 ACR/Lightroom「颜色分级」：阴影 / 中间调 / 高光 / 全局四个轮盘（色相 + 饱和度）加各自的明度滑杆，按亮度分带给画面上色。</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<p>2026-11-12 新增。复刻 Adobe Camera Raw / Lightroom Classic 的 <strong>Color Grading（颜色分级）</strong>面板：阴影 / 中间调 / 高光 / 全局四个轮盘 （色相 + 饱和度），各带独立的明度滑杆，外加 Blending 与 Balance。</p>
+<h2 id="菜单位置">菜单位置</h2>
+<p><code>Colors → SuperMrWang → Color → Color Grading</code></p>
+<h2 id="参数14-项与-acr-面板一一对应">参数（14 项，与 ACR 面板一一对应）</h2>
+<div class="table-wrap"><table><thead><tr><th>参数</th><th>范围</th><th>默认</th><th>说明</th></tr></thead><tbody><tr><td>Global Hue / Saturation / Luminance</td><td>0–360 / 0–100 / −100–100</td><td>0 / 0 / 0</td><td>全局轮盘，整幅画面均匀生效</td></tr><tr><td>Shadows Hue / Saturation / Luminance</td><td>同上</td><td>0 / 0 / 0</td><td>阴影轮盘</td></tr><tr><td>Midtones Hue / Saturation / Luminance</td><td>同上</td><td>0 / 0 / 0</td><td>中间调轮盘</td></tr><tr><td>Highlights Hue / Saturation / Luminance</td><td>同上</td><td>0 / 0 / 0</td><td>高光轮盘</td></tr><tr><td>Blending</td><td>0–100</td><td>50</td><td>相邻亮度带的交叉淡化宽度（0 = 硬分界）</td></tr><tr><td>Balance</td><td>−100–100</td><td>0</td><td>平移阴影/高光的势力范围（正 = 偏高光）</td></tr></tbody></table></div>
+<h2 id="算法模型">算法模型</h2>
+<p>按像素的 Rec.709 亮度（伽马域）分带：</p>
+<ul><li>分界默认：阴影/中间调 <strong>0.3</strong>，中间调/高光 <strong>0.7</strong>；</li><li>Blending 把两条硬边界铺成 smoothstep 过渡（100 → 各 ±0.25）， 中间调权重 = 1 − 阴影 − 高光；</li><li>Balance ±100 把两条分界一起平移 ±0.25。</li></ul>
+<p>每个轮盘的一次染色（乘以带权重 w）：</p>
+<ul><li>明度：<code>V += Lw × 0.005 × w</code>（与 <code>lb:hsl-seven</code> 同系数）；</li><li>染色强度 <code>t = Sat/100 × w</code>：往<strong>同明度的轮盘纯色</strong>混合， <code>rgb = rgb·(1−t) + tint·t</code>，<code>tint = HSV(轮盘色相, 1, V)</code>。 灰像素自然吃到染色；与轮盘色接近互补的色相则被去饱和（掺灰）， <strong>不在色相上做插值</strong>，所以没有「旋转方向翻转」的接缝。</li></ul>
+<blockquote><p>2026-11-12 修正：初版用「色相向轮盘色相收敛」的模型，在互补色相 （色相差 ≈ 180°）处 <code>roundf</code> 的旋转方向会翻转，裁切高光上会爆出 竖条纹（在 night-blue 演示图里可见）。已改为向轮盘色混合， <code>check_color_grading.py</code> 新增「互补色相无接缝」检测（相邻列跳变 1.2 码，阈值 8）。</p></blockquote>
+<p>执行顺序：全局轮盘（权重 1）先做，三个带再做。</p>
+<h2 id="标定状态诚实声明">标定状态（诚实声明）</h2>
+<p>本机 PS 2025 <strong>未装 Camera Raw 插件</strong>，无法像 colorize / color-mask-select 那样逐码标定。分界 0.3/0.7、过渡 ±0.25、Rec.709 亮度等均为按 ACR 公开 行为设定的合理模型，<strong>不是黑盒实测值</strong>。结构、参数语义与 ACR 面板 一一对应；数值行为由 <code>tools/check_color_grading.py</code> 按设计模型验证。</p>
+<h2 id="验证">验证</h2>
+<pre><code class="language-bash">python tools/check_color_grading.py    # 行为验证 12 项（恒等 / 分带 / 落位 / Blending / Balance / 全局 / 无接缝）
+python tools/smoke.sh                  # 全算子冒烟</code></pre>
+<h2 id="已知限制">已知限制</h2>
+<ul><li>轮盘没有独立的「范围」滑杆（ACR 悬停轮盘可调亮度范围端点）； 分界固定 0.3/0.7，只能用 Blending/Balance 调整过渡与偏移。</li><li>亮度分带用的是像素自身亮度（Rec.709 伽马域），不是邻域亮度； 要「按邻域」的效果请用 <code>lb:shadows-highlights</code>。</li></ul>
+    <div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>color-grading.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code> 后重启 GIMP。
+       整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/color-grading.dll">下载 color-grading.dll</a>
+</div>
+    <nav class="pager"><a class="prev" href="color-balance.html"><span>上一个</span>Color Balance</a><a class="next" href="color-temperature-tint.html"><span>下一个</span>Color Temperature &amp; Tint</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#菜单位置">菜单位置</a></li>
+<li class="l2"><a href="#参数14-项与-acr-面板一一对应">参数（14 项，与 ACR 面板一一对应）</a></li>
+<li class="l2"><a href="#算法模型">算法模型</a></li>
+<li class="l2"><a href="#标定状态诚实声明">标定状态（诚实声明）</a></li>
+<li class="l2"><a href="#验证">验证</a></li>
+<li class="l2"><a href="#已知限制">已知限制</a></li></ul>
+</aside>
+</div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
+    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
+       与 Adobe、GIMP 官方均无隶属关系。</p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
+    <a href="../guide.html">安装指南</a>
+    <span class="muted">e6b8be3</span>
+  </div>
+</footer>
+</body>
+</html>

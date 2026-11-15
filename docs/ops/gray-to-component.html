@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gray To Component · gegl-color-ops</title>
+<meta name="description" content="通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue /">
+<meta property="og:title" content="Gray To Component · gegl-color-ops">
+<meta property="og:description" content="通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue /">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../index.html#ops">算子</a>
+    <a href="../guide.html">安装</a>
+    <a href="../index.html#download">下载</a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+</header>
+<main id="main">
+<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
+     混合与通道</p>
+  <h1>Gray To Component</h1>
+  <div class="meta">
+    <code>lb:gray-to-component</code>
+    <span class="tag t-blend">混合与通道</span>
+    <span>整块区域</span>
+  </div>
+  <p class="lede">通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue /</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<p>通道灰度调色工作流里的<strong>编码器</strong>：把分解出来的分量灰度层，重新编码成 「携带该分量」的彩色层，交给 GIMP 的分量混合模式读回去。</p>
+<pre><code>原图 ──分解──&gt; 分量灰度层（H / S / L / C …）
+                    │
+                    ▼
+            lb:gray-to-component   ← 本算子：灰度 → 该分量的彩色表示
+                    │
+                    ▼
+        混合模式还原（GIMP「颜色」组 9 个模式 + Lighten 叠合）</code></pre>
+<p>为什么需要这一步：<strong>灰度像素的色相和饱和度是无定义的</strong>。把分解出的 H 灰度层 直接设成「色相」混合模式毫无效果——混合模式从灰里读不出色相。必须先把它编 码成色环上的真实颜色，混合模式才有东西可读。GIMP 的分解和混合模式都是现成 的，唯独中间这一步没有，本算子补的就是这一环。</p>
+<h2 id="模式表编码公式经-hsl-cal-恒等往返实测校准">模式表（编码公式经 hsl-cal 恒等往返实测校准）</h2>
+<p>GIMP 3 把分量类混合模式集中在「颜色」组，共 9 个：<strong>Hue / Saturation / Color / Value / LCh Hue / LCh Chroma / LCh Color / LCh Lightness / Luminance</strong>。本算子 每个都能喂，另外多给三个 RGB 单通道模式。</p>
+<div class="table-wrap"><table><thead><tr><th>模式</th><th>灰度 g 的语义</th><th>输出编码</th><th>配哪个混合模式还原</th></tr></thead><tbody><tr><td><code>hue</code></td><td>HSL 色相 h/360</td><td><code>hsl_to_rgb(g·360°, S=1, L=0.5)</code>，饱和度亮度拉满的色相轮</td><td><strong>Hue</strong>（HSV_HUE）</td></tr><tr><td><code>saturation</code></td><td>HSV 饱和度 s</td><td><code>hsv_to_rgb(sat_hue, s, V=1)</code>，默认红相</td><td><strong>Saturation</strong>（HSV_SATURATION）</td></tr><tr><td><code>color</code></td><td>HSL 色相 h/360</td><td><code>hsl_to_rgb(g·360°, color_sat, L=0.5)</code>，饱和度由参数固定</td><td><strong>Color</strong>（HSL_COLOR）</td></tr><tr><td><code>value</code></td><td>HSV 明度 V</td><td><code>(g,g,g)</code> 中性灰（V 就是最大通道）</td><td><strong>Value</strong>（HSV_VALUE）</td></tr><tr><td><code>lightness</code></td><td>CIE 明度 L/100</td><td><code>Lab(g·100, 0, 0)</code> 直写</td><td><strong>LCh Lightness</strong>（LCH_LIGHTNESS）</td></tr><tr><td><code>luminance</code></td><td>同上（CIE 亮度 Y）</td><td>与 <code>lightness</code> 逐字节相同</td><td><strong>Luminance</strong>（LUMINANCE）</td></tr><tr><td><code>red</code> / <code>green</code> / <code>blue</code></td><td>该通道值</td><td><code>(g,0,0)</code> / <code>(0,g,0)</code> / <code>(0,0,g)</code></td><td><strong>Lighten</strong> 三层叠合</td></tr><tr><td><code>lch-hue</code></td><td>CIE 色相 h/360</td><td><code>Lab(lch_l, C·cos h, C·sin h)</code>，C = <code>lch_c</code></td><td><strong>LCh Hue</strong>（LCH_HUE）</td></tr><tr><td><code>lch-color</code></td><td>同上（h，C 由参数固定）</td><td>与 <code>lch-hue</code> 逐字节相同</td><td><strong>LCh Color</strong>（LCH_COLOR）</td></tr><tr><td><code>lch-chroma</code></td><td>CIE 色度 C/chroma_scale</td><td><code>Lab(lch_l, C·cos h₀, C·sin h₀)</code>，h₀ = <code>lch_h</code></td><td><strong>LCh Chroma</strong>（LCH_CHROMA）</td></tr></tbody></table></div>
+<p>两组「同编码」不是偷懒，是混合模式的语义决定的：</p>
+<ul><li><strong><code>luminance</code> ≡ <code>lightness</code></strong>：Luminance 读 CIE 亮度 Y，中性灰的 Lab L 与 Y 单调对应，同一份 <code>Lab(L,0,0)</code> 同时给出正确的 L 和 Y。</li><li><strong><code>lch-color</code> ≡ <code>lch-hue</code></strong>：LCh Color 只读色相 + 色度，而 <code>lch-hue</code> 的色度 本来就由 <code>lch-c</code> 固定住了。单列一条纯粹是让人按 GIMP 的模式名对号入座。</li></ul>
+<p><strong>Color 的单通道困境</strong>：Color 模式要同时读色相和饱和度，可一层灰度只有一个 标量。本算子的取舍是「灰度携带色相，饱和度由 <code>color-sat</code> 给定」——想整幅换色 同时压饱和度，就把 <code>color-sat</code> 调到 45%，比先 <code>hue</code> 再叠一层降饱和简单。</p>
+<p>三个校准出来的硬结论（hsl-cal 实测，误差按 0–255 计）：</p>
+<ol><li><strong>HSL 的 S ≠ HSV 的 S</strong>。GIMP 的 Saturation 模式读的是 HSV 语义，拿 HSL 分解 出的 S 层直接编码，误差高达 214/255。本算子的 <code>saturation</code> 模式按 HSV 语义 编码，恒等往返误差 &lt;2。</li><li><strong>HSL 色相与 CIE 色相不可线性互转</strong>。把 <code>h·360</code> 直接当 LCh 色相用，误差 139/255。两套色轮必须各自分解、各自编码——这就是 <code>hue</code> 和 <code>lch-hue</code> 两个 模式不能合并的原因。</li><li><strong>编码层要工作在 float32</strong>。8-bit 图像下 Lab/LCh 编码写入图层会被量化， 色相/色度被打碎（这也是普通 8-bit 图上这套流程精度有限的固有原因）； float32 下连超出 sRGB 色域的 LCh 值都能原样往返。</li></ol>
+<h2 id="参数">参数</h2>
+<div class="table-wrap"><table><thead><tr><th>参数</th><th>默认</th><th>说明</th></tr></thead><tbody><tr><td><code>mode</code></td><td><code>hue</code></td><td>见上表</td></tr><tr><td><code>sat-hue</code></td><td>0（红）</td><td><code>saturation</code> 模式用的色相。该层只提供饱和度，色相在还原时不进入结果，取值不影响最终画面</td></tr><tr><td><code>color-sat</code></td><td>100</td><td><code>color</code> 模式固定的饱和度百分比。100% 时输出与 <code>hue</code> 相同；调低即「换色 + 降饱和」</td></tr><tr><td><code>lch-l</code></td><td>54</td><td>LCh 模式用的固定明度。混合模式只读色相/色度时此值不进结果，取中庸值以留在常见色域内</td></tr><tr><td><code>lch-c</code></td><td>30</td><td><code>lch-hue</code> / <code>lch-color</code> 用的固定色度。越大越鲜艳，过大可能超出 sRGB 色域</td></tr><tr><td><code>lch-h</code></td><td>30</td><td><code>lch-chroma</code> 模式用的固定色相角（0=红），同样不进结果</td></tr><tr><td><code>chroma-scale</code></td><td>100</td><td><code>lch-chroma</code> 的满量程（灰度 1.0 对应多少色度）。sRGB 的蓝/品红 C 可达 ~130，需要覆盖宽色域时调大，<strong>但必须与分解侧一致</strong></td></tr></tbody></table></div>
+<h2 id="典型用法">典型用法</h2>
+<p><strong>换色相</strong>（保留明暗和饱和度）：</p>
+<ol><li>原图复制一层 → <code>lb:gray-to-component</code> 选 <code>hue</code>，输入是「色相」分解出的灰度层；</li><li>该层混合模式设 <strong>Hue</strong>；</li><li>在灰度层上做色阶/曲线/反相——色相就跟着转，褶皱阴影全在。</li></ol>
+<p><strong>只调饱和度</strong>：同上，<code>saturation</code> 模式 + <strong>Saturation</strong> 混合模式。</p>
+<p><strong>换色同时压饱和</strong>：<code>color</code> 模式 + <strong>Color</strong> 混合模式，<code>color-sat</code> 设 40–60%。 一层就把色相和饱和度一起换掉，明度还是原图的。</p>
+<p><strong>只要 HSV 明度</strong>：<code>value</code> 模式 + <strong>Value</strong> 混合模式——输出中性灰，Value 读的 就是最大通道，曲线拖灰度直接改明度。</p>
+<p><strong>Lab 空间调色</strong>（不碰明度）：<code>lch-chroma</code> + <strong>LCh Chroma</strong>，拖灰度的曲线只改 鲜艳度；<code>lch-hue</code> + <strong>LCh Hue</strong> 只转色相；<code>lch-color</code> + <strong>LCh Color</strong> 则把色度 一并钉在 <code>lch-c</code> 上。</p>
+<p><strong>RGB 单通道重组</strong>：三个 <code>red</code>/<code>green</code>/<code>blue</code> 模式各编码一层，混合模式都用 <strong>Lighten</strong> 自下而上叠——<code>max((r,0,0),(0,g,0),(0,0,b))</code> 正好还原 <code>(r,g,b)</code>。</p>
+<h2 id="验收">验收</h2>
+<p><code>tools/check_gray_to_component.py</code>（39 项，gimp-console 跑）：</p>
+<ul><li><strong>A. 编码公式</strong>：17 级灰度斜坡喂算子，Lab 域模式（含 <code>luminance</code> / <code>lch-color</code> 两个别名）直读 Lab 输出对拍；RGB 域模式读回 RGB 与镜像的 HSL/HSV 公式对拍， <code>color-sat</code> 跑 100 / 40 两档、<code>sat-hue</code> 跑 0 / 210 两档确认参数真的进了公式； 含端点语义（hue 0=红 / 0.5=青）、value（0=黑 / 1=白 / 中性）、<code>color-sat=0</code> 退化成灰、两组别名输出逐分量相同。</li><li><strong>B. 恒等往返</strong>（金标准，与 hsl-cal 同一方法）：24 个探针色做分解 → 编码 → 混合还原，逐像素比对原图，<strong>全部 ≤2/255</strong>：hue→Hue、saturation→Saturation、 value→Value、lightness→LCh Lightness、luminance→Luminance、lch-hue→LCh Hue、 lch-chroma→LCh Chroma（量程 100 / 132 两档）、RGB 三通道→Lighten 叠合、 hue+saturation 串联。Color / LCh Color 是双分量模式，恒等条件要求底层 饱和度 / 色度与参数一致，所以各配一套专用探针：Color 用 S=100% 与 S=60% 两组色环，LCh Color 用 C=30 的 LCh 圆环。</li><li><strong>透明像素</strong>：32×8 棋盘（85/256 全透明）逐像素比对 alpha，透明处 Lab 必须为 0。</li></ul>
+<h2 id="技术备注">技术备注</h2>
+<ul><li>输出格式钉成 <code>CIE Lab alpha float</code>：Lab/LCh 模式<strong>零转换直写</strong>（a=C·cos h、 b=C·sin h 就是 CIE LCh 的定义式）；HSL/RGB 模式用 <code>babl_fish</code> 把整行转 Lab， 与 GIMP 内部转换同源，不引入自实现转换的漂移。</li><li><strong>RGB 域模式的透明像素必须在 <code>rgb_line</code> 里落位</strong>：整行交给 <code>babl_process</code> 时 它会重写 <code>out_line</code> 的每一个像素，只在 <code>out_line</code> 里写 0 会被中间行（未初始化） 覆盖，导致透明像素的 alpha 变成随机值。早先 2×1 的小用例靠堆内存恰好为 0 蒙过去了，换成 32×8 棋盘才暴露——现已修正。</li><li>无 aux pad，可直接作为 GIMP 3 非破坏滤镜挂在灰度图层上（不受 <code>Gimp.DrawableFilter</code> 拒收 aux 算子的限制），整条工作流全程非破坏。</li><li>透明像素（alpha≤0）输出保持透明。</li><li>输入 <code>YA float</code>：分解出的灰度层是 RGBA 时由 babl 自动转成 CIE 亮度。</li></ul>
+    <div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>gray-to-component.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code> 后重启 GIMP。
+       整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/gray-to-component.dll">下载 gray-to-component.dll</a>
+</div>
+    <nav class="pager"><a class="prev" href="color-lookup.html"><span>上一个</span>Color Lookup</a><a class="next" href="color-mask-select.html"><span>下一个</span>Mask by Color</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#模式表编码公式经-hsl-cal-恒等往返实测校准">模式表（编码公式经 hsl-cal 恒等往返实测校准）</a></li>
+<li class="l2"><a href="#参数">参数</a></li>
+<li class="l2"><a href="#典型用法">典型用法</a></li>
+<li class="l2"><a href="#验收">验收</a></li>
+<li class="l2"><a href="#技术备注">技术备注</a></li></ul>
+</aside>
+</div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
+    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
+       与 Adobe、GIMP 官方均无隶属关系。</p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
+    <a href="../guide.html">安装指南</a>
+    <span class="muted">e6b8be3</span>
+  </div>
+</footer>
+</body>
+</html>

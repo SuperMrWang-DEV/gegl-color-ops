@@ -3,10 +3,14 @@
 [![GIMP 3](https://img.shields.io/badge/GIMP-3.x-5C5543?logo=gimp&logoColor=white)](https://www.gimp.org/)
 [![GEGL 0.4](https://img.shields.io/badge/GEGL-0.4-2C4C6B)](https://gegl.org/)
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
-[![Operations](https://img.shields.io/badge/operations-22-brightgreen)](#算子清单)
+[![Operations](https://img.shields.io/badge/operations-29-brightgreen)](#算子清单)
 
 一组逆向实现的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **29 个**，统一 `lb:` 命名空间，
 在 GIMP 里位于 **图像 → 颜色 → SuperMrWang**。
+
+> **在线版**：<https://superMrwang-dev.github.io/gegl-color-ops/> —— 每个算子一篇
+> 算法说明（含参数、实测误差、示例图），首页直接下载免编译包。站点由
+> `python tools/site_build.py` 从 `ops/*/README.md` 生成到 `docs/`，不用手写。
 
 每个算子都是单文件 C（含 `#ifdef GEGL_PROPERTIES` 段），直接编译成 GEGL 插件模块，
 可作为非破坏性 fx 挂在图层上。本仓库是唯一源码工程：一次编译出全部算子。
@@ -27,6 +31,8 @@ gegl-color-ops/
 ├── plugin/blend/      # Python 插件：应用图像/计算的完整复刻版（四种落地：选区/通道/灰度层/图层 alpha）
 ├── dist/                 # 编好的模块，给不想编译的人直接下载（windows-x64 / linux-x64）
 ├── tools/                # 测试图生成、逐算子冒烟、对照表、文件头重排、注释双语化
+├── tools/site/           # 站点样式源（生成时拷进 docs/assets/）
+├── docs/                 #  GitHub Pages 站点（tools/site_build.py 生成，别手改）
 ├── build/                # 编译产物（build.sh 生成，可随时删）
 └── LICENSE               # GPL-3.0
 ```
@@ -37,7 +43,8 @@ gegl-color-ops/
 
 | 系统 | 取这个 | 放到 |
 |---|---|---|
-| Windows x64 | `dist/windows-x64/*.dll` | `%LOCALAPPDATA%\gegl-0.4\plug-ins` |
+| Windows x64（整包） | [`docs/download/gegl-color-ops-windows-x64.zip`](docs/download/) | `%LOCALAPPDATA%\gegl-0.4\plug-ins` |
+| Windows x64（单个） | `dist/windows-x64/*.dll` | 同上 |
 | Linux x86_64 | `dist/linux-x64/*.so` | `~/.local/share/gegl-0.4/plug-ins` |
 
 放完重启 GIMP。平台要求（glibc 版本之类）、每个文件对应哪个滤镜、怎么校验，

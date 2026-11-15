@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Color Lookup · gegl-color-ops</title>
+<meta name="description" content="按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价 PS「颜色查找」调整图层；强度按 0..1 与原图线性混合">
+<meta property="og:title" content="Color Lookup · gegl-color-ops">
+<meta property="og:description" content="按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价 PS「颜色查找」调整图层；强度按 0..1 与原图线性混合">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../index.html#ops">算子</a>
+    <a href="../guide.html">安装</a>
+    <a href="../index.html#download">下载</a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+</header>
+<main id="main">
+<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
+     混合与通道</p>
+  <h1>Color Lookup</h1>
+  <div class="meta">
+    <code>lb:color-lookup</code>
+    <span class="tag t-blend">混合与通道</span>
+    <span>整块区域</span>
+  </div>
+  <p class="lede">按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价 PS「颜色查找」调整图层；强度按 0..1 与原图线性混合</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<p>按 Adobe Cube LUT 规范实现的「颜色查找」，对应 PS 的「颜色查找」调整图层。 PS 那侧只能手动跑脚本标定（见文末），所以这一支的数值验收先对齐<strong>独立写的 Python 参考实现</strong>，而不是 PS 输出。</p>
+<ul><li>GEGL id：<code>lb:color-lookup</code></li><li>菜单：<code>Colors → SuperMrWang → Blend → Color Lookup</code></li><li>类型：<code>GeglOperationFilter</code>（按行扫描；LUT 在 <code>prepare()</code> 里加载并缓存）</li><li>参数：<code>file</code>（.cube 路径）、<code>strength</code>（0…1，默认 1）、 <code>interpolation</code>（<code>trilinear</code> 默认 / <code>tetrahedral</code>）</li></ul>
+<h2 id="算法">算法</h2>
+<ol><li><strong>解析</strong>：<code>LUT_1D_SIZE</code> / <code>LUT_3D_SIZE</code> / <code>DOMAIN_MIN</code> / <code>DOMAIN_MAX</code> / <code>LUT_1D_INPUT_RANGE</code> / <code>LUT_3D_INPUT_RANGE</code> / <code>TITLE</code> / <code>#</code> 注释。 节点值按声明的 domain 归一化到 0..1（<code>DOMAIN_MAX 255</code> 的表因此与 0..1 表等价）。</li><li><strong>1D shaper</strong>（可选）：逐通道线性插值，先压一段曲线。</li><li><strong>3D 表</strong>：文件里<strong>红变化最快</strong>，索引 <code>r + g·n + b·n²</code>。采样两种：<ul><li>三线性：8 个角点按体积权重相加；</li><li>四面体：按 <code>fr/fg/fb</code> 的大小关系把立方体切成 6 个四面体，每个只走 3 条棱。 灰轴附近不会出现三线性的楔形偏色，但离格点越远、表越不平滑， 与三线性的差别越大（zigzag 表上可达 0.35，约 90 码）。</li></ul></li><li><strong>强度</strong>：<code>out = 源 + (查表结果 − 源) · strength</code>，在编码值上做 lerp。</li><li>输出夹到 0..1；alpha 原样透传。</li></ol>
+<p>格式支持：<strong>只认 <code>.cube</code></strong>（3D、纯 1D、1D+3D 都行）。<code>.3dl</code> / <code>.look</code> / <code>.csp</code> 尚未实现 —— <code>.3dl</code> 的轴序（红最快还是蓝最快）需要拿 PS 实测确认，不能靠猜。</p>
+<h2 id="为什么钉在感知格式">为什么钉在感知格式</h2>
+<p>LUT 是给<strong>编码值</strong>（0..1 的 sRGB 码）定义的。pad 固定成 <code>R~G~B~A float</code>， 喂线性光会把整张表往错误的位置上采样，暗部会明显发灰。</p>
+<h2 id="坏文件怎么办">坏文件怎么办</h2>
+<p>解析失败（文件不存在、节点数不足、<code>LUT_3D_SIZE</code> 越界）时 <code>g_warning</code> 一条， 算子退化成<strong>恒等</strong>。渲染不中断，也不会因为一个坏路径把整张图弄黑。</p>
+<p>缓存键是「路径 + mtime + size」，只在 <code>prepare()</code> 里 stat 一次， 同一路径被替换了文件也会自动重载。</p>
+<h2 id="性能">性能</h2>
+<p><code>process()</code> 每像素：3 次（1D）+ 8 次（3D）表访问 + 约 20 次乘加。 33³ 是常见尺寸（约 430 KB），对缓存友好；纯 1D 表只走 3 次插值。</p>
+<h2 id="验收">验收</h2>
+<pre><code class="language-bash">python tools/check_color_lookup.py            # 7 个内置 LUT × 2 种插值 × 3 档强度
+python tools/check_color_lookup.py x.cube     # 额外比对指定文件</code></pre>
+<p>内置用例：2 格/33 格单位元、反相、R/B 对调、平滑非线性（DOMAIN 0..1 与 DOMAIN_MAX 255 各一份，结果须一致）、<code>zigzag9</code>（专门区分两种插值）、纯 1D 表。 与独立 Python 实现逐像素比对，<strong>全部 0.00 码</strong>（8 位下逐位相同）。</p>
+<h2 id="ps-侧待办">PS 侧待办</h2>
+<p>PS 2025 以「命令行带脚本」启动时，所有 <code>Mk</code>（建立调整图层）都会报 「命令建立: 当前不可用」——连亮度/对比度都建不出来，是启动期 UI 未就绪， 与描述符无关；<code>executeAction(colorLookup)</code> 当事件执行则不报错但<strong>不改像素</strong>。 所以要把 <code>color-lookup-cal/batch_cl.jsx</code> 存到本地、在已启动的 PS 里 <code>文件 → 脚本 → 浏览…</code> 手动跑一次，再用 <code>color-lookup-cal/compare.py</code> 对比 PS 输出与算子输出（脚本会同时报「PS vs 三线性」「PS vs 四面体」， 顺便定下 PS 到底用哪种插值）。</p>
+    <div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>color-lookup.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code> 后重启 GIMP。
+       整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/color-lookup.dll">下载 color-lookup.dll</a>
+</div>
+    <nav class="pager"><a class="prev" href="xyz-multiply.html"><span>上一个</span>Photo Filter</a><a class="next" href="gray-to-component.html"><span>下一个</span>Gray To Component</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#算法">算法</a></li>
+<li class="l2"><a href="#为什么钉在感知格式">为什么钉在感知格式</a></li>
+<li class="l2"><a href="#坏文件怎么办">坏文件怎么办</a></li>
+<li class="l2"><a href="#性能">性能</a></li>
+<li class="l2"><a href="#验收">验收</a></li>
+<li class="l2"><a href="#ps-侧待办">PS 侧待办</a></li></ul>
+</aside>
+</div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
+    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
+       与 Adobe、GIMP 官方均无隶属关系。</p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
+    <a href="../guide.html">安装指南</a>
+    <span class="muted">e6b8be3</span>
+  </div>
+</footer>
+</body>
+</html>

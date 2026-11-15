@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Black &amp; White · gegl-color-ops</title>
+<meta name="description" content="PS 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色">
+<meta property="og:title" content="Black &amp; White · gegl-color-ops">
+<meta property="og:description" content="PS 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../index.html#ops">算子</a>
+    <a href="../guide.html">安装</a>
+    <a href="../index.html#download">下载</a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+</header>
+<main id="main">
+<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
+     影调与色阶</p>
+  <h1>Black &amp; White</h1>
+  <div class="meta">
+    <code>lb:rgb-domain-grayscale</code>
+    <span class="tag t-tone">影调与色阶</span>
+    <span>逐像素</span>
+  </div>
+  <p class="lede">PS 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<blockquote><p>本文件是该滤镜的原始说明文档（构建命令按旧目录结构书写，已过时）。 统一构建方式请见工程根目录 <code>README.md</code> 与 <code>build.sh</code>。</p></blockquote>
+<h1>GEGL_GIMP_PLUGIN_rgb-domain-grayscale</h1>
+<p><img src="../assets/ops/rgb-domain-grayscale/rgbdomaingrayscale.png" alt="rgbdomaingrayscale" title="rgbdomaingrayscale"></p><details class="en-block"><summary>English version<span class="muted">（同一份说明的英文版）</span></summary><h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
+<h4 id="native-linux-system-installed-gimp">Native Linux (System installed GIMP)</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
+<h4 id="flatpak-linux-flatpak-gimp">Flatpak Linux (Flatpak GIMP)</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
+<h3 id="2-how-to-open-the-plugin-2-methods">2. How to Open the Plugin (2 Methods)</h3>
+<p>After installation, <strong>restart GIMP</strong> to activate the plugin.</p>
+<h4 id="method-1-menu-bar-recommended">Method 1: Menu Bar (Recommended)</h4>
+<p>Menu path: <code>Colors → SuperMrWang → Tone → Black &amp; White</code></p>
+<h4 id="method-2-gegl-operation">Method 2: GEGL Operation</h4>
+<ol><li>Go to <code>Filters → Generic → GEGL Operations</code></li><li>In the search box, enter: <code>lb:rgb-domain-grayscale</code></li><li>Select it and click <code>OK</code> to apply</li></ol>
+<hr>
+<h2 id="中文">中文</h2>
+<h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
+<h4 id="linux-原生版系统包安装的gimp">Linux 原生版（系统包安装的GIMP）</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
+<h4 id="linux-flatpak-容器版应用商店flatpak-gimp">Linux Flatpak 容器版（应用商店Flatpak GIMP）</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
+<h3 id="2-插件打开方式两种方法">2. 插件打开方式（两种方法）</h3>
+<p>安装完成后<strong>重启 GIMP</strong>，插件即可使用。</p>
+<h4 id="方法一菜单打开推荐">方法一：菜单打开（推荐）</h4>
+<p>菜单路径：<code>颜色 → SuperMrWang → Tone → Black &amp; White</code></p>
+<h4 id="方法二gegl-操作打开">方法二：GEGL 操作打开</h4>
+<ol><li>顶部菜单点击：<code>滤镜 → 通用 → GEGL 操作</code></li><li>在弹出窗口的搜索框输入：<code>lb:rgb-domain-grayscale</code></li><li>选中后点击「确定」即可使用插件</li></ol></details>
+    <div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>rgb-domain-grayscale.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code> 后重启 GIMP。
+       整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/rgb-domain-grayscale.dll">下载 rgb-domain-grayscale.dll</a>
+</div>
+    <nav class="pager"><a class="prev" href="shadows-highlights.html"><span>上一个</span>Shadows/Highlights</a><a class="next" href="hue-saturation.html"><span>下一个</span>Hue/Saturation</a></nav>
+  </article>
+  
+</div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
+    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
+       与 Adobe、GIMP 官方均无隶属关系。</p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
+    <a href="../guide.html">安装指南</a>
+    <span class="muted">e6b8be3</span>
+  </div>
+</footer>
+</body>
+</html>

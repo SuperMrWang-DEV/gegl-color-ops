@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CMYK Levels · gegl-color-ops</title>
+<meta name="description" content="CMYK 四个分量各自设输入 / 输出黑白场与伽马">
+<meta property="og:title" content="CMYK Levels · gegl-color-ops">
+<meta property="og:description" content="CMYK 四个分量各自设输入 / 输出黑白场与伽马">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../index.html#ops">算子</a>
+    <a href="../guide.html">安装</a>
+    <a href="../index.html#download">下载</a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+</header>
+<main id="main">
+<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
+     影调与色阶</p>
+  <h1>CMYK Levels</h1>
+  <div class="meta">
+    <code>lb:cmyk-levels</code>
+    <span class="tag t-tone">影调与色阶</span>
+    <span>整块区域</span>
+  </div>
+  <p class="lede">CMYK 四个分量各自设输入 / 输出黑白场与伽马</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<p>菜单：<code>颜色 → SuperMrWang → Tone → CMYK Levels</code>（Filter 类）</p>
+<h2 id="概述">概述</h2>
+<p>对 C / M / Y / K 四个印版各自做独立色阶：墨量黑场、白场、gamma、输出上下限。 想做「K 版单独压暗中间调」「只给青版加反差」这类分色调整时用它。</p>
+<h2 id="色彩空间">色彩空间</h2>
+<p>工作在 babl 的 <code>CMYKA float</code> 上，RGB↔CMYK 由 babl 完成，与 GIMP 「分解 → CMYK」同一套转换。</p>
+<p><strong>这不是 ICC 分色。</strong> babl 的 CMYK 带黑版生成（GCR/UCR 意义上的），实测：</p>
+<div class="table-wrap"><table><thead><tr><th>RGB</th><th>C</th><th>M</th><th>Y</th><th>K</th></tr></thead><tbody><tr><td>中性灰 0.5</td><td>0</td><td>0</td><td>0</td><td>78.6%</td></tr><tr><td>(0.8, 0.45, 0.2)</td><td>0</td><td>71.7%</td><td>94.5%</td><td>39.6%</td></tr><tr><td>纯红</td><td>0</td><td>100%</td><td>100%</td><td>0</td></tr></tbody></table></div>
+<p>所以 K 不是 <code>1−max(R,G,B)</code>（灰 0.5 时那是 50%，这里是 78.6%）。要按印前 特性文件（SWOP/FOGRA 等）分色，得走 ICC 流程，本算子只提供「设备无关的 babl 分色 + 分版色阶」。</p>
+<h2 id="规则细则">规则细则</h2>
+<ul><li>四个分量都是<strong>线性 0–100% 墨量通道</strong>：clamp → 归一化 → gamma → 输出范围。</li><li><strong>K 拉满（输出 100%）→ 全黑</strong>：K=100 时 CMY 已经无关，整幅压成黑版。</li><li><strong>C/M/Y 归零 → 只剩 K 的中性图</strong>：没有彩色墨，只剩黑版灰度。</li><li><strong>色阶只映射已经算出来的墨量，不回算 GCR</strong>：把 K 从 78.6% 拉到 90% 之后， CMY 不会自动减少去补总墨量（TAC）。想要「加深 K 同时减 CMY」得分别调两条 曲线，或者改用 ICC 分色 + 曲线。</li><li>黑白场交叉自动交换；输出反向即墨量反相（白字变成实地）。</li><li><strong>alpha ≤ 0 透传</strong>。</li></ul>
+<h2 id="验证">验证</h2>
+<p><code>python tools/check_color_levels.py cmyk</code>（3 项）：</p>
+<div class="table-wrap"><table><thead><tr><th>用例</th><th>判据</th><th>实测</th></tr></thead><tbody><tr><td>恒等（默认参数）</td><td>与源图逐像素 ≤1 码</td><td>最大 0</td></tr><tr><td>C/M/Y 归零</td><td>全图中性（|R−G|、|G−B| ≤2）</td><td>0</td></tr><tr><td>K 拉满</td><td>全图最亮通道 ≤12</td><td>0</td></tr></tbody></table></div>
+<p>恒等 0 码说明 RGB→CMYK→RGB 这条 babl 往返在默认参数下不漂；后两条验证 「某个版归零/拉满必须产生可预期的画面」——也就是说色阶确实作用在对应的 印版上，没有错位。</p>
+<h2 id="已知事项">已知事项</h2>
+<ul><li>babl 的 CMYK 是<strong>没有纸白与油墨特性</strong>的简化分色，同一组 RGB 换算出的 墨量与实际印刷无关；它适合「按版做局部调整」这类操作，不适合当作打样数值。</li><li>CMYK 色域比 sRGB 小，来回转换会在饱和色上产生裁切（尤其纯绿/纯蓝）。</li><li>8 位/16 位模式下墨量量化台阶比 RGB 粗，重压 K 曲线时容易出现断层。</li></ul>
+    <div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>cmyk-levels.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code> 后重启 GIMP。
+       整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/cmyk-levels.dll">下载 cmyk-levels.dll</a>
+</div>
+    <nav class="pager"><a class="prev" href="lch-levels.html"><span>上一个</span>LCH Levels</a><a class="next" href="hsi-levels.html"><span>下一个</span>HSI Levels</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#概述">概述</a></li>
+<li class="l2"><a href="#色彩空间">色彩空间</a></li>
+<li class="l2"><a href="#规则细则">规则细则</a></li>
+<li class="l2"><a href="#验证">验证</a></li>
+<li class="l2"><a href="#已知事项">已知事项</a></li></ul>
+</aside>
+</div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
+    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
+       与 Adobe、GIMP 官方均无隶属关系。</p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
+    <a href="../guide.html">安装指南</a>
+    <span class="muted">e6b8be3</span>
+  </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shadows/Highlights · gegl-color-ops</title>
+<meta name="description" content="等价 PS「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。">
+<meta property="og:title" content="Shadows/Highlights · gegl-color-ops">
+<meta property="og:description" content="等价 PS「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../index.html#ops">算子</a>
+    <a href="../guide.html">安装</a>
+    <a href="../index.html#download">下载</a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+</header>
+<main id="main">
+<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
+     影调与色阶</p>
+  <h1>Shadows/Highlights</h1>
+  <div class="meta">
+    <code>lb:shadows-highlights</code>
+    <span class="tag t-tone">影调与色阶</span>
+    <span>整块区域</span>
+  </div>
+  <p class="lede">等价 PS「图像 → 调整 → 阴影/高光」：按<strong>邻域</strong>亮度分别提亮阴影、压暗高光，而不是只看像素值本身。</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<p>按黑盒实测逆向出来的 Photoshop「图像 → 调整 → 阴影/高光」。和另外十几个算子的最大 区别是<strong>它看邻域</strong>：同样一个 128 的像素，周围暗就多提、周围亮就少提，所以不可能简化 成一条 LUT，必须做空间域滤波。</p>
+<ul><li>GEGL id：<code>lb:shadows-highlights</code></li><li>菜单：<code>Colors → SuperMrWang → Tone → Shadows/Highlights</code></li><li>类型：<code>GeglOperationFilter</code>（空间域，按 192 行一条带处理）</li><li>参数（默认值照抄 PS）：阴影 <code>amount 35 / width 50 / radius 30</code>、高光 <code>0 / 50 / 30</code>、 <code>color-correction 20</code>、<code>midtone-contrast 0</code>、<code>black-clip 0.01</code>、<code>white-clip 0.01</code></li></ul>
+<h2 id="先记一个坑ps-的脚本入口不叫-shadowhighlight">先记一个坑：PS 的脚本入口不叫 Shadow/Highlight</h2>
+<p>想把 PS 当 oracle，第一步是能用脚本调起它。<code>Shdw</code>、<code>ShHl</code>、<code>shadowsHighlights</code>、 <code>shadowHighlight</code>、<code>adaptCorrectTones</code> … 13 个 charID 加 8 个 stringID 轮流试， 全部报「命令&lt;未知的&gt;当前不可用」，<code>Photoshop.exe</code> 和 <code>Required/*.dll</code> 里也搜不到 <code>shadowsHighlights</code> 字样。</p>
+<p>真正的入口是 <strong><code>adaptCorrect</code></strong>，类名 <code>adaptCorrectTones</code>：</p>
+<pre><code class="language-javascript">var d = new ActionDescriptor();
+d.putObject(s2t("shadowMode"),    s2t("adaptCorrectTones"), tones(sh));
+d.putObject(s2t("highlightMode"), s2t("adaptCorrectTones"), tones(hi));
+d.putDouble (s2t("blackClip"), 0.01);
+d.putDouble (s2t("whiteClip"), 0.01);
+d.putInteger(s2t("colorCorrection"), 20);
+executeAction(s2t("adaptCorrect"), d, DialogModes.NO);</code></pre>
+<p><code>shadowMode</code>/<code>highlightMode</code> 里再放 <code>amount</code>/<code>width</code>/<code>radius</code>（<code>#Prc</code>），其余键都是 stringID 小写。这条线索来自 Adobe 社区一个 Clean SL 脚本，比盲试 ID 快得多。</p>
+<h2 id="算法结构">算法结构</h2>
+<p>六个阶段，数全部来自 PS 25.4 的黑盒拟合（同一结构见 PhotoCraft，MIT）：</p>
+<ol><li><strong>亮度</strong> <code>lum = (max(R,G,B) + Rec.601 luma) / 2</code>，直接作用在 <strong>sRGB 编码值</strong>上 （不是线性光）。这解释了为什么暗部提亮后颜色会发灰——它动的是显示值。</li><li><strong>邻域亮度</strong> 边缘感知双边，Durand–Dorsey 的分段线性形式：<ul><li>先把 <code>lum</code> 按 σ=1.3559 轻模糊成 <code>guide</code>（只为了抗噪，不决定尺度）；</li><li>像素按 <code>guide</code> 量化到 <strong>17 级</strong>，每级用权重 <code>w = 1 − |lum − g|/1.0152</code> 单独加权平均；</li><li>权重和 / 加权和在 <code>d = ⌊σ/4⌋</code> 的格子上先累加，再用 <strong>σ = 1.1424·radius</strong> 的高斯模糊；</li><li>最后按 <code>guide</code> 的小数级在相邻两级间插值，双线性上采样回全分辨率。</li></ul></li></ol>
+<p>这么做等价于「只和亮度相近的邻居平均」，所以边缘两侧各算各的，不会互相污染。</p>
+<ol><li><strong>色调遮罩</strong> 把 nb 当自变量查 256 项表，表 = <code>1 − BetaCDF(level)</code>。形状随 「色调宽度」在 Beta(a,b) 之间线性插值：宽度 0 → Beta(1.95, 23)（只有最暗一小段）， 宽度 ≥95 → <code>1 − L</code>（全线）。高光用 <code>255 − nb</code> 的镜像。</li><li><strong>曲线</strong> 自屏幕 <code>1 − (1−v)^q</code>，q ∈ {1,2,4,8} 按「数量」混合（<code>u = (amount/100)^0.6216</code>， u ≤ 0.3 时 <code>strength = u/0.3</code>，否则 <code>(1+20u)/7</code>，即数量 15≈1、50≈2、100≈3）。 阴影把每个通道抬 <code>mask × (curve − v)</code>，高光用镜像压回。</li><li><strong>颜色</strong> 只保留结果的新亮度 <code>y2</code>；色差取<strong>原像素</strong> <code>q</code> 与它自己亮度 <code>y1</code> 之差， 按 <code>exp(k·|ΔY|/maxY)</code>（负值 <code>1 + k·|ΔY|/maxY</code>）缩放后加回，并统一收进色域。</li><li><strong>中间调对比度</strong> 亮度上的全局 S 曲线 <code>y + k(y−0.5)(4y(1−y))^p</code>，支点恰在 0.5； <strong>修剪黑/白</strong> 是直方图两端的<strong>拉伸</strong>。</li></ol>
+<h2 id="两个反直觉的实测结论">两个反直觉的实测结论</h2>
+<p><strong>默认的 0.01% 修剪真的会改变画面。</strong> 一开始用 16 条灰带（16…240）做探针， 首尾两条总被拉到 0/255，误以为是算子串色。实际是 <code>blackClip</code>/<code>whiteClip</code> 的百分比 是<strong>相对直方图</strong>的：探针没覆盖 0 和 255，0.01% 就把最暗那条当成黑场拉下去了。 换成覆盖 0 与 255 的 129 条 ramp 后假象消失；对照组 <code>a100/clip0</code> vs <code>a100/clip01</code> 上黑块 0 vs 7、背景 91 vs 87，差得很清楚。</p>
+<p><strong>半径改的不是模糊宽度，是「邻域里亮像素的占比」。</strong> 阶跃边（左 12 右 240）上， 半径从 0 加到 100，远离边缘的平台值单调 73 → 65，而紧贴亮边的那个像素一直是 48–50。 这说明边缘感知权重把亮邻居的贡献压到 ~12%，所以过渡只有 1–2 像素宽；半径变大只是 把更多亮像素拉进窗口，缓慢抬高 nb。用纯高斯直觉去调 σ 是调不对的。</p>
+<h2 id="性能">性能</h2>
+<p>平场部分只有 256 项查表，开销全在邻域：17 级 × 4 次高斯。用 192 行条带限制内存， <code>ramp-2.png</code>（25800×160，129 条带）3.2 s，<code>grid-b016.png</code>（2560×2560）4.7 s， 都是含 PNG 编解码的墙钟时间。半径 30 时每像素约 1.4 µs。</p>
+<h2 id="验收">验收</h2>
+<p><code>python tools/check_shadows_highlights.py</code>（<code>--fast</code> 跳过 PS 对照）：</p>
+<p><strong>一、独立 Python 参考实现 vs 算子</strong>（平场，nb = 自身）。参考实现照上面六步直写， 不复用 C 代码，只共用拟合出来的系数表：</p>
+<div class="table-wrap"><table><thead><tr><th>检查</th><th>组数</th><th>最大偏差</th></tr></thead><tbody><tr><td>灰阶平场 LUT</td><td>6 组 × 29 级</td><td><strong>0.0 码</strong>（逐点完全一致）</td></tr><tr><td>彩色平场（color-correction +100…−100）</td><td>4 组 × 6 色</td><td><strong>0.0 码</strong></td></tr><tr><td>amount=0 恒等 / 平场与半径无关</td><td>2 项</td><td><strong>0.0 码</strong></td></tr><tr><td>中间调支点 128、默认修剪保留 0 与 255</td><td>2 项</td><td>通过</td></tr></tbody></table></div>
+<p>写这个脚本时抓到过一个真 bug：两个修剪都设 0 时 <code>clip_lo/clip_hi</code> 没初始化， <code>(y−0)/(0−0)</code> 把整图推成纯白。现在 <code>prepare()</code> 里复位成 0/1，除法也加了兜底。</p>
+<p><strong>二、和 PS 本身</strong>（<code>shadows-highlights-cal/</code>）：</p>
+<div class="table-wrap"><table><thead><tr><th>数据集</th><th>规模</th><th>逐点中位</th><th>最大</th></tr></thead><tbody><tr><td>平场竖带（17 组参数）</td><td>17×129</td><td>0.5 码</td><td><strong>5.7 码</strong>（<code>h_a100_w0</code>）</td></tr><tr><td>二维格点（14 组背景）</td><td>14×256</td><td>1.0 码</td><td><strong>11.1 码</strong>（<code>grid_h_b240</code>）</td></tr></tbody></table></div>
+<p>平场是强项：14/17 组最大 ≤3 码，阴影侧一律 ≤2.6 码。二维格点里 9 组最大 ≤7 码， 中位 1.0。</p>
+<h2 id="已知偏差">已知偏差</h2>
+<ol><li><strong>极端局部对比的二维格点</strong>（20×20 小块压在 99% 面积的极端背景上， <code>bg=16</code> 配亮块、<code>bg=240</code> 配暗块）最大差 11 码。平场对得上、只有这种「邻域和 像素值差 200 码以上」的合成图案对不上，说明邻域核的边缘保持强度还差一点： 实测 PS 的 nb 比本算子更贴近像素自身。把 <code>SH_RANGE</code> 从 1.0152 往下调（边缘保持 更强）会让 87% 的点变好但制造出 87 码的爆点；往上调（4.0 / 50，趋近纯高斯） 则单调变差。1.0152 是实测的局部最优值，所以保持原样，这个尾巴留着。</li><li><strong><code>h_a100_w0</code> 的 5.7 码</strong>：色调宽度 0 时遮罩退化成 Beta(1.95, 23) 在最暗一段的 陡壁，插值表按宽度每 5 一档建，宽度 0 正好落在第一个节点上，误差最敏感。</li><li><strong>半径 &gt; 300 没标定</strong>：PS 对话框上限 2500，标定只做到 300，更大半径按同一 σ=1.1424·r 外推。</li><li><code>midtone_contrast</code> 与 <code>color_correction</code> 用的是参考实现的拟合系数，<strong>没有单独做 PS 实测</strong>（平场和彩色平场只验证了算子与参考实现一致，不是与 PS 一致）。</li></ol>
+<h2 id="复现标定">复现标定</h2>
+<p><code>shadows-highlights-cal/</code> 里有全套脚本：<code>apply_cases.jsx</code>（PS 侧执行器）、 <code>run_cases.py</code>（批量跑 + 读结果）、<code>make_ramp.py</code> / <code>make_grid.py</code>（三套探针： 灰阶竖带、二维格点、阶跃边）、<code>compare_op.py</code>（逐点比对）、<code>dump_grid.py</code> / <code>analyze_nb.py</code>（单例残差与邻域反推）、<code>sweep.py</code>（邻域尺度扫参）。</p>
+<hr>
+<h2 id="性能2026-11-12-重构">性能（2026-11-12 重构）</h2>
+<p>卡顿的三个根因，全部修掉：</p>
+<ol><li><strong>GEGL 按列并行，margin 随调用次数线性重复</strong>。3M 像素被拆成 12 根 171 宽的 竖条同时跑，每根竖条各带完整的水平 margin——r30 重复 2.4×，r300（margin 1277 px）重复 <strong>17×</strong>。修复：整个 extent 的邻域亮度<strong>只算一次</strong>，缓存成 8 位层级平面（遮罩查表用 <code>lv = lround(clamp(nb)·255)</code>，8 位量化无损）， 各列直接采样。缓存在参数变化（prepare 比较）、输入内容变化（24 行整行 哈希指纹，能察觉下层涂改）、几何变化三种情况下失效。</li><li><strong>黑/白修剪的预扫把整条管线跑两遍</strong>。默认 0.01/0.01 就触发。缓存路径下 预扫改用现成的层级平面，只剩轻量逐像素。</li><li><strong>逐行 <code>gegl_buffer_set</code></strong>。每条 192 行调 192 次写；改为整条/整 ROI 一次写。</li></ol>
+<p>实测（2048×1536，含 PNG 解码 ~1.3s）：默认参数 3.7s → 2.1s；r300 9.8s → 2.1s （净耗时 7.9s → 0.7s，<strong>~11×</strong>）。数值与旧实现<strong>逐位一致</strong>（4 组极端参数下 缓存路径 = 回退路径 = 旧实现三方对拍）。</p>
+<p>超大图或 margin 超预算（<code>SH_CACHE_MAXPX</code> 20MP / <code>SH_CACHE_BUDGET</code>）自动回落 到按条带就地计算；<code>SH_NO_CACHE=1</code> 环境变量可强制走回退路径（调试用）。 条带高度按 margin 自适应（<code>4×margin</code>，192–1024 行），亮度取数分块 （≈32MB/块）控峰值内存。</p>
+    <div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>shadows-highlights.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code> 后重启 GIMP。
+       整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/shadows-highlights.dll">下载 shadows-highlights.dll</a>
+</div>
+    <nav class="pager"><a class="prev" href="brightness-contrast.html"><span>上一个</span>Brightness/Contrast</a><a class="next" href="rgb-domain-grayscale.html"><span>下一个</span>Black &amp; White</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#先记一个坑ps-的脚本入口不叫-shadowhighlight">先记一个坑：PS 的脚本入口不叫 Shadow/Highlight</a></li>
+<li class="l2"><a href="#算法结构">算法结构</a></li>
+<li class="l2"><a href="#两个反直觉的实测结论">两个反直觉的实测结论</a></li>
+<li class="l2"><a href="#性能">性能</a></li>
+<li class="l2"><a href="#验收">验收</a></li>
+<li class="l2"><a href="#已知偏差">已知偏差</a></li>
+<li class="l2"><a href="#复现标定">复现标定</a></li>
+<li class="l2"><a href="#性能2026-11-12-重构">性能（2026-11-12 重构）</a></li></ul>
+</aside>
+</div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
+    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
+       与 Adobe、GIMP 官方均无隶属关系。</p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
+    <a href="../guide.html">安装指南</a>
+    <span class="muted">e6b8be3</span>
+  </div>
+</footer>
+</body>
+</html>

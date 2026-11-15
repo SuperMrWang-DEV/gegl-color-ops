@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Photo Filter · gegl-color-ops</title>
+<meta name="description" content="PS「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。">
+<meta property="og:title" content="Photo Filter · gegl-color-ops">
+<meta property="og:description" content="PS「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../index.html#ops">算子</a>
+    <a href="../guide.html">安装</a>
+    <a href="../index.html#download">下载</a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+</header>
+<main id="main">
+<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
+     混合与通道</p>
+  <h1>Photo Filter</h1>
+  <div class="meta">
+    <code>lb:xyz-multiply</code>
+    <span class="tag t-blend">混合与通道</span>
+    <span>逐像素</span>
+  </div>
+  <p class="lede">PS「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<blockquote><p>本文件是该滤镜的原始说明文档（构建命令按旧目录结构书写，已过时）。 统一构建方式请见工程根目录 <code>README.md</code> 与 <code>build.sh</code>。</p></blockquote>
+<h2 id="这个算子就是-ps-的照片滤镜-this-is-photoshops-photo-filter">这个算子就是 PS 的「照片滤镜」/ This is Photoshop's Photo Filter</h2>
+<p>PS 的照片滤镜（<code>滤镜 → 调整 → 照片滤镜</code>）内部等价于「纯色填充 + 正片叠底 + 密度」，本算子按实测把整条链路复刻出来。参数一一对应：</p>
+<div class="table-wrap"><table><thead><tr><th>PS 照片滤镜</th><th><code>lb:xyz-multiply</code></th><th>说明</th></tr></thead><tbody><tr><td>滤镜（Filter）颜色</td><td><code>overlay_color</code></td><td>PS 的 20 多个预设只是快捷方式，本质仍是颜色</td></tr><tr><td>密度（Density）0–100%</td><td><code>opacity</code> 0–1</td><td>除以 100</td></tr><tr><td>保留明度（Preserve Luminosity）</td><td><code>preserve_luminosity</code></td><td><strong>默认开</strong>，与 PS 出厂设置一致</td></tr><tr><td>—（PS 没有）</td><td><code>white_mode</code></td><td>参照白点，<strong>默认 D50</strong>（PS 的 Lab 白点）</td></tr></tbody></table></div>
+<h3 id="算法实测反推不是猜的">算法（实测反推，不是猜的）</h3>
+<ol><li>sRGB 线性化，用<strong>标准 Bradford</strong>（锥响应矩阵，不是适配矩阵本身）转到 D50 XYZ；</li><li>逐通道乘 <code>k = (1-d) + d · (滤镜色XYZ / D50白点)</code>，<code>d</code> = 密度；</li><li>转回编码值；若开保留明度，再做 <strong>W3C / PDF 的 SetLum + ClipColor</strong> （编码值上、Rec.601 权重 0.3/0.59/0.11）。</li></ol>
+<p>前两步在线性 sRGB 里等价于一个常数 3×3 矩阵 <code>M = XYZ2sRGB · A⁻¹ · diag(k) · A · sRGB2XYZ</code>，每 process 只算一次。</p>
+<p>判据（都能在 <code>photo-filter-cal/</code> 里复现）：</p>
+<ul><li>纯红、密度 50% 时 128 灰 → G 通道 <strong>92</strong>。线性光乘给 92.6，编码域乘只会给 64。</li><li>纯红、密度 100%、保留明度时 128 灰 → <strong>(218, 90, 90)</strong>，SetLum 手算恰是 (217.6, 89.6, 89.6)；换成 Lab 保 L\*、乘性还原、Rec.709 权重都对不上（中位差 5～45 码）。</li><li>反推的滤镜色 XYZ (0.453, 0.222, 0.0166) 与「纯红转到 D50 再除以 D50 白点」 (0.4522, 0.2225, 0.0169) 差不到 1%；按 D65 归一化则差 4.4% —— 所以是 D50。</li></ul>
+<h3 id="实测精度ps-2025">实测精度（PS 2025）</h3>
+<div class="table-wrap"><table><thead><tr><th>组</th><th>档数</th><th>最大差</th><th>中位差</th></tr></thead><tbody><tr><td>灰阶 256 级，不保留明度</td><td>9</td><td><strong>0.71 码</strong></td><td>0.12–0.40 码</td></tr><tr><td>灰阶 256 级，保留明度</td><td>3</td><td>1.86 码</td><td>0.26–0.42 码</td></tr><tr><td>彩色 64×64，不保留明度</td><td>3</td><td><strong>0.65 码</strong></td><td>0.35–0.39 码</td></tr><tr><td>彩色 64×64，保留明度</td><td>3</td><td>5.65 码</td><td>0.56–0.69 码</td></tr></tbody></table></div>
+<p>保留明度档的大误差只出现在裁剪边界（整幅彩色图 12288 个通道值里 55～96 个）， 是 PS 的取整顺序与 W3C 参考实现不同造成的，非边界点的中位差在 0.7 码以内。</p>
+<p>复现链：</p>
+<pre><code class="language-bash">python photo-filter-cal/make_probe.py        # 256×16 灰阶探针（嵌 sRGB ICC）
+# PS 里跑 photo-filter-cal/batch_pf.jsx      # 12 档灰阶
+# PS 里跑 photo-filter-cal/batch_pf_color.jsx # 6 档彩色
+python photo-filter-cal/model_pf.py         # 模型 vs PS
+python tools/check_photo_filter.py          # 算子 vs PS（端到端）
+python tools/check_xyz_multiply.py --all    # 算子 vs 独立参考实现</code></pre>
+<h1>GEGL_GIMP_PLUGIN_xyzmultiply</h1>
+<p><img src="../assets/ops/xyz-multiply/xyzmultiply.png" alt="xyzmultiply" title="xyzmultiply"></p><details class="en-block"><summary>English version<span class="muted">（同一份说明的英文版）</span></summary><h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
+<h4 id="native-linux-system-installed-gimp">Native Linux (System installed GIMP)</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
+<h4 id="flatpak-linux-flatpak-gimp">Flatpak Linux (Flatpak GIMP)</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
+<h3 id="2-how-to-open-the-plugin-2-methods">2. How to Open the Plugin (2 Methods)</h3>
+<p>After installation, <strong>restart GIMP</strong> to activate the plugin.</p>
+<h4 id="method-1-menu-bar-recommended">Method 1: Menu Bar (Recommended)</h4>
+<p>Menu path: <code>Colors → SuperMrWang → Blend → XYZ Multiply</code></p>
+<h4 id="method-2-gegl-operation">Method 2: GEGL Operation</h4>
+<ol><li>Go to <code>Filters → Generic → GEGL Operations</code></li><li>In the search box, enter: <code>lb:xyz-multiply</code></li><li>Select it and click <code>OK</code> to apply</li></ol>
+<hr>
+<h2 id="中文">中文</h2>
+<h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
+<h4 id="linux-原生版系统包安装的gimp">Linux 原生版（系统包安装的GIMP）</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
+<h4 id="linux-flatpak-容器版应用商店flatpak-gimp">Linux Flatpak 容器版（应用商店Flatpak GIMP）</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
+<h3 id="2-插件打开方式两种方法">2. 插件打开方式（两种方法）</h3>
+<p>安装完成后<strong>重启 GIMP</strong>，插件即可使用。</p>
+<h4 id="方法一菜单打开推荐">方法一：菜单打开（推荐）</h4>
+<p>菜单路径：<code>颜色 → SuperMrWang → Blend → XYZ Multiply</code></p>
+<h4 id="方法二gegl-操作打开">方法二：GEGL 操作打开</h4>
+<ol><li>顶部菜单点击：<code>滤镜 → 通用 → GEGL 操作</code></li><li>在弹出窗口的搜索框输入：<code>lb:xyz-multiply</code></li><li>选中后点击「确定」即可使用插件</li></ol></details>
+    <div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>xyz-multiply.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code> 后重启 GIMP。
+       整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/xyz-multiply.dll">下载 xyz-multiply.dll</a>
+</div>
+    <nav class="pager"><a class="prev" href="channel-mixer-plus.html"><span>上一个</span>Channel Mixer Plus</a><a class="next" href="color-lookup.html"><span>下一个</span>Color Lookup</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#这个算子就是-ps-的照片滤镜-this-is-photoshops-photo-filter">这个算子就是 PS 的「照片滤镜」/ This is Photoshop&#x27;s Photo Filter</a></li>
+<li class="l3"><a href="#算法实测反推不是猜的">算法（实测反推，不是猜的）</a></li>
+<li class="l3"><a href="#实测精度ps-2025">实测精度（PS 2025）</a></li></ul>
+</aside>
+</div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
+    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
+       与 Adobe、GIMP 官方均无隶属关系。</p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
+    <a href="../guide.html">安装指南</a>
+    <span class="muted">e6b8be3</span>
+  </div>
+</footer>
+</body>
+</html>

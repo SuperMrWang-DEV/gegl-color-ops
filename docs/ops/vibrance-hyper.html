@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Natural Saturation · gegl-color-ops</title>
+<meta name="description" content="自然饱和度：提升低饱和区，抑制高饱和与肤色，不破坏色相">
+<meta property="og:title" content="Natural Saturation · gegl-color-ops">
+<meta property="og:description" content="自然饱和度：提升低饱和区，抑制高饱和与肤色，不破坏色相">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../index.html#ops">算子</a>
+    <a href="../guide.html">安装</a>
+    <a href="../index.html#download">下载</a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+</header>
+<main id="main">
+<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
+     色彩</p>
+  <h1>Natural Saturation</h1>
+  <div class="meta">
+    <code>lb:vibrance-hyper</code>
+    <span class="tag t-color">色彩</span>
+    <span>逐像素</span>
+  </div>
+  <p class="lede">自然饱和度：提升低饱和区，抑制高饱和与肤色，不破坏色相</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<blockquote><p>本文件是该滤镜的原始说明文档（构建命令按旧目录结构书写，已过时）。 统一构建方式请见工程根目录 <code>README.md</code> 与 <code>build.sh</code>。</p></blockquote>
+<h1>GEGL_GIMP_PLUGIN_vibrance-hyper</h1>
+<p><img src="../assets/ops/vibrance-hyper/vibrance_hyper.png" alt="vibrance_hyper" title="vibrance_hyper"></p><details class="en-block"><summary>English version<span class="muted">（同一份说明的英文版）</span></summary><h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
+<h4 id="native-linux-system-installed-gimp">Native Linux (System installed GIMP)</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
+<h4 id="flatpak-linux-flatpak-gimp">Flatpak Linux (Flatpak GIMP)</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
+<h3 id="2-how-to-open-the-plugin-2-methods">2. How to Open the Plugin (2 Methods)</h3>
+<p>After installation, <strong>restart GIMP</strong> to activate the plugin.</p>
+<h4 id="method-1-menu-bar-recommended">Method 1: Menu Bar (Recommended)</h4>
+<p>Menu path: <code>Colors → SuperMrWang → Color → Natural Saturation</code></p>
+<h4 id="method-2-gegl-operation">Method 2: GEGL Operation</h4>
+<ol><li>Go to <code>Filters → Generic → GEGL Operations</code></li><li>In the search box, enter: <code>lb:vibrance-hyper</code></li><li>Select it and click <code>OK</code> to apply</li></ol>
+<hr>
+<h2 id="中文">中文</h2>
+<h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
+<h4 id="linux-原生版系统包安装的gimp">Linux 原生版（系统包安装的GIMP）</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
+<h4 id="linux-flatpak-容器版应用商店flatpak-gimp">Linux Flatpak 容器版（应用商店Flatpak GIMP）</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
+<h3 id="2-插件打开方式两种方法">2. 插件打开方式（两种方法）</h3>
+<p>安装完成后<strong>重启 GIMP</strong>，插件即可使用。</p>
+<h4 id="方法一菜单打开推荐">方法一：菜单打开（推荐）</h4>
+<p>菜单路径：<code>颜色 → SuperMrWang → Color → Natural Saturation</code></p>
+<h4 id="方法二gegl-操作打开">方法二：GEGL 操作打开</h4>
+<ol><li>顶部菜单点击：<code>滤镜 → 通用 → GEGL 操作</code></li><li>在弹出窗口的搜索框输入：<code>lb:vibrance-hyper</code></li><li>选中后点击「确定」即可使用插件</li></ol>
+<hr>
+<h2 id="算法说明2026-11-重写">算法说明（2026-11 重写）</h2>
+<p>在 LAB（D65）空间处理，工作于线性 sRGB，自动跟随输入色彩空间。</p>
+<p><strong>蒙版结构</strong> <code>M = M_chroma(C*) × M_skin(h) × M_gamut</code></p>
+<ul><li><code>M_chroma = 1/(1 + atten·(C*/50)^1.3)</code>：读<strong>源图</strong>色度 C<em>，色度越高增益越低； 指数 1.3 让 C</em>&gt;60 掉得比纯双曲线更快。与 Saturation 滑杆互不影响。</li><li><code>M_skin</code>：LAB 色相 55° 附近（橙/肤色带）、色度 8–80 区间时降权， 用 smoothstep 软窗，边界无硬边。强度由 <code>Skin Protection</code>（默认 0.7）控制，0 = 关闭。</li><li><code>M_gamut</code>：色度沿<strong>原色相、原明度</strong>放大后，若超出 sRGB 色域，按 5 步二分收敛 到色域边界内的最大值。色相与明度恒不变，替代逐通道硬裁剪（硬裁剪会扭色相）。</li></ul>
+<p><code>vibrance</code> 滑杆（±50 UI 范围）等效于低饱和区 C* 的最大 ×2（+50）/ ×3（+100）放大； 全局 <code>Saturation</code> 是独立的线性色度乘法，与蒙版无关。</p>
+<p>实测（10 个标准色块，vibrance=+50）：色相偏移 ≤0.7°（旧版最高 10.2°）； 肤色增幅 1.16–1.18×（旧版 1.47–1.55×）；低饱和区 1.76–2.00×。 vibrance=0 且 saturation=1 时输出与输入逐字节一致。</p></details>
+    <div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>vibrance-hyper.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code> 后重启 GIMP。
+       整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/vibrance-hyper.dll">下载 vibrance-hyper.dll</a>
+</div>
+    <nav class="pager"><a class="prev" href="vibrance.html"><span>上一个</span>Vibrance</a><a class="next" href="cmyk-primary-correction.html"><span>下一个</span>CMYK Primary</a></nav>
+  </article>
+  
+</div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
+    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
+       与 Adobe、GIMP 官方均无隶属关系。</p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
+    <a href="../guide.html">安装指南</a>
+    <span class="muted">e6b8be3</span>
+  </div>
+</footer>
+</body>
+</html>

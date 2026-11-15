@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Colorize · gegl-color-ops</title>
+<meta name="description" content="复刻 Photoshop「色相/饱和度」里的「着色」复选框">
+<meta property="og:title" content="Colorize · gegl-color-ops">
+<meta property="og:description" content="复刻 Photoshop「色相/饱和度」里的「着色」复选框">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../index.html#ops">算子</a>
+    <a href="../guide.html">安装</a>
+    <a href="../index.html#download">下载</a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+</header>
+<main id="main">
+<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
+     色彩</p>
+  <h1>Colorize</h1>
+  <div class="meta">
+    <code>lb:colorize-hsl</code>
+    <span class="tag t-color">色彩</span>
+    <span>逐像素</span>
+  </div>
+  <p class="lede">复刻 Photoshop「色相/饱和度」里的「着色」复选框</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<p>复刻 Photoshop「色相/饱和度」对话框里的<strong>「着色」复选框</strong>，按实测标定，不是凭经验的 近似（旧版实现用「颜色填充层 + Overlay 叠灰」，与 PS 无关，偏差很大，已废弃）。 标定过程与数据见 <code>colorize-cal/RESULTS.md</code>。</p>
+<ul><li>GEGL id：<code>lb:colorize-hsl</code></li><li>菜单：<code>Colors → SuperMrWang → Color → Colorize</code></li><li>类型：<code>GeglOperationPointFilter</code>（逐像素，无邻域）</li><li>参数：<code>hue</code>（0…360，绝对色相）、<code>saturation</code>（0…100，绝对值）、<code>lightness</code>（−100…100）</li></ul>
+<h2 id="算法">算法</h2>
+<p>在 <strong>sRGB 编码值</strong>（<code>R~G~B~A float</code>，感知域而非线性光）上取 HSL 的 L，然后：</p>
+<pre><code>t  = lightness / 100
+L' = L + t·(1−L)      (t &gt; 0)
+L' = L·(1+t)          (t &lt; 0)
+out = HSL2RGB(hue, saturation/100, L')</code></pre>
+<p>就这些。三条结论撑起整个模型：</p>
+<ol><li><strong>输入像素的 H 与 S 被完全丢弃。</strong> 等 L、等 S、色相绕一整圈的色环，过完着色后 同一带内输出离散度是 <strong>0.00 码</strong> —— 输出只由输入 L 决定。</li><li><strong>三根滑杆都是绝对量，不是增量。</strong> 色相 0/30/60/120/180/240/300 精确落回同名 色相；饱和度 25/50/75 落回 HSL S = 0.250/0.500/0.750；明度 0 时 <code>L' = L</code>。</li><li><strong>明度滑杆是 L 的线性函数</strong>，中点 L=0.5 时位移正好 t/2，两端不动。0 和 1 之外 自动钳位（l=+100 全白、l=−100 全黑）。</li></ol>
+<p>色相滑杆<strong>不回绕</strong>：负值被钳到 0（实测 −20 给出纯红，不是 340°）。这一条已在算子 里显式处理，<code>value_range</code> 也限定在 0…360。</p>
+<h2 id="验收">验收</h2>
+<p><code>python tools/check_colorize_ps.py</code> —— gegl CLI 渲染标定图，与 PS 26.10 的 16 位 导出逐像素比（单位：8 位码）：</p>
+<div class="table-wrap"><table><thead><tr><th>指标</th><th>结果</th></tr></thead><tbody><tr><td>参数组合</td><td>104 组（明度步长 5 全扫、饱和度步长 5、色相步长 20 + 非整数档、8 组三滑杆组合）</td></tr><tr><td>样本数</td><td>每组 512×256，合计 1363 万像素</td></tr><tr><td>中位偏差</td><td>0.008 码</td></tr><tr><td>95% 偏差</td><td>0.016 码</td></tr><tr><td>最大偏差</td><td>0.03 码</td></tr></tbody></table></div>
+<p>0.03 码就是 1 个 16 位 LSB（65535 满量程的 1/65535 ≈ 0.0039 码 × 8），来自 PS 那边 的浮点截断，不是模型误差。</p>
+<blockquote><p>注意：<code>tools/contact_sheet.py</code> 的 <code>read_png</code> 把 16 位按 <code>v*255//65535</code> <strong>整数下取整</strong>， 会把 32895 读成 127 而不是 128，凭空造出 1 码的假偏差。验收脚本因此改用 <code>bc-cal/readpng.py</code> 的浮点读取（<code>v/257</code>）。</p></blockquote>
+<h2 id="与-lbhue-saturation-的区别">与 <code>lb:hue-saturation</code> 的区别</h2>
+<p><code>lb:hue-saturation</code> 是<strong>增量</strong>模式（在像素自己的 H/S/L 上加偏移，六个色相区间可分别 调），对应 PS 未勾选「着色」时的行为。<code>lb:colorize-hsl</code> 是<strong>绝对</strong>模式：扔掉原有的 颜色，只保留明暗，整幅图变成一个单色调。两者互补，不能互相替代。</p>
+    <div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>colorize-hsl.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code> 后重启 GIMP。
+       整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/colorize-hsl.dll">下载 colorize-hsl.dll</a>
+</div>
+    <nav class="pager"><a class="prev" href="cmyk-primary-correction.html"><span>上一个</span>CMYK Primary</a><a class="next" href="match-color.html"><span>下一个</span>Match Color</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#算法">算法</a></li>
+<li class="l2"><a href="#验收">验收</a></li>
+<li class="l2"><a href="#与-lbhue-saturation-的区别">与 lb:hue-saturation 的区别</a></li></ul>
+</aside>
+</div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
+    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
+       与 Adobe、GIMP 官方均无隶属关系。</p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
+    <a href="../guide.html">安装指南</a>
+    <span class="muted">e6b8be3</span>
+  </div>
+</footer>
+</body>
+</html>

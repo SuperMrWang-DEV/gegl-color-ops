@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hue/Saturation · gegl-color-ops</title>
+<meta name="description" content="全局或按红/黄/绿/青/蓝/品红六个色相区间调整色相、饱和度、明度">
+<meta property="og:title" content="Hue/Saturation · gegl-color-ops">
+<meta property="og:description" content="全局或按红/黄/绿/青/蓝/品红六个色相区间调整色相、饱和度、明度">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../index.html#ops">算子</a>
+    <a href="../guide.html">安装</a>
+    <a href="../index.html#download">下载</a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+</header>
+<main id="main">
+<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
+     色彩</p>
+  <h1>Hue/Saturation</h1>
+  <div class="meta">
+    <code>lb:hue-saturation</code>
+    <span class="tag t-color">色彩</span>
+    <span>逐像素</span>
+  </div>
+  <p class="lede">全局或按红/黄/绿/青/蓝/品红六个色相区间调整色相、饱和度、明度</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<p>仿 GIMP「色相-饱和度」滤镜的 GEGL point filter，在 <strong>HSL</strong> 空间逐像素调整， 工作于感知（非线性）RGB 格式 <code>R~G~B~A float</code>，自动跟随源色彩空间。</p>
+<h2 id="功能">功能</h2>
+<ul><li><strong>主控</strong>：<code>hue</code>（度数 ±180）、<code>saturation</code>（±1，加法）、<code>lightness</code>（±1，加法）</li><li><strong>六个色相区间</strong>（红/黄/绿/青/蓝/品红，中心各相隔 60°）各自拥有独立的 <code>*-hue / *-saturation / *-lightness</code>，按三角形权重与主控叠加</li><li><strong><code>overlap</code></strong>（0–1）：区间宽度 = 60° × (1 + overlap)。默认 0 = 六个区间恰好铺满色环、 区间中心获得 100% 设定；调大则相邻区间互相渗透（柔和但峰值强度按权重比例稀释）</li><li>灰阶像素（S &lt; 1e-5）不染色：色相/饱和度调整被跳过，仅应用明度</li><li>全零参数时直接 memcpy 透传（含 alpha），HDR 超范围值按 [0,1] 截断后计算</li></ul>
+<h2 id="构建msys2-mingw64-git-bash">构建（MSYS2 mingw64 / Git Bash）</h2>
+<pre><code class="language-bash">export PKG_CONFIG_PATH="/d/fastsoftware/GIMP 3/lib/pkgconfig"
+eval gcc -shared -I. -O2 -Wall wb-hue-saturation.c \
+  $(pkg-config --cflags --libs gegl-0.4) -o wb-hue-saturation.dll</code></pre>
+<h2 id="验证不进-gimp">验证（不进 GIMP）</h2>
+<pre><code class="language-bash">export GEGL_PATH="$(pwd -W);D:/fastsoftware/GIMP 3/lib/gegl-0.4"
+gegl --info wb:hue-saturation
+gegl test-in.png -o out.png -- wb:hue-saturation hue=45 green-saturation=-0.5</code></pre>
+<h2 id="安装到-gimp-3">安装到 GIMP 3</h2>
+<p>把 <code>wb-hue-saturation.dll</code> 拷入 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins\</code> 后<strong>重启 GIMP</strong>， 用 <code>/</code> 打开 Search Actions 搜索 "Hue-Saturation (WB)"，滤镜以非破坏性 fx 形式挂在图层上。</p>
+<h2 id="在-gimp-3-python-中调用">在 GIMP 3 Python 中调用</h2>
+<pre><code class="language-python">from gi.repository import Gimp, Gegl
+
+filter = Gimp.DrawableFilter.new(drawable, Gegl.Orientation.AUTO, "wb:hue-saturation", 0)
+config = filter.get_config()
+config.set_property("hue", 45.0)          # 度
+config.set_property("saturation", 0.3)    # -1..1
+config.set_property("green-saturation", -0.5)
+drawable.merge_filter(filter)             # 非破坏性；Gimp.displays_flush() 刷新</code></pre>
+<h2 id="已验证结果gegl-cli-数值校验">已验证结果（GEGL CLI 数值校验）</h2>
+<div class="table-wrap"><table><thead><tr><th>用例</th><th>结果</th></tr></thead><tbody><tr><td>零参数恒等</td><td>输出与输入逐字节一致（max diff = 0）</td></tr><tr><td><code>hue=60</code></td><td>红(0°)→黄(60°)、青(180°)→蓝(240°)，精确 +60°</td></tr><tr><td><code>saturation=0.45</code></td><td>HSL S: 0.082 → 0.535（精确 +0.45），色相/明度不变</td></tr><tr><td>灰阶带</td><td>完全不变（achromatic guard 生效）</td></tr><tr><td><code>green-hue=-55 green-saturation=-0.7</code></td><td>仅绿/黄绿区间偏移至 ~82° 并去饱和，红/蓝/品红不受影响</td></tr></tbody></table></div>
+<h2 id="文件">文件</h2>
+<ul><li><code>wb-hue-saturation.c</code> — 算子源码（单文件，GEGL_OP_POINT_FILTER）</li><li><code>wb-hue-saturation.dll</code> — 编译产物（GEGL 0.4.72 / mingw64）</li><li><code>make_test_image.py</code> — 生成测试图（HSL 色环 + 灰阶带 + 明度带）</li><li><code>verify.py</code> / <code>compose.py</code> — 数值校验与对比图拼接</li><li><code>test-in.png</code>、<code>out-*.png</code>、<code>demo.png</code> — 测试图与结果</li></ul>
+    <div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>hue-saturation.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code> 后重启 GIMP。
+       整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hue-saturation.dll">下载 hue-saturation.dll</a>
+</div>
+    <nav class="pager"><a class="prev" href="rgb-domain-grayscale.html"><span>上一个</span>Black &amp; White</a><a class="next" href="hsl-seven.html"><span>下一个</span>HSL 7 Bands</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#功能">功能</a></li>
+<li class="l2"><a href="#构建msys2-mingw64-git-bash">构建（MSYS2 mingw64 / Git Bash）</a></li>
+<li class="l2"><a href="#验证不进-gimp">验证（不进 GIMP）</a></li>
+<li class="l2"><a href="#安装到-gimp-3">安装到 GIMP 3</a></li>
+<li class="l2"><a href="#在-gimp-3-python-中调用">在 GIMP 3 Python 中调用</a></li>
+<li class="l2"><a href="#已验证结果gegl-cli-数值校验">已验证结果（GEGL CLI 数值校验）</a></li>
+<li class="l2"><a href="#文件">文件</a></li></ul>
+</aside>
+</div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
+    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
+       与 Adobe、GIMP 官方均无隶属关系。</p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
+    <a href="../guide.html">安装指南</a>
+    <span class="muted">e6b8be3</span>
+  </div>
+</footer>
+</body>
+</html>

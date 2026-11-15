@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brightness/Contrast · gegl-color-ops</title>
+<meta name="description" content="复刻 Photoshop「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面">
+<meta property="og:title" content="Brightness/Contrast · gegl-color-ops">
+<meta property="og:description" content="复刻 Photoshop「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../index.html#ops">算子</a>
+    <a href="../guide.html">安装</a>
+    <a href="../index.html#download">下载</a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+</header>
+<main id="main">
+<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
+     影调与色阶</p>
+  <h1>Brightness/Contrast</h1>
+  <div class="meta">
+    <code>lb:brightness-contrast</code>
+    <span class="tag t-tone">影调与色阶</span>
+    <span>逐像素</span>
+  </div>
+  <p class="lede">复刻 Photoshop「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<p>按实测逆向出来的 Photoshop「亮度/对比度」，<strong>新版与旧版（对话框里的「使用旧版」）两套行为都在里面</strong>。 同一张标定图分别过 PS 26.10 和本算子，逐像素对比见文末「验收」。</p>
+<ul><li>GEGL id：<code>lb:brightness-contrast</code></li><li>菜单：<code>Colors → SuperMrWang → Tone → Brightness/Contrast</code></li><li>类型：<code>GeglOperationPointFilter</code>（逐像素，无邻域）</li><li>参数：<code>brightness</code>（−150…150）、<code>contrast</code>（−50…100）、<code>legacy</code>（默认关＝新版）</li></ul>
+<h2 id="先看一条结论它就是一条逐通道相同的-lut">先看一条结论：它就是一条逐通道相同的 LUT</h2>
+<p>标定图里放了灰阶 ramp、反向 ramp、R/G/B 单通道 ramp 和全色相环，实测：</p>
+<ul><li>三通道走<strong>同一条</strong>曲线（通道耦合 0.000）；</li><li>正/反向 ramp 逐位镜像（无位置依赖）；</li><li>全色相环过完曲线后色相会漂（旧版 c=100 时最大 50°）—— 这恰恰说明它是逐通道 LUT，而不是在 Lab 明度上做文章。</li></ul>
+<p>所以两个版本都能简化成一维映射 <code>f(x; b, c)</code>。</p>
+<h2 id="两个版本的结构">两个版本的结构</h2>
+<div class="table-wrap"><table><thead><tr><th></th><th>新版（<code>legacy=false</code>）</th><th>旧版（<code>legacy=true</code>）</th></tr></thead><tbody><tr><td>亮度</td><td>非线性曲线族，x=0 与 x=255 固定</td><td><code>clamp(x + b)</code>，<strong>b 先夹到 ±100</strong></td></tr><tr><td>对比度</td><td>围绕 <strong>128</strong> 的 S 曲线，两端压缩</td><td>围绕 <strong>89</strong> 的线性缩放，K 见下</td></tr><tr><td>组合顺序</td><td>先亮度 → 后对比度</td><td>c&gt;0：先亮度后对比度；c&lt;0：反过来</td></tr><tr><td>纯白</td><td>b&gt;0 曲线自然收在 255；b&lt;0 时 x=255 强制 255</td><td>无此规则（255 照样被压）</td></tr></tbody></table></div>
+<p>旧版闭式（实测精确到 0.13 码）：</p>
+<pre><code>bb = clamp(b, -100, 100)
+c &gt; 0 : out = clamp(89.00 + (x + bb - 89.00) / (1 - c/100))     ← b 也被 K 放大
+c &lt; 0 : out = clamp(89.00 + (x - 89.00) * (1 + c/100) + bb)     ← b 不被缩小
+c = 0 : out = clamp(x + bb)
+K 的两种写法 = 1/(1-c/100) 与 1+c/100，实测吻合到 1e-4</code></pre>
+<p><strong>对比度的支点不是 128 而是 89.00</strong>（= 255 × 0.349），这是旧版最反直觉的一处： c=50、b=0 时 128 → 167，中灰会被推亮。这一点用 31 条曲线做公共不动点最小二乘得到， 不同 c 之间一致性在 ±0.03 码内。</p>
+<p>新版没有闭式，用两张一维表：亮度族 61 档（b 步长 5）、对比度族 31 档（c 步长 5）， 每档一条 255 点曲线，参数方向与 x 方向都线性插值。表由 <code>tools/gen_bc_tables.py</code> 从 <code>bc-cal/bc_model.json</code> 生成，算子不手抄常数。</p>
+<h2 id="为什么新版要查表">为什么新版要查表</h2>
+<p>新版亮度的低值段是<strong>严格的线性</strong>：<code>f(x) = k·x</code>，其中 <code>k = exp(0.00630126·b)</code> （b=+50 → 1.3705，b=+100 → 1.8782，b=−150 → 0.3887，61 档对数残差 8e-5）。</p>
+<p>后来把结构拆开了（见 <code>bc-cal/RESULTS.md</code> 第五节之二）：</p>
+<ul><li><strong>b&gt;0</strong>：线性一直延伸到 <code>k·x ≈ 128</code>，之后接一段<strong>三次肩部</strong>，切线连续，末端收在 (255, 255)。b ≤ 100 时这段拟合残差只有 0.03 码；b&gt;100 时三次不够（b=150 差 3 码）， 四次降到 0.7 码。</li><li><strong>b&lt;0</strong>：不是三次，而是<strong>正向曲线的反函数</strong>（<code>f₋ᵦ = fᵦ⁻¹</code>，平均误差 0.01 码）。 所以「b&lt;0 在中高段上拱」只是同一条压缩曲线翻过来看，没有第二套机制。</li></ul>
+<p>闭式版本在 <code>bc-cal/bc_compact.py</code>（每档只存 4 个数，负向求逆）。算子仍然保留实测表， 原因只有一个：最靠近白的十几个像素处正向斜率只有 0.02，求逆会放大 50 倍，闭式在那里 有 3 码误差，而实测表是 0 码。表由 <code>tools/gen_bc_tables.py</code> 从 <code>bc-cal/bc_model.json</code> 生成，算子不手抄常数。</p>
+<h2 id="性能">性能</h2>
+<p>b、c 对整张图是常量，所以整条复合曲线在 <code>prepare()</code> 里折成一张 256 项 LUT， <code>process()</code> 每个通道只剩一次查表 + 一次 lerp。全图 256×192 渲染约 0.2 s（含 PNG 编解码）。</p>
+<h2 id="验收">验收</h2>
+<p><code>python tools/check_bc_ps.py</code> —— 用 gegl CLI 渲染标定图，和 PS 的 16 位导出逐像素比：</p>
+<div class="table-wrap"><table><thead><tr><th>版本</th><th>参考图数</th><th>中位偏差</th><th>95%</th><th>最大</th></tr></thead><tbody><tr><td>新版</td><td>154</td><td>1 码</td><td>1 码</td><td><strong>2 码</strong></td></tr><tr><td>旧版</td><td>154</td><td>0 码</td><td>1 码</td><td><strong>1 码</strong>（c=100 见下）</td></tr></tbody></table></div>
+<p>这 1 码基本是「PS 16 位导出 ÷257」与「gegl 8 位 PNG 输出」之间的舍入，不是模型误差。 Python 参考实现 <code>bc-cal/bc_ref.py</code> 直接对 16 位数据回放，新版残差 0.5 码、旧版 0.09 码。</p>
+<h2 id="已知偏差">已知偏差</h2>
+<ol><li><strong>旧版 c=100</strong>：PS 在支点 x=89 上输出 159（K 发散时 <code>0×∞</code> 的产物），本算子按极限 输出 0/255。只影响恰好等于 89 的那一列像素，其余全部一致（95% 分位 0 码）。</li><li><strong>新版的 255 特例</strong>：b&lt;0 时实测 254 照曲线走（b=−150 时 214），255 却原样保留 255 —— 单纯白保护（b&gt;0 时曲线本来就自然收在 255，不需要这条）。本算子照抄这一行为； 不想要可以在上游 <code>bc_ref.py</code> 里去掉。</li><li>参数取非整数时（例如 b=7、c=43）误差会升到 0.6 码左右，因为表按步长 5 建。 要更细就把 <code>bc-cal/batch_bc2.jsx</code> 的步长改小重跑。</li></ol>
+<h2 id="与-lbhue-saturation-lbexposure-的关系">与 <code>lb:hue-saturation</code> / <code>lb:exposure</code> 的关系</h2>
+<p>那个是把亮度当 HSL 的 L 或 EV 处理，卷的是色彩模型；这个只忠实复刻 PS 的两条曲线。 需要"和 PS 对得上"就用这个，需要"调得好看"用别的。</p>
+    <div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>lb-brightness-contrast.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code> 后重启 GIMP。
+       整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lb-brightness-contrast.dll">下载 lb-brightness-contrast.dll</a>
+</div>
+    <nav class="pager"><a class="prev" href="exposure.html"><span>上一个</span>Exposure EV</a><a class="next" href="shadows-highlights.html"><span>下一个</span>Shadows/Highlights</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#先看一条结论它就是一条逐通道相同的-lut">先看一条结论：它就是一条逐通道相同的 LUT</a></li>
+<li class="l2"><a href="#两个版本的结构">两个版本的结构</a></li>
+<li class="l2"><a href="#为什么新版要查表">为什么新版要查表</a></li>
+<li class="l2"><a href="#性能">性能</a></li>
+<li class="l2"><a href="#验收">验收</a></li>
+<li class="l2"><a href="#已知偏差">已知偏差</a></li>
+<li class="l2"><a href="#与-lbhue-saturation-lbexposure-的关系">与 lb:hue-saturation / lb:exposure 的关系</a></li></ul>
+</aside>
+</div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
+    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
+       与 Adobe、GIMP 官方均无隶属关系。</p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
+    <a href="../guide.html">安装指南</a>
+    <span class="muted">e6b8be3</span>
+  </div>
+</footer>
+</body>
+</html>

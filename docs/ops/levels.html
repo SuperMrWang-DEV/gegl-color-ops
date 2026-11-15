@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Levels · gegl-color-ops</title>
+<meta name="description" content="PS 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 PS 对话框的数字框一一对应">
+<meta property="og:title" content="Levels · gegl-color-ops">
+<meta property="og:description" content="PS 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 PS 对话框的数字框一一对应">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../index.html#ops">算子</a>
+    <a href="../guide.html">安装</a>
+    <a href="../index.html#download">下载</a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+</header>
+<main id="main">
+<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
+     影调与色阶</p>
+  <h1>Levels</h1>
+  <div class="meta">
+    <code>lb:levels</code>
+    <span class="tag t-tone">影调与色阶</span>
+    <span>逐像素</span>
+  </div>
+  <p class="lede">PS 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 PS 对话框的数字框一一对应</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<p>PS「色阶」对话框的复刻：<strong>复合 + R/G/B 四组</strong>，每组都是 「输入黑场 / 输入灰点 / 输入白场 + 输出黑场 / 输出白场」五个数， 刻度 0–255，和 PS 的数字框一一对应。</p>
+<p>对应面板：<code>Colors → SuperMrWang → Tone → Levels</code>。</p>
+<h2 id="模型">模型</h2>
+<p>单通道：</p>
+<pre><code>t   = clamp((v - inLow) / (inHigh - inLow), 0, 1)
+t'  = t ^ (1 / gamma)
+out = outLow + t' * (outHigh - outLow)</code></pre>
+<ul><li><code>inLow</code> 及以下压成 <code>outLow</code>，<code>inHigh</code> 及以上压成 <code>outHigh</code>， 中间按 gamma 曲线重新分布；</li><li><strong>gamma &gt; 1 提亮，gamma &lt; 1 压暗</strong>（与 PS 数字框同向。注意这与 「标准 gamma」的直觉相反，因为 PS 的滑块值直接进的是 <code>1/gamma</code> 的倒数位置； 指数写成 <code>t^gamma</code> 会让方向整个反过来）；</li><li>输入区间会把整段拉伸：设了 <code>inLow = 64</code> 之后，<code>v = 240</code> 会变成 <code>235</code>， 不是原样保留；</li><li><code>inHigh == inLow</code> 时区间塌成一点，按台阶处理（≥ 该值为白），不除零。</li></ul>
+<p>执行顺序：<strong>先复合组（三通道同一条曲线），再各通道组</strong>。各通道组默认恒等， 所以「只动复合」与 PS 的 RGB 通道模式逐位一致；「只动红」等价于 PS 的 Red 通道模式。四组可以叠加使用，这比 PS 一次只能选一个通道更强。</p>
+<h2 id="域">域</h2>
+<p>在 <strong>8bit sRGB 伽马域</strong>逐通道直接算，不回线性光。色阶的黑白场是 「0–255 编码值」的语义，喂线性光会让数字框对不上 PS。算子自己在 <code>prepare</code> 里把两个 pad 钉成感知格式（<code>R~G~B~A float</code>），不需要前置 <code>linear-rgb</code>。</p>
+<h2 id="验证">验证</h2>
+<pre><code class="language-bash">python tools/check_levels_ps.py</code></pre>
+<p>11 项，两层：</p>
+<p><strong>A 数学层</strong> —— Python 侧逐行复刻 C 模型，256 列灰阶探针（第 x 列灰度恰好是 x， 采样不插值）逐像素比对，全 0.00 码：</p>
+<div class="table-wrap"><table><thead><tr><th>用例</th><th>检查点</th></tr></thead><tbody><tr><td>全默认</td><td>0 / 20 / 128 / 240 / 255 恒等</td></tr><tr><td>输入黑场 64</td><td>归零、中段、高段被拉伸到 235</td></tr><tr><td>输入白场 192</td><td>全白、暗端被拉伸到 27</td></tr><tr><td>输出收缩 50–200</td><td>两端落到 50 / 200，中段线性</td></tr><tr><td>gamma 2.0 / 0.5</td><td>提亮 / 压暗，端点不动</td></tr><tr><td>组合</td><td>50 / 0.7 / 200 → 30 / 220</td></tr><tr><td>单通道</td><td>只动红，绿蓝不动</td></tr></tbody></table></div>
+<p><strong>B 基准层</strong> —— 回放两个公开的 PS 实测点，专门卡住 gamma 的<strong>方向和指数形式</strong>：</p>
+<div class="table-wrap"><table><thead><tr><th>输入</th><th>gamma</th><th>PS 实测</th><th>本算子</th><th>偏差</th></tr></thead><tbody><tr><td>154</td><td>0.46</td><td>84</td><td>85</td><td>1.19 码</td></tr><tr><td>200</td><td>1.646</td><td>220</td><td>220</td><td>0.01 码</td></tr></tbody></table></div>
+<p>这两点很要紧：只做「C 和 Python 自洽」的验证是查不出指数写反的，两边会一起错。 基准取自 Adobe 社区里用户量出来的像素值与公认公式 <code>out = in^(1/gamma)</code>。</p>
+<h2 id="本机为什么没做逐码标定">本机为什么没做逐码标定</h2>
+<p>PS 2025（26.10.0）在这台机器上：<code>executeAction</code> 的 <code>Lvls</code> 事件、以及 <code>Mk</code> 创建调整图层，都直接抛「不能完成命令，因为程序错误」；DOM 的 <code>LayerKind.LEVELS</code> 也给「只能改为文本或正常」。诊断日志见 <code>../lvls-cal/_diag2.txt</code>。<code>colorRange</code> 反而能跑，所以不是 ExtendScript 整体 不可用，是这两个命令在这套安装里被挡了。</p>
+<p>因此基准改用公开实测值，而不是本机标定。<strong>如果你在另一台机器上能跑 PS 脚本， 可以把 <code>lvls-cal/</code> 里的 <code>ps_levels.jsx</code> 修好重跑，就能升级成逐码标定。</strong></p>
+<h2 id="与-gimp-自带色阶的区别">与 GIMP 自带「色阶」的区别</h2>
+<p>GIMP 的 <code>Colors → Levels</code> 是 app 层私有实现，GEGL 里的 <code>gegl:levels</code> 只有 <code>in-low / in-high / out-low / out-high</code> <strong>四个</strong>属性——没有 gamma，没有每通道， 也没有 0–255 的数字刻度（<code>gegl --info gegl:levels</code> 可查）。所以这个算子补的是 GEGL 算子层面的真空白：脚本、批处理、<code>gegl</code> 命令行里都能用 PS 的色阶参数。</p>
+    <div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>levels.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code> 后重启 GIMP。
+       整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/levels.dll">下载 levels.dll</a>
+</div>
+    <nav class="pager"><span></span><a class="next" href="lab-levels.html"><span>下一个</span>LAB Levels</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#模型">模型</a></li>
+<li class="l2"><a href="#域">域</a></li>
+<li class="l2"><a href="#验证">验证</a></li>
+<li class="l2"><a href="#本机为什么没做逐码标定">本机为什么没做逐码标定</a></li>
+<li class="l2"><a href="#与-gimp-自带色阶的区别">与 GIMP 自带「色阶」的区别</a></li></ul>
+</aside>
+</div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
+    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
+       与 Adobe、GIMP 官方均无隶属关系。</p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
+    <a href="../guide.html">安装指南</a>
+    <span class="muted">e6b8be3</span>
+  </div>
+</footer>
+</body>
+</html>

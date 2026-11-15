@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LAB Levels · gegl-color-ops</title>
+<meta name="description" content="LAB 三通道各自设输入 / 输出黑白场与伽马">
+<meta property="og:title" content="LAB Levels · gegl-color-ops">
+<meta property="og:description" content="LAB 三通道各自设输入 / 输出黑白场与伽马">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../index.html#ops">算子</a>
+    <a href="../guide.html">安装</a>
+    <a href="../index.html#download">下载</a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+</header>
+<main id="main">
+<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
+     影调与色阶</p>
+  <h1>LAB Levels</h1>
+  <div class="meta">
+    <code>lb:lab-levels</code>
+    <span class="tag t-tone">影调与色阶</span>
+    <span>整块区域</span>
+  </div>
+  <p class="lede">LAB 三通道各自设输入 / 输出黑白场与伽马</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<p>菜单：<code>颜色 → SuperMrWang → Tone → LAB Levels</code>（Filter 类）</p>
+<h2 id="概述">概述</h2>
+<p>对 CIELAB 的 L/a/b 三个通道各自做独立的色阶调整：输入黑场/白场、gamma、 输出下限/上限。L 管明度，a（绿−洋红）与 b（蓝−黄）管色彩倾向—— 调整 a/b 时明度和中性色都不受影响，这是它与 RGB 色阶的本质差异。</p>
+<h2 id="色彩空间">色彩空间</h2>
+<p>算子直接工作在 babl 的 <code>CIE Lab alpha float</code>（<strong>D50 白点</strong>）上， RGB↔Lab 交给 babl——数值口径与 GIMP 原生 Lab 工具（指针、曲线的 Lab 模式） 及 <code>lb:match-color</code> 一致。在 Lab 域做 levels 等价于感知域映射， 不依赖"线性光"前提（历史版本自带 D65 线性 RGB→XYZ 转换，已废弃）。</p>
+<h2 id="规则细则">规则细则</h2>
+<ul><li><strong>a/b 的 gamma 绕中性轴 0 转动</strong>：负半轴 <code>[in_black, 0]</code> 与正半轴 <code>[0, in_white]</code> 各自归一化后做 gamma。中性像素（a=b=0 的灰白）在任意 gamma 下保持不动；拖 a/b gamma 只改变彩色中间调的倾向强度。</li><li><strong>黑白场交叉自动交换</strong>：输入黑场拉过白场（或反之）时按交换后的范围映射， 不会塌成单色。</li><li><strong>输出反向（负片）可用</strong>：输出下限 &gt; 上限时做反向映射，clamp 到真实 上下界——L 反转即明度负片，a/b 反转即色度负片。</li><li><strong>alpha ≤ 0 像素原样透传</strong>，alpha 通道始终保留。</li><li>L 的削顶范围 <code>[0, 100]</code>，a/b 为 <code>[-128, 127]</code>，输出自动 clamp。</li><li>L 的 gamma 是标准色阶语义（绕输入范围中点），与 a/b 的绕中性轴不同。</li></ul>
+<h2 id="性能">性能</h2>
+<p>levels 映射为 1D 单调函数，process 时为 L、a/b（负/正半轴各一）建立 4096 项查找表，逐像素查表 + 线性插值，无逐像素 <code>powf</code>。a/b 拆半轴建表是 因为绕轴映射在 0 处导数不连续，跨 0 插值会把中性附近的微小输入过冲放大 （曾导致 +0.03 被插成 +1.95）。表每次 process 确定性重建，跨块一致。</p>
+<h2 id="验证">验证</h2>
+<p><code>tools/check_lab_levels.py</code>（21 项，gimp-console 运行）：恒等、灰白中性 保持、gamma 增强/减弱、黑白场重映射与削顶、输出反向单调性、交叉交换、 透明透传、alpha 保留、组合参数整体校验。期望值由 Python 镜像同一套 levels 规则逐像素比对（输入以 Lab 格式建缓冲，镜像与算子看同一份数值）。</p>
+<pre><code class="language-bash">"D:/fastsoftware/GIMP 3/bin/gimp-console-3.2.exe" -i -c -d -f \
+    --batch-interpreter=python-fu-eval \
+    -b "exec(open(r'&lt;repo&gt;/tools/check_lab_levels.py').read())" --quit</code></pre>
+<h2 id="已知事项">已知事项</h2>
+<ul><li>a/b gamma≠1 时中性附近的微小色度会被放大（gamma=2 时 0.008 → 1.0）， 这是绕轴 gamma 曲线本身的形状（近中性斜率大），PS 同类操作一致； 对噪声明显的图建议配合蒙版或较小 gamma 使用。</li><li>相比旧版（自带 D65 转换），同一输入的数值结果会有轻微差异（白点口径 从 D65 变为 D50），旧 XCF 中挂载的本滤镜输出会略有不同。</li></ul>
+    <div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>lab-levels.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code> 后重启 GIMP。
+       整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lab-levels.dll">下载 lab-levels.dll</a>
+</div>
+    <nav class="pager"><a class="prev" href="levels.html"><span>上一个</span>Levels</a><a class="next" href="hsl-levels.html"><span>下一个</span>HSL Levels</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#概述">概述</a></li>
+<li class="l2"><a href="#色彩空间">色彩空间</a></li>
+<li class="l2"><a href="#规则细则">规则细则</a></li>
+<li class="l2"><a href="#性能">性能</a></li>
+<li class="l2"><a href="#验证">验证</a></li>
+<li class="l2"><a href="#已知事项">已知事项</a></li></ul>
+</aside>
+</div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
+    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
+       与 Adobe、GIMP 官方均无隶属关系。</p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
+    <a href="../guide.html">安装指南</a>
+    <span class="muted">e6b8be3</span>
+  </div>
+</footer>
+</body>
+</html>

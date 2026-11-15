@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Match Color · gegl-color-ops</title>
+<meta name="description" content="PS 匹配颜色：把另一张图（或另一层）的 Lab* 统计量迁移到本层">
+<meta property="og:title" content="Match Color · gegl-color-ops">
+<meta property="og:description" content="PS 匹配颜色：把另一张图（或另一层）的 Lab* 统计量迁移到本层">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../index.html#ops">算子</a>
+    <a href="../guide.html">安装</a>
+    <a href="../index.html#download">下载</a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+</header>
+<main id="main">
+<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
+     色彩</p>
+  <h1>Match Color</h1>
+  <div class="meta">
+    <code>lb:match-color</code>
+    <span class="tag t-color">色彩</span>
+    <span>双输入</span>
+  </div>
+  <p class="lede">PS 匹配颜色：把另一张图（或另一层）的 L<em>a</em>b* 统计量迁移到本层</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<p>Photoshop「图像 → 调整 → 匹配颜色」的复刻：把<strong>另一张图 / 另一个图层</strong>的 颜色统计量迁移到本层。内核是 Reinhard 等 2001 年提出、PS 沿用至今的 L\<em>a\</em>b\* 均值-方差仿射迁移。</p>
+<h2 id="模型">模型</h2>
+<p>工作在 CIELAB（D50）里，对 L、a、b 各通道分别做：</p>
+<pre><code>out = (v − μ_target) · (σ_source / σ_target) + μ_source</code></pre>
+<p>统计量对<strong>整层</strong>计算（PS 亦然），来源是 <code>aux</code> pad 接的图层；没接 aux 时 来源退化为本层自身，恒等映射。</p>
+<h2 id="与-ps-的滑杆对应">与 PS 的滑杆对应</h2>
+<div class="table-wrap"><table><thead><tr><th>PS</th><th>这里</th><th>语义（模型对齐，非逐码标定）</th></tr></thead><tbody><tr><td>亮度 Luminance（1–200，默认 100）</td><td><code>luminance</code></td><td>只缩放 L 的映射量：<code>k = 滑杆/100</code>，映射按 <code>lerp(1, ratio, k)</code> 收敛。100=精确匹配，200=双倍修正，1=几乎不动</td></tr><tr><td>颜色强度 Color Intensity（默认 100）</td><td><code>color-intensity</code></td><td>同上，只作用于 a/b</td></tr><tr><td>渐隐 Fade（0–100）</td><td><code>fade</code></td><td>整体映射量乘 <code>(1 − fade/100)</code>；等价 PS 的「编辑 → 渐隐」</td></tr><tr><td>中和 Neutralize</td><td><code>neutralize</code></td><td>输出的 a/b 均值强制为 0（去色偏），L 照常；来源仍提供对比度</td></tr></tbody></table></div>
+<blockquote><p>PS 2025 的匹配颜色<strong>没有脚本接口</strong>（对话框没有 DOM API，<code>Mk</code>/<code>matchColor</code> 均被拒），拿不到实测基准点，所以这里是模型对齐而非黑盒标定——与色阶的 处理方式一致，README 如实声明。</p></blockquote>
+<h2 id="全局统计-逐块渲染">全局统计 × 逐块渲染</h2>
+<p>GEGL 的 process 每次只拿一小块，而均值/方差必须对整层算。做法：</p>
+<ul><li>首次 <code>process</code> 时整层扫一遍 input 与 aux（Lab 域，攒 sum/sum²），缓存在 operation 实例上（互斥锁保护，键 = 缓冲指针 + extent + 层级）；</li><li>后续块直接复用缓存，<strong>预览拖滑杆不会反复重算</strong>；</li><li>来源图层内容变了（非破坏预览场景）勾一次「重算统计 / Refresh stats」， 重算完自动复位。</li></ul>
+<h2 id="细则">细则</h2>
+<ul><li><strong>透明像素不进统计</strong>：目标与来源两侧都以 <code>alpha ≤ 0</code> 剔除，抠图层的洞 不会把统计拖向黑（这个坑在应用图像/计算里已经踩过一轮）。</li><li><strong>σ 保护</strong>：σ &lt; 1e-3 视为常数通道，比值取 1；均匀色来源会把输出均值 平移到自己的均值色（<code>(v − μt)</code> 项本来就是 0）。</li><li><strong>削顶</strong>：输出 L 削到 [0, 100]、a/b 削到 [−128, 127]，与 PS 在 8bit L\<em>a\</em>b\* 里工作一致。</li><li><strong>与「只有相交部分起作用」无关</strong>：匹配颜色不是逐像素混合，来源只捐统计 量，映射作用于目标整层——这正是 PS 的行为。</li><li>匹配是仿射的，几何不必对齐：来源图层尺寸/偏移随意。</li></ul>
+<h2 id="验证">验证</h2>
+<pre><code class="language-bash">./build.sh
+"D:/fastsoftware/GIMP 3/bin/gimp-console-3.2.exe" -i -c -d -f \
+    --batch-interpreter=python-fu-eval \
+    -b "exec(open(r'&lt;repo&gt;/tools/check_match_color.py').read())" --quit</code></pre>
+<p>17 项：恒等、均值迁移、方差缩放、亮度/颜色强度滑杆两端、渐隐 50/100、 中和（含输出均值 ≈0 断言）、aux 透明洞不进统计、目标透明像素 alpha 保留、 100 行跨块一致、无 aux 恒等、极端映射不越界。期望值由 Python 镜像模型算出， Lab 读数直接取自 babl（与算子同一转换路径，不循环论证）。</p>
+    <div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>match-color.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code> 后重启 GIMP。
+       整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/match-color.dll">下载 match-color.dll</a>
+</div>
+    <nav class="pager"><a class="prev" href="colorize-hsl.html"><span>上一个</span>Colorize</a><a class="next" href="apply-image.html"><span>下一个</span>Apply Image</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#模型">模型</a></li>
+<li class="l2"><a href="#与-ps-的滑杆对应">与 PS 的滑杆对应</a></li>
+<li class="l2"><a href="#全局统计-逐块渲染">全局统计 × 逐块渲染</a></li>
+<li class="l2"><a href="#细则">细则</a></li>
+<li class="l2"><a href="#验证">验证</a></li></ul>
+</aside>
+</div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
+    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
+       与 Adobe、GIMP 官方均无隶属关系。</p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
+    <a href="../guide.html">安装指南</a>
+    <span class="muted">e6b8be3</span>
+  </div>
+</footer>
+</body>
+</html>

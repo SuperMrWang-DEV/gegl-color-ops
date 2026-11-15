@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HSB Levels · gegl-color-ops</title>
+<meta name="description" content="HSB（=HSV）三个分量各自设输入 / 输出黑白场与伽马">
+<meta property="og:title" content="HSB Levels · gegl-color-ops">
+<meta property="og:description" content="HSB（=HSV）三个分量各自设输入 / 输出黑白场与伽马">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../index.html#ops">算子</a>
+    <a href="../guide.html">安装</a>
+    <a href="../index.html#download">下载</a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+</header>
+<main id="main">
+<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
+     影调与色阶</p>
+  <h1>HSB Levels</h1>
+  <div class="meta">
+    <code>lb:hsb-levels</code>
+    <span class="tag t-tone">影调与色阶</span>
+    <span>整块区域</span>
+  </div>
+  <p class="lede">HSB（=HSV）三个分量各自设输入 / 输出黑白场与伽马</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<p>菜单：<code>颜色 → SuperMrWang → Tone → HSB Levels</code>（Filter 类）</p>
+<h2 id="概述">概述</h2>
+<p>对 HSB（即 HSV，取色器上那三个数）的 H / S / B 各自做独立色阶。 和 HSL Levels 长得很像，但 <strong>S 和 B 是另一套量</strong>，同一个滑块值在两个算子里 手感不同，别混着用。</p>
+<h2 id="色彩空间">色彩空间</h2>
+<p>工作在 babl 的 <code>HSVA float</code> 上，RGB↔HSV 交给 babl。</p>
+<div class="table-wrap"><table><thead><tr><th>分量</th><th>量程</th><th>定义</th></tr></thead><tbody><tr><td>H</td><td>0–360°</td><td>与 HSL 同一个色相角</td></tr><tr><td>S</td><td>0–100%</td><td><code>S = (max−min)/max = 1 − min/V</code>（HSV 的 S）</td></tr><tr><td>B</td><td>0–100%</td><td><code>B = V = max(R,G,B)</code>，即最亮的那个通道</td></tr></tbody></table></div>
+<p>HSL 的 S 是 <code>(max−min)/(1−|2L−1|)</code>，HSV 的 S 是 <code>(max−min)/max</code>——同一块 颜色两边的数值可以差很多（比如纯红：HSL 的 S=100%，HSV 的 S 也是 100%， 但浅粉色 HSL 的 S=100% 时 HSV 只有约 20%）。所以「把 S 压到 60%」这两个 算子给出的画面完全不同。</p>
+<h2 id="规则细则">规则细则</h2>
+<ul><li><strong>H 环形重映射</strong>：主弧（黑场 → 白场）映到输出弧，剩余弧按比例跟进， 两段共用 gamma；整圈连续，默认参数逐位还原。黑白场重合按整圈处理 = 纯色相旋转。</li><li><strong>S/B 线性</strong>：clamp → 归一化 → gamma → 输出范围，输出反向即反相。</li><li><strong>黑白场交叉自动交换</strong>。</li><li><strong>alpha ≤ 0 透传</strong>。</li><li>B 归零 = 全黑（V 是最大通道，压到 0 三通道全 0）；B 的反向输出会得到 「亮部变暗、暗部变亮」的负片式结果，但色相与饱和度仍保留各自的映射。</li></ul>
+<h2 id="与-lbhsl-levels-的选择">与 lb:hsl-levels 的选择</h2>
+<ul><li>只想改「颜色有多艳」而不动亮度 → 两者都行，但 HSL 的 S 与感知饱和度更 接近，HSV 的 S 在暗部会虚高（暗红 S 也是 100%）。</li><li>要单独控制「最亮通道」→ 用 HSB 的 B，它等于 max，压 B 就是压高光上限。</li><li>要按「中间调亮度」调 → 用 HSL 的 L 或 <code>lab-levels</code> 的 L。</li></ul>
+<h2 id="验证">验证</h2>
+<p><code>python tools/check_color_levels.py hsb</code>（3 项）：</p>
+<div class="table-wrap"><table><thead><tr><th>用例</th><th>判据</th><th>实测</th></tr></thead><tbody><tr><td>恒等（默认参数）</td><td>与源图逐像素 ≤1 码</td><td>最大 0</td></tr><tr><td>饱和度归零</td><td>全图中性（|R−G|、|G−B| ≤2）</td><td>0</td></tr><tr><td>公式对拍</td><td>Python 复算 HSV↔RGB 与同一条色阶链路，≤2 码</td><td>最大 1</td></tr></tbody></table></div>
+<p>公式对拍的参数：H 整体 +40°（0/360 → 40/40 的整圈旋转）、S 15/100 → 0/100 γ=1.2、B 0/100 → 10/90，覆盖色相环绕与两段 gamma 方向。</p>
+<h2 id="已知事项">已知事项</h2>
+<ul><li>黑（B=0）像素的 S 与 H 都没有定义，算子按 0 处理；B 抬起来之后颜色仍是 黑的（V 决定亮度上限）。</li><li>8 位精度下 B 很低的深色区只有几个量化台阶，B 曲线拉陡会出现断层。</li></ul>
+    <div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>hsb-levels.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code> 后重启 GIMP。
+       整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hsb-levels.dll">下载 hsb-levels.dll</a>
+</div>
+    <nav class="pager"><a class="prev" href="hsl-levels.html"><span>上一个</span>HSL Levels</a><a class="next" href="lch-levels.html"><span>下一个</span>LCH Levels</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#概述">概述</a></li>
+<li class="l2"><a href="#色彩空间">色彩空间</a></li>
+<li class="l2"><a href="#规则细则">规则细则</a></li>
+<li class="l2"><a href="#与-lbhsl-levels-的选择">与 lb:hsl-levels 的选择</a></li>
+<li class="l2"><a href="#验证">验证</a></li>
+<li class="l2"><a href="#已知事项">已知事项</a></li></ul>
+</aside>
+</div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
+    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
+       与 Adobe、GIMP 官方均无隶属关系。</p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
+    <a href="../guide.html">安装指南</a>
+    <span class="muted">e6b8be3</span>
+  </div>
+</footer>
+</body>
+</html>
