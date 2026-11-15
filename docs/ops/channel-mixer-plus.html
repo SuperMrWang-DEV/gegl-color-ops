@@ -35,9 +35,11 @@
 </section>
 <div class="article-layout">
   <article class="prose">
-<blockquote><p>本文件是该滤镜的原始说明文档（构建命令按旧目录结构书写，已过时）。 统一构建方式请见工程根目录 <code>README.md</code> 与 <code>build.sh</code>。</p></blockquote>
+<details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><blockquote><p>本文件是该滤镜的原始说明文档（构建命令按旧目录结构书写，已过时）。 统一构建方式请见工程根目录 <code>README.md</code> 与 <code>build.sh</code>。</p></blockquote>
 <h1>GEGL_GIMP_PLUGIN_channnel-mixer-plus</h1>
-<p><img src="../assets/ops/channel-mixer-plus/channnel-mixer-plus.png" alt="channnel-mixer-plus" title="channnel-mixer-plus"></p><details class="en-block"><summary>English version<span class="muted">（同一份说明的英文版）</span></summary><h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
+<p><img src="../assets/ops/channel-mixer-plus/assets/channnel-mixer-plus.png" alt="channnel-mixer-plus" title="channnel-mixer-plus"></p>
+<h2 id="english">English</h2>
+<h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
 <h4 id="native-linux-system-installed-gimp">Native Linux (System installed GIMP)</h4>
 <pre><code class="language-bash">sh build_linux.sh
 cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
@@ -68,10 +70,9 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>channel-mixer-plus.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code> 后重启 GIMP。
-       整包在 <a href="../index.html#download">下载页</a>。</p>
+    <p>Windows 模块 <code>channel-mixer-plus.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>channel-mixer-plus.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
   </div>
-  <a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/channel-mixer-plus.dll">下载 channel-mixer-plus.dll</a>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/channel-mixer-plus.dll">下载 channel-mixer-plus.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/channel-mixer-plus.so">下载 channel-mixer-plus.so<span class="size">Linux x86_64</span></a></div>
 </div>
     <nav class="pager"><a class="prev" href="calculations.html"><span>上一个</span>Calculations</a><a class="next" href="xyz-multiply.html"><span>下一个</span>Photo Filter</a></nav>
   </article>
@@ -88,7 +89,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
     <a href="../guide.html">安装指南</a>
-    <span class="muted">db613c8</span>
+    <span class="muted">3220ff6</span>
   </div>
 </footer>
 </body>

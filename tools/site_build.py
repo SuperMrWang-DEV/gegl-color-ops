@@ -34,6 +34,7 @@ import set_menu_group as SMG                   # noqa: E402  分组只有这一�
 
 REPO = "https://github.com/SuperMrWang-DEV/gegl-color-ops"
 RAW = REPO + "/raw/main/dist/windows-x64"
+LIN_RAW = REPO + "/raw/main/dist/linux-x64"
 
 GROUP_ZH = {
     "Tone":  ("Tone",  "影调与色阶"),
@@ -153,12 +154,18 @@ def load_ops():
         op.setdefault("order", 99)
         # 模块文件名不一定等于目录名：exposure / brightness-contrast 为了避开
         # GEGL 内置算子的 GType 撞名，源文件改成了 lb-*.c，产物也叫 lb-*.dll
-        for cand in ("%s.dll" % op["dir"], "lb-%s.dll" % op["dir"]):
-            if os.path.exists(os.path.join(DIST, "windows-x64", cand)):
-                op["module"] = cand[:-4]
+        for cand in ("%s" % op["dir"], "lb-%s" % op["dir"]):
+            if (os.path.exists(os.path.join(DIST, "windows-x64", cand + ".dll")) or
+                os.path.exists(os.path.join(DIST, "linux-x64", cand + ".so"))):
+                op["module"] = cand
                 break
         else:
             op["module"] = op["dir"]
+        # 两个平台各自单独判：某个模块只出了一端时，页面上就别给它挂死链
+        op["has_dll"] = os.path.exists(
+            os.path.join(DIST, "windows-x64", op["module"] + ".dll"))
+        op["has_so"] = os.path.exists(
+            os.path.join(DIST, "linux-x64", op["module"] + ".so"))
 
     order = {g: i for i, g in enumerate(SMG.GROUPS)}
     ops.sort(key=lambda o: (order.get(o["group"], 9), o["order"], o["menu"]))
@@ -431,10 +438,68 @@ def build_ops_index(ops, version):
     return page("算子清单 · gegl-color-ops", body, desc="全部算子的清单与一句话说明")
 
 
+def split_legacy_intro(md):
+    """把 README 里的「旧版插件文档」切出来。
+
+    ops/ 下有九个 README 还带着最初作为独立插件时的说明：编译命令按旧目录结构写、
+    菜单路径带 WB 后缀、全文没有一句算法。这些内容与现在的算子对不上，直接铺在
+    页面上只会误导。切出来单放进 <details> 折叠，正文只留当前说明。
+
+    旧文档的边界很规整：正文是 `## English` → `## 中文` 这一段双语安装说明；
+    它前面紧邻的「本文件是该滤镜的原始说明文档」提示与 `# GEGL_GIMP_PLUGIN_*`
+    标题也算旧文档。有些 README（xyz-multiply / hsl-seven）在提示之后还写了当前
+    实现说明，所以不能简单地「从文件头切到文件尾」。
+
+    返回 (正文 md, 旧文档 md 或 None)。
+    """
+    m_en = re.search(r"^##\s+English\s*$", md, re.M)
+    if not m_en:
+        return md, None
+
+    # 起点：English 之前紧邻的一串「提示 / GEGL_GIMP_PLUGIN 标题 / 图片 / 分隔线」
+    # 算旧文档；遇到别的行（正文、其它引用块、代码块）就停 —— hsl-seven 的
+    # 实现说明、xyz-multiply 的整段当前文档都紧在 English 前面，不能一起折叠。
+    _LEAD = (r"(?:[ \t]*\n"
+             r"|!\[[^\]]*\]\([^)]*\)[ \t]*\n"
+             r"|#\s+GEGL_GIMP_PLUGIN_[^\n]*\n"
+             r"|---[ \t]*\n"
+             r"|>\s*本文件是该滤镜的(?:原始)?说明文档[^\n]*\n(?:>[^\n]*\n)*)*")
+    m_lead = re.search(r"(?:\A|\n)(" + _LEAD + r")\Z", md[:m_en.start()])
+    start = len(md[:m_en.start()]) if not m_lead else m_en.start() - len(m_lead.group(1))
+
+    # 终点：《## 中文》那一节的末尾（其后第一个二级标题，或文件结束）
+    base = m_en.end()
+    zh = re.search(r"^##\s+中文\s*$", md[base:], re.M)
+    if zh:
+        base += zh.end()
+    nxt = re.search(r"^##\s+", md[base:], re.M)
+    end = base + nxt.start() if nxt else len(md)
+
+    # 只有真的是旧插件文档才折成「原始介绍」；有的 README 的 English 段是当前
+    # 说明的正经翻译（color-balance 的英文里还带着算法），那该走 en-block，
+    # 不能贴上「已过时」的标签。判据：旧文档是「English + 中文」双语的安装说明。
+    region = md[m_en.start():end]
+    lead = md[start:m_en.start()]
+    if not (re.search(r"^##\s+中文\s*$", region, re.M) and
+            ("build_linux.sh" in region or "How to Open the Plugin" in region)):
+        return md, None
+
+    legacy = md[start:end]
+    tail = re.sub(r"\A\s*---[ \t]*\n", "", md[end:])
+    head = md[:start]
+    legacy = re.sub(r"\n+---[ \t]*\s*$", "", legacy.rstrip("\n")).strip("\n")
+
+    return (head + "\n\n" + tail).strip("\n"), (legacy or None)
+
+
 def build_article(op, version):
     md = open(op["readme"], encoding="utf-8").read()
-    # 去掉 README 自带的标题和「本文件是说明文档」的提示，页面头部自己给
-    md = re.sub(r"\A\s*>\s*本文件是该滤镜的说明文档[^\n]*\n+", "", md)
+    md, legacy_md = split_legacy_intro(md)
+    # 去掉 README 自带的标题和「本文件是说明文档」的提示，页面头部自己给。
+    # 这两样有时夹在当前说明前面（hsl-seven），所以按行清，不限定在文件头。
+    md = re.sub(r"^>\s*本文件是该滤镜的(?:原始)?说明文档[^\n]*\n"
+                r"(?:>\s*统一构建方式[^\n]*\n)?\s*", "", md, flags=re.M)
+    md = re.sub(r"^#\s+GEGL_GIMP_PLUGIN_[^\n]*\n+", "", md, flags=re.M)
     md = re.sub(r"\A\s*#\s+[^\n]*\n+", "", md)
     md = re.sub(r"\A\s*!\[[^\]]*\]\([^)]*\)\s*\n+", "", md)
 
@@ -462,6 +527,13 @@ def build_article(op, version):
         body_html += ('<details class="en-block"><summary>English version'
                       '<span class="muted">（同一份说明的英文版）</span></summary>%s</details>'
                       % en_html)
+    if legacy_md:
+        legacy_html, _ = convert(legacy_md, image_prefix=img_prefix,
+                                 link_base=REPO + "/blob/main/")
+        body_html += ('<details class="legacy-intro"><summary>原始介绍'
+                      '<span class="muted">（这个滤镜作为独立插件时的旧文档：'
+                      '编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页'
+                      '上方为准）</span></summary>%s</details>' % legacy_html)
     # README 里偶尔直接写 <img src="assets/...">（原始 HTML 直通），一并补前缀
     body_html = body_html.replace('src="assets/', 'src="%s' % img_prefix)
 
@@ -509,14 +581,28 @@ def build_article(op, version):
   </div>
 </div>"""
     else:
+        f = op["module"]
+        lines, btns = [], []
+        if op["has_dll"]:
+            lines.append('Windows 模块 <code>%s.dll</code>，放进 '
+                         '<code>%%LOCALAPPDATA%%\\gegl-0.4\\plug-ins</code>' % f)
+            btns.append('<a class="btn" href="%s/%s.dll">下载 %s.dll'
+                        '<span class="size">Windows x64</span></a>' % (RAW, f, f))
+        if op["has_so"]:
+            lines.append('Linux 模块 <code>%s.so</code>，放进 '
+                         '<code>~/.local/share/gegl-0.4/plug-ins</code>' % f)
+            btns.append('<a class="btn ghost" href="%s/%s.so">下载 %s.so'
+                        '<span class="size">Linux x86_64</span></a>' % (LIN_RAW, f, f))
+        if not lines:
+            lines.append('这一版还没把这个模块打进预编译包，'
+                         '可以 <code>./build.sh</code> 自己编一个')
         dl = """<div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>{file}.dll</code>，放进 <code>%LOCALAPPDATA%\\gegl-0.4\\plug-ins</code> 后重启 GIMP。
-       整包在 <a href="../index.html#download">下载页</a>。</p>
+    <p>%s，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
   </div>
-  <a class="btn" href="{raw}/{file}.dll">下载 {file}.dll</a>
-</div>""".format(file=op["module"], raw=RAW)
+  <div class="btns">%s</div>
+</div>""" % ("；".join(lines), "".join(btns))
 
     warn = ""
     if op.get("deprecated"):

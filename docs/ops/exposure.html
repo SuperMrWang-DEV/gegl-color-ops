@@ -35,9 +35,27 @@
 </section>
 <div class="article-layout">
   <article class="prose">
-<blockquote><p>本文件是该滤镜的原始说明文档（构建命令按旧目录结构书写，已过时）。 统一构建方式请见工程根目录 <code>README.md</code> 与 <code>build.sh</code>。</p></blockquote>
+<h2 id="两条公式按输入精度自动选路">两条公式，按输入精度自动选路</h2>
+<p><code>precision</code> 属性：<code>auto</code>（默认）/ <code>encoded</code>（强制 8 位）/ <code>linear</code>（强制 32 位）。 auto 读输入 pad 的源格式：整数格式（<code>u8</code> / <code>u16</code>）走分支一，浮点格式 （<code>float</code> / <code>half</code> / <code>double</code>）走分支二。16 位图同样是伽马编码，所以和 8 位共用 分支一。</p>
+<h3 id="分支一整数格式srgb-伽马编码值">分支一：整数格式（sRGB 伽马编码值）</h3>
+<pre><code>v1 = min(c · 2^(EV/2.2), 1)
+v2 = clamp(v1^2.2 + offset, 0, 1)^(1/2.2)
+v3 = v2^(1/gamma)</code></pre>
+<p>在伽马域乘 <code>2^(EV/2.2)</code> 与线性光乘 <code>2^EV</code> 完全等价，省掉两次幂运算；<code>offset</code> 是线性光下的量，所以中间解一次 2.2、加完再编码回去。</p>
+<p><strong><code>min(…, 1)</code> 不能省。</strong> 先切高光再叠 offset，负 offset 才能把过曝区拉回来； 漏掉这步，<code>EV&gt;0</code> 配负 offset 会把整片亮区顶成死白。旧版实现漏了这一行。</p>
+<h3 id="分支二浮点格式线性光">分支二：浮点格式（线性光）</h3>
+<pre><code>v1 = c · 2^EV + offset
+v2 = clamp(v1, 0, ∞)^(1/gamma)</code></pre>
+<p>输入已是线性光，没有 2.2 往返；曝光就是一次乘法，offset 直接相加。</p>
+<p><strong>与 Java 版的一处差别</strong>：Java 末尾有 <code>clamp(…, 0, 1)</code>，本算子只钳下限。 32 位图允许 HDR，按 0…1 截断会把高光压平；负值必须钳掉，否则 <code>pow</code> 出 NaN。</p>
+<h2 id="验收">验收</h2>
+<pre><code class="language-bash">python tools/check_exposure.py</code></pre>
+<p>12 组参数（EV −3…+2、offset ±0.15、gamma 0.45…2.2）× 64 级灰阶：</p>
+<ul><li>分支一对拍 Java <code>exposureChannel</code>：最大 <strong>0.00 码</strong></li><li>分支二对拍 Java <code>exposureChannel2</code>：最大 <strong>0.00 码</strong></li><li>整数 PNG 输入下 <code>auto</code> 与 <code>encoded</code> 逐像素完全相同（0 处不同）</li><li>浮点 EXR 输入下 <code>auto</code> 与 <code>linear</code> 完全相同，与 <code>encoded</code> 在 2944 个像素上不同 —— 说明 auto 真的切了分支，而不只是多了个开关</li></ul><details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><blockquote><p>本文件是该滤镜的原始说明文档（构建命令按旧目录结构书写，已过时）。 统一构建方式请见工程根目录 <code>README.md</code> 与 <code>build.sh</code>。</p></blockquote>
 <h1>GEGL_GIMP_PLUGIN_ps-exposure</h1>
-<p><img src="../assets/ops/exposure/pic.png" alt="pic" title="pic"></p><details class="en-block"><summary>English version<span class="muted">（同一份说明的英文版）</span></summary><h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
+<p><img src="../assets/ops/exposure/assets/pic.png" alt="pic" title="pic"></p>
+<h2 id="english">English</h2>
+<h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
 <h4 id="native-linux-system-installed-gimp">Native Linux (System installed GIMP)</h4>
 <pre><code class="language-bash">sh build_linux.sh
 cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
@@ -68,14 +86,19 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>lb-exposure.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code> 后重启 GIMP。
-       整包在 <a href="../index.html#download">下载页</a>。</p>
+    <p>Windows 模块 <code>lb-exposure.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>lb-exposure.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
   </div>
-  <a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lb-exposure.dll">下载 lb-exposure.dll</a>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lb-exposure.dll">下载 lb-exposure.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/lb-exposure.so">下载 lb-exposure.so<span class="size">Linux x86_64</span></a></div>
 </div>
     <nav class="pager"><a class="prev" href="hsi-levels.html"><span>上一个</span>HSI Levels</a><a class="next" href="brightness-contrast.html"><span>下一个</span>Brightness/Contrast</a></nav>
   </article>
-  
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#两条公式按输入精度自动选路">两条公式，按输入精度自动选路</a></li>
+<li class="l3"><a href="#分支一整数格式srgb-伽马编码值">分支一：整数格式（sRGB 伽马编码值）</a></li>
+<li class="l3"><a href="#分支二浮点格式线性光">分支二：浮点格式（线性光）</a></li>
+<li class="l2"><a href="#验收">验收</a></li></ul>
+</aside>
 </div>
 </main>
 <footer class="site-foot">
@@ -88,7 +111,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
     <a href="../guide.html">安装指南</a>
-    <span class="muted">db613c8</span>
+    <span class="muted">3220ff6</span>
   </div>
 </footer>
 </body>

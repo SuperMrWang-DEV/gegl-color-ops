@@ -35,37 +35,6 @@
 </section>
 <div class="article-layout">
   <article class="prose">
-<blockquote><p>本文件是该滤镜的原始说明文档（构建命令按旧目录结构书写，已过时）。 统一构建方式请见工程根目录 <code>README.md</code> 与 <code>build.sh</code>。</p></blockquote>
-<h1>GEGL_GIMP_PLUGIN_color-mask-select</h1>
-<p><img src="../assets/ops/color-mask-select/colormaskselect.png" alt="colormaskselect" title="colormaskselect"></p><details class="en-block"><summary>English version<span class="muted">（同一份说明的英文版）</span></summary><h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
-<h4 id="native-linux-system-installed-gimp">Native Linux (System installed GIMP)</h4>
-<pre><code class="language-bash">sh build_linux.sh
-cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
-<h4 id="flatpak-linux-flatpak-gimp">Flatpak Linux (Flatpak GIMP)</h4>
-<pre><code class="language-bash">sh build_linux.sh
-cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
-<h3 id="2-how-to-open-the-plugin-2-methods">2. How to Open the Plugin (2 Methods)</h3>
-<p>After installation, <strong>restart GIMP</strong> to activate the plugin.</p>
-<h4 id="method-1-menu-bar-recommended">Method 1: Menu Bar (Recommended)</h4>
-<p>Menu path: <code>Colors → SuperMrWang → Mask → Mask by Color</code></p>
-<h4 id="method-2-gegl-operation">Method 2: GEGL Operation</h4>
-<ol><li>Go to <code>Filters → Generic → GEGL Operations</code></li><li>In the search box, enter: <code>lb:color-mask-select</code></li><li>Select it and click <code>OK</code> to apply</li></ol>
-<hr>
-<h2 id="中文">中文</h2>
-<h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
-<h4 id="linux-原生版系统包安装的gimp">Linux 原生版（系统包安装的GIMP）</h4>
-<pre><code class="language-bash">sh build_linux.sh
-cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
-<h4 id="linux-flatpak-容器版应用商店flatpak-gimp">Linux Flatpak 容器版（应用商店Flatpak GIMP）</h4>
-<pre><code class="language-bash">sh build_linux.sh
-cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
-<h3 id="2-插件打开方式两种方法">2. 插件打开方式（两种方法）</h3>
-<p>安装完成后<strong>重启 GIMP</strong>，插件即可使用。</p>
-<h4 id="方法一菜单打开推荐">方法一：菜单打开（推荐）</h4>
-<p>菜单路径：<code>颜色 → SuperMrWang → Mask → Mask by Color</code></p>
-<h4 id="方法二gegl-操作打开">方法二：GEGL 操作打开</h4>
-<ol><li>顶部菜单点击：<code>滤镜 → 通用 → GEGL 操作</code></li><li>在弹出窗口的搜索框输入：<code>lb:color-mask-select</code></li><li>选中后点击「确定」即可使用插件</li></ol>
-<hr>
 <h2 id="行为变更记录2026-11-12-重写">行为变更记录（2026-11-12 重写）</h2>
 <p>旧实现有一个致命 bug：默认 <code>Min Saturation = 0</code> 时饱和度门限退化成 <code>smooth_step(s, 0, 0)</code>，对灰阶像素（s = 0）做 0/0 得 NaN，alpha 落盘即 0—— 所有灰阶在任何模式下都被判成透明，白/黑/中间调三个模式整体报废；<code>fuzziness = 0</code> 时同样 NaN。判定公式（通道差值 + 负起点过渡带）也让「容差」的含义随模式漂移。</p>
 <p>重写后的统一模型：每个模式把像素映射成「不匹配度」 d ∈ [0,1]（0 = 精确匹配）， <code>alpha = 1 - smoothstep(d, w*(1-feather), w)</code>，其中 <strong>w = fuzziness/200</strong> （fz=200 时窗宽到最大不匹配度：互补色相、纯黑↔纯白）：</p>
@@ -101,18 +70,57 @@ invert / colors(highlights|midtones|shadows|outOfGamut|skinTone)</code></pre>
 <h3 id="新增参数">新增参数</h3>
 <div class="table-wrap"><table><thead><tr><th>参数</th><th>默认</th><th>作用</th></tr></thead><tbody><tr><td><code>shadows-limit</code></td><td>64</td><td>阴影上限（低于它全选）</td></tr><tr><td><code>highlights-limit</code></td><td>192</td><td>高光下限（高于它全选）</td></tr><tr><td><code>midtone-low</code> / <code>midtone-high</code></td><td>64 / 192</td><td>中间调上下限</td></tr></tbody></table></div>
 <p>默认值也是实测出来的：PS 不传任何限制时，阴影 50% 交界在 85.8、高光在 167.7， 反解出来正是 limit=64/192 + 容差 20。</p>
-<p><strong>羽化在这三个模式里不参与</strong>——PS 的柔边完全由容差决定，硬塞一个羽化会破坏对拍。 色系预设与自定颜色仍是原来的容差窗模型（那部分没动）。</p></details>
+<p><strong>羽化在这三个模式里不参与</strong>——PS 的柔边完全由容差决定，硬塞一个羽化会破坏对拍。 色系预设与自定颜色仍是原来的容差窗模型（那部分没动）。</p><details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><blockquote><p>本文件是该滤镜的原始说明文档（构建命令按旧目录结构书写，已过时）。 统一构建方式请见工程根目录 <code>README.md</code> 与 <code>build.sh</code>。</p></blockquote>
+<h1>GEGL_GIMP_PLUGIN_color-mask-select</h1>
+<p><img src="../assets/ops/color-mask-select/assets/colormaskselect.png" alt="colormaskselect" title="colormaskselect"></p>
+<h2 id="english">English</h2>
+<h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
+<h4 id="native-linux-system-installed-gimp">Native Linux (System installed GIMP)</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
+<h4 id="flatpak-linux-flatpak-gimp">Flatpak Linux (Flatpak GIMP)</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
+<h3 id="2-how-to-open-the-plugin-2-methods">2. How to Open the Plugin (2 Methods)</h3>
+<p>After installation, <strong>restart GIMP</strong> to activate the plugin.</p>
+<h4 id="method-1-menu-bar-recommended">Method 1: Menu Bar (Recommended)</h4>
+<p>Menu path: <code>Colors → SuperMrWang → Mask → Mask by Color</code></p>
+<h4 id="method-2-gegl-operation">Method 2: GEGL Operation</h4>
+<ol><li>Go to <code>Filters → Generic → GEGL Operations</code></li><li>In the search box, enter: <code>lb:color-mask-select</code></li><li>Select it and click <code>OK</code> to apply</li></ol>
+<hr>
+<h2 id="中文">中文</h2>
+<h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
+<h4 id="linux-原生版系统包安装的gimp">Linux 原生版（系统包安装的GIMP）</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
+<h4 id="linux-flatpak-容器版应用商店flatpak-gimp">Linux Flatpak 容器版（应用商店Flatpak GIMP）</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
+<h3 id="2-插件打开方式两种方法">2. 插件打开方式（两种方法）</h3>
+<p>安装完成后<strong>重启 GIMP</strong>，插件即可使用。</p>
+<h4 id="方法一菜单打开推荐">方法一：菜单打开（推荐）</h4>
+<p>菜单路径：<code>颜色 → SuperMrWang → Mask → Mask by Color</code></p>
+<h4 id="方法二gegl-操作打开">方法二：GEGL 操作打开</h4>
+<ol><li>顶部菜单点击：<code>滤镜 → 通用 → GEGL 操作</code></li><li>在弹出窗口的搜索框输入：<code>lb:color-mask-select</code></li><li>选中后点击「确定」即可使用插件</li></ol></details>
     <div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>color-mask-select.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code> 后重启 GIMP。
-       整包在 <a href="../index.html#download">下载页</a>。</p>
+    <p>Windows 模块 <code>color-mask-select.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>color-mask-select.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
   </div>
-  <a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/color-mask-select.dll">下载 color-mask-select.dll</a>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/color-mask-select.dll">下载 color-mask-select.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/color-mask-select.so">下载 color-mask-select.so<span class="size">Linux x86_64</span></a></div>
 </div>
     <nav class="pager"><a class="prev" href="gray-to-component.html"><span>上一个</span>Gray To Component</a><a class="next" href="channel-range-to-alpha.html"><span>下一个</span>Range → Alpha</a></nav>
   </article>
-  
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#行为变更记录2026-11-12-重写">行为变更记录（2026-11-12 重写）</a></li>
+<li class="l2"><a href="#高光-阴影-中间调改成-ps-实测模型2026-11-12-二次修订">高光 / 阴影 / 中间调改成 PS 实测模型（2026-11-12 二次修订）</a></li>
+<li class="l3"><a href="#先解决ps-色彩范围没法脚本化的误会">先解决「PS 色彩范围没法脚本化」的误会</a></li>
+<li class="l3"><a href="#参数键名别猜从二进制里挖">参数键名：别猜，从二进制里挖</a></li>
+<li class="l3"><a href="#实测出来的模型">实测出来的模型</a></li>
+<li class="l3"><a href="#精度对-ps-2025-实测0255-码">精度（对 PS 2025 实测，0–255 码）</a></li>
+<li class="l3"><a href="#新增参数">新增参数</a></li></ul>
+</aside>
 </div>
 </main>
 <footer class="site-foot">
@@ -125,7 +133,7 @@ invert / colors(highlights|midtones|shadows|outOfGamut|skinTone)</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
     <a href="../guide.html">安装指南</a>
-    <span class="muted">db613c8</span>
+    <span class="muted">3220ff6</span>
   </div>
 </footer>
 </body>

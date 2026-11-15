@@ -35,7 +35,6 @@
 </section>
 <div class="article-layout">
   <article class="prose">
-<blockquote><p>本文件是该滤镜的原始说明文档（构建命令按旧目录结构书写，已过时）。 统一构建方式请见工程根目录 <code>README.md</code> 与 <code>build.sh</code>。</p></blockquote>
 <h2 id="这个算子就是-ps-的照片滤镜-this-is-photoshops-photo-filter">这个算子就是 PS 的「照片滤镜」/ This is Photoshop's Photo Filter</h2>
 <p>PS 的照片滤镜（<code>滤镜 → 调整 → 照片滤镜</code>）内部等价于「纯色填充 + 正片叠底 + 密度」，本算子按实测把整条链路复刻出来。参数一一对应：</p>
 <div class="table-wrap"><table><thead><tr><th>PS 照片滤镜</th><th><code>lb:xyz-multiply</code></th><th>说明</th></tr></thead><tbody><tr><td>滤镜（Filter）颜色</td><td><code>overlay_color</code></td><td>PS 的 20 多个预设只是快捷方式，本质仍是颜色</td></tr><tr><td>密度（Density）0–100%</td><td><code>opacity</code> 0–1</td><td>除以 100</td></tr><tr><td>保留明度（Preserve Luminosity）</td><td><code>preserve_luminosity</code></td><td><strong>默认开</strong>，与 PS 出厂设置一致</td></tr><tr><td>—（PS 没有）</td><td><code>white_mode</code></td><td>参照白点，<strong>默认 D50</strong>（PS 的 Lab 白点）</td></tr></tbody></table></div>
@@ -53,9 +52,10 @@
 # PS 里跑 photo-filter-cal/batch_pf_color.jsx # 6 档彩色
 python photo-filter-cal/model_pf.py         # 模型 vs PS
 python tools/check_photo_filter.py          # 算子 vs PS（端到端）
-python tools/check_xyz_multiply.py --all    # 算子 vs 独立参考实现</code></pre>
-<h1>GEGL_GIMP_PLUGIN_xyzmultiply</h1>
-<p><img src="../assets/ops/xyz-multiply/xyzmultiply.png" alt="xyzmultiply" title="xyzmultiply"></p><details class="en-block"><summary>English version<span class="muted">（同一份说明的英文版）</span></summary><h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
+python tools/check_xyz_multiply.py --all    # 算子 vs 独立参考实现</code></pre><details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><h1>GEGL_GIMP_PLUGIN_xyzmultiply</h1>
+<p><img src="../assets/ops/xyz-multiply/assets/xyzmultiply.png" alt="xyzmultiply" title="xyzmultiply"></p>
+<h2 id="english">English</h2>
+<h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
 <h4 id="native-linux-system-installed-gimp">Native Linux (System installed GIMP)</h4>
 <pre><code class="language-bash">sh build_linux.sh
 cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
@@ -86,10 +86,9 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>xyz-multiply.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code> 后重启 GIMP。
-       整包在 <a href="../index.html#download">下载页</a>。</p>
+    <p>Windows 模块 <code>xyz-multiply.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>xyz-multiply.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
   </div>
-  <a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/xyz-multiply.dll">下载 xyz-multiply.dll</a>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/xyz-multiply.dll">下载 xyz-multiply.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/xyz-multiply.so">下载 xyz-multiply.so<span class="size">Linux x86_64</span></a></div>
 </div>
     <nav class="pager"><a class="prev" href="channel-mixer-plus.html"><span>上一个</span>Channel Mixer Plus</a><a class="next" href="color-lookup.html"><span>下一个</span>Color Lookup</a></nav>
   </article>
@@ -111,7 +110,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
     <a href="../guide.html">安装指南</a>
-    <span class="muted">db613c8</span>
+    <span class="muted">3220ff6</span>
   </div>
 </footer>
 </body>

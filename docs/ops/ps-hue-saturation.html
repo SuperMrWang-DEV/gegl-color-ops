@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hue/Saturation (PS) · gegl-color-ops</title>
+<meta name="description" content="按给定的 Photoshop 色相/饱和度公式工作：全局色相旋转、饱和度相对缩放、明度向白/黑混合">
+<meta property="og:title" content="Hue/Saturation (PS) · gegl-color-ops">
+<meta property="og:description" content="按给定的 Photoshop 色相/饱和度公式工作：全局色相旋转、饱和度相对缩放、明度向白/黑混合">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../index.html#ops">算子</a>
+    <a href="../guide.html">安装</a>
+    <a href="../index.html#download">下载</a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+</header>
+<main id="main">
+<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
+     色彩</p>
+  <h1>Hue/Saturation (PS)</h1>
+  <div class="meta">
+    <code>lb:ps-hue-saturation</code>
+    <span class="tag t-color">色彩</span>
+    <span>逐像素</span>
+  </div>
+  <p class="lede">按给定的 Photoshop 色相/饱和度公式工作：全局色相旋转、饱和度相对缩放、明度向白/黑混合</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<p>按给定的 Photoshop 色相/饱和度公式实现的三滑杆版本：全局色相旋转、饱和度相对 缩放、明度向白/黑混合。不含「着色」复选框，也没有分色相区间。</p>
+<ul><li>GEGL id：<code>lb:ps-hue-saturation</code></li><li>菜单：<code>Colors → SuperMrWang → Color → Hue/Saturation (PS)</code></li><li>类型：<code>GeglOperationPointFilter</code>（逐像素，无邻域）</li><li>参数：<code>hue</code>（−180…180°）、<code>saturation</code>（−100…100）、<code>lightness</code>（−100…100）</li></ul>
+<p>规范实现是 <code>tools/ref_ps_hue_sat.py</code>（原代码的逐字转录 + 浮点对照）， 验收脚本是 <code>tools/check_ps_hue_saturation.py</code>。</p>
+<h2 id="算法">算法</h2>
+<p>在 <strong>sRGB 编码值</strong>（<code>R~G~B~A float</code>，感知域而非线性光）上，四步：</p>
+<pre><code>t = lightness / 100
+r,g,b ← c + t·(1−c)   (t &gt; 0)      # 与中性灰做滤色
+        c·(1+t)       (t &lt; 0)      # 与中性灰做正片叠底
+h,s,l ← RGB2HSL(r,g,b)
+h ← (h + hue) mod 360
+x = saturation / 100
+s ← s/(1−x)  (x &gt; 0)                # 双曲放大
+    s·(1+x)  (x &lt; 0)                # 线性收缩
+s ← clamp(s, 0, 1)
+out = HSL2RGB(h, s, l)</code></pre>
+<p>顺序有意义：明度先落进 RGB，再把结果转 HSL 做色相与饱和度 —— 所以饱和度作用在 「提亮/压暗之后」的 S 上，而不是原图的 S。</p>
+<h2 id="与原代码的两处差别">与原代码的两处差别</h2>
+<p>两处都不是算法语义，是实现缺陷：</p>
+<div class="table-wrap"><table><thead><tr><th>差别</th><th>原代码</th><th>本算子</th><th>理由</th></tr></thead><tbody><tr><td>精度</td><td>h 取整到 1°、s/l 取整到 1%，输出 <code>int()</code> 截断</td><td>全程浮点</td><td>这层量化平均偏暗 <strong>1.73 码</strong>、最大 <strong>9 码</strong>（<code>tools/ref_ps_hue_sat.py</code> 的 breakdown）</td></tr><tr><td><code>saturation=+100</code></td><td><code>s/(1−1)</code> → <code>ZeroDivisionError</code></td><td>返回满饱和（<code>s&gt;0</code> 时）</td><td><code>x→1⁻</code> 时 <code>s/(1−x)→+∞</code>，钳位后就是 1，取左极限</td></tr></tbody></table></div>
+<h2 id="验收">验收</h2>
+<pre><code class="language-bash">python tools/check_ps_hue_saturation.py     # 27 组参数 × 4096 色
+python tools/ref_ps_hue_sat.py              # 量化误差拆解
+python tools/analyze_ps_hue_sat.py          # 三条曲线的行为体检</code></pre>
+<p>对拍结果：最大偏差 <strong>0.002 码</strong>（16 位 1 LSB = 0.0039 码），即与公式逐码一致； 脚本同时打印「与输入的平均差」，防止读到原图的假通过。</p>
+<h2 id="公式的合理性">公式的合理性</h2>
+<p><strong>成立的地方</strong></p>
+<ol><li><strong>明度滑杆不碰色相。</strong> 两个分支都是均匀仿射 <code>c ↦ k·c + b</code>，色相只由通道差值之 比决定，实测 Δh 恒为 0。同时它是单调的、端点精确（+100 全白、−100 全黑）、 不溢出 —— 比「直接改 HSL 的 L」在亮端会硬顶成白色要稳。</li><li><strong>端点干净。</strong> −100 精确到中性灰，+100 精确到满饱和，两个方向都收敛到有意义的 颜色，没有反相或跳变。</li><li><strong>顺序符合直觉。</strong> 先定调子（明度），再定色彩强度（饱和度），且饱和度看到的是 提亮后的 S，避免了「先加饱和再提亮导致过曝」的常见问题。</li><li><strong>无越界路径。</strong> HSL→RGB 天然保色域，S 钳到 [0,1]，任何参数组合都不会输出非法值。</li></ol>
+<p><strong>不成立的地方</strong></p>
+<ol><li><strong>正支刻度与标签不符。</strong> 正向乘数是 <code>1/(1−x)</code>，不是 <code>1+x</code>：<code>+25</code> 实际是 ×1.33 （+33%），<code>+50</code> 是 ×2（+100%），<code>+90</code> 是 ×10。负支才是名副其实的百分比 （<code>−50</code> 就是 ×0.5）。同一根滑杆左右两侧的量纲因此不对称。</li><li><strong>正支有「悬崖」，会丢层次。</strong> <code>s ≥ 1−x</code> 的像素一律钳到 100：<code>+50</code> 时原 S≥50% 的一半像素塌成同一个值，<code>+100</code> 时所有彩色像素统一满饱和，等价于把饱和度二值化。 表现为平坦色块与色带。</li><li><strong>明度对 S 的影响强烈不对称。</strong> <code>+60</code> 会把 <code>(100,30,10)</code> 的 S 从 82% 压到 23%， 而 <code>−60</code> 一字不动（82%）。用户预期「只改明度」，实际提亮会明显掉饱和、发灰。</li><li><strong>HSL 的 S 不是感知量。</strong> 同一 S 在黄色与蓝色上的视觉强度差很多，所以同一档位 在不同色相上表现不一致。这是 HSL 模型的固有问题，本公式无法规避。</li><li><strong>量化损失（原代码）。</strong> 1% 的 s/l 台阶单这一项就有最大 8 码、平均 −1.25 码的 偏差，且系统性偏暗 —— 这是 8 位整数实现的代价，不是算法的一部分。</li></ol>
+    <div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>ps-hue-saturation.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/ps-hue-saturation.dll">下载 ps-hue-saturation.dll<span class="size">Windows x64</span></a></div>
+</div>
+    <nav class="pager"><a class="prev" href="hue-saturation.html"><span>上一个</span>Hue/Saturation</a><a class="next" href="hsl-seven.html"><span>下一个</span>HSL 7 Bands</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#算法">算法</a></li>
+<li class="l2"><a href="#与原代码的两处差别">与原代码的两处差别</a></li>
+<li class="l2"><a href="#验收">验收</a></li>
+<li class="l2"><a href="#公式的合理性">公式的合理性</a></li></ul>
+</aside>
+</div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
+    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
+       与 Adobe、GIMP 官方均无隶属关系。</p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
+    <a href="../guide.html">安装指南</a>
+    <span class="muted">3220ff6</span>
+  </div>
+</footer>
+</body>
+</html>

@@ -397,6 +397,8 @@ main::before {
 }
 .op-dl h3 { font-size: 15px; margin: 0 0 4px; }
 .op-dl p { margin: 0; font-size: 14px; color: var(--muted); }
+/* 两个平台的下载按钮并排，窄屏自动换行 */
+.op-dl .btns { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 
 /* 已废弃算子页顶部的存档提示 */
 .dep-note {
