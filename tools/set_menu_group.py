@@ -25,7 +25,8 @@ BASE = "<Image>/Colors/SuperMrWang"
 
 # 按「找算子时的念头」分四组；组名会出现在 GIMP 的子菜单里
 GROUPS = {
-    "Tone":  ["levels", "lab-levels", "exposure", "brightness-contrast",
+    "Tone":  ["levels", "lab-levels", "hsl-levels", "hsb-levels", "lch-levels",
+              "cmyk-levels", "hsi-levels", "exposure", "brightness-contrast",
               "shadows-highlights", "rgb-domain-grayscale"],
     "Color": ["hue-saturation", "hsl-seven", "color-balance", "color-grading",
               "color-temperature-tint", "vibrance", "vibrance-hyper",

@@ -5,7 +5,7 @@
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
 [![Operations](https://img.shields.io/badge/operations-22-brightgreen)](#算子清单)
 
-一组逆向实现的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **24 个**，统一 `lb:` 命名空间，
+一组逆向实现的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **29 个**，统一 `lb:` 命名空间，
 在 GIMP 里位于 **图像 → 颜色 → SuperMrWang**。
 
 每个算子都是单文件 C（含 `#ifdef GEGL_PROPERTIES` 段），直接编译成 GEGL 插件模块，
@@ -62,7 +62,12 @@ gegl-color-ops/
 | `lb:match-color` | Match Color | Match Color | Color | Composer | PS 匹配颜色：Lab 统计迁移（Reinhard），亮度/颜色强度/渐隐/中和 |
 | `lb:colorize-hsl` | Colorize | Colorize | Color | Point | PS 色相/饱和度「着色」实测复刻：扔掉原有 H/S，只留输入 L 的单色调，残差 0.03 码 |
 | `lb:color-mask-select` | Mask by Color | Color Mask Select | Mask | Point | PS 色彩范围：高光/阴影/中间调按「阈值 + 容差」实测复刻（平均 2.1 码），色系/自定色走容差窗 |
-| `lb:lab-levels` | LAB Levels | LAB Levels | Tone | Filter | LAB 三通道各自黑白场 + 伽马 |
+| `lb:lab-levels` | LAB Levels | LAB Levels | Tone | Filter | LAB 三通道各自黑白场 + 伽马，a/b 绕中性轴分段 |
+| `lb:hsl-levels` | HSL Levels | HSL Levels | Tone | Filter | HSL 三分量色阶，色相按弧环形重映射 |
+| `lb:hsb-levels` | HSB Levels | HSB Levels | Tone | Filter | HSB（HSV）三分量色阶，S/B 是 HSV 语义 |
+| `lb:lch-levels` | LCH Levels | LCH Levels | Tone | Filter | CIE LCh 的 L/C/H 色阶，调色度不串色相 |
+| `lb:cmyk-levels` | CMYK Levels | CMYK Levels | Tone | Filter | CMYK 四版墨量色阶（babl 分色，非 ICC） |
+| `lb:hsi-levels` | HSI Levels | HSI Levels | Tone | Filter | HSI 三分量色阶，I 取三通道均值 |
 | `lb:levels` | Levels | Levels | Tone | Point | PS 色阶：复合 + R/G/B 四组输入黑/灰/白场与输出黑白场，0–255 刻度；gamma 方向经公开实测点验证（154@0.46→84、200@1.646→220） |
 | `lb:exposure` | Exposure EV | Exposure EV | Tone | Filter | PS 曝光：EV、偏移、伽马 |
 | `lb:rgb-domain-grayscale` | Black & White | Black & White | Tone | Point | PS 黑白：六色权重转灰 + 可选着色 |
@@ -240,7 +245,7 @@ python tools/i18n_blocks.py check                    # 与 git HEAD 比对代码
 
 ```bash
 cd gegl-color-ops
-./build.sh                 # 产物在 build/ 下，24 个 .dll/.so/.dylib
+./build.sh                 # 产物在 build/ 下，29 个 .dll/.so/.dylib
 ```
 
 脚本会自动探测 `gegl-0.4.pc`（先试 `D:/fastsoftware/GIMP 3/lib/pkgconfig` 等常见位置），也可手动指定：
@@ -315,13 +320,13 @@ touch plugin/blend/.disabled        # 停用 Python 插件
 
 ## 在 GIMP 菜单位置
 
-24 个算子全部注册在同一个菜单目录下：
+29 个算子全部注册在同一个菜单目录下：
 
 ```
 图像 → 颜色 → SuperMrWang → Tone / Color / Blend / Mask → <算子>
 ```
 
-24 个算子按「找算子时的念头」分四组，避免一个子菜单里平铺二十多项：
+29 个算子按「找算子时的念头」分四组，避免一个子菜单里平铺二十多项：
 
 | 组 | 想干什么 | 放什么 |
 |---|---|---|
@@ -337,7 +342,7 @@ touch plugin/blend/.disabled        # 停用 Python 插件
 "gimp:menu-label", _("界面里显示的名字"),
 ```
 
-**别手改 24 个文件**。分组表在 `tools/set_menu_group.py` 里，改完跑一遍即可
+**别手改 29 个文件**。分组表在 `tools/set_menu_group.py` 里，改完跑一遍即可
 （按字节替换，仓库里 LF / CRLF 混用也不会把行尾搞乱）：
 
 ```bash
