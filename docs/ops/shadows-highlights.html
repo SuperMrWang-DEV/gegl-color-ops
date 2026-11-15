@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="Shadows/Highlights · gegl-color-ops" data-title-en="Shadows/Highlights · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,32 +9,46 @@
 <meta property="og:description" content="等价 PS「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
-<a class="skip" href="#main">跳到正文</a>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
   <nav>
-    <a href="../index.html#ops">算子</a>
-    <a href="../guide.html">安装</a>
-    <a href="../index.html#download">下载</a>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
-     影调与色阶</p>
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 影调与色阶</p>
   <h1>Shadows/Highlights</h1>
   <div class="meta">
     <code>lb:shadows-highlights</code>
     <span class="tag t-tone">影调与色阶</span>
-    <span>整块区域</span> <span class="badge warn">不推荐</span>
+    <span>整块区域</span> <span class="badge warn"><span class="l-zh">不推荐</span><span class="l-en">Not recommended</span></span>
   </div>
   <p class="slow-note"><b>不推荐日常使用</b>　邻域双边加 4 次高斯，半径 30 时每像素约 1.4 µs：2048×1536 默认参数净耗时 0.7 s、含解码 2.1 s，在 GIMP 里拖一次滑杆就重算一遍整图。整体明暗改用 <a href="levels.html">色阶</a> / <a href="lab-levels.html">LAB 色阶</a>；确实需要「周围亮就少提」的局部行为再回来用它，半径压到 10–15 会快很多。详见 <code>ops/shadows-highlights/.discouraged</code>。</p>
   <p class="lede">等价 PS「图像 → 调整 → 阴影/高光」：按<strong>邻域</strong>亮度分别提亮阴影、压暗高光，而不是只看像素值本身。</p>
-</section>
-<div class="article-layout">
+</section><div class="article-layout">
   <article class="prose">
 <blockquote><p><strong>不推荐日常使用（2026-11-15，性能原因）</strong>　算子仍然可用、数值也仍然准确， 但它是空间域算法：半径 30 时每像素约 1.4 µs，2048×1536 默认参数净耗时 0.7 s （含解码 2.1 s），在 GIMP 里拖一次滑杆就重算整图。整体明暗请用 <code>lb:levels</code> / <code>lb:lab-levels</code> / <code>lb:exposure</code>；确实需要「周围亮就少提」的局部行为再用它， 半径压到 10–15 会快很多。标记文件：<code>ops/shadows-highlights/.discouraged</code> （只影响文档与站点展示，<strong>不影响编译和发布</strong>）。</p></blockquote>
 <p>按黑盒实测逆向出来的 Photoshop「图像 → 调整 → 阴影/高光」。和另外十几个算子的最大 区别是<strong>它看邻域</strong>：同样一个 128 的像素，周围暗就多提、周围亮就少提，所以不可能简化 成一条 LUT，必须做空间域滤波。</p>
@@ -77,15 +91,13 @@ executeAction(s2t("adaptCorrect"), d, DialogModes.NO);</code></pre>
 <p>卡顿的三个根因，全部修掉：</p>
 <ol><li><strong>GEGL 按列并行，margin 随调用次数线性重复</strong>。3M 像素被拆成 12 根 171 宽的 竖条同时跑，每根竖条各带完整的水平 margin——r30 重复 2.4×，r300（margin 1277 px）重复 <strong>17×</strong>。修复：整个 extent 的邻域亮度<strong>只算一次</strong>，缓存成 8 位层级平面（遮罩查表用 <code>lv = lround(clamp(nb)·255)</code>，8 位量化无损）， 各列直接采样。缓存在参数变化（prepare 比较）、输入内容变化（24 行整行 哈希指纹，能察觉下层涂改）、几何变化三种情况下失效。</li><li><strong>黑/白修剪的预扫把整条管线跑两遍</strong>。默认 0.01/0.01 就触发。缓存路径下 预扫改用现成的层级平面，只剩轻量逐像素。</li><li><strong>逐行 <code>gegl_buffer_set</code></strong>。每条 192 行调 192 次写；改为整条/整 ROI 一次写。</li></ol>
 <p>实测（2048×1536，含 PNG 解码 ~1.3s）：默认参数 3.7s → 2.1s；r300 9.8s → 2.1s （净耗时 7.9s → 0.7s，<strong>~11×</strong>）。数值与旧实现<strong>逐位一致</strong>（4 组极端参数下 缓存路径 = 回退路径 = 旧实现三方对拍）。</p>
-<p>超大图或 margin 超预算（<code>SH_CACHE_MAXPX</code> 20MP / <code>SH_CACHE_BUDGET</code>）自动回落 到按条带就地计算；<code>SH_NO_CACHE=1</code> 环境变量可强制走回退路径（调试用）。 条带高度按 margin 自适应（<code>4×margin</code>，192–1024 行），亮度取数分块 （≈32MB/块）控峰值内存。</p>
-    <div class="op-dl">
+<p>超大图或 margin 超预算（<code>SH_CACHE_MAXPX</code> 20MP / <code>SH_CACHE_BUDGET</code>）自动回落 到按条带就地计算；<code>SH_NO_CACHE=1</code> 环境变量可强制走回退路径（调试用）。 条带高度按 margin 自适应（<code>4×margin</code>，192–1024 行），亮度取数分块 （≈32MB/块）控峰值内存。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>shadows-highlights.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>shadows-highlights.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/shadows-highlights.dll">下载 shadows-highlights.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/shadows-highlights.so">下载 shadows-highlights.so<span class="size">Linux x86_64</span></a></div>
-</div>
-    <nav class="pager"><a class="prev" href="brightness-contrast.html"><span>上一个</span>Brightness/Contrast</a><a class="next" href="rgb-domain-grayscale.html"><span>下一个</span>Black &amp; White</a></nav>
+</div><nav class="pager"><a class="prev" href="brightness-contrast.html"><span>上一个</span>Brightness/Contrast</a><a class="next" href="rgb-domain-grayscale.html"><span>下一个</span>Black &amp; White</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
@@ -98,20 +110,126 @@ executeAction(s2t("adaptCorrect"), d, DialogModes.NO);</code></pre>
 <li class="l2"><a href="#复现标定">复现标定</a></li>
 <li class="l2"><a href="#性能2026-11-12-重构">性能（2026-11-12 重构）</a></li></ul>
 </aside>
-</div>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Tone</p>
+  <h1>Shadows/Highlights</h1>
+  <div class="meta">
+    <code>lb:shadows-highlights</code>
+    <span class="tag t-tone">Tone</span>
+    <span>area</span> <span class="badge warn"><span class="l-zh">不推荐</span><span class="l-en">Not recommended</span></span>
+  </div>
+  <p class="slow-note"><b>Not recommended for daily use</b> — bilateral over four Gaussian passes costs about 1.4 µs per pixel at radius 30: 0.7 s for a 2048×1536 image at defaults, 2.1 s including decode, and every slider drag in GIMP recomputes the whole image. For overall brightness use <a href="levels.html">Levels</a> / <a href="lab-levels.html">LAB Levels</a>; come back here only when you need the local “lift less where the surroundings are bright” behaviour, and drop the radius to 10–15 for a big speedup. See <code>ops/shadows-highlights/.discouraged</code>.</p>
+  <p class="lede">Photoshop's Shadows/Highlights — an edge-aware neighbourhood algorithm, so it cannot be a LUT. Accurate, but it is a spatial filter and costs like one.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<blockquote><p><strong>Not recommended for daily use (2026-11-15, performance).</strong> The operator still works and is still numerically accurate, but it is a spatial algorithm: about 1.4 µs per pixel at radius 30, so a 2048×1536 image takes 0.7 s of compute (2.1 s including decode), and every slider drag in GIMP recomputes the whole image. For overall brightness use <code>lb:levels</code> / <code>lb:lab-levels</code> / <code>lb:exposure</code>; come back here only when you need the local "lift less where the surroundings are bright" behaviour, and drop the radius to 10–15 for a big speedup. Marker: <code>ops/shadows-highlights/.discouraged</code> (documentation and site display only; <strong>it does not affect building or publishing</strong>).</p></blockquote>
+<p>Photoshop's <code>Image → Adjustments → Shadows/Highlights</code>, reverse-engineered as a black box. What sets it apart from the other operators is that <strong>it looks at the neighbourhood</strong>: the same 128 pixel is lifted more when its surroundings are dark and less when they are bright, so it cannot collapse into a LUT and needs a spatial filter.</p>
+<ul><li>GEGL id: <code>lb:shadows-highlights</code></li><li>Menu: <code>Colors → SuperMrWang → Tone → Shadows/Highlights</code></li><li>Type: <code>GeglOperationFilter</code> (spatial, processed in strips of 192 rows)</li><li>Parameters (defaults copied from PS): shadows <code>amount 35 / width 50 / radius 30</code>, highlights <code>0 / 50 / 30</code>, <code>color-correction 20</code>, <code>midtone-contrast 0</code>, <code>black-clip 0.01</code>, <code>white-clip 0.01</code></li></ul>
+<h2 id="one-trap-first-pss-scripting-entry-is-not-called-shadowhighlight">One trap first: PS's scripting entry is not called Shadow/Highlight</h2>
+<p>To use PS as an oracle you first have to be able to invoke it from a script. <code>Shdw</code>, <code>ShHl</code>, <code>shadowsHighlights</code>, <code>shadowHighlight</code>, <code>adaptCorrectTones</code> … 13 charIDs and 8 stringIDs, all reporting "command &lt;unknown&gt; is not currently available", and the string <code>shadowsHighlights</code> does not appear anywhere in <code>Photoshop.exe</code> or <code>Required/*.dll</code>.</p>
+<p>The real entry is <strong><code>adaptCorrect</code></strong>, class <code>adaptCorrectTones</code>:</p>
+<pre><code class="language-javascript">var d = new ActionDescriptor();
+d.putObject(s2t("shadowMode"),    s2t("adaptCorrectTones"), tones(sh));
+d.putObject(s2t("highlightMode"), s2t("adaptCorrectTones"), tones(hi));
+d.putDouble (s2t("blackClip"), 0.01);
+d.putDouble (s2t("whiteClip"), 0.01);
+d.putInteger(s2t("colorCorrection"), 20);
+executeAction(s2t("adaptCorrect"), d, DialogModes.NO);</code></pre>
+<p><code>shadowMode</code>/<code>highlightMode</code> then hold <code>amount</code>/<code>width</code>/<code>radius</code> (<code>#Prc</code>), everything else being lowercase stringIDs. The lead came from a Clean SL script in Adobe's community and was far faster than guessing IDs.</p>
+<h2 id="structure">Structure</h2>
+<p>Six stages, all numbers from black-box fitting against PS 25.4 (PhotoCraft uses the same structure, MIT):</p>
+<ol><li><strong>Luminance</strong> <code>lum = (max(R,G,B) + Rec.601 luma) / 2</code>, applied to <strong>sRGB encoded values</strong> (not linear light). That is why lifting the shadows makes colours look washed out — it moves display values.</li><li><strong>Neighbourhood luminance</strong>: an edge-aware bilateral in Durand–Dorsey's piecewise linear form. <code>lum</code> is first blurred lightly (σ=1.3559) into a <code>guide</code> (noise suppression only; it does not set the scale); pixels are quantised into <strong>17 levels</strong> by <code>guide</code>, each level averaged separately with weight <code>w = 1 − |lum − g|/1.0152</code>; sums are accumulated on a grid of <code>d = ⌊σ/4⌋</code> and blurred with a Gaussian of <strong>σ = 1.1424·radius</strong>; finally the fractional level interpolates between neighbouring levels and is bilinearly upsampled to full resolution. The effect is "average only with neighbours of similar brightness", so the two sides of an edge stay separate.</li><li><strong>Tonal mask</strong>: <code>nb</code> indexes a 256-entry table <code>1 − BetaCDF(level)</code>. The shape interpolates between Beta(a,b) by tonal width: 0 → Beta(1.95, 23) (only the darkest sliver), ≥95 → <code>1 − L</code> (everything). Highlights mirror it with <code>255 − nb</code>.</li><li><strong>Curve</strong>: a self-screen <code>1 − (1−v)^q</code>, with q ∈ {1,2,4,8} blended by amount (<code>u = (amount/100)^0.6216</code>; <code>strength = u/0.3</code> for u ≤ 0.3, otherwise <code>(1+20u)/7</code>, i.e. amount 15≈1, 50≈2, 100≈3). Shadows lift each channel by <code>mask × (curve − v)</code>; highlights push back with the mirror.</li><li><strong>Colour</strong>: keep only the new luminance <code>y2</code>; the chroma difference comes from the <strong>original</strong> pixel <code>q</code> minus its own luminance <code>y1</code>, scaled by <code>exp(k·|ΔY|/maxY)</code> (for negative values <code>1 + k·|ΔY|/maxY</code>) and added back, then everything is brought into gamut.</li><li><strong>Midtone contrast</strong>: a global S-curve on luminance, <code>y + k(y−0.5)(4y(1−y))^p</code>, pivoting exactly at 0.5; <strong>black/white clip</strong> is a <strong>stretch</strong> of the histogram ends.</li></ol>
+<h2 id="two-counter-intuitive-measurements">Two counter-intuitive measurements</h2>
+<p><strong>The default 0.01% clip really does change the picture.</strong> The first probe used 16 grey bands (16…240); the outer two were always pulled to 0/255, which looked like crosstalk. In fact <code>blackClip</code>/<code>whiteClip</code> percentages are <strong>relative to the histogram</strong>: the probe had no 0 or 255, so 0.01% treated the darkest band as the black point. A 129-band ramp that includes 0 and 255 removed the artefact; the control pair <code>a100/clip0</code> vs <code>a100/clip01</code> shows black patch 0 vs 7 and background 91 vs 87, plainly.</p>
+<p><strong>Radius does not change the blur width, but the fraction of bright pixels in the neighbourhood.</strong> On a step edge (12 on the left, 240 on the right), raising the radius from 0 to 100 moves the plateau far from the edge monotonically from 73 to 65, while the pixel right at the bright edge stays at 48–50. The edge-aware weight suppresses bright neighbours to about 12%, so the transition is only 1–2 pixels wide; a larger radius just pulls more bright pixels into the window and slowly raises <code>nb</code>. Tuning σ by pure Gaussian intuition does not work.</p>
+<h2 id="performance">Performance</h2>
+<p>The flat-field part is a 256-entry lookup; the cost is all in the neighbourhood: 17 levels × 4 Gaussian passes. 192-row strips bound the memory: <code>ramp-2.png</code> (25800×160, 129 bands) takes 3.2 s and <code>grid-b016.png</code> (2560×2560) 4.7 s, both wall-clock including PNG encode/decode. About 1.4 µs per pixel at radius 30.</p>
+<h2 id="acceptance">Acceptance</h2>
+<p><code>python tools/check_shadows_highlights.py</code> (<code>--fast</code> skips the PS comparison):</p>
+<p><strong>1. Independent Python reference vs the operator</strong> (flat field, nb = itself). The reference is written straight from the six stages above, sharing only the fitted coefficient tables, not the C code:</p>
+<div class="table-wrap"><table><thead><tr><th>Check</th><th>Sets</th><th>Max deviation</th></tr></thead><tbody><tr><td>greyscale flat-field LUT</td><td>6 sets × 29 steps</td><td><strong>0.0 code</strong> (exact per point)</td></tr><tr><td>colour flat field (color-correction +100…−100)</td><td>4 sets × 6 colours</td><td><strong>0.0 code</strong></td></tr><tr><td>amount=0 identity / flat field independent of radius</td><td>2 checks</td><td><strong>0.0 code</strong></td></tr><tr><td>midtone pivot at 128, default clip keeps 0 and 255</td><td>2 checks</td><td>pass</td></tr></tbody></table></div>
+<p>Writing that script caught a real bug: with both clips at 0, <code>clip_lo/clip_hi</code> were uninitialised and <code>(y−0)/(0−0)</code> pushed the whole image to pure white. <code>prepare()</code> now resets them to 0/1 and the division has a guard.</p>
+<p><strong>2. Against PS itself</strong> (<code>shadows-highlights-cal/</code>):</p>
+<div class="table-wrap"><table><thead><tr><th>Dataset</th><th>Size</th><th>Median</th><th>Max</th></tr></thead><tbody><tr><td>flat-field vertical bands (17 settings)</td><td>17×129</td><td>0.5 code</td><td><strong>5.7 code</strong> (<code>h_a100_w0</code>)</td></tr><tr><td>2D grid (14 backgrounds)</td><td>14×256</td><td>1.0 code</td><td><strong>11.1 code</strong> (<code>grid_h_b240</code>)</td></tr></tbody></table></div>
+<p>Flat fields are the strong case: 14 of 17 sets are within 3 code values, and the shadow side is always within 2.6. On the 2D grid, 9 sets are within 7, median 1.0.</p>
+<h2 id="known-deviations">Known deviations</h2>
+<ol><li><strong>2D grids with extreme local contrast</strong> (a 20×20 patch on a background covering 99% of the area, <code>bg=16</code> with a bright patch and <code>bg=240</code> with a dark one) are off by up to 11 code values. Flat fields agree and only these synthetic patterns — where the neighbourhood differs from the pixel by 200 code values or more — do not, which says the edge preservation is slightly too weak: PS's <code>nb</code> sticks closer to the pixel itself. Lowering <code>SH_RANGE</code> below 1.0152 (stronger edge preservation) improves 87% of points but creates 87-code outliers; raising it (4.0 / 50, toward a plain Gaussian) only gets worse. 1.0152 is the measured local optimum, so it stays and this tail remains.</li><li><strong>The 5.7 codes of <code>h_a100_w0</code></strong>: at tonal width 0 the mask degenerates to Beta(1.95, 23), a steep wall in the darkest segment; the lookup table is built in steps of 5 in width, and width 0 sits exactly on the first node where the error is most sensitive.</li><li><strong>Radius &gt; 300 is not calibrated</strong>: PS's dialog goes to 2500, calibration stopped at 300, and larger radii extrapolate with the same σ = 1.1424·r.</li><li><code>midtone_contrast</code> and <code>color_correction</code> use the reference implementation's fitted coefficients and were <strong>not measured against PS separately</strong> (the flat and colour flat tests only prove the operator agrees with the reference, not with PS).</li></ol>
+<h2 id="reproducing-the-calibration">Reproducing the calibration</h2>
+<p><code>shadows-highlights-cal/</code> holds the whole set: <code>apply_cases.jsx</code> (PS-side runner), <code>run_cases.py</code> (batch run + read results), <code>make_ramp.py</code> / <code>make_grid.py</code> (three probe sets: greyscale bands, 2D grid, step edge), <code>compare_op.py</code> (per-point comparison), <code>dump_grid.py</code> / <code>analyze_nb.py</code> (single-case residuals and neighbourhood back-solving), <code>sweep.py</code> (neighbourhood-scale sweep).</p>
+<hr>
+<h2 id="performance-rewritten-2026-11-12">Performance (rewritten 2026-11-12)</h2>
+<p>Three root causes of the sluggishness, all fixed:</p>
+<ol><li><strong>GEGL parallelises by column and the margin is repeated per call.</strong> 3M pixels were split into 12 vertical strips 171 wide running at once, each carrying the full horizontal margin — 2.4× duplication at r30 and <strong>17×</strong> at r300 (margin 1277 px). Fix: compute the neighbourhood luminance of the whole extent <strong>once</strong>, cache it as an 8-bit level plane (the mask lookup uses <code>lv = lround(clamp(nb)·255)</code>, lossless at 8 bits), and let each column sample it. The cache invalidates on parameter change (compared in <code>prepare</code>), on content change (24-row whole-row hash fingerprints, which catch edits to the layer below) and on geometry change.</li><li><strong>The black/white clip pre-scan ran the whole pipeline twice.</strong> The default 0.01/0.01 triggered it. With the cache, the pre-scan reuses the level plane and only does a light per-pixel pass.</li><li><strong>Per-row <code>gegl_buffer_set</code>.</strong> Each 192-row strip called it 192 times; now a strip or ROI is written in one call.</li></ol>
+<p>Measured (2048×1536, including ~1.3 s PNG decode): defaults 3.7 s → 2.1 s; r300 9.8 s → 2.1 s (compute 7.9 s → 0.7 s, <strong>~11×</strong>). Numbers are <strong>bit-identical</strong> to the old implementation (four extreme parameter sets cross-checked: cache path = fallback path = old implementation).</p>
+<p>Very large images, or a margin over budget (<code>SH_CACHE_MAXPX</code> 20MP / <code>SH_CACHE_BUDGET</code>), fall back to in-place per-strip computation; <code>SH_NO_CACHE=1</code> forces the fallback (for debugging). Strip height adapts to the margin (<code>4×margin</code>, 192–1024 rows) and luminance is fetched in chunks (~32 MB each) to bound peak memory.</p><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>shadows-highlights.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>shadows-highlights.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/shadows-highlights.dll">Download shadows-highlights.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/shadows-highlights.so">Download shadows-highlights.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><a class="prev" href="brightness-contrast.html"><span>Previous</span>Brightness/Contrast</a><a class="next" href="rgb-domain-grayscale.html"><span>Next</span>Black &amp; White</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#one-trap-first-pss-scripting-entry-is-not-called-shadowhighlight">One trap first: PS&#x27;s scripting entry is not called Shadow/Highlight</a></li>
+<li class="l2"><a href="#structure">Structure</a></li>
+<li class="l2"><a href="#two-counter-intuitive-measurements">Two counter-intuitive measurements</a></li>
+<li class="l2"><a href="#performance">Performance</a></li>
+<li class="l2"><a href="#acceptance">Acceptance</a></li>
+<li class="l2"><a href="#known-deviations">Known deviations</a></li>
+<li class="l2"><a href="#reproducing-the-calibration">Reproducing the calibration</a></li>
+<li class="l2"><a href="#performance-rewritten-2026-11-12">Performance (rewritten 2026-11-12)</a></li></ul>
+</aside>
+</div></div>
 </main>
 <footer class="site-foot">
   <div>
-    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
-    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
-       与 Adobe、GIMP 官方均无隶属关系。</p>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
-    <a href="../guide.html">安装指南</a>
-    <span class="muted">3220ff6</span>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">0055287</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

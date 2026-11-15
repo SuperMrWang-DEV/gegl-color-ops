@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="Color Temperature &amp; Tint · gegl-color-ops" data-title-en="Color Temperature &amp; Tint PS · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,22 +9,37 @@
 <meta property="og:description" content="PS 2026「色彩与自然饱和度」里的色温 / 色调：中性灰跟着偏蓝-黄、绿-洋红，黑白两端不动">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
-<a class="skip" href="#main">跳到正文</a>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
   <nav>
-    <a href="../index.html#ops">算子</a>
-    <a href="../guide.html">安装</a>
-    <a href="../index.html#download">下载</a>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
-     色彩</p>
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 色彩</p>
   <h1>Color Temperature &amp; Tint</h1>
   <div class="meta">
     <code>lb:color-temperature-tint</code>
@@ -32,8 +47,7 @@
     <span>逐像素</span>
   </div>
   <p class="lede">PS 2026「色彩与自然饱和度」里的色温 / 色调：中性灰跟着偏蓝-黄、绿-洋红，黑白两端不动</p>
-</section>
-<div class="article-layout">
+</section><div class="article-layout">
   <article class="prose">
 <p>按实测逆向出来的 Photoshop 2026「色彩与自然饱和度」调整图层里的<strong>色温</strong>和<strong>色调</strong> 两个滑块。PS 27.0 把这两个滑块塞进了原来的 vibrance 图层（官方名 Color and vibrance），Action Manager 里还是老的 <code>vibrance</code> 类，只是多带 <code>temperature</code> / <code>tint</code> 两个整数键，所以这里把白平衡部分单独拆成一个算子，便于叠加到任何管线里。</p>
 <ul><li>GEGL id：<code>lb:color-temperature-tint</code></li><li>菜单：<code>Colors → SuperMrWang → Color → Color Temperature &amp; Tint PS</code></li><li>类型：<code>GeglOperationPointFilter</code>（逐像素，无邻域）</li><li>参数：<code>temperature</code>（−100…100，负冷正暖）、<code>tint</code>（−100…100，负绿正洋红）</li></ul>
@@ -61,15 +75,13 @@
 <p>PS 2026 的「色彩与自然饱和度」是<strong>先色温色调、再 Vibrance</strong>的顺序（实验依据： 把色温处理后的图喂给 PS 2025 的纯 Vibrance，与 PS 一次调完的结果中位差 1.4 码； 顺序反了差 36 码）。</p>
 <p>两个算子在工程里是<strong>分工的，不互相调用</strong>：本算子只做白平衡，<code>lb:vibrance</code> 只做 Vibrance。要复刻 PS 2026 那个图层，把本算子叠在 <code>lb:vibrance</code> 前面即可 ——</p>
 <pre><code>lb:color-temperature-tint  →  lb:vibrance</code></pre>
-<p>顺序由图层栈承担，所以两边的参数表各只有一份，白平衡结果与单独跑本算子逐位相同。</p>
-    <div class="op-dl">
+<p>顺序由图层栈承担，所以两边的参数表各只有一份，白平衡结果与单独跑本算子逐位相同。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>color-temperature-tint.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>color-temperature-tint.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/color-temperature-tint.dll">下载 color-temperature-tint.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/color-temperature-tint.so">下载 color-temperature-tint.so<span class="size">Linux x86_64</span></a></div>
-</div>
-    <nav class="pager"><a class="prev" href="color-grading.html"><span>上一个</span>Color Grading</a><a class="next" href="vibrance.html"><span>下一个</span>Vibrance</a></nav>
+</div><nav class="pager"><a class="prev" href="color-grading.html"><span>上一个</span>Color Grading</a><a class="next" href="vibrance.html"><span>下一个</span>Vibrance</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
@@ -80,20 +92,110 @@
 <li class="l2"><a href="#性能">性能</a></li>
 <li class="l2"><a href="#与-lbvibrance-的关系">与 lb:vibrance 的关系</a></li></ul>
 </aside>
-</div>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Color</p>
+  <h1>Color Temperature &amp; Tint PS</h1>
+  <div class="meta">
+    <code>lb:color-temperature-tint</code>
+    <span class="tag t-color">Color</span>
+    <span>per-pixel</span>
+  </div>
+  <p class="lede">The temperature and tint sliders from Photoshop 2026's Color and Vibrance layer, reverse-engineered from measurement into a 33³ LUT.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>The <strong>temperature</strong> and <strong>tint</strong> sliders of Photoshop 2026's <em>Color and vibrance</em> adjustment layer, reverse-engineered from measurement. PS 27.0 folded both sliders into the old vibrance layer (officially "Color and vibrance"); the Action Manager still uses the old <code>vibrance</code> class with two extra integer keys, <code>temperature</code> and <code>tint</code>. The white-balance part is split out into its own operator so it can be stacked into any pipeline.</p>
+<ul><li>GEGL id: <code>lb:color-temperature-tint</code></li><li>Menu: <code>Colors → SuperMrWang → Color → Color Temperature &amp; Tint PS</code></li><li>Type: <code>GeglOperationPointFilter</code> (per-pixel, no neighbourhood)</li><li>Parameters: <code>temperature</code> (−100…100, negative = cooler), <code>tint</code> (−100…100, negative = green, positive = magenta)</li></ul>
+<h2 id="algorithm">Algorithm</h2>
+<pre><code>encoded -&gt; decode to linear -&gt; cubic polynomial (20 terms) -&gt; clamp to [0,1] -&gt; encode</code></pre>
+<p>Three decisions, each with a reason:</p>
+<div class="table-wrap"><table><thead><tr><th>Step</th><th>Why</th></tr></thead><tbody><tr><td>fit in the linear domain</td><td>fitting in the encoded domain can only smear PS's hard clipping into mush; the negative-temperature region was measured at a median error of 90 code values</td></tr><tr><td>the <code>clamp</code></td><td>PS clips linear values that go negative to 0. This is the only strong non-linearity in the chain; reproduce it exactly with a clamp instead of expecting a polynomial to do it</td></tr><tr><td>17×17 parameter grid + bilinear</td><td>the map changes quickly with (temperature, tint); steps of 25 were far too coarse (10–90 code values between grid points), while 12–13 brings it down to 1–5</td></tr><tr><td>bake into a 33³ LUT</td><td>20 terms plus two <code>powf</code> per pixel is slow; bake once per image</td></tr></tbody></table></div>
+<p>That is 17×17×20×3 = 17340 coefficients in <code>common/temp-tint.h</code>, generated by <code>tools/gen_temp_tint_tables.py</code> from <code>vibrance-cal/temp_tint_grid17_lin.json</code> — change the upstream data and regenerate, never hand-edit.</p>
+<p>Polynomial term order matches the calibration script's <code>terms()</code>: the constant term, then d=1..3 with <code>i=0..d</code>, <code>j=0..d-i</code> enumerating <code>r^i g^j b^(d-i-j)</code>. Inputs are centred to [−1,1] first (<code>r' = 2r−1</code>); otherwise the normal equations are ill-conditioned on 0..1 and the coefficients blow up by two orders of magnitude.</p>
+<h2 id="calibration-method">Calibration method</h2>
+<ol><li><code>vibrance-cal/make_probe_all.py</code> builds a full-gamut probe of 32³ = 32768 patches (1024×2048, 128 per row). It <strong>must embed an sRGB ICC profile</strong>, otherwise PS interprets it in the working space and clips saturated colours — early data was lost entirely to this.</li><li><code>vibrance-cal/batch_vib2026.jsx</code> drives PS 2026 to apply each setting and save a PNG.</li><li><code>vibrance-cal/fit_censored.py</code> fits every grid point. Clipped samples (output 0 or<ol><li>carry no magnitude but do carry "this side got flattened", which is handled by</li></ol><strong>iterative regression with censoring</strong>: fit on unclipped samples first, then add misdirected clipped samples back through a hinge target and refit.</li><li><code>vibrance-cal/refit_lin17.py</code> runs all 289 grid points and writes JSON; <code>tools/gen_temp_tint_tables.py</code> turns that into the header.</li></ol>
+<h2 id="acceptance">Acceptance</h2>
+<p><code>python vibrance-cal/check_op.py</code> renders the full-gamut probe through the gegl CLI and compares it with the real PS 2026 export (0–255 code values; samples where any PS channel is ≥ 249 are skipped, since they are already flattened and tell you nothing):</p>
+<div class="table-wrap"><table><thead><tr><th>(temperature, tint)</th><th>Median</th><th>p90</th><th>p99</th><th>Max</th></tr></thead><tbody><tr><td>(0, 0)</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td></tr><tr><td>(0, 25)</td><td>0.7</td><td>2.5</td><td>5.8</td><td>12.5</td></tr><tr><td>(0, −25)</td><td>1.0</td><td>4.0</td><td>12.2</td><td>51.9</td></tr><tr><td>(25, 0)</td><td>1.8</td><td>6.5</td><td>21.7</td><td>54.7</td></tr><tr><td>(−25, 0)</td><td>2.3</td><td>8.3</td><td>27.3</td><td>74.4</td></tr><tr><td>(60, 60)</td><td>2.9</td><td>9.5</td><td>27.9</td><td>84.6</td></tr><tr><td>(30, −40)</td><td>2.5</td><td>9.1</td><td>41.4</td><td>107.6</td></tr><tr><td>(−38, −62)</td><td>2.3</td><td>8.0</td><td>24.8</td><td>56.0</td></tr><tr><td>(−12, 37)</td><td>2.0</td><td>7.0</td><td>18.6</td><td>38.9</td></tr><tr><td>(12, 12)</td><td>1.1</td><td>3.8</td><td>12.1</td><td>37.8</td></tr><tr><td>(−62, 62)</td><td>3.5</td><td>14.5</td><td>43.7</td><td>111.9</td></tr><tr><td>(−45, 30)</td><td>4.9</td><td>18.5</td><td>63.5</td><td>113.5</td></tr><tr><td>(−70, 30)</td><td>26.7</td><td>35.7</td><td>74.2</td><td>113.1</td></tr><tr><td>(−70, 40)</td><td>37.1</td><td>172.0</td><td>211.4</td><td>227.4</td></tr><tr><td>(−60, 60)</td><td>58.2</td><td>148.1</td><td>207.0</td><td>255.0</td></tr></tbody></table></div>
+<p><code>(0,0)</code> is bit-identical, so the identity branch does not secretly touch pixels. With v=0 (temperature and tint only) this is the same code path as <code>lb:vibrance</code>'s new engine, and both use the same tables.</p>
+<h2 id="known-deviations">Known deviations</h2>
+<p>Outside that last corner the median error over the whole plane is ≤ 5 code values. The corner is not an implementation problem — <strong>Photoshop itself is discontinuous there</strong>:</p>
+<p>On the diagonal where temperature ≤ −50 and tint ≥ +38 (roughly <code>|temperature| ≈ tint</code>, both above 55) PS pushes one channel's linear value through zero and the whole channel collapses from 255 to 0. Measured on the same neutral grey (123,132,132):</p>
+<div class="table-wrap"><table><thead><tr><th>Setting</th><th>PS output</th></tr></thead><tbody><tr><td>(−62, 50)</td><td>(122, 148, <strong>239</strong>)</td></tr><tr><td>(−50, 62)</td><td>(126, 140, <strong>248</strong>)</td></tr><tr><td>(−62, 62)</td><td>(117, 148, <strong>0</strong>)</td></tr><tr><td>(−75, 75)</td><td>(113, 152, <strong>0</strong>)</td></tr></tbody></table></div>
+<p>One grid step apart, the result is not "close" but "a step across the cliff". A continuous model can only blend the two sides when interpolating; per-pixel reproduction is impossible. Truly fixing it would need local subdivision of the grid (the product grid cannot hold non-uniform subdivision, so the whole thing would have to be refined to steps of 6 = 1089 points), which is not worth it.</p>
+<p>Worth recording the dead ends so they are not repeated: this map is <strong>not</strong> a linear matrix (least-squares residual on linear sRGB is tens of code values at p99), <strong>not</strong> channel-independent (<code>outR</code> responds to G/B by up to 247 code values), <strong>not</strong> separable (<code>M(60,60) ≠ M(tint60)·M(temp60)</code>, error 0.41), and <strong>not</strong> a three-channel gain in Adobe RGB (median 9.6–100 code values on internal samples). Polynomial plus clamp is the only form that holds up so far.</p>
+<h2 id="performance">Performance</h2>
+<p>For a whole image <code>temperature</code>/<code>tint</code> are constant: <code>prepare()</code> interpolates the coefficients and bakes a 33³ LUT (about 70k <code>powf</code>, milliseconds), leaving <code>process()</code> with 8 lookups and 7 multiply-adds per pixel. Identity settings <code>memcpy</code> and never touch the pixels.</p>
+<h2 id="relation-to-lbvibrance">Relation to <code>lb:vibrance</code></h2>
+<p>PS 2026's Color and vibrance applies <strong>temperature/tint first, then Vibrance</strong> (experimental basis: feeding the temperature-processed image into PS 2025's plain Vibrance differs from PS doing both at once by a median of 1.4 code values; the reverse order differs by 36).</p>
+<p>The two operators divide the work and <strong>do not call each other</strong>: this one does white balance only, <code>lb:vibrance</code> does Vibrance only. To reproduce the PS 2026 layer, stack this one in front of <code>lb:vibrance</code>:</p>
+<pre><code>lb:color-temperature-tint  →  lb:vibrance</code></pre>
+<p>The order is carried by the layer stack, so each side keeps one parameter table and the white-balance result is bit-identical to running this operator alone.</p><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>color-temperature-tint.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>color-temperature-tint.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/color-temperature-tint.dll">Download color-temperature-tint.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/color-temperature-tint.so">Download color-temperature-tint.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><a class="prev" href="color-grading.html"><span>Previous</span>Color Grading</a><a class="next" href="vibrance.html"><span>Next</span>Vibrance</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#algorithm">Algorithm</a></li>
+<li class="l2"><a href="#calibration-method">Calibration method</a></li>
+<li class="l2"><a href="#acceptance">Acceptance</a></li>
+<li class="l2"><a href="#known-deviations">Known deviations</a></li>
+<li class="l2"><a href="#performance">Performance</a></li>
+<li class="l2"><a href="#relation-to-lbvibrance">Relation to lb:vibrance</a></li></ul>
+</aside>
+</div></div>
 </main>
 <footer class="site-foot">
   <div>
-    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
-    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
-       与 Adobe、GIMP 官方均无隶属关系。</p>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
-    <a href="../guide.html">安装指南</a>
-    <span class="muted">3220ff6</span>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">0055287</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

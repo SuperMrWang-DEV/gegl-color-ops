@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="Color Balance · gegl-color-ops" data-title-en="Color Balance · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,22 +9,37 @@
 <meta property="og:description" content="PS 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
-<a class="skip" href="#main">跳到正文</a>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
   <nav>
-    <a href="../index.html#ops">算子</a>
-    <a href="../guide.html">安装</a>
-    <a href="../index.html#download">下载</a>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
-     色彩</p>
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 色彩</p>
   <h1>Color Balance</h1>
   <div class="meta">
     <code>lb:color-balance</code>
@@ -32,8 +47,7 @@
     <span>整块区域</span>
   </div>
   <p class="lede">PS 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴</p>
-</section>
-<div class="article-layout">
+</section><div class="article-layout">
   <article class="prose">
 <p>对应 Photoshop「色彩平衡」调整。两个模式：</p>
 <ul><li><strong>不保留明度（默认）</strong>：PS 的逐通道曲线，见下面「算法」一节。</li><li><strong>保留明度</strong>：MATLAB 零和矩阵（系数减中位数 → 高光 <code>in/(1−α)</code> → 阴影 <code>(in−α)/(1−α)</code> → 中间调 <code>in^γ</code>），与 PS 实测最大差 3.0 码，未做改动。</li></ul>
@@ -59,64 +73,123 @@ out = Hermite( (v−b)/(h0−b), Su·H, y1, G·y1 )</code></pre>
 <p>（0.03 码 = 1 个 16 位 LSB）</p>
 <h3 id="与两篇知乎文章的关系">与两篇知乎文章的关系</h3>
 <p>工程早期按下面第 1 篇的「三段独立通道曲线、依次作用」实现，实测下来在高光正向和 阴影负向上偏到 30 码级，组合档更差。本轮重新标定后确认：三段不是依次作用，而是 指数相乘、黑场/白场各取一端的参数合并；单段曲线也不是文章里的 <code>1 − k·s</code> 线性指数。 第 2 篇的零和矩阵（保留明度）与实测吻合，保留原样。</p>
-<hr><details class="en-block"><summary>English version<span class="muted">（同一份说明的英文版）</span></summary><h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
-<h4 id="native-linux-system-installed-gimp">Native Linux (System installed GIMP)</h4>
-<pre><code class="language-bash">sh build_linux.sh
-cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
-<h4 id="flatpak-linux-flatpak-gimp">Flatpak Linux (Flatpak GIMP)</h4>
-<pre><code class="language-bash">sh build_linux.sh
-cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
-<h3 id="2-how-to-open-the-plugin-2-methods">2. How to Open the Plugin (2 Methods)</h3>
-<p>After installation, <strong>restart GIMP</strong> to activate the plugin.</p>
-<h4 id="method-1-menu-bar-recommended">Method 1: Menu Bar (Recommended)</h4>
-<p>Menu path: <code>Colors → SuperMrWang → Color → Color Balance</code></p>
-<h4 id="method-2-gegl-operation">Method 2: GEGL Operation</h4>
-<ol><li>Go to <code>Filters → Generic → GEGL Operations</code></li><li>In the search box, enter: <code>lb:color-balance</code></li><li>Select it and click <code>OK</code> to apply</li></ol>
-<h3 id="3-algorithm-preserve-luminosity-off">3. Algorithm (preserve-luminosity off)</h3>
-<p>Each range drives exactly one channel, independent of the other two. The three ranges do <strong>not</strong> apply as three curves in sequence; their parameters merge into a single levels-style curve:</p>
-<pre><code>G = g_shadow · g_midtone · g_highlight      exponents multiply
-b = |s|        when the shadow slider is negative    (black point)
-W = 255 - s    when the highlight slider is positive (white point)
-otherwise b = 0, W = 255
-
-out = 255 · ((v - b)/(W - b))^G            (u &gt;= H)</code></pre>
-<p>Near black the power law is replaced by one cubic Hermite on <code>[b, h0]</code>: <code>h0 = b + H·(W-b)</code>, <code>y1 = 255·H^G</code>, and the curve is <code>Hermite((v-b)/(h0-b), Su·H, y1, G·y1)</code>.</p>
-<p>Midtones use <code>2^(∓s/100)</code>, shadows and highlights half of that (<code>2^(∓s/200)</code>); the op reads measured tables (<code>CB_G</code>) instead of the formula. Both <code>Su</code> (normalised initial slope) and <code>H</code> (toe width) depend on the composite exponent G alone — single-range and combo settings fall on the same Su(G) — and H decays to 0 at G &gt;= 0.85 (table <code>CB_TOE</code>).</p>
-<p>Measured against Photoshop 26.10 (16-bit, 600 slider settings + 9 combos): max 0.30 codes per range, 0.65 codes for combos. See <code>../../cb-cal/RESULTS.md</code>.</p>
-<h3 id="4-preserve-luminosity">4. Preserve luminosity</h3>
-<p>Unchanged MATLAB zero-sum implementation; max 3.0 codes against Photoshop.</p>
 <hr>
 <h2 id="参考-references">参考 / References</h2>
 <ol><li>色彩平衡调整图层的本质-背后的数学原理 - 王先生的副业 - 知乎 <a href="https://zhuanlan.zhihu.com/p/679776283" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/679776283</a></li><li>Photoshop 中的色彩平衡调整图层的原理分析 - 章佳杰 - 知乎 <a href="https://zhuanlan.zhihu.com/p/59450298" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/59450298</a></li></ol>
-<p>第 1 篇的三段曲线模型与实测不符（见上）；第 2 篇的零和矩阵与保留明度模式吻合。 Article 1's three-separate-curves model does not match the measurements; article 2's zero-sum matrix matches the preserve-luminosity mode.</p></details>
-    <div class="op-dl">
+<p>第 1 篇的三段曲线模型与实测不符（见上）；第 2 篇的零和矩阵与保留明度模式吻合。 Article 1's three-separate-curves model does not match the measurements; article 2's zero-sum matrix matches the preserve-luminosity mode.</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>color-balance.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>color-balance.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/color-balance.dll">下载 color-balance.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/color-balance.so">下载 color-balance.so<span class="size">Linux x86_64</span></a></div>
-</div>
-    <nav class="pager"><a class="prev" href="hsl-seven.html"><span>上一个</span>HSL 7 Bands</a><a class="next" href="color-grading.html"><span>下一个</span>Color Grading</a></nav>
+</div><nav class="pager"><a class="prev" href="hsl-seven.html"><span>上一个</span>HSL 7 Bands</a><a class="next" href="color-grading.html"><span>下一个</span>Color Grading</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
   <ul><li class="l2"><a href="#算法不保留明度">算法（不保留明度）</a></li>
-<li class="l3"><a href="#与两篇知乎文章的关系">与两篇知乎文章的关系</a></li></ul>
+<li class="l3"><a href="#与两篇知乎文章的关系">与两篇知乎文章的关系</a></li>
+<li class="l2"><a href="#参考-references">参考 / References</a></li></ul>
 </aside>
-</div>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Color</p>
+  <h1>Color Balance</h1>
+  <div class="meta">
+    <code>lb:color-balance</code>
+    <span class="tag t-color">Color</span>
+    <span>area</span>
+  </div>
+  <p class="lede">Photoshop's Color Balance — one merged levels-style curve per channel, measured against PS to 0.3 code values, plus the legacy preserve-luminosity mode.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>Photoshop's <strong>Color Balance</strong>, in two modes:</p>
+<ul><li><strong>Preserve luminosity off (default)</strong>: Photoshop's per-channel curve, see "Algorithm" below.</li><li><strong>Preserve luminosity on</strong>: the MATLAB zero-sum matrix (subtract the median from the coefficients → highlights <code>in/(1−α)</code> → shadows <code>(in−α)/(1−α)</code> → midtones <code>in^γ</code>), left unchanged; max 3.0 code values from Photoshop.</li></ul>
+<h2 id="algorithm-preserve-luminosity-off">Algorithm (preserve luminosity off)</h2>
+<p>One channel (C-R drives R, M-G drives G, Y-B drives B) is decided by its own slider alone, independent of the other two. The three tonal-range parameters first merge into <strong>a single</strong> curve:</p>
+<pre><code>G = g_shadow · g_midtone · g_highlight          the three exponents multiply
+b = |s|        when the shadow slider is negative  (black point raised)
+W = 255 − s    when the highlight slider is positive (white point lowered)
+otherwise b = 0, W = 255
+
+u   = (v − b) / (W − b)
+out = 255 · u^G                                 (u ≥ H)</code></pre>
+<p>Near black there is a <strong>toe</strong>: for G &lt; 1, <code>u^G</code> has infinite slope at 0, while Photoshop starts with a finite slope. The segment <code>[b, h0]</code> is replaced by a cubic Hermite:</p>
+<pre><code>h0  = b + H · (W − b)
+y1  = 255 · H^G                       value at the right end of the segment
+out = Hermite( (v−b)/(h0−b), Su·H, y1, G·y1 )</code></pre>
+<ul><li>Exponents: midtones <code>2^(∓s/100)</code>, shadows and highlights half of that <code>2^(∓s/200)</code>; the operator reads measured tables (<code>CB_G</code> in <code>cb-tables.h</code>) rather than evaluating the formula.</li><li><code>Su</code> (normalised initial slope) and <code>H</code> (toe width as a fraction) depend on the composite exponent G alone, not on which range produced it: single-range and combined settings fall on the same curve (table <code>CB_TOE</code>). At G ≥ 0.85, H decays to 0 and the toe disappears on its own.</li><li>Ignoring the toe, midtones +100 is off by 16 code values at v≈4; with it, the whole range is within 0.3.</li></ul>
+<p>The parameters come from the Photoshop calibration in <code>cb-cal</code> (PS 26.10, 16-bit, 600 single-range settings + 9 combinations); the full derivation and accuracy are in <code>../../cb-cal/RESULTS.md</code>.</p>
+<p><strong>Do not edit <code>cb-tables.h</code> by hand</strong> — it is generated from the calibration data by <code>cb-cal/gen_cb_tables.py</code>.</p>
+<p>Accuracy (1024 px continuous ramp, 16-bit, every pixel of the image):</p>
+<div class="table-wrap"><table><thead><tr><th>Group</th><th>Max</th><th>Median</th></tr></thead><tbody><tr><td>Shadows ±1…±100</td><td>0.21 code</td><td>0.01 code</td></tr><tr><td>Midtones</td><td>0.30 code</td><td>0.00 code</td></tr><tr><td>Highlights</td><td>0.27 code</td><td>0.00 code</td></tr><tr><td>Combinations</td><td>0.65 code</td><td>0.06 code</td></tr></tbody></table></div>
+<p>(0.03 code = one 16-bit LSB)</p>
+<h3 id="relation-to-the-two-zhihu-articles">Relation to the two Zhihu articles</h3>
+<p>The project first implemented article 1's model — three independent channel curves applied in sequence — and measured it drifting by 30 code values on highlights in the positive direction and shadows in the negative direction, worse still for combinations. Re-calibration showed that the three ranges do <strong>not</strong> apply in sequence: their exponents multiply and the black/white point parameters merge. Nor is a single range the linear <code>1 − k·s</code> exponent the article proposes. Article 2's zero-sum matrix (preserve luminosity) does match the measurements and is kept as is.</p>
+<h2 id="references">References</h2>
+<ol><li>The mathematics behind the Color Balance adjustment layer — 王先生的副业, Zhihu <a href="https://zhuanlan.zhihu.com/p/679776283" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/679776283</a></li><li>How Photoshop's Color Balance adjustment layer works — 章佳杰, Zhihu <a href="https://zhuanlan.zhihu.com/p/59450298" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/59450298</a></li></ol>
+<p>Article 1's three-curve model does not match the measurements; article 2's zero-sum matrix matches the preserve-luminosity mode.</p><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>color-balance.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>color-balance.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/color-balance.dll">Download color-balance.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/color-balance.so">Download color-balance.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><a class="prev" href="hsl-seven.html"><span>Previous</span>HSL 8 Bands</a><a class="next" href="color-grading.html"><span>Next</span>Color Grading</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#algorithm-preserve-luminosity-off">Algorithm (preserve luminosity off)</a></li>
+<li class="l3"><a href="#relation-to-the-two-zhihu-articles">Relation to the two Zhihu articles</a></li>
+<li class="l2"><a href="#references">References</a></li></ul>
+</aside>
+</div></div>
 </main>
 <footer class="site-foot">
   <div>
-    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
-    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
-       与 Adobe、GIMP 官方均无隶属关系。</p>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
-    <a href="../guide.html">安装指南</a>
-    <span class="muted">3220ff6</span>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">0055287</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

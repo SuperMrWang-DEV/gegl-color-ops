@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="CMYK Primary · gegl-color-ops" data-title-en="CMYK Primary · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,22 +9,37 @@
 <meta property="og:description" content="PS 可选颜色：红/黄/绿/青/蓝/品红/白/中性/黑九组各自独立记忆">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
-<a class="skip" href="#main">跳到正文</a>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
   <nav>
-    <a href="../index.html#ops">算子</a>
-    <a href="../guide.html">安装</a>
-    <a href="../index.html#download">下载</a>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
-     色彩</p>
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 色彩</p>
   <h1>CMYK Primary</h1>
   <div class="meta">
     <code>lb:cmyk-primary-correction</code>
@@ -32,31 +47,20 @@
     <span>逐像素</span>
   </div>
   <p class="lede">PS 可选颜色：红/黄/绿/青/蓝/品红/白/中性/黑九组各自独立记忆</p>
-</section>
-<div class="article-layout">
+</section><div class="article-layout">
   <article class="prose">
 <p>cmyk-primary-correction</p>
 <h2 id="参数说明本工程版本">参数说明（本工程版本）</h2>
 <p>与 Photoshop「可选颜色」一致，<strong>九个色域各存一份独立的 C/M/Y/K</strong>，切换查看不会 覆盖别组的数值，九组同时对整图生效（一个像素同时落在「红」和「白」时两组都起作用）。</p>
 <ul><li>滑块按「色域 – 墨量」命名：<code>Reds – Cyan</code>、<code>Yellows – Magenta</code>、… 共 9 × 4 = 36 个， 顺序与 PS 页签一致：红 → 黄 → 绿 → 青 → 蓝 → 品红 → 白 → 中性 → 黑</li><li><code>Absolute Mode</code>：对应 PS 的「绝对」复选框</li><li>数值范围 -100 ~ +100，与 PS 滑块同刻度</li></ul>
 <blockquote><p>注：本机 GEGL 0.4.72 不支持 <code>property_group</code>，所以 36 个滑块在面板里是平铺的， 靠名字前缀区分色域；等 GEGL 升级后可以改成折叠分组。</p></blockquote>
-<p>回归验证脚本：<code>python tools/check_cmyk_sections.py</code>（校验单组结果与旧版逐像素一致、 多组同时生效互不覆盖）。</p><details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><h2 id="english">English</h2>
-<h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
-<h4 id="native-linux-system-installed-gimp">Native Linux (System installed GIMP)</h4>
-<pre><code class="language-bash">sh build_linux.sh
-cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
-<h4 id="flatpak-linux-flatpak-gimp">Flatpak Linux (Flatpak GIMP)</h4>
-<pre><code class="language-bash">sh build_linux.sh
-cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
-<h3 id="2-how-to-open-the-plugin-2-methods">2. How to Open the Plugin (2 Methods)</h3>
-<p>After installation, <strong>restart GIMP</strong> to activate the plugin.</p>
-<h4 id="method-1-menu-bar-recommended">Method 1: Menu Bar (Recommended)</h4>
-<p>Menu path: <code>Colors → SuperMrWang → Color → CMYK Primary</code></p>
-<h4 id="method-2-gegl-operation">Method 2: GEGL Operation</h4>
-<ol><li>Go to <code>Filters → Generic → GEGL Operations</code></li><li>In the search box, enter: <code>lb:cmyk-primary-correction</code></li><li>Select it and click <code>OK</code> to apply</li></ol>
-<hr>
-<h2 id="中文">中文</h2>
-<h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
+<p>回归验证脚本：<code>python tools/check_cmyk_sections.py</code>（校验单组结果与旧版逐像素一致、 多组同时生效互不覆盖）。</p><div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>cmyk-primary-correction.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>cmyk-primary-correction.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/cmyk-primary-correction.dll">下载 cmyk-primary-correction.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/cmyk-primary-correction.so">下载 cmyk-primary-correction.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><a class="prev" href="vibrance-hyper.html"><span>上一个</span>Natural Saturation</a><a class="next" href="colorize-hsl.html"><span>下一个</span>Colorize</a></nav><details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
 <h4 id="linux-原生版系统包安装的gimp">Linux 原生版（系统包安装的GIMP）</h4>
 <pre><code class="language-bash">sh build_linux.sh
 cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
@@ -69,33 +73,102 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
 <p>菜单路径：<code>颜色 → SuperMrWang → Color → CMYK Primary</code></p>
 <h4 id="方法二gegl-操作打开">方法二：GEGL 操作打开</h4>
 <ol><li>顶部菜单点击：<code>滤镜 → 通用 → GEGL 操作</code></li><li>在弹出窗口的搜索框输入：<code>lb:cmyk-primary-correction</code></li><li>选中后点击「确定」即可使用插件</li></ol></details>
-    <div class="op-dl">
-  <div>
-    <h3>只要这一个</h3>
-    <p>Windows 模块 <code>cmyk-primary-correction.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>cmyk-primary-correction.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
-  </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/cmyk-primary-correction.dll">下载 cmyk-primary-correction.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/cmyk-primary-correction.so">下载 cmyk-primary-correction.so<span class="size">Linux x86_64</span></a></div>
-</div>
-    <nav class="pager"><a class="prev" href="vibrance-hyper.html"><span>上一个</span>Natural Saturation</a><a class="next" href="colorize-hsl.html"><span>下一个</span>Colorize</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
   <ul><li class="l2"><a href="#参数说明本工程版本">参数说明（本工程版本）</a></li></ul>
 </aside>
-</div>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Color</p>
+  <h1>CMYK Primary</h1>
+  <div class="meta">
+    <code>lb:cmyk-primary-correction</code>
+    <span class="tag t-color">Color</span>
+    <span>per-pixel</span>
+  </div>
+  <p class="lede">Photoshop's Selective Color — nine colour-range tabs, each holding its own C/M/Y/K ink amounts, all active at once.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>Menu: <code>Colors → SuperMrWang → Color → CMYK Primary</code></p>
+<h2 id="parameters">Parameters</h2>
+<p>Matching Photoshop's <strong>Selective Color</strong>: each of the nine colour ranges keeps its own independent C/M/Y/K values, so switching tabs never overwrites another group's numbers, and all nine act on the image at the same time (a pixel that falls into both "Reds" and "Whites" is affected by both).</p>
+<ul><li>Sliders are named "range – ink": <code>Reds – Cyan</code>, <code>Yellows – Magenta</code>, … 9 × 4 = 36 of them, in Photoshop's tab order: Reds → Yellows → Greens → Cyans → Blues → Magentas → Whites → Neutrals → Blacks.</li><li><code>Absolute Mode</code> is Photoshop's "Absolute" checkbox.</li><li>The range is −100…+100, the same scale as Photoshop's sliders.</li></ul>
+<blockquote><p>Note: GEGL 0.4.72 as shipped here has no <code>property_group</code>, so the 36 sliders are flat in the panel and are told apart by their name prefix. Once GEGL is upgraded they can be folded into groups.</p></blockquote>
+<p>Regression check: <code>python tools/check_cmyk_sections.py</code> — verifies that a single group matches the old build pixel for pixel, and that several groups act at once without overwriting each other.</p><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>cmyk-primary-correction.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>cmyk-primary-correction.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/cmyk-primary-correction.dll">Download cmyk-primary-correction.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/cmyk-primary-correction.so">Download cmyk-primary-correction.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><a class="prev" href="vibrance-hyper.html"><span>Previous</span>Vibrance (Lab)</a><a class="next" href="colorize-hsl.html"><span>Next</span>Colorize</a></nav><details class="legacy-intro"><summary>Original plugin docs<span class="muted"> — written when this was a standalone plug-in: the build commands assume the old directory layout and the menu paths have changed. The algorithm notes above supersede it.</span></summary><h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
+<h4 id="native-linux-system-installed-gimp">Native Linux (System installed GIMP)</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
+<h4 id="flatpak-linux-flatpak-gimp">Flatpak Linux (Flatpak GIMP)</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
+<h3 id="2-how-to-open-the-plugin-2-methods">2. How to Open the Plugin (2 Methods)</h3>
+<p>After installation, <strong>restart GIMP</strong> to activate the plugin.</p>
+<h4 id="method-1-menu-bar-recommended">Method 1: Menu Bar (Recommended)</h4>
+<p>Menu path: <code>Colors → SuperMrWang → Color → CMYK Primary</code></p>
+<h4 id="method-2-gegl-operation">Method 2: GEGL Operation</h4>
+<ol><li>Go to <code>Filters → Generic → GEGL Operations</code></li><li>In the search box, enter: <code>lb:cmyk-primary-correction</code></li><li>Select it and click <code>OK</code> to apply</li></ol>
+<hr></details>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#parameters">Parameters</a></li></ul>
+</aside>
+</div></div>
 </main>
 <footer class="site-foot">
   <div>
-    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
-    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
-       与 Adobe、GIMP 官方均无隶属关系。</p>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
-    <a href="../guide.html">安装指南</a>
-    <span class="muted">3220ff6</span>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">0055287</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

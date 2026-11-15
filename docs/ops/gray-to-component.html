@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="Gray To Component · gegl-color-ops" data-title-en="Gray to Component · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,32 +9,46 @@
 <meta property="og:description" content="通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue /">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
-<a class="skip" href="#main">跳到正文</a>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
   <nav>
-    <a href="../index.html#ops">算子</a>
-    <a href="../guide.html">安装</a>
-    <a href="../index.html#download">下载</a>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
-     混合与通道</p>
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 混合与通道</p>
   <h1>Gray To Component</h1>
   <div class="meta">
     <code>lb:gray-to-component</code>
     <span class="tag t-blend">混合与通道</span>
-    <span>整块区域</span> <span class="badge off">已废弃</span>
+    <span>整块区域</span> <span class="badge off"><span class="l-zh">已废弃</span><span class="l-en">Retired</span></span>
   </div>
   <p class="dep-note"><b>已废弃</b>　本算子不再编译、不进安装包，本页仅作存档。现在每个色彩模式都有自己的分量色阶，不需要「灰度 → 彩色编码 → 混合模式」这套三步走。</p>
   <p class="lede">通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue /</p>
-</section>
-<div class="article-layout">
+</section><div class="article-layout">
   <article class="prose">
 <blockquote><p><strong>已废弃（2026-11-15）</strong>　本算子不再编译，也不再进安装包；这篇文档只作存档。</p>
 <p>它补的是「通道分解 → 灰度 → 重新编码 → 混合模式还原」这条三步流程中间缺的一环。 现在每个色彩模式都有自己的分量色阶，直接在原图上按分量调，一步到位： <code>lb:hsl-levels</code>、<code>lb:hsb-levels</code>、<code>lb:lch-levels</code>、<code>lb:cmyk-levels</code>、<code>lb:hsi-levels</code>。</p>
@@ -70,8 +84,7 @@
 <p><code>tools/check_gray_to_component.py</code>（39 项，gimp-console 跑）：</p>
 <ul><li><strong>A. 编码公式</strong>：17 级灰度斜坡喂算子，Lab 域模式（含 <code>luminance</code> / <code>lch-color</code> 两个别名）直读 Lab 输出对拍；RGB 域模式读回 RGB 与镜像的 HSL/HSV 公式对拍， <code>color-sat</code> 跑 100 / 40 两档、<code>sat-hue</code> 跑 0 / 210 两档确认参数真的进了公式； 含端点语义（hue 0=红 / 0.5=青）、value（0=黑 / 1=白 / 中性）、<code>color-sat=0</code> 退化成灰、两组别名输出逐分量相同。</li><li><strong>B. 恒等往返</strong>（金标准，与 hsl-cal 同一方法）：24 个探针色做分解 → 编码 → 混合还原，逐像素比对原图，<strong>全部 ≤2/255</strong>：hue→Hue、saturation→Saturation、 value→Value、lightness→LCh Lightness、luminance→Luminance、lch-hue→LCh Hue、 lch-chroma→LCh Chroma（量程 100 / 132 两档）、RGB 三通道→Lighten 叠合、 hue+saturation 串联。Color / LCh Color 是双分量模式，恒等条件要求底层 饱和度 / 色度与参数一致，所以各配一套专用探针：Color 用 S=100% 与 S=60% 两组色环，LCh Color 用 C=30 的 LCh 圆环。</li><li><strong>透明像素</strong>：32×8 棋盘（85/256 全透明）逐像素比对 alpha，透明处 Lab 必须为 0。</li></ul>
 <h2 id="技术备注">技术备注</h2>
-<ul><li>输出格式钉成 <code>CIE Lab alpha float</code>：Lab/LCh 模式<strong>零转换直写</strong>（a=C·cos h、 b=C·sin h 就是 CIE LCh 的定义式）；HSL/RGB 模式用 <code>babl_fish</code> 把整行转 Lab， 与 GIMP 内部转换同源，不引入自实现转换的漂移。</li><li><strong>RGB 域模式的透明像素必须在 <code>rgb_line</code> 里落位</strong>：整行交给 <code>babl_process</code> 时 它会重写 <code>out_line</code> 的每一个像素，只在 <code>out_line</code> 里写 0 会被中间行（未初始化） 覆盖，导致透明像素的 alpha 变成随机值。早先 2×1 的小用例靠堆内存恰好为 0 蒙过去了，换成 32×8 棋盘才暴露——现已修正。</li><li>无 aux pad，可直接作为 GIMP 3 非破坏滤镜挂在灰度图层上（不受 <code>Gimp.DrawableFilter</code> 拒收 aux 算子的限制），整条工作流全程非破坏。</li><li>透明像素（alpha≤0）输出保持透明。</li><li>输入 <code>YA float</code>：分解出的灰度层是 RGBA 时由 babl 自动转成 CIE 亮度。</li></ul>
-    <div class="op-dl">
+<ul><li>输出格式钉成 <code>CIE Lab alpha float</code>：Lab/LCh 模式<strong>零转换直写</strong>（a=C·cos h、 b=C·sin h 就是 CIE LCh 的定义式）；HSL/RGB 模式用 <code>babl_fish</code> 把整行转 Lab， 与 GIMP 内部转换同源，不引入自实现转换的漂移。</li><li><strong>RGB 域模式的透明像素必须在 <code>rgb_line</code> 里落位</strong>：整行交给 <code>babl_process</code> 时 它会重写 <code>out_line</code> 的每一个像素，只在 <code>out_line</code> 里写 0 会被中间行（未初始化） 覆盖，导致透明像素的 alpha 变成随机值。早先 2×1 的小用例靠堆内存恰好为 0 蒙过去了，换成 32×8 棋盘才暴露——现已修正。</li><li>无 aux pad，可直接作为 GIMP 3 非破坏滤镜挂在灰度图层上（不受 <code>Gimp.DrawableFilter</code> 拒收 aux 算子的限制），整条工作流全程非破坏。</li><li>透明像素（alpha≤0）输出保持透明。</li><li>输入 <code>YA float</code>：分解出的灰度层是 RGBA 时由 babl 自动转成 CIE 亮度。</li></ul><div class="op-dl">
   <div>
     <h3>已废弃，不提供下载</h3>
     <p>这个算子不再编译，也不再进安装包。分量调色改用
@@ -81,8 +94,7 @@
        源码仍保留在仓库 <code>ops/gray-to-component/</code>，废弃原因见那里的
        <code>.disabled</code>。</p>
   </div>
-</div>
-    <nav class="pager"><a class="prev" href="color-lookup.html"><span>上一个</span>Color Lookup</a><a class="next" href="color-mask-select.html"><span>下一个</span>Mask by Color</a></nav>
+</div><nav class="pager"><a class="prev" href="color-lookup.html"><span>上一个</span>Color Lookup</a><a class="next" href="color-mask-select.html"><span>下一个</span>Mask by Color</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
@@ -92,20 +104,123 @@
 <li class="l2"><a href="#验收">验收</a></li>
 <li class="l2"><a href="#技术备注">技术备注</a></li></ul>
 </aside>
-</div>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Blend</p>
+  <h1>Gray to Component</h1>
+  <div class="meta">
+    <code>lb:gray-to-component</code>
+    <span class="tag t-blend">Blend</span>
+    <span>area</span> <span class="badge off"><span class="l-zh">已废弃</span><span class="l-en">Retired</span></span>
+  </div>
+  <p class="dep-note"><b>Retired</b> — no longer built or shipped; this page is an archive. Every colour model now has its own component levels, so the old decompose → colour-encode → blend-mode route is obsolete.</p>
+  <p class="lede">Retired. The encoder in the "decompose → grey → re-encode → blend-mode" workflow; component levels now do the job in one step.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<blockquote><p><strong>Retired (2026-11-15).</strong> This operator is no longer compiled or shipped; this page is an archive.</p>
+<p>It filled the missing link in the three-step "channel decompose → grey → re-encode → blend mode" workflow. Every colour model now has its own component levels, so you adjust components directly on the original image in one step: <code>lb:hsl-levels</code>, <code>lb:hsb-levels</code>, <code>lb:lch-levels</code>, <code>lb:cmyk-levels</code>, <code>lb:hsi-levels</code>.</p>
+<p>The disable marker is <code>ops/gray-to-component/.disabled</code> (with the reason); delete it and run <code>./build.sh</code> to build it temporarily. The formulas and measurements below are still useful for old project files.</p></blockquote>
+<p>The <strong>encoder</strong> of the channel-grey grading workflow: take a decomposed component grey layer and re-encode it into a colour layer "carrying" that component, so GIMP's component blend modes can read it back.</p>
+<pre><code>image ──decompose──&gt; component grey layer (H / S / L / C …)
+                          │
+                          ▼
+                  lb:gray-to-component   &lt;- this operator: grey -&gt; colour form
+                          │
+                          ▼
+        restore with a blend mode (GIMP's nine "Color" group modes + Lighten)</code></pre>
+<p>Why the step is needed: <strong>a grey pixel has no defined hue or saturation.</strong> Putting a decomposed H grey layer into Hue blend mode does nothing — the mode cannot read a hue out of grey. It first has to be encoded into a real colour on the wheel. GIMP has the decomposition and the blend modes; the middle step was missing, and this operator was it.</p>
+<h2 id="mode-table-encoding-formulas-calibrated-by-identity-round-trips-in-hsl-cal">Mode table (encoding formulas calibrated by identity round trips in hsl-cal)</h2>
+<p>GIMP 3 collects component blend modes in the "Color" group, nine of them: <strong>Hue / Saturation / Color / Value / LCh Hue / LCh Chroma / LCh Color / LCh Lightness / Luminance</strong>. This operator feeds each of them, plus three single-channel RGB modes.</p>
+<div class="table-wrap"><table><thead><tr><th>Mode</th><th>Meaning of grey g</th><th>Output encoding</th><th>Blend mode to restore</th></tr></thead><tbody><tr><td><code>hue</code></td><td>HSL hue h/360</td><td><code>hsl_to_rgb(g·360°, S=1, L=0.5)</code>, a hue wheel at full saturation and mid lightness</td><td><strong>Hue</strong> (HSV_HUE)</td></tr><tr><td><code>saturation</code></td><td>HSV saturation s</td><td><code>hsv_to_rgb(sat_hue, s, V=1)</code>, red hue by default</td><td><strong>Saturation</strong> (HSV_SATURATION)</td></tr><tr><td><code>color</code></td><td>HSL hue h/360</td><td><code>hsl_to_rgb(g·360°, color_sat, L=0.5)</code>, saturation fixed by a parameter</td><td><strong>Color</strong> (HSL_COLOR)</td></tr><tr><td><code>value</code></td><td>HSV value V</td><td><code>(g,g,g)</code> neutral grey (V <em>is</em> the max channel)</td><td><strong>Value</strong> (HSV_VALUE)</td></tr><tr><td><code>lightness</code></td><td>CIE lightness L/100</td><td><code>Lab(g·100, 0, 0)</code> written directly</td><td><strong>LCh Lightness</strong> (LCH_LIGHTNESS)</td></tr><tr><td><code>luminance</code></td><td>same (CIE luminance Y)</td><td>byte-identical to <code>lightness</code></td><td><strong>Luminance</strong> (LUMINANCE)</td></tr><tr><td><code>red</code> / <code>green</code> / <code>blue</code></td><td>that channel's value</td><td><code>(g,0,0)</code> / <code>(0,g,0)</code> / <code>(0,0,g)</code></td><td><strong>Lighten</strong>, three layers</td></tr><tr><td><code>lch-hue</code></td><td>CIE hue h/360</td><td><code>Lab(lch_l, C·cos h, C·sin h)</code>, C = <code>lch_c</code></td><td><strong>LCh Hue</strong> (LCH_HUE)</td></tr><tr><td><code>lch-color</code></td><td>same (h, C fixed by parameter)</td><td>byte-identical to <code>lch-hue</code></td><td><strong>LCh Color</strong> (LCH_COLOR)</td></tr><tr><td><code>lch-chroma</code></td><td>CIE chroma C/chroma_scale</td><td><code>Lab(lch_l, C·cos h₀, C·sin h₀)</code>, h₀ = <code>lch_h</code></td><td><strong>LCh Chroma</strong> (LCH_CHROMA)</td></tr></tbody></table></div>
+<p>The two "same encoding" pairs are not laziness, they follow from what the blend modes read:</p>
+<ul><li><strong><code>luminance</code> ≡ <code>lightness</code></strong>: Luminance reads CIE Y, and a neutral grey's Lab L maps monotonically to Y, so one <code>Lab(L,0,0)</code> gives both correctly.</li><li><strong><code>lch-color</code> ≡ <code>lch-hue</code></strong>: LCh Color reads hue and chroma only, and <code>lch-hue</code>'s chroma is already fixed by <code>lch-c</code>. The separate entry exists so you can match GIMP's mode names.</li></ul>
+<p><strong>The single-channel problem with Color</strong>: Color mode reads hue and saturation together, but one grey layer holds a single scalar. The trade-off here is "grey carries hue, saturation comes from <code>color-sat</code>" — to recolour and desaturate at once, set <code>color-sat</code> to 45%, simpler than hue first and a desaturating layer on top.</p>
+<p>Three hard, calibrated conclusions (measured in hsl-cal, error in 0–255):</p>
+<ol><li><strong>HSL's S ≠ HSV's S.</strong> GIMP's Saturation mode reads HSV semantics; encoding an HSL S layer directly is off by up to 214/255. This operator's <code>saturation</code> mode encodes with HSV semantics, and the identity round trip is &lt; 2.</li><li><strong>HSL hue and CIE hue do not convert linearly.</strong> Using <code>h·360</code> directly as an LCh hue is off by 139/255. The two wheels must be decomposed and encoded separately — which is why <code>hue</code> and <code>lch-hue</code> cannot be merged.</li><li><strong>The encoding layer must run at float32.</strong> In 8-bit, Lab/LCh encodings written into the layer get quantised and hue/chroma break up (an inherent precision limit of the whole workflow on 8-bit images); at float32 even LCh values outside sRGB round trip exactly.</li></ol>
+<h2 id="parameters">Parameters</h2>
+<div class="table-wrap"><table><thead><tr><th>Parameter</th><th>Default</th><th>Notes</th></tr></thead><tbody><tr><td><code>mode</code></td><td><code>hue</code></td><td>See the table above</td></tr><tr><td><code>sat-hue</code></td><td>0 (red)</td><td>Hue used by <code>saturation</code>. That layer only supplies saturation, so the value does not reach the final picture</td></tr><tr><td><code>color-sat</code></td><td>100</td><td>Saturation percentage fixed by <code>color</code>. At 100% the output equals <code>hue</code>; lower it for "recolour + desaturate"</td></tr><tr><td><code>lch-l</code></td><td>54</td><td>Fixed lightness for the LCh modes. When the blend mode reads only hue/chroma this value does not reach the result; a middling value keeps it inside the common gamut</td></tr><tr><td><code>lch-c</code></td><td>30</td><td>Fixed chroma for <code>lch-hue</code> / <code>lch-color</code>. Higher is more vivid; too high leaves sRGB</td></tr><tr><td><code>lch-h</code></td><td>30</td><td>Fixed hue angle for <code>lch-chroma</code> (0 = red); likewise does not reach the result</td></tr><tr><td><code>chroma-scale</code></td><td>100</td><td>Full range of <code>lch-chroma</code> (how much chroma grey 1.0 means). sRGB blue/magenta reach C ≈ 130; raise it for wide gamut, <strong>but keep it consistent with the decomposition side</strong></td></tr></tbody></table></div>
+<h2 id="typical-uses">Typical uses</h2>
+<p><strong>Rotate hue</strong> (keeping tone and saturation):</p>
+<ol><li>Duplicate the layer → <code>lb:gray-to-component</code> with mode <code>hue</code>, fed by the hue decomposition;</li><li>set that layer's blend mode to <strong>Hue</strong>;</li><li>run levels/curves/invert on the grey layer — the hue follows, and every fold and shadow stays.</li></ol>
+<p><strong>Saturation only</strong>: same, mode <code>saturation</code> with <strong>Saturation</strong>.</p>
+<p><strong>Recolour and desaturate at once</strong>: mode <code>color</code> with <strong>Color</strong>, <code>color-sat</code> at 40–60%. One layer swaps hue and saturation together; lightness stays the original's.</p>
+<p><strong>HSV value only</strong>: mode <code>value</code> with <strong>Value</strong> — the output is neutral grey, Value reads the max channel, and a curve on the grey edits brightness directly.</p>
+<p><strong>Lab-space grading</strong> (lightness untouched): <code>lch-chroma</code> + <strong>LCh Chroma</strong> changes vividness only; <code>lch-hue</code> + <strong>LCh Hue</strong> rotates hue only; <code>lch-color</code> + <strong>LCh Color</strong> pins chroma to <code>lch-c</code> as well.</p>
+<p><strong>RGB channel recomposition</strong>: one layer each of <code>red</code>/<code>green</code>/<code>blue</code>, all in <strong>Lighten</strong>, stacked bottom-up — <code>max((r,0,0),(0,g,0),(0,0,b))</code> restores exactly <code>(r,g,b)</code>.</p>
+<h2 id="verification">Verification</h2>
+<p><code>tools/check_gray_to_component.py</code> (39 cases, run in gimp-console):</p>
+<ul><li><strong>A. Encoding formulas</strong>: a 17-step grey ramp through the operator; Lab-domain modes (including the <code>luminance</code> / <code>lch-color</code> aliases) compared against the Lab output directly, RGB-domain modes against mirrored HSL/HSV formulas with <code>color-sat</code> at 100 and 40 and <code>sat-hue</code> at 0 and 210, confirming the parameters really reach the maths, plus endpoint semantics (hue 0 = red / 0.5 = cyan), value (0 = black / 1 = white / neutral), <code>color-sat=0</code> degenerating to grey, and both alias pairs agreeing component-wise.</li><li><strong>B. Identity round trips</strong> (the gold standard, same method as hsl-cal): 24 probe colours through decompose → encode → blend, compared per pixel with the original, <strong>all ≤ 2/255</strong>: hue→Hue, saturation→Saturation, value→Value, lightness→LCh Lightness, luminance→Luminance, lch-hue→LCh Hue, lch-chroma→LCh Chroma (ranges 100 and 132), the three RGB channels→Lighten, and hue+saturation in series. Color / LCh Color are two-component modes whose identity needs the underlying saturation/chroma to match the parameters, so each gets dedicated probes: Color with S=100% and S=60% rings, LCh Color with a C=30 LCh ring.</li><li><strong>Transparent pixels</strong>: a 32×8 checkerboard (85/256 fully transparent), alpha compared per pixel; transparent areas must be Lab 0.</li></ul>
+<h2 id="technical-notes">Technical notes</h2>
+<ul><li>The output format is pinned to <code>CIE Lab alpha float</code>: the Lab/LCh modes write straight through with zero conversion (a=C·cos h, b=C·sin h <em>is</em> the definition of CIE LCh), while the HSL/RGB modes use <code>babl_fish</code> to convert each row to Lab, the same conversion GIMP uses internally, so no hand-written conversion drift creeps in.</li><li><strong>Transparent pixels in the RGB-domain modes must be placed in <code>rgb_line</code></strong>: handing a whole row to <code>babl_process</code> rewrites every pixel of <code>out_line</code>, so writing 0 only into <code>out_line</code> got overwritten by the intermediate row (uninitialised), leaving random alpha on transparent pixels. An earlier 2×1 case passed only because the heap happened to be zero; a 32×8 checkerboard exposed it. Fixed.</li><li>No aux pad, so it can sit on a grey layer as a GIMP 3 non-destructive filter (it is not blocked by <code>Gimp.DrawableFilter</code>'s refusal of aux operators), making the whole workflow non-destructive.</li><li>Transparent pixels (alpha ≤ 0) stay transparent.</li><li>Input <code>YA float</code>: an RGBA grey layer is converted to CIE luminance by babl automatically.</li></ul><div class="op-dl">
+  <div>
+    <h3>Retired — no download</h3>
+    <p>This operator is no longer compiled or shipped. For per-channel grading use
+       the <a href="hsl-levels.html">HSL</a>, <a href="hsb-levels.html">HSB</a>,
+       <a href="lch-levels.html">LCh</a>, <a href="cmyk-levels.html">CMYK</a> and
+       <a href="hsi-levels.html">HSI</a> levels instead — one step, no
+       decompose-then-encode round trip. The source stays in
+       <code>ops/gray-to-component/</code>; the reason is in the
+       <code>.disabled</code> file there.</p>
+  </div>
+</div><nav class="pager"><a class="prev" href="color-lookup.html"><span>Previous</span>Color Lookup</a><a class="next" href="color-mask-select.html"><span>Next</span>Mask by Color</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#mode-table-encoding-formulas-calibrated-by-identity-round-trips-in-hsl-cal">Mode table (encoding formulas calibrated by identity round trips in hsl-cal)</a></li>
+<li class="l2"><a href="#parameters">Parameters</a></li>
+<li class="l2"><a href="#typical-uses">Typical uses</a></li>
+<li class="l2"><a href="#verification">Verification</a></li>
+<li class="l2"><a href="#technical-notes">Technical notes</a></li></ul>
+</aside>
+</div></div>
 </main>
 <footer class="site-foot">
   <div>
-    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
-    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
-       与 Adobe、GIMP 官方均无隶属关系。</p>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
-    <a href="../guide.html">安装指南</a>
-    <span class="muted">3220ff6</span>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">0055287</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

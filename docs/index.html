@@ -11,13 +11,13 @@
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="feed.xml">
 </head>
 <body>
-<a class="skip" href="#main">跳到正文</a>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="index.html"><span class="dot"></span>gegl-color-ops</a>
   <nav>
-    <a href="index.html#ops">算子</a>
-    <a href="guide.html">安装</a>
-    <a href="index.html#download">下载</a>
+    <a href="index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
 </header>
@@ -162,7 +162,7 @@
   <div class="card-top">
     <span class="tag t-tone">影调与色阶</span>
     <code>lb:shadows-highlights</code>
-    <span class="badge warn">不推荐</span>
+    <span class="badge warn"><span class="l-zh">不推荐</span><span class="l-en">Not recommended</span></span>
   </div>
   <h3>Shadows/Highlights</h3>
   <p>等价 PS「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。</p>
@@ -358,7 +358,7 @@
   <div class="card-top">
     <span class="tag t-blend">混合与通道</span>
     <code>lb:gray-to-component</code>
-    <span class="badge off">已废弃</span>
+    <span class="badge off"><span class="l-zh">已废弃</span><span class="l-en">Retired</span></span>
   </div>
   <h3>Gray To Component</h3>
   <p>通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue…</p>
@@ -402,14 +402,14 @@
       <p>29 个 <code>.dll</code>（1.3 MB）。解到
          <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，重启 GIMP 即可。</p>
       <a class="btn primary" href="download/gegl-color-ops-windows-x64.zip">下载 gegl-color-ops-windows-x64.zip</a>
-      <p class="muted small">校验：<code>SHA256 607f95e55e24f4b11f23239e032b82e7…</code></p>
+      <p class="muted small">校验：<code>SHA256 b9b8144fff07851060b553c539e04770…</code></p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>Linux x86_64</h3></div>
       <p>28 个 <code>.so</code>（0.3 MB）。解到
          <code>~/.local/share/gegl-0.4/plug-ins</code>，重启 GIMP 即可。</p>
       <a class="btn" href="download/gegl-color-ops-linux-x64.zip">下载 gegl-color-ops-linux-x64.zip</a>
-      <p class="muted small">校验：<code>SHA256 3cb447e5b7cb8ce184c5ab9c47976e2a…</code></p>
+      <p class="muted small">校验：<code>SHA256 d8f6e3ad6bc4eb554461bf6ca950c9d3…</code></p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>单个算子</h3></div>
@@ -433,15 +433,14 @@
 </main>
 <footer class="site-foot">
   <div>
-    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
-    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
-       与 Adobe、GIMP 官方均无隶属关系。</p>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
-    <a href="guide.html">安装指南</a>
-    <span class="muted">3220ff6</span>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">0055287</span>
   </div>
 </footer>
 </body>

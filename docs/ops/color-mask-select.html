@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="Mask by Color · gegl-color-ops" data-title-en="Mask by Color · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,22 +9,37 @@
 <meta property="og:description" content="PS 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
-<a class="skip" href="#main">跳到正文</a>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
   <nav>
-    <a href="../index.html#ops">算子</a>
-    <a href="../guide.html">安装</a>
-    <a href="../index.html#download">下载</a>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
-     蒙版</p>
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 蒙版</p>
   <h1>Mask by Color</h1>
   <div class="meta">
     <code>lb:color-mask-select</code>
@@ -32,8 +47,7 @@
     <span>逐像素</span>
   </div>
   <p class="lede">PS 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览</p>
-</section>
-<div class="article-layout">
+</section><div class="article-layout">
   <article class="prose">
 <h2 id="行为变更记录2026-11-12-重写">行为变更记录（2026-11-12 重写）</h2>
 <p>旧实现有一个致命 bug：默认 <code>Min Saturation = 0</code> 时饱和度门限退化成 <code>smooth_step(s, 0, 0)</code>，对灰阶像素（s = 0）做 0/0 得 NaN，alpha 落盘即 0—— 所有灰阶在任何模式下都被判成透明，白/黑/中间调三个模式整体报废；<code>fuzziness = 0</code> 时同样 NaN。判定公式（通道差值 + 负起点过渡带）也让「容差」的含义随模式漂移。</p>
@@ -70,10 +84,90 @@ invert / colors(highlights|midtones|shadows|outOfGamut|skinTone)</code></pre>
 <h3 id="新增参数">新增参数</h3>
 <div class="table-wrap"><table><thead><tr><th>参数</th><th>默认</th><th>作用</th></tr></thead><tbody><tr><td><code>shadows-limit</code></td><td>64</td><td>阴影上限（低于它全选）</td></tr><tr><td><code>highlights-limit</code></td><td>192</td><td>高光下限（高于它全选）</td></tr><tr><td><code>midtone-low</code> / <code>midtone-high</code></td><td>64 / 192</td><td>中间调上下限</td></tr></tbody></table></div>
 <p>默认值也是实测出来的：PS 不传任何限制时，阴影 50% 交界在 85.8、高光在 167.7， 反解出来正是 limit=64/192 + 容差 20。</p>
-<p><strong>羽化在这三个模式里不参与</strong>——PS 的柔边完全由容差决定，硬塞一个羽化会破坏对拍。 色系预设与自定颜色仍是原来的容差窗模型（那部分没动）。</p><details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><blockquote><p>本文件是该滤镜的原始说明文档（构建命令按旧目录结构书写，已过时）。 统一构建方式请见工程根目录 <code>README.md</code> 与 <code>build.sh</code>。</p></blockquote>
-<h1>GEGL_GIMP_PLUGIN_color-mask-select</h1>
+<p><strong>羽化在这三个模式里不参与</strong>——PS 的柔边完全由容差决定，硬塞一个羽化会破坏对拍。 色系预设与自定颜色仍是原来的容差窗模型（那部分没动）。</p><div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>color-mask-select.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>color-mask-select.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/color-mask-select.dll">下载 color-mask-select.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/color-mask-select.so">下载 color-mask-select.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><a class="prev" href="gray-to-component.html"><span>上一个</span>Gray To Component</a><a class="next" href="channel-range-to-alpha.html"><span>下一个</span>Range → Alpha</a></nav><details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
+<h4 id="linux-原生版系统包安装的gimp">Linux 原生版（系统包安装的GIMP）</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
+<h4 id="linux-flatpak-容器版应用商店flatpak-gimp">Linux Flatpak 容器版（应用商店Flatpak GIMP）</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
+<h3 id="2-插件打开方式两种方法">2. 插件打开方式（两种方法）</h3>
+<p>安装完成后<strong>重启 GIMP</strong>，插件即可使用。</p>
+<h4 id="方法一菜单打开推荐">方法一：菜单打开（推荐）</h4>
+<p>菜单路径：<code>颜色 → SuperMrWang → Mask → Mask by Color</code></p>
+<h4 id="方法二gegl-操作打开">方法二：GEGL 操作打开</h4>
+<ol><li>顶部菜单点击：<code>滤镜 → 通用 → GEGL 操作</code></li><li>在弹出窗口的搜索框输入：<code>lb:color-mask-select</code></li><li>选中后点击「确定」即可使用插件</li></ol></details>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#行为变更记录2026-11-12-重写">行为变更记录（2026-11-12 重写）</a></li>
+<li class="l2"><a href="#高光-阴影-中间调改成-ps-实测模型2026-11-12-二次修订">高光 / 阴影 / 中间调改成 PS 实测模型（2026-11-12 二次修订）</a></li>
+<li class="l3"><a href="#先解决ps-色彩范围没法脚本化的误会">先解决「PS 色彩范围没法脚本化」的误会</a></li>
+<li class="l3"><a href="#参数键名别猜从二进制里挖">参数键名：别猜，从二进制里挖</a></li>
+<li class="l3"><a href="#实测出来的模型">实测出来的模型</a></li>
+<li class="l3"><a href="#精度对-ps-2025-实测0255-码">精度（对 PS 2025 实测，0–255 码）</a></li>
+<li class="l3"><a href="#新增参数">新增参数</a></li></ul>
+</aside>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Mask</p>
+  <h1>Mask by Color</h1>
+  <div class="meta">
+    <code>lb:color-mask-select</code>
+    <span class="tag t-mask">Mask</span>
+    <span>per-pixel</span>
+  </div>
+  <p class="lede">Photoshop's Color Range as a mask operator — colour presets, custom colour, and highlight/shadow/midtone modes calibrated against Photoshop 2025.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<h2 id="behaviour-change-rewritten-2026-11-12">Behaviour change (rewritten 2026-11-12)</h2>
+<p>The old implementation had a fatal bug: with the default <code>Min Saturation = 0</code> the saturation gate degenerated into <code>smooth_step(s, 0, 0)</code>, which is 0/0 for a grey pixel (s = 0) and yields NaN; alpha was written as 0, so <strong>every grey pixel was judged transparent in every mode</strong> — the white, black and midtone modes were entirely broken — and <code>fuzziness = 0</code> produced NaN too. The match formula (channel difference plus a negative-start transition band) also made "tolerance" mean something different in each mode.</p>
+<p>The rewritten unified model maps each pixel to a "mismatch" d ∈ [0,1] (0 = exact match) and sets <code>alpha = 1 − smoothstep(d, w·(1−feather), w)</code> with <strong>w = fuzziness/200</strong> (at fz=200 the window spans the largest possible mismatch: complementary hues, pure black ↔ pure white):</p>
+<div class="table-wrap"><table><thead><tr><th>Mode</th><th>Definition of d</th></tr></thead><tbody><tr><td>red/yellow/green/cyan/blue/magenta</td><td>hue-wheel distance (complement = 1), multiplied by the saturation gate — greys have no hue and do not take part</td></tr><tr><td>highlights</td><td>d = 1 − luminance</td></tr><tr><td>shadows</td><td>d = luminance</td></tr><tr><td>midtones</td><td>d = 2·|luminance − 0.5|</td></tr><tr><td>custom colour</td><td>perceptual RGB distance ÷ √3</td></tr></tbody></table></div>
+<ul><li>feather (0–100): width of the transition inside the tolerance window's inner edge; feather=10 fades over the inner 10% of the window</li><li>Min Saturation: floor on saturation for the colour presets, 0 = a small fixed floor</li><li>Invert (new): inverts the mask, like Photoshop's "Invert" checkbox</li><li>Red Overlay Preview now defaults to off: applying it with preview on bakes the red tint into the layer, so turn it off when you are done looking</li></ul>
+<p>Sixteen-patch regression: red / yellow / white / black / midtone / custom / invert / fz0 / fz200 all match the semantics above.</p>
+<h2 id="highlights-shadows-midtones-use-a-model-measured-from-photoshop">Highlights / shadows / midtones use a model measured from Photoshop</h2>
+<p>The unified model above still had a problem: <strong>one "tolerance" slider decided both the threshold and the softness</strong>, so tightening the range inevitably hardened the transition — while Photoshop has two independent sliders. That is exactly why it felt bad to use.</p>
+<h3 id="first-color-range-cannot-be-scripted-was-a-misunderstanding">First, "Color Range cannot be scripted" was a misunderstanding</h3>
+<p>Two earlier attempts ended with <code>Photoshop.exe</code> quitting, and the conclusion was written down as "Adobe's Color Range is not scriptable". There were two real traps:</p>
+<ol><li><strong>ExtendScript's <code>File</code> object has no <code>flush()</code>.</strong> <code>say()</code> called <code>f.writeln(s); f.flush();</code> — <code>writeln</code> had already written the line and <code>flush</code> threw, so the log never got past line 1 and it looked like PS crashed inside <code>executeAction</code>. With <code>open("a") / writeln / close</code> per line the log runs to the end.</li><li><code>executeAction('colorRange', desc, DialogModes.NO)</code> <strong>always worked</strong> — no dialog, no OK button. <code>DialogModes.ALL</code> is what hangs the script on a modal dialog.</li></ol>
+<p>Photoshop 2026 is blocked by a security policy on this machine (<code>reg.exe</code> blacklist), so <strong>PS 2025 (26.10.0)</strong> is the reference; the two versions behave the same for Color Range. The driver scripts live in <code>clrr-cal/</code>.</p>
+<h3 id="parameter-key-names-dig-them-out-of-the-binary-do-not-guess">Parameter key names: dig them out of the binary, do not guess</h3>
+<p>Keys such as <code>shadowsUpperLimit</code> can be found by searching <code>Photoshop.exe</code>, and the surrounding strings are the whole schema. The essential ones (which most tutorials online do not mention):</p>
+<pre><code>fuzziness / minimum / maximum           for sampled colours
+highlightsFuzziness
+midtonesFuzziness
+shadowsFuzziness                       &lt;- per tone mode, not a shared fuzziness
+highlightsLowerLimit
+midtonesLowerLimit / midtonesUpperLimit
+shadowsUpperLimit
+invert / colors(highlights|midtones|shadows|outOfGamut|skinTone)</code></pre>
+<p>A wrong key <strong>does not raise an error</strong>, it silently does nothing — feeding <code>fuzziness</code> to the shadow mode gave bit-identical output at 0 and 200, which is how this was found.</p>
+<h3 id="the-measured-model">The measured model</h3>
+<ul><li><strong>Luminance is Rec.601 in the gamma domain</strong> (0.299/0.587/0.114), not Lab L\*: at limit 100 the 50% crossing lands at luma 100.9, at limit 150 it lands at 149.0.</li><li><strong>The limit is a hard boundary and tolerance spreads the band by "how much is left before the extreme"</strong>:</li></ul>
+<div class="table-wrap"><table><thead><tr><th>Mode</th><th>Band</th></tr></thead><tbody><tr><td>shadows</td><td><code>band = fz·(255 − lim)</code>, from lim all the way to white</td></tr><tr><td>highlights</td><td><code>band = fz·lim</code>, from lim all the way to black</td></tr><tr><td>midtones</td><td>lower edge <code>fz·low</code> (to black), upper edge <code>fz·(255 − high)</code> (to white), intersected</td></tr></tbody></table></div>
+<p><code>fz</code> is Photoshop's 0–100 tolerance (this operator takes 0–200 and halves it internally), so <strong>tolerance at maximum means the band exactly reaches pure black/white</strong>, matching how PS feels.</p>
+<ul><li>The curve is not a plain smoothstep: the measured 50% point sits at <strong>0.555</strong> of the band (9 parameter sets, 53–58%), while a smoothstep puts it at 0.5 and comes out about 10 code values bright in the middle. It is <code>alpha = 1 − smoothstep(t^1.2)</code>, and 1.2 is the best power over 24 reference curves.</li></ul>
+<h3 id="accuracy-against-ps-2025-0255-code-values">Accuracy (against PS 2025, 0–255 code values)</h3>
+<ul><li>Over all 768 sampled points: <strong>mean 2.12 code values</strong>, max 32.3 (on the tail where alpha &lt; 20, i.e. the visible difference between "almost nothing selected" and "a little selected").</li><li>At integer limit/tolerance settings (fz = 0) the hard boundary is bit-exact.</li><li>Per-pixel recheck with <code>clrr-cal/verify_op.py</code>: 35 parameter sets on a 512 px ramp, whole-image comparison, mean 1.46 code values.</li></ul>
+<p><code>tools/check_color_mask_select.py</code> freezes that reference table into regression cases (<code>../clrr-cal/ps_color_range_ref.json</code>; skipped automatically when absent).</p>
+<h3 id="new-parameters">New parameters</h3>
+<div class="table-wrap"><table><thead><tr><th>Parameter</th><th>Default</th><th>Effect</th></tr></thead><tbody><tr><td><code>shadows-limit</code></td><td>64</td><td>Shadow upper limit (everything below is selected)</td></tr><tr><td><code>highlights-limit</code></td><td>192</td><td>Highlight lower limit (everything above is selected)</td></tr><tr><td><code>midtone-low</code> / <code>midtone-high</code></td><td>64 / 192</td><td>Midtone upper and lower limits</td></tr></tbody></table></div>
+<p>The defaults were also measured: with no limits passed, Photoshop's 50% crossings sit at 85.8 for shadows and 167.7 for highlights, which back-solves to limit=64/192 with tolerance 20.</p>
+<p><strong>Feather does not take part in these three modes</strong> — PS's soft edge is decided entirely by tolerance, and forcing a feather in would break the comparison. The colour presets and custom colour still use the tolerance-window model (unchanged).</p><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>color-mask-select.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>color-mask-select.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/color-mask-select.dll">Download color-mask-select.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/color-mask-select.so">Download color-mask-select.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><a class="prev" href="gray-to-component.html"><span>Previous</span>Gray to Component</a><a class="next" href="channel-range-to-alpha.html"><span>Next</span>Range → Alpha</a></nav><details class="legacy-intro"><summary>Original plugin docs<span class="muted"> — written when this was a standalone plug-in: the build commands assume the old directory layout and the menu paths have changed. The algorithm notes above supersede it.</span></summary><h1>GEGL_GIMP_PLUGIN_color-mask-select</h1>
 <p><img src="../assets/ops/color-mask-select/assets/colormaskselect.png" alt="colormaskselect" title="colormaskselect"></p>
-<h2 id="english">English</h2>
 <h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
 <h4 id="native-linux-system-installed-gimp">Native Linux (System installed GIMP)</h4>
 <pre><code class="language-bash">sh build_linux.sh
@@ -87,54 +181,67 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
 <p>Menu path: <code>Colors → SuperMrWang → Mask → Mask by Color</code></p>
 <h4 id="method-2-gegl-operation">Method 2: GEGL Operation</h4>
 <ol><li>Go to <code>Filters → Generic → GEGL Operations</code></li><li>In the search box, enter: <code>lb:color-mask-select</code></li><li>Select it and click <code>OK</code> to apply</li></ol>
-<hr>
-<h2 id="中文">中文</h2>
-<h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
-<h4 id="linux-原生版系统包安装的gimp">Linux 原生版（系统包安装的GIMP）</h4>
-<pre><code class="language-bash">sh build_linux.sh
-cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
-<h4 id="linux-flatpak-容器版应用商店flatpak-gimp">Linux Flatpak 容器版（应用商店Flatpak GIMP）</h4>
-<pre><code class="language-bash">sh build_linux.sh
-cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
-<h3 id="2-插件打开方式两种方法">2. 插件打开方式（两种方法）</h3>
-<p>安装完成后<strong>重启 GIMP</strong>，插件即可使用。</p>
-<h4 id="方法一菜单打开推荐">方法一：菜单打开（推荐）</h4>
-<p>菜单路径：<code>颜色 → SuperMrWang → Mask → Mask by Color</code></p>
-<h4 id="方法二gegl-操作打开">方法二：GEGL 操作打开</h4>
-<ol><li>顶部菜单点击：<code>滤镜 → 通用 → GEGL 操作</code></li><li>在弹出窗口的搜索框输入：<code>lb:color-mask-select</code></li><li>选中后点击「确定」即可使用插件</li></ol></details>
-    <div class="op-dl">
-  <div>
-    <h3>只要这一个</h3>
-    <p>Windows 模块 <code>color-mask-select.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>color-mask-select.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
-  </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/color-mask-select.dll">下载 color-mask-select.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/color-mask-select.so">下载 color-mask-select.so<span class="size">Linux x86_64</span></a></div>
-</div>
-    <nav class="pager"><a class="prev" href="gray-to-component.html"><span>上一个</span>Gray To Component</a><a class="next" href="channel-range-to-alpha.html"><span>下一个</span>Range → Alpha</a></nav>
+<hr></details>
   </article>
   <aside class="toc">
-  <p class="toc-title">本页目录</p>
-  <ul><li class="l2"><a href="#行为变更记录2026-11-12-重写">行为变更记录（2026-11-12 重写）</a></li>
-<li class="l2"><a href="#高光-阴影-中间调改成-ps-实测模型2026-11-12-二次修订">高光 / 阴影 / 中间调改成 PS 实测模型（2026-11-12 二次修订）</a></li>
-<li class="l3"><a href="#先解决ps-色彩范围没法脚本化的误会">先解决「PS 色彩范围没法脚本化」的误会</a></li>
-<li class="l3"><a href="#参数键名别猜从二进制里挖">参数键名：别猜，从二进制里挖</a></li>
-<li class="l3"><a href="#实测出来的模型">实测出来的模型</a></li>
-<li class="l3"><a href="#精度对-ps-2025-实测0255-码">精度（对 PS 2025 实测，0–255 码）</a></li>
-<li class="l3"><a href="#新增参数">新增参数</a></li></ul>
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#behaviour-change-rewritten-2026-11-12">Behaviour change (rewritten 2026-11-12)</a></li>
+<li class="l2"><a href="#highlights-shadows-midtones-use-a-model-measured-from-photoshop">Highlights / shadows / midtones use a model measured from Photoshop</a></li>
+<li class="l3"><a href="#first-color-range-cannot-be-scripted-was-a-misunderstanding">First, &quot;Color Range cannot be scripted&quot; was a misunderstanding</a></li>
+<li class="l3"><a href="#parameter-key-names-dig-them-out-of-the-binary-do-not-guess">Parameter key names: dig them out of the binary, do not guess</a></li>
+<li class="l3"><a href="#the-measured-model">The measured model</a></li>
+<li class="l3"><a href="#accuracy-against-ps-2025-0255-code-values">Accuracy (against PS 2025, 0–255 code values)</a></li>
+<li class="l3"><a href="#new-parameters">New parameters</a></li></ul>
 </aside>
-</div>
+</div></div>
 </main>
 <footer class="site-foot">
   <div>
-    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
-    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
-       与 Adobe、GIMP 官方均无隶属关系。</p>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
-    <a href="../guide.html">安装指南</a>
-    <span class="muted">3220ff6</span>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">0055287</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

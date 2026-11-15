@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="Calculations · gegl-color-ops" data-title-en="Calculations · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,22 +9,37 @@
 <meta property="og:description" content="PS 计算：两路通道按混合模式合成，输出灰度图或 alpha 蒙版">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
-<a class="skip" href="#main">跳到正文</a>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
   <nav>
-    <a href="../index.html#ops">算子</a>
-    <a href="../guide.html">安装</a>
-    <a href="../index.html#download">下载</a>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
-     混合与通道</p>
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 混合与通道</p>
   <h1>Calculations</h1>
   <div class="meta">
     <code>lb:calculations</code>
@@ -32,8 +47,7 @@
     <span>双输入 · 逐像素</span>
   </div>
   <p class="lede">PS 计算：两路通道按混合模式合成，输出灰度图或 alpha 蒙版</p>
-</section>
-<div class="article-layout">
+</section><div class="article-layout">
   <article class="prose">
 <blockquote><p><code>lb:calculations</code> · 菜单 <strong>颜色 → SuperMrWang → Blend → Calculations</strong> · 双输入（input + aux）</p></blockquote>
 <p>对应 Photoshop 的 <strong>图像 → 计算</strong>：从两路各取一个通道（可以各自反相），按混合模式 算出灰度结果，输出成灰蒙版或 alpha 蒙版。</p>
@@ -57,15 +71,13 @@
 <h2 id="测试-testing">测试 / Testing</h2>
 <pre><code class="language-bash">./build.sh
 python tools/check_blend.py     # 含 9 个计算用例：叠底出灰、反相源 2、alpha 模式、四种通道取值、
-                               # 源层透明与半透明覆盖率</code></pre>
-    <div class="op-dl">
+                               # 源层透明与半透明覆盖率</code></pre><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>calculations.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>calculations.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/calculations.dll">下载 calculations.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/calculations.so">下载 calculations.so<span class="size">Linux x86_64</span></a></div>
-</div>
-    <nav class="pager"><a class="prev" href="apply-image.html"><span>上一个</span>Apply Image</a><a class="next" href="channel-mixer-plus.html"><span>下一个</span>Channel Mixer Plus</a></nav>
+</div><nav class="pager"><a class="prev" href="apply-image.html"><span>上一个</span>Apply Image</a><a class="next" href="channel-mixer-plus.html"><span>下一个</span>Channel Mixer Plus</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
@@ -75,20 +87,104 @@ python tools/check_blend.py     # 含 9 个计算用例：叠底出灰、反相�
 <li class="l2"><a href="#行为细节-behaviour-notes">行为细节 / Behaviour notes</a></li>
 <li class="l2"><a href="#测试-testing">测试 / Testing</a></li></ul>
 </aside>
-</div>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Blend</p>
+  <h1>Calculations</h1>
+  <div class="meta">
+    <code>lb:calculations</code>
+    <span class="tag t-blend">Blend</span>
+    <span>two inputs · per-pixel</span>
+  </div>
+  <p class="lede">Photoshop's Image → Calculations: pull one channel from each of two sources, invert either, blend, and output a grey or alpha mask.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p><code>lb:calculations</code> · menu <strong>Colors → SuperMrWang → Blend → Calculations</strong> · two inputs (input + aux)</p>
+<p>Replicates Photoshop's <strong>Image → Calculations</strong>: take one channel from each of two sources (each optionally inverted), blend them into a greyscale result, and output it as a grey mask or an alpha mask.</p>
+<h2 id="parameters">Parameters</h2>
+<div class="table-wrap"><table><thead><tr><th>Parameter</th><th>Default</th><th>Notes</th></tr></thead><tbody><tr><td><code>source1-channel</code></td><td>Luminance</td><td>Channel read from the main input: R/G/B/luminance/alpha</td></tr><tr><td><code>invert-source1</code></td><td>no</td><td>Invert source 1</td></tr><tr><td><code>source2-channel</code></td><td>Luminance</td><td>Channel read from aux</td></tr><tr><td><code>invert-source2</code></td><td>no</td><td>Invert source 2</td></tr><tr><td><code>blend-mode</code></td><td>Multiply</td><td>26 modes, matching Photoshop's list</td></tr><tr><td><code>opacity</code></td><td>100</td><td>Blend strength</td></tr><tr><td><code>mask-enabled</code></td><td>no</td><td>Use one more channel as a mask</td></tr><tr><td><code>mask-channel</code></td><td>Luminance</td><td>Mask channel</td></tr><tr><td><code>invert-mask</code></td><td>no</td><td>Invert the mask</td></tr><tr><td><code>output-mode</code></td><td>grey mask</td><td>Grey mask (paste into a layer mask) or alpha mask (use directly as opacity)</td></tr></tbody></table></div>
+<h2 id="how-it-maps-to-photoshop">How it maps to Photoshop</h2>
+<div class="table-wrap"><table><thead><tr><th>Photoshop</th><th>Here</th></tr></thead><tbody><tr><td>Source 1: layer + channel + invert</td><td>input + <code>source1-channel</code> + <code>invert-source1</code></td></tr><tr><td>Source 2: layer + channel + invert</td><td>aux + <code>source2-channel</code> + <code>invert-source2</code></td></tr><tr><td>Blending / Opacity</td><td><code>blend-mode</code> / <code>opacity</code></td></tr><tr><td>Mask</td><td><code>mask-channel</code> + <code>invert-mask</code></td></tr><tr><td>Result: new document / new channel</td><td><code>output-mode</code> = grey mask; the grey layer works as a document or channel</td></tr><tr><td>Result: selection</td><td><code>output-mode</code> = alpha mask, then <strong>Select → Selection from Alpha</strong></td></tr></tbody></table></div>
+<p>Photoshop's "Result: selection" cannot be produced straight from a GEGL operator (operators only return pixels), so an alpha mask stands in for it: use it as the layer's opacity or convert it to a selection. "New document" is likewise replaced by a grey mask — copy that layer into a new image and you have a greyscale document.</p>
+<h2 id="getting-a-selection-or-channel-by-hand">Getting a selection or channel by hand</h2>
+<p>A GEGL op produces pixels and cannot touch selections, channels or layers, so the Result drop-down of Photoshop's dialog collapses to "grey mask / alpha mask" here. You can still get the other two without changing code:</p>
+<ol><li><strong>Ctrl+Shift+D to duplicate the layer — mandatory.</strong> A GEGL filter rewrites the pixels of the layer it runs on, unlike Photoshop's Calculations, so running on a copy is what keeps the original intact.</li><li>On the copy run <strong>Colors → SuperMrWang → Blend → Calculations</strong> with <code>Output</code> set to <strong>Mask (alpha)</strong>. This step matters: the alpha version writes the grey values into the layer's alpha, which is what "alpha → selection" needs; with a grey mask the alpha is always 1 and the conversion selects everything.</li><li>To get the selection, open <code>Filters → Python-Fu → Console</code> and paste one line:</li></ol>
+<pre><code class="language-python">   img = Gimp.get_images()[0]
+   img.select_item(Gimp.ChannelOps.REPLACE, img.get_selected_layers()[0])</code></pre>
+<p>(<code>select_item</code> is exactly "turn an item's alpha into a selection" and accepts layers and channels.) For a channel, follow up with <strong>Select → Save to Channel</strong> (<code>gimp-selection-save</code>).</p>
+<p>If you want a finished greyscale layer to use as a document, pick <code>Mask (grey)</code> in step 2 and then "Layer → Duplicate Layer → Paste as New Image".</p>
+<p>The Python plug-in in <code>plugin/blend</code> turns these steps into Result options in the dialog (selection / new alpha channel / grey layer / write into layer alpha), but that plug-in is currently disabled — see "Python plug-in" in the root README.</p>
+<h2 id="behaviour-notes">Behaviour notes</h2>
+<ul><li><strong>With no aux connected</strong> the second source falls back to the input, i.e. "blend two channels of the same image" — the most common use of Calculations (R minus G for a mask, for instance) works with a single input.</li><li>Difference-like modes (Difference / Subtract / Divide) are clipped to 0..1 after blending, matching 8-bit behaviour.</li><li>Darker / Lighter Color degenerate to Darken / Lighten here: there is only one channel, so there is no whole-pixel notion.</li><li>A grey mask outputs alpha = 1; an alpha mask outputs alpha = the grey value.</li><li><strong>Channel numbering</strong>: enum value 0 is a Composite placeholder (<code>enum_value_skip</code>, not shown in the drop-down) so that <code>Red/Green/Blue/Luminance/Alpha</code> line up with <code>LB_CH_*</code> in <code>common/blend.h</code>. Without the placeholder the whole table shifts by one — the default Luminance would silently read the blue channel.</li><li><strong>Transparent pixels of source 2 take no part.</strong> On a cut-out, text layer or any layer with a transparent background the holes hold RGB 0, and counting them as "black data" computes a solid black mask. Source 2's alpha is used as coverage: alpha = 0 gives a 0 mask (not selected) and a soft matte fades proportionally. When source 2's channel <em>is</em> alpha, that value is data, not coverage, so it is not multiplied in again.</li><li><strong>A source layer smaller than the input or offset</strong>: uncovered pixels take part as black (which means 0 in the mask). Photoshop requires both sources to match in size; this operator does not, and treats the missing part as black.</li></ul>
+<h2 id="testing">Testing</h2>
+<pre><code class="language-bash">./build.sh
+python tools/check_blend.py     # includes 9 Calculations cases: multiply to grey, inverted source 2,
+                                # alpha mode, all four channel sources, transparent and semi-transparent
+                                # source coverage</code></pre><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>calculations.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>calculations.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/calculations.dll">Download calculations.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/calculations.so">Download calculations.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><a class="prev" href="apply-image.html"><span>Previous</span>Apply Image</a><a class="next" href="channel-mixer-plus.html"><span>Next</span>Channel Mixer Plus</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#parameters">Parameters</a></li>
+<li class="l2"><a href="#how-it-maps-to-photoshop">How it maps to Photoshop</a></li>
+<li class="l2"><a href="#getting-a-selection-or-channel-by-hand">Getting a selection or channel by hand</a></li>
+<li class="l2"><a href="#behaviour-notes">Behaviour notes</a></li>
+<li class="l2"><a href="#testing">Testing</a></li></ul>
+</aside>
+</div></div>
 </main>
 <footer class="site-foot">
   <div>
-    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
-    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
-       与 Adobe、GIMP 官方均无隶属关系。</p>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
-    <a href="../guide.html">安装指南</a>
-    <span class="muted">3220ff6</span>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">0055287</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

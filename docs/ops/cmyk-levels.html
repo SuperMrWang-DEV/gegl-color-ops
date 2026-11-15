@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="CMYK Levels · gegl-color-ops" data-title-en="CMYK Levels · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,22 +9,37 @@
 <meta property="og:description" content="CMYK 四个分量各自设输入 / 输出黑白场与伽马">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
-<a class="skip" href="#main">跳到正文</a>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
   <nav>
-    <a href="../index.html#ops">算子</a>
-    <a href="../guide.html">安装</a>
-    <a href="../index.html#download">下载</a>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
-     影调与色阶</p>
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 影调与色阶</p>
   <h1>CMYK Levels</h1>
   <div class="meta">
     <code>lb:cmyk-levels</code>
@@ -32,8 +47,7 @@
     <span>整块区域</span>
   </div>
   <p class="lede">CMYK 四个分量各自设输入 / 输出黑白场与伽马</p>
-</section>
-<div class="article-layout">
+</section><div class="article-layout">
   <article class="prose">
 <p>菜单：<code>颜色 → SuperMrWang → Tone → CMYK Levels</code>（Filter 类）</p>
 <h2 id="概述">概述</h2>
@@ -50,15 +64,13 @@
 <div class="table-wrap"><table><thead><tr><th>用例</th><th>判据</th><th>实测</th></tr></thead><tbody><tr><td>恒等（默认参数）</td><td>与源图逐像素 ≤1 码</td><td>最大 0</td></tr><tr><td>C/M/Y 归零</td><td>全图中性（|R−G|、|G−B| ≤2）</td><td>0</td></tr><tr><td>K 拉满</td><td>全图最亮通道 ≤12</td><td>0</td></tr></tbody></table></div>
 <p>恒等 0 码说明 RGB→CMYK→RGB 这条 babl 往返在默认参数下不漂；后两条验证 「某个版归零/拉满必须产生可预期的画面」——也就是说色阶确实作用在对应的 印版上，没有错位。</p>
 <h2 id="已知事项">已知事项</h2>
-<ul><li>babl 的 CMYK 是<strong>没有纸白与油墨特性</strong>的简化分色，同一组 RGB 换算出的 墨量与实际印刷无关；它适合「按版做局部调整」这类操作，不适合当作打样数值。</li><li>CMYK 色域比 sRGB 小，来回转换会在饱和色上产生裁切（尤其纯绿/纯蓝）。</li><li>8 位/16 位模式下墨量量化台阶比 RGB 粗，重压 K 曲线时容易出现断层。</li></ul>
-    <div class="op-dl">
+<ul><li>babl 的 CMYK 是<strong>没有纸白与油墨特性</strong>的简化分色，同一组 RGB 换算出的 墨量与实际印刷无关；它适合「按版做局部调整」这类操作，不适合当作打样数值。</li><li>CMYK 色域比 sRGB 小，来回转换会在饱和色上产生裁切（尤其纯绿/纯蓝）。</li><li>8 位/16 位模式下墨量量化台阶比 RGB 粗，重压 K 曲线时容易出现断层。</li></ul><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>cmyk-levels.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>cmyk-levels.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/cmyk-levels.dll">下载 cmyk-levels.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/cmyk-levels.so">下载 cmyk-levels.so<span class="size">Linux x86_64</span></a></div>
-</div>
-    <nav class="pager"><a class="prev" href="lch-levels.html"><span>上一个</span>LCH Levels</a><a class="next" href="hsi-levels.html"><span>下一个</span>HSI Levels</a></nav>
+</div><nav class="pager"><a class="prev" href="lch-levels.html"><span>上一个</span>LCH Levels</a><a class="next" href="hsi-levels.html"><span>下一个</span>HSI Levels</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
@@ -68,20 +80,98 @@
 <li class="l2"><a href="#验证">验证</a></li>
 <li class="l2"><a href="#已知事项">已知事项</a></li></ul>
 </aside>
-</div>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Tone</p>
+  <h1>CMYK Levels</h1>
+  <div class="meta">
+    <code>lb:cmyk-levels</code>
+    <span class="tag t-tone">Tone</span>
+    <span>area</span>
+  </div>
+  <p class="lede">Independent levels for the C/M/Y/K plates — ink black and white points, gamma, output range — on babl's device-independent CMYK.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>Menu: <code>Colors → SuperMrWang → Tone → CMYK Levels</code> (a filter op)</p>
+<h2 id="overview">Overview</h2>
+<p>Independent levels for each of the four printing plates: ink black point, white point, gamma and output range. Use it for separations-level adjustments such as "darken the K plate's midtones" or "add contrast to cyan only".</p>
+<h2 id="colour-space">Colour space</h2>
+<p>The operator works on babl's <code>CMYKA float</code>; RGB↔CMYK is done by babl, the same conversion GIMP's "Decompose → CMYK" uses.</p>
+<p><strong>This is not an ICC separation.</strong> babl's CMYK includes black generation (in the GCR/UCR sense). Measured:</p>
+<div class="table-wrap"><table><thead><tr><th>RGB</th><th>C</th><th>M</th><th>Y</th><th>K</th></tr></thead><tbody><tr><td>neutral grey 0.5</td><td>0</td><td>0</td><td>0</td><td>78.6%</td></tr><tr><td>(0.8, 0.45, 0.2)</td><td>0</td><td>71.7%</td><td>94.5%</td><td>39.6%</td></tr><tr><td>pure red</td><td>0</td><td>100%</td><td>100%</td><td>0</td></tr></tbody></table></div>
+<p>So K is not <code>1−max(R,G,B)</code> — that would be 50% for grey 0.5, and this gives 78.6%. For a real prepress separation (SWOP/FOGRA profiles) you need an ICC workflow; this operator offers "device-independent babl separation + per-plate levels" and nothing more.</p>
+<h2 id="rules">Rules</h2>
+<ul><li>All four components are <strong>linear 0–100% ink channels</strong>: clamp → normalise → gamma → output range.</li><li><strong>K at maximum (output 100%) means solid black</strong>: with K=100 the CMY values no longer matter, since the whole image collapses into the black plate.</li><li><strong>C/M/Y at zero leaves only the K plate</strong>: a neutral greyscale image with no coloured ink.</li><li><strong>Levels map the ink that was already computed; they never re-run GCR.</strong> Pulling K from 78.6% to 90% does not make CMY drop to keep total area coverage in check. To "deepen K while reducing CMY" you adjust two curves by hand, or go ICC.</li><li>Crossing black and white points swap automatically; inverting the output range inverts the ink (white type becomes a solid).</li><li><strong>alpha ≤ 0 is passed through.</strong></li></ul>
+<h2 id="verification">Verification</h2>
+<p><code>python tools/check_color_levels.py cmyk</code> (3 cases):</p>
+<div class="table-wrap"><table><thead><tr><th>Case</th><th>Criterion</th><th>Measured</th></tr></thead><tbody><tr><td>identity (defaults)</td><td>≤1 code per pixel against the source</td><td>max 0</td></tr><tr><td>C/M/Y to zero</td><td>whole image neutral (|R−G|, |G−B| ≤ 2)</td><td>0</td></tr><tr><td>K at maximum</td><td>brightest channel ≤ 12 everywhere</td><td>0</td></tr></tbody></table></div>
+<p>The identity case at 0 codes shows the RGB→CMYK→RGB round trip through babl does not drift at default settings; the other two prove that zeroing or maxing a plate produces the expected picture — i.e. the levels really act on the plate they name.</p>
+<h2 id="known-issues">Known issues</h2>
+<ul><li>babl's CMYK is a <strong>simplified separation with no paper white or ink characteristics</strong>; the ink it computes from a given RGB has nothing to do with real printing. It suits "adjust one plate locally", not proofing numbers.</li><li>CMYK's gamut is smaller than sRGB, so round trips clip saturated colours (especially pure green and blue).</li><li>In 8- and 16-bit modes the ink quantisation step is coarser than in RGB, so a hard K curve shows banding.</li></ul><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>cmyk-levels.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>cmyk-levels.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/cmyk-levels.dll">Download cmyk-levels.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/cmyk-levels.so">Download cmyk-levels.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><a class="prev" href="lch-levels.html"><span>Previous</span>LCH Levels</a><a class="next" href="hsi-levels.html"><span>Next</span>HSI Levels</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#overview">Overview</a></li>
+<li class="l2"><a href="#colour-space">Colour space</a></li>
+<li class="l2"><a href="#rules">Rules</a></li>
+<li class="l2"><a href="#verification">Verification</a></li>
+<li class="l2"><a href="#known-issues">Known issues</a></li></ul>
+</aside>
+</div></div>
 </main>
 <footer class="site-foot">
   <div>
-    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
-    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
-       与 Adobe、GIMP 官方均无隶属关系。</p>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
-    <a href="../guide.html">安装指南</a>
-    <span class="muted">3220ff6</span>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">0055287</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

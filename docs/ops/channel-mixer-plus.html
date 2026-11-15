@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="Channel Mixer Plus · gegl-color-ops" data-title-en="Channel Mixer Plus · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,22 +9,37 @@
 <meta property="og:description" content="PS 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
-<a class="skip" href="#main">跳到正文</a>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
   <nav>
-    <a href="../index.html#ops">算子</a>
-    <a href="../guide.html">安装</a>
-    <a href="../index.html#download">下载</a>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
-     混合与通道</p>
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 混合与通道</p>
   <h1>Channel Mixer Plus</h1>
   <div class="meta">
     <code>lb:channel-mixer-plus</code>
@@ -32,13 +47,86 @@
     <span>逐像素</span>
   </div>
   <p class="lede">PS 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移</p>
-</section>
-<div class="article-layout">
+</section><div class="article-layout">
   <article class="prose">
-<details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><blockquote><p>本文件是该滤镜的原始说明文档（构建命令按旧目录结构书写，已过时）。 统一构建方式请见工程根目录 <code>README.md</code> 与 <code>build.sh</code>。</p></blockquote>
-<h1>GEGL_GIMP_PLUGIN_channnel-mixer-plus</h1>
+<h2 id="算法">算法</h2>
+<p>每路输出通道都是 RGB 三源通道的加权和，再加该通道自己的常数项：</p>
+<pre><code>R' = rr·R + rg·G + rb·B + r_off
+G' = gr·R + gg·G + gb·B + g_off
+B' = br·R + bg·G + bb·B + b_off</code></pre>
+<p>默认是单位矩阵（对角 1、其余 0）、常数全 0，所以什么都不动时算子等于直通。 结果裁到 0..1。增益允许 −2…2，既能加也能减某个通道。</p>
+<h2 id="单色">单色</h2>
+<p><code>monochrome</code> 打开后三路共用一组系数（<code>mono_r</code> / <code>mono_g</code> / <code>mono_b</code>，默认 0.33 / 0.33 / 0.34）加一个 <code>mono_offset</code>，输出灰图——就是 PS 那个单色勾选框。 此时逐通道矩阵被忽略，两套设置可以共存，来回切换不丢。</p>
+<h2 id="参数">参数</h2>
+<div class="table-wrap"><table><thead><tr><th>参数</th><th>默认</th><th>说明</th></tr></thead><tbody><tr><td><code>monochrome</code></td><td>关</td><td>单组系数出灰（PS 单色）</td></tr><tr><td><code>mono_r</code> / <code>mono_g</code> / <code>mono_b</code></td><td>0.33 / 0.33 / 0.34</td><td>单色权重，默认和为 1</td></tr><tr><td><code>mono_offset</code></td><td>0</td><td>单色常数</td></tr><tr><td><code>rr_gain</code> / <code>rg_gain</code> / <code>rb_gain</code></td><td>1 / 0 / 0</td><td>输出 R 取 R / G / B 的权重</td></tr><tr><td><code>gr_gain</code> / <code>gg_gain</code> / <code>gb_gain</code></td><td>0 / 1 / 0</td><td>输出 G 的三个权重</td></tr><tr><td><code>r_offset</code> / <code>g_offset</code> / <code>b_offset</code></td><td>0</td><td>各输出通道的常数项</td></tr></tbody></table></div>
+<h2 id="与-gegl-内置-channel-mixer-的差别">与 GEGL 内置 channel-mixer 的差别</h2>
+<p>GEGL 自带 <code>gegl:channel-mixer</code>，矩阵是一样的，但没有每通道常数，多一个 「保持明度」。本算子补上常数项（就是 PS 的「常数」滑杆），去掉保持明度： 加完常数再按亮度缩放，两个方向会互相拉扯。</p>
+<h2 id="验证">验证</h2>
+<p><code>python tools/check_gamma_domain.py</code>：单位矩阵下算子必须原样通过探针图。</p><div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>channel-mixer-plus.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>channel-mixer-plus.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/channel-mixer-plus.dll">下载 channel-mixer-plus.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/channel-mixer-plus.so">下载 channel-mixer-plus.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><a class="prev" href="calculations.html"><span>上一个</span>Calculations</a><a class="next" href="xyz-multiply.html"><span>下一个</span>Photo Filter</a></nav><details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
+<h4 id="linux-原生版系统包安装的gimp">Linux 原生版（系统包安装的GIMP）</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
+<h4 id="linux-flatpak-容器版应用商店flatpak-gimp">Linux Flatpak 容器版（应用商店Flatpak GIMP）</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
+<h3 id="2-插件打开方式两种方法">2. 插件打开方式（两种方法）</h3>
+<p>安装完成后<strong>重启 GIMP</strong>，插件即可使用。</p>
+<h4 id="方法一菜单打开推荐">方法一：菜单打开（推荐）</h4>
+<p>菜单路径：<code>颜色 → SuperMrWang → Blend → Channel Mixer Plus</code></p>
+<h4 id="方法二gegl-操作打开">方法二：GEGL 操作打开</h4>
+<ol><li>顶部菜单点击：<code>滤镜 → 通用 → GEGL 操作</code></li><li>在弹出窗口的搜索框输入：<code>lb:channel-mixer-plus</code></li><li>选中后点击「确定」即可使用插件</li></ol></details>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#算法">算法</a></li>
+<li class="l2"><a href="#单色">单色</a></li>
+<li class="l2"><a href="#参数">参数</a></li>
+<li class="l2"><a href="#与-gegl-内置-channel-mixer-的差别">与 GEGL 内置 channel-mixer 的差别</a></li>
+<li class="l2"><a href="#验证">验证</a></li></ul>
+</aside>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Blend</p>
+  <h1>Channel Mixer Plus</h1>
+  <div class="meta">
+    <code>lb:channel-mixer-plus</code>
+    <span class="tag t-blend">Blend</span>
+    <span>per-pixel</span>
+  </div>
+  <p class="lede">Photoshop's Channel Mixer — a 3×3 matrix from R/G/B into each output channel, plus a constant offset per channel and a monochrome mode.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p><code>lb:channel-mixer-plus</code> · menu <strong>Colors → SuperMrWang → Blend → Channel Mixer Plus</strong> · <code>GeglOperationPointFilter</code> (per-pixel)</p>
+<h2 id="what-it-does">What it does</h2>
+<p>Each output channel is a weighted sum of the three input channels plus its own constant offset:</p>
+<pre><code>R' = rr·R + rg·G + rb·B + r_off
+G' = gr·R + gg·G + gb·B + g_off
+B' = br·R + bg·G + bb·B + b_off</code></pre>
+<p>The defaults are the identity matrix (1 on the diagonal, 0 elsewhere) with every offset at 0, so the operator passes the image through untouched until you move something. Results are clipped to 0..1.</p>
+<h2 id="monochrome">Monochrome</h2>
+<p>With <code>monochrome</code> on, the three output channels share one set of coefficients (<code>mono_r</code> / <code>mono_g</code> / <code>mono_b</code>, plus <code>mono_offset</code>) and the image turns grey — the same thing Photoshop's monochrome checkbox does. The per-channel matrix is ignored in that mode, so you can keep both settings and flip between them.</p>
+<h2 id="parameters">Parameters</h2>
+<div class="table-wrap"><table><thead><tr><th>Parameter</th><th>Default</th><th>Notes</th></tr></thead><tbody><tr><td><code>monochrome</code></td><td>off</td><td>Single-coefficient grey output, PS style</td></tr><tr><td><code>mono_r</code> / <code>mono_g</code> / <code>mono_b</code></td><td>0.33 / 0.33 / 0.34</td><td>Monochrome weights (sum to 1 by default)</td></tr><tr><td><code>mono_offset</code></td><td>0</td><td>Monochrome constant</td></tr><tr><td><code>rr_gain</code>, <code>rg_gain</code>, <code>rb_gain</code></td><td>1, 0, 0</td><td>R out of R / G / B</td></tr><tr><td><code>gr_gain</code>, <code>gg_gain</code>, <code>gb_gain</code></td><td>0, 1, 0</td><td>G out of R / G / B</td></tr><tr><td><code>bg_gain</code> etc.</td><td>…</td><td>Blue row, same layout</td></tr><tr><td><code>r_offset</code>, <code>g_offset</code>, <code>b_offset</code></td><td>0</td><td>Constant added to each output channel</td></tr></tbody></table></div>
+<p>Every gain accepts −2…2, so you can subtract a channel as well as add it.</p>
+<h2 id="how-it-differs-from-gegls-built-in-channel-mixer">How it differs from GEGL's built-in channel-mixer</h2>
+<p>GEGL core ships a <code>gegl:channel-mixer</code> with the same matrix, but no per-channel constant and a "keep luminosity" option. This operator adds the offsets — which is what Photoshop's Constant sliders are — and leaves luminosity preservation out, because adding a constant and then rescaling luminance pulls the result in two directions at once.</p>
+<h2 id="testing">Testing</h2>
+<pre><code class="language-bash">./build.sh
+python tools/check_gamma_domain.py   # with the identity matrix the operation must
+                                     # pass the probe image through unchanged</code></pre><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>channel-mixer-plus.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>channel-mixer-plus.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/channel-mixer-plus.dll">Download channel-mixer-plus.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/channel-mixer-plus.so">Download channel-mixer-plus.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><a class="prev" href="calculations.html"><span>Previous</span>Calculations</a><a class="next" href="xyz-multiply.html"><span>Next</span>Photo Filter</a></nav><details class="legacy-intro"><summary>Original plugin docs<span class="muted"> — written when this was a standalone plug-in: the build commands assume the old directory layout and the menu paths have changed. The algorithm notes above supersede it.</span></summary><h1>GEGL_GIMP_PLUGIN_channnel-mixer-plus</h1>
 <p><img src="../assets/ops/channel-mixer-plus/assets/channnel-mixer-plus.png" alt="channnel-mixer-plus" title="channnel-mixer-plus"></p>
-<h2 id="english">English</h2>
 <h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
 <h4 id="native-linux-system-installed-gimp">Native Linux (System installed GIMP)</h4>
 <pre><code class="language-bash">sh build_linux.sh
@@ -52,45 +140,65 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
 <p>Menu path: <code>Colors → SuperMrWang → Blend → Channel Mixer Plus</code></p>
 <h4 id="method-2-gegl-operation">Method 2: GEGL Operation</h4>
 <ol><li>Go to <code>Filters → Generic → GEGL Operations</code></li><li>In the search box, enter: <code>lb:channel-mixer-plus</code></li><li>Select it and click <code>OK</code> to apply</li></ol>
-<hr>
-<h2 id="中文">中文</h2>
-<h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
-<h4 id="linux-原生版系统包安装的gimp">Linux 原生版（系统包安装的GIMP）</h4>
-<pre><code class="language-bash">sh build_linux.sh
-cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
-<h4 id="linux-flatpak-容器版应用商店flatpak-gimp">Linux Flatpak 容器版（应用商店Flatpak GIMP）</h4>
-<pre><code class="language-bash">sh build_linux.sh
-cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
-<h3 id="2-插件打开方式两种方法">2. 插件打开方式（两种方法）</h3>
-<p>安装完成后<strong>重启 GIMP</strong>，插件即可使用。</p>
-<h4 id="方法一菜单打开推荐">方法一：菜单打开（推荐）</h4>
-<p>菜单路径：<code>颜色 → SuperMrWang → Blend → Channel Mixer Plus</code></p>
-<h4 id="方法二gegl-操作打开">方法二：GEGL 操作打开</h4>
-<ol><li>顶部菜单点击：<code>滤镜 → 通用 → GEGL 操作</code></li><li>在弹出窗口的搜索框输入：<code>lb:channel-mixer-plus</code></li><li>选中后点击「确定」即可使用插件</li></ol></details>
-    <div class="op-dl">
-  <div>
-    <h3>只要这一个</h3>
-    <p>Windows 模块 <code>channel-mixer-plus.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>channel-mixer-plus.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
-  </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/channel-mixer-plus.dll">下载 channel-mixer-plus.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/channel-mixer-plus.so">下载 channel-mixer-plus.so<span class="size">Linux x86_64</span></a></div>
-</div>
-    <nav class="pager"><a class="prev" href="calculations.html"><span>上一个</span>Calculations</a><a class="next" href="xyz-multiply.html"><span>下一个</span>Photo Filter</a></nav>
+<hr></details>
   </article>
-  
-</div>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#what-it-does">What it does</a></li>
+<li class="l2"><a href="#monochrome">Monochrome</a></li>
+<li class="l2"><a href="#parameters">Parameters</a></li>
+<li class="l2"><a href="#how-it-differs-from-gegls-built-in-channel-mixer">How it differs from GEGL&#x27;s built-in channel-mixer</a></li>
+<li class="l2"><a href="#testing">Testing</a></li></ul>
+</aside>
+</div></div>
 </main>
 <footer class="site-foot">
   <div>
-    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
-    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
-       与 Adobe、GIMP 官方均无隶属关系。</p>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
-    <a href="../guide.html">安装指南</a>
-    <span class="muted">3220ff6</span>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">0055287</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

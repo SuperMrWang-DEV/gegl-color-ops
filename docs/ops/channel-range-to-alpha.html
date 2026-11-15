@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="Range → Alpha · gegl-color-ops" data-title-en="Range → Alpha · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,22 +9,37 @@
 <meta property="og:description" content="按通道数值区间（0–255）生成 alpha，实现「混合颜色带」式透明控制">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
-<a class="skip" href="#main">跳到正文</a>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
   <nav>
-    <a href="../index.html#ops">算子</a>
-    <a href="../guide.html">安装</a>
-    <a href="../index.html#download">下载</a>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
-     蒙版</p>
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 蒙版</p>
   <h1>Range → Alpha</h1>
   <div class="meta">
     <code>lb:channel-range-to-alpha</code>
@@ -32,26 +47,27 @@
     <span>逐像素</span>
   </div>
   <p class="lede">按通道数值区间（0–255）生成 alpha，实现「混合颜色带」式透明控制</p>
-</section>
-<div class="article-layout">
+</section><div class="article-layout">
   <article class="prose">
-<img src="../assets/ops/channel-range-to-alpha/channelrangetoalpha.png" width="700" alt="GEGL操作工具界面"><details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><h2 id="english">English</h2>
-<h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
-<h4 id="native-linux-system-installed-gimp">Native Linux (System installed GIMP)</h4>
-<pre><code class="language-bash">sh build_linux.sh
-cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
-<h4 id="flatpak-linux-flatpak-gimp">Flatpak Linux (Flatpak GIMP)</h4>
-<pre><code class="language-bash">sh build_linux.sh
-cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
-<h3 id="2-how-to-open-the-plugin-2-methods">2. How to Open the Plugin (2 Methods)</h3>
-<p>After installation, <strong>restart GIMP</strong> to activate the plugin.</p>
-<h4 id="method-1-menu-bar-recommended">Method 1: Menu Bar (Recommended)</h4>
-<p>Menu path: <code>Colors → SuperMrWang → Mask → Range → Alpha</code></p>
-<h4 id="method-2-gegl-operation">Method 2: GEGL Operation</h4>
-<ol><li>Go to <code>Filters → Generic → GEGL Operations</code></li><li>In the search box, enter: <code>lb:channel-range-to-alpha</code></li><li>Select it and click <code>OK</code> to apply</li></ol>
-<hr>
-<h2 id="中文">中文</h2>
-<h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
+<img src="../assets/ops/channel-range-to-alpha/channelrangetoalpha.png" width="700" alt="GEGL操作工具界面">
+<h2 id="算法">算法</h2>
+<p>选一路通道，划出一段「不透明区间」，区间外按线性斜坡淡出——即 PS 的 <strong>混合颜色带</strong>（图层样式里的「混合颜色带：灰色」那对滑杆）单独做成算子。</p>
+<pre><code>x &lt; l1  或  x &gt; r2        -&gt; alpha = 0
+l2 &lt;= x &lt;= r1             -&gt; alpha = 1
+l1 &lt;= x &lt;  l2             -&gt; alpha = (x - l1) / (l2 - l1)
+r1 &lt;  x &lt;= r2             -&gt; alpha = 1 - (x - r1) / (r2 - r1)</code></pre>
+<p><code>l1 → l2</code> 是阴影侧斜坡，<code>r1 → r2</code> 是高光侧斜坡。两个滑块重合（<code>l1 = l2</code> 或 <code>r1 = r2</code>）就是硬边，不是需要修复的退化情形。</p>
+<h2 id="通道">通道</h2>
+<div class="table-wrap"><table><thead><tr><th><code>channel</code></th><th>映射到 0–255 滑块刻度的量</th></tr></thead><tbody><tr><td><code>red</code> / <code>green</code> / <code>blue</code></td><td>伽马编码值 × 255</td></tr><tr><td><code>gray</code></td><td>0.299 R + 0.587 G + 0.114 B，× 255</td></tr><tr><td><code>lab-l</code></td><td>L*（0…100）归一到 0…255</td></tr><tr><td><code>lab-a</code></td><td>a*（−128…127）归一到 0…255</td></tr><tr><td><code>lab-b</code></td><td>b*（−128…127）归一到 0…255</td></tr></tbody></table></div>
+<p>LAB 在算子内部算（sRGB → XYZ（D65 矩阵）→ L\<em>a\</em>b\*），管线里不用再接转换节点。 滑块按 8 位 0–255 标定，所以算子要求伽马编码的采样值：喂线性光，整个区间会平移。</p>
+<h2 id="行为细节">行为细节</h2>
+<ul><li><strong>滑块重合只表示硬边。</strong> 早先版本会把重合的滑块强行拉开一个最小步长，结果 默认参数（0/0 与 255/255）凭空多出一段羽化带，通道值为 0 的像素不动任何滑块 就变透明。2026-11-12 已修。</li><li>每组滑块先排序再使用，<code>l1 &gt; l2</code> 不会把斜坡反过来。</li><li>alpha ≤ 0 的像素透传；其余情况 alpha 是<strong>乘</strong>进原有 alpha，而不是替换。</li><li>逐像素、无邻域，拖滑杆足够快。</li></ul><div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>channel-range-to-alpha.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>channel-range-to-alpha.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/channel-range-to-alpha.dll">下载 channel-range-to-alpha.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/channel-range-to-alpha.so">下载 channel-range-to-alpha.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><a class="prev" href="color-mask-select.html"><span>上一个</span>Mask by Color</a></nav><details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
 <h4 id="linux-原生版系统包安装的gimp">Linux 原生版（系统包安装的GIMP）</h4>
 <pre><code class="language-bash">sh build_linux.sh
 cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
@@ -64,30 +80,113 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
 <p>菜单路径：<code>颜色 → SuperMrWang → Mask → Range → Alpha</code></p>
 <h4 id="方法二gegl-操作打开">方法二：GEGL 操作打开</h4>
 <ol><li>顶部菜单点击：<code>滤镜 → 通用 → GEGL 操作</code></li><li>在弹出窗口的搜索框输入：<code>lb:channel-range-to-alpha</code></li><li>选中后点击「确定」即可使用插件</li></ol></details>
-    <div class="op-dl">
-  <div>
-    <h3>只要这一个</h3>
-    <p>Windows 模块 <code>channel-range-to-alpha.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>channel-range-to-alpha.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
-  </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/channel-range-to-alpha.dll">下载 channel-range-to-alpha.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/channel-range-to-alpha.so">下载 channel-range-to-alpha.so<span class="size">Linux x86_64</span></a></div>
-</div>
-    <nav class="pager"><a class="prev" href="color-mask-select.html"><span>上一个</span>Mask by Color</a></nav>
   </article>
-  
-</div>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#算法">算法</a></li>
+<li class="l2"><a href="#通道">通道</a></li>
+<li class="l2"><a href="#行为细节">行为细节</a></li></ul>
+</aside>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Mask</p>
+  <h1>Range → Alpha</h1>
+  <div class="meta">
+    <code>lb:channel-range-to-alpha</code>
+    <span class="tag t-mask">Mask</span>
+    <span>per-pixel</span>
+  </div>
+  <p class="lede">Turn a numeric range of one channel into alpha — Photoshop's "Blend If" as a standalone operator, with LAB and luminance channels available.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p><code>lb:channel-range-to-alpha</code> · menu <strong>Colors → SuperMrWang → Mask → Range → Alpha</strong> · <code>GeglOperationPointFilter</code> (per-pixel)</p>
+<h2 id="what-it-does">What it does</h2>
+<p>Pick one channel, set a window of values that should stay opaque, and everything outside it fades to transparent. This is Photoshop's <strong>Blend If</strong> (the sliders under "Blend If: Gray" in Layer Style) rebuilt as an operator you can stack anywhere.</p>
+<pre><code>x &lt; l1  or  x &gt; r2            -&gt; alpha = 0
+l2 &lt;= x &lt;= r1                 -&gt; alpha = 1
+l1 &lt;= x &lt;  l2                 -&gt; alpha = (x - l1) / (l2 - l1)
+r1 &lt;  x &lt;= r2                 -&gt; alpha = 1 - (x - r1) / (r2 - r1)</code></pre>
+<p><code>l1 → l2</code> is the shadow ramp, <code>r1 → r2</code> the highlight ramp. Setting <code>l1 = l2</code> (or <code>r1 = r2</code>) gives a hard edge instead of a ramp; that is deliberate, not a degenerate case to be repaired.</p>
+<h2 id="channels">Channels</h2>
+<div class="table-wrap"><table><thead><tr><th><code>channel</code></th><th>Value mapped to the 0–255 slider scale</th></tr></thead><tbody><tr><td><code>red</code>, <code>green</code>, <code>blue</code></td><td>the gamma-encoded channel × 255</td></tr><tr><td><code>gray</code></td><td>0.299 R + 0.587 G + 0.114 B, × 255</td></tr><tr><td><code>lab-l</code></td><td>L* (0…100) normalised to 0…255</td></tr><tr><td><code>lab-a</code></td><td>a* (−128…127) normalised to 0…255</td></tr><tr><td><code>lab-b</code></td><td>b* (−128…127) normalised to 0…255</td></tr></tbody></table></div>
+<p>LAB is computed inside the operator (sRGB → XYZ with a D65 matrix → L\<em>a\</em>b\*), so no extra conversion node is needed in the pipeline. The sliders are calibrated in 8-bit 0–255 terms, which is why the operator asks for gamma-encoded samples — feed it linear light and the whole window shifts.</p>
+<h2 id="behaviour-notes">Behaviour notes</h2>
+<ul><li><strong>Equal sliders mean a hard edge.</strong> An earlier version forced overlapping sliders apart by a minimum step; at the defaults (0/0 and 255/255) that invented a phantom feather band, so pixels with a zero-valued channel became transparent without the user touching anything. Fixed on 2026-11-12.</li><li>Slider pairs are sorted before use, so <code>l1 &gt; l2</code> cannot invert the ramp.</li><li>Alpha ≤ 0 pixels are passed through; otherwise alpha is multiplied into the input alpha rather than replacing it.</li><li>Everything is per-pixel with no neighbourhood, so it is cheap enough to sit under a slider.</li></ul><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>channel-range-to-alpha.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>channel-range-to-alpha.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/channel-range-to-alpha.dll">Download channel-range-to-alpha.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/channel-range-to-alpha.so">Download channel-range-to-alpha.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><a class="prev" href="color-mask-select.html"><span>Previous</span>Mask by Color</a></nav><details class="legacy-intro"><summary>Original plugin docs<span class="muted"> — written when this was a standalone plug-in: the build commands assume the old directory layout and the menu paths have changed. The algorithm notes above supersede it.</span></summary><h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
+<h4 id="native-linux-system-installed-gimp">Native Linux (System installed GIMP)</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
+<h4 id="flatpak-linux-flatpak-gimp">Flatpak Linux (Flatpak GIMP)</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
+<h3 id="2-how-to-open-the-plugin-2-methods">2. How to Open the Plugin (2 Methods)</h3>
+<p>After installation, <strong>restart GIMP</strong> to activate the plugin.</p>
+<h4 id="method-1-menu-bar-recommended">Method 1: Menu Bar (Recommended)</h4>
+<p>Menu path: <code>Colors → SuperMrWang → Mask → Range → Alpha</code></p>
+<h4 id="method-2-gegl-operation">Method 2: GEGL Operation</h4>
+<ol><li>Go to <code>Filters → Generic → GEGL Operations</code></li><li>In the search box, enter: <code>lb:channel-range-to-alpha</code></li><li>Select it and click <code>OK</code> to apply</li></ol>
+<hr></details>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#what-it-does">What it does</a></li>
+<li class="l2"><a href="#channels">Channels</a></li>
+<li class="l2"><a href="#behaviour-notes">Behaviour notes</a></li></ul>
+</aside>
+</div></div>
 </main>
 <footer class="site-foot">
   <div>
-    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
-    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
-       与 Adobe、GIMP 官方均无隶属关系。</p>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
-    <a href="../guide.html">安装指南</a>
-    <span class="muted">3220ff6</span>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">0055287</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

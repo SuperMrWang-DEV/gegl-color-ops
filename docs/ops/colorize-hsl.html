@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="Colorize · gegl-color-ops" data-title-en="Colorize · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,22 +9,37 @@
 <meta property="og:description" content="复刻 Photoshop「色相/饱和度」里的「着色」复选框">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
-<a class="skip" href="#main">跳到正文</a>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
   <nav>
-    <a href="../index.html#ops">算子</a>
-    <a href="../guide.html">安装</a>
-    <a href="../index.html#download">下载</a>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
-     色彩</p>
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 色彩</p>
   <h1>Colorize</h1>
   <div class="meta">
     <code>lb:colorize-hsl</code>
@@ -32,8 +47,7 @@
     <span>逐像素</span>
   </div>
   <p class="lede">复刻 Photoshop「色相/饱和度」里的「着色」复选框</p>
-</section>
-<div class="article-layout">
+</section><div class="article-layout">
   <article class="prose">
 <p>复刻 Photoshop「色相/饱和度」对话框里的<strong>「着色」复选框</strong>，按实测标定，不是凭经验的 近似（旧版实现用「颜色填充层 + Overlay 叠灰」，与 PS 无关，偏差很大，已废弃）。 标定过程与数据见 <code>colorize-cal/RESULTS.md</code>。</p>
 <ul><li>GEGL id：<code>lb:colorize-hsl</code></li><li>菜单：<code>Colors → SuperMrWang → Color → Colorize</code></li><li>类型：<code>GeglOperationPointFilter</code>（逐像素，无邻域）</li><li>参数：<code>hue</code>（0…360，绝对色相）、<code>saturation</code>（0…100，绝对值）、<code>lightness</code>（−100…100）</li></ul>
@@ -52,15 +66,13 @@ out = HSL2RGB(hue, saturation/100, L')</code></pre>
 <p>0.03 码就是 1 个 16 位 LSB（65535 满量程的 1/65535 ≈ 0.0039 码 × 8），来自 PS 那边 的浮点截断，不是模型误差。</p>
 <blockquote><p>注意：<code>tools/contact_sheet.py</code> 的 <code>read_png</code> 把 16 位按 <code>v*255//65535</code> <strong>整数下取整</strong>， 会把 32895 读成 127 而不是 128，凭空造出 1 码的假偏差。验收脚本因此改用 <code>bc-cal/readpng.py</code> 的浮点读取（<code>v/257</code>）。</p></blockquote>
 <h2 id="与-lbhue-saturation-的区别">与 <code>lb:hue-saturation</code> 的区别</h2>
-<p><code>lb:hue-saturation</code> 是<strong>增量</strong>模式（在像素自己的 H/S/L 上加偏移，六个色相区间可分别 调），对应 PS 未勾选「着色」时的行为。<code>lb:colorize-hsl</code> 是<strong>绝对</strong>模式：扔掉原有的 颜色，只保留明暗，整幅图变成一个单色调。两者互补，不能互相替代。</p>
-    <div class="op-dl">
+<p><code>lb:hue-saturation</code> 是<strong>增量</strong>模式（在像素自己的 H/S/L 上加偏移，六个色相区间可分别 调），对应 PS 未勾选「着色」时的行为。<code>lb:colorize-hsl</code> 是<strong>绝对</strong>模式：扔掉原有的 颜色，只保留明暗，整幅图变成一个单色调。两者互补，不能互相替代。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>colorize-hsl.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>colorize-hsl.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/colorize-hsl.dll">下载 colorize-hsl.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/colorize-hsl.so">下载 colorize-hsl.so<span class="size">Linux x86_64</span></a></div>
-</div>
-    <nav class="pager"><a class="prev" href="cmyk-primary-correction.html"><span>上一个</span>CMYK Primary</a><a class="next" href="match-color.html"><span>下一个</span>Match Color</a></nav>
+</div><nav class="pager"><a class="prev" href="cmyk-primary-correction.html"><span>上一个</span>CMYK Primary</a><a class="next" href="match-color.html"><span>下一个</span>Match Color</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
@@ -68,20 +80,98 @@ out = HSL2RGB(hue, saturation/100, L')</code></pre>
 <li class="l2"><a href="#验收">验收</a></li>
 <li class="l2"><a href="#与-lbhue-saturation-的区别">与 lb:hue-saturation 的区别</a></li></ul>
 </aside>
-</div>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Color</p>
+  <h1>Colorize</h1>
+  <div class="meta">
+    <code>lb:colorize-hsl</code>
+    <span class="tag t-color">Color</span>
+    <span>per-pixel</span>
+  </div>
+  <p class="lede">Photoshop's Colorize checkbox from Hue/Saturation — input hue and saturation are discarded, only lightness survives.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>Reproduces the <strong>"Colorize" checkbox</strong> in Photoshop's Hue/Saturation dialog, calibrated against measurements rather than approximated (the old build used a fill layer plus an Overlay grey and had nothing to do with PS; it is gone). The calibration data is in <code>colorize-cal/RESULTS.md</code>.</p>
+<ul><li>GEGL id: <code>lb:colorize-hsl</code></li><li>Menu: <code>Colors → SuperMrWang → Color → Colorize</code></li><li>Type: <code>GeglOperationPointFilter</code> (per-pixel, no neighbourhood)</li><li>Parameters: <code>hue</code> (0…360, absolute hue), <code>saturation</code> (0…100, absolute), <code>lightness</code> (−100…100)</li></ul>
+<h2 id="algorithm">Algorithm</h2>
+<p>Take HSL's L on <strong>sRGB encoded values</strong> (<code>R~G~B~A float</code>, the perceptual domain, not linear light), then:</p>
+<pre><code>t  = lightness / 100
+L' = L + t·(1−L)      (t &gt; 0)
+L' = L·(1+t)          (t &lt; 0)
+out = HSL2RGB(hue, saturation/100, L')</code></pre>
+<p>That is all. Three findings carry the whole model:</p>
+<ol><li><strong>The input pixel's H and S are discarded entirely.</strong> A hue ring with equal L and equal S, one full turn around the wheel, comes out with a spread of <strong>0.00 code values</strong> inside a single band — the output depends on input L alone.</li><li><strong>All three sliders are absolute, not relative.</strong> Hues 0/30/60/120/180/240/300 land exactly on the hue of the same name; saturations 25/50/75 land on HSL S = 0.250/0.500/0.750; lightness 0 leaves <code>L' = L</code>.</li><li><strong>The lightness slider is linear in L</strong>, moving exactly t/2 at the midpoint L=0.5 and nothing at either end. Outside 0 and 1 it clamps (l=+100 is white, l=−100 is black).</li></ol>
+<p>The hue slider <strong>does not wrap</strong>: negative values clamp to 0 (measured −20 gives pure red, not 340°). The operator handles that explicitly and <code>value_range</code> is 0…360.</p>
+<h2 id="acceptance">Acceptance</h2>
+<p><code>python tools/check_colorize_ps.py</code> renders the calibration chart through the gegl CLI and compares it with Photoshop 26.10's 16-bit export, pixel by pixel (in 8-bit code values):</p>
+<div class="table-wrap"><table><thead><tr><th>Metric</th><th>Result</th></tr></thead><tbody><tr><td>Parameter sets</td><td>104 (all lightness steps of 5, saturation steps of 5, hue steps of 20 plus fractional ones, 8 three-slider combinations)</td></tr><tr><td>Samples</td><td>512×256 each, 13.63 million pixels in total</td></tr><tr><td>Median</td><td>0.008 code</td></tr><tr><td>95th percentile</td><td>0.016 code</td></tr><tr><td>Max</td><td>0.03 code</td></tr></tbody></table></div>
+<p>0.03 code is one 16-bit LSB, coming from floating-point truncation on the Photoshop side rather than model error.</p>
+<blockquote><p>Note: <code>tools/contact_sheet.py</code>'s <code>read_png</code> converts 16-bit with <code>v*255//65535</code> (integer floor), which reads 32895 as 127 instead of 128 and invents a fake 1-code deviation. The acceptance script therefore uses the float reader in <code>bc-cal/readpng.py</code> (<code>v/257</code>).</p></blockquote>
+<h2 id="difference-from-lbhue-saturation">Difference from <code>lb:hue-saturation</code></h2>
+<p><code>lb:hue-saturation</code> is the <strong>relative</strong> mode (offset the pixel's own H/S/L, with six hue ranges adjustable separately), i.e. Photoshop with Colorize unchecked. <code>lb:colorize-hsl</code> is the <strong>absolute</strong> mode: it throws the existing colour away, keeps only the tonal structure, and turns the whole image into a monochrome tint. They are complementary, not interchangeable.</p><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>colorize-hsl.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>colorize-hsl.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/colorize-hsl.dll">Download colorize-hsl.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/colorize-hsl.so">Download colorize-hsl.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><a class="prev" href="cmyk-primary-correction.html"><span>Previous</span>CMYK Primary</a><a class="next" href="match-color.html"><span>Next</span>Match Color</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#algorithm">Algorithm</a></li>
+<li class="l2"><a href="#acceptance">Acceptance</a></li>
+<li class="l2"><a href="#difference-from-lbhue-saturation">Difference from lb:hue-saturation</a></li></ul>
+</aside>
+</div></div>
 </main>
 <footer class="site-foot">
   <div>
-    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
-    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
-       与 Adobe、GIMP 官方均无隶属关系。</p>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
-    <a href="../guide.html">安装指南</a>
-    <span class="muted">3220ff6</span>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">0055287</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

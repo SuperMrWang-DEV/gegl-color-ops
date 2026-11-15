@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="HSL 7 Bands · gegl-color-ops" data-title-en="HSL 8 Bands · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,22 +9,37 @@
 <meta property="og:description" content="红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，ACR 风格">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
-<a class="skip" href="#main">跳到正文</a>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
   <nav>
-    <a href="../index.html#ops">算子</a>
-    <a href="../guide.html">安装</a>
-    <a href="../index.html#download">下载</a>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
-     色彩</p>
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 色彩</p>
   <h1>HSL 7 Bands</h1>
   <div class="meta">
     <code>lb:hsl-seven</code>
@@ -32,11 +47,68 @@
     <span>逐像素</span>
   </div>
   <p class="lede">红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，ACR 风格</p>
-</section>
-<div class="article-layout">
+</section><div class="article-layout">
   <article class="prose">
-<blockquote><p>2026-11-12：按 ACR 8 段混色器补齐洋红段——原紫段 0.78~0.92 对半拆为 紫 0.78~0.85 与洋红 0.85~0.92。旧 7 段属性名与边界行为不变，算子 id 仍为 <code>lb:hsl-seven</code>（GIMP 存进 XCF 的字符串，不能改）。</p></blockquote><details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><p><img src="../assets/ops/hsl-seven/assets/hslseven.png" alt="hslseven" title="hslseven"></p>
-<h2 id="english">English</h2>
+<blockquote><p>2026-11-12：按 ACR 8 段混色器补齐洋红段——原紫段 0.78~0.92 对半拆为 紫 0.78~0.85 与洋红 0.85~0.92。旧 7 段属性名与边界行为不变，算子 id 仍为 <code>lb:hsl-seven</code>（GIMP 存进 XCF 的字符串，不能改）。</p></blockquote>
+<h2 id="这个算子做什么">这个算子做什么</h2>
+<p>八段色相（红 / 橙 / 黄 / 绿 / 青 / 蓝 / 紫 / 洋红）各带一组 H/S/L 偏移，共 24 个 滑块，按色相段加权叠加，段间由 <code>feather</code> 交叉淡化；饱和度低于 <code>min-saturation</code> 的灰像素可以选择跳过（灰没有有意义的色相）。参照物是 Adobe Camera Raw 的 HSL 面板： 只想压掉某几个色相的饱和、或者只把某个色相提亮，就拖那一段。</p>
+<h2 id="2026-11-12补上洋红段">2026-11-12：补上洋红段</h2>
+<p>Camera Raw 的混色器是八段，本算子原来只有七段。原紫段（0.78–0.92）对半拆成 紫 0.78–0.85 与洋红 0.85–0.92。</p>
+<p>原来七段的属性名与边界行为不变，算子 id 仍是 <code>lb:hsl-seven</code>——这个字符串是 GIMP 存进 XCF 的东西，不能改。</p>
+<h2 id="与-lbhue-saturation-的分工">与 lb:hue-saturation 的分工</h2>
+<p><code>lb:hue-saturation</code> 是 PS 的对话框：一个主控加六个色相区间，做的是相对偏移、在 HSL 上加减。本算子对应 Camera Raw 的混色器：八段、每段三个分量。思路相同，面板与数值 都不同，看惯哪个用哪个。</p><div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>hsl-seven.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>hsl-seven.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hsl-seven.dll">下载 hsl-seven.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/hsl-seven.so">下载 hsl-seven.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><a class="prev" href="ps-hue-saturation.html"><span>上一个</span>Hue/Saturation (PS)</a><a class="next" href="color-balance.html"><span>下一个</span>Color Balance</a></nav><details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
+<h4 id="linux-原生版系统包安装的gimp">Linux 原生版（系统包安装的GIMP）</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
+<h4 id="linux-flatpak-容器版应用商店flatpak-gimp">Linux Flatpak 容器版（应用商店Flatpak GIMP）</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
+<h3 id="2-插件打开方式两种方法">2. 插件打开方式（两种方法）</h3>
+<p>安装完成后<strong>重启 GIMP</strong>，插件即可使用。</p>
+<h4 id="方法一菜单打开推荐">方法一：菜单打开（推荐）</h4>
+<p>菜单路径：<code>颜色 → SuperMrWang → Color → HSL 8 Bands</code></p>
+<h4 id="方法二gegl-操作打开">方法二：GEGL 操作打开</h4>
+<ol><li>顶部菜单点击：<code>滤镜 → 通用 → GEGL 操作</code></li><li>在弹出窗口的搜索框输入：<code>lb:hsl-seven</code></li><li>选中后点击「确定」即可使用插件</li></ol></details>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#这个算子做什么">这个算子做什么</a></li>
+<li class="l2"><a href="#2026-11-12补上洋红段">2026-11-12：补上洋红段</a></li>
+<li class="l2"><a href="#与-lbhue-saturation-的分工">与 lb:hue-saturation 的分工</a></li></ul>
+</aside>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Color</p>
+  <h1>HSL 8 Bands</h1>
+  <div class="meta">
+    <code>lb:hsl-seven</code>
+    <span class="tag t-color">Color</span>
+    <span>per-pixel</span>
+  </div>
+  <p class="lede">Eight hue bands (red, orange, yellow, green, cyan, blue, purple, magenta), each with its own H/S/L shift — Camera Raw's HSL panel.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p><code>lb:hsl-seven</code> · menu <strong>Colors → SuperMrWang → Color → HSL 8 Bands</strong> · <code>GeglOperationPointFilter</code> (per-pixel)</p>
+<h2 id="what-it-does">What it does</h2>
+<p>Eight hue bands — red, orange, yellow, green, cyan, blue, purple, magenta — each with its own hue, saturation and lightness shift: 24 sliders in all, weighted by hue band and summed, with <code>feather</code> cross-fading adjacent bands. Pixels below <code>min-saturation</code> (greys, which have no meaningful hue) can be skipped.</p>
+<p>The reference is Adobe Camera Raw's HSL panel: pull one band's saturation down to desaturate just those hues, or push a band's lightness to open up one colour without touching the rest.</p>
+<h2 id="change-of-2026-11-12-the-magenta-band-was-added">Change of 2026-11-12: the magenta band was added</h2>
+<p>Camera Raw's mixer has eight bands; this operator had seven. The old purple band (0.78–0.92) is now split in half: purple 0.78–0.85 and magenta 0.85–0.92.</p>
+<p>The seven original property names and their boundary behaviour are unchanged, and the operator id stays <code>lb:hsl-seven</code> — that string is what GIMP stores in XCF files and cannot be renamed.</p>
+<h2 id="relation-to-lbhue-saturation">Relation to <code>lb:hue-saturation</code></h2>
+<p><code>lb:hue-saturation</code> is Photoshop's dialog: a master control plus six hue ranges, relative offsets, HSL arithmetic. This one is Camera Raw's mixer: eight bands, all three components per band. Same idea, different layout and different numbers — pick the one whose panel you are used to.</p><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>hsl-seven.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>hsl-seven.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hsl-seven.dll">Download hsl-seven.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/hsl-seven.so">Download hsl-seven.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><a class="prev" href="ps-hue-saturation.html"><span>Previous</span>Hue/Saturation (PS)</a><a class="next" href="color-balance.html"><span>Next</span>Color Balance</a></nav><details class="legacy-intro"><summary>Original plugin docs<span class="muted"> — written when this was a standalone plug-in: the build commands assume the old directory layout and the menu paths have changed. The algorithm notes above supersede it.</span></summary><p><img src="../assets/ops/hsl-seven/assets/hslseven.png" alt="hslseven" title="hslseven"></p>
 <h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
 <h4 id="native-linux-system-installed-gimp">Native Linux (System installed GIMP)</h4>
 <pre><code class="language-bash">sh build_linux.sh
@@ -50,45 +122,63 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
 <p>Menu path: <code>Colors → SuperMrWang → Color → HSL 8 Bands</code></p>
 <h4 id="method-2-gegl-operation">Method 2: GEGL Operation</h4>
 <ol><li>Go to <code>Filters → Generic → GEGL Operations</code></li><li>In the search box, enter: <code>lb:hsl-seven</code></li><li>Select it and click <code>OK</code> to apply</li></ol>
-<hr>
-<h2 id="中文">中文</h2>
-<h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
-<h4 id="linux-原生版系统包安装的gimp">Linux 原生版（系统包安装的GIMP）</h4>
-<pre><code class="language-bash">sh build_linux.sh
-cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
-<h4 id="linux-flatpak-容器版应用商店flatpak-gimp">Linux Flatpak 容器版（应用商店Flatpak GIMP）</h4>
-<pre><code class="language-bash">sh build_linux.sh
-cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
-<h3 id="2-插件打开方式两种方法">2. 插件打开方式（两种方法）</h3>
-<p>安装完成后<strong>重启 GIMP</strong>，插件即可使用。</p>
-<h4 id="方法一菜单打开推荐">方法一：菜单打开（推荐）</h4>
-<p>菜单路径：<code>颜色 → SuperMrWang → Color → HSL 8 Bands</code></p>
-<h4 id="方法二gegl-操作打开">方法二：GEGL 操作打开</h4>
-<ol><li>顶部菜单点击：<code>滤镜 → 通用 → GEGL 操作</code></li><li>在弹出窗口的搜索框输入：<code>lb:hsl-seven</code></li><li>选中后点击「确定」即可使用插件</li></ol></details>
-    <div class="op-dl">
-  <div>
-    <h3>只要这一个</h3>
-    <p>Windows 模块 <code>hsl-seven.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>hsl-seven.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
-  </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hsl-seven.dll">下载 hsl-seven.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/hsl-seven.so">下载 hsl-seven.so<span class="size">Linux x86_64</span></a></div>
-</div>
-    <nav class="pager"><a class="prev" href="ps-hue-saturation.html"><span>上一个</span>Hue/Saturation (PS)</a><a class="next" href="color-balance.html"><span>下一个</span>Color Balance</a></nav>
+<hr></details>
   </article>
-  
-</div>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#what-it-does">What it does</a></li>
+<li class="l2"><a href="#change-of-2026-11-12-the-magenta-band-was-added">Change of 2026-11-12: the magenta band was added</a></li>
+<li class="l2"><a href="#relation-to-lbhue-saturation">Relation to lb:hue-saturation</a></li></ul>
+</aside>
+</div></div>
 </main>
 <footer class="site-foot">
   <div>
-    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
-    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
-       与 Adobe、GIMP 官方均无隶属关系。</p>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
-    <a href="../guide.html">安装指南</a>
-    <span class="muted">3220ff6</span>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">dev</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

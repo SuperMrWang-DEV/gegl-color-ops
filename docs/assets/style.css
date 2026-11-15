@@ -87,10 +87,33 @@ code, pre { font-family: var(--mono); }
   background: conic-gradient(from 210deg, #ef4444, #f59e0b, #22c55e, #06b6d4, #6366f1, #ef4444);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
 }
-.site-head nav { display: flex; gap: 22px; font-size: 14.5px; }
+.site-head nav { display: flex; gap: 22px; font-size: 14.5px; margin-left: auto; }
 .site-head nav a { color: var(--muted); }
 .site-head nav a:hover { color: var(--text); text-decoration: none; }
 .site-head nav a.ext::after { content: " ↗"; font-size: 11px; opacity: .55; }
+
+/* ---- 语言切换 ----
+ * 双语页面把两套内容同时写在 HTML 里，只显示 <html data-lang> 指定的那套。
+ * 这样切换不用请求、不用重排 remote，随便哪个语言的链接都能直接分享
+ * （?lang=en）。中文为默认，没有 data-lang 时就是中文。 */
+html:not([data-lang="en"]) .l-en,
+html[data-lang="en"] .l-zh { display: none !important; }
+
+.lang-sw {
+  display: inline-flex; align-items: center; gap: 2px;
+  padding: 2px; border: 1px solid var(--line); border-radius: 999px;
+  background: var(--panel-2); flex: none;
+}
+.lang-sw button {
+  font: inherit; font-size: 12.5px; line-height: 1; letter-spacing: .02em;
+  padding: 6px 10px; border: 0; border-radius: 999px; cursor: pointer;
+  background: transparent; color: var(--muted);
+}
+.lang-sw button:hover { color: var(--text); }
+.lang-sw button[aria-pressed="true"] {
+  background: var(--panel); color: var(--text);
+  box-shadow: 0 1px 2px rgba(16,24,40,.1);
+}
 
 main { max-width: var(--max); margin: 0 auto; padding: 0 24px 80px; }
 
@@ -336,7 +359,8 @@ main::before {
   font-size: 22px; margin: 44px 0 12px; padding-top: 20px;
   border-top: 1px solid var(--line-soft);
 }
-.prose > h2:first-child { border-top: none; padding-top: 0; margin-top: 12px; }
+.prose > h2:first-child,
+.prose > div > h2:first-child { border-top: none; padding-top: 0; margin-top: 12px; }
 .prose h3 { font-size: 17px; margin: 30px 0 8px; }
 .prose h4 { font-size: 15px; margin: 22px 0 6px; color: var(--muted); }
 .prose p { margin: 14px 0; }
@@ -442,8 +466,9 @@ main::before {
 .foot-links { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start; }
 
 @media (max-width: 640px) {
-  .site-head { padding: 12px 16px; }
+  .site-head { padding: 12px 16px; flex-wrap: wrap; row-gap: 8px; }
   .site-head nav { gap: 14px; font-size: 13.5px; }
+  .lang-sw button { padding: 5px 9px; font-size: 12px; }
   main { padding: 0 16px 64px; }
   .hero { padding-top: 48px; }
   .hero h1 { font-size: 32px; }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="Match Color · gegl-color-ops" data-title-en="Match Color · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,22 +9,37 @@
 <meta property="og:description" content="PS 匹配颜色：把另一张图（或另一层）的 Lab* 统计量迁移到本层">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
-<a class="skip" href="#main">跳到正文</a>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
   <nav>
-    <a href="../index.html#ops">算子</a>
-    <a href="../guide.html">安装</a>
-    <a href="../index.html#download">下载</a>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
-     色彩</p>
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 色彩</p>
   <h1>Match Color</h1>
   <div class="meta">
     <code>lb:match-color</code>
@@ -32,8 +47,7 @@
     <span>双输入</span>
   </div>
   <p class="lede">PS 匹配颜色：把另一张图（或另一层）的 L<em>a</em>b* 统计量迁移到本层</p>
-</section>
-<div class="article-layout">
+</section><div class="article-layout">
   <article class="prose">
 <p>Photoshop「图像 → 调整 → 匹配颜色」的复刻：把<strong>另一张图 / 另一个图层</strong>的 颜色统计量迁移到本层。内核是 Reinhard 等 2001 年提出、PS 沿用至今的 L\<em>a\</em>b\* 均值-方差仿射迁移。</p>
 <h2 id="模型">模型</h2>
@@ -53,15 +67,13 @@
 "D:/fastsoftware/GIMP 3/bin/gimp-console-3.2.exe" -i -c -d -f \
     --batch-interpreter=python-fu-eval \
     -b "exec(open(r'&lt;repo&gt;/tools/check_match_color.py').read())" --quit</code></pre>
-<p>17 项：恒等、均值迁移、方差缩放、亮度/颜色强度滑杆两端、渐隐 50/100、 中和（含输出均值 ≈0 断言）、aux 透明洞不进统计、目标透明像素 alpha 保留、 100 行跨块一致、无 aux 恒等、极端映射不越界。期望值由 Python 镜像模型算出， Lab 读数直接取自 babl（与算子同一转换路径，不循环论证）。</p>
-    <div class="op-dl">
+<p>17 项：恒等、均值迁移、方差缩放、亮度/颜色强度滑杆两端、渐隐 50/100、 中和（含输出均值 ≈0 断言）、aux 透明洞不进统计、目标透明像素 alpha 保留、 100 行跨块一致、无 aux 恒等、极端映射不越界。期望值由 Python 镜像模型算出， Lab 读数直接取自 babl（与算子同一转换路径，不循环论证）。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>match-color.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>match-color.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/match-color.dll">下载 match-color.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/match-color.so">下载 match-color.so<span class="size">Linux x86_64</span></a></div>
-</div>
-    <nav class="pager"><a class="prev" href="colorize-hsl.html"><span>上一个</span>Colorize</a><a class="next" href="apply-image.html"><span>下一个</span>Apply Image</a></nav>
+</div><nav class="pager"><a class="prev" href="colorize-hsl.html"><span>上一个</span>Colorize</a><a class="next" href="apply-image.html"><span>下一个</span>Apply Image</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
@@ -71,20 +83,101 @@
 <li class="l2"><a href="#细则">细则</a></li>
 <li class="l2"><a href="#验证">验证</a></li></ul>
 </aside>
-</div>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Color</p>
+  <h1>Match Color</h1>
+  <div class="meta">
+    <code>lb:match-color</code>
+    <span class="tag t-color">Color</span>
+    <span>two inputs</span>
+  </div>
+  <p class="lede">Photoshop's Match Color — Reinhard's Lab mean/variance transfer from another layer or image, with Luminance, Color Intensity, Fade and Neutralize.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>A reproduction of Photoshop's <strong>Image → Adjustments → Match Color</strong>: transfer the colour statistics of <strong>another image or layer</strong> onto this one. The core is the L\<em>a\</em>b\* mean–variance affine transfer proposed by Reinhard et al. in 2001, which Photoshop still uses.</p>
+<h2 id="model">Model</h2>
+<p>Working in CIELAB (D50), per channel, for L, a and b:</p>
+<pre><code>out = (v − μ_target) · (σ_source / σ_target) + μ_source</code></pre>
+<p>Statistics are computed over the <strong>whole layer</strong> (Photoshop does the same), with the source coming from the layer wired to the <code>aux</code> pad. With no aux connected the source falls back to this layer itself, i.e. an identity map.</p>
+<h2 id="mapping-to-photoshops-sliders">Mapping to Photoshop's sliders</h2>
+<div class="table-wrap"><table><thead><tr><th>Photoshop</th><th>Here</th><th>Semantics (model-aligned, not code-calibrated)</th></tr></thead><tbody><tr><td>Luminance (1–200, default 100)</td><td><code>luminance</code></td><td>Scales how much of the L map applies: <code>k = slider/100</code>, and the map converges as <code>lerp(1, ratio, k)</code>. 100 = exact match, 200 = double correction, 1 = almost nothing</td></tr><tr><td>Color Intensity (default 100)</td><td><code>color-intensity</code></td><td>Same, for a/b only</td></tr><tr><td>Fade (0–100)</td><td><code>fade</code></td><td>Multiplies the whole map by <code>(1 − fade/100)</code>; equivalent to PS's Edit → Fade</td></tr><tr><td>Neutralize</td><td><code>neutralize</code></td><td>Forces the output a/b means to 0 (removes the cast) while L is untouched; the source still supplies contrast</td></tr></tbody></table></div>
+<blockquote><p>Photoshop 2025's Match Color <strong>has no scripting interface</strong> (no DOM API for the dialog, and both <code>Mk</code> and <code>matchColor</code> are refused), so there is no measured reference to calibrate against. This is model alignment, not black-box calibration — the same situation as Levels, and stated here honestly.</p></blockquote>
+<h2 id="global-statistics-tiled-rendering">Global statistics, tiled rendering</h2>
+<p>GEGL's <code>process</code> only sees a small tile at a time, while means and variances need the whole layer:</p>
+<ul><li>on the first <code>process</code>, input and aux are scanned once (in Lab, accumulating sum/sum²) and cached on the operation instance (guarded by a mutex, keyed by buffer pointer + extent + level);</li><li>later tiles reuse the cache, so <strong>dragging a slider in the preview does not recompute</strong>;</li><li>if the source layer changes (a non-destructive preview), tick "Refresh stats" once and it resets itself.</li></ul>
+<h2 id="details">Details</h2>
+<ul><li><strong>Transparent pixels do not enter the statistics</strong>: both target and source drop alpha ≤ 0, so a cut-out's holes cannot drag the statistics toward black (a trap already hit once in Apply Image / Calculations).</li><li><strong>σ guard</strong>: σ &lt; 1e-3 is treated as a constant channel and the ratio becomes 1. A flat-colour source just shifts the output mean to its own mean colour (the <code>(v − μt)</code> term is 0 anyway).</li><li><strong>Clipping</strong>: output L to [0, 100], a/b to [−128, 127], matching Photoshop working in 8-bit L\<em>a\</em>b\*.</li><li><strong>Nothing to do with "only the intersection acts"</strong>: Match Color is not a per-pixel blend. The source only donates statistics and the map applies to the whole target layer — exactly Photoshop's behaviour.</li><li>The map is affine, so geometry need not line up: the source layer can be any size or offset.</li></ul>
+<h2 id="verification">Verification</h2>
+<pre><code class="language-bash">./build.sh
+"D:/fastsoftware/GIMP 3/bin/gimp-console-3.2.exe" -i -c -d -f \
+    --batch-interpreter=python-fu-eval \
+    -b "exec(open(r'&lt;repo&gt;/tools/check_match_color.py').read())" --quit</code></pre>
+<p>17 cases: identity, mean transfer, variance scaling, both ends of the Luminance and Color Intensity sliders, Fade 50/100, Neutralize (including an assertion that the output mean is ≈0), transparent aux holes excluded from the statistics, target alpha preserved, 100-row cross-tile consistency, identity without aux, and extreme maps staying in range. Expected values come from a Python mirror of the model, with Lab readings taken straight from babl (the same conversion path as the operator, so the test does not argue in a circle).</p><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>match-color.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>match-color.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/match-color.dll">Download match-color.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/match-color.so">Download match-color.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><a class="prev" href="colorize-hsl.html"><span>Previous</span>Colorize</a><a class="next" href="apply-image.html"><span>Next</span>Apply Image</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#model">Model</a></li>
+<li class="l2"><a href="#mapping-to-photoshops-sliders">Mapping to Photoshop&#x27;s sliders</a></li>
+<li class="l2"><a href="#global-statistics-tiled-rendering">Global statistics, tiled rendering</a></li>
+<li class="l2"><a href="#details">Details</a></li>
+<li class="l2"><a href="#verification">Verification</a></li></ul>
+</aside>
+</div></div>
 </main>
 <footer class="site-foot">
   <div>
-    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
-    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
-       与 Adobe、GIMP 官方均无隶属关系。</p>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
-    <a href="../guide.html">安装指南</a>
-    <span class="muted">3220ff6</span>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">0055287</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

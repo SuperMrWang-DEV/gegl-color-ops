@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="LAB Levels · gegl-color-ops" data-title-en="LAB Levels · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,22 +9,37 @@
 <meta property="og:description" content="LAB 三通道各自设输入 / 输出黑白场与伽马">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
-<a class="skip" href="#main">跳到正文</a>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
   <nav>
-    <a href="../index.html#ops">算子</a>
-    <a href="../guide.html">安装</a>
-    <a href="../index.html#download">下载</a>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
-     影调与色阶</p>
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 影调与色阶</p>
   <h1>LAB Levels</h1>
   <div class="meta">
     <code>lb:lab-levels</code>
@@ -32,8 +47,7 @@
     <span>整块区域</span>
   </div>
   <p class="lede">LAB 三通道各自设输入 / 输出黑白场与伽马</p>
-</section>
-<div class="article-layout">
+</section><div class="article-layout">
   <article class="prose">
 <p>菜单：<code>颜色 → SuperMrWang → Tone → LAB Levels</code>（Filter 类）</p>
 <h2 id="概述">概述</h2>
@@ -50,15 +64,13 @@
     --batch-interpreter=python-fu-eval \
     -b "exec(open(r'&lt;repo&gt;/tools/check_lab_levels.py').read())" --quit</code></pre>
 <h2 id="已知事项">已知事项</h2>
-<ul><li>a/b gamma≠1 时中性附近的微小色度会被放大（gamma=2 时 0.008 → 1.0）， 这是绕轴 gamma 曲线本身的形状（近中性斜率大），PS 同类操作一致； 对噪声明显的图建议配合蒙版或较小 gamma 使用。</li><li>相比旧版（自带 D65 转换），同一输入的数值结果会有轻微差异（白点口径 从 D65 变为 D50），旧 XCF 中挂载的本滤镜输出会略有不同。</li></ul>
-    <div class="op-dl">
+<ul><li>a/b gamma≠1 时中性附近的微小色度会被放大（gamma=2 时 0.008 → 1.0）， 这是绕轴 gamma 曲线本身的形状（近中性斜率大），PS 同类操作一致； 对噪声明显的图建议配合蒙版或较小 gamma 使用。</li><li>相比旧版（自带 D65 转换），同一输入的数值结果会有轻微差异（白点口径 从 D65 变为 D50），旧 XCF 中挂载的本滤镜输出会略有不同。</li></ul><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>lab-levels.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>lab-levels.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lab-levels.dll">下载 lab-levels.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/lab-levels.so">下载 lab-levels.so<span class="size">Linux x86_64</span></a></div>
-</div>
-    <nav class="pager"><a class="prev" href="levels.html"><span>上一个</span>Levels</a><a class="next" href="hsl-levels.html"><span>下一个</span>HSL Levels</a></nav>
+</div><nav class="pager"><a class="prev" href="levels.html"><span>上一个</span>Levels</a><a class="next" href="hsl-levels.html"><span>下一个</span>HSL Levels</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
@@ -69,20 +81,99 @@
 <li class="l2"><a href="#验证">验证</a></li>
 <li class="l2"><a href="#已知事项">已知事项</a></li></ul>
 </aside>
-</div>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Tone</p>
+  <h1>LAB Levels</h1>
+  <div class="meta">
+    <code>lb:lab-levels</code>
+    <span class="tag t-tone">Tone</span>
+    <span>area</span>
+  </div>
+  <p class="lede">Levels on CIELAB L, a and b — perceptual lightness and the two colour axes, each with its own curve.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>Menu: <code>Colors → SuperMrWang → Tone → LAB Levels</code> (a filter op)</p>
+<h2 id="overview">Overview</h2>
+<p>Independent levels for CIELAB's L/a/b channels: input black/white point, gamma, output range. L controls lightness, a (green–magenta) and b (blue–yellow) control colour cast — adjusting a/b leaves lightness and neutral colours untouched, which is what separates this from RGB levels.</p>
+<h2 id="colour-space">Colour space</h2>
+<p>The operator works on babl's <code>CIE Lab alpha float</code> (<strong>D50 white point</strong>); RGB↔Lab is babl's job, so the numbers agree with GIMP's own Lab tools (the pointer dialog, the Lab mode of Curves) and with <code>lb:match-color</code>. Doing levels in Lab is a perceptual mapping and does not rely on a "linear light" assumption (an older build carried its own D65 linear RGB→XYZ conversion; that is gone).</p>
+<h2 id="rules">Rules</h2>
+<ul><li><strong>a/b gamma rotates around the neutral axis at 0</strong>: the negative half <code>[in_black, 0]</code> and the positive half <code>[0, in_white]</code> are each normalised before the gamma. A neutral pixel (a=b=0, any grey) stays put at any gamma; dragging a/b gamma only changes how strong the coloured midtones lean.</li><li><strong>Crossed black and white points swap automatically</strong>: if the input black point is pulled past the white point (or the reverse), the swapped range is used and the image does not collapse to one colour.</li><li><strong>Inverted output (negative) works</strong>: with output low &gt; high the map is reversed and clamped to the real bounds — an inverted L is a lightness negative, inverted a/b are chroma negatives.</li><li><strong>Pixels with alpha ≤ 0 pass through</strong>; the alpha channel is always preserved.</li><li>L is clipped to <code>[0, 100]</code>, a/b to <code>[-128, 127]</code>; the output clamps automatically.</li><li>L's gamma is ordinary levels semantics (around the midpoint of the input range), unlike a/b's rotation around the neutral axis.</li></ul>
+<h2 id="performance">Performance</h2>
+<p>The levels map is a monotone 1D function, so <code>process</code> builds 4096-entry lookup tables for L and for each half-axis of a/b, then does one lookup plus a linear interpolation per pixel — no per-pixel <code>powf</code>. The half-axis split exists because the around-the-axis map has a discontinuous derivative at 0, and interpolating across 0 amplified tiny near-neutral inputs (a +0.03 used to come out as +1.95). The tables are rebuilt deterministically per <code>process</code>, so they agree across tiles.</p>
+<h2 id="verification">Verification</h2>
+<p><code>tools/check_lab_levels.py</code> (21 cases via gimp-console): identity, neutral grey stays neutral, gamma up and down, black/white remap and clipping, inverted-output monotonicity, crossed points, transparent pass-through, alpha preservation, and a whole-set check with combined parameters. Expected values come from a Python mirror of the same levels rules, compared pixel by pixel (the input buffer is created in Lab format, so mirror and operator see the same numbers).</p>
+<pre><code class="language-bash">"D:/fastsoftware/GIMP 3/bin/gimp-console-3.2.exe" -i -c -d -f \
+    --batch-interpreter=python-fu-eval \
+    -b "exec(open(r'&lt;repo&gt;/tools/check_lab_levels.py').read())" --quit</code></pre>
+<h2 id="known-issues">Known issues</h2>
+<ul><li>With a/b gamma ≠ 1, small chroma near neutral is amplified (gamma=2 turns 0.008 into 1.0). That is the shape of an around-the-axis gamma curve (steep near the axis) and Photoshop behaves the same way. On noisy images, use a mask or a smaller gamma.</li><li>Compared with the old build (which carried its own D65 conversion) results differ slightly for the same input (the white point moved from D65 to D50), so old XCF files with this filter applied render a little differently.</li></ul><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>lab-levels.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>lab-levels.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lab-levels.dll">Download lab-levels.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/lab-levels.so">Download lab-levels.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><a class="prev" href="levels.html"><span>Previous</span>Levels</a><a class="next" href="hsl-levels.html"><span>Next</span>HSL Levels</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#overview">Overview</a></li>
+<li class="l2"><a href="#colour-space">Colour space</a></li>
+<li class="l2"><a href="#rules">Rules</a></li>
+<li class="l2"><a href="#performance">Performance</a></li>
+<li class="l2"><a href="#verification">Verification</a></li>
+<li class="l2"><a href="#known-issues">Known issues</a></li></ul>
+</aside>
+</div></div>
 </main>
 <footer class="site-foot">
   <div>
-    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
-    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
-       与 Adobe、GIMP 官方均无隶属关系。</p>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
-    <a href="../guide.html">安装指南</a>
-    <span class="muted">3220ff6</span>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">0055287</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

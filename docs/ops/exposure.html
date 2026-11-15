@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="Exposure EV · gegl-color-ops" data-title-en="Exposure EV · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,22 +9,37 @@
 <meta property="og:description" content="PS 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
-<a class="skip" href="#main">跳到正文</a>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
   <nav>
-    <a href="../index.html#ops">算子</a>
-    <a href="../guide.html">安装</a>
-    <a href="../index.html#download">下载</a>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
-     影调与色阶</p>
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 影调与色阶</p>
   <h1>Exposure EV</h1>
   <div class="meta">
     <code>lb:exposure</code>
@@ -32,8 +47,7 @@
     <span>整块区域</span>
   </div>
   <p class="lede">PS 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）</p>
-</section>
-<div class="article-layout">
+</section><div class="article-layout">
   <article class="prose">
 <h2 id="两条公式按输入精度自动选路">两条公式，按输入精度自动选路</h2>
 <p><code>precision</code> 属性：<code>auto</code>（默认）/ <code>encoded</code>（强制 8 位）/ <code>linear</code>（强制 32 位）。 auto 读输入 pad 的源格式：整数格式（<code>u8</code> / <code>u16</code>）走分支一，浮点格式 （<code>float</code> / <code>half</code> / <code>double</code>）走分支二。16 位图同样是伽马编码，所以和 8 位共用 分支一。</p>
@@ -51,10 +65,70 @@ v2 = clamp(v1, 0, ∞)^(1/gamma)</code></pre>
 <h2 id="验收">验收</h2>
 <pre><code class="language-bash">python tools/check_exposure.py</code></pre>
 <p>12 组参数（EV −3…+2、offset ±0.15、gamma 0.45…2.2）× 64 级灰阶：</p>
-<ul><li>分支一对拍 Java <code>exposureChannel</code>：最大 <strong>0.00 码</strong></li><li>分支二对拍 Java <code>exposureChannel2</code>：最大 <strong>0.00 码</strong></li><li>整数 PNG 输入下 <code>auto</code> 与 <code>encoded</code> 逐像素完全相同（0 处不同）</li><li>浮点 EXR 输入下 <code>auto</code> 与 <code>linear</code> 完全相同，与 <code>encoded</code> 在 2944 个像素上不同 —— 说明 auto 真的切了分支，而不只是多了个开关</li></ul><details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><blockquote><p>本文件是该滤镜的原始说明文档（构建命令按旧目录结构书写，已过时）。 统一构建方式请见工程根目录 <code>README.md</code> 与 <code>build.sh</code>。</p></blockquote>
-<h1>GEGL_GIMP_PLUGIN_ps-exposure</h1>
+<ul><li>分支一对拍 Java <code>exposureChannel</code>：最大 <strong>0.00 码</strong></li><li>分支二对拍 Java <code>exposureChannel2</code>：最大 <strong>0.00 码</strong></li><li>整数 PNG 输入下 <code>auto</code> 与 <code>encoded</code> 逐像素完全相同（0 处不同）</li><li>浮点 EXR 输入下 <code>auto</code> 与 <code>linear</code> 完全相同，与 <code>encoded</code> 在 2944 个像素上不同 —— 说明 auto 真的切了分支，而不只是多了个开关</li></ul><div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>lb-exposure.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>lb-exposure.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lb-exposure.dll">下载 lb-exposure.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/lb-exposure.so">下载 lb-exposure.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><a class="prev" href="hsi-levels.html"><span>上一个</span>HSI Levels</a><a class="next" href="brightness-contrast.html"><span>下一个</span>Brightness/Contrast</a></nav><details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
+<h4 id="linux-原生版系统包安装的gimp">Linux 原生版（系统包安装的GIMP）</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
+<h4 id="linux-flatpak-容器版应用商店flatpak-gimp">Linux Flatpak 容器版（应用商店Flatpak GIMP）</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
+<h3 id="2-插件打开方式两种方法">2. 插件打开方式（两种方法）</h3>
+<p>安装完成后<strong>重启 GIMP</strong>，插件即可使用。</p>
+<h4 id="方法一菜单打开推荐">方法一：菜单打开（推荐）</h4>
+<p>菜单路径：<code>颜色 → SuperMrWang → Tone → Exposure EV</code></p>
+<h4 id="方法二gegl-操作打开">方法二：GEGL 操作打开</h4>
+<ol><li>顶部菜单点击：<code>滤镜 → 通用 → GEGL 操作</code></li><li>在弹出窗口的搜索框输入：<code>lb:exposure</code></li><li>选中后点击「确定」即可使用插件</li></ol></details>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#两条公式按输入精度自动选路">两条公式，按输入精度自动选路</a></li>
+<li class="l3"><a href="#分支一整数格式srgb-伽马编码值">分支一：整数格式（sRGB 伽马编码值）</a></li>
+<li class="l3"><a href="#分支二浮点格式线性光">分支二：浮点格式（线性光）</a></li>
+<li class="l2"><a href="#验收">验收</a></li></ul>
+</aside>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Tone</p>
+  <h1>Exposure EV</h1>
+  <div class="meta">
+    <code>lb:exposure</code>
+    <span class="tag t-tone">Tone</span>
+    <span>area</span>
+  </div>
+  <p class="lede">Photoshop's Exposure adjustment with two formulas — 8-bit sRGB and 32-bit linear — chosen automatically from the input precision.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>Menu: <code>Colors → SuperMrWang → Tone → Exposure EV</code></p>
+<h2 id="two-formulas-picked-from-the-input-precision">Two formulas, picked from the input precision</h2>
+<p><code>precision</code> property: <code>auto</code> (default) / <code>encoded</code> (force the 8-bit path) / <code>linear</code> (force the 32-bit path). <code>auto</code> reads the source format of the input pad: integer formats (<code>u8</code> / <code>u16</code>) take branch one, float formats (<code>float</code> / <code>half</code> / <code>double</code>) take branch two. 16-bit images are gamma-encoded as well, so they share branch one with 8-bit.</p>
+<h3 id="branch-one-integer-formats-srgb-gamma-encoded-values">Branch one: integer formats (sRGB gamma-encoded values)</h3>
+<pre><code>v1 = min(c · 2^(EV/2.2), 1)
+v2 = clamp(v1^2.2 + offset, 0, 1)^(1/2.2)
+v3 = v2^(1/gamma)</code></pre>
+<p>Multiplying by <code>2^(EV/2.2)</code> in the gamma domain is exactly equivalent to multiplying by <code>2^EV</code> in linear light and saves two exponentiations; <code>offset</code> is a linear-light quantity, hence the single decode to 2.2 in the middle and the re-encode afterwards.</p>
+<p><strong>The <code>min(…, 1)</code> cannot be dropped.</strong> Highlights are clipped first and the offset is added afterwards, which is what lets a negative offset pull blown highlights back. Skip it and <code>EV&gt;0</code> with a negative offset pushes the whole bright region to solid white. The old implementation was missing this line.</p>
+<h3 id="branch-two-float-formats-linear-light">Branch two: float formats (linear light)</h3>
+<pre><code>v1 = c · 2^EV + offset
+v2 = clamp(v1, 0, ∞)^(1/gamma)</code></pre>
+<p>The input is already linear, so there is no 2.2 round trip; exposure is one multiply and the offset is added directly.</p>
+<p><strong>One difference from the Java version</strong>: Java ends with <code>clamp(…, 0, 1)</code>, this operator only clamps the lower bound. 32-bit images allow HDR, and truncating to 0…1 would flatten the highlights; negative values must be clamped or <code>pow</code> returns NaN.</p>
+<h2 id="acceptance">Acceptance</h2>
+<pre><code class="language-bash">python tools/check_exposure.py</code></pre>
+<p>12 parameter sets (EV −3…+2, offset ±0.15, gamma 0.45…2.2) × 64 grey levels:</p>
+<ul><li>branch one against Java's <code>exposureChannel</code>: max <strong>0.00 code values</strong></li><li>branch two against Java's <code>exposureChannel2</code>: max <strong>0.00 code values</strong></li><li>with an integer PNG, <code>auto</code> and <code>encoded</code> are pixel-identical (0 differences)</li><li>with a float EXR, <code>auto</code> and <code>linear</code> are identical and differ from <code>encoded</code> on 2944 pixels — proof that <code>auto</code> really switches branches rather than adding an inert switch</li></ul><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>lb-exposure.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>lb-exposure.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lb-exposure.dll">Download lb-exposure.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/lb-exposure.so">Download lb-exposure.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><a class="prev" href="hsi-levels.html"><span>Previous</span>HSI Levels</a><a class="next" href="brightness-contrast.html"><span>Next</span>Brightness/Contrast</a></nav><details class="legacy-intro"><summary>Original plugin docs<span class="muted"> — written when this was a standalone plug-in: the build commands assume the old directory layout and the menu paths have changed. The algorithm notes above supersede it.</span></summary><h1>GEGL_GIMP_PLUGIN_ps-exposure</h1>
 <p><img src="../assets/ops/exposure/assets/pic.png" alt="pic" title="pic"></p>
-<h2 id="english">English</h2>
 <h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
 <h4 id="native-linux-system-installed-gimp">Native Linux (System installed GIMP)</h4>
 <pre><code class="language-bash">sh build_linux.sh
@@ -68,51 +142,64 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
 <p>Menu path: <code>Colors → SuperMrWang → Tone → Exposure EV</code></p>
 <h4 id="method-2-gegl-operation">Method 2: GEGL Operation</h4>
 <ol><li>Go to <code>Filters → Generic → GEGL Operations</code></li><li>In the search box, enter: <code>lb:exposure</code></li><li>Select it and click <code>OK</code> to apply</li></ol>
-<hr>
-<h2 id="中文">中文</h2>
-<h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
-<h4 id="linux-原生版系统包安装的gimp">Linux 原生版（系统包安装的GIMP）</h4>
-<pre><code class="language-bash">sh build_linux.sh
-cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
-<h4 id="linux-flatpak-容器版应用商店flatpak-gimp">Linux Flatpak 容器版（应用商店Flatpak GIMP）</h4>
-<pre><code class="language-bash">sh build_linux.sh
-cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
-<h3 id="2-插件打开方式两种方法">2. 插件打开方式（两种方法）</h3>
-<p>安装完成后<strong>重启 GIMP</strong>，插件即可使用。</p>
-<h4 id="方法一菜单打开推荐">方法一：菜单打开（推荐）</h4>
-<p>菜单路径：<code>颜色 → SuperMrWang → Tone → Exposure EV</code></p>
-<h4 id="方法二gegl-操作打开">方法二：GEGL 操作打开</h4>
-<ol><li>顶部菜单点击：<code>滤镜 → 通用 → GEGL 操作</code></li><li>在弹出窗口的搜索框输入：<code>lb:exposure</code></li><li>选中后点击「确定」即可使用插件</li></ol></details>
-    <div class="op-dl">
-  <div>
-    <h3>只要这一个</h3>
-    <p>Windows 模块 <code>lb-exposure.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>lb-exposure.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
-  </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lb-exposure.dll">下载 lb-exposure.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/lb-exposure.so">下载 lb-exposure.so<span class="size">Linux x86_64</span></a></div>
-</div>
-    <nav class="pager"><a class="prev" href="hsi-levels.html"><span>上一个</span>HSI Levels</a><a class="next" href="brightness-contrast.html"><span>下一个</span>Brightness/Contrast</a></nav>
+<hr></details>
   </article>
   <aside class="toc">
-  <p class="toc-title">本页目录</p>
-  <ul><li class="l2"><a href="#两条公式按输入精度自动选路">两条公式，按输入精度自动选路</a></li>
-<li class="l3"><a href="#分支一整数格式srgb-伽马编码值">分支一：整数格式（sRGB 伽马编码值）</a></li>
-<li class="l3"><a href="#分支二浮点格式线性光">分支二：浮点格式（线性光）</a></li>
-<li class="l2"><a href="#验收">验收</a></li></ul>
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#two-formulas-picked-from-the-input-precision">Two formulas, picked from the input precision</a></li>
+<li class="l3"><a href="#branch-one-integer-formats-srgb-gamma-encoded-values">Branch one: integer formats (sRGB gamma-encoded values)</a></li>
+<li class="l3"><a href="#branch-two-float-formats-linear-light">Branch two: float formats (linear light)</a></li>
+<li class="l2"><a href="#acceptance">Acceptance</a></li></ul>
 </aside>
-</div>
+</div></div>
 </main>
 <footer class="site-foot">
   <div>
-    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
-    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
-       与 Adobe、GIMP 官方均无隶属关系。</p>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
-    <a href="../guide.html">安装指南</a>
-    <span class="muted">3220ff6</span>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">0055287</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

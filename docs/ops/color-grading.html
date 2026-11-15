@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="Color Grading · gegl-color-ops" data-title-en="Color Grading · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,22 +9,37 @@
 <meta property="og:description" content="等价 ACR/Lightroom「颜色分级」：阴影 / 中间调 / 高光 / 全局四个轮盘（色相 + 饱和度）加各自的明度滑杆，按亮度分带给画面上色。">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
-<a class="skip" href="#main">跳到正文</a>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
   <nav>
-    <a href="../index.html#ops">算子</a>
-    <a href="../guide.html">安装</a>
-    <a href="../index.html#download">下载</a>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
-     色彩</p>
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 色彩</p>
   <h1>Color Grading</h1>
   <div class="meta">
     <code>lb:color-grading</code>
@@ -32,8 +47,7 @@
     <span>逐像素</span>
   </div>
   <p class="lede">等价 ACR/Lightroom「颜色分级」：阴影 / 中间调 / 高光 / 全局四个轮盘（色相 + 饱和度）加各自的明度滑杆，按亮度分带给画面上色。</p>
-</section>
-<div class="article-layout">
+</section><div class="article-layout">
   <article class="prose">
 <p>2026-11-12 新增。复刻 Adobe Camera Raw / Lightroom Classic 的 <strong>Color Grading（颜色分级）</strong>面板：阴影 / 中间调 / 高光 / 全局四个轮盘 （色相 + 饱和度），各带独立的明度滑杆，外加 Blending 与 Balance。</p>
 <h2 id="菜单位置">菜单位置</h2>
@@ -53,15 +67,13 @@
 <pre><code class="language-bash">python tools/check_color_grading.py    # 行为验证 12 项（恒等 / 分带 / 落位 / Blending / Balance / 全局 / 无接缝）
 python tools/smoke.sh                  # 全算子冒烟</code></pre>
 <h2 id="已知限制">已知限制</h2>
-<ul><li>轮盘没有独立的「范围」滑杆（ACR 悬停轮盘可调亮度范围端点）； 分界固定 0.3/0.7，只能用 Blending/Balance 调整过渡与偏移。</li><li>亮度分带用的是像素自身亮度（Rec.709 伽马域），不是邻域亮度； 要「按邻域」的效果请用 <code>lb:shadows-highlights</code>。</li></ul>
-    <div class="op-dl">
+<ul><li>轮盘没有独立的「范围」滑杆（ACR 悬停轮盘可调亮度范围端点）； 分界固定 0.3/0.7，只能用 Blending/Balance 调整过渡与偏移。</li><li>亮度分带用的是像素自身亮度（Rec.709 伽马域），不是邻域亮度； 要「按邻域」的效果请用 <code>lb:shadows-highlights</code>。</li></ul><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>color-grading.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>color-grading.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/color-grading.dll">下载 color-grading.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/color-grading.so">下载 color-grading.so<span class="size">Linux x86_64</span></a></div>
-</div>
-    <nav class="pager"><a class="prev" href="color-balance.html"><span>上一个</span>Color Balance</a><a class="next" href="color-temperature-tint.html"><span>下一个</span>Color Temperature &amp; Tint</a></nav>
+</div><nav class="pager"><a class="prev" href="color-balance.html"><span>上一个</span>Color Balance</a><a class="next" href="color-temperature-tint.html"><span>下一个</span>Color Temperature &amp; Tint</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
@@ -72,20 +84,103 @@ python tools/smoke.sh                  # 全算子冒烟</code></pre>
 <li class="l2"><a href="#验证">验证</a></li>
 <li class="l2"><a href="#已知限制">已知限制</a></li></ul>
 </aside>
-</div>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Color</p>
+  <h1>Color Grading</h1>
+  <div class="meta">
+    <code>lb:color-grading</code>
+    <span class="tag t-color">Color</span>
+    <span>per-pixel</span>
+  </div>
+  <p class="lede">Adobe Camera Raw's Color Grading panel — shadow, midtone, highlight and global wheels with per-band luminance, plus Blending and Balance.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>Added 2026-11-12. Reproduces the <strong>Color Grading</strong> panel of Adobe Camera Raw / Lightroom Classic: shadow, midtone, highlight and global wheels (hue + saturation), each with its own luminance slider, plus Blending and Balance.</p>
+<h2 id="menu">Menu</h2>
+<p><code>Colors → SuperMrWang → Color → Color Grading</code></p>
+<h2 id="parameters-14-one-for-one-with-the-acr-panel">Parameters (14, one for one with the ACR panel)</h2>
+<div class="table-wrap"><table><thead><tr><th>Parameter</th><th>Range</th><th>Default</th><th>Notes</th></tr></thead><tbody><tr><td>Global Hue / Saturation / Luminance</td><td>0–360 / 0–100 / −100–100</td><td>0 / 0 / 0</td><td>Global wheel, acts evenly over the whole frame</td></tr><tr><td>Shadows Hue / Saturation / Luminance</td><td>same</td><td>0 / 0 / 0</td><td>Shadow wheel</td></tr><tr><td>Midtones Hue / Saturation / Luminance</td><td>same</td><td>0 / 0 / 0</td><td>Midtone wheel</td></tr><tr><td>Highlights Hue / Saturation / Luminance</td><td>same</td><td>0 / 0 / 0</td><td>Highlight wheel</td></tr><tr><td>Blending</td><td>0–100</td><td>50</td><td>Cross-fade width between neighbouring tonal bands (0 = hard split)</td></tr><tr><td>Balance</td><td>−100–100</td><td>0</td><td>Shifts the shadow/highlight reach (positive = toward highlights)</td></tr></tbody></table></div>
+<h2 id="model">Model</h2>
+<p>Bands are chosen from the pixel's own Rec.709 luminance (gamma domain):</p>
+<ul><li>default splits: shadow/midtone <strong>0.3</strong>, midtone/highlight <strong>0.7</strong>;</li><li>Blending spreads both hard boundaries into smoothstep transitions (100 → ±0.25 each), and the midtone weight is 1 − shadow − highlight;</li><li>Balance ±100 shifts both boundaries by ±0.25.</li></ul>
+<p>One pass of a wheel (multiplied by the band weight w):</p>
+<ul><li>luminance: <code>V += Lw × 0.005 × w</code> (same coefficient as <code>lb:hsl-seven</code>);</li><li>tint strength <code>t = Sat/100 × w</code>: blend toward the <strong>wheel colour at the same luminance</strong>, <code>rgb = rgb·(1−t) + tint·t</code> with <code>tint = HSV(wheel hue, 1, V)</code>. Grey pixels pick up the tint naturally; a hue close to the wheel's complement is desaturated (mixed with grey). <strong>Hue is never interpolated</strong>, so there is no seam where the rotation direction flips.</li></ul>
+<blockquote><p>Fixed 2026-11-12: the first version used "converge the hue toward the wheel hue", which flipped <code>roundf</code>'s rotation direction at complementary hues (≈180° apart) and produced vertical banding on clipped highlights (visible in the night-blue demo image). It now blends toward the wheel colour, and <code>check_color_grading.py</code> gained a "no seam at complementary hues" test (jump of 1.2 code values between adjacent columns, threshold 8).</p></blockquote>
+<p>Order of execution: the global wheel (weight 1) first, then the three bands.</p>
+<h2 id="calibration-status-honest-disclosure">Calibration status (honest disclosure)</h2>
+<p>Photoshop 2025 on this machine has <strong>no Camera Raw plug-in installed</strong>, so this operator could not be calibrated code by code the way <code>colorize</code> and <code>color-mask-select</code> were. The 0.3/0.7 splits, the ±0.25 transitions and the Rec.709 luminance are a reasonable model built from ACR's documented behaviour, <strong>not black-box measurements</strong>. The structure and parameter semantics map one for one onto the ACR panel; numeric behaviour is checked against that design model by <code>tools/check_color_grading.py</code>.</p>
+<h2 id="verification">Verification</h2>
+<pre><code class="language-bash">python tools/check_color_grading.py    # 12 behavioural checks (identity / bands / placement /
+                                       # Blending / Balance / global / no seam)
+python tools/smoke.sh                  # smoke test for every operator</code></pre>
+<h2 id="known-limitations">Known limitations</h2>
+<ul><li>The wheels have no separate "range" slider (hovering a wheel in ACR lets you move the luminance endpoints); the splits are fixed at 0.3/0.7 and only Blending/Balance adjust the transition and the offset.</li><li>Banding uses the pixel's own luminance (Rec.709, gamma domain), not a neighbourhood luminance; for neighbourhood behaviour use <code>lb:shadows-highlights</code>.</li></ul><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>color-grading.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>color-grading.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/color-grading.dll">Download color-grading.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/color-grading.so">Download color-grading.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><a class="prev" href="color-balance.html"><span>Previous</span>Color Balance</a><a class="next" href="color-temperature-tint.html"><span>Next</span>Color Temperature &amp; Tint PS</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#menu">Menu</a></li>
+<li class="l2"><a href="#parameters-14-one-for-one-with-the-acr-panel">Parameters (14, one for one with the ACR panel)</a></li>
+<li class="l2"><a href="#model">Model</a></li>
+<li class="l2"><a href="#calibration-status-honest-disclosure">Calibration status (honest disclosure)</a></li>
+<li class="l2"><a href="#verification">Verification</a></li>
+<li class="l2"><a href="#known-limitations">Known limitations</a></li></ul>
+</aside>
+</div></div>
 </main>
 <footer class="site-foot">
   <div>
-    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
-    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
-       与 Adobe、GIMP 官方均无隶属关系。</p>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
-    <a href="../guide.html">安装指南</a>
-    <span class="muted">3220ff6</span>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">0055287</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

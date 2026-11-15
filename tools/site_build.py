@@ -4,6 +4,11 @@
 设计上把 docs/ 当作纯产物：每次运行整个目录重建，样式源在 tools/site/。
 所以改样式改 tools/site/style.css，别直接改 docs/assets/style.css。
 
+算子页是**中英双语**的：中文正文来自 ops/<dir>/README.md，英文正文来自
+tools/site/en/<dir>.md（front matter 给 name / blurb）。两套内容同时写进同一个
+HTML，靠 <html data-lang> 决定显示哪一套，页头的 中文/EN 按钮切换并记住偏好
+（localStorage + ?lang=en）。首页、清单页、安装页只有中文，不显示切换按钮。
+
     python tools/site_build.py           # 生成 docs/
     python tools/site_build.py --serve   # 生成后起本地服务看效果
 
@@ -35,6 +40,10 @@ import set_menu_group as SMG                   # noqa: E402  分组只有这一�
 REPO = "https://github.com/SuperMrWang-DEV/gegl-color-ops"
 RAW = REPO + "/raw/main/dist/windows-x64"
 LIN_RAW = REPO + "/raw/main/dist/linux-x64"
+
+# 算子页的英文版按目录名放这里，每个文件开头一小段 front matter（name / blurb）。
+# README 里那些 `## English` 是旧插件的安装说明，不是当前算法的翻译，不能用。
+EN_DIR = os.path.join(SRC, "en")
 
 GROUP_ZH = {
     "Tone":  ("Tone",  "影调与色阶"),
@@ -180,37 +189,119 @@ def load_ops():
 # 模板
 # --------------------------------------------------------------------------
 
-def head_html(root=""):
+def t(zh, en):
+    """同一句的两种语言，页面上只显示一种（由 <html data-lang> 决定）。"""
+    return '<span class="l-zh">%s</span><span class="l-en">%s</span>' % (zh, en)
+
+
+def head_html(root="", bilingual=False):
+    sw = ('  <div class="lang-sw" role="group" aria-label="语言 / Language">\n'
+          '    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>\n'
+          '    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>\n'
+          '  </div>\n') if bilingual else ""
     return """<header class="site-head">
   <a class="brand" href="{r}index.html"><span class="dot"></span>gegl-color-ops</a>
   <nav>
-    <a href="{r}index.html#ops">算子</a>
-    <a href="{r}guide.html">安装</a>
-    <a href="{r}index.html#download">下载</a>
+    <a href="{r}index.html#ops">{ops}</a>
+    <a href="{r}guide.html">{install}</a>
+    <a href="{r}index.html#download">{download}</a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
-</header>""".replace("{r}", root)
+{sw}</header>""".format(r=root, sw=sw,
+                        ops=t("算子", "Operators"),
+                        install=t("安装", "Install"),
+                        download=t("下载", "Download"))
 
 
 def foot_html(version, root=""):
     return """<footer class="site-foot">
   <div>
-    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
-    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
-       与 Adobe、GIMP 官方均无隶属关系。</p>
+    <p><strong>gegl-color-ops</strong> · {tag}</p>
+    <p class="muted">{note}</p>
   </div>
   <div class="foot-links">
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
-    <a href="{r}guide.html">安装指南</a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">{repo}</a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">{issue}</a>
+    <a href="{r}guide.html">{guide}</a>
     <span class="muted">{v}</span>
   </div>
-</footer>""".format(r=root, v=version)
+</footer>""".format(
+        r=root, v=version,
+        tag=t("GIMP 3 的 GEGL 色彩算子集", "a GEGL colour operator set for GIMP 3"),
+        note=t("源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；"
+               "与 Adobe、GIMP 官方均无隶属关系。",
+               "Source and docs live in one repository, GPL-3.0-or-later. Most "
+               "algorithms were matched to observed behaviour rather than ported "
+               "from source; this project is not affiliated with Adobe or the GIMP team."),
+        repo=t("仓库", "Repository"),
+        issue=t("问题反馈", "Issues"),
+        guide=t("安装指南", "Install guide"))
 
 
-def page(title, body, root="", desc=""):
+# 切换语言的脚本：head 里那段先跑，避免「先画中文再跳成英文」的闪烁；
+# body 末尾那段接按钮、记偏好、同步地址栏。
+LANG_HEAD_JS = """<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>"""
+
+LANG_FOOT_JS = """<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>"""
+
+
+def page(title, body, root="", desc="", titles=None):
+    """titles=(中文标题, English title)。给了就说明这页是双语的，带上切换按钮。"""
+    bilingual = bool(titles)
+    lang_head, lang_foot, lang_attrs = "", "", ""
+    if bilingual:
+        lang_head = LANG_HEAD_JS + "\n"
+        lang_foot = "\n" + LANG_FOOT_JS
+        lang_attrs = ' data-title-zh="%s" data-title-en="%s"' % (
+            html.escape(titles[0]), html.escape(titles[1]))
     return """<!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN"{attrs}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -220,18 +311,20 @@ def page(title, body, root="", desc=""):
 <meta property="og:description" content="{desc}">
 <link rel="stylesheet" href="{root}assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="{root}feed.xml">
-</head>
+{lang_head}</head>
 <body>
-<a class="skip" href="#main">跳到正文</a>
+<a class="skip" href="#main">{skip}</a>
 {head}
 <main id="main">
 {body}
 </main>
-{foot}
+{foot}{lang_foot}
 </body>
 </html>
 """.format(title=html.escape(title), body=body, desc=html.escape(desc),
-           root=root, head=head_html(root), foot=foot_html(VERSION, root))
+           root=root, head=head_html(root, bilingual), foot=foot_html(VERSION, root),
+           attrs=lang_attrs, lang_head=lang_head, lang_foot=lang_foot,
+           skip=t("跳到正文", "Skip to content"))
 
 
 VERSION = "dev"
@@ -248,16 +341,18 @@ def is_deprecated(mark):
         return False
 
 
-def off_badge(op, temporary="停用"):
+def off_badge(op, temporary="停用", temporary_en="Temporarily disabled"):
     if not op.get("disabled"):
         return ""
-    return '<span class="badge off">%s</span>' % (
-        "已废弃" if op.get("deprecated") else temporary)
+    if op.get("deprecated"):
+        return '<span class="badge off">%s</span>' % t("已废弃", "Retired")
+    return '<span class="badge off">%s</span>' % t(temporary, temporary_en)
 
 
 def warn_badge(op):
     """`docs` 层面的「不推荐」：算子照常编译发布，只是别拿它当首选。"""
-    return '<span class="badge warn">不推荐</span>' if op.get("discouraged") else ""
+    return '<span class="badge warn">%s</span>' % t("不推荐", "Not recommended") \
+        if op.get("discouraged") else ""
 
 
 def card(op):
@@ -492,6 +587,152 @@ def split_legacy_intro(md):
     return (head + "\n\n" + tail).strip("\n"), (legacy or None)
 
 
+_EN_CACHE = {}
+
+
+def load_en(op):
+    """读 tools/site/en/<dir>.md：front matter 给 name / blurb，其后是正文 md。
+
+    英文版按整页切换，所以单独放文件，而不是塞进 README —— README 是给仓库读者
+    看的双语安装说明，跟这里的「当前算法说明」不是一回事。
+    """
+    d = op["dir"]
+    if d in _EN_CACHE:
+        return _EN_CACHE[d]
+    p = os.path.join(EN_DIR, d + ".md")
+    ent = None
+    if os.path.exists(p):
+        txt = open(p, encoding="utf-8").read().replace("\r\n", "\n")
+        meta, body = {}, txt
+        m = re.match(r"\A---\n(.*?)\n---\n", txt, re.S)
+        if m:
+            for line in m.group(1).split("\n"):
+                if ":" in line:
+                    k, v = line.split(":", 1)
+                    meta[k.strip().lower()] = v.strip()
+            body = txt[m.end():]
+        ent = {"name": meta.get("name") or op["menu"],
+               "blurb": meta.get("blurb") or "",
+               "md": body.strip("\n")}
+    _EN_CACHE[d] = ent
+    return ent
+
+
+def en_name(op):
+    e = load_en(op)
+    return e["name"] if e else op["menu"]
+
+
+def split_legacy_bilingual(md):
+    """旧文档是「## English … ## 中文 …」双语的，按语言切成两份各自折叠。"""
+    m = re.search(r"^##\s+中文\s*$", md, re.M)
+    if not m:
+        return md.strip("\n"), ""
+    en = md[:m.start()]
+    zh = md[m.end():]
+    en = re.sub(r"^##\s+English\s*$\n?", "", en, flags=re.M)
+    # 开头那两行中文提示（「构建命令按旧目录结构书写」）只对中文读者有意义
+    en = re.sub(r"^>[^\n]*\n", "", en, flags=re.M)
+    return zh.strip("\n"), en.strip("\n")
+
+
+TYPE_EN = {
+    "逐像素": "per-pixel",
+    "整块区域": "area",
+    "双输入 · 逐像素": "two inputs · per-pixel",
+    "双输入": "two inputs",
+    "生成器": "generator",
+}
+
+
+def download_html(op, lang):
+    en = lang == "en"
+    if op.get("deprecated"):
+        if en:
+            return """<div class="op-dl">
+  <div>
+    <h3>Retired — no download</h3>
+    <p>This operator is no longer compiled or shipped. For per-channel grading use
+       the <a href="hsl-levels.html">HSL</a>, <a href="hsb-levels.html">HSB</a>,
+       <a href="lch-levels.html">LCh</a>, <a href="cmyk-levels.html">CMYK</a> and
+       <a href="hsi-levels.html">HSI</a> levels instead — one step, no
+       decompose-then-encode round trip. The source stays in
+       <code>ops/gray-to-component/</code>; the reason is in the
+       <code>.disabled</code> file there.</p>
+  </div>
+</div>"""
+        return """<div class="op-dl">
+  <div>
+    <h3>已废弃，不提供下载</h3>
+    <p>这个算子不再编译，也不再进安装包。分量调色改用
+       <a href="hsl-levels.html">HSL</a>、<a href="hsb-levels.html">HSB</a>、
+       <a href="lch-levels.html">LCh</a>、<a href="cmyk-levels.html">CMYK</a>、
+       <a href="hsi-levels.html">HSI</a> 色阶，一步调完，不用先分解再编码。
+       源码仍保留在仓库 <code>ops/gray-to-component/</code>，废弃原因见那里的
+       <code>.disabled</code>。</p>
+  </div>
+</div>"""
+
+    f = op["module"]
+    lines, btns = [], []
+    if op["has_dll"]:
+        if en:
+            lines.append('Windows module <code>%s.dll</code>, drop it into '
+                         '<code>%%LOCALAPPDATA%%\\gegl-0.4\\plug-ins</code>' % f)
+        else:
+            lines.append('Windows 模块 <code>%s.dll</code>，放进 '
+                         '<code>%%LOCALAPPDATA%%\\gegl-0.4\\plug-ins</code>' % f)
+        btns.append('<a class="btn" href="%s/%s.dll">%s %s.dll'
+                    '<span class="size">Windows x64</span></a>'
+                    % (RAW, f, "Download" if en else "下载", f))
+    if op["has_so"]:
+        if en:
+            lines.append('Linux module <code>%s.so</code>, drop it into '
+                         '<code>~/.local/share/gegl-0.4/plug-ins</code>' % f)
+        else:
+            lines.append('Linux 模块 <code>%s.so</code>，放进 '
+                         '<code>~/.local/share/gegl-0.4/plug-ins</code>' % f)
+        btns.append('<a class="btn ghost" href="%s/%s.so">%s %s.so'
+                    '<span class="size">Linux x86_64</span></a>'
+                    % (LIN_RAW, f, "Download" if en else "下载", f))
+    if not lines:
+        lines.append('This module is not in the prebuilt bundle yet — build it with '
+                     '<code>./build.sh</code>' if en else
+                     '这一版还没把这个模块打进预编译包，可以 <code>./build.sh</code> 自己编一个')
+    if en:
+        head = "Just this one"
+        tail = ('%s, then restart GIMP. The full bundle is on the '
+                '<a href="../index.html#download">download page</a>.') % "; ".join(lines)
+    else:
+        head = "只要这一个"
+        tail = ('%s，然后重启 GIMP。整包在 '
+                '<a href="../index.html#download">下载页</a>。') % "；".join(lines)
+    return """<div class="op-dl">
+  <div>
+    <h3>%s</h3>
+    <p>%s</p>
+  </div>
+  <div class="btns">%s</div>
+</div>""" % (head, tail, "".join(btns))
+
+
+def pager_html(op, lang):
+    en = lang == "en"
+    nav = ['<nav class="pager">']
+    if op["prev"]:
+        nav.append('<a class="prev" href="%s.html"><span>%s</span>%s</a>'
+                   % (op["prev"]["dir"], "Previous" if en else "上一个",
+                      html.escape(en_name(op["prev"]) if en else op["prev"]["menu"])))
+    else:
+        nav.append("<span></span>")
+    if op["next"]:
+        nav.append('<a class="next" href="%s.html"><span>%s</span>%s</a>'
+                   % (op["next"]["dir"], "Next" if en else "下一个",
+                      html.escape(en_name(op["next"]) if en else op["next"]["menu"])))
+    nav.append("</nav>")
+    return "".join(nav)
+
+
 def build_article(op, version):
     md = open(op["readme"], encoding="utf-8").read()
     md, legacy_md = split_legacy_intro(md)
@@ -508,135 +749,137 @@ def build_article(op, version):
     md = re.sub(r"\]\(assets/", "](", md)
     img_prefix = "../assets/ops/%s/" % op["dir"]
 
-    # 有一半 README 末尾挂一整段英文翻译，直接铺开会把页面拉长一倍。
-    # 折进 <details>：默认收着，想看再展开，也不进右侧目录。
+    # 老做法是把 README 末尾的 `## English` 折成一个 <details>；现在英文版是整页
+    # 切换的，内容统一在 tools/site/en/<dir>.md。这里只摘掉那一段英文，后面若还有
+    # 别的二级标题（color-balance 的「参考 / References」）要留着。
     m = re.search(r"^##\s+English\s*$", md, re.M)
-    en_md = md[m.end():] if m else None
     if m:
-        md = md[:m.start()]
+        nxt = re.search(r"^##\s+", md[m.end():], re.M)
+        cut_end = m.end() + nxt.start() if nxt else len(md)
+        md = md[:m.start()] + md[cut_end:]
 
-    body_html, toc = convert(
-        md,
-        image_prefix=img_prefix,
-        link_base=REPO + "/blob/main/",
-    )
-
-    if en_md:
-        en_html, _ = convert(en_md, image_prefix=img_prefix,
+    body_html, toc = convert(md, image_prefix=img_prefix,
                              link_base=REPO + "/blob/main/")
-        body_html += ('<details class="en-block"><summary>English version'
-                      '<span class="muted">（同一份说明的英文版）</span></summary>%s</details>'
-                      % en_html)
-    if legacy_md:
-        legacy_html, _ = convert(legacy_md, image_prefix=img_prefix,
-                                 link_base=REPO + "/blob/main/")
-        body_html += ('<details class="legacy-intro"><summary>原始介绍'
-                      '<span class="muted">（这个滤镜作为独立插件时的旧文档：'
-                      '编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页'
-                      '上方为准）</span></summary>%s</details>' % legacy_html)
-    # README 里偶尔直接写 <img src="assets/...">（原始 HTML 直通），一并补前缀
     body_html = body_html.replace('src="assets/', 'src="%s' % img_prefix)
 
-    toc_html = ""
-    if toc:
-        items = "\n".join(
-            '<li class="l%d"><a href="#%s">%s</a></li>' % (lv, anc, html.escape(t))
-            for lv, anc, t in toc)
-        toc_html = """<aside class="toc">
-  <p class="toc-title">本页目录</p>
+    en = load_en(op)
+    if en:
+        en_html, en_toc = convert(en["md"], image_prefix=img_prefix,
+                                  link_base=REPO + "/blob/main/")
+        en_html = en_html.replace('src="assets/', 'src="%s' % img_prefix)
+    else:
+        en_html, en_toc = "", []
+
+    legacy_zh, legacy_en = (None, None)
+    if legacy_md:
+        legacy_zh, legacy_en = split_legacy_bilingual(legacy_md)
+
+    def legacy_details(lang):
+        src = legacy_zh if lang == "zh" else legacy_en
+        if not src:
+            return ""
+        h, _ = convert(src, image_prefix=img_prefix,
+                       link_base=REPO + "/blob/main/")
+        h = h.replace('src="assets/', 'src="%s' % img_prefix)
+        summary = ('原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：'
+                   '编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）'
+                   '</span>' if lang == "zh" else
+                   'Original plugin docs<span class="muted"> — written when this was a '
+                   'standalone plug-in: the build commands assume the old directory '
+                   'layout and the menu paths have changed. The algorithm notes above '
+                   'supersede it.</span>')
+        return ('<details class="legacy-intro"><summary>%s</summary>%s</details>'
+                % (summary, h))
+
+    def toc_block(items, lang):
+        if not items:
+            return ""
+        lis = "\n".join('<li class="l%d"><a href="#%s">%s</a></li>'
+                        % (lv, anc, html.escape(tl)) for lv, anc, tl in items)
+        return """<aside class="toc">
+  <p class="toc-title">%s</p>
   <ul>%s</ul>
-</aside>""" % items
+</aside>""" % ("On this page" if lang == "en" else "本页目录", lis)
 
-    off = (" " + off_badge(op, "临时停用") + warn_badge(op)) \
-        if (op["disabled"] or op["discouraged"]) else ""
-    meta = """<div class="meta">
-    <code>{oid}</code>
-    <span class="tag t-{g}">{gz}</span>
-    <span>{typ}</span>{off}
-  </div>""".format(oid=html.escape(op["id"]), g=op["group"].lower(),
-                   gz=GROUP_ZH[op["group"]][1], typ=html.escape(op["type"]), off=off)
+    def head_block(lang):
+        en_ = lang == "en"
+        meta = """<div class="meta">
+    <code>%s</code>
+    <span class="tag t-%s">%s</span>
+    <span>%s</span>%s
+  </div>""" % (html.escape(op["id"]), op["group"].lower(),
+              GROUP_ZH[op["group"]][0 if en_ else 1],
+              TYPE_EN.get(op["type"], op["type"]) if en_ else html.escape(op["type"]),
+              badges)
+        if en_:
+            eyebrow = ('<a href="../index.html">Home</a> / <a href="../ops.html">'
+                       'Operators</a> / %s' % GROUP_ZH[op["group"]][0])
+            name, blurb = en["name"], en.get("blurb") or ""
+        else:
+            eyebrow = ('<a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / '
+                       '%s' % GROUP_ZH[op["group"]][1])
+            name, blurb = op["menu"], op["purpose_html"]
+        return """<section class="page-head">
+  <p class="eyebrow">%s</p>
+  <h1>%s</h1>
+  %s%s
+  <p class="lede">%s</p>
+</section>""" % (eyebrow, html.escape(name), meta,
+                warn_en if en_ else warn_zh, blurb)
 
-    nav = ['<nav class="pager">']
-    if op["prev"]:
-        nav.append('<a class="prev" href="%s.html"><span>上一个</span>%s</a>'
-                   % (op["prev"]["dir"], html.escape(op["prev"]["menu"])))
-    else:
-        nav.append("<span></span>")
-    if op["next"]:
-        nav.append('<a class="next" href="%s.html"><span>下一个</span>%s</a>'
-                   % (op["next"]["dir"], html.escape(op["next"]["menu"])))
-    nav.append("</nav>")
-    nav = "".join(nav)
-
-    if op.get("deprecated"):
-        dl = """<div class="op-dl">
-  <div>
-    <h3>已废弃，不提供下载</h3>
-    <p>这个算子不再编译，也不再进安装包。分量调色改用
-       <a href="hsl-levels.html">HSL</a>、<a href="hsb-levels.html">HSB</a>、
-       <a href="lch-levels.html">LCh</a>、<a href="cmyk-levels.html">CMYK</a>、
-       <a href="hsi-levels.html">HSI</a> 色阶，一步调完，不用先分解再编码。
-       源码仍保留在仓库 <code>ops/gray-to-component/</code>，废弃原因见那里的
-       <code>.disabled</code>。</p>
-  </div>
-</div>"""
-    else:
-        f = op["module"]
-        lines, btns = [], []
-        if op["has_dll"]:
-            lines.append('Windows 模块 <code>%s.dll</code>，放进 '
-                         '<code>%%LOCALAPPDATA%%\\gegl-0.4\\plug-ins</code>' % f)
-            btns.append('<a class="btn" href="%s/%s.dll">下载 %s.dll'
-                        '<span class="size">Windows x64</span></a>' % (RAW, f, f))
-        if op["has_so"]:
-            lines.append('Linux 模块 <code>%s.so</code>，放进 '
-                         '<code>~/.local/share/gegl-0.4/plug-ins</code>' % f)
-            btns.append('<a class="btn ghost" href="%s/%s.so">下载 %s.so'
-                        '<span class="size">Linux x86_64</span></a>' % (LIN_RAW, f, f))
-        if not lines:
-            lines.append('这一版还没把这个模块打进预编译包，'
-                         '可以 <code>./build.sh</code> 自己编一个')
-        dl = """<div class="op-dl">
-  <div>
-    <h3>只要这一个</h3>
-    <p>%s，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
-  </div>
-  <div class="btns">%s</div>
-</div>""" % ("；".join(lines), "".join(btns))
-
-    warn = ""
-    if op.get("deprecated"):
-        warn = ('\n  <p class="dep-note"><b>已废弃</b>　本算子不再编译、不进安装包，'
-                '本页仅作存档。现在每个色彩模式都有自己的分量色阶，不需要「灰度 → '
-                '彩色编码 → 混合模式」这套三步走。</p>')
-    elif op.get("discouraged"):
-        warn = ('\n  <p class="slow-note"><b>不推荐日常使用</b>　邻域双边加 4 次高斯，'
-                '半径 30 时每像素约 1.4 µs：2048×1536 默认参数净耗时 0.7 s、含解码 '
-                '2.1 s，在 GIMP 里拖一次滑杆就重算一遍整图。整体明暗改用 '
-                '<a href="levels.html">色阶</a> / <a href="lab-levels.html">LAB 色阶</a>；'
-                '确实需要「周围亮就少提」的局部行为再回来用它，半径压到 10–15 会快很多。'
-                '详见 <code>ops/shadows-highlights/.discouraged</code>。</p>')
-
-    body = """<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
-     {gz}</p>
-  <h1>{menu}</h1>
-  {meta}{warn}
-  <p class="lede">{blurb}</p>
-</section>
-<div class="article-layout">
+    def one_lang(lang):
+        en_ = lang == "en"
+        art = (en_html if en_ else body_html) + download_html(op, lang) \
+            + pager_html(op, lang) + legacy_details(lang)
+        return """%s<div class="article-layout">
   <article class="prose">
-{html}
-    {dl}
-    {nav}
+%s
   </article>
-  {toc}
-</div>""".format(gz=GROUP_ZH[op["group"]][1], menu=html.escape(op["menu"]), meta=meta,
-                 blurb=op["purpose_html"], html=body_html, dl=dl, nav=nav,
-                 warn=warn, toc=toc_html)
+  %s
+</div>""" % (head_block(lang), art, toc_block(en_toc if en_ else toc, lang))
+
+    off = (" " + off_badge(op, "临时停用", "Temporarily disabled") + warn_badge(op)) \
+        if (op["disabled"] or op["discouraged"]) else ""
+    badges = off
+
+    if op.get("deprecated"):
+        warn_zh = ('\n  <p class="dep-note"><b>已废弃</b>　本算子不再编译、不进安装包，'
+                   '本页仅作存档。现在每个色彩模式都有自己的分量色阶，不需要「灰度 → '
+                   '彩色编码 → 混合模式」这套三步走。</p>')
+        warn_en = ('\n  <p class="dep-note"><b>Retired</b> — no longer built or shipped; '
+                   'this page is an archive. Every colour model now has its own component '
+                   'levels, so the old decompose → colour-encode → blend-mode route is '
+                   'obsolete.</p>')
+    elif op.get("discouraged"):
+        warn_zh = ('\n  <p class="slow-note"><b>不推荐日常使用</b>　邻域双边加 4 次高斯，'
+                   '半径 30 时每像素约 1.4 µs：2048×1536 默认参数净耗时 0.7 s、含解码 '
+                   '2.1 s，在 GIMP 里拖一次滑杆就重算一遍整图。整体明暗改用 '
+                   '<a href="levels.html">色阶</a> / <a href="lab-levels.html">LAB 色阶</a>；'
+                   '确实需要「周围亮就少提」的局部行为再回来用它，半径压到 10–15 会快很多。'
+                   '详见 <code>ops/shadows-highlights/.discouraged</code>。</p>')
+        warn_en = ('\n  <p class="slow-note"><b>Not recommended for daily use</b> — '
+                   'bilateral over four Gaussian passes costs about 1.4 µs per pixel at '
+                   'radius 30: 0.7 s for a 2048×1536 image at defaults, 2.1 s including '
+                   'decode, and every slider drag in GIMP recomputes the whole image. For '
+                   'overall brightness use <a href="levels.html">Levels</a> / '
+                   '<a href="lab-levels.html">LAB Levels</a>; come back here only when you '
+                   'need the local “lift less where the surroundings are bright” '
+                   'behaviour, and drop the radius to 10–15 for a big speedup. See '
+                   '<code>ops/shadows-highlights/.discouraged</code>.</p>')
+    else:
+        warn_zh = warn_en = ""
+
+    if en:
+        body = ('<div class="l-zh">%s</div>\n<div class="l-en">%s</div>'
+                % (one_lang("zh"), one_lang("en")))
+        titles = ("%s · gegl-color-ops" % op["menu"],
+                  "%s · gegl-color-ops" % en["name"])
+    else:
+        body = one_lang("zh")
+        titles = None
 
     title = "%s · %s" % (op["menu"], "gegl-color-ops")
-    return page(title, body, root="../", desc=op["purpose_text"][:120])
+    return page(title, body, root="../", desc=op["purpose_text"][:120], titles=titles)
 
 
 def build_guide(version, stats):
@@ -850,9 +1093,10 @@ def main():
 
     build_zip(stats, os.path.join(DOCS, "download"))
 
-    # 样式与静态资源
+    # 样式与静态资源（tools/site/en 是英文正文的源文件目录，不是要拷的资源）
     for f in os.listdir(SRC):
-        shutil.copy2(os.path.join(SRC, f), os.path.join(DOCS, "assets", f))
+        if os.path.isfile(os.path.join(SRC, f)):
+            shutil.copy2(os.path.join(SRC, f), os.path.join(DOCS, "assets", f))
 
     # 每个算子：文章页 + 截图
     for op in ops:

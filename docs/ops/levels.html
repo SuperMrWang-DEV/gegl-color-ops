@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="Levels · gegl-color-ops" data-title-en="Levels · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,22 +9,37 @@
 <meta property="og:description" content="PS 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 PS 对话框的数字框一一对应">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
-<a class="skip" href="#main">跳到正文</a>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
   <nav>
-    <a href="../index.html#ops">算子</a>
-    <a href="../guide.html">安装</a>
-    <a href="../index.html#download">下载</a>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
-     影调与色阶</p>
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 影调与色阶</p>
   <h1>Levels</h1>
   <div class="meta">
     <code>lb:levels</code>
@@ -32,8 +47,7 @@
     <span>逐像素</span>
   </div>
   <p class="lede">PS 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 PS 对话框的数字框一一对应</p>
-</section>
-<div class="article-layout">
+</section><div class="article-layout">
   <article class="prose">
 <p>PS「色阶」对话框的复刻：<strong>复合 + R/G/B 四组</strong>，每组都是 「输入黑场 / 输入灰点 / 输入白场 + 输出黑场 / 输出白场」五个数， 刻度 0–255，和 PS 的数字框一一对应。</p>
 <p>对应面板：<code>Colors → SuperMrWang → Tone → Levels</code>。</p>
@@ -58,15 +72,13 @@ out = outLow + t' * (outHigh - outLow)</code></pre>
 <p>PS 2025（26.10.0）在这台机器上：<code>executeAction</code> 的 <code>Lvls</code> 事件、以及 <code>Mk</code> 创建调整图层，都直接抛「不能完成命令，因为程序错误」；DOM 的 <code>LayerKind.LEVELS</code> 也给「只能改为文本或正常」。诊断日志见 <code>../lvls-cal/_diag2.txt</code>。<code>colorRange</code> 反而能跑，所以不是 ExtendScript 整体 不可用，是这两个命令在这套安装里被挡了。</p>
 <p>因此基准改用公开实测值，而不是本机标定。<strong>如果你在另一台机器上能跑 PS 脚本， 可以把 <code>lvls-cal/</code> 里的 <code>ps_levels.jsx</code> 修好重跑，就能升级成逐码标定。</strong></p>
 <h2 id="与-gimp-自带色阶的区别">与 GIMP 自带「色阶」的区别</h2>
-<p>GIMP 的 <code>Colors → Levels</code> 是 app 层私有实现，GEGL 里的 <code>gegl:levels</code> 只有 <code>in-low / in-high / out-low / out-high</code> <strong>四个</strong>属性——没有 gamma，没有每通道， 也没有 0–255 的数字刻度（<code>gegl --info gegl:levels</code> 可查）。所以这个算子补的是 GEGL 算子层面的真空白：脚本、批处理、<code>gegl</code> 命令行里都能用 PS 的色阶参数。</p>
-    <div class="op-dl">
+<p>GIMP 的 <code>Colors → Levels</code> 是 app 层私有实现，GEGL 里的 <code>gegl:levels</code> 只有 <code>in-low / in-high / out-low / out-high</code> <strong>四个</strong>属性——没有 gamma，没有每通道， 也没有 0–255 的数字刻度（<code>gegl --info gegl:levels</code> 可查）。所以这个算子补的是 GEGL 算子层面的真空白：脚本、批处理、<code>gegl</code> 命令行里都能用 PS 的色阶参数。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>levels.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>levels.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/levels.dll">下载 levels.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/levels.so">下载 levels.so<span class="size">Linux x86_64</span></a></div>
-</div>
-    <nav class="pager"><span></span><a class="next" href="lab-levels.html"><span>下一个</span>LAB Levels</a></nav>
+</div><nav class="pager"><span></span><a class="next" href="lab-levels.html"><span>下一个</span>LAB Levels</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
@@ -76,20 +88,106 @@ out = outLow + t' * (outHigh - outLow)</code></pre>
 <li class="l2"><a href="#本机为什么没做逐码标定">本机为什么没做逐码标定</a></li>
 <li class="l2"><a href="#与-gimp-自带色阶的区别">与 GIMP 自带「色阶」的区别</a></li></ul>
 </aside>
-</div>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Tone</p>
+  <h1>Levels</h1>
+  <div class="meta">
+    <code>lb:levels</code>
+    <span class="tag t-tone">Tone</span>
+    <span>per-pixel</span>
+  </div>
+  <p class="lede">Photoshop's Levels dialog — composite plus R/G/B, five numbers each, 0–255 scale, with PS's gamma direction.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>A reproduction of Photoshop's <strong>Levels</strong> dialog: <strong>composite plus R/G/B</strong>, four groups of five numbers each — input black, input grey, input white, output black, output white — on a 0–255 scale that matches PS's numeric fields one for one.</p>
+<p>Panel: <code>Colors → SuperMrWang → Tone → Levels</code>.</p>
+<h2 id="model">Model</h2>
+<p>Per channel:</p>
+<pre><code>t   = clamp((v - inLow) / (inHigh - inLow), 0, 1)
+t'  = t ^ (1 / gamma)
+out = outLow + t' * (outHigh - outLow)</code></pre>
+<ul><li><code>inLow</code> and below is crushed to <code>outLow</code>, <code>inHigh</code> and above to <code>outHigh</code>, and the middle is redistributed along the gamma curve;</li><li><strong>gamma &gt; 1 brightens, gamma &lt; 1 darkens</strong> — the same direction as PS's field. Note this is the opposite of the usual gamma intuition: PS's slider value goes straight into the reciprocal position of <code>1/gamma</code>, and writing the exponent as <code>t^gamma</code> flips the whole direction;</li><li>the input range stretches everything: after setting <code>inLow = 64</code>, <code>v = 240</code> becomes 235 rather than staying put;</li><li>when <code>inHigh == inLow</code> the range collapses to a point and is handled as a step (anything ≥ that value is white) instead of dividing by zero.</li></ul>
+<p>Order: <strong>the composite group first (one curve for all three channels), then the per-channel groups</strong>. Per-channel groups default to identity, so "touch only the composite" is bit-identical to PS's RGB mode and "touch only red" matches PS's Red channel mode. All four groups can be stacked, which is more than PS allows (one channel at a time).</p>
+<h2 id="domain">Domain</h2>
+<p>Everything is computed per channel in the <strong>8-bit sRGB gamma domain</strong>, never decoded to linear. Levels' black and white points mean "0–255 encoded values", and feeding linear light would make the numeric fields disagree with PS. The operator pins both pads to a perceptual format (<code>R~G~B~A float</code>) in <code>prepare</code>, so no upstream <code>linear-rgb</code> is needed.</p>
+<h2 id="verification">Verification</h2>
+<pre><code class="language-bash">python tools/check_levels_ps.py</code></pre>
+<p>11 cases on two levels:</p>
+<p><strong>A — mathematics.</strong> A Python mirror of the C model, compared pixel by pixel on a 256-column greyscale probe (column x is exactly grey x, so no interpolation), all 0.00 code values:</p>
+<div class="table-wrap"><table><thead><tr><th>Case</th><th>Check</th></tr></thead><tbody><tr><td>all defaults</td><td>0 / 20 / 128 / 240 / 255 identity</td></tr><tr><td>input black 64</td><td>crush, mid and high end stretched to 235</td></tr><tr><td>input white 192</td><td>full white, low end stretched to 27</td></tr><tr><td>output 50–200</td><td>ends land on 50 / 200, middle stays linear</td></tr><tr><td>gamma 2.0 / 0.5</td><td>brighter / darker, endpoints fixed</td></tr><tr><td>combination</td><td>50 / 0.7 / 200 → 30 / 220</td></tr><tr><td>single channel</td><td>red only, green and blue untouched</td></tr></tbody></table></div>
+<p><strong>B — reference points.</strong> Two published PS measurements, specifically to pin down gamma's <strong>direction and exponent form</strong>:</p>
+<div class="table-wrap"><table><thead><tr><th>Input</th><th>gamma</th><th>PS</th><th>This operator</th><th>Deviation</th></tr></thead><tbody><tr><td>154</td><td>0.46</td><td>84</td><td>85</td><td>1.19 code</td></tr><tr><td>200</td><td>1.646</td><td>220</td><td>220</td><td>0.01 code</td></tr></tbody></table></div>
+<p>These matter: a test that only checks "C agrees with Python" cannot catch a reversed exponent, because both sides would be wrong together. The values come from a measured pixel posted in Adobe's community and the accepted <code>out = in^(1/gamma)</code>.</p>
+<h2 id="why-there-is-no-per-code-calibration-on-this-machine">Why there is no per-code calibration on this machine</h2>
+<p>On this machine, Photoshop 2025 (26.10.0) throws "could not complete the command because of a program error" for both the <code>Lvls</code> <code>executeAction</code> event and <code>Mk</code> adjustment-layer creation, and the DOM's <code>LayerKind.LEVELS</code> only offers text-or-normal. The diagnostic log is in <code>../lvls-cal/_diag2.txt</code>. <code>colorRange</code> does run, so ExtendScript as a whole is fine — those two commands are blocked in this installation.</p>
+<p>Hence the reference is public measurements rather than local calibration. <strong>If you can run PS scripts on another machine, fix <code>ps_levels.jsx</code> in <code>lvls-cal/</code> and re-run it, and this can be upgraded to a per-code calibration.</strong></p>
+<h2 id="difference-from-gimps-own-levels">Difference from GIMP's own Levels</h2>
+<p>GIMP's <code>Colors → Levels</code> is a private app-level implementation, and GEGL's <code>gegl:levels</code> has only <strong>four</strong> properties — <code>in-low / in-high / out-low / out-high</code> — with no gamma, no per-channel groups and no 0–255 scale (check <code>gegl --info gegl:levels</code>). This operator fills a genuine hole at the GEGL level: PS levels parameters now work from scripts, batch jobs and the <code>gegl</code> command line.</p><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>levels.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>levels.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/levels.dll">Download levels.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/levels.so">Download levels.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><span></span><a class="next" href="lab-levels.html"><span>Next</span>LAB Levels</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#model">Model</a></li>
+<li class="l2"><a href="#domain">Domain</a></li>
+<li class="l2"><a href="#verification">Verification</a></li>
+<li class="l2"><a href="#why-there-is-no-per-code-calibration-on-this-machine">Why there is no per-code calibration on this machine</a></li>
+<li class="l2"><a href="#difference-from-gimps-own-levels">Difference from GIMP&#x27;s own Levels</a></li></ul>
+</aside>
+</div></div>
 </main>
 <footer class="site-foot">
   <div>
-    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
-    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
-       与 Adobe、GIMP 官方均无隶属关系。</p>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
-    <a href="../guide.html">安装指南</a>
-    <span class="muted">3220ff6</span>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">0055287</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="HSL Levels · gegl-color-ops" data-title-en="HSL Levels · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,22 +9,37 @@
 <meta property="og:description" content="HSL 三个分量各自设输入 / 输出黑白场与伽马">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
-<a class="skip" href="#main">跳到正文</a>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
   <nav>
-    <a href="../index.html#ops">算子</a>
-    <a href="../guide.html">安装</a>
-    <a href="../index.html#download">下载</a>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
-     影调与色阶</p>
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 影调与色阶</p>
   <h1>HSL Levels</h1>
   <div class="meta">
     <code>lb:hsl-levels</code>
@@ -32,8 +47,7 @@
     <span>整块区域</span>
   </div>
   <p class="lede">HSL 三个分量各自设输入 / 输出黑白场与伽马</p>
-</section>
-<div class="article-layout">
+</section><div class="article-layout">
   <article class="prose">
 <p>菜单：<code>颜色 → SuperMrWang → Tone → HSL Levels</code>（Filter 类）</p>
 <h2 id="概述">概述</h2>
@@ -50,15 +64,13 @@
 <div class="table-wrap"><table><thead><tr><th>用例</th><th>判据</th><th>实测</th></tr></thead><tbody><tr><td>恒等（默认参数）</td><td>与源图逐像素 ≤1 码</td><td>最大 0</td></tr><tr><td>饱和度归零</td><td>全图 |R−G|、|G−B| ≤2</td><td>0</td></tr><tr><td>明度归零</td><td>全图最亮通道 ≤12</td><td>0</td></tr><tr><td>公式对拍</td><td>Python 复算同一条链路（弧重映射 + gamma + HSL 往返），逐像素 ≤2 码</td><td>最大 1</td></tr><tr><td>透明像素透传</td><td>alpha=0 行的 RGB 完全不动</td><td>0</td></tr></tbody></table></div>
 <p>公式对拍用的是带 gamma 与交叉黑白场的一组参数（H 30/330 → 0/300，γ=1.4； S 10/90 → 0/100，γ=0.8；L 5/95，γ=1.1），所以环形映射的两段、gamma 方向、 输出量程都被覆盖到了。</p>
 <h2 id="已知事项">已知事项</h2>
-<ul><li>中性色（S=0）的色相没有定义，算子按 H=0 处理；S 归零后 H 怎么调都不影响 画面，这是 HSL 本身的性质。</li><li>8 位图里相邻色相的量化台阶在色相环上约 1.4°，色相曲线拉得很陡时会出现 轻微色带，建议在 16 位/浮点精度下操作。</li></ul>
-    <div class="op-dl">
+<ul><li>中性色（S=0）的色相没有定义，算子按 H=0 处理；S 归零后 H 怎么调都不影响 画面，这是 HSL 本身的性质。</li><li>8 位图里相邻色相的量化台阶在色相环上约 1.4°，色相曲线拉得很陡时会出现 轻微色带，建议在 16 位/浮点精度下操作。</li></ul><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>hsl-levels.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>hsl-levels.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hsl-levels.dll">下载 hsl-levels.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/hsl-levels.so">下载 hsl-levels.so<span class="size">Linux x86_64</span></a></div>
-</div>
-    <nav class="pager"><a class="prev" href="lab-levels.html"><span>上一个</span>LAB Levels</a><a class="next" href="hsb-levels.html"><span>下一个</span>HSB Levels</a></nav>
+</div><nav class="pager"><a class="prev" href="lab-levels.html"><span>上一个</span>LAB Levels</a><a class="next" href="hsb-levels.html"><span>下一个</span>HSB Levels</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
@@ -69,20 +81,99 @@
 <li class="l2"><a href="#验证">验证</a></li>
 <li class="l2"><a href="#已知事项">已知事项</a></li></ul>
 </aside>
-</div>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Tone</p>
+  <h1>HSL Levels</h1>
+  <div class="meta">
+    <code>lb:hsl-levels</code>
+    <span class="tag t-tone">Tone</span>
+    <span>area</span>
+  </div>
+  <p class="lede">Levels on H, S and L separately — hue, saturation and lightness each get their own black/white point, gamma and output range.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>Menu: <code>Colors → SuperMrWang → Tone → HSL Levels</code> (a filter op)</p>
+<h2 id="overview">Overview</h2>
+<p>Independent levels for HSL's H, S and L: input black/white point, gamma, output range. Compared with RGB levels this changes <strong>three perceptual dimensions</strong>: hue, saturation and lightness each follow their own curve without crosstalk.</p>
+<h2 id="colour-space">Colour space</h2>
+<p>The operator works directly on babl's <code>HSLA float</code>; RGB↔HSL is babl's job — the same conversion GIMP's "Decompose → HSL" and "Extract Component → HSL Saturation/Lightness" use. There is no hand-written colour conversion inside the operator.</p>
+<ul><li>H: 0–360°, stored as babl's 0–1 normalised value, shown in degrees</li><li>S: 0–100%, defined as <code>S = (max−min) / (1 − |2L−1|)</code> (HSL's S, not HSV's)</li><li>L: 0–100%, <code>L = (max+min)/2</code></li></ul>
+<h2 id="rules">Rules</h2>
+<ul><li><strong>Hue is circular</strong> and cannot be clamped like an ordinary channel. The circle is cut at the black point: the main arc "black point → white point (clockwise)" maps linearly onto the output arc "output low → output high", the remaining arc maps proportionally onto the remaining arc length, and both share the gamma. It is continuous all the way round; the defaults (0/360 → 0/360, γ=1) restore the input bit for bit.</li><li><strong>Black and white point at the same angle means the whole circle</strong>: pulling both to one angle gives "pure hue rotation + wrap-around gamma" instead of collapsing to a single colour.</li><li><strong>S and L are ordinary linear channels</strong>: clamp to the input range → normalise → gamma → map onto the output range. An inverted output (low &gt; high) gives a negative-style inverse.</li><li><strong>Crossed black and white points swap automatically</strong>, so overshooting a slider never produces a negative range.</li><li><strong>Pixels with alpha ≤ 0 pass through untouched</strong>; their colour is not mapped.</li></ul>
+<h2 id="relation-to-lblab-levels">Relation to lb:lab-levels</h2>
+<p><code>lab-levels</code> works in CIE Lab, where a and b are bipolar channels (gamma rotates around the neutral axis at 0). Here everything is in HSL, where all three components are single-polar quantities starting at 0, so gamma means exactly what it means in ordinary levels. For perceptual lightness use <code>lab-levels</code>' L; to move <strong>a range of hues</strong> around, or to treat saturation differently by lightness, use this.</p>
+<h2 id="verification">Verification</h2>
+<p><code>python tools/check_color_levels.py hsl</code> (5 cases):</p>
+<div class="table-wrap"><table><thead><tr><th>Case</th><th>Criterion</th><th>Measured</th></tr></thead><tbody><tr><td>identity (defaults)</td><td>≤1 code per pixel against the source</td><td>max 0</td></tr><tr><td>saturation to zero</td><td>|R−G|, |G−B| ≤ 2 everywhere</td><td>0</td></tr><tr><td>lightness to zero</td><td>brightest channel ≤ 12 everywhere</td><td>0</td></tr><tr><td>formula replay</td><td>Python recomputes the same chain (arc remap + gamma + HSL round trip), ≤2 codes</td><td>max 1</td></tr><tr><td>transparent pass-through</td><td>RGB of alpha=0 rows unchanged</td><td>0</td></tr></tbody></table></div>
+<p>The formula replay uses parameters with gamma and crossed points (H 30/330 → 0/300, γ=1.4; S 10/90 → 0/100, γ=0.8; L 5/95, γ=1.1), so both segments of the circular map, the gamma direction and the output range are covered.</p>
+<h2 id="known-issues">Known issues</h2>
+<ul><li>Neutral colours (S=0) have no defined hue; the operator treats them as H=0, and once S is zero the hue slider changes nothing — a property of HSL itself.</li><li>In 8-bit the quantisation step between neighbouring hues is about 1.4°, so a steep hue curve shows mild banding. Work in 16-bit or float when you can.</li></ul><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>hsl-levels.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>hsl-levels.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hsl-levels.dll">Download hsl-levels.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/hsl-levels.so">Download hsl-levels.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><a class="prev" href="lab-levels.html"><span>Previous</span>LAB Levels</a><a class="next" href="hsb-levels.html"><span>Next</span>HSB Levels</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#overview">Overview</a></li>
+<li class="l2"><a href="#colour-space">Colour space</a></li>
+<li class="l2"><a href="#rules">Rules</a></li>
+<li class="l2"><a href="#relation-to-lblab-levels">Relation to lb:lab-levels</a></li>
+<li class="l2"><a href="#verification">Verification</a></li>
+<li class="l2"><a href="#known-issues">Known issues</a></li></ul>
+</aside>
+</div></div>
 </main>
 <footer class="site-foot">
   <div>
-    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
-    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
-       与 Adobe、GIMP 官方均无隶属关系。</p>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
-    <a href="../guide.html">安装指南</a>
-    <span class="muted">3220ff6</span>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">0055287</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

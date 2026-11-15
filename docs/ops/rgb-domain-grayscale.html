@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="Black &amp; White · gegl-color-ops" data-title-en="Black &amp; White · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,22 +9,37 @@
 <meta property="og:description" content="PS 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
-<a class="skip" href="#main">跳到正文</a>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
   <nav>
-    <a href="../index.html#ops">算子</a>
-    <a href="../guide.html">安装</a>
-    <a href="../index.html#download">下载</a>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
-     影调与色阶</p>
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 影调与色阶</p>
   <h1>Black &amp; White</h1>
   <div class="meta">
     <code>lb:rgb-domain-grayscale</code>
@@ -32,13 +47,78 @@
     <span>逐像素</span>
   </div>
   <p class="lede">PS 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色</p>
-</section>
-<div class="article-layout">
+</section><div class="article-layout">
   <article class="prose">
-<details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><blockquote><p>本文件是该滤镜的原始说明文档（构建命令按旧目录结构书写，已过时）。 统一构建方式请见工程根目录 <code>README.md</code> 与 <code>build.sh</code>。</p></blockquote>
-<h1>GEGL_GIMP_PLUGIN_rgb-domain-grayscale</h1>
+<h2 id="算法">算法</h2>
+<p>六个色相滑杆（红 / 黄 / 绿 / 青 / 蓝 / 品红）决定每种颜色对灰度的贡献， 结果还可以着色——就是 PS 的「黑白」对话框：把蓝拉低压暗天空，把黄推高提亮肤色， 其余部分不受影响。</p>
+<p>RGB 三通道按六色权重加权求和；滑块量程 −200…300 与 PS 界面一致，默认值 （红 40、黄 60、绿 40、青 60、蓝 20、品红 80）取自 Photoshop。</p>
+<h2 id="参数">参数</h2>
+<div class="table-wrap"><table><thead><tr><th>参数</th><th>默认</th><th>说明</th></tr></thead><tbody><tr><td><code>red</code> / <code>yellow</code> / <code>green</code></td><td>40 / 60 / 40</td><td>各色系的权重，−200…300</td></tr><tr><td><code>cyan</code> / <code>blue</code> / <code>magenta</code></td><td>60 / 20 / 80</td><td>各色系的权重，−200…300</td></tr><tr><td><code>tint_enabled</code></td><td>关</td><td>给灰度结果着色</td></tr><tr><td><code>tint_color</code></td><td><code>#E0D4B2</code></td><td>着色颜色（默认是暖棕）</td></tr><tr><td><code>tint_strength</code></td><td>1</td><td>着色强度，0…1</td></tr></tbody></table></div>
+<h2 id="说明">说明</h2>
+<ul><li>逐像素在 8 位 sRGB 伽马域计算，滑块手感与 PS 对话框一致。</li><li>alpha 保留，透明像素仍然透明。</li><li>与 GIMP 的「去色」不同：这里的灰度不是固定亮度公式，每种颜色变成什么由你决定， 这正是「黑白」的用处。</li></ul>
+<hr>
+<h2 id="算法-2">算法</h2>
+<p>六个色相滑杆（红 / 黄 / 绿 / 青 / 蓝 / 品红）决定每种颜色对灰度的贡献， 结果还可以着色——就是 PS 的「黑白」对话框：把蓝拉低压暗天空，把黄推高提亮肤色， 其余部分不受影响。</p>
+<p>RGB 三通道按六色权重加权求和；滑块量程 −200…300 与 PS 界面一致，默认值 （红 40、黄 60、绿 40、青 60、蓝 20、品红 80）取自 Photoshop。</p>
+<h2 id="参数-2">参数</h2>
+<div class="table-wrap"><table><thead><tr><th>参数</th><th>默认</th><th>说明</th></tr></thead><tbody><tr><td><code>red</code> / <code>yellow</code> / <code>green</code></td><td>40 / 60 / 40</td><td>各色系的权重，−200…300</td></tr><tr><td><code>cyan</code> / <code>blue</code> / <code>magenta</code></td><td>60 / 20 / 80</td><td>各色系的权重，−200…300</td></tr><tr><td><code>tint_enabled</code></td><td>关</td><td>给灰度结果着色</td></tr><tr><td><code>tint_color</code></td><td><code>#E0D4B2</code></td><td>着色颜色（默认是暖棕）</td></tr><tr><td><code>tint_strength</code></td><td>1</td><td>着色强度，0…1</td></tr></tbody></table></div>
+<h2 id="说明-2">说明</h2>
+<ul><li>逐像素在 8 位 sRGB 伽马域计算，滑块手感与 PS 对话框一致。</li><li>alpha 保留，透明像素仍然透明。</li><li>与 GIMP 的「去色」不同：这里的灰度不是固定亮度公式，每种颜色变成什么由你决定， 这正是「黑白」的用处。</li></ul><div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>rgb-domain-grayscale.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>rgb-domain-grayscale.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/rgb-domain-grayscale.dll">下载 rgb-domain-grayscale.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/rgb-domain-grayscale.so">下载 rgb-domain-grayscale.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><a class="prev" href="shadows-highlights.html"><span>上一个</span>Shadows/Highlights</a><a class="next" href="hue-saturation.html"><span>下一个</span>Hue/Saturation</a></nav><details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
+<h4 id="linux-原生版系统包安装的gimp">Linux 原生版（系统包安装的GIMP）</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
+<h4 id="linux-flatpak-容器版应用商店flatpak-gimp">Linux Flatpak 容器版（应用商店Flatpak GIMP）</h4>
+<pre><code class="language-bash">sh build_linux.sh
+cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
+<h3 id="2-插件打开方式两种方法">2. 插件打开方式（两种方法）</h3>
+<p>安装完成后<strong>重启 GIMP</strong>，插件即可使用。</p>
+<h4 id="方法一菜单打开推荐">方法一：菜单打开（推荐）</h4>
+<p>菜单路径：<code>颜色 → SuperMrWang → Tone → Black &amp; White</code></p>
+<h4 id="方法二gegl-操作打开">方法二：GEGL 操作打开</h4>
+<ol><li>顶部菜单点击：<code>滤镜 → 通用 → GEGL 操作</code></li><li>在弹出窗口的搜索框输入：<code>lb:rgb-domain-grayscale</code></li><li>选中后点击「确定」即可使用插件</li></ol></details>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#算法">算法</a></li>
+<li class="l2"><a href="#参数">参数</a></li>
+<li class="l2"><a href="#说明">说明</a></li>
+<li class="l2"><a href="#算法-2">算法</a></li>
+<li class="l2"><a href="#参数-2">参数</a></li>
+<li class="l2"><a href="#说明-2">说明</a></li></ul>
+</aside>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Tone</p>
+  <h1>Black &amp; White</h1>
+  <div class="meta">
+    <code>lb:rgb-domain-grayscale</code>
+    <span class="tag t-tone">Tone</span>
+    <span>per-pixel</span>
+  </div>
+  <p class="lede">Photoshop's Black & White — six hue sliders decide how much each colour contributes to grey, with an optional tint.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p><code>lb:rgb-domain-grayscale</code> · menu <strong>Colors → SuperMrWang → Tone → Black &amp; White</strong> · <code>GeglOperationPointFilter</code> (per-pixel)</p>
+<h2 id="what-it-does">What it does</h2>
+<p>Six hue sliders — red, yellow, green, cyan, blue, magenta — decide how strongly each colour in the image contributes to the grey result, and the grey can then be tinted. This is Photoshop's Black &amp; White dialog: pull blue down and a blue sky goes dark, push yellow up and skin brightens, without any of it touching the rest of the frame.</p>
+<p>The three RGB channels are combined with the six hue weights summed; the slider range −200…300 matches the PS dialog, and the defaults (red 40, yellow 60, green 40, cyan 60, blue 20, magenta 80) are Photoshop's.</p>
+<h2 id="parameters">Parameters</h2>
+<div class="table-wrap"><table><thead><tr><th>Parameter</th><th>Default</th><th>Notes</th></tr></thead><tbody><tr><td><code>red</code> / <code>yellow</code> / <code>green</code></td><td>40 / 60 / 40</td><td>Weight of each hue family, −200…300</td></tr><tr><td><code>cyan</code> / <code>blue</code> / <code>magenta</code></td><td>60 / 20 / 80</td><td>Weight of each hue family, −200…300</td></tr><tr><td><code>tint_enabled</code></td><td>off</td><td>Tint the grey result</td></tr><tr><td><code>tint_color</code></td><td><code>#E0D4B2</code></td><td>Tint colour (a warm sepia by default)</td></tr><tr><td><code>tint_strength</code></td><td>1</td><td>How strongly the tint is applied, 0…1</td></tr></tbody></table></div>
+<h2 id="notes">Notes</h2>
+<ul><li>The operator runs per pixel in the 8-bit sRGB gamma domain, so the weights behave like the ones in Photoshop's dialog.</li><li>Alpha is preserved; transparent pixels stay transparent.</li><li>Unlike GIMP's <code>Colors → Desaturate</code>, the conversion is not a fixed luma formula: you choose what each colour becomes, which is the whole point of Black &amp; White.</li></ul><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>rgb-domain-grayscale.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>rgb-domain-grayscale.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/rgb-domain-grayscale.dll">Download rgb-domain-grayscale.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/rgb-domain-grayscale.so">Download rgb-domain-grayscale.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><a class="prev" href="shadows-highlights.html"><span>Previous</span>Shadows/Highlights</a><a class="next" href="hue-saturation.html"><span>Next</span>Hue/Saturation</a></nav><details class="legacy-intro"><summary>Original plugin docs<span class="muted"> — written when this was a standalone plug-in: the build commands assume the old directory layout and the menu paths have changed. The algorithm notes above supersede it.</span></summary><h1>GEGL_GIMP_PLUGIN_rgb-domain-grayscale</h1>
 <p><img src="../assets/ops/rgb-domain-grayscale/assets/rgbdomaingrayscale.png" alt="rgbdomaingrayscale" title="rgbdomaingrayscale"></p>
-<h2 id="english">English</h2>
 <h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
 <h4 id="native-linux-system-installed-gimp">Native Linux (System installed GIMP)</h4>
 <pre><code class="language-bash">sh build_linux.sh
@@ -52,45 +132,63 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
 <p>Menu path: <code>Colors → SuperMrWang → Tone → Black &amp; White</code></p>
 <h4 id="method-2-gegl-operation">Method 2: GEGL Operation</h4>
 <ol><li>Go to <code>Filters → Generic → GEGL Operations</code></li><li>In the search box, enter: <code>lb:rgb-domain-grayscale</code></li><li>Select it and click <code>OK</code> to apply</li></ol>
-<hr>
-<h2 id="中文">中文</h2>
-<h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
-<h4 id="linux-原生版系统包安装的gimp">Linux 原生版（系统包安装的GIMP）</h4>
-<pre><code class="language-bash">sh build_linux.sh
-cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
-<h4 id="linux-flatpak-容器版应用商店flatpak-gimp">Linux Flatpak 容器版（应用商店Flatpak GIMP）</h4>
-<pre><code class="language-bash">sh build_linux.sh
-cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
-<h3 id="2-插件打开方式两种方法">2. 插件打开方式（两种方法）</h3>
-<p>安装完成后<strong>重启 GIMP</strong>，插件即可使用。</p>
-<h4 id="方法一菜单打开推荐">方法一：菜单打开（推荐）</h4>
-<p>菜单路径：<code>颜色 → SuperMrWang → Tone → Black &amp; White</code></p>
-<h4 id="方法二gegl-操作打开">方法二：GEGL 操作打开</h4>
-<ol><li>顶部菜单点击：<code>滤镜 → 通用 → GEGL 操作</code></li><li>在弹出窗口的搜索框输入：<code>lb:rgb-domain-grayscale</code></li><li>选中后点击「确定」即可使用插件</li></ol></details>
-    <div class="op-dl">
-  <div>
-    <h3>只要这一个</h3>
-    <p>Windows 模块 <code>rgb-domain-grayscale.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>rgb-domain-grayscale.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
-  </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/rgb-domain-grayscale.dll">下载 rgb-domain-grayscale.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/rgb-domain-grayscale.so">下载 rgb-domain-grayscale.so<span class="size">Linux x86_64</span></a></div>
-</div>
-    <nav class="pager"><a class="prev" href="shadows-highlights.html"><span>上一个</span>Shadows/Highlights</a><a class="next" href="hue-saturation.html"><span>下一个</span>Hue/Saturation</a></nav>
+<hr></details>
   </article>
-  
-</div>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#what-it-does">What it does</a></li>
+<li class="l2"><a href="#parameters">Parameters</a></li>
+<li class="l2"><a href="#notes">Notes</a></li></ul>
+</aside>
+</div></div>
 </main>
 <footer class="site-foot">
   <div>
-    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
-    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
-       与 Adobe、GIMP 官方均无隶属关系。</p>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
-    <a href="../guide.html">安装指南</a>
-    <span class="muted">3220ff6</span>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">0055287</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

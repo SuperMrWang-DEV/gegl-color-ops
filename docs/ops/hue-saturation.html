@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="Hue/Saturation · gegl-color-ops" data-title-en="Hue/Saturation · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,22 +9,37 @@
 <meta property="og:description" content="全局或按红/黄/绿/青/蓝/品红六个色相区间调整色相、饱和度、明度">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
-<a class="skip" href="#main">跳到正文</a>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
   <nav>
-    <a href="../index.html#ops">算子</a>
-    <a href="../guide.html">安装</a>
-    <a href="../index.html#download">下载</a>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
-     色彩</p>
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 色彩</p>
   <h1>Hue/Saturation</h1>
   <div class="meta">
     <code>lb:hue-saturation</code>
@@ -32,8 +47,7 @@
     <span>逐像素</span>
   </div>
   <p class="lede">全局或按红/黄/绿/青/蓝/品红六个色相区间调整色相、饱和度、明度</p>
-</section>
-<div class="article-layout">
+</section><div class="article-layout">
   <article class="prose">
 <p>仿 GIMP「色相-饱和度」滤镜的 GEGL point filter，在 <strong>HSL</strong> 空间逐像素调整， 工作于感知（非线性）RGB 格式 <code>R~G~B~A float</code>，自动跟随源色彩空间。</p>
 <h2 id="功能">功能</h2>
@@ -60,15 +74,13 @@ drawable.merge_filter(filter)             # 非破坏性；Gimp.displays_flush()
 <h2 id="已验证结果gegl-cli-数值校验">已验证结果（GEGL CLI 数值校验）</h2>
 <div class="table-wrap"><table><thead><tr><th>用例</th><th>结果</th></tr></thead><tbody><tr><td>零参数恒等</td><td>输出与输入逐字节一致（max diff = 0）</td></tr><tr><td><code>hue=60</code></td><td>红(0°)→黄(60°)、青(180°)→蓝(240°)，精确 +60°</td></tr><tr><td><code>saturation=0.45</code></td><td>HSL S: 0.082 → 0.535（精确 +0.45），色相/明度不变</td></tr><tr><td>灰阶带</td><td>完全不变（achromatic guard 生效）</td></tr><tr><td><code>green-hue=-55 green-saturation=-0.7</code></td><td>仅绿/黄绿区间偏移至 ~82° 并去饱和，红/蓝/品红不受影响</td></tr></tbody></table></div>
 <h2 id="文件">文件</h2>
-<ul><li><code>wb-hue-saturation.c</code> — 算子源码（单文件，GEGL_OP_POINT_FILTER）</li><li><code>wb-hue-saturation.dll</code> — 编译产物（GEGL 0.4.72 / mingw64）</li><li><code>make_test_image.py</code> — 生成测试图（HSL 色环 + 灰阶带 + 明度带）</li><li><code>verify.py</code> / <code>compose.py</code> — 数值校验与对比图拼接</li><li><code>test-in.png</code>、<code>out-*.png</code>、<code>demo.png</code> — 测试图与结果</li></ul>
-    <div class="op-dl">
+<ul><li><code>wb-hue-saturation.c</code> — 算子源码（单文件，GEGL_OP_POINT_FILTER）</li><li><code>wb-hue-saturation.dll</code> — 编译产物（GEGL 0.4.72 / mingw64）</li><li><code>make_test_image.py</code> — 生成测试图（HSL 色环 + 灰阶带 + 明度带）</li><li><code>verify.py</code> / <code>compose.py</code> — 数值校验与对比图拼接</li><li><code>test-in.png</code>、<code>out-*.png</code>、<code>demo.png</code> — 测试图与结果</li></ul><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>hue-saturation.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>hue-saturation.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hue-saturation.dll">下载 hue-saturation.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/hue-saturation.so">下载 hue-saturation.so<span class="size">Linux x86_64</span></a></div>
-</div>
-    <nav class="pager"><a class="prev" href="rgb-domain-grayscale.html"><span>上一个</span>Black &amp; White</a><a class="next" href="ps-hue-saturation.html"><span>下一个</span>Hue/Saturation (PS)</a></nav>
+</div><nav class="pager"><a class="prev" href="rgb-domain-grayscale.html"><span>上一个</span>Black &amp; White</a><a class="next" href="ps-hue-saturation.html"><span>下一个</span>Hue/Saturation (PS)</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
@@ -80,20 +92,94 @@ drawable.merge_filter(filter)             # 非破坏性；Gimp.displays_flush()
 <li class="l2"><a href="#已验证结果gegl-cli-数值校验">已验证结果（GEGL CLI 数值校验）</a></li>
 <li class="l2"><a href="#文件">文件</a></li></ul>
 </aside>
-</div>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Color</p>
+  <h1>Hue/Saturation</h1>
+  <div class="meta">
+    <code>lb:hue-saturation</code>
+    <span class="tag t-color">Color</span>
+    <span>per-pixel</span>
+  </div>
+  <p class="lede">GIMP-style Hue/Saturation — a master control plus six hue ranges, all offsets added in HSL.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>A GEGL point filter modelled on GIMP's Hue-Saturation filter: per-pixel adjustments in <strong>HSL</strong>, working on the perceptual (non-linear) <code>R~G~B~A float</code> format and following the source colour space automatically.</p>
+<h2 id="features">Features</h2>
+<ul><li><strong>Master</strong>: <code>hue</code> (degrees, ±180), <code>saturation</code> (±1, additive), <code>lightness</code> (±1, additive)</li><li><strong>Six hue ranges</strong> (red / yellow / green / cyan / blue / magenta, centres 60° apart), each with its own <code>*-hue / *-saturation / *-lightness</code>, blended with the master by a triangular weight</li><li><strong><code>overlap</code></strong> (0–1): range width = 60° × (1 + overlap). The default of 0 makes the six ranges tile the wheel exactly, with each centre getting 100% of its setting; raising it lets neighbours bleed into each other (softer, but the peak strength is diluted in proportion)</li><li>Grey pixels (S &lt; 1e-5) are not tinted: the hue and saturation adjustments are skipped and only lightness is applied</li><li>All-zero parameters <code>memcpy</code> straight through (alpha included); HDR values outside the range are clipped to [0,1] before the maths</li></ul>
+<h2 id="usage-in-gimp-3-python">Usage in GIMP 3 Python</h2>
+<pre><code class="language-python">from gi.repository import Gimp, Gegl
+
+filter = Gimp.DrawableFilter.new(drawable, Gegl.Orientation.AUTO, "lb:hue-saturation", 0)
+config = filter.get_config()
+config.set_property("hue", 45.0)          # degrees
+config.set_property("saturation", 0.3)    # -1..1
+config.set_property("green-saturation", -0.5)
+drawable.merge_filter(filter)             # non-destructive; Gimp.displays_flush() to refresh</code></pre>
+<h2 id="verified-behaviour-gegl-cli">Verified behaviour (GEGL CLI)</h2>
+<div class="table-wrap"><table><thead><tr><th>Case</th><th>Result</th></tr></thead><tbody><tr><td>all-zero identity</td><td>output byte-identical to input (max diff = 0)</td></tr><tr><td><code>hue=60</code></td><td>red (0°)→yellow (60°), cyan (180°)→blue (240°), exactly +60°</td></tr><tr><td><code>saturation=0.45</code></td><td>HSL S: 0.082 → 0.535 (exactly +0.45), hue and lightness unchanged</td></tr><tr><td>grey band</td><td>completely unchanged (the achromatic guard works)</td></tr><tr><td><code>green-hue=-55 green-saturation=-0.7</code></td><td>only the green/yellow-green range moves to ~82° and desaturates; red, blue and magenta are untouched</td></tr></tbody></table></div><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>hue-saturation.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>hue-saturation.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hue-saturation.dll">Download hue-saturation.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/hue-saturation.so">Download hue-saturation.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><a class="prev" href="rgb-domain-grayscale.html"><span>Previous</span>Black &amp; White</a><a class="next" href="ps-hue-saturation.html"><span>Next</span>Hue/Saturation (PS)</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#features">Features</a></li>
+<li class="l2"><a href="#usage-in-gimp-3-python">Usage in GIMP 3 Python</a></li>
+<li class="l2"><a href="#verified-behaviour-gegl-cli">Verified behaviour (GEGL CLI)</a></li></ul>
+</aside>
+</div></div>
 </main>
 <footer class="site-foot">
   <div>
-    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
-    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
-       与 Adobe、GIMP 官方均无隶属关系。</p>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
-    <a href="../guide.html">安装指南</a>
-    <span class="muted">3220ff6</span>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">0055287</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

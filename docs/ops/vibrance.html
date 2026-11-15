@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="Vibrance · gegl-color-ops" data-title-en="Vibrance · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,22 +9,37 @@
 <meta property="og:description" content="按 Photoshop「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱和主动收手、红带（肤色）额外保护、浅色少给一点，色相与明度不动">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
-<a class="skip" href="#main">跳到正文</a>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
   <nav>
-    <a href="../index.html#ops">算子</a>
-    <a href="../guide.html">安装</a>
-    <a href="../index.html#download">下载</a>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /
-     色彩</p>
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 色彩</p>
   <h1>Vibrance</h1>
   <div class="meta">
     <code>lb:vibrance</code>
@@ -32,8 +47,7 @@
     <span>逐像素</span>
   </div>
   <p class="lede">按 Photoshop「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱和主动收手、红带（肤色）额外保护、浅色少给一点，色相与明度不动</p>
-</section>
-<div class="article-layout">
+</section><div class="article-layout">
   <article class="prose">
 <p>按实测逆向出来的 Photoshop「自然饱和度」，不是凭经验的近似。同一张标定图分别过 PS 26.10 和本算子，像素级逐位对比见文末「验收」。</p>
 <ul><li>GEGL id：<code>lb:vibrance</code></li><li>菜单：<code>Colors → SuperMrWang → Color → Vibrance</code></li><li>类型：<code>GeglOperationPointFilter</code>（逐像素，无邻域）</li><li>参数：<code>vibrance</code>（−100…100）、<code>protect_reds</code>、<code>compensate_lightness</code></li></ul>
@@ -63,15 +77,13 @@ S' = min(1, S + ΔS)</code></pre>
 <ol><li><strong>红带里 H≈17° 的橙/肤色（B 段，L62）</strong>：<code>r</code> 只按 H0 拟合，H17 处 PS 压得更狠。 v=+60 时该段中位偏差 2.9 码、v=+100 时 8.4 码（最大 14.8）。</li><li><strong>负方向在浅色上的明度变化（E 段）</strong>：<code>V'/V</code> 表只在 L=50 上拟合，L=80 时 PS 实际压得比表里小得多（该处最大偏差 29 码，sRGB 下是肉眼可见的变暗）。</li></ol>
 <p>这两处都不是实现问题，是模型维度不够（色相只有 6 个采样点、明度 5 档）。要补， 方向是做 probe v2：L×S 网格 + 5° 色相细扫，然后重拟合 <code>r(H,S,v)</code> 与负向的 <code>V'(S,L,v)</code>。</p>
 <h2 id="与-lbvibrance-hyper-的关系">与 <code>lb:vibrance-hyper</code> 的关系</h2>
-<p><code>vibrance-hyper</code> 是 LAB 域的<strong>外观建模</strong>（色度双曲蒙版 + 肤色窗 + 色域收敛）， 调出来的手感好、参数可解释，但不保证和 PS 数值一致。 <code>vibrance</code> 是<strong>数值复刻</strong>：和 PS 对得上，但没有可调的艺术性参数。 两个并存，按需要选。</p>
-    <div class="op-dl">
+<p><code>vibrance-hyper</code> 是 LAB 域的<strong>外观建模</strong>（色度双曲蒙版 + 肤色窗 + 色域收敛）， 调出来的手感好、参数可解释，但不保证和 PS 数值一致。 <code>vibrance</code> 是<strong>数值复刻</strong>：和 PS 对得上，但没有可调的艺术性参数。 两个并存，按需要选。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>vibrance.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>vibrance.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/vibrance.dll">下载 vibrance.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/vibrance.so">下载 vibrance.so<span class="size">Linux x86_64</span></a></div>
-</div>
-    <nav class="pager"><a class="prev" href="color-temperature-tint.html"><span>上一个</span>Color Temperature &amp; Tint</a><a class="next" href="vibrance-hyper.html"><span>下一个</span>Natural Saturation</a></nav>
+</div><nav class="pager"><a class="prev" href="color-temperature-tint.html"><span>上一个</span>Color Temperature &amp; Tint</a><a class="next" href="vibrance-hyper.html"><span>下一个</span>Natural Saturation</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
@@ -82,20 +94,112 @@ S' = min(1, S + ΔS)</code></pre>
 <li class="l2"><a href="#已知偏差">已知偏差</a></li>
 <li class="l2"><a href="#与-lbvibrance-hyper-的关系">与 lb:vibrance-hyper 的关系</a></li></ul>
 </aside>
-</div>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Color</p>
+  <h1>Vibrance</h1>
+  <div class="meta">
+    <code>lb:vibrance</code>
+    <span class="tag t-color">Color</span>
+    <span>per-pixel</span>
+  </div>
+  <p class="lede">Photoshop's Vibrance, reverse-engineered from measurement — measured tables, red-band protection, lightness compensation, and no white balance mixed in.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>Photoshop's <strong>Vibrance</strong>, reverse-engineered from measurement rather than approximated. The same calibration chart was pushed through PS 26.10 and through this operator; the pixel-level comparison is in the acceptance section.</p>
+<ul><li>GEGL id: <code>lb:vibrance</code></li><li>Menu: <code>Colors → SuperMrWang → Color → Vibrance</code></li><li>Type: <code>GeglOperationPointFilter</code> (per-pixel, no neighbourhood)</li><li>Parameters: <code>vibrance</code> (−100…100), <code>protect_reds</code>, <code>compensate_lightness</code></li></ul>
+<h2 id="vibrance-only-temperature-and-tint-are-elsewhere">Vibrance only — temperature and tint are elsewhere</h2>
+<p>PS 2026 (27.0) renamed the Vibrance layer to "Color and vibrance" and added <strong>temperature / tint</strong> sliders, which action-wise are <strong>one white-balance layer followed by the old Vibrance</strong>.</p>
+<p>This project does not fuse the two into one operator: <code>lb:color-temperature-tint</code> owns temperature/tint and <code>lb:vibrance</code> does Vibrance alone. To reproduce "Color and vibrance", stack two layers in order:</p>
+<pre><code>layer / filter stack:  Color Temperature &amp; Tint (lb:color-temperature-tint)  →  Vibrance (lb:vibrance)</code></pre>
+<p>For 2025's plain Vibrance, delete the lower layer. Why split it:</p>
+<ul><li>each operator has one slider's worth of responsibility, so there is never a question of "does temperature act on the whole layer or only this segment";</li><li>the order is expressed by the layer stack (Photoshop's order is white balance first — measured median difference 1.4 code values; reversed it is 36), and changing it means reordering layers instead of unticking a box;</li><li>the white-balance result is <strong>bit-identical</strong> to running <code>lb:color-temperature-tint</code> alone, so there are not two implementations drifting apart.</li></ul>
+<h2 id="algorithm">Algorithm</h2>
+<p>Convert to HSV on <strong>sRGB encoded values</strong> (<code>R~G~B~A float</code>, the perceptual domain, not linear light) and derive an increment from the source saturation S:</p>
+<pre><code>ΔS = A(v) · S^p(v) · (1−S)^q(v) · r(H,S,v) · c(L)
+S' = min(1, S + ΔS)</code></pre>
+<div class="table-wrap"><table><thead><tr><th>Term</th><th>Meaning</th><th>Data source</th></tr></thead><tbody><tr><td><code>A(v)</code>, <code>p(v)</code>, <code>q(v)</code></td><td>amplitude and the curvature at both ends, per step of v</td><td>16-bit calibration in steps of 5, 20 steps</td></tr><tr><td><code>r(H,S,v)</code></td><td>extra suppression in the red band (within 40° of red), fading linearly out from 26° to 40°</td><td>ratio of H0 to H120 at the same v</td></tr><tr><td><code>c(L)</code></td><td>lightness correction: give less to light colours (0.72× at L=80, 1.39× at L=20)</td><td>the L ladder of segment E</td></tr></tbody></table></div>
+<p>RGB reconstruction: keep max fixed and scale the other channels by <code>S'/S</code> — <code>out = mx − (mx − c)·S'/S</code>. Since <code>mx − mn = S·mx</code>, whenever <code>S' ≤ 1</code> the minimum channel lands exactly in <code>[0, mx]</code>, so <strong>the maths cannot leave the gamut</strong> and no clipping or gamut mapping is needed.</p>
+<p>The negative direction (v&lt;0) is <strong>a different mechanism</strong>, not a mirror of the positive one: measurements show S drops <em>and</em> V drops with it, and there is no hue term, so it uses two tables (<code>S'</code> and <code>V'/V</code>), also bilinearly interpolated over (v, S).</p>
+<p>The tables live in <code>vibrance-tables.h</code>, generated by <code>tools/gen_vibrance_tables.py</code> from <code>vibrance-cal/vibrance_model.json</code> — change the JSON and regenerate, never hand-edit.</p>
+<h2 id="performance">Performance</h2>
+<p><code>v</code> is constant over the image, so every curve that varies with v is folded into one row (11 samples) in <code>prepare()</code>, leaving <code>process()</code> with a 1D lookup and two <code>powf</code>. The 1080×880 calibration chart renders in about 0.2 s through the gegl CLI including PNG encode/decode.</p>
+<h2 id="acceptance">Acceptance</h2>
+<p><code>python tools/check_vibrance_ps.py</code> renders the chart through the gegl CLI and compares it with Photoshop's real export, pixel by pixel (0–255 code values; quantisation alone is ±0.5):</p>
+<div class="table-wrap"><table><thead><tr><th>v</th><th>Median</th><th>95%</th><th>Max</th><th>Mean</th><th>Exactly equal to PS</th></tr></thead><tbody><tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0.00</td><td>100%</td></tr><tr><td>+60</td><td>0</td><td>4</td><td>7</td><td>0.83</td><td>63.5%</td></tr><tr><td>+100</td><td>0</td><td>8</td><td>15</td><td>1.58</td><td>68.1%</td></tr><tr><td>−60</td><td>0</td><td>5</td><td>17</td><td>0.82</td><td>65.1%</td></tr><tr><td>−100</td><td>0</td><td>7</td><td>30</td><td>1.10</td><td>61.9%</td></tr></tbody></table></div>
+<p><code>v=0</code> is bit-identical, so the colour pipeline (linear↔encoded round trip) does not secretly touch pixels. The C implementation matches the Python reference in <code>vibrance-cal/vibrance_ref.py</code> pixel for pixel (≤1 code, pure rounding).</p>
+<p>The two-layer "Color and vibrance" acceptance against PS 2026, and the accuracy of the temperature/tint part, are in <code>ops/color-temperature-tint/README.md</code> — median/p90/p99/max over seven v/t/n combinations, plus the known deviation on the diagonal where temperature ≤ −50 and tint ≥ +38 and PS clips hard.</p>
+<h2 id="known-deviations">Known deviations</h2>
+<p>The fit residual only holds at the sampled points (segment A's ΔS residual is 0.41 pp at v=+100); on a real image the bulk of the error sits in two places <strong>the calibration grid did not cover</strong>:</p>
+<ol><li><strong>Orange and skin tones near H≈17° inside the red band (segment B, L62)</strong>: <code>r</code> was fitted on H0 only, and PS suppresses H17 harder. At v=+60 that segment is off by a median of 2.9 code values, 8.4 at v=+100 (max 14.8).</li><li><strong>The negative direction's lightness change on light colours (segment E)</strong>: the <code>V'/V</code> table was fitted at L=50 only, and at L=80 PS presses much less than the table does (up to 29 code values there — a visible darkening in sRGB).</li></ol>
+<p>Neither is an implementation bug: the model has too few dimensions (six hue samples, five lightness steps). The fix would be a probe v2 — an L×S grid plus a 5° hue sweep — and a refit of <code>r(H,S,v)</code> and of the negative <code>V'(S,L,v)</code>.</p>
+<h2 id="relation-to-lbvibrance-hyper">Relation to <code>lb:vibrance-hyper</code></h2>
+<p><code>vibrance-hyper</code> is an <strong>appearance model</strong> in Lab (hyperbolic chroma mask, skin window, gamut mapping): pleasant to use with explainable parameters, but not guaranteed to match PS numerically. <code>vibrance</code> is the <strong>numerical reproduction</strong>: it matches Photoshop, but has no artistic parameters. Both exist; pick by need.</p><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>vibrance.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>vibrance.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/vibrance.dll">Download vibrance.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/vibrance.so">Download vibrance.so<span class="size">Linux x86_64</span></a></div>
+</div><nav class="pager"><a class="prev" href="color-temperature-tint.html"><span>Previous</span>Color Temperature &amp; Tint PS</a><a class="next" href="vibrance-hyper.html"><span>Next</span>Vibrance (Lab)</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#vibrance-only-temperature-and-tint-are-elsewhere">Vibrance only — temperature and tint are elsewhere</a></li>
+<li class="l2"><a href="#algorithm">Algorithm</a></li>
+<li class="l2"><a href="#performance">Performance</a></li>
+<li class="l2"><a href="#acceptance">Acceptance</a></li>
+<li class="l2"><a href="#known-deviations">Known deviations</a></li>
+<li class="l2"><a href="#relation-to-lbvibrance-hyper">Relation to lb:vibrance-hyper</a></li></ul>
+</aside>
+</div></div>
 </main>
 <footer class="site-foot">
   <div>
-    <p><strong>gegl-color-ops</strong> · GIMP 3 的 GEGL 色彩算子集</p>
-    <p class="muted">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；
-       与 Adobe、GIMP 官方均无隶属关系。</p>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
-    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
-    <a href="../guide.html">安装指南</a>
-    <span class="muted">3220ff6</span>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">0055287</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>
