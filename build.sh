@@ -81,9 +81,13 @@ echo "· gegl-0.4 $(pkg-config --modversion gegl-0.4) / 输出 $OUT/*.$EXT"
 fail=0; total=0
 for c in "$ROOT"/ops/*/*.c; do
   dir="$(dirname "$c")"; name="$(basename "$c" .c)"
-  # 目录里有 .disabled 标记 = 源码保留但暂时不编译（删掉标记即恢复）
+  # 目录里有 .disabled 标记 = 源码保留但不编译（删掉标记即恢复）
   if [ -f "$dir/.disabled" ]; then
-    printf '  SKIP %-26s （临时停用，见 ops/%s/.disabled）\n' "${dir##*/}" "${dir##*/}"
+    if grep -qi "DEPRECATED" "$dir/.disabled" 2>/dev/null; then
+      printf '  SKIP %-26s （已废弃，见 ops/%s/.disabled）\n' "${dir##*/}" "${dir##*/}"
+    else
+      printf '  SKIP %-26s （临时停用，见 ops/%s/.disabled）\n' "${dir##*/}" "${dir##*/}"
+    fi
     continue
   fi
   total=$((total+1))

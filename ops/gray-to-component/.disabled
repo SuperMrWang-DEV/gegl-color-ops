@@ -1,0 +1,25 @@
+DEPRECATED 2026-11-15
+
+lb:gray-to-component 已废弃，不再编译、不再进安装包。
+
+原因
+----
+这个算子是「分量灰度 → 彩色编码」的中间环节：先把通道分解成灰度层，再把它编成
+带色相/饱和度的彩色层，才能喂 GIMP「颜色」组的混合模式。整条链路要三步、两张
+中间图层，而且编码公式（HSV vs HSL 语义、LCh 的黑场处理）只能靠恒等往返反推，
+一旦 GIMP 换算法就得重标定。
+
+现在每个色彩模式都有自己的分量色阶算子，直接在原图上按分量调，一步到位：
+
+    lb:hsl-levels   色相 / 饱和度 / 亮度，环形的色相带最短弧插值
+    lb:hsb-levels   色相 / 饱和度 / 明度
+    lb:lch-levels   LCh 的色相 / 彩度 / 明度
+    lb:cmyk-levels  CMYK 四色，带黑版生成
+    lb:hsi-levels   HSI，色相按余弦定义
+
+源码与文档保留在这里，供对照旧工程文件、查阅当时的标定结论。要临时恢复编译：
+
+    rm ops/gray-to-component/.disabled && ./build.sh
+
+注意：恢复后 GIMP 里会重新出现「Gray To Component」菜单项，但 dist/ 和站点不再
+提供它的二进制与下载入口。

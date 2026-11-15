@@ -35,13 +35,12 @@ ops = [
   ['brightness-contrast',  'lb-brightness-contrast',  'lb-brightness-contrast.c'],
   ['xyz-multiply',            'xyz-multiply',            'xyz-multiply.c'],
   ['shadows-highlights',      'shadows-highlights',      'shadows-highlights.c'],
-  # 双输入（aux）算子。这三个在 2026-11-11 ~ 11-12 就进了源码，但一直漏在
-  # 本表外：build.sh 走 ops/*/*.c 自动遍历能编出 29 个，meson 只列了 26 个，
-  # 于是 Linux CI 的「产出 29 个」断言失败（built: 26）。加算子时必须同步这里。
+  # 双输入（aux）算子。本表是手工维护的，加算子时必须同步；带 .disabled 标记的
+  # 算子（当前为 gray-to-component）不入表也不编译。CI 用集合比对核对本表与
+  # ops/ 下的源码目录，漏列或多列都会点名。
   ['apply-image',             'apply-image',             'apply-image.c'],
   ['calculations',            'calculations',            'calculations.c'],
   ['match-color',             'match-color',             'match-color.c'],
-  ['gray-to-component',       'gray-to-component',       'gray-to-component.c'],
   ['color-temperature-tint',   'color-temperature-tint',   'color-temperature-tint.c'],
 ]
 

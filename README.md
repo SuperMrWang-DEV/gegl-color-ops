@@ -86,7 +86,7 @@ gegl-color-ops/
 | `lb:color-temperature-tint` | Color Temperature & Tint | Color Temperature & Tint | Color | Point | PS 2026「色彩与自然饱和度」里的色温 / 色调：冷↔暖、绿↔洋红，中性灰跟着偏色、黑白不动 |
 | `lb:apply-image` | Apply Image | Apply Image | Blend | Composer | PS 应用图像：aux 层按 26 种混合模式压到本层，可只作用单通道；源层没盖到和透明的地方原样输出 |
 | `lb:calculations` | Calculations | Calculations | Blend | Composer | PS 计算：两路通道混合出灰/alpha 蒙版，双源可各自反相；源 2 透明处蒙版为 0 |
-| `lb:gray-to-component` | Gray To Component | Gray To Component | Blend | Point | 通道灰度调色工作流的编码器：灰度 → 色相轮 / HSV 饱和度·明度 / HSL 颜色 / CIE 明度·亮度 / RGB 单通道 / CIE LCh 色相·色度·颜色，覆盖 GIMP「颜色」组全部 9 个混合模式（恒等往返 39/39） |
+| ~~`lb:gray-to-component`~~ | ~~Gray To Component~~ | Gray To Component | Blend | Point | **已废弃（2026-11-15）**：原本是「分量灰度 → 彩色编码 → 混合模式还原」这条三步流程的中间环节。现在每个色彩模式都有自己的分量色阶（`lb:hsl-levels` / `lb:hsb-levels` / `lb:lch-levels` / `lb:cmyk-levels` / `lb:hsi-levels`），直接在原图上按分量调，不再需要分解与重编码。源码与文档保留作存档，`ops/gray-to-component/.disabled` 标记停编译，不进安装包 |
 
 每个算子的算法说明、参数含义见 `ops/<算子名>/README.md`（原始文档）。
 
@@ -379,7 +379,7 @@ python tools/check_color_grading.py         # 行为验证：颜色分级（恒�
 python tools/check_levels_ps.py             # 与 PS 实测点比对：色阶（含 gamma 方向与指数形式）
 python tools/check_lab_levels.py            # 数值回归：LAB 色阶（gimp-console 跑，21 项）
 python tools/check_match_color.py           # 数值回归：匹配颜色（gimp-console 跑，17 项）
-python tools/check_gray_to_component.py     # 数值回归 + 恒等往返：灰度转分量（gimp-console 跑，23 项）
+python tools/check_gray_to_component.py     # （已废弃）灰度转分量，需先删 ops/gray-to-component/.disabled
 python tools/check_xyz_multiply.py --all    # 数值回归：XYZ 正片叠底（36 组白点×叠加色×不透明度）
 python tools/normalize_headers.py           # 预览文件头/命名重排，加 --write 落盘
 python tools/set_menu_group.py --check      # 核对菜分组映射表与 ops 目录是否一一对应
