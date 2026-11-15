@@ -82,7 +82,7 @@ gegl-color-ops/
 | `lb:vibrance` | Vibrance | Vibrance | Color | Point | PS 自然饱和度实测复刻：ΔS = A(v)·S^p·(1−S)^q，叠红带与亮度项，16 位标定；只管饱和度，色温色调由 `lb:color-temperature-tint` 独立承担 |
 | `lb:brightness-contrast` | Brightness/Contrast | Brightness/Contrast | Tone | Point | PS 亮度/对比度实测复刻：新版两条曲线族查表 + 旧版闭式（pivot 89、b 夹 ±100） |
 | `lb:xyz-multiply` | Photo Filter | Photo Filter | Blend | Point | **即 PS 照片滤镜**（实测复刻）：滤镜色在 D50 XYZ 域正片叠底，密度 + 保留明度（W3C SetLum）；不保留明度档 ≤0.71 码 |
-| `lb:shadows-highlights` | Shadows/Highlights | Shadows/Highlights | Tone | Filter | PS 阴影/高光实测复刻：边缘感知邻域亮度决定提亮提多少，含色调宽度、颜色、中间调对比度、修剪黑白 |
+| `lb:shadows-highlights` | Shadows/Highlights | Shadows/Highlights | Tone | Filter | PS 阴影/高光实测复刻：边缘感知邻域亮度决定提亮提多少，含色调宽度、颜色、中间调对比度、修剪黑白。**不推荐日常使用（慢）**：半径 30 时每像素约 1.4 µs，2048×1536 默认参数净耗时 0.7 s，交互拖滑杆会卡；整体明暗请用 `lb:levels` / `lb:lab-levels`，见 `ops/shadows-highlights/.discouraged` |
 | `lb:color-temperature-tint` | Color Temperature & Tint | Color Temperature & Tint | Color | Point | PS 2026「色彩与自然饱和度」里的色温 / 色调：冷↔暖、绿↔洋红，中性灰跟着偏色、黑白不动 |
 | `lb:apply-image` | Apply Image | Apply Image | Blend | Composer | PS 应用图像：aux 层按 26 种混合模式压到本层，可只作用单通道；源层没盖到和透明的地方原样输出 |
 | `lb:calculations` | Calculations | Calculations | Blend | Composer | PS 计算：两路通道混合出灰/alpha 蒙版，双源可各自反相；源 2 透明处蒙版为 0 |

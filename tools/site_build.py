@@ -135,6 +135,7 @@ def load_ops():
             "type": TYPE_ZH.get(tm.group(1) if tm else "", tm.group(1) if tm else "算子"),
             "disabled": os.path.exists(os.path.join(d, ".disabled")),
             "deprecated": is_deprecated(os.path.join(d, ".disabled")),
+            "discouraged": os.path.exists(os.path.join(d, ".discouraged")),
             "readme": os.path.join(d, "README.md"),
             "assets": os.path.join(d, "assets"),
         }
@@ -247,8 +248,13 @@ def off_badge(op, temporary="停用"):
         "已废弃" if op.get("deprecated") else temporary)
 
 
+def warn_badge(op):
+    """`docs` 层面的「不推荐」：算子照常编译发布，只是别拿它当首选。"""
+    return '<span class="badge warn">不推荐</span>' if op.get("discouraged") else ""
+
+
 def card(op):
-    badge = off_badge(op)
+    badge = off_badge(op) + warn_badge(op)
     return """<a class="card" href="ops/{slug}.html">
   <div class="card-top">
     <span class="tag t-{g}">{gz}</span>
@@ -406,11 +412,11 @@ def build_ops_index(ops, version):
         rows.append("<thead><tr><th>菜单名</th><th>GEGL id</th><th>类型</th>"
                     "<th>做什么</th></tr></thead><tbody>")
         for o in members:
-            off = (" " + off_badge(o)) if o["disabled"] else ""
+            off = (" " + off_badge(o) + warn_badge(o)) if (o["disabled"] or o["discouraged"]) else ""
             rows.append('<tr><td><a href="ops/%s.html"><b>%s</b></a>%s</td>'
                         '<td><code>%s</code></td><td class="nowrap">%s</td><td>%s</td></tr>'
                         % (o["dir"], html.escape(o["menu"]), off, html.escape(o["id"]),
-                           html.escape(o["type"]), html.escape(short(o["purpose_zh"], 70))))
+                           html.escape(o["type"]), inline(short(o["purpose_zh"], 70))))
         rows.append("</tbody></table></div>")
 
     body = """<section class="page-head">
@@ -469,7 +475,8 @@ def build_article(op, version):
   <ul>%s</ul>
 </aside>""" % items
 
-    off = (" " + off_badge(op, "临时停用")) if op["disabled"] else ""
+    off = (" " + off_badge(op, "临时停用") + warn_badge(op)) \
+        if (op["disabled"] or op["discouraged"]) else ""
     meta = """<div class="meta">
     <code>{oid}</code>
     <span class="tag t-{g}">{gz}</span>
@@ -516,6 +523,13 @@ def build_article(op, version):
         warn = ('\n  <p class="dep-note"><b>已废弃</b>　本算子不再编译、不进安装包，'
                 '本页仅作存档。现在每个色彩模式都有自己的分量色阶，不需要「灰度 → '
                 '彩色编码 → 混合模式」这套三步走。</p>')
+    elif op.get("discouraged"):
+        warn = ('\n  <p class="slow-note"><b>不推荐日常使用</b>　邻域双边加 4 次高斯，'
+                '半径 30 时每像素约 1.4 µs：2048×1536 默认参数净耗时 0.7 s、含解码 '
+                '2.1 s，在 GIMP 里拖一次滑杆就重算一遍整图。整体明暗改用 '
+                '<a href="levels.html">色阶</a> / <a href="lab-levels.html">LAB 色阶</a>；'
+                '确实需要「周围亮就少提」的局部行为再回来用它，半径压到 10–15 会快很多。'
+                '详见 <code>ops/shadows-highlights/.discouraged</code>。</p>')
 
     body = """<section class="page-head">
   <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> /

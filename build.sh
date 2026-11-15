@@ -99,6 +99,11 @@ for c in "$ROOT"/ops/*/*.c; do
         -o "$OUT/$name.$EXT" 2>"$OUT/.build-$name.log"; then
     printf '  OK   %-26s -> build/%s.%s\n' "${dir##*/}" "$name" "$EXT"
     rm -f "$OUT/.build-$name.log"
+    # .discouraged = 照常编译发布，只是文档标「不推荐使用」（性能原因）
+    if [ -f "$dir/.discouraged" ]; then
+      printf '       NOTE %-26s 不推荐使用（性能），见 ops/%s/.discouraged\n' \
+        "${dir##*/}" "${dir##*/}"
+    fi
   else
     printf '  FAIL %-26s （详见 build/.build-%s.log）\n' "${dir##*/}" "$name"
     fail=$((fail+1))

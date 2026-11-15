@@ -246,12 +246,21 @@ main::before {
   .t-color { color: #fb7185; }
   .t-blend { color: #a5b4fc; }
   .t-mask  { color: #34d399; }
+  .badge.warn { color: #fbbf24; }
+  .slow-note b { color: #fbbf24; }
 }
 
 .badge.off {
   font-size: 11px; padding: 1px 7px; border-radius: 999px;
   background: color-mix(in srgb, #f43f5e 12%, transparent);
   color: #e11d48; border: 1px solid color-mix(in srgb, #f43f5e 26%, transparent);
+}
+
+/* 不推荐：仍然可用、照常发布，只是别当首选 */
+.badge.warn {
+  font-size: 11px; padding: 1px 7px; border-radius: 999px;
+  background: color-mix(in srgb, #f59e0b 15%, transparent);
+  color: #b45309; border: 1px solid color-mix(in srgb, #f59e0b 32%, transparent);
 }
 
 /* ---- 下载 ---- */
@@ -398,6 +407,17 @@ main::before {
   border-radius: 10px;
 }
 .dep-note b { color: #e11d48; }
+
+/* 不推荐算子页顶部的性能提示（可用，但慢） */
+.slow-note {
+  margin: 18px 0 0; padding: 12px 16px; font-size: 14px; line-height: 1.65;
+  color: var(--muted);
+  background: color-mix(in srgb, #f59e0b 9%, var(--panel));
+  border: 1px solid color-mix(in srgb, #f59e0b 26%, var(--line));
+  border-radius: 10px;
+}
+.slow-note b { color: #b45309; }
+.slow-note a { color: var(--accent); }
 
 .pager {
   display: flex; justify-content: space-between; gap: 16px;
