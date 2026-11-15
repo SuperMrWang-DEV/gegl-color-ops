@@ -77,7 +77,7 @@ gegl-color-ops/
 | `lb:cmyk-levels` | CMYK Levels | CMYK Levels | Tone | Filter | CMYK 四版墨量色阶（babl 分色，非 ICC） |
 | `lb:hsi-levels` | HSI Levels | HSI Levels | Tone | Filter | HSI 三分量色阶，I 取三通道均值 |
 | `lb:levels` | Levels | Levels | Tone | Point | PS 色阶：复合 + R/G/B 四组输入黑/灰/白场与输出黑白场，0–255 刻度；gamma 方向经公开实测点验证（154@0.46→84、200@1.646→220） |
-| `lb:exposure` | Exposure EV | Exposure EV | Tone | Filter | PS 曝光：EV、偏移、伽马 |
+| `lb:exposure` | Exposure EV | Exposure EV | Tone | Filter | PS 曝光：EV、偏移、伽马；整数图走伽马域、浮点图走线性域，按输入精度自动选路 |
 | `lb:rgb-domain-grayscale` | Black & White | Black & White | Tone | Point | PS 黑白：六色权重转灰 + 可选着色 |
 | `lb:vibrance-hyper` | Natural Saturation | Natural Saturation | Color | Point | LAB 自然饱和度：色度双曲蒙版 + 肤色保护窗 + 色域收敛不扭色相 |
 | `lb:vibrance` | Vibrance | Vibrance | Color | Point | PS 自然饱和度实测复刻：ΔS = A(v)·S^p·(1−S)^q，叠红带与亮度项，16 位标定；只管饱和度，色温色调由 `lb:color-temperature-tint` 独立承担 |
