@@ -81,8 +81,12 @@ def write_manifest(meta):
 
 
 def main():
+    if "--help" in sys.argv or "-h" in sys.argv:
+        print(__doc__.strip())
+        return 0
     check = "--check" in sys.argv
     sums_only = "--sums" in sys.argv
+    force = "--force" in sys.argv
     meta = ops_meta()
     summary = []
 
@@ -104,6 +108,27 @@ def main():
                 return 1
             print("OK %-12s %d 个，与 build/ 一致" % (plat, len(have)))
             continue
+
+        # 本平台在 build/ 里没产物（最常见：在 Windows 上跑，build/ 只有 .dll），
+        # 这时绝不能清空 dist/ —— 否则会静默删掉另一平台好不容易攒齐的产物。
+        if not built:
+            kept = len([f for f in os.listdir(out) if f.endswith("." + ext)])
+            print("· %s 跳过：build/ 里没有 .%s 产物，dist/%s 保持原样（%d 个）"
+                  % (plat, ext, plat, kept))
+            summary.append((plat, kept))
+            continue
+
+        # 覆盖前先看 dist/ 里有没有 build/ 中不存在的文件，默认拒绝执行。
+        # （9 个 vs 29 个这种缩水，基本都是拿错平台的 build/ 目录，不是真的要删模块。）
+        have = sorted(f for f in os.listdir(out) if f.endswith("." + ext))
+        dropped = sorted(set(have) - set(built))
+        if dropped and not force:
+            print("✗ %s：dist/ 里有 %d 个文件在 build/ 中不存在，默认不覆盖："
+                  % (plat, len(dropped)))
+            print("    %s" % " ".join(dropped[:10]))
+            print("  确认要删就加 --force。")
+            return 1
+
         for f in os.listdir(out):
             if f.endswith("." + ext):
                 os.remove(os.path.join(out, f))

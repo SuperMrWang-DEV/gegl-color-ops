@@ -391,19 +391,20 @@
       <p>29 个 <code>.dll</code>（1.3 MB）。解到
          <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，重启 GIMP 即可。</p>
       <a class="btn primary" href="download/gegl-color-ops-windows-x64.zip">下载 gegl-color-ops-windows-x64.zip</a>
-      <p class="muted small">校验：<code>SHA256 \20cf1e8c104e2578f9ece634d2d2b24…</code></p>
+      <p class="muted small">校验：<code>SHA256 6b793ce34e27891ad487bc3426d588bf…</code></p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>Linux x86_64</h3></div>
-      <p>仓库里有现成的 <code>.so</code>，但<b>只覆盖早期算子</b>（14 个），
-         新的色阶系列要自己编：<code>./build.sh</code> 一条命令，需要 GIMP 3 自带的
-         GEGL 开发头文件。</p>
-      <a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/tree/main/dist/linux-x64">看 Linux 目录</a>
+      <p>29 个 <code>.so</code>（0.3 MB）。解到
+         <code>~/.local/share/gegl-0.4/plug-ins</code>，重启 GIMP 即可。</p>
+      <a class="btn" href="download/gegl-color-ops-linux-x64.zip">下载 gegl-color-ops-linux-x64.zip</a>
+      <p class="muted small">校验：<code>SHA256 6d5ec6dc6593da9a5ff5f0a0e668882a…</code></p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>单个算子</h3></div>
-      <p>只想试一个？每个算子的文章页底部有它自己的 <code>.dll</code> 直链，
-         或者从仓库里挑：<code>dist/windows-x64/&lt;名字&gt;.dll</code>。</p>
+      <p>只想试一个？每个算子的文章页底部有它自己的模块直链，
+         或者从仓库里挑：<code>dist/windows-x64/&lt;名字&gt;.dll</code>、
+         <code>dist/linux-x64/&lt;名字&gt;.so</code>。</p>
       <a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/tree/main/dist/windows-x64">浏览模块列表</a>
     </div>
   </div>
@@ -429,7 +430,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">仓库</a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">问题反馈</a>
     <a href="guide.html">安装指南</a>
-    <span class="muted">e6b8be3</span>
+    <span class="muted">1bbe118</span>
   </div>
 </footer>
 </body>

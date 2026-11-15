@@ -12,6 +12,7 @@ main /docs。docs/ 里放了 .nojekyll，免掉 Jekyll 预处理（它会吞掉�
 的文件，也会把构建时间拖长）。
 """
 
+import hashlib
 import html
 import os
 import re
@@ -306,6 +307,17 @@ def build_index(ops, stats, version):
   </ol>
 </section>"""
 
+    if stats.get("zip_linux_name"):
+        lin_body = """<p>{lin} 个 <code>.so</code>（{lsize} MB）。解到
+         <code>~/.local/share/gegl-0.4/plug-ins</code>，重启 GIMP 即可。</p>
+      <a class="btn" href="download/{lzip}">下载 gegl-color-ops-linux-x64.zip</a>
+      <p class="muted small">校验：<code>SHA256 {lsha}</code></p>""".format(
+            lin=stats["linux_files"], lsize=stats["zip_linux_mb"],
+            lzip=stats["zip_linux_name"], lsha=stats["zip_linux_sha"][:32] + "…")
+    else:
+        lin_body = """<p>暂时没有预编译包，跑 <code>./build.sh</code> 自己编（需要 GEGL 开发头文件）。</p>
+      <a class="btn" href="{repo}/tree/main/dist/linux-x64">看 Linux 目录</a>""".format(repo=REPO)
+
     download = """<section class="download" id="download">
   <h2>下载</h2>
   <div class="dl-grid">
@@ -318,22 +330,20 @@ def build_index(ops, stats, version):
     </div>
     <div class="dl">
       <div class="dl-head"><h3>Linux x86_64</h3></div>
-      <p>仓库里有现成的 <code>.so</code>，但<b>只覆盖早期算子</b>（{lin} 个），
-         新的色阶系列要自己编：<code>./build.sh</code> 一条命令，需要 GIMP 3 自带的
-         GEGL 开发头文件。</p>
-      <a class="btn" href="{repo}/tree/main/dist/linux-x64">看 Linux 目录</a>
+      {lin_body}
     </div>
     <div class="dl">
       <div class="dl-head"><h3>单个算子</h3></div>
-      <p>只想试一个？每个算子的文章页底部有它自己的 <code>.dll</code> 直链，
-         或者从仓库里挑：<code>dist/windows-x64/&lt;名字&gt;.dll</code>。</p>
+      <p>只想试一个？每个算子的文章页底部有它自己的模块直链，
+         或者从仓库里挑：<code>dist/windows-x64/&lt;名字&gt;.dll</code>、
+         <code>dist/linux-x64/&lt;名字&gt;.so</code>。</p>
       <a class="btn ghost" href="{repo}/tree/main/dist/windows-x64">浏览模块列表</a>
     </div>
   </div>
   <p class="note">装不上、菜单里看不到、和 GIMP 自带算子重名——都写在
      <a href="guide.html">安装指南</a> 的排错一节。源码编译走 <code>./build.sh</code> 或 meson，同样在那一页。</p>
 </section>""".format(n=stats["win_files"], size=stats["zip_mb"], zip=stats["zip_name"],
-                   sha=stats["zip_sha"][:32] + "…", lin=stats["linux_files"],
+                   sha=stats["zip_sha"][:32] + "…", lin_body=lin_body,
                    repo=REPO)
 
     about = """<section class="about">
@@ -494,12 +504,14 @@ def build_guide(version, stats):
   <h2 id="req">环境要求</h2>
   <ul>
     <li><b>GIMP 3.x</b>（3.0 / 3.2 实测），自带 GEGL 0.4。</li>
-    <li>Windows x64 用现成的 <code>.dll</code>；Linux x86_64 用 <code>.so</code>（部分算子需自己编）。</li>
+    <li>Windows x64 用现成的 <code>.dll</code>，Linux x86_64 用 <code>.so</code>；
+        两端都有预编译包，{n} 个模块齐全。</li>
     <li>不需要 Python 运行时——算子是 C 编译的 GEGL 模块。</li>
   </ul>
 
   <h2 id="install">安装</h2>
-  <p>把压缩包解开，把里面的 <code>.dll</code> 全部放进用户插件目录（目录不存在就新建）：</p>
+  <p>把压缩包解开，把里面的模块文件（<code>.dll</code> / <code>.so</code>）全部放进
+     用户插件目录（目录不存在就新建）：</p>
   <div class="table-wrap"><table>
     <thead><tr><th>系统</th><th>目录</th></tr></thead>
     <tbody>
@@ -554,7 +566,7 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
      所以这个工程里所有 id 和 GType 名都带前缀。</p>
   <h3>会进 GIMP 官方仓库吗？</h3>
   <p>不会。这是独立的第三方算子集，按 GPL-3.0 发布，自己装进用户插件目录即可。</p>
-</article>""".format(repo=REPO)
+</article>""".format(repo=REPO, n=stats["win_files"])
 
     return page("安装与排错 · gegl-color-ops", body,
                 desc="GIMP 3 GEGL 算子安装、验证与排错")
@@ -597,13 +609,38 @@ def collect_stats():
     dlls = sorted(f for f in os.listdir(win) if f.endswith(".dll")) if os.path.isdir(win) else []
     lin = os.path.join(DIST, "linux-x64")
     sos = sorted(f for f in os.listdir(lin) if f.endswith(".so")) if os.path.isdir(lin) else []
-    return {"win_files": len(dlls), "dlls": dlls, "linux_files": len(sos), "win_dir": win}
+    return {"win_files": len(dlls), "dlls": dlls, "win_dir": win,
+            "linux_files": len(sos), "sos": sos, "linux_dir": lin}
+
+
+def _sha256_file(path):
+    """自己算，不调 sha256sum：Windows 下 os.path.join 会拼出含反斜杠的路径，
+    GNU coreutils 见到反斜杠会在整行前加一个 '\\' 做转义，split()[0] 就把这个
+    反斜杠也算进摘要值里，页面上展示的校验和因此多一个字符、复制出来是错的。"""
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _zip_one(out_dir, name, files, root_dir, readme):
+    path = os.path.join(out_dir, name)
+    with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
+        for f in files:
+            z.write(os.path.join(root_dir, f), f)
+        z.writestr("安装说明.txt", readme)
+        man = os.path.join(DIST, "manifest.csv")
+        if os.path.exists(man):
+            z.write(man, "manifest.csv")
+    sha = _sha256_file(path)
+    size = round(os.path.getsize(path) / (1024 * 1024), 1)
+    return path, sha, size
 
 
 def build_zip(stats, out_dir):
-    name = "gegl-color-ops-windows-x64.zip"
-    path = os.path.join(out_dir, name)
-    readme = """gegl-color-ops · Windows x64 免编译包
+    """两个平台各打一个包。Linux 包只在 dist/linux-x64 有产物时才生成。"""
+    win_readme = """gegl-color-ops · Windows x64 免编译包
 =====================================
 
 把这些 .dll 全部放进：
@@ -620,17 +657,37 @@ def build_zip(stats, out_dir):
 
 GPL-3.0-or-later
 """.format(n=len(stats["dlls"]), repo=REPO)
-    with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
-        for f in stats["dlls"]:
-            z.write(os.path.join(stats["win_dir"], f), f)
-        z.writestr("安装说明.txt", readme)
-        man = os.path.join(DIST, "manifest.csv")
-        if os.path.exists(man):
-            z.write(man, "manifest.csv")
-    sha = sh("sha256sum", path) or sh("shasum", "-a", "256", path)
-    sha = sha.split()[0] if sha else ""
-    size = os.path.getsize(path) / (1024 * 1024)
-    stats.update(zip_name=name, zip_sha=sha, zip_mb=round(size, 1))
+    name = "gegl-color-ops-windows-x64.zip"
+    path, sha, size = _zip_one(out_dir, name, stats["dlls"], stats["win_dir"], win_readme)
+    stats.update(zip_name=name, zip_sha=sha, zip_mb=size)
+
+    if stats["sos"]:
+        lin_readme = """gegl-color-ops · Linux x86_64 免编译包
+======================================
+
+把这些 .so 全部放进：
+    ~/.local/share/gegl-0.4/plug-ins
+
+（等价于 ./install.sh 在 Linux 下的默认目标目录。装到系统目录的话是
+ /usr/lib/x86_64-linux-gnu/gegl-0.4，需要 sudo。）
+
+然后完全退出 GIMP 再打开。菜单位置：
+    图像 -> 颜色 -> SuperMrWang
+
+验证是否加载成功：
+    GEGL_PATH="$HOME/.local/share/gegl-0.4/plug-ins" gegl --info lb:hsl-levels
+
+共 {n} 个模块，x86_64，针对 libgegl-0.4 编译（Ubuntu / Debian 系可直接用；
+glibc 版本过旧或发行版差异较大时，建议用 ./build.sh 自己编一遍）。
+列表见同目录 manifest.csv，校验和见 SHA256SUMS.txt。
+源码与算法说明：{repo}
+
+GPL-3.0-or-later
+""".format(n=len(stats["sos"]), repo=REPO)
+        lname = "gegl-color-ops-linux-x64.zip"
+        lpath, lsha, lsize = _zip_one(out_dir, lname, stats["sos"], stats["linux_dir"], lin_readme)
+        stats.update(zip_linux_name=lname, zip_linux_sha=lsha, zip_linux_mb=lsize)
+
     return path
 
 
@@ -688,6 +745,9 @@ def main():
                                             sum(1 for o in ops if o["group"] == g))
                                   for g in SMG.GROUPS))
     print("· 下载包：docs/download/%s（%d 个模块）" % (stats["zip_name"], stats["win_files"]))
+    if stats.get("zip_linux_name"):
+        print("           docs/download/%s（%d 个模块）"
+              % (stats["zip_linux_name"], stats["linux_files"]))
 
     if serve:
         import http.server
