@@ -32,9 +32,15 @@ ops = [
   ['rgb-domain-grayscale',    'rgb-domain-grayscale',    'rgb-domain-grayscale.c'],
   ['vibrance-hyper',          'vibrance-hyper',          'vibrance-hyper.c'],
   ['vibrance',             'vibrance',             'vibrance.c'],
-  ['brightness-contrast',  'brightness-contrast',  'lb-brightness-contrast.c'],
+  ['brightness-contrast',  'lb-brightness-contrast',  'lb-brightness-contrast.c'],
   ['xyz-multiply',            'xyz-multiply',            'xyz-multiply.c'],
   ['shadows-highlights',      'shadows-highlights',      'shadows-highlights.c'],
+  # 双输入（aux）算子。这三个在 2026-11-11 ~ 11-12 就进了源码，但一直漏在
+  # 本表外：build.sh 走 ops/*/*.c 自动遍历能编出 29 个，meson 只列了 26 个，
+  # 于是 Linux CI 的「产出 29 个」断言失败（built: 26）。加算子时必须同步这里。
+  ['apply-image',             'apply-image',             'apply-image.c'],
+  ['calculations',            'calculations',            'calculations.c'],
+  ['match-color',             'match-color',             'match-color.c'],
   ['gray-to-component',       'gray-to-component',       'gray-to-component.c'],
   ['color-temperature-tint',   'color-temperature-tint',   'color-temperature-tint.c'],
 ]
