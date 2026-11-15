@@ -6,36 +6,27 @@ PS 26.10 和本算子，像素级逐位对比见文末「验收」。
 - GEGL id：`lb:vibrance`
 - 菜单：`Colors → SuperMrWang → Color → Vibrance`
 - 类型：`GeglOperationPointFilter`（逐像素，无邻域）
-- 参数：`vibrance`（−100…100）、`protect_reds`、`compensate_lightness`、
-  `color_vibrance`（2026 引擎开关）、`temperature`（−100…100）、`tint`（−100…100）
+- 参数：`vibrance`（−100…100）、`protect_reds`、`compensate_lightness`
 
-## 两个引擎，共用一个算子
+## 只管 Vibrance，色温色调不在这里
 
-PS 2026（27.0）把自然饱和度图层改名成「色彩与自然饱和度」，多了色温 / 色调两个
-滑块。做了一件容易被误解的事：**Vibrance 算法本身没变**。32768 色全色域探针在
-+100 / −100 / +50 三档下，PS 2025 与 2026 逐位 0 差异；95 色块探针扫 21 档同样
-全 0。所谓「算法更新」的实质，只是前面多了一层白平衡。
+PS 2026（27.0）把自然饱和度图层改名成「色彩与自然饱和度」，多出**色温 / 色调**两个
+滑块，动作上就是**先一层白平衡、再走原来的 Vibrance**。
 
-所以这里不写两套算法，只加一个开关：
+本工程不把这两段揉进一个算子：色温 / 色调由独立的 `lb:color-temperature-tint` 负责，
+`lb:vibrance` 只做 Vibrance 本身。想复刻「色彩与自然饱和度」，按顺序叠两层即可：
 
-| `color_vibrance` | 行为 |
-|---|---|
-| 勾选（默认，2026） | 先色温 / 色调，再 Vibrance；两个滑块生效 |
-| 取消勾选（2025） | 只做 Vibrance；`temperature` / `tint` 被**完全忽略** |
+```
+图层 / 滤镜栈：  色温色调（lb:color-temperature-tint）  →  Vibrance（lb:vibrance）
+```
 
-顺序是实测定的，不是猜的：把色温处理后的图喂给 PS 2025 的纯 Vibrance，与 PS 一次
-调完的结果中位差 **1.4 码**；反过来先 Vibrance 再白平衡，差 **36 码**。
+要 2025 的纯 Vibrance，把底下那层删掉就是。这样拆的好处：
 
-色温 / 色调这一段不在这里重写，直接用 `lb:color-temperature-tint` 的表
-（`common/temp-tint.h`，同一份系数、同一套烘焙代码），所以两个算子的白平衡
-结果天然一致。那个算子的精度与已知偏差见 `ops/color-temperature-tint/README.md`。
-
-`temperature` / `tint` 都为 0 时走纯 Vibrance 路径，`prepare()` 里把 LUT 直接
-释放掉，不多占内存。
-
-> 命令行注意：GEGL 会把属性名规范成连字符，`kebab-case` 才对。
-> 写 `color_vibrance=false` 不会报错，但会被**静默忽略**（等于没传）；正确写法是
-> `color-vibrance=false`。
+- 两个算子各有一个滑块职责，界面上不会出现「这个色温到底管整层还是只管这段」；
+- 顺序由图层栈显式表达（PS 的顺序是白平衡在前，实测中位差 1.4 码；反过来差 36 码），
+  想换顺序就换图层顺序，不用再来回勾开关；
+- 白平衡的结果和 `lb:color-temperature-tint` 单跑**逐位相同**，不存在两套代码
+  各自漂移的问题。
 
 ## 算法
 
@@ -85,29 +76,9 @@ RGB 重建：保持 max 不动，其余通道按 `S'/S` 缩放 —— `out = mx 
 `v=0` 逐位相同，说明色彩管线（线性↔编码往返）没有偷偷改像素。C 实现与
 `vibrance-cal/vibrance_ref.py` 的 Python 参考实现逐像素一致（差 ≤1 码，纯舍入）。
 
-2026 引擎（色温 / 色调在前，Vibrance 在后）的组合验收，同样对 PS 2026 实测：
-
-| 参数 | 中位 | p90 | p99 | 最大 |
-|---|---|---|---|---|
-| v=50, t=0, n=0 | 2.4 | 4.1 | 5.5 | 8.1 |
-| v=0, t=30 | 1.9 | 6.9 | 23.1 | 59.6 |
-| v=0, n=60 | 1.6 | 4.4 | 9.4 | 16.8 |
-| v=30, t=30 | 2.4 | 7.2 | 21.9 | 56.7 |
-| v=0, t=60 | 3.1 | 8.7 | 28.8 | 79.8 |
-| v=50, t=60 | 4.0 | 10.5 | 28.2 | 74.0 |
-| v=0, t=60, n=60 | 2.9 | 9.5 | 27.9 | 84.6 |
-
-`v=0` 那几行等价于单独跑 `lb:color-temperature-tint`，数字应该对得上（同一段
-代码）。`v=50` 多出来的 2 码左右是 Vibrance 那一段的既有残差，与新引擎无关。
-
-老引擎（取消勾选）的验证：`color-vibrance=false` + `temperature=80 tint=-40`，
-结果与 `temperature=0 tint=0` 逐位相同（中位 2.4 码，全部来自 Vibrance 本身），
-证明两个滑块确实被丢掉了。
-
-色温 ≤ −50 且色调 ≥ +38 的对角线附近与 PS 有明显偏差（中位 4–58 码），原因是
-PS 自己在那一线附近硬裁切、相邻档位整通道从 255 塌到 0，连续模型无法复刻。
-细节、实测数据与排除掉的替代模型都写在 `ops/color-temperature-tint/README.md`
-的「已知偏差」一节。
+两层叠加的「色彩与自然饱和度」组合验收（对 PS 2026 实测）与色温色调本身的精度，
+见 `ops/color-temperature-tint/README.md` —— 那里有 v/t/n 七组参数的中位/p90/p99/最大
+偏差，以及色温 ≤ −50 且色调 ≥ +38 对角线上 PS 硬裁切造成的已知偏差。
 
 ## 已知偏差
 

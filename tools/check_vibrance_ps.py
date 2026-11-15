@@ -10,6 +10,7 @@ PS 的输出图在 ../vibrance-cal/out/vib±N.png（8 位，原地导出）。
 所以理想结果是中位数 0-1、95 分位 ≤2。
 """
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -21,6 +22,12 @@ PROBE = os.path.join(CAL, "vibrance-probe.png")
 
 sys.path.insert(0, HERE)
 from contact_sheet import read_png            # noqa: E402
+
+# 属性面就是这张单子：色温/色调已拆到 lb:color-temperature-tint，本算子只剩这三
+# 个参数。谁再往这里塞白平衡，这条会立刻红。
+# The property surface is exactly these three; temperature/tint lives in its own
+# op now, so re-introducing it here fails this check.
+EXPECTED_PROPS = ["vibrance", "protect-reds", "compensate-lightness"]
 
 GEGL_CANDIDATES = [
     os.environ.get("GEGL_BIN", ""),
@@ -77,11 +84,38 @@ def stats(v, a, b):
             sum(diffs) / n, same, worst)
 
 
+def check_properties(exe, env):
+    """核对参数面：只允许 EXPECTED_PROPS，顺序也要一致。
+
+    `gegl --info` 的输出在中文 Windows 上按 UTF-8 打，属性名本身是 ASCII，
+    所以整段用 errors='replace' 解，避免 locale 编解码把整条命令搞崩。
+    """
+    r = subprocess.run([exe, "--info", "lb:vibrance"],
+                       env=env, capture_output=True)
+    text = r.stdout.decode("utf-8", "replace")
+    props, inside = [], False
+    for line in text.splitlines():
+        if line.startswith("Properties:"):
+            inside = True
+            continue
+        if not inside:
+            continue
+        m = re.match(r"^([a-z][a-z0-9-]*)\s+\[", line)
+        if m:
+            props.append(m.group(1))
+    ok = props == EXPECTED_PROPS
+    print("· 参数面：%s %s" % (", ".join(props) or "(空)", "✓" if ok else "✗"))
+    if not ok:
+        print("  期望：%s" % ", ".join(EXPECTED_PROPS))
+    return ok
+
+
 def main():
     vals = [float(x) for x in sys.argv[1:]] or [0, 25, 60, 100, -25, -60, -100]
     exe = find_gegl()
     env = gegl_env(exe)
     print("· gegl: %s" % exe)
+    surface_ok = check_properties(exe, env)
 
     src = read_png(PROBE)
     tmp = tempfile.mkdtemp(prefix="vibps-")
@@ -112,6 +146,8 @@ def main():
             bad += 1
 
     print("\n小结：最大偏差 >3 码的档位 %d 个" % bad)
+    if not surface_ok:
+        raise SystemExit("参数面不符：色温/色调不该出现在 lb:vibrance 里")
 
 
 if __name__ == "__main__":

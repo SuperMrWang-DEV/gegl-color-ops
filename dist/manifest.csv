@@ -21,7 +21,7 @@ windows-x64,match-color.dll,lb:match-color,Match Color,107603,319f8b8ac84406c996
 windows-x64,rgb-domain-grayscale.dll,lb:rgb-domain-grayscale,Black & White,108038,86b54151180a5fa6495aef6d9701c3e0f74a305addd1b785ac50d9ae983db3ad
 windows-x64,shadows-highlights.dll,lb:shadows-highlights,Shadows/Highlights,167641,23132ac21a242d28392e9d7b5a6a4c2bc268db55d4532189eddc20c1b958b8cd
 windows-x64,vibrance-hyper.dll,lb:vibrance-hyper,Natural Saturation,136093,e0f0dcc8a23c265a0290a517831a59e5a5bd732c91e0544faacc3c3dbd347c03
-windows-x64,vibrance.dll,lb:vibrance,Vibrance,206399,9fe609dc0bd9e086af1eb053dab8d7e174b2b965fc3fa72c241845f457646533
+windows-x64,vibrance.dll,lb:vibrance,Vibrance,132296,fb837889dd1af9d46f98d371057b11360abdc483f12e4e2c2ce307a30ef07492
 windows-x64,xyz-multiply.dll,lb:xyz-multiply,Photo Filter,134919,2c3b3d804389a1d07f6b23c747735d2e8f7f87c0c6f01fe1c326a9ffa182aa30
 linux-x64,channel-mixer-plus.so,lb:channel-mixer-plus,Channel Mixer Plus,22056,1b71ca30a949243af9bee5a20cb9c30b6e34cfd0cdfa6965365bfb0d68e00f04
 linux-x64,channel-range-to-alpha.so,lb:channel-range-to-alpha,Channel Range to Alpha,26816,2b791d8b1db107d961d6d0c118063c7b460ad01477488a9d2d8d6bd820ea4082

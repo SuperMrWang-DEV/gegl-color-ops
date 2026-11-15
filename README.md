@@ -67,7 +67,7 @@ gegl-color-ops/
 | `lb:exposure` | Exposure EV | Exposure EV | Tone | Filter | PS 曝光：EV、偏移、伽马 |
 | `lb:rgb-domain-grayscale` | Black & White | Black & White | Tone | Point | PS 黑白：六色权重转灰 + 可选着色 |
 | `lb:vibrance-hyper` | Natural Saturation | Natural Saturation | Color | Point | LAB 自然饱和度：色度双曲蒙版 + 肤色保护窗 + 色域收敛不扭色相 |
-| `lb:vibrance` | Vibrance | Vibrance | Color | Point | PS 自然饱和度实测复刻：ΔS = A(v)·S^p·(1−S)^q，叠红带与亮度项，16 位标定 |
+| `lb:vibrance` | Vibrance | Vibrance | Color | Point | PS 自然饱和度实测复刻：ΔS = A(v)·S^p·(1−S)^q，叠红带与亮度项，16 位标定；只管饱和度，色温色调由 `lb:color-temperature-tint` 独立承担 |
 | `lb:brightness-contrast` | Brightness/Contrast | Brightness/Contrast | Tone | Point | PS 亮度/对比度实测复刻：新版两条曲线族查表 + 旧版闭式（pivot 89、b 夹 ±100） |
 | `lb:xyz-multiply` | Photo Filter | Photo Filter | Blend | Point | **即 PS 照片滤镜**（实测复刻）：滤镜色在 D50 XYZ 域正片叠底，密度 + 保留明度（W3C SetLum）；不保留明度档 ≤0.71 码 |
 | `lb:shadows-highlights` | Shadows/Highlights | Shadows/Highlights | Tone | Filter | PS 阴影/高光实测复刻：边缘感知邻域亮度决定提亮提多少，含色调宽度、颜色、中间调对比度、修剪黑白 |

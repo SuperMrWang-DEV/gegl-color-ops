@@ -3,8 +3,12 @@
 
     python tools/make_dist.py            # 复制 + 生成清单/校验和
     python tools/make_dist.py --check     # 只核对 dist/ 与 build/ 是否一致
+    python tools/make_dist.py --sums      # 只按 dist/ 现有文件重算清单/校验和
 
-dist/ 里只放"用户拿去就能用"的二进制：18 个 GEGL 模块（.dll / .so）。
+--sums 用于「只换了其中一个模块」的场景：把新 DLL 单独放进去后重算校验和，
+不必让整批二进制因为 PE 时间戳变化而全部进 diff。
+
+dist/ 里只放"用户拿去就能用"的二进制：每个算子的 GEGL 模块（.dll / .so）。
 带 .disabled 标记的算子（应用图像 / 计算）不参与，所以不会出现在包里。
 """
 import hashlib
@@ -51,10 +55,41 @@ def sha256(path):
     return h.hexdigest()
 
 
+def write_manifest(meta):
+    """按 dist/ 里现有的文件重算 manifest.csv + SHA256SUMS.txt。"""
+    lines = ["platform,file,op_id,title,bytes,sha256"]
+    sums = []
+    for plat, ext in PLATFORMS:
+        out = os.path.join(DIST, plat)
+        for f in sorted(os.listdir(out)):
+            if not f.endswith("." + ext):
+                continue
+            path = os.path.join(out, f)
+            digest = sha256(path)
+            stem = os.path.splitext(f)[0]
+            op = next((m for m in meta if m["stem"] == stem or m["dir"] == stem), None)
+            op_id = op["id"] if op else ""
+            title = op["title"] if op else ""
+            lines.append("%s,%s,%s,%s,%d,%s"
+                         % (plat, f, op_id, title.replace(",", " "),
+                            os.path.getsize(path), digest))
+            sums.append("%s  %s/%s" % (digest, plat, f))
+    open(os.path.join(DIST, "manifest.csv"), "w", encoding="utf-8", newline="\n").write(
+        "\n".join(lines) + "\n")
+    open(os.path.join(DIST, "SHA256SUMS.txt"), "w", encoding="utf-8", newline="\n").write(
+        "\n".join(sums) + "\n")
+
+
 def main():
     check = "--check" in sys.argv
+    sums_only = "--sums" in sys.argv
     meta = ops_meta()
     summary = []
+
+    if sums_only:
+        write_manifest(meta)
+        print("· 已按 dist/ 现有文件重算 manifest.csv / SHA256SUMS.txt")
+        return 0
 
     for plat, ext in PLATFORMS:
         out = os.path.join(DIST, plat)
@@ -80,27 +115,7 @@ def main():
         return 0
 
     # ---- 清单 + 校验和 ----
-    lines = ["platform,file,op_id,title,bytes,sha256"]
-    sums = []
-    for plat, ext in PLATFORMS:
-        out = os.path.join(DIST, plat)
-        for f in sorted(os.listdir(out)):
-            if not f.endswith("." + ext):
-                continue
-            path = os.path.join(out, f)
-            digest = sha256(path)
-            stem = os.path.splitext(f)[0]
-            op = next((m for m in meta if m["stem"] == stem or m["dir"] == stem), None)
-            op_id = op["id"] if op else ""
-            title = op["title"] if op else ""
-            lines.append("%s,%s,%s,%s,%d,%s"
-                         % (plat, f, op_id, title.replace(",", " "),
-                            os.path.getsize(path), digest))
-            sums.append("%s  %s/%s" % (digest, plat, f))
-    open(os.path.join(DIST, "manifest.csv"), "w", encoding="utf-8", newline="\n").write(
-        "\n".join(lines) + "\n")
-    open(os.path.join(DIST, "SHA256SUMS.txt"), "w", encoding="utf-8", newline="\n").write(
-        "\n".join(sums) + "\n")
+    write_manifest(meta)
 
     print("· dist/ 已更新")
     for plat, n in summary:

@@ -25,6 +25,12 @@
  *            vibrance-cal; fit residual 0.41 pp at v=+100, 0.02 pp at v=+5.
  * reference  Adobe Photoshop 26.10 自然饱和度（实测逆向，非经验近似）
  *            Adobe Photoshop 26.10 Vibrance, reverse-engineered by measurement
+ * scope      只做 Vibrance。PS 2026 把色温/色调塞进了同一个图层，那部分在本工
+ *            程里是独立的 lb:color-temperature-tint，不在这里重复实现 ——
+ *            需要「色彩与自然饱和度」时按顺序叠两个算子即可
+ *            Vibrance only. PS 2026 bundled temperature/tint into the same
+ *            layer; here that lives in the separate lb:color-temperature-tint
+ *            op, so stack the two in order instead of duplicating it.
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
  *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
@@ -52,26 +58,6 @@ property_boolean (compensate_lightness, _("Lightness compensation"), TRUE)
     description (_("The measured rule that light colours receive a smaller boost "
                    "(0.72x at HSL lightness 80, 1.39x at 20)"))
 
-property_boolean (color_vibrance, _("2026 engine (Temperature / Tint)"), TRUE)
-    description (_("Photoshop 2026's Color and vibrance layer: a white-balance "
-                   "pass with the two sliders below runs before Vibrance. Turn "
-                   "this off for the 2025 behaviour, where only Vibrance applies "
-                   "and the two sliders are ignored"))
-
-property_double (temperature, _("Temperature"), 0.0)
-    description (_("Warm / cool shift applied before Vibrance, -100 to +100. "
-                   "Only used when the 2026 engine is on"))
-    value_range (-100.0, 100.0)
-    ui_range    (-100.0, 100.0)
-    ui_steps    (1.0, 5.0)
-
-property_double (tint, _("Tint"), 0.0)
-    description (_("Green / magenta shift applied before Vibrance, -100 to +100. "
-                   "Only used when the 2026 engine is on"))
-    value_range (-100.0, 100.0)
-    ui_range    (-100.0, 100.0)
-    ui_steps    (1.0, 5.0)
-
 #else
 
 #define GEGL_OP_POINT_FILTER
@@ -80,7 +66,6 @@ property_double (tint, _("Tint"), 0.0)
 
 #include "gegl-op.h"
 #include "vibrance-tables.h"
-#include "temp-tint.h"
 
 /* 逐像素参数：v 对整张图是常量，所以每条「随 v 变化」的曲线都在 prepare()
  * 里先按当前 v 折叠成一条（11 个点），process() 只剩一维插值。
@@ -89,13 +74,10 @@ property_double (tint, _("Tint"), 0.0)
  * process loop is left with one-dimensional lookups only. */
 typedef struct
 {
-  gboolean identity;      /* v≈0 且无色温色调，直接拷贝 / nothing to do */
+  gboolean identity;      /* v≈0，直接拷贝 / nothing to do */
   gboolean positive;
   gboolean use_red;
   gboolean use_lum;
-  gboolean use_tt;        /* 先做色温/色调 / white-balance pass first */
-  gboolean no_vib;        /* v≈0，只做色温/色调 / white balance only */
-  gfloat  *lut;           /* 33³ 色温色调表，按需分配 / allocated on demand */
   gfloat   A;             /* ΔS 的幅度 / amplitude */
   gfloat   pexp;
   gfloat   qexp;
@@ -235,36 +217,12 @@ prepare (GeglOperation *operation)
       o->user_data = p;
     }
 
-  p->use_tt = o->color_vibrance &&
-              (fabs (o->temperature) > 1e-3 || fabs (o->tint) > 1e-3);
-
-  /* 2026 引擎：先做一遍色温/色调，再走下面同一套 Vibrance。实测 PS 27.0 的
-   * 顺序就是这样 —— 把「色温过后」的图喂给 2025 的 Vibrance，结果和
-   * 「Color and vibrance 一次调完」中位差 1.4 码，顺序反了则差 36 码
-   * The 2026 engine runs a white-balance pass first, then the very same
-   * Vibrance. That is the measured order: feeding the temperature-adjusted
-   * image to the 2025 Vibrance matches the combined layer to 1.4 codes
-   * (median), while the reverse order is off by 36. */
-  if (p->use_tt)
-    {
-      if (! p->lut)
-        p->lut = g_new (gfloat, PT_LUT * PT_LUT * PT_LUT * 3);
-
-      pt_build_lut ((gfloat) o->temperature, (gfloat) o->tint, p->lut);
-    }
-  else if (p->lut)
-    {
-      g_free (p->lut);
-      p->lut = NULL;
-    }
-
-  p->no_vib    = (fabsf (v) < 1e-3f);
-  p->identity  = (p->no_vib && ! p->use_tt);
+  p->identity  = (fabsf (v) < 1e-3f);
   p->positive  = (v > 0.0f);
   p->use_red   = o->protect_reds;
   p->use_lum   = o->compensate_lightness;
 
-  if (! p->no_vib)
+  if (! p->identity)
     {
       if (p->positive)
         {
@@ -309,7 +267,6 @@ finalize (GObject *object)
     {
       VibParams *p = (VibParams *) o->user_data;
 
-      g_free (p->lut);
       g_slice_free (VibParams, p);
       o->user_data = NULL;
     }
@@ -325,21 +282,13 @@ process_pixel (const VibParams *p,
   gfloat r, g, b;
   gfloat mx, mn, chroma, s, s1, k, f, base, gain;
 
-  if (p->use_tt)
-    {
-      gfloat wb[3];
-
-      pt_sample (p->lut, src, wb);
-      r = wb[0];
-      g = wb[1];
-      b = wb[2];
-    }
-  else
-    {
-      r = src[0];
-      g = src[1];
-      b = src[2];
-    }
+  /* 只读输入，不再前置白平衡：色温/色调是独立的 lb:color-temperature-tint
+   * 算子，需要叠在 Vibrance 前面时由图层栈决定顺序
+   * Input is read as-is: temperature/tint is its own op now, so stacking
+   * order belongs to the layer stack rather than being baked in here. */
+  r = src[0];
+  g = src[1];
+  b = src[2];
 
   mx = MAX (r, MAX (g, b));
   mn = MIN (r, MIN (g, b));
@@ -449,21 +398,6 @@ process (GeglOperation       *operation,
   if (p->identity)
     {
       memcpy (out, in, sizeof (gfloat) * 4 * (gsize) n_pixels);
-      return TRUE;
-    }
-
-  /* 只调了色温 / 色调：跳过整条 Vibrance 路径
-   * Temperature / tint only: skip the whole Vibrance path. */
-  if (p->no_vib)
-    {
-      while (n_pixels--)
-        {
-          pt_sample (p->lut, in, out);
-          out[3] = in[3];
-          in  += 4;
-          out += 4;
-        }
-
       return TRUE;
     }
 
