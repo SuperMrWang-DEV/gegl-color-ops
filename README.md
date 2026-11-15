@@ -59,6 +59,7 @@ gegl-color-ops/
 | GEGL id | 菜单名 | 完整标题 | 组 | 类型 | 作用 |
 |---|---|---|---|---|---|
 | `lb:hue-saturation` | Hue/Saturation | Hue/Saturation | Color | Point | HSL 色相/饱和度/明度，主控 + 六区间独立调 |
+| `lb:ps-hue-saturation` | Hue/Saturation (PS) | Hue/Saturation (PS) | Color | Point | PS 公式三滑杆：色相旋转、饱和度相对缩放（s/(1−x)）、明度向白/黑混合；逐码对拍参考实现 |
 | `lb:hsl-seven` | HSL 8 Bands | HSL 8 Bands | Color | Point | 八段色相（含洋红）各调 H/S/L，ACR 风格；旧七段属性名不变 |
 | `lb:channel-mixer-plus` | Channel Mixer Plus | Channel Mixer Plus | Blend | Point | PS 通道混合器 + 通道 offset + 单色模式 |
 | `lb:channel-range-to-alpha` | Range → Alpha | Channel Range to Alpha | Mask | Point | 通道数值区间 → alpha（混合颜色带） |

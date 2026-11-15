@@ -12,6 +12,7 @@ common_inc = include_directories('common')
 # build.sh 的产出（按源文件名命名）完全对应。
 ops = [
   ['hue-saturation',          'hue-saturation',          'hue-saturation.c'],
+  ['ps-hue-saturation',       'ps-hue-saturation',       'ps-hue-saturation.c'],
   ['channel-range-to-alpha',  'channel-range-to-alpha',  'channel-range-to-alpha.c'],
   ['channel-mixer-plus',      'channel-mixer-plus',      'channel-mixer-plus.c'],
   ['cmyk-primary-correction', 'cmyk-primary-correction', 'cmyk-primary-correction.c'],
