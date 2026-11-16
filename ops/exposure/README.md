@@ -3,8 +3,6 @@
 
 # GEGL_GIMP_PLUGIN_ps-exposure
 
-![pic](assets/pic.png "pic")
-
 ## English
 
 ### 1. Compile & Install Commands

@@ -487,13 +487,28 @@ def build_index(ops, stats, version):
   <p class="muted">算法来源在文件头 <code>reference</code> 字段里逐条标注，源码与文档在同一个仓库。</p>
 </section>"""
 
+    legal = """<section class="about" id="legal">
+  <h2>版权与商标</h2>
+  <p>这里的算子都是自己写的：按公开的数学公式与可观察的行为实现，没有复制任何商业软件的
+     源代码或二进制，没有反编译产物，也不依赖 Adobe 的 SDK。文中出现的 Photoshop、
+     Camera Raw 等名称只用来指明某个算子在行为上参照的对象，属于描述性引用；相关名称是
+     其各自权利人的商标。</p>
+  <p>本项目与 Adobe Inc. 无隶属、授权或背书关系，不是官方插件，也不分发 Adobe 的任何素材、
+     预设或字体。菜单名与对话框标题（<code>lb:</code> 命名空间）都是本项目自定；
+     站点截图是在 GIMP 里运行本项目算子的界面，不是 Photoshop 的截图。</p>
+  <p class="muted">All code here is original, written from published mathematics and observable
+     behaviour. Product names appear only to indicate which behaviour an operation is modelled
+     on. This project is not affiliated with, endorsed by, or authorised by Adobe Inc.
+     如认为此处有不当使用，请开 issue，核实后会调整措辞或移除相关内容。</p>
+</section>"""
+
     body = hero + steps + """
 <section class="ops" id="ops">
   <h2>{n} 个算子</h2>
   <p class="section-lede">按「找算子时的念头」分了四组，和 GIMP 菜单里的分组一致。
      点任一算子进去看算法、参数与实测误差。</p>
 {by_g}
-</section>""".format(n=n_live, by_g=by_g) + download + about
+</section>""".format(n=n_live, by_g=by_g) + download + about + legal
 
     return page("gegl-color-ops · GIMP 3 色彩算子集", body,
                 desc="%d 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、"

@@ -59,7 +59,7 @@ gegl-color-ops/
 | GEGL id | 菜单名 | 完整标题 | 组 | 类型 | 作用 |
 |---|---|---|---|---|---|
 | `lb:hue-saturation` | Hue/Saturation | Hue/Saturation | Color | Point | HSL 色相/饱和度/明度，主控 + 六区间独立调 |
-| `lb:ps-hue-saturation` | Hue/Saturation (PS) | Hue/Saturation (PS) | Color | Point | PS 公式三滑杆：色相旋转、饱和度相对缩放（s/(1−x)）、明度向白/黑混合；逐码对拍参考实现 |
+| `lb:ps-hue-saturation` | Hue/Saturation (Basic) | Hue/Saturation (Basic) | Color | Point | 三滑杆公式：色相旋转、饱和度相对缩放（s/(1−x)）、明度向白/黑混合；逐码对拍参考实现 |
 | `lb:hsl-seven` | HSL 8 Bands | HSL 8 Bands | Color | Point | 八段色相（含洋红）各调 H/S/L，ACR 风格；旧七段属性名不变 |
 | `lb:channel-mixer-plus` | Channel Mixer Plus | Channel Mixer Plus | Blend | Point | PS 通道混合器 + 通道 offset + 单色模式 |
 | `lb:channel-range-to-alpha` | Range → Alpha | Channel Range to Alpha | Mask | Point | 通道数值区间 → alpha（混合颜色带） |
@@ -433,6 +433,28 @@ python tools/make_dist.py                   # 把 build/ 整理成 dist/（含 m
 `Two different plugins tried to register 'GeglOpexposure_c'`，然后整个 .so 静默不生效
 （`gegl --info lb:exposure` 查不到），Windows 上恰好没撞上而已。改名成 `lb-exposure.c`
 之后两边都干净——这也是 `tools/check-linux.sh` 存在的原因：不开 GIMP 也能发现这种问题。
+
+## 版权与商标
+
+- **代码是原创的**。每个算子都按公开的数学公式与可观察的行为自行实现，不含、也未复制
+  任何商业软件的源代码或二进制；仓库里没有反编译产物，也没有调用 Adobe 专有接口的脚本，
+  不依赖 Adobe SDK。
+- **产品名只作描述性引用**。文中出现的 Photoshop、Camera Raw 等名称，仅用于说明某个
+  算子在行为上参照的对象（例如「对应 Photoshop 的色彩平衡」），相关名称是其各自权利人
+  的商标。本项目与 Adobe Inc. 无隶属、授权或背书关系，不是官方插件，也不分发 Adobe 的
+  任何素材、预设或字体。
+- **界面里不带他人的商标**。菜单名、对话框标题、算子显示名均为本项目自定（`lb:` 命名
+  空间），不使用 Adobe 的 logo、图标或界面截图。
+- **截图都是 GIMP**。`ops/*/assets/` 下的图是在 GIMP 里运行本项目算子的界面，不是
+  Photoshop 的截图。
+
+All code in this repository is original: algorithms are re-implemented from published
+mathematics and observable behaviour, without copying any commercial software's source
+or binaries. Product names such as Photoshop or Camera Raw appear only to describe which
+behaviour an operation is modelled on; they are trademarks of their respective owners.
+This project is not affiliated with, endorsed by, or authorised by Adobe Inc.
+
+如认为此处有不当使用，请开 issue，核实后会调整措辞或移除相关内容。
 
 ## 许可证
 

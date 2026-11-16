@@ -2,8 +2,6 @@
 
 # GEGL_GIMP_PLUGIN_color_balance
 
-![color_balance](assets/pic.png "color_balance")
-
 对应 Photoshop「色彩平衡」调整。两个模式：
 
 - **不保留明度（默认）**：PS 的逐通道曲线，见下面「算法」一节。

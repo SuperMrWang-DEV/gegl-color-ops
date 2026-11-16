@@ -7,8 +7,6 @@
 > 紫 0.78~0.85 与洋红 0.85~0.92。旧 7 段属性名与边界行为不变，算子 id
 > 仍为 `lb:hsl-seven`（GIMP 存进 XCF 的字符串，不能改）。
 
-![hslseven](assets/hslseven.png "hslseven")
-
 ## English
 
 ### 1. Compile & Install Commands

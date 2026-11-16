@@ -2,11 +2,10 @@
  * SuperMrWang · GEGL 算子 / GEGL Operation
  * ---------------------------------------------------------------------------
  * id         lb:ps-hue-saturation
- * menu       Hue/Saturation (PS)
- * purpose    按给定的 Photoshop 色相/饱和度公式工作：全局色相旋转、饱和度
- *            相对缩放、明度向白/黑混合
- *            Photoshop's Hue/Saturation formula: global hue rotation, relative
- *            saturation scaling, lightness as a blend toward white/black.
+ * menu       Hue/Saturation (Basic)
+ * purpose    三滑杆公式：全局色相旋转、饱和度相对缩放、明度向白/黑混合。
+ *            Three-slider formula: global hue rotation, relative saturation
+ *            scaling, lightness as a blend toward white/black.
  * algorithm  规范来源是 tools/ref_ps_hue_sat.py（用户给定 Python 代码的逐字
  *            转写 + 浮点版对照），处理链四步：
  *            Normative reference: tools/ref_ps_hue_sat.py, four steps:
@@ -275,13 +274,12 @@ gegl_op_class_init (GeglOpClass *klass)
 
   gegl_operation_class_set_keys (operation_class,
                                  "name",            "lb:ps-hue-saturation",
-                                 "title",           _("Hue/Saturation (PS)"),
+                                 "title",           _("Hue/Saturation (Basic)"),
                                  "categories",      "color:enhance",
                                  "description",     _("Hue rotation, relative saturation scaling "
-                                                      "and lightness blended toward white/black, "
-                                                      "following the Photoshop formula."),
+                                                      "and lightness blended toward white/black."),
                                  "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Color",
-                                 "gimp:menu-label", _("Hue/Saturation (PS)"),
+                                 "gimp:menu-label", _("Hue/Saturation (Basic)"),
                                  NULL);
 }
 

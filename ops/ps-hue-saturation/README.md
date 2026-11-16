@@ -1,10 +1,10 @@
-# lb:ps-hue-saturation · Hue/Saturation (PS)
+# lb:ps-hue-saturation · Hue/Saturation (Basic)
 
-按给定的 Photoshop 色相/饱和度公式实现的三滑杆版本：全局色相旋转、饱和度相对
-缩放、明度向白/黑混合。不含「着色」复选框，也没有分色相区间。
+三滑杆版本：全局色相旋转、饱和度相对缩放、明度向白/黑混合。不含「着色」复选框，
+也没有分色相区间。行为上与常见图像软件的「色相/饱和度」对话框三根滑杆一致。
 
 - GEGL id：`lb:ps-hue-saturation`
-- 菜单：`Colors → SuperMrWang → Color → Hue/Saturation (PS)`
+- 菜单：`Colors → SuperMrWang → Color → Hue/Saturation (Basic)`
 - 类型：`GeglOperationPointFilter`（逐像素，无邻域）
 - 参数：`hue`（−180…180°）、`saturation`（−100…100）、`lightness`（−100…100）
 

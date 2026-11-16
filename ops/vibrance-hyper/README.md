@@ -3,8 +3,6 @@
 
 # GEGL_GIMP_PLUGIN_vibrance-hyper
 
-![vibrance_hyper](assets/vibrance_hyper.png "vibrance_hyper")
-
 ## English
 
 ### 1. Compile & Install Commands

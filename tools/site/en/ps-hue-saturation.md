@@ -1,14 +1,14 @@
 ---
-name: Hue/Saturation (PS)
-blurb: Three sliders from the given Photoshop formula — global hue rotation, relative saturation scaling, lightness mixed toward white or black. No Colorize, no hue ranges.
+name: Hue/Saturation (Basic)
+blurb: Three sliders — global hue rotation, relative saturation scaling, lightness mixed toward white or black. No Colorize, no hue ranges.
 ---
 
-An implementation of Photoshop's Hue/Saturation with the three-slider formula:
-global hue rotation, relative saturation scaling, and lightness mixed toward white or
-black. No Colorize checkbox and no per-hue ranges.
+The three-slider variant: global hue rotation, relative saturation scaling, and
+lightness mixed toward white or black. No Colorize checkbox and no per-hue ranges.
+Behaviour matches the three sliders of the familiar Hue/Saturation dialog.
 
 - GEGL id: `lb:ps-hue-saturation`
-- Menu: `Colors → SuperMrWang → Color → Hue/Saturation (PS)`
+- Menu: `Colors → SuperMrWang → Color → Hue/Saturation (Basic)`
 - Type: `GeglOperationPointFilter` (per-pixel, no neighbourhood)
 - Parameters: `hue` (−180…180°), `saturation` (−100…100), `lightness` (−100…100)
 
