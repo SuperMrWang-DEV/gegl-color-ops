@@ -80,9 +80,9 @@ python tools/analyze_ps_hue_sat.py          # 三条曲线的行为体检</code>
 <ol><li><strong>正支刻度与标签不符。</strong> 正向乘数是 <code>1/(1−x)</code>，不是 <code>1+x</code>：<code>+25</code> 实际是 ×1.33 （+33%），<code>+50</code> 是 ×2（+100%），<code>+90</code> 是 ×10。负支才是名副其实的百分比 （<code>−50</code> 就是 ×0.5）。同一根滑杆左右两侧的量纲因此不对称。</li><li><strong>正支有「悬崖」，会丢层次。</strong> <code>s ≥ 1−x</code> 的像素一律钳到 100：<code>+50</code> 时原 S≥50% 的一半像素塌成同一个值，<code>+100</code> 时所有彩色像素统一满饱和，等价于把饱和度二值化。 表现为平坦色块与色带。</li><li><strong>明度对 S 的影响强烈不对称。</strong> <code>+60</code> 会把 <code>(100,30,10)</code> 的 S 从 82% 压到 23%， 而 <code>−60</code> 一字不动（82%）。用户预期「只改明度」，实际提亮会明显掉饱和、发灰。</li><li><strong>HSL 的 S 不是感知量。</strong> 同一 S 在黄色与蓝色上的视觉强度差很多，所以同一档位 在不同色相上表现不一致。这是 HSL 模型的固有问题，本公式无法规避。</li><li><strong>量化损失（原代码）。</strong> 1% 的 s/l 台阶单这一项就有最大 8 码、平均 −1.25 码的 偏差，且系统性偏暗 —— 这是 8 位整数实现的代价，不是算法的一部分。</li></ol><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>ps-hue-saturation.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
+    <p>Windows 模块 <code>ps-hue-saturation.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>ps-hue-saturation.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
   </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/ps-hue-saturation.dll">下载 ps-hue-saturation.dll<span class="size">Windows x64</span></a></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/ps-hue-saturation.dll">下载 ps-hue-saturation.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/ps-hue-saturation.so">下载 ps-hue-saturation.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="hue-saturation.html"><span>上一个</span>Hue/Saturation</a><a class="next" href="hsl-seven.html"><span>下一个</span>HSL 7 Bands</a></nav>
   </article>
   <aside class="toc">
@@ -135,9 +135,9 @@ python tools/analyze_ps_hue_sat.py          # behaviour checks on the three curv
 <ol><li><strong>The positive side's scale does not match its label.</strong> The positive multiplier is <code>1/(1−x)</code>, not <code>1+x</code>: <code>+25</code> is ×1.33 (+33%), <code>+50</code> is ×2 (+100%), <code>+90</code> is ×10. Only the negative side is an honest percentage (<code>−50</code> is ×0.5). The two halves of the same slider are on different scales.</li><li><strong>The positive side has a cliff and loses detail.</strong> Every pixel with <code>s ≥ 1−x</code> clamps to 100: at <code>+50</code> half of all pixels with S≥50% collapse onto one value, and at <code>+100</code> every coloured pixel becomes fully saturated — saturation binarisation, in effect. It shows up as flat patches and banding.</li><li><strong>Lightness affects S very asymmetrically.</strong> <code>+60</code> pushes the S of (100,30,10) from 82% down to 23%, while <code>−60</code> leaves it at 82%. You asked for lightness; brightening also visibly desaturates and greys the image.</li><li><strong>HSL's S is not perceptual.</strong> The same S looks very different on yellow and on blue, so one setting behaves differently across hues. Inherent to the HSL model; the formula cannot avoid it.</li><li><strong>Quantisation loss (original code).</strong> The 1% s/l steps alone cost up to 8 code values and −1.25 on average, systematically dark — the price of an 8-bit integer implementation, not part of the algorithm.</li></ol><div class="op-dl">
   <div>
     <h3>Just this one</h3>
-    <p>Windows module <code>ps-hue-saturation.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+    <p>Windows module <code>ps-hue-saturation.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>ps-hue-saturation.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/ps-hue-saturation.dll">Download ps-hue-saturation.dll<span class="size">Windows x64</span></a></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/ps-hue-saturation.dll">Download ps-hue-saturation.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/ps-hue-saturation.so">Download ps-hue-saturation.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="hue-saturation.html"><span>Previous</span>Hue/Saturation</a><a class="next" href="hsl-seven.html"><span>Next</span>HSL 8 Bands</a></nav>
   </article>
   <aside class="toc">
@@ -158,7 +158,7 @@ python tools/analyze_ps_hue_sat.py          # behaviour checks on the three curv
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">0055287</span>
+    <span class="muted">e64e073</span>
   </div>
 </footer>
 <script>

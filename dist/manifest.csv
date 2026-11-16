@@ -47,10 +47,11 @@ linux-x64,hsl-seven.so,lb:hsl-seven,HSL 8 Bands,26120,29d540d5bc99775f267419622a
 linux-x64,hue-saturation.so,lb:hue-saturation,Hue/Saturation,25944,1af6b89bc9f8c6b22aa25fcdb4ac240777bcd7a3dee341191a8efe5d1c63a16c
 linux-x64,lab-levels.so,lb:lab-levels,LAB Levels,26128,88f9c61745c8164a59805314c32e2d63e9d8f500c2c96d746136f23d427770a2
 linux-x64,lb-brightness-contrast.so,lb:brightness-contrast,Brightness/Contrast,46912,d4507381ce3802d7f502bcc185588802f039b65f7c21ac0c78d58fdced59981f
-linux-x64,lb-exposure.so,lb:exposure,Exposure EV,22008,98bb2a3704575f0b3b38b1ea13f086c11892fb8153156df86721d5b663da8f89
+linux-x64,lb-exposure.so,lb:exposure,Exposure EV,26688,0629f26f5210201610768f90eb1ff7b655a90c0f7813a165053095dd2a2580d4
 linux-x64,lch-levels.so,lb:lch-levels,LCH Levels,26160,2f0aaae92bf067bf968a7a340188220e22f76286220be1cb118015ad680a8e11
 linux-x64,levels.so,lb:levels,Levels,25968,695edaf5957c91e1491ad66070fdcca873a2f948ba44f36cda59662265ab6777
 linux-x64,match-color.so,lb:match-color,Match Color,26480,1d72962c83d784b82bef3e47033c3def7c5209dcc91159c6ffa64fcba0933d36
+linux-x64,ps-hue-saturation.so,lb:ps-hue-saturation,Hue/Saturation (PS),21864,5e20dd99111976fac927f2624230d5332bab69ccc3618ee4c4a3a9252b0a0379
 linux-x64,rgb-domain-grayscale.so,lb:rgb-domain-grayscale,Black & White,26624,bd6320e08b3a75c952a235add1d5989cac8b739de8abfb16f628d5f55f82ec63
 linux-x64,shadows-highlights.so,lb:shadows-highlights,Shadows/Highlights,52040,99d786ff479b318745d47c232aec61dcf8ae9dbdce4359c344d77df7de0909b6
 linux-x64,vibrance-hyper.so,lb:vibrance-hyper,Natural Saturation,22056,d72bf5c33b0ff6a76720deb06ea844d5f62628210a8e48b19d736f2d843ba816
