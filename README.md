@@ -32,6 +32,7 @@ gegl-color-ops/
 ├── ops/<算子名>/          # 每个算子一个目录：<算子名>.c + 原始说明 + 截图
 ├── plugin/blend/      # Python 插件：应用图像/计算的完整复刻版（四种落地：选区/通道/灰度层/图层 alpha）
 ├── plugin/gray-mask/  # Python 插件：灰度图层一键 → 选区 / Alpha 通道
+├── plugin/sky-replace/ # Python 插件：一键换天（泛洪分割 + 蒙版合成 + 亮度匹配）
 ├── dist/                 # 编好的模块，给不想编译的人直接下载（windows-x64 / linux-x64）
 ├── tools/                # 测试图生成、逐算子冒烟、对照表、文件头重排、注释双语化
 ├── tools/site/           # 站点样式源（生成时拷进 docs/assets/）
@@ -151,6 +152,32 @@ GEGL 算子只接住了像素计算那一半；**输入选择**（任意打开�
 
 回归：`tools/check_gray_mask.py`（8 条行为断言，跑在 gimp-console 的
 python-fu-eval 里，不要求插件已安装）。
+
+### Python 插件版：plugin/sky-replace
+
+**一键换天**。选中照片图层 + 指定一张天空图，一次点击完成：
+
+1. 从图像顶边三个种子点做泛洪选择（GIMP 3 的采样阈值/判据走
+   context，插件用 context_push/pop 避免污染用户设置），把连通的
+   天空选出来；经典算法，无需 AI 模型，蓝天/晴天照片效果好；
+2. 选区按参数收缩/羽化（`edge` 正=收缩、负=扩张，默认收 1px
+   收掉前景光晕）；顶行覆盖率 <60% 时报错提示而非静默输出；
+3. 天空图按 cover 方式缩放、居中裁切，插到照片图层**正上方**
+   （插下方会被不透明照片完全盖住）；
+4. 亮度匹配：两张天空区直方图均值的 gamma 关系（注意 GIMP levels
+   的 gamma>1 是提亮，曲线 = in^(1/γ)），把新天空亮度拉到与原
+   天空一致，可在对话框关掉；
+5. 选区转成天空图层的图层蒙版，前景自然露出；
+6. 可选存为 `Sky Mask` 通道：对分割不满意时，用 lb:color-mask-select
+   等蒙版算子手工精修，再用 gray-mask 插件重新生成选区合成。
+
+菜单位置 **图层 → SuperMrWang → Sky Replace**；批处理参数
+`sky-file`/`threshold`(0..0.5)/`edge`/`feather`/`match-brightness`/
+`save-mask-channel`。
+
+回归：`tools/check_sky_replace.py`（13 条断言：分层、蒙版、合成像素、
+亮度匹配、开关行为、报错路径；直方图期望值按 255·enc_srgb(v) 刻度
+换算，跑在 gimp-console 的 python-fu-eval 里）。
 
 ## 命名与代码风格约定
 
