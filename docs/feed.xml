@@ -124,11 +124,11 @@
     <summary>红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，ACR 风格</summary>
   </entry>
   <entry>
-    <title>Hue/Saturation (PS)</title>
+    <title>Hue/Saturation (Basic)</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/ps-hue-saturation/README.md"/>
     <id>tag:github.com,2026:lb:ps-hue-saturation</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>按给定的 Photoshop 色相/饱和度公式工作：全局色相旋转、饱和度相对缩放、明度向白/黑混合</summary>
+    <summary>三滑杆公式：全局色相旋转、饱和度相对缩放、明度向白/黑混合。</summary>
   </entry>
   <entry>
     <title>Hue/Saturation</title>

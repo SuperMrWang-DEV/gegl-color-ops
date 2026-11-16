@@ -22,7 +22,7 @@ windows-x64,lb-exposure.dll,lb:exposure,Exposure EV,126347,54d4603a542408dd7ccf7
 windows-x64,lch-levels.dll,lb:lch-levels,LCH Levels,130908,de38c42d8d9b10a03447e7bb55d64fa83d26f8212d161a4aad9d1feb60cce0a2
 windows-x64,levels.dll,lb:levels,Levels,131495,f3f286ba846c767c6f3cff109b02791593292700b03c0c3da1fc64b78a59e2cc
 windows-x64,match-color.dll,lb:match-color,Match Color,107603,319f8b8ac84406c996b191da6590acc43fc0b8e4798e4f136a9dff5988fb887e
-windows-x64,ps-hue-saturation.dll,lb:ps-hue-saturation,Hue/Saturation (PS),104912,0a71a80ddb640008f249bb648dffb1dc0c08d8dda536b977e21c23a52ce0e4c7
+windows-x64,ps-hue-saturation.dll,lb:ps-hue-saturation,Hue/Saturation (Basic),104912,9708752f900733e6b412f5e9ea3e936c37dc6e416b6afade798bd20bcdaf032c
 windows-x64,rgb-domain-grayscale.dll,lb:rgb-domain-grayscale,Black & White,108038,86b54151180a5fa6495aef6d9701c3e0f74a305addd1b785ac50d9ae983db3ad
 windows-x64,shadows-highlights.dll,lb:shadows-highlights,Shadows/Highlights,167641,23132ac21a242d28392e9d7b5a6a4c2bc268db55d4532189eddc20c1b958b8cd
 windows-x64,vibrance-hyper.dll,lb:vibrance-hyper,Natural Saturation,136093,e0f0dcc8a23c265a0290a517831a59e5a5bd732c91e0544faacc3c3dbd347c03
@@ -51,7 +51,7 @@ linux-x64,lb-exposure.so,lb:exposure,Exposure EV,26688,0629f26f5210201610768f90e
 linux-x64,lch-levels.so,lb:lch-levels,LCH Levels,26160,2f0aaae92bf067bf968a7a340188220e22f76286220be1cb118015ad680a8e11
 linux-x64,levels.so,lb:levels,Levels,25968,695edaf5957c91e1491ad66070fdcca873a2f948ba44f36cda59662265ab6777
 linux-x64,match-color.so,lb:match-color,Match Color,26480,1d72962c83d784b82bef3e47033c3def7c5209dcc91159c6ffa64fcba0933d36
-linux-x64,ps-hue-saturation.so,lb:ps-hue-saturation,Hue/Saturation (PS),21864,5e20dd99111976fac927f2624230d5332bab69ccc3618ee4c4a3a9252b0a0379
+linux-x64,ps-hue-saturation.so,lb:ps-hue-saturation,Hue/Saturation (Basic),21864,43f0691e03b594db0023561f1963d4994128e1eaf450f74a2d78dbe17dc83379
 linux-x64,rgb-domain-grayscale.so,lb:rgb-domain-grayscale,Black & White,26624,bd6320e08b3a75c952a235add1d5989cac8b739de8abfb16f628d5f55f82ec63
 linux-x64,shadows-highlights.so,lb:shadows-highlights,Shadows/Highlights,52040,99d786ff479b318745d47c232aec61dcf8ae9dbdce4359c344d77df7de0909b6
 linux-x64,vibrance-hyper.so,lb:vibrance-hyper,Natural Saturation,22056,d72bf5c33b0ff6a76720deb06ea844d5f62628210a8e48b19d736f2d843ba816

@@ -202,8 +202,8 @@
     <code>lb:ps-hue-saturation</code>
     
   </div>
-  <h3>Hue/Saturation (PS)</h3>
-  <p>按给定的 Photoshop 色相/饱和度公式工作：全局色相旋转、饱和度相对缩放、明度向白/黑混合</p>
+  <h3>Hue/Saturation (Basic)</h3>
+  <p>三滑杆公式：全局色相旋转、饱和度相对缩放、明度向白/黑混合。</p>
   <span class="more">读算法说明 →</span>
 </a>
     <a class="card" href="ops/hsl-seven.html">
@@ -402,14 +402,14 @@
       <p>29 个 <code>.dll</code>（1.3 MB）。解到
          <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，重启 GIMP 即可。</p>
       <a class="btn primary" href="download/gegl-color-ops-windows-x64.zip">下载 gegl-color-ops-windows-x64.zip</a>
-      <p class="muted small">校验：<code>SHA256 26c38858e67f20974eef8af347bbdb46…</code></p>
+      <p class="muted small">校验：<code>SHA256 f83c6026df77798f4f986793cced7352…</code></p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>Linux x86_64</h3></div>
       <p>29 个 <code>.so</code>（0.3 MB）。解到
          <code>~/.local/share/gegl-0.4/plug-ins</code>，重启 GIMP 即可。</p>
       <a class="btn" href="download/gegl-color-ops-linux-x64.zip">下载 gegl-color-ops-linux-x64.zip</a>
-      <p class="muted small">校验：<code>SHA256 0b1a67733cb019186f0c96aabfbb5455…</code></p>
+      <p class="muted small">校验：<code>SHA256 9d65ff0157012d9f12b5001941a94e20…</code></p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>单个算子</h3></div>
@@ -429,6 +429,19 @@
   <p>所以每篇算法说明里都有误差表、以及「哪一段没能复刻、偏差多大」。没有说成
      「完全一致」的地方，都是实测过确实对不上——例如 PS 在色温 / 色调对角线上的硬裁切。</p>
   <p class="muted">算法来源在文件头 <code>reference</code> 字段里逐条标注，源码与文档在同一个仓库。</p>
+</section><section class="about" id="legal">
+  <h2>版权与商标</h2>
+  <p>这里的算子都是自己写的：按公开的数学公式与可观察的行为实现，没有复制任何商业软件的
+     源代码或二进制，没有反编译产物，也不依赖 Adobe 的 SDK。文中出现的 Photoshop、
+     Camera Raw 等名称只用来指明某个算子在行为上参照的对象，属于描述性引用；相关名称是
+     其各自权利人的商标。</p>
+  <p>本项目与 Adobe Inc. 无隶属、授权或背书关系，不是官方插件，也不分发 Adobe 的任何素材、
+     预设或字体。菜单名与对话框标题（<code>lb:</code> 命名空间）都是本项目自定；
+     站点截图是在 GIMP 里运行本项目算子的界面，不是 Photoshop 的截图。</p>
+  <p class="muted">All code here is original, written from published mathematics and observable
+     behaviour. Product names appear only to indicate which behaviour an operation is modelled
+     on. This project is not affiliated with, endorsed by, or authorised by Adobe Inc.
+     如认为此处有不当使用，请开 issue，核实后会调整措辞或移除相关内容。</p>
 </section>
 </main>
 <footer class="site-foot">
@@ -440,7 +453,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">e64e073</span>
+    <span class="muted">282bf5c</span>
   </div>
 </footer>
 </body>

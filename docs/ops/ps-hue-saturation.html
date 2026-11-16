@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-title-zh="Hue/Saturation (PS) · gegl-color-ops" data-title-en="Hue/Saturation (PS) · gegl-color-ops">
+<html lang="zh-CN" data-title-zh="Hue/Saturation (Basic) · gegl-color-ops" data-title-en="Hue/Saturation (Basic) · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hue/Saturation (PS) · gegl-color-ops</title>
-<meta name="description" content="按给定的 Photoshop 色相/饱和度公式工作：全局色相旋转、饱和度相对缩放、明度向白/黑混合">
-<meta property="og:title" content="Hue/Saturation (PS) · gegl-color-ops">
-<meta property="og:description" content="按给定的 Photoshop 色相/饱和度公式工作：全局色相旋转、饱和度相对缩放、明度向白/黑混合">
+<title>Hue/Saturation (Basic) · gegl-color-ops</title>
+<meta name="description" content="三滑杆公式：全局色相旋转、饱和度相对缩放、明度向白/黑混合。">
+<meta property="og:title" content="Hue/Saturation (Basic) · gegl-color-ops">
+<meta property="og:description" content="三滑杆公式：全局色相旋转、饱和度相对缩放、明度向白/黑混合。">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
 <script>
@@ -40,17 +40,17 @@
 <main id="main">
 <div class="l-zh"><section class="page-head">
   <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 色彩</p>
-  <h1>Hue/Saturation (PS)</h1>
+  <h1>Hue/Saturation (Basic)</h1>
   <div class="meta">
     <code>lb:ps-hue-saturation</code>
     <span class="tag t-color">色彩</span>
     <span>逐像素</span>
   </div>
-  <p class="lede">按给定的 Photoshop 色相/饱和度公式工作：全局色相旋转、饱和度相对缩放、明度向白/黑混合</p>
+  <p class="lede">三滑杆公式：全局色相旋转、饱和度相对缩放、明度向白/黑混合。</p>
 </section><div class="article-layout">
   <article class="prose">
-<p>按给定的 Photoshop 色相/饱和度公式实现的三滑杆版本：全局色相旋转、饱和度相对 缩放、明度向白/黑混合。不含「着色」复选框，也没有分色相区间。</p>
-<ul><li>GEGL id：<code>lb:ps-hue-saturation</code></li><li>菜单：<code>Colors → SuperMrWang → Color → Hue/Saturation (PS)</code></li><li>类型：<code>GeglOperationPointFilter</code>（逐像素，无邻域）</li><li>参数：<code>hue</code>（−180…180°）、<code>saturation</code>（−100…100）、<code>lightness</code>（−100…100）</li></ul>
+<p>三滑杆版本：全局色相旋转、饱和度相对缩放、明度向白/黑混合。不含「着色」复选框， 也没有分色相区间。行为上与常见图像软件的「色相/饱和度」对话框三根滑杆一致。</p>
+<ul><li>GEGL id：<code>lb:ps-hue-saturation</code></li><li>菜单：<code>Colors → SuperMrWang → Color → Hue/Saturation (Basic)</code></li><li>类型：<code>GeglOperationPointFilter</code>（逐像素，无邻域）</li><li>参数：<code>hue</code>（−180…180°）、<code>saturation</code>（−100…100）、<code>lightness</code>（−100…100）</li></ul>
 <p>规范实现是 <code>tools/ref_ps_hue_sat.py</code>（原代码的逐字转录 + 浮点对照）， 验收脚本是 <code>tools/check_ps_hue_saturation.py</code>。</p>
 <h2 id="算法">算法</h2>
 <p>在 <strong>sRGB 编码值</strong>（<code>R~G~B~A float</code>，感知域而非线性光）上，四步：</p>
@@ -95,17 +95,17 @@ python tools/analyze_ps_hue_sat.py          # 三条曲线的行为体检</code>
 </div></div>
 <div class="l-en"><section class="page-head">
   <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Color</p>
-  <h1>Hue/Saturation (PS)</h1>
+  <h1>Hue/Saturation (Basic)</h1>
   <div class="meta">
     <code>lb:ps-hue-saturation</code>
     <span class="tag t-color">Color</span>
     <span>per-pixel</span>
   </div>
-  <p class="lede">Three sliders from the given Photoshop formula — global hue rotation, relative saturation scaling, lightness mixed toward white or black. No Colorize, no hue ranges.</p>
+  <p class="lede">Three sliders — global hue rotation, relative saturation scaling, lightness mixed toward white or black. No Colorize, no hue ranges.</p>
 </section><div class="article-layout">
   <article class="prose">
-<p>An implementation of Photoshop's Hue/Saturation with the three-slider formula: global hue rotation, relative saturation scaling, and lightness mixed toward white or black. No Colorize checkbox and no per-hue ranges.</p>
-<ul><li>GEGL id: <code>lb:ps-hue-saturation</code></li><li>Menu: <code>Colors → SuperMrWang → Color → Hue/Saturation (PS)</code></li><li>Type: <code>GeglOperationPointFilter</code> (per-pixel, no neighbourhood)</li><li>Parameters: <code>hue</code> (−180…180°), <code>saturation</code> (−100…100), <code>lightness</code> (−100…100)</li></ul>
+<p>The three-slider variant: global hue rotation, relative saturation scaling, and lightness mixed toward white or black. No Colorize checkbox and no per-hue ranges. Behaviour matches the three sliders of the familiar Hue/Saturation dialog.</p>
+<ul><li>GEGL id: <code>lb:ps-hue-saturation</code></li><li>Menu: <code>Colors → SuperMrWang → Color → Hue/Saturation (Basic)</code></li><li>Type: <code>GeglOperationPointFilter</code> (per-pixel, no neighbourhood)</li><li>Parameters: <code>hue</code> (−180…180°), <code>saturation</code> (−100…100), <code>lightness</code> (−100…100)</li></ul>
 <p>The specification lives in <code>tools/ref_ps_hue_sat.py</code> (a literal transcription of the original code plus a float comparison), and the acceptance script is <code>tools/check_ps_hue_saturation.py</code>.</p>
 <h2 id="algorithm">Algorithm</h2>
 <p>On <strong>sRGB encoded values</strong> (<code>R~G~B~A float</code>, the perceptual domain, not linear light), in four steps:</p>
@@ -158,7 +158,7 @@ python tools/analyze_ps_hue_sat.py          # behaviour checks on the three curv
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">e64e073</span>
+    <span class="muted">282bf5c</span>
   </div>
 </footer>
 <script>
