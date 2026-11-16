@@ -31,4 +31,8 @@ for SRC in "$SRC_ROOT"/*/; do
   cp -r "$SRC" "$DST/plug-ins/$NAME"
   echo "· 已安装到 $DST/plug-ins/$NAME"
 done
-echo "· 重启 GIMP 后生效：颜色 → SuperMrWang"
+echo "· 重启 GIMP 后生效："
+echo "    颜色 → SuperMrWang       应用图像 / 计算"
+echo "    选择 → SuperMrWang       图层 → 选区 / 通道（layer-to-mask、gray-mask）"
+echo "    图层右键 → SuperMrWang   点哪个图层就转哪个（layer-to-mask）"
+echo "    图层 → SuperMrWang       一键换天"

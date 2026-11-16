@@ -152,7 +152,10 @@ class GrayMaskPlugin(Gimp.PlugIn):
         procedure.set_sensitivity_mask(Gimp.ProcedureSensitivityMask.DRAWABLE |
                                        Gimp.ProcedureSensitivityMask.DRAWABLES)
         procedure.set_attribution("SuperMrWang", "SuperMrWang", "2026")
-        procedure.add_menu_path("<Image>/Select/SuperMrWang")
+        # 注意：add_menu_path 必须在 set_menu_label 之后，否则 GIMP 报
+        # 「priv->menu_label != NULL」断言失败，菜单项直接不挂。
+        # add_menu_path has to come after set_menu_label, or GIMP fails the
+        # 'priv->menu_label != NULL' assertion and the entry never appears.
 
         if name.endswith('to-selection'):
             procedure.set_documentation(
@@ -161,6 +164,7 @@ class GrayMaskPlugin(Gimp.PlugIn):
                 _("One-click 'grayscale layer -> selection' (mask-copy + "
                   "mask-to-selection fused)."), name)
             procedure.set_menu_label(_("Grayscale Layer to Selection"))
+            procedure.add_menu_path("<Image>/Select/SuperMrWang")
             procedure.add_int_argument(
                 "operation", _("Combine"),
                 _("0 Replace, 1 Add, 2 Subtract, 3 Intersect"),
@@ -175,6 +179,7 @@ class GrayMaskPlugin(Gimp.PlugIn):
                   "grayscale content into a new alpha channel"),
                 _("One-click 'grayscale layer -> channel'."), name)
             procedure.set_menu_label(_("Grayscale Layer to Channel"))
+            procedure.add_menu_path("<Image>/Select/SuperMrWang")
             procedure.add_boolean_argument(
                 "invert", _("Invert"), _("Invert the channel content"),
                 False, GObject.ParamFlags.READWRITE)
