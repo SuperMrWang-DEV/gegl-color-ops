@@ -40,11 +40,11 @@
 </header>
 <main id="main">
 <div class="l-zh"><section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 影调与色阶</p>
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 影调</p>
   <h1>Shadows/Highlights</h1>
   <div class="meta">
     <code>lb:shadows-highlights</code>
-    <span class="tag t-tone">影调与色阶</span>
+    <span class="tag t-tone">影调</span>
     <span>整块区域</span> <span class="badge warn"><span class="l-zh">不推荐</span><span class="l-en">Not recommended</span></span>
   </div>
   <p class="slow-note"><b>不推荐日常使用</b>　邻域双边加 4 次高斯，半径 30 时每像素约 1.4 µs：2048×1536 默认参数净耗时 0.7 s、含解码 2.1 s，在 GIMP 里拖一次滑杆就重算一遍整图。整体明暗改用 <a href="levels.html">色阶</a> / <a href="lab-levels.html">LAB 色阶</a>；确实需要「周围亮就少提」的局部行为再回来用它，半径压到 10–15 会快很多。详见 <code>ops/shadows-highlights/.discouraged</code>。</p>
@@ -193,7 +193,7 @@ executeAction(s2t("adaptCorrect"), d, DialogModes.NO);</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">81a0a32</span>
+    <span class="muted">75b4ca7</span>
   </div>
 </footer>
 <script>

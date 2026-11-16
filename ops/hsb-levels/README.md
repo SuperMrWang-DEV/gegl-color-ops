@@ -1,6 +1,6 @@
 # HSB Levels（lb:hsb-levels）
 
-菜单：`颜色 → SuperMrWang → Tone → HSB Levels`（Filter 类）
+菜单：`颜色 → SuperMrWang → Levels → HSB Levels`（Filter 类）
 
 ## 概述
 

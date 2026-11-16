@@ -1,6 +1,6 @@
 # HSI Levels（lb:hsi-levels）
 
-菜单：`颜色 → SuperMrWang → Tone → HSI Levels`（Filter 类）
+菜单：`颜色 → SuperMrWang → Levels → HSI Levels`（Filter 类）
 
 ## 概述
 

@@ -46,14 +46,17 @@ LIN_RAW = REPO + "/raw/main/dist/linux-x64"
 EN_DIR = os.path.join(SRC, "en")
 
 GROUP_ZH = {
-    "Tone":  ("Tone",  "影调与色阶"),
+    "Levels": ("Levels", "色阶家族"),
+    "Tone":  ("Tone",  "影调"),
     "Color": ("Color", "色彩"),
     "Blend": ("Blend", "混合与通道"),
     "Mask":  ("Mask",  "蒙版"),
 }
 
 GROUP_DESC = {
-    "Tone":  "先把明暗和分量拉开：色阶、曝光、对比、阴影高光。包括 HSL / HSB / LCH / CMYK / HSI 五条分量色阶。",
+    "Levels": "色阶一个不落，全收在一级目录 Levels 里：基础色阶，以及 HSL / HSB / "
+              "HSI / LCH / LAB / CMYK 六条分量色阶——同一个黑白场+伽马模型，换个色彩空间。",
+    "Tone":  "明暗与影调：曝光、亮度/对比度、阴影-高光、黑白转换。色阶都在上面的 Levels 组。",
     "Color": "调整颜色的方向与浓度：色相饱和度、色彩平衡、白平衡、自然饱和度、可选颜色、匹配颜色。",
     "Blend": "把两层或多路通道混起来：应用图像、计算、通道混合器、XYZ 正片叠底、颜色查找、灰度转分量。",
     "Mask":  "按颜色或数值区间取蒙版：色彩范围、通道区间到 alpha。",
@@ -414,7 +417,7 @@ def build_index(ops, stats, version):
   </div>
   <ul class="facts">
     <li><b>{n}</b> 个算子</li>
-    <li><b>4</b> 个分类</li>
+    <li><b>5</b> 个分类</li>
     <li><b>0</b> 依赖 · 免编译包</li>
     <li><b>{files}</b> 个 Windows 模块已随仓库发布</li>
   </ul>
@@ -434,8 +437,10 @@ def build_index(ops, stats, version):
     </li>
     <li>
       <h3>在菜单里找</h3>
-      <p>滤镜位于 <code>图像 → 颜色 → SuperMrWang</code>，按四个分类排开；
-         也可以按 <code>/</code> 搜算子名直接调。</p>
+  <p>滤镜位于 <code>图像 → 颜色 → SuperMrWang</code>：色阶家族收在一级目录
+     <b>Levels</b> 子菜单里（Levels / LAB / HSL / HSB / LCH / CMYK / HSI），
+     其余按 Tone / Color / Blend / Mask 四组排开；
+     也可以按 <code>/</code> 搜算子名直接调。</p>
     </li>
   </ol>
 </section>""".format(files=stats["win_files"])
@@ -513,8 +518,8 @@ def build_index(ops, stats, version):
     body = hero + steps + """
 <section class="ops" id="ops">
   <h2>{n} 个算子</h2>
-  <p class="section-lede">按「找算子时的念头」分了四组，和 GIMP 菜单里的分组一致。
-     点任一算子进去看算法、参数与实测误差。</p>
+  <p class="section-lede">按「找算子时的念头」分了五组，和 GIMP 菜单里的分组一致——
+     七个色阶收在 Levels 一级目录里。点任一算子进去看算法、参数与实测误差。</p>
 {by_g}
 </section>""".format(n=n_live, by_g=by_g) + download + about + legal
 
@@ -938,8 +943,9 @@ def build_guide(version, stats):
      <code>bin/</code> 里，Windows 上通常是 <code>C:\\Program Files\\GIMP 3\\bin\\gegl.exe</code>。</p>
 
   <h2 id="use">怎么用</h2>
-  <p>菜单在 <code>图像 → 颜色 → SuperMrWang</code>，下面分四组：Tone / Color / Blend / Mask。
-     也可以在 <code>/</code>（搜索动作）里直接输算子名。</p>
+  <p>菜单在 <code>图像 → 颜色 → SuperMrWang</code>：色阶家族（Levels / LAB / HSL /
+     HSB / LCH / CMYK / HSI Levels）收在一级目录 <b>Levels</b> 子菜单里，其余分
+     Tone / Color / Blend / Mask 四组。也可以在 <code>/</code>（搜索动作）里直接输算子名。</p>
   <p>绝大多数算子是 <b>Point</b> 或 <b>Filter</b> 类型，GIMP 会把它们当非破坏性 fx
      挂在图层上——参数随时能改，原像素不动。双输入算子（应用图像 / 计算）目前只能合并应用。</p>
 

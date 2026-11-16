@@ -40,18 +40,18 @@
 </header>
 <main id="main">
 <div class="l-zh"><section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 影调与色阶</p>
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 色阶家族</p>
   <h1>Levels</h1>
   <div class="meta">
     <code>lb:levels</code>
-    <span class="tag t-tone">影调与色阶</span>
+    <span class="tag t-levels">色阶家族</span>
     <span>逐像素</span>
   </div>
   <p class="lede">经典图像编辑器 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 经典图像编辑器 对话框的数字框一一对应the classic editor Levels: composite plus per-channel input black / gamma /white and output black / white, in 0-255 units so the numbersmatch the classic dialog field for field.</p>
 </section><div class="article-layout">
   <article class="prose">
 <p>经典图像编辑器「色阶」对话框的复刻：<strong>复合 + R/G/B 四组</strong>，每组都是 「输入黑场 / 输入灰点 / 输入白场 + 输出黑场 / 输出白场」五个数， 刻度 0–255，和 经典图像编辑器的数字框一一对应。</p>
-<p>对应面板：<code>Colors → SuperMrWang → Tone → Levels</code>。</p>
+<p>对应面板：<code>Colors → SuperMrWang → Levels → Levels</code>。</p>
 <h2 id="模型">模型</h2>
 <p>单通道：</p>
 <pre><code>t   = clamp((v - inLow) / (inHigh - inLow), 0, 1)
@@ -91,11 +91,11 @@ out = outLow + t' * (outHigh - outLow)</code></pre>
 </aside>
 </div></div>
 <div class="l-en"><section class="page-head">
-  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Tone</p>
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Levels</p>
   <h1>Levels</h1>
   <div class="meta">
     <code>lb:levels</code>
-    <span class="tag t-tone">Tone</span>
+    <span class="tag t-levels">Levels</span>
     <span>per-pixel</span>
   </div>
   <p class="lede">the classic editor's Levels dialog — composite plus R/G/B, five numbers each, 0–255 scale, with the classic editor's gamma direction.</p>
@@ -151,7 +151,7 @@ out = outLow + t' * (outHigh - outLow)</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">81a0a32</span>
+    <span class="muted">75b4ca7</span>
   </div>
 </footer>
 <script>

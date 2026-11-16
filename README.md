@@ -77,13 +77,13 @@ gegl-color-ops/
 | `lb:match-color` | Match Color | Match Color | Color | Composer | 经典图像编辑器 匹配颜色：Lab 统计迁移（Reinhard），亮度/颜色强度/渐隐/中和 |
 | `lb:colorize-hsl` | Colorize | Colorize | Color | Point | 经典图像编辑器 色相/饱和度「着色」实测复刻：扔掉原有 H/S，只留输入 L 的单色调，残差 0.03 码 |
 | `lb:color-mask-select` | Mask by Color | Color Mask Select | Mask | Point | 经典图像编辑器 色彩范围：高光/阴影/中间调按「阈值 + 容差」实测复刻（平均 2.1 码），色系/自定色走容差窗 |
-| `lb:lab-levels` | LAB Levels | LAB Levels | Tone | Filter | LAB 三通道各自黑白场 + 伽马，a/b 绕中性轴分段 |
-| `lb:hsl-levels` | HSL Levels | HSL Levels | Tone | Filter | HSL 三分量色阶，色相按弧环形重映射 |
-| `lb:hsb-levels` | HSB Levels | HSB Levels | Tone | Filter | HSB（HSV）三分量色阶，S/B 是 HSV 语义 |
-| `lb:lch-levels` | LCH Levels | LCH Levels | Tone | Filter | CIE LCh 的 L/C/H 色阶，调色度不串色相 |
-| `lb:cmyk-levels` | CMYK Levels | CMYK Levels | Tone | Filter | CMYK 四版墨量色阶（babl 分色，非 ICC） |
-| `lb:hsi-levels` | HSI Levels | HSI Levels | Tone | Filter | HSI 三分量色阶，I 取三通道均值 |
-| `lb:levels` | Levels | Levels | Tone | Point | 经典图像编辑器 色阶：复合 + R/G/B 四组输入黑/灰/白场与输出黑白场，0–255 刻度；gamma 方向经公开实测点验证（154@0.46→84、200@1.646→220） |
+| `lb:lab-levels` | LAB Levels | LAB Levels | Levels | Filter | LAB 三通道各自黑白场 + 伽马，a/b 绕中性轴分段 |
+| `lb:hsl-levels` | HSL Levels | HSL Levels | Levels | Filter | HSL 三分量色阶，色相按弧环形重映射 |
+| `lb:hsb-levels` | HSB Levels | HSB Levels | Levels | Filter | HSB（HSV）三分量色阶，S/B 是 HSV 语义 |
+| `lb:lch-levels` | LCH Levels | LCH Levels | Levels | Filter | CIE LCh 的 L/C/H 色阶，调色度不串色相 |
+| `lb:cmyk-levels` | CMYK Levels | CMYK Levels | Levels | Filter | CMYK 四版墨量色阶（babl 分色，非 ICC） |
+| `lb:hsi-levels` | HSI Levels | HSI Levels | Levels | Filter | HSI 三分量色阶，I 取三通道均值 |
+| `lb:levels` | Levels | Levels | Levels | Point | 经典图像编辑器 色阶：复合 + R/G/B 四组输入黑/灰/白场与输出黑白场，0–255 刻度；gamma 方向经公开实测点验证（154@0.46→84、200@1.646→220） |
 | `lb:exposure` | Exposure EV | Exposure EV | Tone | Filter | 经典图像编辑器 曝光：EV、偏移、伽马；整数图走伽马域、浮点图走线性域，按输入精度自动选路 |
 | `lb:rgb-domain-grayscale` | Black & White | Black & White | Tone | Point | 经典图像编辑器 黑白：六色权重转灰 + 可选着色 |
 | `lb:vibrance-hyper` | Natural Saturation | Natural Saturation | Color | Point | LAB 自然饱和度：色度双曲蒙版 + 肤色保护窗 + 色域收敛不扭色相 |
@@ -428,17 +428,19 @@ touch plugin/blend/.disabled        # 停用 Python 插件
 
 ## 在 GIMP 菜单位置
 
-29 个算子全部注册在同一个菜单目录下：
+29 个算子注册在同一个菜单目录下；色阶家族单独收进一级目录 Levels，避免一长串：
 
 ```
+图像 → 颜色 → SuperMrWang → Levels → <算子>      （7 个色阶）
 图像 → 颜色 → SuperMrWang → Tone / Color / Blend / Mask → <算子>
 ```
 
-29 个算子按「找算子时的念头」分四组，避免一个子菜单里平铺二十多项：
+29 个算子按「找算子时的念头」分五组，避免一个子菜单里平铺二十多项：
 
 | 组 | 想干什么 | 放什么 |
 |---|---|---|
-| `Tone` | 太暗 / 太灰 / 反差不对 | 色阶、LAB 色阶、曝光、亮度/对比度、阴影/高光、黑白 |
+| `Levels` | 拉黑白场 / 调中间调（gamma） | Levels、LAB / HSL / HSB / LCH / CMYK / HSI 色阶——一级目录 |
+| `Tone` | 太暗 / 太灰 / 反差不对 | 曝光、亮度/对比度、阴影/高光、黑白 |
 | `Color` | 颜色不对 / 想加味道 | 色相饱和度、HSL 8 Bands、色彩平衡、颜色分级、色温色调、自然饱和度、Vibrance、可选颜色、着色 |
 | `Blend` | 要把两样东西合起来 | 应用图像、计算、通道混合器、照片滤镜、颜色查找、灰度转分量 |
 | `Mask` | 要一个选区 | 色彩范围、通道区间 → alpha |

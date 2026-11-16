@@ -29,7 +29,7 @@
   <p class="lede">按 GIMP 菜单里的分组排列。点名字进算法说明。其中 1 个已废弃，只作存档、不提供下载。</p>
 </section>
 <section class="prose wide">
-<h2 id="g-Tone"><span class="tag t-tone">影调与色阶</span> 先把明暗和分量拉开：色阶、曝光、对比、阴影高光。包括 HSL / HSB / LCH / CMYK / HSI 五条分量色阶。</h2>
+<h2 id="g-Levels"><span class="tag t-levels">色阶家族</span> 色阶一个不落，全收在一级目录 Levels 里：基础色阶，以及 HSL / HSB / HSI / LCH / LAB / CMYK 六条分量色阶——同一个黑白场+伽马模型，换个色彩空间。</h2>
 <div class="table-wrap"><table class="op-table">
 <thead><tr><th>菜单名</th><th>GEGL id</th><th>类型</th><th>做什么</th></tr></thead><tbody>
 <tr><td><a href="ops/levels.html"><b>Levels</b></a></td><td><code>lb:levels</code></td><td class="nowrap">逐像素</td><td>经典图像编辑器 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 经典图像编…</td></tr>
@@ -39,6 +39,10 @@
 <tr><td><a href="ops/lch-levels.html"><b>LCH Levels</b></a></td><td><code>lb:lch-levels</code></td><td class="nowrap">整块区域</td><td>CIE LCh 三个分量各自设输入 / 输出黑白场与伽马</td></tr>
 <tr><td><a href="ops/cmyk-levels.html"><b>CMYK Levels</b></a></td><td><code>lb:cmyk-levels</code></td><td class="nowrap">整块区域</td><td>CMYK 四个分量各自设输入 / 输出黑白场与伽马</td></tr>
 <tr><td><a href="ops/hsi-levels.html"><b>HSI Levels</b></a></td><td><code>lb:hsi-levels</code></td><td class="nowrap">整块区域</td><td>HSI 三个分量各自设输入 / 输出黑白场与伽马</td></tr>
+</tbody></table></div>
+<h2 id="g-Tone"><span class="tag t-tone">影调</span> 明暗与影调：曝光、亮度/对比度、阴影-高光、黑白转换。色阶都在上面的 Levels 组。</h2>
+<div class="table-wrap"><table class="op-table">
+<thead><tr><th>菜单名</th><th>GEGL id</th><th>类型</th><th>做什么</th></tr></thead><tbody>
 <tr><td><a href="ops/exposure.html"><b>Exposure EV</b></a></td><td><code>lb:exposure</code></td><td class="nowrap">整块区域</td><td>经典图像编辑器 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）the classic editor Exposure: EV, o…</td></tr>
 <tr><td><a href="ops/brightness-contrast.html"><b>Brightness/Contrast</b></a></td><td><code>lb:brightness-contrast</code></td><td class="nowrap">逐像素</td><td>复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面</td></tr>
 <tr><td><a href="ops/shadows-highlights.html"><b>Shadows/Highlights</b></a> <span class="badge warn"><span class="l-zh">不推荐</span><span class="l-en">Not recommended</span></span></td><td><code>lb:shadows-highlights</code></td><td class="nowrap">整块区域</td><td>等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按<strong>邻域</strong>亮度分别提亮阴影、压暗高光，而不是只看像素值本身。</td></tr>
@@ -87,7 +91,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">81a0a32</span>
+    <span class="muted">75b4ca7</span>
   </div>
 </footer>
 </body>

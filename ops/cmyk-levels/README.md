@@ -1,6 +1,6 @@
 # CMYK Levels（lb:cmyk-levels）
 
-菜单：`颜色 → SuperMrWang → Tone → CMYK Levels`（Filter 类）
+菜单：`颜色 → SuperMrWang → Levels → CMYK Levels`（Filter 类）
 
 ## 概述
 

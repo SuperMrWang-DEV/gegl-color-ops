@@ -162,7 +162,7 @@ gegl_op_class_init (GeglOpClass *klass)
     "title",           _("HSL Levels"),
     "categories",      "color",
     "description",     _("Independent levels adjustment for H, S and L channels, hue remapped around the circle"),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Tone",
+    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Levels",
     "gimp:menu-label", _("HSL Levels"),
     NULL);
 }

@@ -162,7 +162,7 @@ gegl_op_class_init (GeglOpClass *klass)
     "title",           _("HSB Levels"),
     "categories",      "color",
     "description",     _("Independent levels adjustment for H, S and B (value) channels"),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Tone",
+    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Levels",
     "gimp:menu-label", _("HSB Levels"),
     NULL);
 }

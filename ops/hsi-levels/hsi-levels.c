@@ -155,7 +155,7 @@ gegl_op_class_init (GeglOpClass *klass)
     "title",           _("HSI Levels"),
     "categories",      "color",
     "description",     _("Independent levels for H, S and I (intensity) channels"),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Tone",
+    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Levels",
     "gimp:menu-label", _("HSI Levels"),
     NULL);
 }

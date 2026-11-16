@@ -1,6 +1,6 @@
 # LCH Levels（lb:lch-levels）
 
-菜单：`颜色 → SuperMrWang → Tone → LCH Levels`（Filter 类）
+菜单：`颜色 → SuperMrWang → Levels → LCH Levels`（Filter 类）
 
 ## 概述
 

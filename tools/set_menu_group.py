@@ -23,10 +23,12 @@ OPS = os.path.join(ROOT, "ops")
 
 BASE = "<Image>/Colors/SuperMrWang"
 
-# 按「找算子时的念头」分四组；组名会出现在 GIMP 的子菜单里
+# 按「找算子时的念头」分组；组名会出现在 GIMP 的子菜单里。
+# Levels 是一级目录（色阶家族全在它下面），其余四组平铺。
 GROUPS = {
-    "Tone":  ["levels", "lab-levels", "hsl-levels", "hsb-levels", "lch-levels",
-              "cmyk-levels", "hsi-levels", "exposure", "brightness-contrast",
+    "Levels": ["levels", "lab-levels", "hsl-levels", "hsb-levels", "lch-levels",
+               "cmyk-levels", "hsi-levels"],
+    "Tone":  ["exposure", "brightness-contrast",
               "shadows-highlights", "rgb-domain-grayscale"],
     "Color": ["hue-saturation", "hue-saturation-basic", "hsl-seven", "color-balance",
               "color-grading", "color-temperature-tint", "vibrance",

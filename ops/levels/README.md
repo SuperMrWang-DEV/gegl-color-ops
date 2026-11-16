@@ -4,7 +4,7 @@
 「输入黑场 / 输入灰点 / 输入白场 + 输出黑场 / 输出白场」五个数，
 刻度 0–255，和 经典图像编辑器的数字框一一对应。
 
-对应面板：`Colors → SuperMrWang → Tone → Levels`。
+对应面板：`Colors → SuperMrWang → Levels → Levels`。
 
 ## 模型
 

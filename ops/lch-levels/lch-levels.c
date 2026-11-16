@@ -162,7 +162,7 @@ gegl_op_class_init (GeglOpClass *klass)
     "title",           _("LCH Levels"),
     "categories",      "color",
     "description",     _("Independent levels adjustment for CIE LCh L, C and H channels"),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Tone",
+    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Levels",
     "gimp:menu-label", _("LCH Levels"),
     NULL);
 }
