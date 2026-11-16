@@ -61,9 +61,9 @@
 <p><code>tools/check_hue_range_basic.py</code>：9 色块色卡过 gegl，与 Python 参考实现 （逐字同式）逐像素对比——8 个用例（默认范围、权重缩放色相、饱和度拉满、 明度、环绕柄、绿系、链式 Master→Range）216 个采样点全部 <strong>0 码</strong>。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>hue-range-basic.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
+    <p>Windows 模块 <code>hue-range-basic.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>hue-range-basic.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
   </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hue-range-basic.dll">下载 hue-range-basic.dll<span class="size">Windows x64</span></a></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hue-range-basic.dll">下载 hue-range-basic.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/hue-range-basic.so">下载 hue-range-basic.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="gray-to-component.html"><span>上一个</span>Gray To Component</a><a class="next" href="color-mask-select.html"><span>下一个</span>Mask by Color</a></nav>
   </article>
   <aside class="toc">
@@ -98,9 +98,9 @@
 <p><code>tools/check_hue_range_basic.py</code> renders a nine-patch swatch card and compares every pixel against a line-by-line Python reference of the same maths: 8 cases — default ranges, weight-scaled hue (orange at 30° gets exactly half the shift of red), saturation driven to full, lightness, wrap-around handles, the green family, and a chained master → range run — all match to <strong>0.0 codes</strong> across 216 sample points (tolerance 2).</p><div class="op-dl">
   <div>
     <h3>Just this one</h3>
-    <p>Windows module <code>hue-range-basic.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+    <p>Windows module <code>hue-range-basic.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>hue-range-basic.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hue-range-basic.dll">Download hue-range-basic.dll<span class="size">Windows x64</span></a></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hue-range-basic.dll">Download hue-range-basic.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/hue-range-basic.so">Download hue-range-basic.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="gray-to-component.html"><span>Previous</span>Gray to Component</a><a class="next" href="color-mask-select.html"><span>Next</span>Mask by Color</a></nav>
   </article>
   <aside class="toc">
@@ -121,7 +121,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">f05ba5f</span>
+    <span class="muted">6a06d45</span>
   </div>
 </footer>
 <script>
