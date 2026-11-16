@@ -10,7 +10,7 @@ XCF 里已经用过的滤镜照旧能打开，变的只是菜单位置。
     python tools/set_menu_group.py            # 写入
     python tools/set_menu_group.py --check    # 只报告现状，不写
 
-分组调整就在 GROUPS 里挪名字，然后 ./build.sh + 重启 GIMP。
+分组调整就在 GROU经典图像编辑器 里挪名字，然后 ./build.sh + 重启 GIMP。
 """
 
 import os
@@ -28,7 +28,7 @@ GROUPS = {
     "Tone":  ["levels", "lab-levels", "hsl-levels", "hsb-levels", "lch-levels",
               "cmyk-levels", "hsi-levels", "exposure", "brightness-contrast",
               "shadows-highlights", "rgb-domain-grayscale"],
-    "Color": ["hue-saturation", "ps-hue-saturation", "hsl-seven", "color-balance",
+    "Color": ["hue-saturation", "hue-saturation-basic", "hsl-seven", "color-balance",
               "color-grading", "color-temperature-tint", "vibrance",
               "vibrance-hyper", "cmyk-primary-correction", "colorize-hsl",
               "match-color"],

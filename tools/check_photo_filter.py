@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""lb:xyz-multiply 与 **Photoshop 照片滤镜** 的端到端比对。
+"""lb:xyz-multiply 与 **经典图像编辑器 照片滤镜** 的端到端比对。
 
-数据来自 photo-filter-cal：PS 2025 用 ExtendScript 跑出来的实测图。
+数据来自 photo-filter-cal：经典图像编辑器 2025 用 ExtendScript 跑出来的实测图。
   out_gray/   12 档 × 256 级灰阶（pf-gray.png）
   out_color/   6 档 × 64×64 彩色（color-lookup-cal/cl-probe.png）
 
-每一档都按照片滤镜的参数渲染（滤镜色 / 密度 / 保留明度），再与 PS 的
+每一档都按照片滤镜的参数渲染（滤镜色 / 密度 / 保留明度），再与 经典图像编辑器 的
 PNG 逐像素比。标定目录不在时（比如 CI 上）直接跳过，不算失败。
 
 用法：python tools/check_photo_filter.py [--verbose]
@@ -80,7 +80,7 @@ def run_set(title, cases, folder, probe, verbose):
         render(dst, probe, filt, density, preserve)
         w, h, got = read_png(dst)
         pw, ph, ps = read_png(ref_path)
-        assert (w, h) == (pw, ph), "尺寸不一致：算子 %dx%d / PS %dx%d" % (w, h, pw, ph)
+        assert (w, h) == (pw, ph), "尺寸不一致：算子 %dx%d / 参考图像编辑器 %dx%d" % (w, h, pw, ph)
 
         diffs = []
         worst_pt = (0.0, None)
@@ -98,7 +98,7 @@ def run_set(title, cases, folder, probe, verbose):
         note = ""
         if verbose and worst_pt[1]:
             x, y, a, b = worst_pt[1]
-            note = "最差点 (%d,%d) PS %s / 算子 %s" % (
+            note = "最差点 (%d,%d) 参考图像编辑器 %s / 算子 %s" % (
                 x, y, tuple(int(round(v)) for v in a), tuple(int(round(v)) for v in b))
         print("  %-14s %8.2f %8.2f %8d   %s" % (tag, mx, diffs[len(diffs) // 2],
                                                 sum(1 for d in diffs if d > 2), note))
@@ -107,15 +107,15 @@ def run_set(title, cases, folder, probe, verbose):
 
 def main():
     if not os.path.isdir(CAL):
-        print("没有标定目录 %s，跳过（PS 实测数据不在）" % CAL)
+        print("没有标定目录 %s，跳过（经典图像编辑器 实测数据不在）" % CAL)
         return 0
 
     verbose = "--verbose" in sys.argv
     a = run_set("灰阶 256 级 · 12 档", GRAY_CASES, "out_gray", GRAY_PROBE, verbose)
     b = run_set("彩色 64×64 · 6 档", COLOR_CASES, "out_color", COLOR_PROBE, verbose)
     worst = max(a, b)
-    print("\n与 Photoshop 照片滤镜的最大偏差 %.2f 码（8 位，1 码 = 1/255）" % worst)
-    print("「保留明度」档在裁剪边界会有 3～6 码的差异：PS 的取整顺序与 W3C 参考实现略有不同，")
+    print("\n与 经典图像编辑器 照片滤镜的最大偏差 %.2f 码（8 位，1 码 = 1/255）" % worst)
+    print("「保留明度」档在裁剪边界会有 3～6 码的差异：经典图像编辑器 的取整顺序与 W3C 参考实现略有不同，")
     print("非边界点的中位差在 0.4 码以内。")
     return 0 if worst <= 6.0 else 1
 

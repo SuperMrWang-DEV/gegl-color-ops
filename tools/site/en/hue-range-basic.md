@@ -45,7 +45,7 @@ master op; at weight 0 the pixel passes through untouched.
 
 ### Verification
 
-`tools/check_ps_hue_range.py` renders a nine-patch swatch card and compares
+`tools/check_hue_range_basic.py` renders a nine-patch swatch card and compares
 every pixel against a line-by-line Python reference of the same maths:
 8 cases — default ranges, weight-scaled hue (orange at 30° gets exactly half
 the shift of red), saturation driven to full, lightness, wrap-around handles,

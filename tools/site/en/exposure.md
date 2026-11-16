@@ -1,6 +1,6 @@
 ---
 name: Exposure EV
-blurb: Photoshop's Exposure adjustment with two formulas — 8-bit sRGB and 32-bit linear — chosen automatically from the input precision.
+blurb: the classic editor's Exposure adjustment with two formulas — 8-bit sRGB and 32-bit linear — chosen automatically from the input precision.
 ---
 
 Menu: `Colors → SuperMrWang → Tone → Exposure EV`

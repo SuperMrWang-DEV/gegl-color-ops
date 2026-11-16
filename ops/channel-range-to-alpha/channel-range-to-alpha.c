@@ -12,8 +12,8 @@
  *            range stay opaque, values outside fade out by 'fuzziness' and
  *            'feather'.
  * type       GeglOperationPointFilter（逐像素 / per-pixel）
- * reference  Photoshop「混合颜色带」(Blend If)
- *            Photoshop Blend If
+ * reference  经典图像编辑器「混合颜色带」(Blend If)
+ *            the classic editor Blend If
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
  *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
@@ -41,8 +41,8 @@ enum_end (ChannelEnum)
 /* 滑块范围统一 0~255，内部自动映射 LAB 值域
  * Slider range is 0~255 everywhere; the LAB value range is mapped
  * internally. */
-/* 滑块显示名沿用 Photoshop 风格：阴影/高光的最小值与最大值
- * Slider labels follow Photoshop: Shadow Min/Max and Highlight Min/Max. */
+/* 滑块显示名沿用 经典图像编辑器 风格：阴影/高光的最小值与最大值
+ * Slider labels follow the classic editor: Shadow Min/Max and Highlight Min/Max. */
 /* 内部属性名保持 l1、l2、r1、r2，方便代码复用
  * Internal property names stay l1, l2, r1, r2 to keep the code simple. */
 

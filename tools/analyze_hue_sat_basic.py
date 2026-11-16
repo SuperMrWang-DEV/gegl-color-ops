@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
-"""lb:ps-hue-saturation 公式的合理性体检：把三条曲线的行为量化出来。
+"""lb:hue-saturation-basic 公式的合理性体检：把三条曲线的行为量化出来。
 
-    python tools/analyze_ps_hue_sat.py
+    python tools/analyze_hue_sat_basic.py
 """
 import colorsys
 import sys
 import os
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from ref_ps_hue_sat import _rgb_to_hsl_f, ref_float
+from ref_hue_sat_basic import _rgb_to_hsl_f, ref_float
 
 
 def line(t):

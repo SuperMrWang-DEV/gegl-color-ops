@@ -3,9 +3,9 @@
  * ---------------------------------------------------------------------------
  * id         lb:color-temperature-tint
  * menu       Color Temperature & Tint
- * purpose    PS 2026「色彩与自然饱和度」里的色温 / 色调：中性灰跟着偏蓝-黄、
+ * purpose    经典图像编辑器 2026「色彩与自然饱和度」里的色温 / 色调：中性灰跟着偏蓝-黄、
  *            绿-洋红，黑白两端不动
- *            The Temperature and Tint sliders of Photoshop 2026's Color and
+ *            The Temperature and Tint sliders of the classic 2026's Color and
  *            vibrance layer: neutrals drift blue-yellow or green-magenta
  *            while the black and white endpoints stay put.
  * algorithm  编码值解码到线性 → 3 次多项式（20 项）→ clamp → 编码。系数在 17×
@@ -18,8 +18,8 @@
  *            lookup. Censored samples are fitted with an iterated hinge
  *            regression and the hard clip is left to the clamp.
  * type       GeglOperationPointFilter（逐像素 / per-pixel）
- * reference  Photoshop 2026（27.0）「色彩与自然饱和度」调整图层（实测逆向）
- *            Photoshop 2026 (27.0) Color and vibrance adjustment layer
+ * reference  classic image editor 2026（27.0）「色彩与自然饱和度」调整图层（黑盒实测）
+ *            classic image editor 2026 (27.0) Color and vibrance adjustment layer
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
  *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
@@ -162,7 +162,7 @@ gegl_op_class_init (GeglOpClass *klass)
     "name",            "lb:color-temperature-tint",
     "title",           _("Color Temperature & Tint"),
     "categories",      "color:enhance",
-    "description",     _("Photoshop 2026's Temperature and Tint sliders, matched "
+    "description",     _("the classic 2026 Temperature and Tint sliders, matched "
                          "by measurement: a 3rd-order polynomial in linear light "
                          "over a 17x17 parameter grid, clamped and baked into a "
                          "33^3 lookup table"),

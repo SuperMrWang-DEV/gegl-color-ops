@@ -1,11 +1,11 @@
 ---
 name: Levels
-blurb: Photoshop's Levels dialog — composite plus R/G/B, five numbers each, 0–255 scale, with PS's gamma direction.
+blurb: the classic editor's Levels dialog — composite plus R/G/B, five numbers each, 0–255 scale, with the classic editor's gamma direction.
 ---
 
-A reproduction of Photoshop's **Levels** dialog: **composite plus R/G/B**, four
+A reproduction of the classic editor's **Levels** dialog: **composite plus R/G/B**, four
 groups of five numbers each — input black, input grey, input white, output black,
-output white — on a 0–255 scale that matches PS's numeric fields one for one.
+output white — on a 0–255 scale that matches the classic editor's numeric fields one for one.
 
 Panel: `Colors → SuperMrWang → Tone → Levels`.
 
@@ -21,8 +21,8 @@ out = outLow + t' * (outHigh - outLow)
 
 - `inLow` and below is crushed to `outLow`, `inHigh` and above to `outHigh`, and the
   middle is redistributed along the gamma curve;
-- **gamma > 1 brightens, gamma < 1 darkens** — the same direction as PS's field.
-  Note this is the opposite of the usual gamma intuition: PS's slider value goes
+- **gamma > 1 brightens, gamma < 1 darkens** — the same direction as the classic editor's field.
+  Note this is the opposite of the usual gamma intuition: the classic editor's slider value goes
   straight into the reciprocal position of `1/gamma`, and writing the exponent as
   `t^gamma` flips the whole direction;
 - the input range stretches everything: after setting `inLow = 64`, `v = 240` becomes
@@ -32,15 +32,15 @@ out = outLow + t' * (outHigh - outLow)
 
 Order: **the composite group first (one curve for all three channels), then the
 per-channel groups**. Per-channel groups default to identity, so "touch only the
-composite" is bit-identical to PS's RGB mode and "touch only red" matches PS's Red
-channel mode. All four groups can be stacked, which is more than PS allows (one
+composite" is bit-identical to the classic editor's RGB mode and "touch only red" matches the classic editor's Red
+channel mode. All four groups can be stacked, which is more than the classic editor allows (one
 channel at a time).
 
 ## Domain
 
 Everything is computed per channel in the **8-bit sRGB gamma domain**, never decoded
 to linear. Levels' black and white points mean "0–255 encoded values", and feeding
-linear light would make the numeric fields disagree with PS. The operator pins both
+linear light would make the numeric fields disagree with the classic editor. The operator pins both
 pads to a perceptual format (`R~G~B~A float`) in `prepare`, so no upstream
 `linear-rgb` is needed.
 
@@ -66,21 +66,21 @@ python tools/check_levels_ps.py
 | combination | 50 / 0.7 / 200 → 30 / 220 |
 | single channel | red only, green and blue untouched |
 
-**B — reference points.** Two published PS measurements, specifically to pin down
+**B — reference points.** Two published the classic editor measurements, specifically to pin down
 gamma's **direction and exponent form**:
 
-| Input | gamma | PS | This operator | Deviation |
+| Input | gamma | the classic editor | This operator | Deviation |
 |---|---|---|---|---|
 | 154 | 0.46 | 84 | 85 | 1.19 code |
 | 200 | 1.646 | 220 | 220 | 0.01 code |
 
 These matter: a test that only checks "C agrees with Python" cannot catch a reversed
 exponent, because both sides would be wrong together. The values come from a
-measured pixel posted in Adobe's community and the accepted `out = in^(1/gamma)`.
+measured pixel posted in the vendor's community and the accepted `out = in^(1/gamma)`.
 
 ## Why there is no per-code calibration on this machine
 
-On this machine, Photoshop 2025 (26.10.0) throws "could not complete the command
+On this machine, the classic editor 2025 (26.10.0) throws "could not complete the command
 because of a program error" for both the `Lvls` `executeAction` event and `Mk`
 adjustment-layer creation, and the DOM's `LayerKind.LEVELS` only offers
 text-or-normal. The diagnostic log is in `../lvls-cal/_diag2.txt`. `colorRange` does
@@ -88,7 +88,7 @@ run, so ExtendScript as a whole is fine — those two commands are blocked in th
 installation.
 
 Hence the reference is public measurements rather than local calibration. **If you
-can run PS scripts on another machine, fix `ps_levels.jsx` in `lvls-cal/` and re-run
+can run the classic editor scripts on another machine, fix `ps_levels.jsx` in `lvls-cal/` and re-run
 it, and this can be upgraded to a per-code calibration.**
 
 ## Difference from GIMP's own Levels
@@ -96,5 +96,5 @@ it, and this can be upgraded to a per-code calibration.**
 GIMP's `Colors → Levels` is a private app-level implementation, and GEGL's
 `gegl:levels` has only **four** properties — `in-low / in-high / out-low / out-high` —
 with no gamma, no per-channel groups and no 0–255 scale (check `gegl --info
-gegl:levels`). This operator fills a genuine hole at the GEGL level: PS levels
+gegl:levels`). This operator fills a genuine hole at the GEGL level: the classic editor levels
 parameters now work from scripts, batch jobs and the `gegl` command line.

@@ -1,17 +1,17 @@
 ---
-name: Color Temperature & Tint PS
-blurb: The temperature and tint sliders from Photoshop 2026's Color and Vibrance layer, matched by black-box measurement into a 33³ LUT.
+name: Color Temperature & Tint the classic editor
+blurb: The temperature and tint sliders from classic image editor 2026's Color and Vibrance layer, matched by black-box measurement into a 33³ LUT.
 ---
 
-The **temperature** and **tint** sliders of Photoshop 2026's *Color and vibrance*
-adjustment layer, matched by black-box measurement. PS 27.0 folded both sliders
+The **temperature** and **tint** sliders of classic image editor 2026's *Color and vibrance*
+adjustment layer, matched by black-box measurement. the classic editor 27.0 folded both sliders
 into the old vibrance layer (officially "Color and vibrance"); the Action Manager
 still uses the old `vibrance` class with two extra integer keys, `temperature` and
 `tint`. The white-balance part is split out into its own operator so it can be
 stacked into any pipeline.
 
 - GEGL id: `lb:color-temperature-tint`
-- Menu: `Colors → SuperMrWang → Color → Color Temperature & Tint PS`
+- Menu: `Colors → SuperMrWang → Color → Color Temperature & Tint the classic editor`
 - Type: `GeglOperationPointFilter` (per-pixel, no neighbourhood)
 - Parameters: `temperature` (−100…100, negative = cooler), `tint` (−100…100,
   negative = green, positive = magenta)
@@ -26,8 +26,8 @@ Three decisions, each with a reason:
 
 | Step | Why |
 |---|---|
-| fit in the linear domain | fitting in the encoded domain can only smear PS's hard clipping into mush; the negative-temperature region was measured at a median error of 90 code values |
-| the `clamp` | PS clips linear values that go negative to 0. This is the only strong non-linearity in the chain; reproduce it exactly with a clamp instead of expecting a polynomial to do it |
+| fit in the linear domain | fitting in the encoded domain can only smear the classic editor's hard clipping into mush; the negative-temperature region was measured at a median error of 90 code values |
+| the `clamp` | the classic editor clips linear values that go negative to 0. This is the only strong non-linearity in the chain; reproduce it exactly with a clamp instead of expecting a polynomial to do it |
 | 17×17 parameter grid + bilinear | the map changes quickly with (temperature, tint); steps of 25 were far too coarse (10–90 code values between grid points), while 12–13 brings it down to 1–5 |
 | bake into a 33³ LUT | 20 terms plus two `powf` per pixel is slow; bake once per image |
 
@@ -43,10 +43,10 @@ ill-conditioned on 0..1 and the coefficients blow up by two orders of magnitude.
 ## Calibration method
 
 1. `vibrance-cal/make_probe_all.py` builds a full-gamut probe of 32³ = 32768 patches
-   (1024×2048, 128 per row). It **must embed an sRGB ICC profile**, otherwise PS
+   (1024×2048, 128 per row). It **must embed an sRGB ICC profile**, otherwise the classic editor
    interprets it in the working space and clips saturated colours — early data was
    lost entirely to this.
-2. `vibrance-cal/batch_vib2026.jsx` drives PS 2026 to apply each setting and save a PNG.
+2. `vibrance-cal/batch_vib2026.jsx` drives the classic editor 2026 to apply each setting and save a PNG.
 3. `vibrance-cal/fit_censored.py` fits every grid point. Clipped samples (output 0 or
    255) carry no magnitude but do carry "this side got flattened", which is handled by
    **iterative regression with censoring**: fit on unclipped samples first, then add
@@ -57,7 +57,7 @@ ill-conditioned on 0..1 and the coefficients blow up by two orders of magnitude.
 ## Acceptance
 
 `python vibrance-cal/check_op.py` renders the full-gamut probe through the gegl CLI and
-compares it with the real PS 2026 export (0–255 code values; samples where any PS
+compares it with the real the classic editor 2026 export (0–255 code values; samples where any the classic editor
 channel is ≥ 249 are skipped, since they are already flattened and tell you nothing):
 
 | (temperature, tint) | Median | p90 | p99 | Max |
@@ -85,13 +85,13 @@ engine, and both use the same tables.
 ## Known deviations
 
 Outside that last corner the median error over the whole plane is ≤ 5 code values. The
-corner is not an implementation problem — **Photoshop itself is discontinuous there**:
+corner is not an implementation problem — **the classic editor itself is discontinuous there**:
 
 On the diagonal where temperature ≤ −50 and tint ≥ +38 (roughly `|temperature| ≈
-tint`, both above 55) PS pushes one channel's linear value through zero and the whole
+tint`, both above 55) the classic editor pushes one channel's linear value through zero and the whole
 channel collapses from 255 to 0. Measured on the same neutral grey (123,132,132):
 
-| Setting | PS output |
+| Setting | the classic editor output |
 |---|---|
 | (−62, 50) | (122, 148, **239**) |
 | (−50, 62) | (126, 140, **248**) |
@@ -120,13 +120,13 @@ touch the pixels.
 
 ## Relation to `lb:vibrance`
 
-PS 2026's Color and vibrance applies **temperature/tint first, then Vibrance**
-(experimental basis: feeding the temperature-processed image into PS 2025's plain
-Vibrance differs from PS doing both at once by a median of 1.4 code values; the
+the classic editor 2026's Color and vibrance applies **temperature/tint first, then Vibrance**
+(experimental basis: feeding the temperature-processed image into the classic editor 2025's plain
+Vibrance differs from the classic editor doing both at once by a median of 1.4 code values; the
 reverse order differs by 36).
 
 The two operators divide the work and **do not call each other**: this one does white
-balance only, `lb:vibrance` does Vibrance only. To reproduce the PS 2026 layer, stack
+balance only, `lb:vibrance` does Vibrance only. To reproduce the the classic editor 2026 layer, stack
 this one in front of `lb:vibrance`:
 
 ```

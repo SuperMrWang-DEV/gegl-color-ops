@@ -1,18 +1,18 @@
-# lb:ps-hue-saturation · Hue/Saturation (Basic)
+# lb:hue-saturation-basic · Hue/Saturation (Basic)
 
 三滑杆版本：全局色相旋转、饱和度相对缩放、明度向白/黑混合。不含「着色」复选框，
 也没有分色相区间。行为上与常见图像软件的「色相/饱和度」对话框三根滑杆一致。
 
-- GEGL id：`lb:ps-hue-saturation`
+- GEGL id：`lb:hue-saturation-basic`
 - 菜单：`Colors → SuperMrWang → Color → Hue/Saturation (Basic)`
 - 类型：`GeglOperationPointFilter`（逐像素，无邻域）
 - 参数：`hue`（−180…180°）、`saturation`（−100…100）、`lightness`（−100…100）
 
-> 2026-11-16：显示名从 `Hue/Saturation (PS)` 改为 `Hue/Saturation (Basic)`，菜单
-> 标签同步。GEGL id 仍是 `lb:ps-hue-saturation`，已存在的 XCF / 过滤器栈不受影响。
+> 2026-11-16：显示名从 `Hue/Saturation (经典图像编辑器)` 改为 `Hue/Saturation (Basic)`，菜单
+> 标签同步。GEGL id 仍是 `lb:hue-saturation-basic`，已存在的 XCF / 过滤器栈不受影响。
 
-规范实现是 `tools/ref_ps_hue_sat.py`（原代码的逐字转录 + 浮点对照），
-验收脚本是 `tools/check_ps_hue_saturation.py`。
+规范实现是 `tools/ref_hue_sat_basic.py`（原代码的逐字转录 + 浮点对照），
+验收脚本是 `tools/check_hue_saturation_basic.py`。
 
 ## 算法
 
@@ -40,15 +40,15 @@ out = HSL2RGB(h, s, l)
 
 | 差别 | 原代码 | 本算子 | 理由 |
 |---|---|---|---|
-| 精度 | h 取整到 1°、s/l 取整到 1%，输出 `int()` 截断 | 全程浮点 | 这层量化平均偏暗 **1.73 码**、最大 **9 码**（`tools/ref_ps_hue_sat.py` 的 breakdown） |
+| 精度 | h 取整到 1°、s/l 取整到 1%，输出 `int()` 截断 | 全程浮点 | 这层量化平均偏暗 **1.73 码**、最大 **9 码**（`tools/ref_hue_sat_basic.py` 的 breakdown） |
 | `saturation=+100` | `s/(1−1)` → `ZeroDivisionError` | 返回满饱和（`s>0` 时） | `x→1⁻` 时 `s/(1−x)→+∞`，钳位后就是 1，取左极限 |
 
 ## 验收
 
 ```bash
-python tools/check_ps_hue_saturation.py     # 27 组参数 × 4096 色
-python tools/ref_ps_hue_sat.py              # 量化误差拆解
-python tools/analyze_ps_hue_sat.py          # 三条曲线的行为体检
+python tools/check_hue_saturation_basic.py     # 27 组参数 × 4096 色
+python tools/ref_hue_sat_basic.py              # 量化误差拆解
+python tools/analyze_hue_sat_basic.py          # 三条曲线的行为体检
 ```
 
 对拍结果：最大偏差 **0.002 码**（16 位 1 LSB = 0.0039 码），即与公式逐码一致；

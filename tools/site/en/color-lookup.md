@@ -1,12 +1,12 @@
 ---
 name: Color Lookup
-blurb: Photoshop's Color Lookup adjustment built on the Adobe Cube LUT spec — trilinear or tetrahedral interpolation, with strength.
+blurb: the classic editor's Color Lookup adjustment built on the Adobe Cube LUT spec — trilinear or tetrahedral interpolation, with strength.
 ---
 
 An implementation of "Color Lookup" following the Adobe Cube LUT specification,
-matching Photoshop's Color Lookup adjustment layer. Photoshop can only be
+matching the classic editor's Color Lookup adjustment layer. the classic editor can only be
 calibrated with a manually-run script here (see the end), so numeric acceptance
-targets an **independently written Python reference** rather than PS output.
+targets an **independently written Python reference** rather than the classic editor output.
 
 - GEGL id: `lb:color-lookup`
 - Menu: `Colors → SuperMrWang → Blend → Color Lookup`
@@ -34,7 +34,7 @@ targets an **independently written Python reference** rather than PS output.
 
 Format support: **`.cube` only** (3D, pure 1D, 1D+3D). `.3dl` / `.look` / `.csp`
 are not implemented — `.3dl`'s axis order (red fastest or blue fastest) would need
-to be confirmed against Photoshop, and guessing is not good enough.
+to be confirmed against the classic editor, and guessing is not good enough.
 
 ## Why the perceptual format is pinned
 
@@ -70,14 +70,14 @@ non-linearity (one with DOMAIN 0..1 and one with DOMAIN_MAX 255, which must agre
 Compared pixel by pixel against the independent Python implementation, **all
 0.00 code values** (bit-identical at 8 bits).
 
-## Photoshop-side to-do
+## the classic editor-side to-do
 
-When Photoshop 2025 is launched with a script on the command line, every `Mk`
+When the classic editor 2025 is launched with a script on the command line, every `Mk`
 (create adjustment layer) reports "command not currently available" — even
 brightness/contrast fails. The UI is simply not ready that early and it has nothing
 to do with the descriptor; running `executeAction(colorLookup)` as an event does not
 error but **does not change pixels** either. So save
-`color-lookup-cal/batch_cl.jsx` locally, run it by hand from an already-running PS
-via File → Scripts → Browse…, then compare PS output with the operator using
-`color-lookup-cal/compare.py` (the script reports both "PS vs trilinear" and
-"PS vs tetrahedral" and thereby settles which interpolation PS uses).
+`color-lookup-cal/batch_cl.jsx` locally, run it by hand from an already-running the classic editor
+via File → Scripts → Browse…, then compare the classic editor output with the operator using
+`color-lookup-cal/compare.py` (the script reports both "the classic editor vs trilinear" and
+"the classic editor vs tetrahedral" and thereby settles which interpolation the classic editor uses).

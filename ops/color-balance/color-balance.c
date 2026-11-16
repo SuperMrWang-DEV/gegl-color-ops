@@ -3,8 +3,8 @@
  * ---------------------------------------------------------------------------
  * id         lb:color-balance
  * menu       Color Balance
- * purpose    PS 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴
- *            PS Color Balance: shadow, midtone and highlight each carry three
+ * purpose    经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴
+ *            the classic editor Color Balance: shadow, midtone and highlight each carry three
  *            axis pairs (C-R, M-G, Y-B).
  * algorithm  两种模式。原版（默认）= 逐通道「电平」曲线：三个区间的参数合并成一条
  *            幂律，指数相乘（G = g_shd·g_mid·g_hlt），黑场取阴影负值、白场
@@ -21,11 +21,11 @@
  * type       GeglOperationFilter（需整块区域 / whole-region）
  * reference  色彩平衡调整图层的本质-背后的数学原理（王先生的副业）
  *            https://zhuanlan.zhihu.com/p/679776283
- *            Photoshop 中的色彩平衡调整图层的原理分析（章佳杰）
+ *            经典图像编辑器 中的色彩平衡调整图层的原理分析（章佳杰）
  *            https://zhuanlan.zhihu.com/p/59450298
  *            The math behind the Color Balance layer / Wang's side project
  *            https://zhuanlan.zhihu.com/p/679776283
- *            How the Photoshop Color Balance layer really works / Zhang
+ *            How the classic editor Color Balance layer really works / Zhang
  *            Jiajie
  *            https://zhuanlan.zhihu.com/p/59450298
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
@@ -84,7 +84,7 @@ property_double (highlight_yb, _("Highlight Yellow-Blue"), 0.0)
     ui_range (-100.0, 100.0)
 
 property_boolean (preserve_luminosity, _("Preserve Luminosity"), FALSE)
-    description (_("MATLAB-style zero-sum logic. Unchecked: original PS color balance."))
+    description (_("MATLAB-style zero-sum logic. Unchecked: original the classic editor color balance."))
 
 #else
 
@@ -111,10 +111,10 @@ static inline gfloat sanitize_f(gfloat v)
 }
 
 /* ===========================================================================
- * 非保明度路径：PS 色彩平衡的逐通道曲线
- * The non-preserve-luminosity path: Photoshop's per-channel curves
+ * 非保明度路径：经典图像编辑器 色彩平衡的逐通道曲线
+ * The non-preserve-luminosity path: the classic editor's per-channel curves
  * ---------------------------------------------------------------------------
- * 实测结论（PS 26.10；16 位、每个整数滑杆档、三个区间 201 档 + 9 个组合档；
+ * 实测结论（经典图像编辑器 26.10；16 位、每个整数滑杆档、三个区间 201 档 + 9 个组合档；
  * 1024 px 连续斜坡探针，见 cb-cal/）：
  *
  * 1. 逐通道独立。一个通道只有一条曲线，只由该通道在三个区间上的滑杆决定，
@@ -134,7 +134,7 @@ static inline gfloat sanitize_f(gfloat v)
  *    中间调最强（±100 → 2^∓1），阴影与高光只有它一半量级（±100 → 2^∓0.5）。
  *    （旧版按「高光 → 中间调 → 阴影 依次作用」实现，组合档最多差 112 码；
  *      改成指数相乘后 9 个组合档全部 ≤ 0.6 码。）
- * 4. 近黑端还有一段「趾部」：G < 1 时幂律在 0 处的斜率是无穷，PS 实际是有限
+ * 4. 近黑端还有一段「趾部」：G < 1 时幂律在 0 处的斜率是无穷，经典图像编辑器 实际是有限
  *    斜率起步。它等价于 [b, h0] 上的一段三次 Hermite：
  *
  *        h0  = b + H · (W − b)
@@ -422,9 +422,9 @@ static inline void compute_midtones_gamma(const gdouble *coef, gdouble *gamma_ou
 }
 
 /* 感知（非线性）格式：公式按 8bit sRGB 伽马域推导，必须拿伽马值，否则 babl
- * 会喂线性光，数值与 PS 对不上
+ * 会喂线性光，数值与 经典图像编辑器 对不上
  * Perceptual (non-linear) format: the maths was derived in the 8-bit sRGB
- * gamma domain. Linear light from babl would drift away from Photoshop. */
+ * gamma domain. Linear light from babl would drift away from the classic editor. */
 static const Babl *
 perceptual_format (GeglOperation *op)
 {
@@ -581,8 +581,8 @@ process(GeglOperation       *op,
       }
       else
       {
-          /* 原版 PS 行为：逐通道复合曲线，prepare() 里已折成 LUT
-           * Original PS behaviour: per-channel composite curve, already folded
+          /* 原版 经典图像编辑器 行为：逐通道复合曲线，prepare() 里已折成 LUT
+           * Original the classic editor behaviour: per-channel composite curve, already folded
            * into a LUT in prepare(). */
           if (p && ! p->identity)
             {
@@ -630,12 +630,12 @@ gegl_op_class_init(GeglOpClass *klass)
   gegl_operation_class_set_keys(oclass,
     "name",            "lb:color-balance",
     "title",           _("Color Balance"),
-    "description",     _("PS Color Balance: shadow/midtone/highlight C-R, M-G, Y-B. "
+    "description",     _("the classic editor Color Balance: shadow/midtone/highlight C-R, M-G, Y-B. "
                          "Per-channel levels-style curve: the three range exponents "
                          "multiply into one power law (black point from a negative "
                          "shadow slider, white point from a positive highlight "
                          "slider) plus a near-black toe, measured against "
-                         "Photoshop. Pins itself to the perceptual format."),
+                         "the classic editor. Pins itself to the perceptual format."),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Color",
     "gimp:menu-label", _("Color Balance"),
     NULL);

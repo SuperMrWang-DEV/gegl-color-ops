@@ -229,10 +229,10 @@ def foot_html(version, root=""):
         r=root, v=version,
         tag=t("GIMP 3 的 GEGL 色彩算子集", "a GEGL colour operator set for GIMP 3"),
         note=t("源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，"
-               "非官方移植；与 Adobe、GIMP 官方均无隶属关系。",
+               "非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。",
                "Source and docs live in one repository, GPL-3.0-or-later. Most "
                "algorithms were matched to observed behaviour rather than ported "
-               "from source; this project is not affiliated with Adobe or the GIMP team."),
+               "from source; this project is not affiliated with any vendor or the GIMP team."),
         repo=t("仓库", "Repository"),
         issue=t("问题反馈", "Issues"),
         guide=t("安装指南", "Install guide"))
@@ -490,15 +490,15 @@ def build_index(ops, stats, version):
     legal = """<section class="about" id="legal">
   <h2>版权与商标</h2>
   <p>这里的算子都是自己写的：按公开的数学公式与可观察的行为实现，没有复制任何商业软件的
-     源代码或二进制，没有反编译产物，也不依赖 Adobe 的 SDK。文中出现的 Photoshop、
-     Camera Raw 等名称只用来指明某个算子在行为上参照的对象，属于描述性引用；相关名称是
-     其各自权利人的商标。</p>
-  <p>本项目与 Adobe Inc. 无隶属、授权或背书关系，不是官方插件，也不分发 Adobe 的任何素材、
-     预设或字体。菜单名与对话框标题（<code>lb:</code> 命名空间）都是本项目自定；
-     站点截图是在 GIMP 里运行本项目算子的界面，不是 Photoshop 的截图。</p>
+     源代码或二进制，没有反编译产物，也不调用任何厂商的专有接口或 SDK。</p>
+  <p>菜单名、对话框标题、算子显示名与页面正文都是本项目自定表述（<code>lb:</code>
+     命名空间），不使用任何厂商的 logo、图标或界面截图。仅对业界公开的格式与色空间规范
+     沿用标准名称（如 <code>.cube</code> LUT、Adobe RGB），属于指示性引用，不表示与
+     本项目存在隶属关系。站点截图是在 GIMP 里运行本项目算子的界面。</p>
   <p class="muted">All code here is original, written from published mathematics and observable
-     behaviour. Product names appear only to indicate which behaviour an operation is modelled
-     on. This project is not affiliated with, endorsed by, or authorised by Adobe Inc.
+     behaviour, with no vendor-specific interfaces or SDKs. Names and copy are this project's
+     own; standard format and colour-space names are cited nominatively only. This project
+     is not affiliated with, endorsed by, or authorised by any vendor.
      如认为此处有不当使用，请开 issue，核实后会调整措辞或移除相关内容。</p>
 </section>"""
 
@@ -961,9 +961,9 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
      但要重新调一次。升级前建议先另存一份。</p>
 
   <h2 id="faq">常见问题</h2>
-  <h3>和 Photoshop 的调整图层结果一致吗？</h3>
+  <h3>和 经典图像编辑器 的调整图层结果一致吗？</h3>
   <p>多数算子的目标是「肉眼与 8 位输出一致」。实测残差写在每篇算法说明里，
-     通常是中位 0–4 码；有明确对不上的段落时也会说明（例如 PS 在个别对角线上的硬裁切）。</p>
+     通常是中位 0–4 码；有明确对不上的段落时也会说明（例如 经典图像编辑器 在个别对角线上的硬裁切）。</p>
   <h3>为什么叫 <code>lb:</code> 前缀？</h3>
   <p>GEGL 的 id 必须唯一。前缀避免和 GIMP 自带算子撞名——撞了会静默加载失败，
      所以这个工程里所有 id 和 GType 名都带前缀。</p>

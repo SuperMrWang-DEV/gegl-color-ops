@@ -3,8 +3,8 @@
  * ---------------------------------------------------------------------------
  * id         lb:channel-mixer-plus
  * menu       Channel Mixer Plus
- * purpose    PS 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移
- *            PS Channel Mixer: every output channel is a weighted sum of
+ * purpose    经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移
+ *            the classic editor Channel Mixer: every output channel is a weighted sum of
  *            R/G/B, plus a constant offset per channel.
  * algorithm  3×3 混合矩阵 + 每通道 offset；monochrome 打开时改用单组系数转灰
  *            A 3x3 mixing matrix plus one offset per channel; with
@@ -23,10 +23,10 @@
 
 #ifdef GEGL_PROPERTIES
 
-/* 新增：PS 单色开关
- * New: PS Monochrome toggle */
+/* 新增：经典图像编辑器 单色开关
+ * New: the classic editor Monochrome toggle */
 property_boolean (monochrome, _("Monochrome"), FALSE)
-  description(_("Produce grayscale monochrome image (PS style single channel mixer)"))
+  description(_("Produce grayscale monochrome image (classic style single channel mixer)"))
 
 /* 单色共用的混合系数（仅 monochrome=TRUE 时生效）
  * Monochrome shared mixing coefficients (only used when monochrome=TRUE) */
@@ -289,7 +289,7 @@ gegl_op_class_init (GeglOpClass *klass)
   gegl_operation_class_set_keys (oc,
     "name",            "lb:channel-mixer-plus",
     "title",           _("Channel Mixer Plus"),
-    "description",     _("Mix RGB channels with independent offsets, PS-style monochrome grayscale mode, no luminosity preservation"),
+    "description",     _("Mix RGB channels with independent offsets, classic-style monochrome grayscale mode, no luminosity preservation"),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Blend",
     "gimp:menu-label", _("Channel Mixer Plus"),
     NULL);

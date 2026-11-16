@@ -1,18 +1,18 @@
 ---
 name: Photo Filter
-blurb: Photoshop's Photo Filter, reproduced end to end — colour fill + multiply + density in linear sRGB, with W3C preserve-luminosity.
+blurb: the classic editor's Photo Filter, reproduced end to end — colour fill + multiply + density in linear sRGB, with W3C preserve-luminosity.
 ---
 
-This operator **is** Photoshop's Photo Filter. Internally PS's `Filter → Adjustments →
+This operator **is** the classic editor's Photo Filter. Internally the classic editor's `Filter → Adjustments →
 Photo Filter` is equivalent to "solid colour fill + multiply + density", and this
 operator reproduces the whole chain from measurement. The parameters map one for one:
 
-| PS Photo Filter | `lb:xyz-multiply` | Notes |
+| the classic editor Photo Filter | `lb:xyz-multiply` | Notes |
 |---|---|---|
-| Filter colour | `overlay_color` | PS's twenty-odd presets are shortcuts; it is still a colour underneath |
+| Filter colour | `overlay_color` | the classic editor's twenty-odd presets are shortcuts; it is still a colour underneath |
 | Density 0–100% | `opacity` 0–1 | divided by 100 |
-| Preserve Luminosity | `preserve_luminosity` | **on by default**, matching PS's factory setting |
-| — (PS has none) | `white_mode` | reference white point, **D50 by default** (PS's Lab white) |
+| Preserve Luminosity | `preserve_luminosity` | **on by default**, matching the classic editor's factory setting |
+| — (the classic editor has none) | `white_mode` | reference white point, **D50 by default** (the classic editor's Lab white) |
 
 ## Algorithm (matched by measurement, not guessed)
 
@@ -37,7 +37,7 @@ The evidence (all reproducible from `photo-filter-cal/`):
   converted to D50 divided by the D50 white" (0.4522, 0.2225, 0.0169), while
   normalising by D65 is off by 4.4% — hence D50.
 
-## Measured accuracy (PS 2025)
+## Measured accuracy (the classic editor 2025)
 
 | Group | Settings | Max | Median |
 |---|---|---|---|
@@ -47,7 +47,7 @@ The evidence (all reproducible from `photo-filter-cal/`):
 | Colour 64×64, preserve-luminosity | 3 | 5.65 code | 0.56–0.69 |
 
 The large errors in the preserve-luminosity groups occur only at clipping boundaries
-(55–96 of the 12288 channel values in a full colour chart) and come from PS rounding in
+(55–96 of the 12288 channel values in a full colour chart) and come from the classic editor rounding in
 a different order than the W3C reference; away from those boundaries the median is
 within 0.7 code values.
 
@@ -55,9 +55,9 @@ within 0.7 code values.
 
 ```bash
 python photo-filter-cal/make_probe.py        # 256×16 greyscale probe (sRGB ICC embedded)
-# run photo-filter-cal/batch_pf.jsx in PS       # 12 greyscale settings
-# run photo-filter-cal/batch_pf_color.jsx in PS # 6 colour settings
-python photo-filter-cal/model_pf.py         # model vs PS
-python tools/check_photo_filter.py          # operator vs PS (end to end)
+# run photo-filter-cal/batch_pf.jsx in the classic editor       # 12 greyscale settings
+# run photo-filter-cal/batch_pf_color.jsx in the classic editor # 6 colour settings
+python photo-filter-cal/model_pf.py         # model vs the classic editor
+python tools/check_photo_filter.py          # operator vs the classic editor (end to end)
 python tools/check_xyz_multiply.py --all    # operator vs an independent reference
 ```

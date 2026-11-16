@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-"""lb:ps-hue-saturation 的规范参考实现（Python）。
+"""lb:hue-saturation-basic 的规范参考实现（Python）。
 
 本文件是「用户给定代码」的**逐字转录**与**浮点升级版**两套对照，用于：
 
-  1. 作为 C 算子的唯一规范（不再和 Photoshop 实测图对比）；
+  1. 作为 C 算子的唯一规范（不再和 经典图像编辑器 实测图对比）；
   2. 量化原代码里 8 位整数量化/int() 截断引入的误差；
   3. 给出 saturation=+100 除零点的数学极限值。
 
@@ -16,7 +16,7 @@
   字面版  h 量化到 1°、s/l 量化到 1%、输出 int() 截断（恒向零）
   浮点版  全程 0…1 / 0…360 浮点，输出四舍五入
 
-    python tools/ref_ps_hue_sat.py        # 跑示例 + 量化误差统计
+    python tools/ref_hue_sat_basic.py        # 跑示例 + 量化误差统计
 """
 import colorsys
 import random

@@ -16,14 +16,14 @@
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/color-mask-select/README.md"/>
     <id>tag:github.com,2026:lb:color-mask-select</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>PS 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览</summary>
+    <summary>经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览the classic editor Color Range: build a mask from a picked colour, a fuzzinessradius and feathering, with an optional red overlay preview.</summary>
   </entry>
   <entry>
     <title>Hue/Saturation Range</title>
-    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/ps-hue-range/README.md"/>
-    <id>tag:github.com,2026:lb:ps-hue-range</id>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/hue-range-basic/README.md"/>
+    <id>tag:github.com,2026:lb:hue-range-basic</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，与 lb:ps-hue-saturation（全图）串联即接近某图像编辑器「色相/饱和度」对话框的「编辑」下拉 + 底部色条模型。</summary>
+    <summary>色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，与 lb:hue-saturation-basic（全图）串联即接近某图像编辑器「色相/饱和度」对话框的「编辑」下拉 + 底部色条模型。</summary>
   </entry>
   <entry>
     <title>Gray To Component</title>
@@ -37,56 +37,56 @@
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/color-lookup/README.md"/>
     <id>tag:github.com,2026:lb:color-lookup</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价 PS「颜色查找」调整图层；强度按 0..1 与原图线性混合</summary>
+    <summary>按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价于经典图像编辑器「颜色查找」调整图层；强度按 0..1 与原图线性混合</summary>
   </entry>
   <entry>
     <title>Photo Filter</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/xyz-multiply/README.md"/>
     <id>tag:github.com,2026:lb:xyz-multiply</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>PS「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。</summary>
+    <summary>经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。the classic editor&#x27;s Photo Filter: multiply the filter colour in XYZ space,density as opacity, with an optional preserve-luminosity switch.</summary>
   </entry>
   <entry>
     <title>Channel Mixer Plus</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/channel-mixer-plus/README.md"/>
     <id>tag:github.com,2026:lb:channel-mixer-plus</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>PS 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移</summary>
+    <summary>经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移the classic editor Channel Mixer: every output channel is a weighted sum of</summary>
   </entry>
   <entry>
     <title>Calculations</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/calculations/README.md"/>
     <id>tag:github.com,2026:lb:calculations</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>PS 计算：两路通道按混合模式合成，输出灰度图或 alpha 蒙版</summary>
+    <summary>经典图像编辑器 计算：两路通道按混合模式合成，输出灰度图或 alpha 蒙版</summary>
   </entry>
   <entry>
     <title>Apply Image</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/apply-image/README.md"/>
     <id>tag:github.com,2026:lb:apply-image</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>PS 应用图像：把 aux 输入当成源，按混合模式、不透明度与遮罩压到主输入上，可选只作用于某一个通道</summary>
+    <summary>经典图像编辑器 应用图像：把 aux 输入当成源，按混合模式、不透明度与遮罩压到主输入上，可选只作用于某一个通道</summary>
   </entry>
   <entry>
     <title>Match Color</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/match-color/README.md"/>
     <id>tag:github.com,2026:lb:match-color</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>PS 匹配颜色：把另一张图（或另一层）的 Lab* 统计量迁移到本层</summary>
+    <summary>经典图像编辑器 匹配颜色：把另一张图（或另一层）的 Lab 统计量迁移到本层the classic editor Match Color: transfer the Lab statistics of another image(or layer) onto this layer.</summary>
   </entry>
   <entry>
     <title>Colorize</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/colorize-hsl/README.md"/>
     <id>tag:github.com,2026:lb:colorize-hsl</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>复刻 Photoshop「色相/饱和度」里的「着色」复选框</summary>
+    <summary>复刻 经典图像编辑器「色相/饱和度」里的「着色」复选框</summary>
   </entry>
   <entry>
     <title>CMYK Primary</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/cmyk-primary-correction/README.md"/>
     <id>tag:github.com,2026:lb:cmyk-primary-correction</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>PS 可选颜色：红/黄/绿/青/蓝/品红/白/中性/黑九组各自独立记忆</summary>
+    <summary>经典图像编辑器 可选颜色：红/黄/绿/青/蓝/品红/白/中性/黑九组各自独立记忆</summary>
   </entry>
   <entry>
     <title>Natural Saturation</title>
@@ -100,40 +100,40 @@
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/vibrance/README.md"/>
     <id>tag:github.com,2026:lb:vibrance</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>按 Photoshop「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱和主动收手、红带（肤色）额外保护、浅色少给一点，色相与明度不动</summary>
+    <summary>按 经典图像编辑器「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱和主动收手、红带（肤色）额外保护、浅色少给一点，色相与明度不动</summary>
   </entry>
   <entry>
     <title>Color Temperature &amp; Tint</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/color-temperature-tint/README.md"/>
     <id>tag:github.com,2026:lb:color-temperature-tint</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>PS 2026「色彩与自然饱和度」里的色温 / 色调：中性灰跟着偏蓝-黄、绿-洋红，黑白两端不动</summary>
+    <summary>经典图像编辑器 2026「色彩与自然饱和度」里的色温 / 色调：中性灰跟着偏蓝-黄、绿-洋红，黑白两端不动</summary>
   </entry>
   <entry>
     <title>Color Grading</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/color-grading/README.md"/>
     <id>tag:github.com,2026:lb:color-grading</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>等价 ACR/Lightroom「颜色分级」：阴影 / 中间调 / 高光 / 全局四个轮盘（色相 + 饱和度）加各自的明度滑杆，按亮度分带给画面上色。</summary>
+    <summary>等价 经典 RAW 编辑器的「颜色分级」：阴影 / 中间调 / 高光 / 全局四个轮盘（色相 + 饱和度）加各自的明度滑杆，按亮度分带给画面上色。</summary>
   </entry>
   <entry>
     <title>Color Balance</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/color-balance/README.md"/>
     <id>tag:github.com,2026:lb:color-balance</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>PS 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴</summary>
+    <summary>经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴the classic editor Color Balance: shadow, midtone and highlight each carry threeaxis pairs (C-R, M-G, Y-B).</summary>
   </entry>
   <entry>
     <title>HSL 7 Bands</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/hsl-seven/README.md"/>
     <id>tag:github.com,2026:lb:hsl-seven</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，ACR 风格</summary>
+    <summary>红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，经典 RAW 编辑器风格</summary>
   </entry>
   <entry>
     <title>Hue/Saturation (Basic)</title>
-    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/ps-hue-saturation/README.md"/>
-    <id>tag:github.com,2026:lb:ps-hue-saturation</id>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/hue-saturation-basic/README.md"/>
+    <id>tag:github.com,2026:lb:hue-saturation-basic</id>
     <updated>2026-11-15T00:00:00Z</updated>
     <summary>三滑杆公式：全局色相旋转、饱和度相对缩放、明度向白/黑混合。</summary>
   </entry>
@@ -149,28 +149,28 @@
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/rgb-domain-grayscale/README.md"/>
     <id>tag:github.com,2026:lb:rgb-domain-grayscale</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>PS 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色</summary>
+    <summary>经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色the classic editor Black &amp; White: six hue sliders (red, yellow, green, cyan,blue, magenta) weight the grey conversion, with optionaltinting.</summary>
   </entry>
   <entry>
     <title>Shadows/Highlights</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/shadows-highlights/README.md"/>
     <id>tag:github.com,2026:lb:shadows-highlights</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>等价 PS「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。</summary>
+    <summary>等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。</summary>
   </entry>
   <entry>
     <title>Brightness/Contrast</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/brightness-contrast/README.md"/>
     <id>tag:github.com,2026:lb:brightness-contrast</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>复刻 Photoshop「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面</summary>
+    <summary>复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面</summary>
   </entry>
   <entry>
     <title>Exposure EV</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/exposure/README.md"/>
     <id>tag:github.com,2026:lb:exposure</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>PS 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）</summary>
+    <summary>经典图像编辑器 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）the classic editor Exposure: EV, offset and gamma in three stages, measured inexposure stops.</summary>
   </entry>
   <entry>
     <title>HSI Levels</title>
@@ -219,6 +219,6 @@
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/levels/README.md"/>
     <id>tag:github.com,2026:lb:levels</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>PS 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 PS 对话框的数字框一一对应</summary>
+    <summary>经典图像编辑器 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 经典图像编辑器 对话框的数字框一一对应the classic editor Levels: composite plus per-channel input black / gamma /white and output black / white, in 0-255 </summary>
   </entry>
 </feed>

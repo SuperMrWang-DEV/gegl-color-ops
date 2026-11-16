@@ -1,17 +1,17 @@
 /* ===========================================================================
  * SuperMrWang · GEGL 算子 / GEGL Operation
  * ---------------------------------------------------------------------------
- * id         lb:ps-hue-range
+ * id         lb:hue-range-basic
  * menu       Hue/Saturation Range
  * purpose    色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，
- *            与 lb:ps-hue-saturation（全图）串联即接近某图像编辑器
+ *            与 lb:hue-saturation-basic（全图）串联即接近某图像编辑器
  *            「色相/饱和度」对话框的「编辑」下拉 + 底部色条模型。
  *            Per-family hue/saturation/lightness inside a soft hue range;
- *            chained after lb:ps-hue-saturation (master) this mirrors the
+ *            chained after lb:hue-saturation-basic (master) this mirrors the
  *            "edit dropdown + colour bar" model of the classic
  *            Hue/Saturation dialog.
  * algorithm  ① 范围：四个柄定义一条色条——内二柄之间全选（权重 1），
- *               外二柄之间线性过渡（Photoshop 的羽化是线性的），其余为 0。
+ *               外二柄之间线性过渡（经典图像编辑器 的羽化是线性的），其余为 0。
  *               六个色系默认（度）：红 315/345/15/45、黄 15/45/75/105、
  *               绿 75/105/135/165、青 135/165/195/225、蓝 195/225/255/285、
  *               品红 255/285/315/345，即中心 ±15 全选、±45 过渡。
@@ -25,12 +25,12 @@
  *               语义一致；无彩像素（RGB 相等）不参与任何色系。
  *               The weight is computed on the ORIGINAL hue, like an internal
  *               mask; achromatic pixels join no family.
- *            ③ 调整量按 w 缩放后走 lb:ps-hue-saturation 的同一套公式：
+ *            ③ 调整量按 w 缩放后走 lb:hue-saturation-basic 的同一套公式：
  *               明度 screen/multiply（t·w）→ HSL → 色相 +hue·w →
  *               饱和度 s/(1-x·w) / s(1+x·w) → RGB。w=1 时与全图算子
  *               逐位一致，w=0 时逐位等于原图。
  *               Adjustments scale by w and reuse the master op's formula
- *               exactly: at w = 1 identical to lb:ps-hue-saturation, at
+ *               exactly: at w = 1 identical to lb:hue-saturation-basic, at
  *               w = 0 identical to the input.
  * type       GeglOperationPointFilter（逐像素 / per-pixel）
  * reference  经典「色相/饱和度」对话框的通道范围模型（色条四柄、线性羽化）
@@ -47,17 +47,17 @@
 #ifdef GEGL_PROPERTIES
 
 property_enum (channel, _("Channel Range"),
-               PsHueRangeChannel, ps_hue_range_channel_enum, RANGE_REDS)
+               LbHueRangeChannel, hue_range_basic_channel_enum, RANGE_REDS)
     description (_("Which hue family to adjust"))
 
-enum_start (ps_hue_range_channel_enum)
+enum_start (hue_range_basic_channel_enum)
   enum_value (RANGE_REDS,     "reds",     N_("Reds"))
   enum_value (RANGE_YELLOWS,  "yellows",  N_("Yellows"))
   enum_value (RANGE_GREENS,   "greens",   N_("Greens"))
   enum_value (RANGE_CYANS,    "cyans",    N_("Cyans"))
   enum_value (RANGE_BLUES,    "blues",    N_("Blues"))
   enum_value (RANGE_MAGENTAS, "magentas", N_("Magentas"))
-enum_end (PsHueRangeChannel)
+enum_end (LbHueRangeChannel)
 
 /* 四个柄：内二柄之间全选，向外二柄线性过渡。-1 = 跟随色系默认。
  * Four handles: full selection between the inner two, linear falloff out
@@ -107,8 +107,8 @@ property_double (lightness, _("Lightness"), 0.0)
 #else
 
 #define GEGL_OP_POINT_FILTER
-#define GEGL_OP_NAME     lb_ps_hue_range
-#define GEGL_OP_C_SOURCE ps-hue-range.c
+#define GEGL_OP_NAME     lb_hue_range_basic
+#define GEGL_OP_C_SOURCE hue-range-basic.c
 
 #include "gegl-op.h"
 
@@ -120,7 +120,7 @@ typedef struct
 } HueRangeDefaults;
 
 static const HueRangeDefaults *
-channel_defaults (PsHueRangeChannel ch)
+channel_defaults (LbHueRangeChannel ch)
 {
   static const HueRangeDefaults defaults[] =
   {
@@ -135,7 +135,7 @@ channel_defaults (PsHueRangeChannel ch)
   return &defaults[CLAMP (i, 0, (gint) G_N_ELEMENTS (defaults) - 1)];
 }
 
-/* ---- 公式与 lb:ps-hue-saturation 逐字共用 / shared formula -------------- */
+/* ---- 公式与 lb:hue-saturation-basic 逐字共用 / shared formula -------------- */
 
 static inline gfloat
 wrap_degrees (gfloat d)
@@ -283,8 +283,8 @@ prepare (GeglOperation *operation)
 {
   const Babl *space = gegl_operation_get_source_space (operation, "input");
 
-  /* 与 lb:ps-hue-saturation 同款感知（非线性）RGB：串联时两边口径一致。
-   * Same perceptual RGB as lb:ps-hue-saturation so the chained pair works
+  /* 与 lb:hue-saturation-basic 同款感知（非线性）RGB：串联时两边口径一致。
+   * Same perceptual RGB as lb:hue-saturation-basic so the chained pair works
    * in one domain. */
   gegl_operation_set_format (operation, "input",
                              babl_format_with_space ("R~G~B~A float", space));
@@ -390,7 +390,7 @@ gegl_op_class_init (GeglOpClass *klass)
   point_filter_class->process = process;
 
   gegl_operation_class_set_keys (operation_class,
-                                 "name",            "lb:ps-hue-range",
+                                 "name",            "lb:hue-range-basic",
                                  "title",           _("Hue/Saturation Range"),
                                  "categories",      "color:enhance",
                                  "description",     _("Hue, saturation and lightness inside one "

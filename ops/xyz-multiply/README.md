@@ -1,17 +1,17 @@
 > 本文件是该滤镜的原始说明文档（构建命令按旧目录结构书写，已过时）。
 > 统一构建方式请见工程根目录 `README.md` 与 `build.sh`。
 
-## 这个算子就是 PS 的「照片滤镜」/ This is Photoshop's Photo Filter
+## 这个算子就是 经典图像编辑器的「照片滤镜」/ This is 经典图像编辑器's Photo Filter
 
-PS 的照片滤镜（`滤镜 → 调整 → 照片滤镜`）内部等价于「纯色填充 + 正片叠底 +
+经典图像编辑器的照片滤镜（`滤镜 → 调整 → 照片滤镜`）内部等价于「纯色填充 + 正片叠底 +
 密度」，本算子按实测把整条链路复刻出来。参数一一对应：
 
-| PS 照片滤镜 | `lb:xyz-multiply` | 说明 |
+| 经典图像编辑器 照片滤镜 | `lb:xyz-multiply` | 说明 |
 |---|---|---|
-| 滤镜（Filter）颜色 | `overlay_color` | PS 的 20 多个预设只是快捷方式，本质仍是颜色 |
+| 滤镜（Filter）颜色 | `overlay_color` | 经典图像编辑器的 20 多个预设只是快捷方式，本质仍是颜色 |
 | 密度（Density）0–100% | `opacity` 0–1 | 除以 100 |
-| 保留明度（Preserve Luminosity） | `preserve_luminosity` | **默认开**，与 PS 出厂设置一致 |
-| —（PS 没有） | `white_mode` | 参照白点，**默认 D50**（PS 的 Lab 白点） |
+| 保留明度（Preserve Luminosity） | `preserve_luminosity` | **默认开**，与 经典图像编辑器 出厂设置一致 |
+| —（经典图像编辑器 没有） | `white_mode` | 参照白点，**默认 D50**（经典图像编辑器的 Lab 白点） |
 
 ### 算法（实测反推，不是猜的）
 
@@ -31,7 +31,7 @@ PS 的照片滤镜（`滤镜 → 调整 → 照片滤镜`）内部等价于「�
 - 反推的滤镜色 XYZ (0.453, 0.222, 0.0166) 与「纯红转到 D50 再除以 D50 白点」
   (0.4522, 0.2225, 0.0169) 差不到 1%；按 D65 归一化则差 4.4% —— 所以是 D50。
 
-### 实测精度（PS 2025）
+### 实测精度（经典图像编辑器 2025）
 
 | 组 | 档数 | 最大差 | 中位差 |
 |---|---|---|---|
@@ -41,16 +41,16 @@ PS 的照片滤镜（`滤镜 → 调整 → 照片滤镜`）内部等价于「�
 | 彩色 64×64，保留明度 | 3 | 5.65 码 | 0.56–0.69 码 |
 
 保留明度档的大误差只出现在裁剪边界（整幅彩色图 12288 个通道值里 55～96 个），
-是 PS 的取整顺序与 W3C 参考实现不同造成的，非边界点的中位差在 0.7 码以内。
+是 经典图像编辑器的取整顺序与 W3C 参考实现不同造成的，非边界点的中位差在 0.7 码以内。
 
 复现链：
 
 ```bash
 python photo-filter-cal/make_probe.py        # 256×16 灰阶探针（嵌 sRGB ICC）
-# PS 里跑 photo-filter-cal/batch_pf.jsx      # 12 档灰阶
-# PS 里跑 photo-filter-cal/batch_pf_color.jsx # 6 档彩色
-python photo-filter-cal/model_pf.py         # 模型 vs PS
-python tools/check_photo_filter.py          # 算子 vs PS（端到端）
+# 经典图像编辑器 里跑 photo-filter-cal/batch_pf.jsx      # 12 档灰阶
+# 经典图像编辑器 里跑 photo-filter-cal/batch_pf_color.jsx # 6 档彩色
+python photo-filter-cal/model_pf.py         # 模型 vs 经典图像编辑器
+python tools/check_photo_filter.py          # 算子 vs 经典图像编辑器（端到端）
 python tools/check_xyz_multiply.py --all    # 算子 vs 独立参考实现
 ```
 

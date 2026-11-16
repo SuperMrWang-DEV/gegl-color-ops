@@ -1,6 +1,6 @@
 ---
 name: Shadows/Highlights
-blurb: Photoshop's Shadows/Highlights — an edge-aware neighbourhood algorithm, so it cannot be a LUT. Accurate, but it is a spatial filter and costs like one.
+blurb: the classic editor's Shadows/Highlights — an edge-aware neighbourhood algorithm, so it cannot be a LUT. Accurate, but it is a spatial filter and costs like one.
 ---
 
 > **Not recommended for daily use (2026-11-15, performance).** The operator still works
@@ -12,7 +12,7 @@ blurb: Photoshop's Shadows/Highlights — an edge-aware neighbourhood algorithm,
 > the radius to 10–15 for a big speedup. Marker: `ops/shadows-highlights/.discouraged`
 > (documentation and site display only; **it does not affect building or publishing**).
 
-Photoshop's `Image → Adjustments → Shadows/Highlights`, matched as a black
+the classic editor's `Image → Adjustments → Shadows/Highlights`, matched as a black
 box. What sets it apart from the other operators is that **it looks at the
 neighbourhood**: the same 128 pixel is lifted more when its surroundings are dark and
 less when they are bright, so it cannot collapse into a LUT and needs a spatial filter.
@@ -20,16 +20,16 @@ less when they are bright, so it cannot collapse into a LUT and needs a spatial 
 - GEGL id: `lb:shadows-highlights`
 - Menu: `Colors → SuperMrWang → Tone → Shadows/Highlights`
 - Type: `GeglOperationFilter` (spatial, processed in strips of 192 rows)
-- Parameters (defaults copied from PS): shadows `amount 35 / width 50 / radius 30`,
+- Parameters (defaults copied from the classic editor): shadows `amount 35 / width 50 / radius 30`,
   highlights `0 / 50 / 30`, `color-correction 20`, `midtone-contrast 0`, `black-clip
   0.01`, `white-clip 0.01`
 
-## One trap first: PS's scripting entry is not called Shadow/Highlight
+## One trap first: the classic editor's scripting entry is not called Shadow/Highlight
 
-To use PS as an oracle you first have to be able to invoke it from a script. `Shdw`,
+To use the classic editor as an oracle you first have to be able to invoke it from a script. `Shdw`,
 `ShHl`, `shadowsHighlights`, `shadowHighlight`, `adaptCorrectTones` … 13 charIDs and 8
 stringIDs, all reporting "command <unknown> is not currently available", and the string
-`shadowsHighlights` does not appear anywhere in `Photoshop.exe` or `Required/*.dll`.
+`shadowsHighlights` does not appear anywhere in `the editor process` or `Required/*.dll`.
 
 The real entry is **`adaptCorrect`**, class `adaptCorrectTones`:
 
@@ -44,12 +44,12 @@ executeAction(s2t("adaptCorrect"), d, DialogModes.NO);
 ```
 
 `shadowMode`/`highlightMode` then hold `amount`/`width`/`radius` (`#Prc`), everything
-else being lowercase stringIDs. The lead came from a Clean SL script in Adobe's
+else being lowercase stringIDs. The lead came from a Clean SL script in the vendor's
 community and was far faster than guessing IDs.
 
 ## Structure
 
-Six stages, all numbers from black-box fitting against PS 25.4 (PhotoCraft uses the same
+Six stages, all numbers from black-box fitting against the classic editor 25.4 (PhotoCraft uses the same
 structure, MIT):
 
 1. **Luminance** `lum = (max(R,G,B) + Rec.601 luma) / 2`, applied to **sRGB encoded
@@ -104,7 +104,7 @@ PNG encode/decode. About 1.4 µs per pixel at radius 30.
 
 ## Acceptance
 
-`python tools/check_shadows_highlights.py` (`--fast` skips the PS comparison):
+`python tools/check_shadows_highlights.py` (`--fast` skips the the classic editor comparison):
 
 **1. Independent Python reference vs the operator** (flat field, nb = itself). The
 reference is written straight from the six stages above, sharing only the fitted
@@ -121,7 +121,7 @@ Writing that script caught a real bug: with both clips at 0, `clip_lo/clip_hi` w
 uninitialised and `(y−0)/(0−0)` pushed the whole image to pure white. `prepare()` now
 resets them to 0/1 and the division has a guard.
 
-**2. Against PS itself** (`shadows-highlights-cal/`):
+**2. Against the classic editor itself** (`shadows-highlights-cal/`):
 
 | Dataset | Size | Median | Max |
 |---|---|---|---|
@@ -137,7 +137,7 @@ side is always within 2.6. On the 2D grid, 9 sets are within 7, median 1.0.
    of the area, `bg=16` with a bright patch and `bg=240` with a dark one) are off by up
    to 11 code values. Flat fields agree and only these synthetic patterns — where the
    neighbourhood differs from the pixel by 200 code values or more — do not, which says
-   the edge preservation is slightly too weak: PS's `nb` sticks closer to the pixel
+   the edge preservation is slightly too weak: the classic editor's `nb` sticks closer to the pixel
    itself. Lowering `SH_RANGE` below 1.0152 (stronger edge preservation) improves 87% of
    points but creates 87-code outliers; raising it (4.0 / 50, toward a plain Gaussian)
    only gets worse. 1.0152 is the measured local optimum, so it stays and this tail
@@ -146,15 +146,15 @@ side is always within 2.6. On the 2D grid, 9 sets are within 7, median 1.0.
    Beta(1.95, 23), a steep wall in the darkest segment; the lookup table is built in
    steps of 5 in width, and width 0 sits exactly on the first node where the error is
    most sensitive.
-3. **Radius > 300 is not calibrated**: PS's dialog goes to 2500, calibration stopped at
+3. **Radius > 300 is not calibrated**: the classic editor's dialog goes to 2500, calibration stopped at
    300, and larger radii extrapolate with the same σ = 1.1424·r.
 4. `midtone_contrast` and `color_correction` use the reference implementation's fitted
-   coefficients and were **not measured against PS separately** (the flat and colour
-   flat tests only prove the operator agrees with the reference, not with PS).
+   coefficients and were **not measured against the classic editor separately** (the flat and colour
+   flat tests only prove the operator agrees with the reference, not with the classic editor).
 
 ## Reproducing the calibration
 
-`shadows-highlights-cal/` holds the whole set: `apply_cases.jsx` (PS-side runner),
+`shadows-highlights-cal/` holds the whole set: `apply_cases.jsx` (the classic editor-side runner),
 `run_cases.py` (batch run + read results), `make_ramp.py` / `make_grid.py` (three probe
 sets: greyscale bands, 2D grid, step edge), `compare_op.py` (per-point comparison),
 `dump_grid.py` / `analyze_nb.py` (single-case residuals and neighbourhood back-solving),

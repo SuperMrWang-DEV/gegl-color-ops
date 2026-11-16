@@ -3,7 +3,7 @@
  * ---------------------------------------------------------------------------
  * id         lb:apply-image
  * menu       Apply Image
- * purpose    PS 应用图像：把 aux 输入当成源，按混合模式、不透明度与遮罩压到
+ * purpose    经典图像编辑器 应用图像：把 aux 输入当成源，按混合模式、不透明度与遮罩压到
  *            主输入上，可选只作用于某一个通道
  *            Apply Image: blend the aux input over the main input with a
  *            blend mode, opacity and mask, optionally per channel.
@@ -21,7 +21,7 @@
  *            Only where the source is present and not transparent does the
  *            target change.
  * type       GeglOperationComposer（input + aux 双输入 / two inputs）
- * reference  Photoshop「图像 → 应用图像」/ Image > Apply Image
+ * reference  经典图像编辑器「图像 → 应用图像」/ Image > Apply Image
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
  *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
@@ -132,7 +132,7 @@ property_enum (output_mode, _("Output"), LbAiOutput, lb_ai_output, AI_OUT_COMPOS
 /* ---- 格式 / formats ---------------------------------------------------- */
 
 /* 感知（非线性）格式：混合模式按 8bit sRGB 伽马域定义，线性光下中间调会偏
- * Perceptual (non-linear) format: Photoshop blend modes are defined in the
+ * Perceptual (non-linear) format: the classic editor blend modes are defined in the
  * 8-bit sRGB gamma domain; linear light shifts the mid-tones. */
 static const Babl *
 perceptual_format (GeglOperation *op)
@@ -189,7 +189,7 @@ apply_pixel (const AiParams *p,
 
   gfloat rr = ir, rg = ig, rb = ib, ra = ia;
 
-  /* 全透明像素：按 PS 的「保留透明区域」直接跳过
+  /* 全透明像素：按 经典图像编辑器的「保留透明区域」直接跳过
    * Fully transparent pixels are skipped when preservation is on */
   if (p->keep_transp && ia <= 0.0f)
     {
@@ -227,7 +227,7 @@ apply_pixel (const AiParams *p,
 
   /* 遮罩可取自源层或本层，两者都已在手边，不必再开第三个 pad
    * The mask is read from either connected layer, so no third pad is
-   * needed to cover both halves of PS's mask options. */
+   * needed to cover both halves of the classic editor's mask options. */
   gfloat mask = cov;
   if (p->use_mask)
     {
@@ -273,10 +273,10 @@ apply_pixel (const AiParams *p,
     }
   else
     {
-      /* 目标合成、源单通道：用同一个标量去混每个通道（等同 PS 把某个通道
+      /* 目标合成、源单通道：用同一个标量去混每个通道（等同 经典图像编辑器 把某个通道
        * 压进合成）
        * Composite target with a single-channel source: the same scalar is
-       * blended into every channel, like PS pressing one channel onto the
+       * blended into every channel, like the classic editor pressing one channel onto the
        * composite. */
       const gfloat sv = lb_channel (sr, sg, sb, sa, p->sch);
       gfloat bv[3];

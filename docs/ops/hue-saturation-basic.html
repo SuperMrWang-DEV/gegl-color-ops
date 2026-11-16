@@ -42,7 +42,7 @@
   <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 色彩</p>
   <h1>Hue/Saturation (Basic)</h1>
   <div class="meta">
-    <code>lb:ps-hue-saturation</code>
+    <code>lb:hue-saturation-basic</code>
     <span class="tag t-color">色彩</span>
     <span>逐像素</span>
   </div>
@@ -50,9 +50,9 @@
 </section><div class="article-layout">
   <article class="prose">
 <p>三滑杆版本：全局色相旋转、饱和度相对缩放、明度向白/黑混合。不含「着色」复选框， 也没有分色相区间。行为上与常见图像软件的「色相/饱和度」对话框三根滑杆一致。</p>
-<ul><li>GEGL id：<code>lb:ps-hue-saturation</code></li><li>菜单：<code>Colors → SuperMrWang → Color → Hue/Saturation (Basic)</code></li><li>类型：<code>GeglOperationPointFilter</code>（逐像素，无邻域）</li><li>参数：<code>hue</code>（−180…180°）、<code>saturation</code>（−100…100）、<code>lightness</code>（−100…100）</li></ul>
-<blockquote><p>2026-11-16：显示名从 <code>Hue/Saturation (PS)</code> 改为 <code>Hue/Saturation (Basic)</code>，菜单 标签同步。GEGL id 仍是 <code>lb:ps-hue-saturation</code>，已存在的 XCF / 过滤器栈不受影响。</p></blockquote>
-<p>规范实现是 <code>tools/ref_ps_hue_sat.py</code>（原代码的逐字转录 + 浮点对照）， 验收脚本是 <code>tools/check_ps_hue_saturation.py</code>。</p>
+<ul><li>GEGL id：<code>lb:hue-saturation-basic</code></li><li>菜单：<code>Colors → SuperMrWang → Color → Hue/Saturation (Basic)</code></li><li>类型：<code>GeglOperationPointFilter</code>（逐像素，无邻域）</li><li>参数：<code>hue</code>（−180…180°）、<code>saturation</code>（−100…100）、<code>lightness</code>（−100…100）</li></ul>
+<blockquote><p>2026-11-16：显示名从 <code>Hue/Saturation (经典图像编辑器)</code> 改为 <code>Hue/Saturation (Basic)</code>，菜单 标签同步。GEGL id 仍是 <code>lb:hue-saturation-basic</code>，已存在的 XCF / 过滤器栈不受影响。</p></blockquote>
+<p>规范实现是 <code>tools/ref_hue_sat_basic.py</code>（原代码的逐字转录 + 浮点对照）， 验收脚本是 <code>tools/check_hue_saturation_basic.py</code>。</p>
 <h2 id="算法">算法</h2>
 <p>在 <strong>sRGB 编码值</strong>（<code>R~G~B~A float</code>，感知域而非线性光）上，四步：</p>
 <pre><code>t = lightness / 100
@@ -68,11 +68,11 @@ out = HSL2RGB(h, s, l)</code></pre>
 <p>顺序有意义：明度先落进 RGB，再把结果转 HSL 做色相与饱和度 —— 所以饱和度作用在 「提亮/压暗之后」的 S 上，而不是原图的 S。</p>
 <h2 id="与原代码的两处差别">与原代码的两处差别</h2>
 <p>两处都不是算法语义，是实现缺陷：</p>
-<div class="table-wrap"><table><thead><tr><th>差别</th><th>原代码</th><th>本算子</th><th>理由</th></tr></thead><tbody><tr><td>精度</td><td>h 取整到 1°、s/l 取整到 1%，输出 <code>int()</code> 截断</td><td>全程浮点</td><td>这层量化平均偏暗 <strong>1.73 码</strong>、最大 <strong>9 码</strong>（<code>tools/ref_ps_hue_sat.py</code> 的 breakdown）</td></tr><tr><td><code>saturation=+100</code></td><td><code>s/(1−1)</code> → <code>ZeroDivisionError</code></td><td>返回满饱和（<code>s&gt;0</code> 时）</td><td><code>x→1⁻</code> 时 <code>s/(1−x)→+∞</code>，钳位后就是 1，取左极限</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>差别</th><th>原代码</th><th>本算子</th><th>理由</th></tr></thead><tbody><tr><td>精度</td><td>h 取整到 1°、s/l 取整到 1%，输出 <code>int()</code> 截断</td><td>全程浮点</td><td>这层量化平均偏暗 <strong>1.73 码</strong>、最大 <strong>9 码</strong>（<code>tools/ref_hue_sat_basic.py</code> 的 breakdown）</td></tr><tr><td><code>saturation=+100</code></td><td><code>s/(1−1)</code> → <code>ZeroDivisionError</code></td><td>返回满饱和（<code>s&gt;0</code> 时）</td><td><code>x→1⁻</code> 时 <code>s/(1−x)→+∞</code>，钳位后就是 1，取左极限</td></tr></tbody></table></div>
 <h2 id="验收">验收</h2>
-<pre><code class="language-bash">python tools/check_ps_hue_saturation.py     # 27 组参数 × 4096 色
-python tools/ref_ps_hue_sat.py              # 量化误差拆解
-python tools/analyze_ps_hue_sat.py          # 三条曲线的行为体检</code></pre>
+<pre><code class="language-bash">python tools/check_hue_saturation_basic.py     # 27 组参数 × 4096 色
+python tools/ref_hue_sat_basic.py              # 量化误差拆解
+python tools/analyze_hue_sat_basic.py          # 三条曲线的行为体检</code></pre>
 <p>对拍结果：最大偏差 <strong>0.002 码</strong>（16 位 1 LSB = 0.0039 码），即与公式逐码一致； 脚本同时打印「与输入的平均差」，防止读到原图的假通过。</p>
 <h2 id="公式的合理性">公式的合理性</h2>
 <p><strong>成立的地方</strong></p>
@@ -81,9 +81,9 @@ python tools/analyze_ps_hue_sat.py          # 三条曲线的行为体检</code>
 <ol><li><strong>正支刻度与标签不符。</strong> 正向乘数是 <code>1/(1−x)</code>，不是 <code>1+x</code>：<code>+25</code> 实际是 ×1.33 （+33%），<code>+50</code> 是 ×2（+100%），<code>+90</code> 是 ×10。负支才是名副其实的百分比 （<code>−50</code> 就是 ×0.5）。同一根滑杆左右两侧的量纲因此不对称。</li><li><strong>正支有「悬崖」，会丢层次。</strong> <code>s ≥ 1−x</code> 的像素一律钳到 100：<code>+50</code> 时原 S≥50% 的一半像素塌成同一个值，<code>+100</code> 时所有彩色像素统一满饱和，等价于把饱和度二值化。 表现为平坦色块与色带。</li><li><strong>明度对 S 的影响强烈不对称。</strong> <code>+60</code> 会把 <code>(100,30,10)</code> 的 S 从 82% 压到 23%， 而 <code>−60</code> 一字不动（82%）。用户预期「只改明度」，实际提亮会明显掉饱和、发灰。</li><li><strong>HSL 的 S 不是感知量。</strong> 同一 S 在黄色与蓝色上的视觉强度差很多，所以同一档位 在不同色相上表现不一致。这是 HSL 模型的固有问题，本公式无法规避。</li><li><strong>量化损失（原代码）。</strong> 1% 的 s/l 台阶单这一项就有最大 8 码、平均 −1.25 码的 偏差，且系统性偏暗 —— 这是 8 位整数实现的代价，不是算法的一部分。</li></ol><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>ps-hue-saturation.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>ps-hue-saturation.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
+    <p>Windows 模块 <code>hue-saturation-basic.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
   </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/ps-hue-saturation.dll">下载 ps-hue-saturation.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/ps-hue-saturation.so">下载 ps-hue-saturation.so<span class="size">Linux x86_64</span></a></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hue-saturation-basic.dll">下载 hue-saturation-basic.dll<span class="size">Windows x64</span></a></div>
 </div><nav class="pager"><a class="prev" href="hue-saturation.html"><span>上一个</span>Hue/Saturation</a><a class="next" href="hsl-seven.html"><span>下一个</span>HSL 7 Bands</a></nav>
   </article>
   <aside class="toc">
@@ -98,7 +98,7 @@ python tools/analyze_ps_hue_sat.py          # 三条曲线的行为体检</code>
   <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Color</p>
   <h1>Hue/Saturation (Basic)</h1>
   <div class="meta">
-    <code>lb:ps-hue-saturation</code>
+    <code>lb:hue-saturation-basic</code>
     <span class="tag t-color">Color</span>
     <span>per-pixel</span>
   </div>
@@ -106,8 +106,8 @@ python tools/analyze_ps_hue_sat.py          # 三条曲线的行为体检</code>
 </section><div class="article-layout">
   <article class="prose">
 <p>The three-slider variant: global hue rotation, relative saturation scaling, and lightness mixed toward white or black. No Colorize checkbox and no per-hue ranges. Behaviour matches the three sliders of the familiar Hue/Saturation dialog.</p>
-<ul><li>GEGL id: <code>lb:ps-hue-saturation</code></li><li>Menu: <code>Colors → SuperMrWang → Color → Hue/Saturation (Basic)</code></li><li>Type: <code>GeglOperationPointFilter</code> (per-pixel, no neighbourhood)</li><li>Parameters: <code>hue</code> (−180…180°), <code>saturation</code> (−100…100), <code>lightness</code> (−100…100)</li></ul>
-<p>The specification lives in <code>tools/ref_ps_hue_sat.py</code> (a literal transcription of the original code plus a float comparison), and the acceptance script is <code>tools/check_ps_hue_saturation.py</code>.</p>
+<ul><li>GEGL id: <code>lb:hue-saturation-basic</code></li><li>Menu: <code>Colors → SuperMrWang → Color → Hue/Saturation (Basic)</code></li><li>Type: <code>GeglOperationPointFilter</code> (per-pixel, no neighbourhood)</li><li>Parameters: <code>hue</code> (−180…180°), <code>saturation</code> (−100…100), <code>lightness</code> (−100…100)</li></ul>
+<p>The specification lives in <code>tools/ref_hue_sat_basic.py</code> (a literal transcription of the original code plus a float comparison), and the acceptance script is <code>tools/check_hue_saturation_basic.py</code>.</p>
 <h2 id="algorithm">Algorithm</h2>
 <p>On <strong>sRGB encoded values</strong> (<code>R~G~B~A float</code>, the perceptual domain, not linear light), in four steps:</p>
 <pre><code>t = lightness / 100
@@ -123,11 +123,11 @@ out = HSL2RGB(h, s, l)</code></pre>
 <p>The order matters: lightness lands in RGB first, then the result is converted to HSL for hue and saturation — so saturation acts on the <strong>post-lightness</strong> S, not on the original one.</p>
 <h2 id="two-differences-from-the-original-code">Two differences from the original code</h2>
 <p>Neither is about what the algorithm means; both are implementation defects:</p>
-<div class="table-wrap"><table><thead><tr><th>Difference</th><th>Original</th><th>Here</th><th>Why</th></tr></thead><tbody><tr><td>Precision</td><td>h rounded to 1°, s/l to 1%, output truncated with <code>int()</code></td><td>all float</td><td>that quantisation is <strong>1.73 code values</strong> dark on average, <strong>9</strong> at worst (see the breakdown in <code>tools/ref_ps_hue_sat.py</code>)</td></tr><tr><td><code>saturation=+100</code></td><td><code>s/(1−1)</code> → <code>ZeroDivisionError</code></td><td>full saturation (when <code>s&gt;0</code>)</td><td>as <code>x→1⁻</code>, <code>s/(1−x)→+∞</code>, which clamps to 1 — the left limit</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>Difference</th><th>Original</th><th>Here</th><th>Why</th></tr></thead><tbody><tr><td>Precision</td><td>h rounded to 1°, s/l to 1%, output truncated with <code>int()</code></td><td>all float</td><td>that quantisation is <strong>1.73 code values</strong> dark on average, <strong>9</strong> at worst (see the breakdown in <code>tools/ref_hue_sat_basic.py</code>)</td></tr><tr><td><code>saturation=+100</code></td><td><code>s/(1−1)</code> → <code>ZeroDivisionError</code></td><td>full saturation (when <code>s&gt;0</code>)</td><td>as <code>x→1⁻</code>, <code>s/(1−x)→+∞</code>, which clamps to 1 — the left limit</td></tr></tbody></table></div>
 <h2 id="acceptance">Acceptance</h2>
-<pre><code class="language-bash">python tools/check_ps_hue_saturation.py     # 27 parameter sets × 4096 colours
-python tools/ref_ps_hue_sat.py              # quantisation-error breakdown
-python tools/analyze_ps_hue_sat.py          # behaviour checks on the three curves</code></pre>
+<pre><code class="language-bash">python tools/check_hue_saturation_basic.py     # 27 parameter sets × 4096 colours
+python tools/ref_hue_sat_basic.py              # quantisation-error breakdown
+python tools/analyze_hue_sat_basic.py          # behaviour checks on the three curves</code></pre>
 <p>Result: max deviation <strong>0.002 code values</strong> (one 16-bit LSB is 0.0039), i.e. code-exact against the formula. The script also prints the mean difference from the input, so it cannot pass by accidentally reading the source image back.</p>
 <h2 id="is-the-formula-reasonable">Is the formula reasonable?</h2>
 <p><strong>What holds up</strong></p>
@@ -136,9 +136,9 @@ python tools/analyze_ps_hue_sat.py          # behaviour checks on the three curv
 <ol><li><strong>The positive side's scale does not match its label.</strong> The positive multiplier is <code>1/(1−x)</code>, not <code>1+x</code>: <code>+25</code> is ×1.33 (+33%), <code>+50</code> is ×2 (+100%), <code>+90</code> is ×10. Only the negative side is an honest percentage (<code>−50</code> is ×0.5). The two halves of the same slider are on different scales.</li><li><strong>The positive side has a cliff and loses detail.</strong> Every pixel with <code>s ≥ 1−x</code> clamps to 100: at <code>+50</code> half of all pixels with S≥50% collapse onto one value, and at <code>+100</code> every coloured pixel becomes fully saturated — saturation binarisation, in effect. It shows up as flat patches and banding.</li><li><strong>Lightness affects S very asymmetrically.</strong> <code>+60</code> pushes the S of (100,30,10) from 82% down to 23%, while <code>−60</code> leaves it at 82%. You asked for lightness; brightening also visibly desaturates and greys the image.</li><li><strong>HSL's S is not perceptual.</strong> The same S looks very different on yellow and on blue, so one setting behaves differently across hues. Inherent to the HSL model; the formula cannot avoid it.</li><li><strong>Quantisation loss (original code).</strong> The 1% s/l steps alone cost up to 8 code values and −1.25 on average, systematically dark — the price of an 8-bit integer implementation, not part of the algorithm.</li></ol><div class="op-dl">
   <div>
     <h3>Just this one</h3>
-    <p>Windows module <code>ps-hue-saturation.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>ps-hue-saturation.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+    <p>Windows module <code>hue-saturation-basic.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/ps-hue-saturation.dll">Download ps-hue-saturation.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/ps-hue-saturation.so">Download ps-hue-saturation.so<span class="size">Linux x86_64</span></a></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hue-saturation-basic.dll">Download hue-saturation-basic.dll<span class="size">Windows x64</span></a></div>
 </div><nav class="pager"><a class="prev" href="hue-saturation.html"><span>Previous</span>Hue/Saturation</a><a class="next" href="hsl-seven.html"><span>Next</span>HSL 8 Bands</a></nav>
   </article>
   <aside class="toc">
@@ -153,13 +153,13 @@ python tools/analyze_ps_hue_sat.py          # behaviour checks on the three curv
 <footer class="site-foot">
   <div>
     <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
-    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">88f4f29</span>
+    <span class="muted">f05ba5f</span>
   </div>
 </footer>
 <script>

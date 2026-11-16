@@ -3,24 +3,24 @@
  * ---------------------------------------------------------------------------
  * id         lb:xyz-multiply
  * menu       Photo Filter
- * purpose    PS「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，
+ * purpose    经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，
  *            另有保留明度开关。
- *            Photoshop's Photo Filter: multiply the filter colour in XYZ space,
+ *            the classic editor's Photo Filter: multiply the filter colour in XYZ space,
  *            density as opacity, with an optional preserve-luminosity switch.
- * algorithm  与 PS 实测对齐（标定记录见 photo-filter-cal/）：
+ * algorithm  与 经典图像编辑器 实测对齐（标定记录见 photo-filter-cal/）：
  *              1. 线性化 sRGB，用标准 Bradford 转到 D50 的 XYZ
  *              2. 逐通道乘 k = (1-d) + d·(filt_XYZ / W50)，d = 密度
  *              3. 转回编码值；若开了保留明度，再做 W3C 的 SetLum + ClipColor
  *            前两步在线性 sRGB 里等价于一个常数 3×3 矩阵
  *            M = XYZ2sRGB · A⁻¹ · diag(k) · A · sRGB2XYZ，每 process 只算一次；
  *            逐像素只剩 3 次查表 + 9 乘 6 加 + 3 次查表（+ 保留明度的几条）。
- *            Matches Photoshop, measured end to end: linearise, adapt to D50
+ *            Matches the classic editor, measured end to end: linearise, adapt to D50
  *            XYZ with standard Bradford, multiply per channel by
  *            k = (1-d)+d·(filt/W50), re-encode, then optionally restore the
  *            encoded Rec.601 luma. Steps 1-2 collapse into one constant 3x3
  *            matrix built once per process call.
  * type       GeglOperationPointFilter（逐像素 / per-pixel）
- * reference  PS 照片滤镜标定：photo-filter-cal/（灰阶 + 彩色探针，12 + 6 档）
+ * reference  经典图像编辑器 照片滤镜标定：photo-filter-cal/（灰阶 + 彩色探针，12 + 6 档）
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
  *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
@@ -36,10 +36,10 @@ property_color (overlay_color, _("Filter Color"), "rgba(1.0,1.0,1.0,1.0)")
 
 property_enum (white_mode, _("White Point"),
                WPSelectType, wp_select_enum, WHITE_D50)
-    description (_("CIE standard illuminant white point (Photoshop uses D50)"))
+    description (_("CIE standard illuminant white point (the print ICC default)"))
 
 enum_start (wp_select_enum)
-  enum_value (WHITE_D50, "d50", N_("D50 (Photoshop / print ICC)"))
+  enum_value (WHITE_D50, "d50", N_("D50 (print ICC)"))
   enum_value (WHITE_D55, "d55", N_("D55 (Old daylight)"))
   enum_value (WHITE_D65, "d65", N_("D65 (sRGB screen)"))
   enum_value (WHITE_D75, "d75", N_("D75 Cool proof light"))
@@ -48,10 +48,10 @@ enum_end (WPSelectType)
 property_double (opacity, _("Density"), 1.0)
     value_range (0.0, 1.0)
     ui_range (0.0, 1.0)
-    description (_("Filter density (Photoshop's 0-100% divided by 100)"))
+    description (_("Filter density (the classic editor's 0-100% divided by 100)"))
 
 property_boolean (preserve_luminosity, _("Preserve Luminosity"), TRUE)
-    description (_("Keep the original luminance, like Photoshop's default checkbox"))
+    description (_("Keep the original luminance, like the classic editor's default checkbox"))
 
 #else
 
@@ -294,9 +294,9 @@ build_chain_matrix (const WhitePoint wp, gfloat oX, gfloat oY, gfloat oZ,
 }
 
 /* 感知（非线性）格式：公式按 8bit sRGB 伽马域推导，必须拿伽马值，否则 babl
- * 会喂线性光，数值与 PS 对不上
+ * 会喂线性光，数值与 经典图像编辑器 对不上
  * Perceptual (non-linear) format: the maths was derived in the 8-bit sRGB
- * gamma domain. Linear light from babl would drift away from Photoshop. */
+ * gamma domain. Linear light from babl would drift away from the classic editor. */
 static const Babl *
 perceptual_format (GeglOperation *op)
 {
@@ -405,12 +405,12 @@ process(GeglOperation       *op,
           /* W3C / PDF 的 Luminosity 混合模式：SetLum + ClipColor，权重是
            * Rec.601 的 0.3/0.59/0.11，全部作用在**编码值**上。
            *
-           * 这是实测出来的：128 灰 + 纯红密度 100% 时 PS 给 (218,90,90)，
+           * 这是实测出来的：128 灰 + 纯红密度 100% 时 经典图像编辑器 给 (218,90,90)，
            * SetLum 手算恰是 (217.6, 89.6, 89.6)；换成 Lab 保 L*、乘性还原、
            * Rec.709 权重都对不上（中位误差 5～45 码）。
            *
            * W3C Luminosity blending on encoded values with Rec.601 weights.
-           * 128 grey through a 100% red filter gives (218,90,90) in Photoshop,
+           * 128 grey through a 100% red filter gives (218,90,90) in the classic editor,
            * which is exactly what SetLum computes. */
           gfloat target = 0.3f * in_line[p+0] + 0.59f * in_line[p+1] + 0.11f * in_line[p+2];
           gfloat dsh    = target - (0.3f * r8 + 0.59f * g8 + 0.11f * b8);
@@ -465,7 +465,7 @@ gegl_op_class_init(GeglOpClass *klass)
   gegl_operation_class_set_keys(oclass,
     "name",            "lb:xyz-multiply",
     "title",           _("Photo Filter"),
-    "description",     _("Photoshop's Photo Filter: filter colour multiplied in XYZ space, "
+    "description",     _("the classic editor's Photo Filter: filter colour multiplied in XYZ space, "
                          "with density and preserve-luminosity"),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Blend",
     "gimp:menu-label", _("Photo Filter"),

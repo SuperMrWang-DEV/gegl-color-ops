@@ -3,23 +3,23 @@
  * ---------------------------------------------------------------------------
  * id         lb:color-mask-select
  * menu       Mask by Color
- * purpose    PS 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览
- *            PS Color Range: build a mask from a picked colour, a fuzziness
+ * purpose    经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览
+ *            the classic editor Color Range: build a mask from a picked colour, a fuzziness
  *            radius and feathering, with an optional red overlay preview.
  * algorithm  两条通路 / two paths:
  *
- *            1) 高光 / 阴影 / 中间调 —— 复刻 PS 实测行为（见下）。
- *               PS 在这三个模式里有两个独立滑杆：「范围」是阈值，
+ *            1) 高光 / 阴影 / 中间调 —— 复刻 经典图像编辑器 实测行为（见下）。
+ *               经典图像编辑器 在这三个模式里有两个独立滑杆：「范围」是阈值，
  *               「容差」把过渡带按比例推向亮度极端（纯黑 / 纯白）。
  *               阈值本身是硬边界，容差才是柔边的来源。
  *               Highlights / shadows / midtones follow the measured
- *               Photoshop model: "range" is a hard threshold, "fuzziness"
+ *               the classic editor model: "range" is a hard threshold, "fuzziness"
  *               widens the falloff band towards black or white.
  *
  *               亮度 = Rec.601 伽马域加权（0.299/0.587/0.114）。实测校准：
  *               阈值 100 时 50% 交界落在 luma 100.9，阈值 150 时落在 149.0，
- *               说明 PS 用的就是这套系数，不是 Lab L*。
- *               Luminance is Rec.601 in the gamma domain (matches PS to ~1
+ *               说明 经典图像编辑器 用的就是这套系数，不是 Lab L*。
+ *               Luminance is Rec.601 in the gamma domain (matches the classic editor to ~1
  *               code: limit 100 -> 50% at luma 100.9, limit 150 -> 149.0).
  *
  *               阴影   alpha = 1 - ramp((L - lim) / band), band = fz*(1-lim)
@@ -28,7 +28,7 @@
  *                            * (1 - ramp((L - high)/fz*(1-high)))
  *               其中 fz = fuzziness/200 ∈ [0,1]，band 走上限的「剩余量」，
  *               所以 fz=1 时过渡带正好铺到纯黑/纯白。ramp(t) = smoothstep(t^1.2)：
- *               实测 PS 的 50% 点落在带宽的 0.555 处，纯 smoothstep 是 0.5，
+ *               实测 经典图像编辑器的 50% 点落在带宽的 0.555 处，纯 smoothstep 是 0.5，
  *               这个 1.2 次幂把中段误差从 10 码压到 1.7 码。
  *               ramp(t) = smoothstep(t^1.2) because the measured 50% point
  *               sits at 0.555 of the band, not 0.5.
@@ -55,8 +55,8 @@
  *
  *            公共：可反相，可红色叠加预览 / invertible, optional red overlay.
  * type       GeglOperationPointFilter（逐像素 / per-pixel）
- * reference  Photoshop「色彩范围」(Color Range)
- *            Photoshop Color Range
+ * reference  经典图像编辑器「色彩范围」(Color Range)
+ *            the classic editor Color Range
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
  *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
@@ -96,22 +96,22 @@ property_double (fuzziness, _("Fuzziness"), 50.0)
     value_range (0.0, 200.0)
     ui_range (0.0, 200.0)
     description (_("Width of the soft falloff. In the tonal modes this is "
-                   "Photoshop's Fuzziness: 0 gives a hard edge at the limit, "
-                   "200 (100 in Photoshop) reaches pure black / pure white"))
+                   "the classic editor's Fuzziness: 0 gives a hard edge at the limit, "
+                   "200 (100 in the classic editor) reaches pure black / pure white"))
 
-/* 色调模式的「范围」滑杆，等价 PS 色彩范围里同名的两个框。
- * 「阴影上限」同时是中间调的下限，语义按 PS 分开给，避免互相牵连。
- * Tone-mode range sliders, one per Photoshop field. Kept separate so moving
+/* 色调模式的「范围」滑杆，等价于经典图像编辑器 色彩范围里同名的两个框。
+ * 「阴影上限」同时是中间调的下限，语义按 经典图像编辑器 分开给，避免互相牵连。
+ * Tone-mode range sliders, one per the classic editor field. Kept separate so moving
  * one does not silently move another mode's threshold. */
 property_int (shadows_limit, _("Shadows Upper Limit"), 64)
     value_range (0, 255)
     description (_("Luminance up to this value is fully selected in Shadows "
-                   "mode (Photoshop's Shadows range)"))
+                   "mode (the classic editor's Shadows range)"))
 
 property_int (highlights_limit, _("Highlights Lower Limit"), 192)
     value_range (0, 255)
     description (_("Luminance from this value up is fully selected in "
-                   "Highlights mode (Photoshop's Highlights range)"))
+                   "Highlights mode (the classic editor's Highlights range)"))
 
 property_int (midtone_low, _("Midtones Lower Limit"), 64)
     value_range (0, 255)
@@ -133,7 +133,7 @@ property_double (saturation_min, _("Min Saturation"), 0.0)
                    "have no usable hue). 0 uses a small fixed floor"))
 
 property_boolean (invert, _("Invert"), FALSE)
-    description (_("Invert the mask like Photoshop's Invert checkbox"))
+    description (_("Invert the mask like the classic editor's Invert checkbox"))
 
 #else
 
@@ -200,10 +200,10 @@ hue_dist(gfloat h, gfloat center)
   return d * 2.0f;
 }
 
-/* PS 色调模式的响应曲线：先 t^1.2 再 smoothstep。
+/* 经典图像编辑器 色调模式的响应曲线：先 t^1.2 再 smoothstep。
  * 实测（shadow 64/128/192 × 容差 25/50/75）50% 点落在带宽的 0.53–0.58，
  * 恒定在 ~0.555，纯 smoothstep 的 0.5 会让中段偏亮最多 10 码。
- * Photoshop's tonal response: smoothstep of t^1.2. The measured 50% point
+ * the classic editor's tonal response: smoothstep of t^1.2. The measured 50% point
  * sits at 0.555 of the band (smoothstep alone would put it at 0.5). */
 static inline gfloat
 ps_tone_ramp (gfloat t)
@@ -295,9 +295,9 @@ tone_lookup (const gfloat lut[TONE_LUT], gfloat L)
 }
 
 /* 感知（非线性）格式：公式按 8bit sRGB 伽马域推导，必须拿伽马值，否则 babl
- * 会喂线性光，数值与 PS 对不上
+ * 会喂线性光，数值与 经典图像编辑器 对不上
  * Perceptual (non-linear) format: the maths was derived in the 8-bit sRGB
- * gamma domain. Linear light from babl would drift away from Photoshop. */
+ * gamma domain. Linear light from babl would drift away from the classic editor. */
 static const Babl *
 perceptual_format (GeglOperation *op)
 {
@@ -394,9 +394,9 @@ process(GeglOperation       *op,
   const gfloat sg_lo = st * 0.5f;
   const gfloat sg_hi = MAX(st, 0.25f);
 
-  /* 色调模式：阈值 + 容差 → 亮度响应查表。PS 的容差上限是 100，本算子沿用
+  /* 色调模式：阈值 + 容差 → 亮度响应查表。经典图像编辑器的容差上限是 100，本算子沿用
    * 统一的 0–200，所以这里除以 200 得到 0–1 的 fzv。
-   * Tonal modes: threshold + fuzziness -> luma response LUT. Photoshop caps
+   * Tonal modes: threshold + fuzziness -> luma response LUT. the classic editor caps
    * its tonal fuzziness at 100; this op keeps the uniform 0-200 range, hence
    * the /200 to normalise. */
   const gboolean tone_mode = (mode == MASK_WHITE || mode == MASK_BLACK ||
@@ -460,7 +460,7 @@ process(GeglOperation       *op,
         /* 高光/阴影/中间调：纯亮度响应。羽化在这三个模式里没有对应概念
          * （柔边由容差决定），所以不参与。
          * Tonal modes: pure luma response. Feather has no counterpart here -
-         * in Photoshop the softness comes from fuzziness alone. */
+         * in the classic editor the softness comes from fuzziness alone. */
         gfloat lv = luminance (r, g, b);
         alpha = tone_hard ? tone_alpha (lv, mode, tone_low, tone_high, w)
                           : tone_lookup (tone_lut, lv);
@@ -569,7 +569,7 @@ gegl_op_class_init(GeglOpClass *klass)
   gegl_operation_class_set_keys(oclass,
     "name",            "lb:color-mask-select",
     "title",           _("Color Mask Select"),
-    "description",     _("Photoshop Color Range with color picker & red overlay"),
+    "description",     _("the classic editor Color Range with color picker & red overlay"),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Mask",
     "gimp:menu-label", _("Mask by Color"),
     NULL);

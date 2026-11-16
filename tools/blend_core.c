@@ -9,7 +9,7 @@
  *            ops and the plug-in share one implementation.
  * channel    本内核使用插件侧的通道编号：0 Gray(亮度)、1 R、2 G、3 B、4 A；
  *            混合模式编号是 plugin/blend/blend_kernel.py BLENDS 列表的顺序
- *            （Photoshop 对话框顺序），这里映射回 blend.h 的 LB_BLEND_*。
+ *            （经典图像编辑器 对话框顺序），这里映射回 blend.h 的 LB_BLEND_*。
  * build      由 build.sh 编到 plugin/blend/blend_core.dll（找不到编译器
  *            或失败时插件自动退化为纯 Python，结果一致只是慢）。
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
@@ -25,7 +25,7 @@
 #include "blend.h"
 
 /* blend_kernel.py 的模式顺序 -> blend.h 的编号（两个枚举顺序刻意不同：
- * Python 侧照 Photoshop 对话框排，blend.h 照可分离/不可分离排） */
+ * Python 侧照 经典图像编辑器 对话框排，blend.h 照可分离/不可分离排） */
 static const gint ps_blend_map[26] = {
   LB_BLEND_NORMAL, LB_BLEND_DARKEN, LB_BLEND_MULTIPLY,
   LB_BLEND_COLOR_BURN, LB_BLEND_LINEAR_BURN, LB_BLEND_DARKER_COLOR,
@@ -121,7 +121,7 @@ blend_kernel_apply (const float *in, const float *aux, const float *mask,
            * 亮度作标量压进每个通道（PS 的行为）
            * Composite target: hue-family and Darker/Lighter Color are
            * whole-pixel; a separable Gray source presses luminance into
-           * every channel, like Photoshop. */
+           * every channel, like 经典图像编辑器. */
           if (mode >= LB_BLEND_HUE || mode == LB_BLEND_DARKER_COLOR ||
               mode == LB_BLEND_LIGHTER_COLOR)
             {

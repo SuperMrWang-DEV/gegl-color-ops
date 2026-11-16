@@ -97,7 +97,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
 <p>The <code>vibrance</code> slider (±50 in the UI) is equivalent to at most ×2 at +50 and ×3 at +100 for low-chroma C\*; the global <code>Saturation</code> is a separate linear chroma multiply that ignores the mask.</p>
 <p>Measured (10 standard patches, vibrance=+50): hue shift ≤ 0.7° (the old build reached 10.2°); skin tones gain 1.16–1.18× (old build 1.47–1.55×); low-chroma areas 1.76–2.00×. At vibrance=0 and saturation=1 the output is byte-identical to the input.</p>
 <h2 id="relation-to-lbvibrance">Relation to <code>lb:vibrance</code></h2>
-<p><code>lb:vibrance</code> is the numerical reproduction of Photoshop's Vibrance — match the numbers, no artistic controls. This one is an appearance model: the parameters mean something (chroma ceiling, skin protection, gamut handling) and the result looks good, but it will not agree with Photoshop code for code. Use this when you want control, that one when you want PS to agree.</p><div class="op-dl">
+<p><code>lb:vibrance</code> is the numerical reproduction of the classic editor's Vibrance — match the numbers, no artistic controls. This one is an appearance model: the parameters mean something (chroma ceiling, skin protection, gamut handling) and the result looks good, but it will not agree with the classic editor code for code. Use this when you want control, that one when you want the classic editor to agree.</p><div class="op-dl">
   <div>
     <h3>Just this one</h3>
     <p>Windows module <code>vibrance-hyper.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>vibrance-hyper.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
@@ -129,13 +129,13 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
 <footer class="site-foot">
   <div>
     <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
-    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">88f4f29</span>
+    <span class="muted">f05ba5f</span>
   </div>
 </footer>
 <script>

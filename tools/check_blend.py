@@ -4,7 +4,7 @@
     python tools/check_blend.py
 
 gegl 命令行只支持单输入，所以这里调用 build.sh 顺带编译出来的
-build/auxrun 建图（input + aux 各接一张图）。每个用例的期望值都按 PS
+build/auxrun 建图（input + aux 各接一张图）。每个用例的期望值都按参考图像编辑器
 的公式手算，容差 2/255（8bit 存储往返的量化误差）。
 
     python tools/check_blend.py -v     # 连通过项也打出来

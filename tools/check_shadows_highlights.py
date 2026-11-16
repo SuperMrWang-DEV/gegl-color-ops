@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""验收 lb:shadows-highlights：算子 vs 独立 Python 参考实现（平场）+ PS 实测曲线。
+"""验收 lb:shadows-highlights：算子 vs 独立 Python 参考实现（平场）+ 经典图像编辑器 实测曲线。
 
-四组检查，全部不需要 PS：
+四组检查，全部不需要 参考图像编辑器：
 
   1. 平场 LUT   算子渲染灰阶竖带，与这里直写的参考实现逐点比（1 码以内）
   2. 彩色平场   同上，但走颜色校正分支（色度不放大 / 收在色域内）
   3. 结构性质   amount=0 恒等、中间调支点 128、半径对平场无影响、修剪保留端点
-  4. PS 对照    若 ../shadows-highlights-cal/data/curve.csv 在，附带比一遍 PS 实测
+  4. 经典图像编辑器 对照    若 ../shadows-highlights-cal/data/curve.csv 在，附带比一遍 经典图像编辑器 实测
 
 参考实现照算子头注释的模型直写：遮罩 = 1 − 正则化不完全 Beta 的 CDF、曲线 = 自屏幕
-1 − (1−v)^q、强度 = amount^0.6216 分段。刻意不复用 C 里的表，只共用 PS 拟合出来的
+1 − (1−v)^q、强度 = amount^0.6216 分段。刻意不复用 C 里的表，只共用 经典图像编辑器 拟合出来的
 20×2 / 11×3 系数 —— 这样能挡住插值、量化、分支写错，也挡住以后改表引入的漂移。
 
     python tools/check_shadows_highlights.py          # 全部
-    python tools/check_shadows_highlights.py --fast    # 跳过 PS 对照
+    python tools/check_shadows_highlights.py --fast    # 跳过 经典图像编辑器 对照
 """
 import os
 import re
@@ -40,7 +40,7 @@ GEGL_CANDIDATES = [
     "/d/fastsoftware/GIMP 3/bin/gegl.exe",
 ]
 
-# ---- PS 拟合系数（与 shadows-highlights.c 中的表相同）/ fitted coefficients ----
+# ---- 经典图像编辑器 拟合系数（与 shadows-highlights.c 中的表相同）/ fitted coefficients ----
 BETA = [(1.9468, 22.9366), (1.7770, 18.3471), (1.6403, 14.7559), (1.5270, 11.9346),
         (1.4269, 9.6467), (1.3470, 7.8430), (1.2807, 6.4038), (1.2240, 5.2384),
         (1.1772, 4.2967), (1.1373, 3.5350), (1.1021, 2.9109), (1.0755, 2.4186),
@@ -309,7 +309,7 @@ def main():
     if not fast:
         csvp = os.path.join(CAL, "data", "curve.csv")
         rampp = os.path.join(CAL, "ramp-2.png")
-        print("\n== 4. PS 实测对照 / against Photoshop")
+        print("\n== 4. 经典图像编辑器 实测对照 / against 经典图像编辑器")
         if not (os.path.exists(csvp) and os.path.exists(rampp)):
             print("   跳过：没有 %s 或 ramp-2.png（标定数据不在本仓库时正常）" % csvp)
         else:

@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mask by Color · gegl-color-ops</title>
-<meta name="description" content="PS 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览">
+<meta name="description" content="经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览the classic editor Color Range: build a mask from a picked colour, a fuzzinessrad">
 <meta property="og:title" content="Mask by Color · gegl-color-ops">
-<meta property="og:description" content="PS 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览">
+<meta property="og:description" content="经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览the classic editor Color Range: build a mask from a picked colour, a fuzzinessrad">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
 <script>
@@ -46,24 +46,24 @@
     <span class="tag t-mask">蒙版</span>
     <span>逐像素</span>
   </div>
-  <p class="lede">PS 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览</p>
+  <p class="lede">经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览the classic editor Color Range: build a mask from a picked colour, a fuzzinessradius and feathering, with an optional red overlay preview.</p>
 </section><div class="article-layout">
   <article class="prose">
 <h2 id="行为变更记录2026-11-12-重写">行为变更记录（2026-11-12 重写）</h2>
 <p>旧实现有一个致命 bug：默认 <code>Min Saturation = 0</code> 时饱和度门限退化成 <code>smooth_step(s, 0, 0)</code>，对灰阶像素（s = 0）做 0/0 得 NaN，alpha 落盘即 0—— 所有灰阶在任何模式下都被判成透明，白/黑/中间调三个模式整体报废；<code>fuzziness = 0</code> 时同样 NaN。判定公式（通道差值 + 负起点过渡带）也让「容差」的含义随模式漂移。</p>
 <p>重写后的统一模型：每个模式把像素映射成「不匹配度」 d ∈ [0,1]（0 = 精确匹配）， <code>alpha = 1 - smoothstep(d, w*(1-feather), w)</code>，其中 <strong>w = fuzziness/200</strong> （fz=200 时窗宽到最大不匹配度：互补色相、纯黑↔纯白）：</p>
 <div class="table-wrap"><table><thead><tr><th>模式</th><th>d 的定义</th></tr></thead><tbody><tr><td>红/黄/绿/青/蓝/洋红</td><td>色环距离（互补色 = 1），乘彩度门限（s×v，近黑的色相是数值噪声）</td></tr><tr><td>高光</td><td>d = 1 − 亮度</td></tr><tr><td>阴影</td><td>d = 亮度</td></tr><tr><td>中间调</td><td>d = 2·|亮度 − 0.5|</td></tr><tr><td>自定颜色</td><td>CIELAB ΔE ÷ 100，加 ΔE94 明度权重 kL=2（明度差折半）</td></tr></tbody></table></div>
-<ul><li>feather（0–100）：容差窗内缘的过渡带宽度，feather=10 → 窗口内侧 10% 平滑衰减</li><li>Min Saturation：色系预设的彩度（s×v）下限，0 = 固定底限 0.25</li><li>Invert（新增）：反相蒙版，同 PS 的「反相」勾选框</li><li>Red Overlay Preview 默认改为关：开着点确定会把红色混合烤进图层，预览完记得关</li></ul>
+<ul><li>feather（0–100）：容差窗内缘的过渡带宽度，feather=10 → 窗口内侧 10% 平滑衰减</li><li>Min Saturation：色系预设的彩度（s×v）下限，0 = 固定底限 0.25</li><li>Invert（新增）：反相蒙版，同 经典图像编辑器的「反相」勾选框</li><li>Red Overlay Preview 默认改为关：开着点确定会把红色混合烤进图层，预览完记得关</li></ul>
 <p>16 色块回归：红/黄/白/黑/中间调/自定/反相/fz0/fz200 九个用例全部符合上表语义。</p>
 <hr>
-<h2 id="高光-阴影-中间调改成-ps-实测模型2026-11-12-二次修订">高光 / 阴影 / 中间调改成 PS 实测模型（2026-11-12 二次修订）</h2>
-<p>上面那版统一模型仍有问题：<strong>「容差」一个滑杆同时决定了阈值和柔边</strong>，想收紧范围 必然连带把过渡带变硬，PS 里这是两个独立滑杆。用户说「特别不好用」，根子在这。</p>
-<h3 id="先解决ps-色彩范围没法脚本化的误会">先解决「PS 色彩范围没法脚本化」的误会</h3>
-<p>之前两次尝试都以 <code>Photoshop.exe</code> 当场退出告终，结论写成「Adobe 色彩范围不可脚本化」。 真正的坑有两个：</p>
-<ol><li><strong>ExtendScript 的 <code>File</code> 对象没有 <code>flush()</code></strong>。<code>say()</code> 里写了 <code>f.writeln(s); f.flush();</code>，<code>writeln</code> 已经把行落盘、<code>flush</code> 抛异常， 于是日志永远只停在第 1 行，看起来像「PS 在 executeAction 处崩溃」。 改成每行 <code>open("a") / writeln / close</code> 后，日志一路写到底。</li><li><code>executeAction('colorRange', desc, DialogModes.NO)</code> <strong>本来就能跑</strong>， 不需要弹窗、不需要点确定。<code>DialogModes.ALL</code> 反而会把脚本卡在模态框上。</li></ol>
-<p>另外 PS 2026 在本机被安全策略拦住（<code>reg.exe</code> 黑名单），改用 <strong>PS 2025 (26.10.0)</strong> 做基准；两版「色彩范围」行为一致。驱动脚本在 <code>clrr-cal/</code>。</p>
+<h2 id="高光-阴影-中间调改成-经典图像编辑器-实测模型2026-11-12-二次修订">高光 / 阴影 / 中间调改成 经典图像编辑器 实测模型（2026-11-12 二次修订）</h2>
+<p>上面那版统一模型仍有问题：<strong>「容差」一个滑杆同时决定了阈值和柔边</strong>，想收紧范围 必然连带把过渡带变硬，经典图像编辑器 里这是两个独立滑杆。用户说「特别不好用」，根子在这。</p>
+<h3 id="先解决经典图像编辑器-色彩范围没法脚本化的误会">先解决「经典图像编辑器 色彩范围没法脚本化」的误会</h3>
+<p>之前两次尝试都以 编辑器进程 当场退出告终，结论写成「该编辑器的色彩范围不可脚本化」。 真正的坑有两个：</p>
+<ol><li><strong>ExtendScript 的 <code>File</code> 对象没有 <code>flush()</code></strong>。<code>say()</code> 里写了 <code>f.writeln(s); f.flush();</code>，<code>writeln</code> 已经把行落盘、<code>flush</code> 抛异常， 于是日志永远只停在第 1 行，看起来像「经典图像编辑器 在 executeAction 处崩溃」。 改成每行 <code>open("a") / writeln / close</code> 后，日志一路写到底。</li><li><code>executeAction('colorRange', desc, DialogModes.NO)</code> <strong>本来就能跑</strong>， 不需要弹窗、不需要点确定。<code>DialogModes.ALL</code> 反而会把脚本卡在模态框上。</li></ol>
+<p>另外 经典图像编辑器 2026 在本机被安全策略拦住（<code>reg.exe</code> 黑名单），改用 <strong>经典图像编辑器 2025 (26.10.0)</strong> 做基准；两版「色彩范围」行为一致。驱动脚本在 <code>clrr-cal/</code>。</p>
 <h3 id="参数键名别猜从二进制里挖">参数键名：别猜，从二进制里挖</h3>
-<p><code>shadowsUpperLimit</code> 这类键能在 <code>Photoshop.exe</code> 里直接搜到，周围的字符串就是 整张 schema。挖出来的关键几条（网上流传的教程基本都没提这几个）：</p>
+<p><code>shadowsUpperLimit</code> 这类键能在 编辑器进程 里直接搜到，周围的字符串就是 整张 schema。挖出来的关键几条（网上流传的教程基本都没提这几个）：</p>
 <pre><code>fuzziness / minimum / maximum          取样颜色用
 highlightsFuzziness
 midtonesFuzziness
@@ -76,18 +76,18 @@ invert / colors(highlights|midtones|shadows|outOfGamut|skinTone)</code></pre>
 <h3 id="实测出来的模型">实测出来的模型</h3>
 <ul><li><strong>亮度 = Rec.601 伽马域加权</strong>（0.299/0.587/0.114），不是 Lab L*： 阈值 100 时 50% 交界落在 luma 100.9，阈值 150 时落在 149.0。</li><li><strong>阈值是硬边界，容差把过渡带按「到极端还剩多少」铺开</strong>：</li></ul>
 <div class="table-wrap"><table><thead><tr><th>模式</th><th>过渡带</th></tr></thead><tbody><tr><td>阴影</td><td><code>band = fz·(255 − lim)</code>，从 lim 一路铺到纯白</td></tr><tr><td>高光</td><td><code>band = fz·lim</code>，从 lim 一路铺到纯黑</td></tr><tr><td>中间调</td><td>下边 <code>fz·low</code>（铺到纯黑）、上边 <code>fz·(255 − high)</code>（铺到纯白），取交</td></tr></tbody></table></div>
-<p><code>fz</code> 是 PS 的容差 0–100（本算子 <code>fuzziness</code> 0–200，内部 ÷2），所以 <strong>容差拉满 = 过渡带正好碰到纯黑/纯白</strong>，与 PS 手感一致。</p>
+<p><code>fz</code> 是 经典图像编辑器的容差 0–100（本算子 <code>fuzziness</code> 0–200，内部 ÷2），所以 <strong>容差拉满 = 过渡带正好碰到纯黑/纯白</strong>，与 经典图像编辑器 手感一致。</p>
 <ul><li>曲线不是纯 smoothstep：实测 50% 点落在带宽的 <strong>0.555</strong> 处（9 组参数 53%–58%），纯 smoothstep 是 0.5，中段会偏亮 10 码。改成 <code>alpha = 1 − smoothstep(t^1.2)</code>，幂次 1.2 是拿 24 组参考曲线扫出来的最优。</li></ul>
-<h3 id="精度对-ps-2025-实测0255-码">精度（对 PS 2025 实测，0–255 码）</h3>
+<h3 id="精度对-经典图像编辑器-2025-实测0255-码">精度（对 经典图像编辑器 2025 实测，0–255 码）</h3>
 <ul><li>全表 768 个采样点：<strong>平均 2.12 码</strong>，最大 32.3 码（出现在 alpha &lt; 20 的尾巴上， 肉眼就是「几乎不选」和「选了一点」的差别）。</li><li>阈值/容差取整档（fz = 0）时是逐位一致的硬边界。</li><li>逐像素复核 <code>clrr-cal/verify_op.py</code>：35 组参数在 512 px 斜坡上跑全图对比， 平均 1.46 码。</li></ul>
 <p><code>tools/check_color_mask_select.py</code> 把这份参考表固化成了回归用例 （<code>../clrr-cal/ps_color_range_ref.json</code>，不在仓库里就自动跳过）。</p>
 <h3 id="新增参数">新增参数</h3>
 <div class="table-wrap"><table><thead><tr><th>参数</th><th>默认</th><th>作用</th></tr></thead><tbody><tr><td><code>shadows-limit</code></td><td>64</td><td>阴影上限（低于它全选）</td></tr><tr><td><code>highlights-limit</code></td><td>192</td><td>高光下限（高于它全选）</td></tr><tr><td><code>midtone-low</code> / <code>midtone-high</code></td><td>64 / 192</td><td>中间调上下限</td></tr></tbody></table></div>
-<p>默认值也是实测出来的：PS 不传任何限制时，阴影 50% 交界在 85.8、高光在 167.7， 反解出来正是 limit=64/192 + 容差 20。</p>
-<p><strong>羽化在这三个模式里不参与</strong>——PS 的柔边完全由容差决定，硬塞一个羽化会破坏对拍。 色系预设与自定颜色仍是原来的容差窗模型（那部分没动）。</p>
+<p>默认值也是实测出来的：经典图像编辑器 不传任何限制时，阴影 50% 交界在 85.8、高光在 167.7， 反解出来正是 limit=64/192 + 容差 20。</p>
+<p><strong>羽化在这三个模式里不参与</strong>——经典图像编辑器的柔边完全由容差决定，硬塞一个羽化会破坏对拍。 色系预设与自定颜色仍是原来的容差窗模型（那部分没动）。</p>
 <hr>
 <h2 id="自定颜色改用-cielab-δe色系预设改彩度门2026-11-16">自定颜色改用 CIELAB ΔE，色系预设改彩度门（2026-11-16）</h2>
-<p>这次只动「匹配质量」，容差窗公式 <code>alpha = 1 − smoothstep(d, w·(1−feather), w)</code> 和色调模式一概没改（768 点对 PS 回归仍是平均 2.12 码）。</p>
+<p>这次只动「匹配质量」，容差窗公式 <code>alpha = 1 − smoothstep(d, w·(1−feather), w)</code> 和色调模式一概没改（768 点对 经典图像编辑器 回归仍是平均 2.12 码）。</p>
 <h3 id="自定颜色rgb-距离-cielab-δeδe94-明度权重-kl2">自定颜色：RGB 距离 → CIELAB ΔE（ΔE94 明度权重 kL=2）</h3>
 <p>旧实现有三个问题：</p>
 <ol><li><strong>口径不一致</strong>：目标色用 <code>gegl_color_get_rgba</code> 取，它返回<strong>线性光</strong>， 而逐像素处理的是伽马域值——拿线性值对伽马值算距离，暗色目标整体偏。 现在用 <code>gegl_color_get_pixel</code> 直接按源空间伽马格式取目标色。</li><li><strong>RGB 距离不感知</strong>：灰 (128,128,128) 和目标红的 RGB 距离只有 0.86（÷√3 后 0.50），容差 100 时几乎全选；粉色也被判得很近。感知上它们是「无关色」。</li><li><strong>纯 ΔE76 对明度太敏感</strong>：暗红 (128,0,0) 与红的 ΔL 一项就贡献 27.7， ΔE≈51 刚好被 ΔE50 容差窗挡在门外——选色蒙版要的是「同一族颜色」， 暗红不该被明度差拆开。</li></ol>
@@ -102,7 +102,7 @@ invert / colors(highlights|midtones|shadows|outOfGamut|skinTone)</code></pre>
     <p>Windows 模块 <code>color-mask-select.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>color-mask-select.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/color-mask-select.dll">下载 color-mask-select.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/color-mask-select.so">下载 color-mask-select.so<span class="size">Linux x86_64</span></a></div>
-</div><nav class="pager"><a class="prev" href="ps-hue-range.html"><span>上一个</span>Hue/Saturation Range</a><a class="next" href="channel-range-to-alpha.html"><span>下一个</span>Range → Alpha</a></nav><details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
+</div><nav class="pager"><a class="prev" href="hue-range-basic.html"><span>上一个</span>Hue/Saturation Range</a><a class="next" href="channel-range-to-alpha.html"><span>下一个</span>Range → Alpha</a></nav><details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
 <h4 id="linux-原生版系统包安装的gimp">Linux 原生版（系统包安装的GIMP）</h4>
 <pre><code class="language-bash">sh build_linux.sh
 cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
@@ -119,11 +119,11 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
   <ul><li class="l2"><a href="#行为变更记录2026-11-12-重写">行为变更记录（2026-11-12 重写）</a></li>
-<li class="l2"><a href="#高光-阴影-中间调改成-ps-实测模型2026-11-12-二次修订">高光 / 阴影 / 中间调改成 PS 实测模型（2026-11-12 二次修订）</a></li>
-<li class="l3"><a href="#先解决ps-色彩范围没法脚本化的误会">先解决「PS 色彩范围没法脚本化」的误会</a></li>
+<li class="l2"><a href="#高光-阴影-中间调改成-经典图像编辑器-实测模型2026-11-12-二次修订">高光 / 阴影 / 中间调改成 经典图像编辑器 实测模型（2026-11-12 二次修订）</a></li>
+<li class="l3"><a href="#先解决经典图像编辑器-色彩范围没法脚本化的误会">先解决「经典图像编辑器 色彩范围没法脚本化」的误会</a></li>
 <li class="l3"><a href="#参数键名别猜从二进制里挖">参数键名：别猜，从二进制里挖</a></li>
 <li class="l3"><a href="#实测出来的模型">实测出来的模型</a></li>
-<li class="l3"><a href="#精度对-ps-2025-实测0255-码">精度（对 PS 2025 实测，0–255 码）</a></li>
+<li class="l3"><a href="#精度对-经典图像编辑器-2025-实测0255-码">精度（对 经典图像编辑器 2025 实测，0–255 码）</a></li>
 <li class="l3"><a href="#新增参数">新增参数</a></li>
 <li class="l2"><a href="#自定颜色改用-cielab-δe色系预设改彩度门2026-11-16">自定颜色改用 CIELAB ΔE，色系预设改彩度门（2026-11-16）</a></li>
 <li class="l3"><a href="#自定颜色rgb-距离-cielab-δeδe94-明度权重-kl2">自定颜色：RGB 距离 → CIELAB ΔE（ΔE94 明度权重 kL=2）</a></li>
@@ -138,23 +138,23 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <span class="tag t-mask">Mask</span>
     <span>per-pixel</span>
   </div>
-  <p class="lede">Photoshop's Color Range as a mask operator — colour presets, custom colour, and highlight/shadow/midtone modes calibrated against Photoshop 2025.</p>
+  <p class="lede">the classic editor's Color Range as a mask operator — colour presets, custom colour, and highlight/shadow/midtone modes calibrated against the classic editor 2025.</p>
 </section><div class="article-layout">
   <article class="prose">
 <h2 id="behaviour-change-rewritten-2026-11-12">Behaviour change (rewritten 2026-11-12)</h2>
 <p>The old implementation had a fatal bug: with the default <code>Min Saturation = 0</code> the saturation gate degenerated into <code>smooth_step(s, 0, 0)</code>, which is 0/0 for a grey pixel (s = 0) and yields NaN; alpha was written as 0, so <strong>every grey pixel was judged transparent in every mode</strong> — the white, black and midtone modes were entirely broken — and <code>fuzziness = 0</code> produced NaN too. The match formula (channel difference plus a negative-start transition band) also made "tolerance" mean something different in each mode.</p>
 <p>The rewritten unified model maps each pixel to a "mismatch" d ∈ [0,1] (0 = exact match) and sets <code>alpha = 1 − smoothstep(d, w·(1−feather), w)</code> with <strong>w = fuzziness/200</strong> (at fz=200 the window spans the largest possible mismatch: complementary hues, pure black ↔ pure white):</p>
 <div class="table-wrap"><table><thead><tr><th>Mode</th><th>Definition of d</th></tr></thead><tbody><tr><td>red/yellow/green/cyan/blue/magenta</td><td>hue-wheel distance (complement = 1), multiplied by the chroma gate (s×v — a near-black pixel's hue is numeric noise)</td></tr><tr><td>highlights</td><td>d = 1 − luminance</td></tr><tr><td>shadows</td><td>d = luminance</td></tr><tr><td>midtones</td><td>d = 2·|luminance − 0.5|</td></tr><tr><td>custom colour</td><td>CIELAB ΔE ÷ 100, with ΔE94's lightness weight kL=2 (lightness difference halved)</td></tr></tbody></table></div>
-<ul><li>feather (0–100): width of the transition inside the tolerance window's inner edge; feather=10 fades over the inner 10% of the window</li><li>Min Saturation: floor on chroma (s×v) for the colour presets, 0 = a fixed floor of 0.25</li><li>Invert (new): inverts the mask, like Photoshop's "Invert" checkbox</li><li>Red Overlay Preview now defaults to off: applying it with preview on bakes the red tint into the layer, so turn it off when you are done looking</li></ul>
+<ul><li>feather (0–100): width of the transition inside the tolerance window's inner edge; feather=10 fades over the inner 10% of the window</li><li>Min Saturation: floor on chroma (s×v) for the colour presets, 0 = a fixed floor of 0.25</li><li>Invert (new): inverts the mask, like the classic editor's "Invert" checkbox</li><li>Red Overlay Preview now defaults to off: applying it with preview on bakes the red tint into the layer, so turn it off when you are done looking</li></ul>
 <p>Sixteen-patch regression: red / yellow / white / black / midtone / custom / invert / fz0 / fz200 all match the semantics above.</p>
-<h2 id="highlights-shadows-midtones-use-a-model-measured-from-photoshop">Highlights / shadows / midtones use a model measured from Photoshop</h2>
-<p>The unified model above still had a problem: <strong>one "tolerance" slider decided both the threshold and the softness</strong>, so tightening the range inevitably hardened the transition — while Photoshop has two independent sliders. That is exactly why it felt bad to use.</p>
+<h2 id="highlights-shadows-midtones-use-a-model-measured-from-the-classic-editor">Highlights / shadows / midtones use a model measured from the classic editor</h2>
+<p>The unified model above still had a problem: <strong>one "tolerance" slider decided both the threshold and the softness</strong>, so tightening the range inevitably hardened the transition — while the classic editor has two independent sliders. That is exactly why it felt bad to use.</p>
 <h3 id="first-color-range-cannot-be-scripted-was-a-misunderstanding">First, "Color Range cannot be scripted" was a misunderstanding</h3>
-<p>Two earlier attempts ended with <code>Photoshop.exe</code> quitting, and the conclusion was written down as "Adobe's Color Range is not scriptable". There were two real traps:</p>
-<ol><li><strong>ExtendScript's <code>File</code> object has no <code>flush()</code>.</strong> <code>say()</code> called <code>f.writeln(s); f.flush();</code> — <code>writeln</code> had already written the line and <code>flush</code> threw, so the log never got past line 1 and it looked like PS crashed inside <code>executeAction</code>. With <code>open("a") / writeln / close</code> per line the log runs to the end.</li><li><code>executeAction('colorRange', desc, DialogModes.NO)</code> <strong>always worked</strong> — no dialog, no OK button. <code>DialogModes.ALL</code> is what hangs the script on a modal dialog.</li></ol>
-<p>Photoshop 2026 is blocked by a security policy on this machine (<code>reg.exe</code> blacklist), so <strong>PS 2025 (26.10.0)</strong> is the reference; the two versions behave the same for Color Range. The driver scripts live in <code>clrr-cal/</code>.</p>
+<p>Two earlier attempts ended with <code>the editor process</code> quitting, and the conclusion was written down as "the editor's Colour Range is not scriptable". There were two real traps:</p>
+<ol><li><strong>ExtendScript's <code>File</code> object has no <code>flush()</code>.</strong> <code>say()</code> called <code>f.writeln(s); f.flush();</code> — <code>writeln</code> had already written the line and <code>flush</code> threw, so the log never got past line 1 and it looked like the classic editor crashed inside <code>executeAction</code>. With <code>open("a") / writeln / close</code> per line the log runs to the end.</li><li><code>executeAction('colorRange', desc, DialogModes.NO)</code> <strong>always worked</strong> — no dialog, no OK button. <code>DialogModes.ALL</code> is what hangs the script on a modal dialog.</li></ol>
+<p>classic image editor 2026 is blocked by a security policy on this machine (<code>reg.exe</code> blacklist), so <strong>the classic editor 2025 (26.10.0)</strong> is the reference; the two versions behave the same for Color Range. The driver scripts live in <code>clrr-cal/</code>.</p>
 <h3 id="parameter-key-names-dig-them-out-of-the-binary-do-not-guess">Parameter key names: dig them out of the binary, do not guess</h3>
-<p>Keys such as <code>shadowsUpperLimit</code> can be found by searching <code>Photoshop.exe</code>, and the surrounding strings are the whole schema. The essential ones (which most tutorials online do not mention):</p>
+<p>Keys such as <code>shadowsUpperLimit</code> can be found by searching <code>the editor process</code>, and the surrounding strings are the whole schema. The essential ones (which most tutorials online do not mention):</p>
 <pre><code>fuzziness / minimum / maximum           for sampled colours
 highlightsFuzziness
 midtonesFuzziness
@@ -167,21 +167,21 @@ invert / colors(highlights|midtones|shadows|outOfGamut|skinTone)</code></pre>
 <h3 id="the-measured-model">The measured model</h3>
 <ul><li><strong>Luminance is Rec.601 in the gamma domain</strong> (0.299/0.587/0.114), not Lab L\*: at limit 100 the 50% crossing lands at luma 100.9, at limit 150 it lands at 149.0.</li><li><strong>The limit is a hard boundary and tolerance spreads the band by "how much is left before the extreme"</strong>:</li></ul>
 <div class="table-wrap"><table><thead><tr><th>Mode</th><th>Band</th></tr></thead><tbody><tr><td>shadows</td><td><code>band = fz·(255 − lim)</code>, from lim all the way to white</td></tr><tr><td>highlights</td><td><code>band = fz·lim</code>, from lim all the way to black</td></tr><tr><td>midtones</td><td>lower edge <code>fz·low</code> (to black), upper edge <code>fz·(255 − high)</code> (to white), intersected</td></tr></tbody></table></div>
-<p><code>fz</code> is Photoshop's 0–100 tolerance (this operator takes 0–200 and halves it internally), so <strong>tolerance at maximum means the band exactly reaches pure black/white</strong>, matching how PS feels.</p>
+<p><code>fz</code> is the classic editor's 0–100 tolerance (this operator takes 0–200 and halves it internally), so <strong>tolerance at maximum means the band exactly reaches pure black/white</strong>, matching how the classic editor feels.</p>
 <ul><li>The curve is not a plain smoothstep: the measured 50% point sits at <strong>0.555</strong> of the band (9 parameter sets, 53–58%), while a smoothstep puts it at 0.5 and comes out about 10 code values bright in the middle. It is <code>alpha = 1 − smoothstep(t^1.2)</code>, and 1.2 is the best power over 24 reference curves.</li></ul>
-<h3 id="accuracy-against-ps-2025-0255-code-values">Accuracy (against PS 2025, 0–255 code values)</h3>
+<h3 id="accuracy-against-the-classic-editor-2025-0255-code-values">Accuracy (against the classic editor 2025, 0–255 code values)</h3>
 <ul><li>Over all 768 sampled points: <strong>mean 2.12 code values</strong>, max 32.3 (on the tail where alpha &lt; 20, i.e. the visible difference between "almost nothing selected" and "a little selected").</li><li>At integer limit/tolerance settings (fz = 0) the hard boundary is bit-exact.</li><li>Per-pixel recheck with <code>clrr-cal/verify_op.py</code>: 35 parameter sets on a 512 px ramp, whole-image comparison, mean 1.46 code values.</li></ul>
 <p><code>tools/check_color_mask_select.py</code> freezes that reference table into regression cases (<code>../clrr-cal/ps_color_range_ref.json</code>; skipped automatically when absent).</p>
 <h3 id="new-parameters">New parameters</h3>
 <div class="table-wrap"><table><thead><tr><th>Parameter</th><th>Default</th><th>Effect</th></tr></thead><tbody><tr><td><code>shadows-limit</code></td><td>64</td><td>Shadow upper limit (everything below is selected)</td></tr><tr><td><code>highlights-limit</code></td><td>192</td><td>Highlight lower limit (everything above is selected)</td></tr><tr><td><code>midtone-low</code> / <code>midtone-high</code></td><td>64 / 192</td><td>Midtone upper and lower limits</td></tr></tbody></table></div>
-<p>The defaults were also measured: with no limits passed, Photoshop's 50% crossings sit at 85.8 for shadows and 167.7 for highlights, which back-solves to limit=64/192 with tolerance 20.</p>
-<p><strong>Feather does not take part in these three modes</strong> — PS's soft edge is decided entirely by tolerance, and forcing a feather in would break the comparison. The colour presets and custom colour still use the tolerance-window model (unchanged).</p><div class="op-dl">
+<p>The defaults were also measured: with no limits passed, the classic editor's 50% crossings sit at 85.8 for shadows and 167.7 for highlights, which back-solves to limit=64/192 with tolerance 20.</p>
+<p><strong>Feather does not take part in these three modes</strong> — the classic editor's soft edge is decided entirely by tolerance, and forcing a feather in would break the comparison. The colour presets and custom colour still use the tolerance-window model (unchanged).</p><div class="op-dl">
   <div>
     <h3>Just this one</h3>
     <p>Windows module <code>color-mask-select.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>color-mask-select.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/color-mask-select.dll">Download color-mask-select.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/color-mask-select.so">Download color-mask-select.so<span class="size">Linux x86_64</span></a></div>
-</div><nav class="pager"><a class="prev" href="ps-hue-range.html"><span>Previous</span>Hue/Saturation Range</a><a class="next" href="channel-range-to-alpha.html"><span>Next</span>Range → Alpha</a></nav><details class="legacy-intro"><summary>Original plugin docs<span class="muted"> — written when this was a standalone plug-in: the build commands assume the old directory layout and the menu paths have changed. The algorithm notes above supersede it.</span></summary><h1>GEGL_GIMP_PLUGIN_color-mask-select</h1>
+</div><nav class="pager"><a class="prev" href="hue-range-basic.html"><span>Previous</span>Hue/Saturation Range</a><a class="next" href="channel-range-to-alpha.html"><span>Next</span>Range → Alpha</a></nav><details class="legacy-intro"><summary>Original plugin docs<span class="muted"> — written when this was a standalone plug-in: the build commands assume the old directory layout and the menu paths have changed. The algorithm notes above supersede it.</span></summary><h1>GEGL_GIMP_PLUGIN_color-mask-select</h1>
 <p><img src="../assets/ops/color-mask-select/assets/colormaskselect.png" alt="colormaskselect" title="colormaskselect"></p>
 <h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
 <h4 id="native-linux-system-installed-gimp">Native Linux (System installed GIMP)</h4>
@@ -201,11 +201,11 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
   <aside class="toc">
   <p class="toc-title">On this page</p>
   <ul><li class="l2"><a href="#behaviour-change-rewritten-2026-11-12">Behaviour change (rewritten 2026-11-12)</a></li>
-<li class="l2"><a href="#highlights-shadows-midtones-use-a-model-measured-from-photoshop">Highlights / shadows / midtones use a model measured from Photoshop</a></li>
+<li class="l2"><a href="#highlights-shadows-midtones-use-a-model-measured-from-the-classic-editor">Highlights / shadows / midtones use a model measured from the classic editor</a></li>
 <li class="l3"><a href="#first-color-range-cannot-be-scripted-was-a-misunderstanding">First, &quot;Color Range cannot be scripted&quot; was a misunderstanding</a></li>
 <li class="l3"><a href="#parameter-key-names-dig-them-out-of-the-binary-do-not-guess">Parameter key names: dig them out of the binary, do not guess</a></li>
 <li class="l3"><a href="#the-measured-model">The measured model</a></li>
-<li class="l3"><a href="#accuracy-against-ps-2025-0255-code-values">Accuracy (against PS 2025, 0–255 code values)</a></li>
+<li class="l3"><a href="#accuracy-against-the-classic-editor-2025-0255-code-values">Accuracy (against the classic editor 2025, 0–255 code values)</a></li>
 <li class="l3"><a href="#new-parameters">New parameters</a></li></ul>
 </aside>
 </div></div>
@@ -213,13 +213,13 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
 <footer class="site-foot">
   <div>
     <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
-    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">88f4f29</span>
+    <span class="muted">f05ba5f</span>
   </div>
 </footer>
 <script>

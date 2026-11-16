@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""lb:xyz-multiply（即 PS 照片滤镜）数值验收：与独立写的 Python 实现逐像素比对。
+"""lb:xyz-multiply（即 经典图像编辑器 照片滤镜）数值验收：与独立写的 Python 实现逐像素比对。
 
 参考实现照着头注释的算法直写（sRGB → D65 XYZ → 标准 Bradford 转到目标白点 →
 逐通道乘 → 转回 → sRGB → 可选 SetLum），刻意不采用算子内部「折叠成一个 3×3
 矩阵」的写法，这样既能验证矩阵折叠没算错，也能挡住以后改 LUT 引入的漂移。
 
-与 PS 本身的端到端比对见 tools/check_photo_filter.py。
+与 经典图像编辑器 本身的端到端比对见 tools/check_photo_filter.py。
 
 用法：
     python tools/check_xyz_multiply.py            # 8 组参数

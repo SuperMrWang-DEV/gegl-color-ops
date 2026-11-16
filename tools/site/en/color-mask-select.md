@@ -1,6 +1,6 @@
 ---
 name: Mask by Color
-blurb: Photoshop's Color Range as a mask operator — colour presets, custom colour, and highlight/shadow/midtone modes calibrated against Photoshop 2025.
+blurb: the classic editor's Color Range as a mask operator — colour presets, custom colour, and highlight/shadow/midtone modes calibrated against the classic editor 2025.
 ---
 
 ## Behaviour change (rewritten 2026-11-12)
@@ -29,40 +29,40 @@ complementary hues, pure black ↔ pure white):
 - feather (0–100): width of the transition inside the tolerance window's inner
   edge; feather=10 fades over the inner 10% of the window
 - Min Saturation: floor on chroma (s×v) for the colour presets, 0 = a fixed floor of 0.25
-- Invert (new): inverts the mask, like Photoshop's "Invert" checkbox
+- Invert (new): inverts the mask, like the classic editor's "Invert" checkbox
 - Red Overlay Preview now defaults to off: applying it with preview on bakes the red
   tint into the layer, so turn it off when you are done looking
 
 Sixteen-patch regression: red / yellow / white / black / midtone / custom / invert /
 fz0 / fz200 all match the semantics above.
 
-## Highlights / shadows / midtones use a model measured from Photoshop
+## Highlights / shadows / midtones use a model measured from the classic editor
 
 The unified model above still had a problem: **one "tolerance" slider decided both
 the threshold and the softness**, so tightening the range inevitably hardened the
-transition — while Photoshop has two independent sliders. That is exactly why it
+transition — while the classic editor has two independent sliders. That is exactly why it
 felt bad to use.
 
 ### First, "Color Range cannot be scripted" was a misunderstanding
 
-Two earlier attempts ended with `Photoshop.exe` quitting, and the conclusion was
-written down as "Adobe's Color Range is not scriptable". There were two real traps:
+Two earlier attempts ended with `the editor process` quitting, and the conclusion was
+written down as "the editor's Colour Range is not scriptable". There were two real traps:
 
 1. **ExtendScript's `File` object has no `flush()`.** `say()` called
    `f.writeln(s); f.flush();` — `writeln` had already written the line and `flush`
-   threw, so the log never got past line 1 and it looked like PS crashed inside
+   threw, so the log never got past line 1 and it looked like the classic editor crashed inside
    `executeAction`. With `open("a") / writeln / close` per line the log runs to the
    end.
 2. `executeAction('colorRange', desc, DialogModes.NO)` **always worked** — no dialog,
    no OK button. `DialogModes.ALL` is what hangs the script on a modal dialog.
 
-Photoshop 2026 is blocked by a security policy on this machine (`reg.exe`
-blacklist), so **PS 2025 (26.10.0)** is the reference; the two versions behave the
+classic image editor 2026 is blocked by a security policy on this machine (`reg.exe`
+blacklist), so **the classic editor 2025 (26.10.0)** is the reference; the two versions behave the
 same for Color Range. The driver scripts live in `clrr-cal/`.
 
 ### Parameter key names: dig them out of the binary, do not guess
 
-Keys such as `shadowsUpperLimit` can be found by searching `Photoshop.exe`, and the
+Keys such as `shadowsUpperLimit` can be found by searching `the editor process`, and the
 surrounding strings are the whole schema. The essential ones (which most tutorials
 online do not mention):
 
@@ -94,9 +94,9 @@ this was found.
 | highlights | `band = fz·lim`, from lim all the way to black |
 | midtones | lower edge `fz·low` (to black), upper edge `fz·(255 − high)` (to white), intersected |
 
-`fz` is Photoshop's 0–100 tolerance (this operator takes 0–200 and halves it
+`fz` is the classic editor's 0–100 tolerance (this operator takes 0–200 and halves it
 internally), so **tolerance at maximum means the band exactly reaches pure
-black/white**, matching how PS feels.
+black/white**, matching how the classic editor feels.
 
 - The curve is not a plain smoothstep: the measured 50% point sits at **0.555** of the
   band (9 parameter sets, 53–58%), while a smoothstep puts it at 0.5 and comes out
@@ -104,7 +104,7 @@ black/white**, matching how PS feels.
   `alpha = 1 − smoothstep(t^1.2)`, and 1.2 is the best power over 24 reference
   curves.
 
-### Accuracy (against PS 2025, 0–255 code values)
+### Accuracy (against the classic editor 2025, 0–255 code values)
 
 - Over all 768 sampled points: **mean 2.12 code values**, max 32.3 (on the tail where
   alpha < 20, i.e. the visible difference between "almost nothing selected" and
@@ -124,10 +124,10 @@ cases (`../clrr-cal/ps_color_range_ref.json`; skipped automatically when absent)
 | `highlights-limit` | 192 | Highlight lower limit (everything above is selected) |
 | `midtone-low` / `midtone-high` | 64 / 192 | Midtone upper and lower limits |
 
-The defaults were also measured: with no limits passed, Photoshop's 50% crossings
+The defaults were also measured: with no limits passed, the classic editor's 50% crossings
 sit at 85.8 for shadows and 167.7 for highlights, which back-solves to limit=64/192
 with tolerance 20.
 
-**Feather does not take part in these three modes** — PS's soft edge is decided
+**Feather does not take part in these three modes** — the classic editor's soft edge is decided
 entirely by tolerance, and forcing a feather in would break the comparison. The
 colour presets and custom colour still use the tolerance-window model (unchanged).

@@ -61,34 +61,35 @@ gegl-color-ops/
 | GEGL id | 菜单名 | 完整标题 | 组 | 类型 | 作用 |
 |---|---|---|---|---|---|
 | `lb:hue-saturation` | Hue/Saturation | Hue/Saturation | Color | Point | HSL 色相/饱和度/明度，主控 + 六区间独立调 |
-| `lb:ps-hue-saturation` | Hue/Saturation (Basic) | Hue/Saturation (Basic) | Color | Point | 三滑杆公式：色相旋转、饱和度相对缩放（s/(1−x)）、明度向白/黑混合；逐码对拍参考实现 |
-| `lb:hsl-seven` | HSL 8 Bands | HSL 8 Bands | Color | Point | 八段色相（含洋红）各调 H/S/L，ACR 风格；旧七段属性名不变 |
-| `lb:channel-mixer-plus` | Channel Mixer Plus | Channel Mixer Plus | Blend | Point | PS 通道混合器 + 通道 offset + 单色模式 |
+| `lb:hue-saturation-basic` | Hue/Saturation (Basic) | Hue/Saturation (Basic) | Color | Point | 三滑杆公式：色相旋转、饱和度相对缩放（s/(1−x)）、明度向白/黑混合；逐码对拍参考实现 |
+| `lb:hue-range-basic` | Hue Range (Basic) | Hue/Saturation Range (Basic) | Color | Point | 色系范围：六色系四柄色条（内二柄全选、外二柄线性过渡），范围内按权重缩放应用色相/饱和度/明度；与上一个串联即「主控 + 分色系」 |
+| `lb:hsl-seven` | HSL 8 Bands | HSL 8 Bands | Color | Point | 八段色相（含洋红）各调 H/S/L，RAW 编辑器 风格；旧七段属性名不变 |
+| `lb:channel-mixer-plus` | Channel Mixer Plus | Channel Mixer Plus | Blend | Point | 经典图像编辑器 通道混合器 + 通道 offset + 单色模式 |
 | `lb:channel-range-to-alpha` | Range → Alpha | Channel Range to Alpha | Mask | Point | 通道数值区间 → alpha（混合颜色带） |
 | `lb:cmyk-primary-correction` | CMYK Primary | CMYK Primary Correction | Color | Point | 可选颜色：九组色域各存一份 C/M/Y/K，同时生效 |
-| `lb:color-balance` | Color Balance | Color Balance | Color | Filter | PS 色彩平衡：三区间指数相乘合成一条逐通道曲线，单段残差 0.30 码 |
-| `lb:color-grading` | Color Grading | Color Grading | Color | Point | ACR 颜色分级：阴影/中间调/高光/全局四轮盘 + 明度 + Blending/Balance，按亮度分带（模型对齐，未逐码标定） |
-| `lb:color-lookup` | Color Lookup | Color Lookup | Blend | Filter | PS 颜色查找：按 .cube 3D LUT（可带 1D shaper）查表，三线性 / 四面体可选 |
-| `lb:match-color` | Match Color | Match Color | Color | Composer | PS 匹配颜色：Lab 统计迁移（Reinhard），亮度/颜色强度/渐隐/中和 |
-| `lb:colorize-hsl` | Colorize | Colorize | Color | Point | PS 色相/饱和度「着色」实测复刻：扔掉原有 H/S，只留输入 L 的单色调，残差 0.03 码 |
-| `lb:color-mask-select` | Mask by Color | Color Mask Select | Mask | Point | PS 色彩范围：高光/阴影/中间调按「阈值 + 容差」实测复刻（平均 2.1 码），色系/自定色走容差窗 |
+| `lb:color-balance` | Color Balance | Color Balance | Color | Filter | 经典图像编辑器 色彩平衡：三区间指数相乘合成一条逐通道曲线，单段残差 0.30 码 |
+| `lb:color-grading` | Color Grading | Color Grading | Color | Point | RAW 编辑器 颜色分级：阴影/中间调/高光/全局四轮盘 + 明度 + Blending/Balance，按亮度分带（模型对齐，未逐码标定） |
+| `lb:color-lookup` | Color Lookup | Color Lookup | Blend | Filter | 经典图像编辑器 颜色查找：按 .cube 3D LUT（可带 1D shaper）查表，三线性 / 四面体可选 |
+| `lb:match-color` | Match Color | Match Color | Color | Composer | 经典图像编辑器 匹配颜色：Lab 统计迁移（Reinhard），亮度/颜色强度/渐隐/中和 |
+| `lb:colorize-hsl` | Colorize | Colorize | Color | Point | 经典图像编辑器 色相/饱和度「着色」实测复刻：扔掉原有 H/S，只留输入 L 的单色调，残差 0.03 码 |
+| `lb:color-mask-select` | Mask by Color | Color Mask Select | Mask | Point | 经典图像编辑器 色彩范围：高光/阴影/中间调按「阈值 + 容差」实测复刻（平均 2.1 码），色系/自定色走容差窗 |
 | `lb:lab-levels` | LAB Levels | LAB Levels | Tone | Filter | LAB 三通道各自黑白场 + 伽马，a/b 绕中性轴分段 |
 | `lb:hsl-levels` | HSL Levels | HSL Levels | Tone | Filter | HSL 三分量色阶，色相按弧环形重映射 |
 | `lb:hsb-levels` | HSB Levels | HSB Levels | Tone | Filter | HSB（HSV）三分量色阶，S/B 是 HSV 语义 |
 | `lb:lch-levels` | LCH Levels | LCH Levels | Tone | Filter | CIE LCh 的 L/C/H 色阶，调色度不串色相 |
 | `lb:cmyk-levels` | CMYK Levels | CMYK Levels | Tone | Filter | CMYK 四版墨量色阶（babl 分色，非 ICC） |
 | `lb:hsi-levels` | HSI Levels | HSI Levels | Tone | Filter | HSI 三分量色阶，I 取三通道均值 |
-| `lb:levels` | Levels | Levels | Tone | Point | PS 色阶：复合 + R/G/B 四组输入黑/灰/白场与输出黑白场，0–255 刻度；gamma 方向经公开实测点验证（154@0.46→84、200@1.646→220） |
-| `lb:exposure` | Exposure EV | Exposure EV | Tone | Filter | PS 曝光：EV、偏移、伽马；整数图走伽马域、浮点图走线性域，按输入精度自动选路 |
-| `lb:rgb-domain-grayscale` | Black & White | Black & White | Tone | Point | PS 黑白：六色权重转灰 + 可选着色 |
+| `lb:levels` | Levels | Levels | Tone | Point | 经典图像编辑器 色阶：复合 + R/G/B 四组输入黑/灰/白场与输出黑白场，0–255 刻度；gamma 方向经公开实测点验证（154@0.46→84、200@1.646→220） |
+| `lb:exposure` | Exposure EV | Exposure EV | Tone | Filter | 经典图像编辑器 曝光：EV、偏移、伽马；整数图走伽马域、浮点图走线性域，按输入精度自动选路 |
+| `lb:rgb-domain-grayscale` | Black & White | Black & White | Tone | Point | 经典图像编辑器 黑白：六色权重转灰 + 可选着色 |
 | `lb:vibrance-hyper` | Natural Saturation | Natural Saturation | Color | Point | LAB 自然饱和度：色度双曲蒙版 + 肤色保护窗 + 色域收敛不扭色相 |
-| `lb:vibrance` | Vibrance | Vibrance | Color | Point | PS 自然饱和度实测复刻：ΔS = A(v)·S^p·(1−S)^q，叠红带与亮度项，16 位标定；只管饱和度，色温色调由 `lb:color-temperature-tint` 独立承担 |
-| `lb:brightness-contrast` | Brightness/Contrast | Brightness/Contrast | Tone | Point | PS 亮度/对比度实测复刻：新版两条曲线族查表 + 旧版闭式（pivot 89、b 夹 ±100） |
-| `lb:xyz-multiply` | Photo Filter | Photo Filter | Blend | Point | **即 PS 照片滤镜**（实测复刻）：滤镜色在 D50 XYZ 域正片叠底，密度 + 保留明度（W3C SetLum）；不保留明度档 ≤0.71 码 |
-| `lb:shadows-highlights` | Shadows/Highlights | Shadows/Highlights | Tone | Filter | PS 阴影/高光实测复刻：边缘感知邻域亮度决定提亮提多少，含色调宽度、颜色、中间调对比度、修剪黑白。**不推荐日常使用（慢）**：半径 30 时每像素约 1.4 µs，2048×1536 默认参数净耗时 0.7 s，交互拖滑杆会卡；整体明暗请用 `lb:levels` / `lb:lab-levels`，见 `ops/shadows-highlights/.discouraged` |
-| `lb:color-temperature-tint` | Color Temperature & Tint | Color Temperature & Tint | Color | Point | PS 2026「色彩与自然饱和度」里的色温 / 色调：冷↔暖、绿↔洋红，中性灰跟着偏色、黑白不动 |
-| `lb:apply-image` | Apply Image | Apply Image | Blend | Composer | PS 应用图像：aux 层按 26 种混合模式压到本层，可只作用单通道；源层没盖到和透明的地方原样输出 |
-| `lb:calculations` | Calculations | Calculations | Blend | Composer | PS 计算：两路通道混合出灰/alpha 蒙版，双源可各自反相；源 2 透明处蒙版为 0 |
+| `lb:vibrance` | Vibrance | Vibrance | Color | Point | 经典图像编辑器 自然饱和度实测复刻：ΔS = A(v)·S^p·(1−S)^q，叠红带与亮度项，16 位标定；只管饱和度，色温色调由 `lb:color-temperature-tint` 独立承担 |
+| `lb:brightness-contrast` | Brightness/Contrast | Brightness/Contrast | Tone | Point | 经典图像编辑器 亮度/对比度实测复刻：新版两条曲线族查表 + 旧版闭式（pivot 89、b 夹 ±100） |
+| `lb:xyz-multiply` | Photo Filter | Photo Filter | Blend | Point | **即 经典图像编辑器 照片滤镜**（实测复刻）：滤镜色在 D50 XYZ 域正片叠底，密度 + 保留明度（W3C SetLum）；不保留明度档 ≤0.71 码 |
+| `lb:shadows-highlights` | Shadows/Highlights | Shadows/Highlights | Tone | Filter | 经典图像编辑器 阴影/高光实测复刻：边缘感知邻域亮度决定提亮提多少，含色调宽度、颜色、中间调对比度、修剪黑白。**不推荐日常使用（慢）**：半径 30 时每像素约 1.4 µs，2048×1536 默认参数净耗时 0.7 s，交互拖滑杆会卡；整体明暗请用 `lb:levels` / `lb:lab-levels`，见 `ops/shadows-highlights/.discouraged` |
+| `lb:color-temperature-tint` | Color Temperature & Tint | Color Temperature & Tint | Color | Point | 经典图像编辑器 2026「色彩与自然饱和度」里的色温 / 色调：冷↔暖、绿↔洋红，中性灰跟着偏色、黑白不动 |
+| `lb:apply-image` | Apply Image | Apply Image | Blend | Composer | 经典图像编辑器 应用图像：aux 层按 26 种混合模式压到本层，可只作用单通道；源层没盖到和透明的地方原样输出 |
+| `lb:calculations` | Calculations | Calculations | Blend | Composer | 经典图像编辑器 计算：两路通道混合出灰/alpha 蒙版，双源可各自反相；源 2 透明处蒙版为 0 |
 | ~~`lb:gray-to-component`~~ | ~~Gray To Component~~ | Gray To Component | Blend | Point | **已废弃（2026-11-15）**：原本是「分量灰度 → 彩色编码 → 混合模式还原」这条三步流程的中间环节。现在每个色彩模式都有自己的分量色阶（`lb:hsl-levels` / `lb:hsb-levels` / `lb:lch-levels` / `lb:cmyk-levels` / `lb:hsi-levels`），直接在原图上按分量调，不再需要分解与重编码。源码与文档保留作存档，`ops/gray-to-component/.disabled` 标记停编译，不进安装包 |
 
 每个算子的算法说明、参数含义见 `ops/<算子名>/README.md`（原始文档）。
@@ -117,7 +118,7 @@ alpha 是细筛（这块地方真有像素吗）。抠图层的透明洞里 RGB 
 
 GEGL 算子只接住了像素计算那一半；**输入选择**（任意打开图像的任意图层/通道、
 遮罩指向第三张图）和**结果落地**（直接生成选区/新建 Alpha 通道）是插件 API 的
-主场。`plugin/blend` 是一对 Python-Fu 插件，把 PS 对话框完整搬过来：
+主场。`plugin/blend` 是一对 Python-Fu 插件，把 经典图像编辑器 对话框完整搬过来：
 
 - `Apply Image` / `Calculations`，位于 **颜色 → SuperMrWang**
 - 源可以是任意打开图像的任意图层；通道含 Gray/R/G/B/Alpha/图层蒙版
@@ -130,7 +131,7 @@ GEGL 算子只接住了像素计算那一半；**输入选择**（任意打开�
 ./install-plugin.sh          # 装到 %APPDATA%/GIMP/3.x/plug-ins，重启 GIMP 生效
 ```
 
-交互模式弹自定义对话框；批处理可用注册参数（`blend` 0..25 按 PS 顺序、
+交互模式弹自定义对话框；批处理可用注册参数（`blend` 0..25 按 经典图像编辑器 顺序、
 `source-image`/`source-layer` 等，见 `do_create_procedure`）。
 
 ## 命名与代码风格约定
@@ -146,7 +147,7 @@ title            <短名>                    搜索动作 / fx 名用；需要�
 ```
 
 菜单名规则：名词短语、首字母大写、**不加括号、不加省略号**、不用 "Plus/Hyper" 这类无信息词。
-`Channel Mixer Plus`、`Mask by Color` 属固定叫法，保留。模型/来源（HSL、PS、RGB、ACR）
+`Channel Mixer Plus`、`Mask by Color` 属固定叫法，保留。模型/来源（HSL、RGB、RAW 编辑器等）
 一律写进 `description`，避免菜单与选项面板被括号撑宽。
 
 **不得与 GIMP / GEGL 自带算子重名**。GIMP 3 自带 `Exposure`（`gegl:exposure`）、
@@ -375,11 +376,11 @@ python tools/make_test_image.py out.png     # 生成色环+灰阶+明度测试�
 python tools/contact_sheet.py sheet.png build/smoke/*.png   # 拼成带标签的对照表
 python tools/check_gamma_domain.py          # 数值回归：感知（伽马）域 + 全图像素核对
 python tools/check_blend.py                 # 数值回归：双输入算子 23 用例（含通道映射、源层尺寸/偏移）
-python tools/check_color_balance_fine.py    # 与 PS 实测比对：色彩平衡（--all 跑全部 609 档）
-python tools/check_color_balance_ps.py      # 与 PS 实测比对：色彩平衡（含保留明度）
-python tools/check_color_mask_select.py     # 与 PS 实测比对：色彩范围的高光/阴影/中间调曲线
+python tools/check_color_balance_fine.py    # 与 经典图像编辑器 实测比对：色彩平衡（--all 跑全部 609 档）
+python tools/check_color_balance_ps.py      # 与 经典图像编辑器 实测比对：色彩平衡（含保留明度）
+python tools/check_color_mask_select.py     # 与 经典图像编辑器 实测比对：色彩范围的高光/阴影/中间调曲线
 python tools/check_color_grading.py         # 行为验证：颜色分级（恒等/分带/落位/Blending/Balance/全局）
-python tools/check_levels_ps.py             # 与 PS 实测点比对：色阶（含 gamma 方向与指数形式）
+python tools/check_levels_ps.py             # 与 经典图像编辑器 实测点比对：色阶（含 gamma 方向与指数形式）
 python tools/check_lab_levels.py            # 数值回归：LAB 色阶（gimp-console 跑，21 项）
 python tools/check_match_color.py           # 数值回归：匹配颜色（gimp-console 跑，17 项）
 python tools/check_gray_to_component.py     # （已废弃）灰度转分量，需先删 ops/gray-to-component/.disabled
@@ -439,22 +440,21 @@ python tools/make_dist.py                   # 把 build/ 整理成 dist/（含 m
 ## 版权与商标
 
 - **代码是原创的**。每个算子都按公开的数学公式与可观察的行为自行实现，不含、也未复制
-  任何商业软件的源代码或二进制；仓库里没有反编译产物，也没有调用 Adobe 专有接口的脚本，
-  不依赖 Adobe SDK。
-- **产品名只作描述性引用**。文中出现的 Photoshop、Camera Raw 等名称，仅用于说明某个
-  算子在行为上参照的对象（例如「对应 Photoshop 的色彩平衡」），相关名称是其各自权利人
-  的商标。本项目与 Adobe Inc. 无隶属、授权或背书关系，不是官方插件，也不分发 Adobe 的
-  任何素材、预设或字体。
-- **界面里不带他人的商标**。菜单名、对话框标题、算子显示名均为本项目自定（`lb:` 命名
-  空间），不使用 Adobe 的 logo、图标或界面截图。
-- **截图都是 GIMP**。`ops/*/assets/` 下的图是在 GIMP 里运行本项目算子的界面，不是
-  Photoshop 的截图。
+  任何商业软件的源代码或二进制；仓库里没有反编译产物，也不调用任何厂商的专有接口或
+  SDK。
+- **界面与文档不出现第三方商标**。菜单名、对话框标题、算子显示名、README 与站点正文
+  均为本项目自定表述（`lb:` 命名空间），不使用任何厂商的 logo、图标或界面截图。
+  仅对业界公开的格式与色空间规范沿用其标准名称（如 `.cube` LUT、Adobe RGB），属于
+  对规范名称的指示性引用，不表示与本项目存在任何隶属关系。
+- **截图都是 GIMP**。`ops/*/assets/` 下的图是在 GIMP 里运行本项目算子的界面。
 
 All code in this repository is original: algorithms are re-implemented from published
 mathematics and observable behaviour, without copying any commercial software's source
-or binaries. Product names such as Photoshop or Camera Raw appear only to describe which
-behaviour an operation is modelled on; they are trademarks of their respective owners.
-This project is not affiliated with, endorsed by, or authorised by Adobe Inc.
+or binaries, and no vendor-specific interfaces or SDKs are used. Operation names,
+dialog titles, documentation and site copy are written in this project's own terms;
+no third-party logos, icons or UI screenshots are used. Standard format and colour-space
+names (such as `.cube` LUT or Adobe RGB) are cited nominatively as specification names
+only. This project is not affiliated with, endorsed by, or authorised by any vendor.
 
 如认为此处有不当使用，请开 issue，核实后会调整措辞或移除相关内容。
 

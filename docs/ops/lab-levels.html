@@ -64,7 +64,7 @@
     --batch-interpreter=python-fu-eval \
     -b "exec(open(r'&lt;repo&gt;/tools/check_lab_levels.py').read())" --quit</code></pre>
 <h2 id="已知事项">已知事项</h2>
-<ul><li>a/b gamma≠1 时中性附近的微小色度会被放大（gamma=2 时 0.008 → 1.0）， 这是绕轴 gamma 曲线本身的形状（近中性斜率大），PS 同类操作一致； 对噪声明显的图建议配合蒙版或较小 gamma 使用。</li><li>相比旧版（自带 D65 转换），同一输入的数值结果会有轻微差异（白点口径 从 D65 变为 D50），旧 XCF 中挂载的本滤镜输出会略有不同。</li></ul><div class="op-dl">
+<ul><li>a/b gamma≠1 时中性附近的微小色度会被放大（gamma=2 时 0.008 → 1.0）， 这是绕轴 gamma 曲线本身的形状（近中性斜率大），经典图像编辑器 同类操作一致； 对噪声明显的图建议配合蒙版或较小 gamma 使用。</li><li>相比旧版（自带 D65 转换），同一输入的数值结果会有轻微差异（白点口径 从 D65 变为 D50），旧 XCF 中挂载的本滤镜输出会略有不同。</li></ul><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>lab-levels.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>lab-levels.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
@@ -108,7 +108,7 @@
     --batch-interpreter=python-fu-eval \
     -b "exec(open(r'&lt;repo&gt;/tools/check_lab_levels.py').read())" --quit</code></pre>
 <h2 id="known-issues">Known issues</h2>
-<ul><li>With a/b gamma ≠ 1, small chroma near neutral is amplified (gamma=2 turns 0.008 into 1.0). That is the shape of an around-the-axis gamma curve (steep near the axis) and Photoshop behaves the same way. On noisy images, use a mask or a smaller gamma.</li><li>Compared with the old build (which carried its own D65 conversion) results differ slightly for the same input (the white point moved from D65 to D50), so old XCF files with this filter applied render a little differently.</li></ul><div class="op-dl">
+<ul><li>With a/b gamma ≠ 1, small chroma near neutral is amplified (gamma=2 turns 0.008 into 1.0). That is the shape of an around-the-axis gamma curve (steep near the axis) and the classic editor behaves the same way. On noisy images, use a mask or a smaller gamma.</li><li>Compared with the old build (which carried its own D65 conversion) results differ slightly for the same input (the white point moved from D65 to D50), so old XCF files with this filter applied render a little differently.</li></ul><div class="op-dl">
   <div>
     <h3>Just this one</h3>
     <p>Windows module <code>lab-levels.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>lab-levels.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
@@ -130,13 +130,13 @@
 <footer class="site-foot">
   <div>
     <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
-    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">88f4f29</span>
+    <span class="muted">f05ba5f</span>
   </div>
 </footer>
 <script>

@@ -1,17 +1,17 @@
 ---
 name: Color Grading
-blurb: Adobe Camera Raw's Color Grading panel — shadow, midtone, highlight and global wheels with per-band luminance, plus Blending and Balance.
+blurb: the RAW editor's Color Grading panel — shadow, midtone, highlight and global wheels with per-band luminance, plus Blending and Balance.
 ---
 
-Added 2026-11-12. Reproduces the **Color Grading** panel of Adobe Camera Raw /
-Lightroom Classic: shadow, midtone, highlight and global wheels (hue + saturation),
+Added 2026-11-12. Reproduces the **Color Grading** panel of the RAW editor /
+the classic RAW editor: shadow, midtone, highlight and global wheels (hue + saturation),
 each with its own luminance slider, plus Blending and Balance.
 
 ## Menu
 
 `Colors → SuperMrWang → Color → Color Grading`
 
-## Parameters (14, one for one with the ACR panel)
+## Parameters (14, one for one with the the RAW editor panel)
 
 | Parameter | Range | Default | Notes |
 |---|---|---|---|
@@ -51,12 +51,12 @@ Order of execution: the global wheel (weight 1) first, then the three bands.
 
 ## Calibration status (honest disclosure)
 
-Photoshop 2025 on this machine has **no Camera Raw plug-in installed**, so this
+the classic editor 2025 on this machine has **no the RAW editor plug-in installed**, so this
 operator could not be calibrated code by code the way `colorize` and
 `color-mask-select` were. The 0.3/0.7 splits, the ±0.25 transitions and the Rec.709
-luminance are a reasonable model built from ACR's documented behaviour, **not
+luminance are a reasonable model built from the RAW editor's documented behaviour, **not
 black-box measurements**. The structure and parameter semantics map one for one onto
-the ACR panel; numeric behaviour is checked against that design model by
+the the RAW editor panel; numeric behaviour is checked against that design model by
 `tools/check_color_grading.py`.
 
 ## Verification
@@ -69,7 +69,7 @@ python tools/smoke.sh                  # smoke test for every operator
 
 ## Known limitations
 
-- The wheels have no separate "range" slider (hovering a wheel in ACR lets you move
+- The wheels have no separate "range" slider (hovering a wheel in the RAW editor lets you move
   the luminance endpoints); the splits are fixed at 0.3/0.7 and only Blending/Balance
   adjust the transition and the offset.
 - Banding uses the pixel's own luminance (Rec.709, gamma domain), not a neighbourhood

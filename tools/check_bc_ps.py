@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""验收 lb:brightness-contrast：用 gegl CLI 渲染标定图，与 PS 实测输出逐像素比对。
+"""验收 lb:brightness-contrast：用 gegl CLI 渲染标定图，与 经典图像编辑器 实测输出逐像素比对。
 
 参考图的三种来源：
   ../bc-cal/out2/  单参数扫描（b 或 c，步长 5，16 位）
@@ -9,7 +9,7 @@
     python tools/check_bc_ps.py            # 默认抽样
     python tools/check_bc_ps.py all        # 全部参考图
 
-PS 的 16 位导出换算成 0…255 浮点后比较，报告单通道最大绝对偏差（码）。
+经典图像编辑器 的 16 位导出换算成 0…255 浮点后比较，报告单通道最大绝对偏差（码）。
 """
 import os
 import re

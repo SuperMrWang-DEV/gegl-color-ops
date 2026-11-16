@@ -1,11 +1,11 @@
 ---
 name: Brightness/Contrast
-blurb: Photoshop's Brightness/Contrast, matched by black-box measurement — both the current and the legacy ("Use Legacy") behaviour live in one operator.
+blurb: the classic editor's Brightness/Contrast, matched by black-box measurement — both the current and the legacy ("Use Legacy") behaviour live in one operator.
 ---
 
-Photoshop's **Brightness/Contrast**, matched by black-box measurement. **Both the
+the classic editor's **Brightness/Contrast**, matched by black-box measurement. **Both the
 current and the legacy behaviour** (the "Use Legacy" checkbox in the dialog) are in
-here. The same calibration chart was pushed through PS 26.10 and through this
+here. The same calibration chart was pushed through the classic editor 26.10 and through this
 operator and compared pixel by pixel; see the acceptance numbers at the end.
 
 - GEGL id: `lb:brightness-contrast`
@@ -88,20 +88,20 @@ channel. A full 256×192 render takes about 0.2 s including PNG encode/decode.
 ## Acceptance
 
 `python tools/check_bc_ps.py` renders the chart through the gegl CLI and compares
-it with Photoshop's 16-bit export, pixel by pixel:
+it with the classic editor's 16-bit export, pixel by pixel:
 
 | Version | Reference images | Median | 95% | Max |
 |---|---|---|---|---|
 | Current | 154 | 1 code | 1 code | **2 codes** |
 | Legacy | 154 | 0 codes | 1 code | **1 code** (c=100, see below) |
 
-That one code is mostly rounding between "PS 16-bit export ÷257" and "gegl 8-bit
+That one code is mostly rounding between "the classic editor 16-bit export ÷257" and "gegl 8-bit
 PNG output", not model error. The Python reference `bc-cal/bc_ref.py` replays the
 16-bit data directly: current-version residual 0.5 code, legacy 0.09.
 
 ## Known deviations
 
-1. **Legacy c=100**: Photoshop outputs 159 at the pivot x=89 (the product of
+1. **Legacy c=100**: the classic editor outputs 159 at the pivot x=89 (the product of
    `0×∞` as K diverges); this operator takes the limit and outputs 0/255. Only the
    column of pixels exactly at 89 is affected, everything else agrees (95th
    percentile 0 codes).
@@ -116,5 +116,5 @@ PNG output", not model error. The Python reference `bc-cal/bc_ref.py` replays th
 ## Relation to `lb:hue-saturation` / `lb:exposure`
 
 Those treat brightness as HSL lightness or as an EV stop, i.e. they twist the colour
-model. This one only reproduces Photoshop's two curves. Use it when you need to
-match Photoshop; use the others when you want it to look good.
+model. This one only reproduces the classic editor's two curves. Use it when you need to
+match the classic editor; use the others when you want it to look good.

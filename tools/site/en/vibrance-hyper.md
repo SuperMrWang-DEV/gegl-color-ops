@@ -31,8 +31,8 @@ At vibrance=0 and saturation=1 the output is byte-identical to the input.
 
 ## Relation to `lb:vibrance`
 
-`lb:vibrance` is the numerical reproduction of Photoshop's Vibrance — match the
+`lb:vibrance` is the numerical reproduction of the classic editor's Vibrance — match the
 numbers, no artistic controls. This one is an appearance model: the parameters mean
 something (chroma ceiling, skin protection, gamut handling) and the result looks good,
-but it will not agree with Photoshop code for code. Use this when you want control,
-that one when you want PS to agree.
+but it will not agree with the classic editor code for code. Use this when you want control,
+that one when you want the classic editor to agree.

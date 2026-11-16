@@ -3,13 +3,13 @@
  * ---------------------------------------------------------------------------
  * id         lb:shadows-highlights
  * menu       Shadows/Highlights
- * purpose    等价 PS「图像 → 调整 → 阴影/高光」：按**邻域**亮度分别提亮阴影、
+ * purpose    等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按**邻域**亮度分别提亮阴影、
  *            压暗高光，而不是只看像素值本身。
- *            The Photoshop Image > Adjustments > Shadows/Highlights command:
+ *            The the classic editor Image > Adjustments > Shadows/Highlights command:
  *            shadows are lifted and highlights pulled back according to the
  *            local neighbourhood, not the pixel value alone.
- * algorithm  参数与 PS 一一对应（阴影、高光各三项，加颜色、中间调对比度、
- *            修剪黑/白）。结构照 PS 25.4 的黑盒实测结果：
+ * algorithm  参数与 经典图像编辑器 一一对应（阴影、高光各三项，加颜色、中间调对比度、
+ *            修剪黑/白）。结构照 经典图像编辑器 25.4 的黑盒实测结果：
  *
  *            1. 亮度 lum = (max(R,G,B) + Rec.601 luma) / 2，直接作用于 sRGB 编码值。
  *            2. 邻域亮度 nb：先把 lum 按 σ=1.3559 轻模糊成 guide，再按 guide 的
@@ -29,10 +29,10 @@
  *            6. 中间调对比度是亮度上的全局 S 曲线；修剪黑/白是直方图两端的
  *               拉伸（默认的 0.01% 也真的会拉伸，所以它需要一次全图预扫）。
  *
- *            Numbers come from a black-box fit of Photoshop 25.4; the same
+ *            Numbers come from a black-box fit of classic image editor 25.4; the same
  *            structure is used by PhotoCraft (MIT) — tables reproduced here.
  * type       GeglOperationFilter（空间域，按条带处理 / spatial, row strips）
- * reference  Photoshop Shadows/Highlights（黑盒实测 / black-box measurement）
+ * reference  经典图像编辑器 Shadows/Highlights（黑盒实测 / black-box measurement）
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
  *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
@@ -48,7 +48,7 @@ property_double (shadows_amount, _("Shadows Amount"), 35.0)
     value_range (0.0, 100.0)
     ui_range    (0.0, 100.0)
     ui_gamma    (2.0)
-    description (_("How much to lift the shadows (Photoshop default 35)"))
+    description (_("How much to lift the shadows (the classic default 35)"))
 
 property_double (shadows_width, _("Shadows Tonal Width"), 50.0)
     value_range (0.0, 100.0)
@@ -65,7 +65,7 @@ property_double (highlights_amount, _("Highlights Amount"), 0.0)
     value_range (0.0, 100.0)
     ui_range    (0.0, 100.0)
     ui_gamma    (2.0)
-    description (_("How much to pull the highlights back (Photoshop default 0)"))
+    description (_("How much to pull the highlights back (the classic default 0)"))
 
 property_double (highlights_width, _("Highlights Tonal Width"), 50.0)
     value_range (0.0, 100.0)
@@ -82,7 +82,7 @@ property_double (color_correction, _("Color Correction"), 20.0)
     value_range (-100.0, 100.0)
     ui_range    (-100.0, 100.0)
     description (_("How much of the colour difference survives the brightness change; "
-                   "positive keeps more saturation (Photoshop default +20)"))
+                   "positive keeps more saturation (the classic default +20)"))
 
 property_double (midtone_contrast, _("Midtone Contrast"), 0.0)
     value_range (-100.0, 100.0)
@@ -93,13 +93,13 @@ property_double (black_clip, _("Black Clip"), 0.01)
     value_range (0.0, 50.0)
     ui_range    (0.0, 50.0)
     ui_digits   (2)
-    description (_("Percent of the darkest pixels stretched to black (0.01 in Photoshop)"))
+    description (_("Percent of the darkest pixels stretched to black (0.01 in the classic editor)"))
 
 property_double (white_clip, _("White Clip"), 0.01)
     value_range (0.0, 50.0)
     ui_range    (0.0, 50.0)
     ui_digits   (2)
-    description (_("Percent of the brightest pixels stretched to white (0.01 in Photoshop)"))
+    description (_("Percent of the brightest pixels stretched to white (0.01 in the classic editor)"))
 
 #else
 
@@ -108,7 +108,7 @@ property_double (white_clip, _("White Clip"), 0.01)
 #define GEGL_OP_C_SOURCE shadows-highlights.c
 #include "gegl-op.h"
 
-/* ---- 实测常数 / constants measured on Photoshop ------------------------ */
+/* ---- 实测常数 / constants measured on 经典图像编辑器 ------------------------ */
 #define SH_LEVELS  17       /* guide 的量化级数 / levels the guide is quantised to */
 #define SH_RANGE   1.0152   /* 权重归零的亮度差 / difference at which a weight hits 0 */
 #define SH_SPATIAL 1.1424   /* 邻域 σ 每像素半径 / neighbourhood sigma per radius pixel */
@@ -1438,7 +1438,7 @@ gegl_op_class_init (GeglOpClass *klass)
   gegl_operation_class_set_keys (oclass,
     "name",            "lb:shadows-highlights",
     "title",           _("Shadows/Highlights"),
-    "description",     _("Photoshop's Shadows/Highlights: lifts shadows and pulls "
+    "description",     _("the classic editor's Shadows/Highlights: lifts shadows and pulls "
                          "highlights back according to an edge-aware local "
                          "neighbourhood, with colour correction, midtone contrast "
                          "and black/white clipping."),

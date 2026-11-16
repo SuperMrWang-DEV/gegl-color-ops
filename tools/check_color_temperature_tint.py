@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
-"""验收 lb:color-temperature-tint：用 gegl CLI 渲染全色域探针，与 PS 2026 的
+"""验收 lb:color-temperature-tint：用 gegl CLI 渲染全色域探针，与 经典图像编辑器 2026 的
 真实导出逐色块比对。
 
     python tools/check_color_temperature_tint.py            # 跑默认几组
     python tools/check_color_temperature_tint.py 60 -40 25 25   # 指定 (色温,色调) 对
 
 依赖：GIMP 自带的 gegl.exe（自动查找）+ 已安装的算子（./install.sh）。
-参考图在 ../vibrance-cal/out2026/g_t±NNN_n±NNN.png（PS 2026 导出）。
+参考图在 ../vibrance-cal/out2026/g_t±NNN_n±NNN.png（经典图像编辑器 2026 导出）。
 标定数据不在仓库里时（CI 环境）自动跳过，退出码 0。
 
 比对的是 32³ = 32768 个色块的**块中心**，不是全图像素：探针就是按色块造的，
-块中心才是纯色；PS 侧任何通道 ≥249 的样本直接跳过 —— 那边已经削平，
+块中心才是纯色；经典图像编辑器 侧任何通道 ≥249 的样本直接跳过 —— 那边已经削平，
 比不出东西，硬算只会把统计拉偏。
 """
 import os
@@ -105,7 +105,7 @@ def main():
     for t, n in pairs:
         ref_path = os.path.join(CAL, "out2026", "g_t%+04d_n%+04d.png" % (t, n))
         if not os.path.exists(ref_path):
-            print("%9g %9g  （缺少 PS 参考 %s，跳过）" % (t, n, os.path.basename(ref_path)))
+            print("%9g %9g  （缺少 经典图像编辑器 参考 %s，跳过）" % (t, n, os.path.basename(ref_path)))
             continue
         dst = os.path.join(tmp, "t%+d_n%+d.png" % (int(t), int(n)))
         render(exe, env, t, n, dst)

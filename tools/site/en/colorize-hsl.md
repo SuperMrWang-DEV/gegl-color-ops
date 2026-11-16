@@ -1,11 +1,11 @@
 ---
 name: Colorize
-blurb: Photoshop's Colorize checkbox from Hue/Saturation — input hue and saturation are discarded, only lightness survives.
+blurb: the classic editor's Colorize checkbox from Hue/Saturation — input hue and saturation are discarded, only lightness survives.
 ---
 
-Reproduces the **"Colorize" checkbox** in Photoshop's Hue/Saturation dialog,
+Reproduces the **"Colorize" checkbox** in the classic editor's Hue/Saturation dialog,
 calibrated against measurements rather than approximated (the old build used a
-fill layer plus an Overlay grey and had nothing to do with PS; it is gone). The
+fill layer plus an Overlay grey and had nothing to do with the classic editor; it is gone). The
 calibration data is in `colorize-cal/RESULTS.md`.
 
 - GEGL id: `lb:colorize-hsl`
@@ -44,7 +44,7 @@ red, not 340°). The operator handles that explicitly and `value_range` is 0…3
 ## Acceptance
 
 `python tools/check_colorize_ps.py` renders the calibration chart through the gegl CLI
-and compares it with Photoshop 26.10's 16-bit export, pixel by pixel (in 8-bit code
+and compares it with classic image editor 26.10's 16-bit export, pixel by pixel (in 8-bit code
 values):
 
 | Metric | Result |
@@ -55,7 +55,7 @@ values):
 | 95th percentile | 0.016 code |
 | Max | 0.03 code |
 
-0.03 code is one 16-bit LSB, coming from floating-point truncation on the Photoshop
+0.03 code is one 16-bit LSB, coming from floating-point truncation on the the classic editor
 side rather than model error.
 
 > Note: `tools/contact_sheet.py`'s `read_png` converts 16-bit with `v*255//65535`
@@ -66,7 +66,7 @@ side rather than model error.
 ## Difference from `lb:hue-saturation`
 
 `lb:hue-saturation` is the **relative** mode (offset the pixel's own H/S/L, with six
-hue ranges adjustable separately), i.e. Photoshop with Colorize unchecked.
+hue ranges adjustable separately), i.e. the classic editor with Colorize unchecked.
 `lb:colorize-hsl` is the **absolute** mode: it throws the existing colour away, keeps
 only the tonal structure, and turns the whole image into a monochrome tint. They are
 complementary, not interchangeable.

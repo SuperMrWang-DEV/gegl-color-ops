@@ -3,24 +3,24 @@
  * ---------------------------------------------------------------------------
  * id         lb:color-lookup
  * menu       Color Lookup
- * purpose    按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价 PS「颜色查找」
+ * purpose    按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价于经典图像编辑器「颜色查找」
  *            调整图层；强度按 0..1 与原图线性混合
  *            Colour lookup through a .cube 3D LUT (optionally with 1D shaper
- *            tables), the equivalent of the Photoshop Color Lookup adjustment
+ *            tables), the equivalent of the classic editor Color Lookup adjustment
  *            layer. Strength blends the result back towards the source.
- * algorithm  解析 Adobe Cube LUT（LUT_1D_SIZE / LUT_3D_SIZE / DOMAIN_MIN /
+ * algorithm  解析 Cube LUT（LUT_1D_SIZE / LUT_3D_SIZE / DOMAIN_MIN /
  *            DOMAIN_MAX），节点值按声明的 domain 归一化到 0..1：1D 表逐通道
  *            先查，再进 3D 表（红变化最快，索引 r + g*n + b*n*n）。3D 采样可选
  *            三线性或四面体——四面体在灰轴附近不会出现三线性的楔形误差。
  *            强度 s 在输出端做 lerp(源, 查表结果, s)。
- *            Parse an Adobe Cube LUT, normalise node values to 0..1 with the
+ *            Parse a Cube LUT, normalise node values to 0..1 with the
  *            declared domain, run the optional 1D shaper tables per channel,
  *            then sample the 3D table (red varies fastest, index
  *            r + g*n + b*n*n) either trilinearly or tetrahedrally. Strength
  *            lerps between the source and the mapped colour.
  * type       GeglOperationFilter（按行扫描 / row-wise）
- * reference  Photoshop「颜色查找」调整层 + Adobe Cube LUT 规范
- *            Photoshop Color Lookup adjustment layer + Adobe Cube LUT spec
+ * reference  经典图像编辑器「颜色查找」调整层 + Cube LUT 规范
+ *            the classic editor Color Lookup adjustment layer + Cube LUT spec
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
  *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
@@ -34,7 +34,7 @@
 #ifdef GEGL_PROPERTIES
 
 property_file_path (file, _("LUT File"), "")
-    description (_("Adobe Cube LUT (.cube), 1D and/or 3D"))
+    description (_("Cube LUT (.cube), 1D and/or 3D"))
 
 property_double (strength, _("Strength"), 1.0)
     value_range (0.0, 1.0)
@@ -627,7 +627,7 @@ gegl_op_class_init (GeglOpClass *klass)
   gegl_operation_class_set_keys (oclass,
     "name",            "lb:color-lookup",
     "title",           _("Color Lookup"),
-    "description",     _("Colour lookup through an Adobe Cube LUT (.cube), the equivalent of the Photoshop Color Lookup adjustment layer. 1D shaper tables and trilinear / tetrahedral 3D sampling are supported."),
+    "description",     _("Colour lookup through a Cube LUT (.cube), the equivalent of the classic editor Color Lookup adjustment layer. 1D shaper tables and trilinear / tetrahedral 3D sampling are supported."),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Blend",
     "gimp:menu-label", _("Color Lookup"),
     NULL);

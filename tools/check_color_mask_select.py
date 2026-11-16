@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """验收 lb:color-mask-select 的色调模式（高光 / 阴影 / 中间调）。
 
-这两条曲线不是推出来的，是拿 PS 2025「色彩范围」实测标定的
+这两条曲线不是推出来的，是拿 经典图像编辑器 2025「色彩范围」实测标定的
 （见 ../clrr-cal：40 组参数跑出蒙版，拟合出「阈值 + 容差 → 亮度响应」）。
 
 做法：造一张 256 px 的纯灰斜坡（第 x 列的亮度就是 x），让算子跑一遍，
@@ -38,7 +38,7 @@ OPS_CANDIDATES = [
     r"C:\Program Files\GIMP 3\lib\gegl-0.4",
 ]
 
-# PS 的响应用解析式只能逼近：曲线中段能对到 1 码内，两端尾巴（alpha < 20）
+# 经典图像编辑器 的响应用解析式只能逼近：曲线中段能对到 1 码内，两端尾巴（alpha < 20）
 # 差到 30 码左右，肉眼看就是「几乎不选」和「选了一点」。所以卡两档：
 TOL = 34.0       # 单点最大偏差（0–255 码）
 TOL_AVG = 4.0    # 全表平均偏差
@@ -87,7 +87,7 @@ def main():
 
     if verbose:
         print("· gegl  =", gegl)
-        print("· 参考  = %d 个用例（PS 2025 实测）" % len(ref['cases']))
+        print("· 参考  = %d 个用例（经典图像编辑器 2025 实测）" % len(ref['cases']))
 
     total = 0.0
     n = 0
@@ -135,7 +135,7 @@ def main():
                   % (label, case['fz'], sum(errs) / len(errs), max(errs)))
 
     avg = total / max(n, 1)
-    print("· 色调曲线对 PS：%d 个采样点，平均 %.2f 码，最大 %.1f 码（%s）"
+    print("· 色调曲线对 参考图像编辑器：%d 个采样点，平均 %.2f 码，最大 %.1f 码（%s）"
           % (n, avg, worst[0], worst[1]))
     if bad or avg > TOL_AVG:
         print("✗ %d 个点超出 %.0f 码，平均 %.2f 码（限 %.1f）"

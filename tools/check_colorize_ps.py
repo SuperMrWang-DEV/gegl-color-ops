@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""验收 lb:colorize-hsl：用 gegl CLI 渲染标定图，与 PS 实测的着色输出逐像素比对。
+"""验收 lb:colorize-hsl：用 gegl CLI 渲染标定图，与 经典图像编辑器 实测的着色输出逐像素比对。
 
 参考图来自 ../colorize-cal/out1（结构探测 15 组）与 out2（密集扫描 89 组）。
 
@@ -124,7 +124,7 @@ def main():
         print("   h=%+4d s=%3d l=%+4d   最大 %6.2f  95%% %5.2f  中位 %5.2f  有差异 %4.1f%%"
               % (h, s, l, mx, p95, med, pct))
         if worst and worst[0] > 1.0:
-            print("        在 (%d,%d) PS=%s  GEGL=%s" % (worst[1], worst[2], worst[3], worst[4]))
+            print("        在 (%d,%d) 参考图像编辑器=%s  GEGL=%s" % (worst[1], worst[2], worst[3], worst[4]))
 
     bad = [r for r in rows if r[0] > 1.0]
     print("\n判定：%s" % ("通过（全部 ≤1 码）" if not bad else

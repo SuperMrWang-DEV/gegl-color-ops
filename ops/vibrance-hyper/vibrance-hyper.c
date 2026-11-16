@@ -12,8 +12,8 @@
  *            gated by a skin-hue window. Chroma grows along a fixed hue and
  *            is bisected back into gamut instead of being clipped.
  * type       GeglOperationPointFilter（逐像素 / per-pixel）
- * reference  Adobe Camera Raw / Photoshop 的 Vibrance
- *            Adobe Camera Raw / Photoshop Vibrance
+ * reference  the RAW editor / 经典图像编辑器 的 Vibrance
+ *            the RAW editor / the classic editor Vibrance
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
  *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */

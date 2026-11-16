@@ -1,4 +1,4 @@
-# GEGL_GIMP_PLUGIN_ps-hue-range
+# GEGL_GIMP_PLUGIN_hue-range-basic
 
 ## English
 
@@ -42,7 +42,7 @@ colorize checkbox).
 
 ### Verification
 
-`tools/check_ps_hue_range.py` renders a nine-patch swatch card through gegl
+`tools/check_hue_range_basic.py` renders a nine-patch swatch card through gegl
 and compares every pixel against a line-by-line Python reference:
 8 cases (defaults, weight-scaled hue, saturation to full, lightness,
 wrap-around handles, green family, and a chained master → range run) all
@@ -86,6 +86,6 @@ match to **0.0 codes** (216 sample points, tolerance 2).
 
 ### 验收
 
-`tools/check_ps_hue_range.py`：9 色块色卡过 gegl，与 Python 参考实现
+`tools/check_hue_range_basic.py`：9 色块色卡过 gegl，与 Python 参考实现
 （逐字同式）逐像素对比——8 个用例（默认范围、权重缩放色相、饱和度拉满、
 明度、环绕柄、绿系、链式 Master→Range）216 个采样点全部 **0 码**。

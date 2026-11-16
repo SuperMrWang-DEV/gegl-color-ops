@@ -3,15 +3,15 @@
  * ---------------------------------------------------------------------------
  * id         lb:colorize-hsl
  * menu       Colorize
- * purpose    复刻 Photoshop「色相/饱和度」里的「着色」复选框
- *            Reproduce the Colorize checkbox of Photoshop's Hue/Saturation.
+ * purpose    复刻 经典图像编辑器「色相/饱和度」里的「着色」复选框
+ *            Reproduce the Colorize checkbox of the classic editor's Hue/Saturation.
  * algorithm  RGB → HSL 只取 L → 按明度滑杆改 L → 用滑杆的 H/S 与原 L 回 RGB。
  *            像素原有的色相与饱和度被完全丢弃，只保留明暗结构。
  *            Take L from HSL, move it with the lightness slider, then convert
  *            back with the slider's H/S. The pixel's own hue and saturation are
  *            discarded entirely; only its lightness survives.
  * type       GeglOperationPointFilter（逐像素 / per-pixel）
- * reference  Photoshop 26.10.0 Hue/Saturation + Colorize，实测标定见
+ * reference  classic image editor 26.10.0 Hue/Saturation + Colorize，实测标定见
  *            ../colorize-cal/RESULTS.md
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
  *            GPL-3.0-or-later, see LICENSE at the project root
@@ -168,7 +168,7 @@ gegl_op_class_init (GeglOpClass *klass)
   gegl_operation_class_set_keys (oclass,
     "name",            "lb:colorize-hsl",
     "title",           _("Colorize"),
-    "description",     _("Photoshop's Colorize: keep the HSL lightness of each "
+    "description",     _("the classic editor's Colorize: keep the HSL lightness of each "
                          "pixel, replace hue and saturation with the slider "
                          "values."),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Color",

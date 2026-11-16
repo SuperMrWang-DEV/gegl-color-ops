@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Color Lookup · gegl-color-ops</title>
-<meta name="description" content="按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价 PS「颜色查找」调整图层；强度按 0..1 与原图线性混合">
+<meta name="description" content="按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价于经典图像编辑器「颜色查找」调整图层；强度按 0..1 与原图线性混合">
 <meta property="og:title" content="Color Lookup · gegl-color-ops">
-<meta property="og:description" content="按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价 PS「颜色查找」调整图层；强度按 0..1 与原图线性混合">
+<meta property="og:description" content="按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价于经典图像编辑器「颜色查找」调整图层；强度按 0..1 与原图线性混合">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
 <script>
@@ -46,14 +46,14 @@
     <span class="tag t-blend">混合与通道</span>
     <span>整块区域</span>
   </div>
-  <p class="lede">按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价 PS「颜色查找」调整图层；强度按 0..1 与原图线性混合</p>
+  <p class="lede">按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价于经典图像编辑器「颜色查找」调整图层；强度按 0..1 与原图线性混合</p>
 </section><div class="article-layout">
   <article class="prose">
-<p>按 Adobe Cube LUT 规范实现的「颜色查找」，对应 PS 的「颜色查找」调整图层。 PS 那侧只能手动跑脚本标定（见文末），所以这一支的数值验收先对齐<strong>独立写的 Python 参考实现</strong>，而不是 PS 输出。</p>
+<p>按 Adobe Cube LUT 规范实现的「颜色查找」，对应 经典图像编辑器的「颜色查找」调整图层。 经典图像编辑器 那侧只能手动跑脚本标定（见文末），所以这一支的数值验收先对齐<strong>独立写的 Python 参考实现</strong>，而不是 经典图像编辑器 输出。</p>
 <ul><li>GEGL id：<code>lb:color-lookup</code></li><li>菜单：<code>Colors → SuperMrWang → Blend → Color Lookup</code></li><li>类型：<code>GeglOperationFilter</code>（按行扫描；LUT 在 <code>prepare()</code> 里加载并缓存）</li><li>参数：<code>file</code>（.cube 路径）、<code>strength</code>（0…1，默认 1）、 <code>interpolation</code>（<code>trilinear</code> 默认 / <code>tetrahedral</code>）</li></ul>
 <h2 id="算法">算法</h2>
 <ol><li><strong>解析</strong>：<code>LUT_1D_SIZE</code> / <code>LUT_3D_SIZE</code> / <code>DOMAIN_MIN</code> / <code>DOMAIN_MAX</code> / <code>LUT_1D_INPUT_RANGE</code> / <code>LUT_3D_INPUT_RANGE</code> / <code>TITLE</code> / <code>#</code> 注释。 节点值按声明的 domain 归一化到 0..1（<code>DOMAIN_MAX 255</code> 的表因此与 0..1 表等价）。</li><li><strong>1D shaper</strong>（可选）：逐通道线性插值，先压一段曲线。</li><li><strong>3D 表</strong>：文件里<strong>红变化最快</strong>，索引 <code>r + g·n + b·n²</code>。采样两种：<ul><li>三线性：8 个角点按体积权重相加；</li><li>四面体：按 <code>fr/fg/fb</code> 的大小关系把立方体切成 6 个四面体，每个只走 3 条棱。 灰轴附近不会出现三线性的楔形偏色，但离格点越远、表越不平滑， 与三线性的差别越大（zigzag 表上可达 0.35，约 90 码）。</li></ul></li><li><strong>强度</strong>：<code>out = 源 + (查表结果 − 源) · strength</code>，在编码值上做 lerp。</li><li>输出夹到 0..1；alpha 原样透传。</li></ol>
-<p>格式支持：<strong>只认 <code>.cube</code></strong>（3D、纯 1D、1D+3D 都行）。<code>.3dl</code> / <code>.look</code> / <code>.csp</code> 尚未实现 —— <code>.3dl</code> 的轴序（红最快还是蓝最快）需要拿 PS 实测确认，不能靠猜。</p>
+<p>格式支持：<strong>只认 <code>.cube</code></strong>（3D、纯 1D、1D+3D 都行）。<code>.3dl</code> / <code>.look</code> / <code>.csp</code> 尚未实现 —— <code>.3dl</code> 的轴序（红最快还是蓝最快）需要拿 经典图像编辑器 实测确认，不能靠猜。</p>
 <h2 id="为什么钉在感知格式">为什么钉在感知格式</h2>
 <p>LUT 是给<strong>编码值</strong>（0..1 的 sRGB 码）定义的。pad 固定成 <code>R~G~B~A float</code>， 喂线性光会把整张表往错误的位置上采样，暗部会明显发灰。</p>
 <h2 id="坏文件怎么办">坏文件怎么办</h2>
@@ -65,8 +65,8 @@
 <pre><code class="language-bash">python tools/check_color_lookup.py            # 7 个内置 LUT × 2 种插值 × 3 档强度
 python tools/check_color_lookup.py x.cube     # 额外比对指定文件</code></pre>
 <p>内置用例：2 格/33 格单位元、反相、R/B 对调、平滑非线性（DOMAIN 0..1 与 DOMAIN_MAX 255 各一份，结果须一致）、<code>zigzag9</code>（专门区分两种插值）、纯 1D 表。 与独立 Python 实现逐像素比对，<strong>全部 0.00 码</strong>（8 位下逐位相同）。</p>
-<h2 id="ps-侧待办">PS 侧待办</h2>
-<p>PS 2025 以「命令行带脚本」启动时，所有 <code>Mk</code>（建立调整图层）都会报 「命令建立: 当前不可用」——连亮度/对比度都建不出来，是启动期 UI 未就绪， 与描述符无关；<code>executeAction(colorLookup)</code> 当事件执行则不报错但<strong>不改像素</strong>。 所以要把 <code>color-lookup-cal/batch_cl.jsx</code> 存到本地、在已启动的 PS 里 <code>文件 → 脚本 → 浏览…</code> 手动跑一次，再用 <code>color-lookup-cal/compare.py</code> 对比 PS 输出与算子输出（脚本会同时报「PS vs 三线性」「PS vs 四面体」， 顺便定下 PS 到底用哪种插值）。</p><div class="op-dl">
+<h2 id="经典图像编辑器-侧待办">经典图像编辑器 侧待办</h2>
+<p>经典图像编辑器 2025 以「命令行带脚本」启动时，所有 <code>Mk</code>（建立调整图层）都会报 「命令建立: 当前不可用」——连亮度/对比度都建不出来，是启动期 UI 未就绪， 与描述符无关；<code>executeAction(colorLookup)</code> 当事件执行则不报错但<strong>不改像素</strong>。 所以要把 <code>color-lookup-cal/batch_cl.jsx</code> 存到本地、在已启动的 经典图像编辑器 里 <code>文件 → 脚本 → 浏览…</code> 手动跑一次，再用 <code>color-lookup-cal/compare.py</code> 对比 经典图像编辑器 输出与算子输出（脚本会同时报「经典图像编辑器 vs 三线性」「经典图像编辑器 vs 四面体」， 顺便定下 经典图像编辑器 到底用哪种插值）。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>color-lookup.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>color-lookup.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
@@ -81,7 +81,7 @@ python tools/check_color_lookup.py x.cube     # 额外比对指定文件</code><
 <li class="l2"><a href="#坏文件怎么办">坏文件怎么办</a></li>
 <li class="l2"><a href="#性能">性能</a></li>
 <li class="l2"><a href="#验收">验收</a></li>
-<li class="l2"><a href="#ps-侧待办">PS 侧待办</a></li></ul>
+<li class="l2"><a href="#经典图像编辑器-侧待办">经典图像编辑器 侧待办</a></li></ul>
 </aside>
 </div></div>
 <div class="l-en"><section class="page-head">
@@ -92,14 +92,14 @@ python tools/check_color_lookup.py x.cube     # 额外比对指定文件</code><
     <span class="tag t-blend">Blend</span>
     <span>area</span>
   </div>
-  <p class="lede">Photoshop's Color Lookup adjustment built on the Adobe Cube LUT spec — trilinear or tetrahedral interpolation, with strength.</p>
+  <p class="lede">the classic editor's Color Lookup adjustment built on the Adobe Cube LUT spec — trilinear or tetrahedral interpolation, with strength.</p>
 </section><div class="article-layout">
   <article class="prose">
-<p>An implementation of "Color Lookup" following the Adobe Cube LUT specification, matching Photoshop's Color Lookup adjustment layer. Photoshop can only be calibrated with a manually-run script here (see the end), so numeric acceptance targets an <strong>independently written Python reference</strong> rather than PS output.</p>
+<p>An implementation of "Color Lookup" following the Adobe Cube LUT specification, matching the classic editor's Color Lookup adjustment layer. the classic editor can only be calibrated with a manually-run script here (see the end), so numeric acceptance targets an <strong>independently written Python reference</strong> rather than the classic editor output.</p>
 <ul><li>GEGL id: <code>lb:color-lookup</code></li><li>Menu: <code>Colors → SuperMrWang → Blend → Color Lookup</code></li><li>Type: <code>GeglOperationFilter</code> (row scan; the LUT is loaded and cached in <code>prepare()</code>)</li><li>Parameters: <code>file</code> (a .cube path), <code>strength</code> (0…1, default 1), <code>interpolation</code> (<code>trilinear</code> default / <code>tetrahedral</code>)</li></ul>
 <h2 id="algorithm">Algorithm</h2>
 <ol><li><strong>Parse</strong>: <code>LUT_1D_SIZE</code> / <code>LUT_3D_SIZE</code> / <code>DOMAIN_MIN</code> / <code>DOMAIN_MAX</code> / <code>LUT_1D_INPUT_RANGE</code> / <code>LUT_3D_INPUT_RANGE</code> / <code>TITLE</code> / <code>#</code> comments. Node values are normalised to 0..1 by the declared domain, so a table with <code>DOMAIN_MAX 255</code> behaves the same as a 0..1 table.</li><li><strong>1D shaper</strong> (optional): per-channel linear interpolation, one curve first.</li><li><strong>3D table</strong>: <strong>red varies fastest</strong> in the file, index <code>r + g·n + b·n²</code>. Two ways to sample:<ul><li>trilinear: the 8 corners weighted by volume;</li><li>tetrahedral: split the cube into 6 tetrahedra according to the ordering of <code>fr/fg/fb</code>, each using only 3 edges. No trilinear wedge near the grey axis, but the further from a lattice point and the less smooth the table, the more it differs from trilinear (up to 0.35 on the zigzag table, about 90 code values).</li></ul></li><li><strong>Strength</strong>: <code>out = source + (lookup − source) · strength</code>, lerped on encoded values.</li><li>Output clipped to 0..1; alpha passes through untouched.</li></ol>
-<p>Format support: <strong><code>.cube</code> only</strong> (3D, pure 1D, 1D+3D). <code>.3dl</code> / <code>.look</code> / <code>.csp</code> are not implemented — <code>.3dl</code>'s axis order (red fastest or blue fastest) would need to be confirmed against Photoshop, and guessing is not good enough.</p>
+<p>Format support: <strong><code>.cube</code> only</strong> (3D, pure 1D, 1D+3D). <code>.3dl</code> / <code>.look</code> / <code>.csp</code> are not implemented — <code>.3dl</code>'s axis order (red fastest or blue fastest) would need to be confirmed against the classic editor, and guessing is not good enough.</p>
 <h2 id="why-the-perceptual-format-is-pinned">Why the perceptual format is pinned</h2>
 <p>A LUT is defined for <strong>encoded values</strong> (0..1 sRGB code). The pad is pinned to <code>R~G~B~A float</code>; feeding linear light samples the table at the wrong place and the shadows visibly turn grey.</p>
 <h2 id="bad-files">Bad files</h2>
@@ -111,8 +111,8 @@ python tools/check_color_lookup.py x.cube     # 额外比对指定文件</code><
 <pre><code class="language-bash">python tools/check_color_lookup.py            # 7 built-in LUTs × 2 interpolations × 3 strengths
 python tools/check_color_lookup.py x.cube     # additionally compare a given file</code></pre>
 <p>Built-in cases: 2-point and 33-point identity, invert, R/B swap, a smooth non-linearity (one with DOMAIN 0..1 and one with DOMAIN_MAX 255, which must agree), <code>zigzag9</code> (specifically to separate the two interpolations) and a pure 1D table. Compared pixel by pixel against the independent Python implementation, <strong>all 0.00 code values</strong> (bit-identical at 8 bits).</p>
-<h2 id="photoshop-side-to-do">Photoshop-side to-do</h2>
-<p>When Photoshop 2025 is launched with a script on the command line, every <code>Mk</code> (create adjustment layer) reports "command not currently available" — even brightness/contrast fails. The UI is simply not ready that early and it has nothing to do with the descriptor; running <code>executeAction(colorLookup)</code> as an event does not error but <strong>does not change pixels</strong> either. So save <code>color-lookup-cal/batch_cl.jsx</code> locally, run it by hand from an already-running PS via File → Scripts → Browse…, then compare PS output with the operator using <code>color-lookup-cal/compare.py</code> (the script reports both "PS vs trilinear" and "PS vs tetrahedral" and thereby settles which interpolation PS uses).</p><div class="op-dl">
+<h2 id="the-classic-editor-side-to-do">the classic editor-side to-do</h2>
+<p>When the classic editor 2025 is launched with a script on the command line, every <code>Mk</code> (create adjustment layer) reports "command not currently available" — even brightness/contrast fails. The UI is simply not ready that early and it has nothing to do with the descriptor; running <code>executeAction(colorLookup)</code> as an event does not error but <strong>does not change pixels</strong> either. So save <code>color-lookup-cal/batch_cl.jsx</code> locally, run it by hand from an already-running the classic editor via File → Scripts → Browse…, then compare the classic editor output with the operator using <code>color-lookup-cal/compare.py</code> (the script reports both "the classic editor vs trilinear" and "the classic editor vs tetrahedral" and thereby settles which interpolation the classic editor uses).</p><div class="op-dl">
   <div>
     <h3>Just this one</h3>
     <p>Windows module <code>color-lookup.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>color-lookup.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
@@ -127,20 +127,20 @@ python tools/check_color_lookup.py x.cube     # additionally compare a given fil
 <li class="l2"><a href="#bad-files">Bad files</a></li>
 <li class="l2"><a href="#performance">Performance</a></li>
 <li class="l2"><a href="#acceptance">Acceptance</a></li>
-<li class="l2"><a href="#photoshop-side-to-do">Photoshop-side to-do</a></li></ul>
+<li class="l2"><a href="#the-classic-editor-side-to-do">the classic editor-side to-do</a></li></ul>
 </aside>
 </div></div>
 </main>
 <footer class="site-foot">
   <div>
     <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
-    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">88f4f29</span>
+    <span class="muted">f05ba5f</span>
   </div>
 </footer>
 <script>

@@ -65,7 +65,7 @@ format, so mirror and operator see the same numbers).
 
 - With a/b gamma ≠ 1, small chroma near neutral is amplified (gamma=2 turns 0.008
   into 1.0). That is the shape of an around-the-axis gamma curve (steep near the
-  axis) and Photoshop behaves the same way. On noisy images, use a mask or a smaller
+  axis) and the classic editor behaves the same way. On noisy images, use a mask or a smaller
   gamma.
 - Compared with the old build (which carried its own D65 conversion) results differ
   slightly for the same input (the white point moved from D65 to D50), so old XCF

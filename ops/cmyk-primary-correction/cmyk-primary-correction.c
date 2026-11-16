@@ -3,9 +3,9 @@
  * ---------------------------------------------------------------------------
  * id         lb:cmyk-primary-correction
  * menu       CMYK Primary
- * purpose    PS 可选颜色：红/黄/绿/青/蓝/品红/白/中性/黑九组各自独立记忆
+ * purpose    经典图像编辑器 可选颜色：红/黄/绿/青/蓝/品红/白/中性/黑九组各自独立记忆
  *            C/M/Y/K
- *            PS Selective Color: nine ranges (red, yellow, green, cyan, blue,
+ *            the classic editor Selective Color: nine ranges (red, yellow, green, cyan, blue,
  *            magenta, white, neutral, black), each keeping its own C/M/Y/K
  *            values.
  * algorithm  RGB → CMYK；九组色域分别算权重，逐像素把九组偏移同时叠加，支持绝
@@ -14,8 +14,8 @@
  *            offsets are summed simultaneously; absolute and relative modes
  *            are supported and greys are left untouched.
  * type       GeglOperationPointFilter（逐像素 / per-pixel）
- * reference  Photoshop「可选颜色」(Selective Color)
- *            Photoshop Selective Color
+ * reference  经典图像编辑器「可选颜色」(Selective Color)
+ *            the classic editor Selective Color
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
  *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
@@ -29,17 +29,17 @@
 /* ---- 全局选项 / global options ----------------------------------------- */
 
 property_boolean (absolute, _("Absolute Mode"), FALSE)
-    description (_("PS 'Absolute' checkbox: 100 means a hard +100% ink step "
+    description (_("the classic editor 'Absolute' checkbox: 100 means a hard +100% ink step "
                    "instead of a relative one"))
 
 /* ---- 九组色域各自一份 C/M/Y/K / nine ranges, one set each --------------
- * PS 的「可选颜色」有 9 个页签，各存一套 C/M/Y/K；切换页签不会丢掉别组的
+ * 经典图像编辑器的「可选颜色」有 9 个页签，各存一套 C/M/Y/K；切换页签不会丢掉别组的
  * 数值，而且九组同时作用。这里用 36 个独立属性如实还原该行为。
- * PS Selective Color keeps one C/M/Y/K set per tab: switching tabs never
+ * the classic editor Selective Color keeps one C/M/Y/K set per tab: switching tabs never
  * drops another tab's values and all nine act at once. 36 separate
  * properties reproduce that faithfully.
- * 顺序与 PS 一致：红 / 黄 / 绿 / 青 / 蓝 / 品红 / 白 / 中性 / 黑
- * Order matches PS: red, yellow, green, cyan, blue, magenta, white,
+ * 顺序与 经典图像编辑器 一致：红 / 黄 / 绿 / 青 / 蓝 / 品红 / 白 / 中性 / 黑
+ * Order matches the classic editor: red, yellow, green, cyan, blue, magenta, white,
  * neutral, black.
  */
 
@@ -306,9 +306,9 @@ read_adjustments(GeglOperation *op, SectionAdjust adj[SEC_COUNT],
 }
 
 /* 感知（非线性）格式：公式按 8bit sRGB 伽马域推导，必须拿伽马值，否则 babl
- * 会喂线性光，数值与 PS 对不上
+ * 会喂线性光，数值与 经典图像编辑器 对不上
  * Perceptual (non-linear) format: the maths was derived in the 8-bit sRGB
- * gamma domain. Linear light from babl would drift away from Photoshop. */
+ * gamma domain. Linear light from babl would drift away from the classic editor. */
 static const Babl *
 perceptual_format (GeglOperation *op)
 {
@@ -367,9 +367,9 @@ process(GeglOperation       *op,
 
       gfloat dr = 0.0f, dg = 0.0f, db = 0.0f;
 
-      /* 九组同时叠加：像素同时属于「红」和「白」时两组都生效，与 PS 一致
+      /* 九组同时叠加：像素同时属于「红」和「白」时两组都生效，与 经典图像编辑器 一致
        * all nine add up: a pixel that is both red and white gets both, as
-       * in PS */
+       * in the classic editor */
       for (gint s = 0; s < SEC_COUNT; s++)
       {
         gfloat w;
@@ -413,7 +413,7 @@ gegl_op_class_init(GeglOpClass *klass)
   gegl_operation_class_set_keys(oclass,
     "name",            "lb:cmyk-primary-correction",
     "title",           _("CMYK Primary Correction"),
-    "description",     _("PS Selective Color: 9 color ranges each keep their own C/M/Y/K "
+    "description",     _("the classic editor Selective Color: 9 color ranges each keep their own C/M/Y/K "
                          "and all apply at once, absolute/relative mode"),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Color",
     "gimp:menu-label", _("CMYK Primary"),

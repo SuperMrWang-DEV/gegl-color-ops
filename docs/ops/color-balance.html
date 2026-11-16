@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Color Balance · gegl-color-ops</title>
-<meta name="description" content="PS 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴">
+<meta name="description" content="经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴the classic editor Color Balance: shadow, midtone and highlight each carry">
 <meta property="og:title" content="Color Balance · gegl-color-ops">
-<meta property="og:description" content="PS 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴">
+<meta property="og:description" content="经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴the classic editor Color Balance: shadow, midtone and highlight each carry">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
 <script>
@@ -46,11 +46,11 @@
     <span class="tag t-color">色彩</span>
     <span>整块区域</span>
   </div>
-  <p class="lede">PS 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴</p>
+  <p class="lede">经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴the classic editor Color Balance: shadow, midtone and highlight each carry threeaxis pairs (C-R, M-G, Y-B).</p>
 </section><div class="article-layout">
   <article class="prose">
-<p>对应 Photoshop「色彩平衡」调整。两个模式：</p>
-<ul><li><strong>不保留明度（默认）</strong>：PS 的逐通道曲线，见下面「算法」一节。</li><li><strong>保留明度</strong>：MATLAB 零和矩阵（系数减中位数 → 高光 <code>in/(1−α)</code> → 阴影 <code>(in−α)/(1−α)</code> → 中间调 <code>in^γ</code>），与 PS 实测最大差 3.0 码，未做改动。</li></ul>
+<p>对应 经典图像编辑器的「色彩平衡」调整。两个模式：</p>
+<ul><li><strong>不保留明度（默认）</strong>：经典图像编辑器的逐通道曲线，见下面「算法」一节。</li><li><strong>保留明度</strong>：MATLAB 零和矩阵（系数减中位数 → 高光 <code>in/(1−α)</code> → 阴影 <code>(in−α)/(1−α)</code> → 中间调 <code>in^γ</code>），与 经典图像编辑器 实测最大差 3.0 码，未做改动。</li></ul>
 <hr>
 <h2 id="算法不保留明度">算法（不保留明度）</h2>
 <p>一个通道（C-R 动 R、M-G 动 G、Y-B 动 B）只由自己那条滑杆决定，与其它两个通道无关。 三个色调区间的参数先合并成<strong>一条</strong>曲线：</p>
@@ -61,12 +61,12 @@ W = 255 − s    当高光滑杆为正（白场压下来）
 
 u   = (v − b) / (W − b)
 out = 255 · u^G                       (u ≥ H)</code></pre>
-<p>近黑端另有一段「趾部」：G &lt; 1 时 u^G 在 0 处斜率无穷，PS 实际是有限斜率起步。 把 [b, h0] 这一段换成三次 Hermite：</p>
+<p>近黑端另有一段「趾部」：G &lt; 1 时 u^G 在 0 处斜率无穷，经典图像编辑器 实际是有限斜率起步。 把 [b, h0] 这一段换成三次 Hermite：</p>
 <pre><code>h0  = b + H · (W − b)
 y1  = 255 · H^G                      区间右端值
 out = Hermite( (v−b)/(h0−b), Su·H, y1, G·y1 )</code></pre>
 <ul><li>指数：中间调 <code>2^(∓s/100)</code>，阴影和高光各只有它的一半 <code>2^(∓s/200)</code>； 算子用实测表（<code>cb-tables.h</code> 的 <code>CB_G</code>），不套公式。</li><li><code>Su</code>（归一化起点斜率）与 <code>H</code>（趾部宽度占比）都<strong>只随复合指数 G 变化</strong>， 与「这个 G 是哪个区间给的」无关：单区间档与组合档落在同一条曲线上（表 <code>CB_TOE</code>）。 G ≥ 0.85 时 H 衰减到 0，趾部自然消失。</li><li>忽略趾部的话，中间调 +100 在 v≈4 处会差 16 码；补上后全档 ≤ 0.3 码。</li></ul>
-<p>参数由 <code>cb-cal</code> 的 Photoshop 标定得到（PS 26.10、16 位、600 档单区间 + 9 组合）， 完整推导与精度见 <code>../../cb-cal/RESULTS.md</code>。</p>
+<p>参数由 <code>cb-cal</code> 的 经典图像编辑器 标定得到（经典图像编辑器 26.10、16 位、600 档单区间 + 9 组合）， 完整推导与精度见 <code>../../cb-cal/RESULTS.md</code>。</p>
 <p><strong>不要手改 <code>cb-tables.h</code></strong>，它由 <code>cb-cal/gen_cb_tables.py</code> 从标定数据生成。</p>
 <p>精度（1024 px 连续斜坡、16 位、全图逐像素）：</p>
 <div class="table-wrap"><table><thead><tr><th>分组</th><th>最大</th><th>中位</th></tr></thead><tbody><tr><td>阴影 ±1…±100</td><td>0.21 码</td><td>0.01 码</td></tr><tr><td>中间调</td><td>0.30 码</td><td>0.00 码</td></tr><tr><td>高光</td><td>0.27 码</td><td>0.00 码</td></tr><tr><td>组合</td><td>0.65 码</td><td>0.06 码</td></tr></tbody></table></div>
@@ -75,7 +75,7 @@ out = Hermite( (v−b)/(h0−b), Su·H, y1, G·y1 )</code></pre>
 <p>工程早期按下面第 1 篇的「三段独立通道曲线、依次作用」实现，实测下来在高光正向和 阴影负向上偏到 30 码级，组合档更差。本轮重新标定后确认：三段不是依次作用，而是 指数相乘、黑场/白场各取一端的参数合并；单段曲线也不是文章里的 <code>1 − k·s</code> 线性指数。 第 2 篇的零和矩阵（保留明度）与实测吻合，保留原样。</p>
 <hr>
 <h2 id="参考-references">参考 / References</h2>
-<ol><li>色彩平衡调整图层的本质-背后的数学原理 - 王先生的副业 - 知乎 <a href="https://zhuanlan.zhihu.com/p/679776283" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/679776283</a></li><li>Photoshop 中的色彩平衡调整图层的原理分析 - 章佳杰 - 知乎 <a href="https://zhuanlan.zhihu.com/p/59450298" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/59450298</a></li></ol>
+<ol><li>色彩平衡调整图层的本质-背后的数学原理 - 王先生的副业 - 知乎 <a href="https://zhuanlan.zhihu.com/p/679776283" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/679776283</a></li><li>经典图像编辑器 中的色彩平衡调整图层的原理分析 - 章佳杰 - 知乎 <a href="https://zhuanlan.zhihu.com/p/59450298" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/59450298</a></li></ol>
 <p>第 1 篇的三段曲线模型与实测不符（见上）；第 2 篇的零和矩阵与保留明度模式吻合。 Article 1's three-separate-curves model does not match the measurements; article 2's zero-sum matrix matches the preserve-luminosity mode.</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
@@ -99,11 +99,11 @@ out = Hermite( (v−b)/(h0−b), Su·H, y1, G·y1 )</code></pre>
     <span class="tag t-color">Color</span>
     <span>area</span>
   </div>
-  <p class="lede">Photoshop's Color Balance — one merged levels-style curve per channel, measured against PS to 0.3 code values, plus the legacy preserve-luminosity mode.</p>
+  <p class="lede">the classic editor's Color Balance — one merged levels-style curve per channel, measured against the classic editor to 0.3 code values, plus the legacy preserve-luminosity mode.</p>
 </section><div class="article-layout">
   <article class="prose">
-<p>Photoshop's <strong>Color Balance</strong>, in two modes:</p>
-<ul><li><strong>Preserve luminosity off (default)</strong>: Photoshop's per-channel curve, see "Algorithm" below.</li><li><strong>Preserve luminosity on</strong>: the MATLAB zero-sum matrix (subtract the median from the coefficients → highlights <code>in/(1−α)</code> → shadows <code>(in−α)/(1−α)</code> → midtones <code>in^γ</code>), left unchanged; max 3.0 code values from Photoshop.</li></ul>
+<p>the classic editor's <strong>Color Balance</strong>, in two modes:</p>
+<ul><li><strong>Preserve luminosity off (default)</strong>: the classic editor's per-channel curve, see "Algorithm" below.</li><li><strong>Preserve luminosity on</strong>: the MATLAB zero-sum matrix (subtract the median from the coefficients → highlights <code>in/(1−α)</code> → shadows <code>(in−α)/(1−α)</code> → midtones <code>in^γ</code>), left unchanged; max 3.0 code values from the classic editor.</li></ul>
 <h2 id="algorithm-preserve-luminosity-off">Algorithm (preserve luminosity off)</h2>
 <p>One channel (C-R drives R, M-G drives G, Y-B drives B) is decided by its own slider alone, independent of the other two. The three tonal-range parameters first merge into <strong>a single</strong> curve:</p>
 <pre><code>G = g_shadow · g_midtone · g_highlight          the three exponents multiply
@@ -113,12 +113,12 @@ otherwise b = 0, W = 255
 
 u   = (v − b) / (W − b)
 out = 255 · u^G                                 (u ≥ H)</code></pre>
-<p>Near black there is a <strong>toe</strong>: for G &lt; 1, <code>u^G</code> has infinite slope at 0, while Photoshop starts with a finite slope. The segment <code>[b, h0]</code> is replaced by a cubic Hermite:</p>
+<p>Near black there is a <strong>toe</strong>: for G &lt; 1, <code>u^G</code> has infinite slope at 0, while the classic editor starts with a finite slope. The segment <code>[b, h0]</code> is replaced by a cubic Hermite:</p>
 <pre><code>h0  = b + H · (W − b)
 y1  = 255 · H^G                       value at the right end of the segment
 out = Hermite( (v−b)/(h0−b), Su·H, y1, G·y1 )</code></pre>
 <ul><li>Exponents: midtones <code>2^(∓s/100)</code>, shadows and highlights half of that <code>2^(∓s/200)</code>; the operator reads measured tables (<code>CB_G</code> in <code>cb-tables.h</code>) rather than evaluating the formula.</li><li><code>Su</code> (normalised initial slope) and <code>H</code> (toe width as a fraction) depend on the composite exponent G alone, not on which range produced it: single-range and combined settings fall on the same curve (table <code>CB_TOE</code>). At G ≥ 0.85, H decays to 0 and the toe disappears on its own.</li><li>Ignoring the toe, midtones +100 is off by 16 code values at v≈4; with it, the whole range is within 0.3.</li></ul>
-<p>The parameters come from the Photoshop calibration in <code>cb-cal</code> (PS 26.10, 16-bit, 600 single-range settings + 9 combinations); the full derivation and accuracy are in <code>../../cb-cal/RESULTS.md</code>.</p>
+<p>The parameters come from the the classic editor calibration in <code>cb-cal</code> (the classic editor 26.10, 16-bit, 600 single-range settings + 9 combinations); the full derivation and accuracy are in <code>../../cb-cal/RESULTS.md</code>.</p>
 <p><strong>Do not edit <code>cb-tables.h</code> by hand</strong> — it is generated from the calibration data by <code>cb-cal/gen_cb_tables.py</code>.</p>
 <p>Accuracy (1024 px continuous ramp, 16-bit, every pixel of the image):</p>
 <div class="table-wrap"><table><thead><tr><th>Group</th><th>Max</th><th>Median</th></tr></thead><tbody><tr><td>Shadows ±1…±100</td><td>0.21 code</td><td>0.01 code</td></tr><tr><td>Midtones</td><td>0.30 code</td><td>0.00 code</td></tr><tr><td>Highlights</td><td>0.27 code</td><td>0.00 code</td></tr><tr><td>Combinations</td><td>0.65 code</td><td>0.06 code</td></tr></tbody></table></div>
@@ -126,7 +126,7 @@ out = Hermite( (v−b)/(h0−b), Su·H, y1, G·y1 )</code></pre>
 <h3 id="relation-to-the-two-zhihu-articles">Relation to the two Zhihu articles</h3>
 <p>The project first implemented article 1's model — three independent channel curves applied in sequence — and measured it drifting by 30 code values on highlights in the positive direction and shadows in the negative direction, worse still for combinations. Re-calibration showed that the three ranges do <strong>not</strong> apply in sequence: their exponents multiply and the black/white point parameters merge. Nor is a single range the linear <code>1 − k·s</code> exponent the article proposes. Article 2's zero-sum matrix (preserve luminosity) does match the measurements and is kept as is.</p>
 <h2 id="references">References</h2>
-<ol><li>The mathematics behind the Color Balance adjustment layer — 王先生的副业, Zhihu <a href="https://zhuanlan.zhihu.com/p/679776283" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/679776283</a></li><li>How Photoshop's Color Balance adjustment layer works — 章佳杰, Zhihu <a href="https://zhuanlan.zhihu.com/p/59450298" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/59450298</a></li></ol>
+<ol><li>The mathematics behind the Color Balance adjustment layer — 王先生的副业, Zhihu <a href="https://zhuanlan.zhihu.com/p/679776283" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/679776283</a></li><li>How 经典图像编辑器's Color Balance adjustment layer works — 章佳杰, Zhihu <a href="https://zhuanlan.zhihu.com/p/59450298" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/59450298</a></li></ol>
 <p>Article 1's three-curve model does not match the measurements; article 2's zero-sum matrix matches the preserve-luminosity mode.</p><div class="op-dl">
   <div>
     <h3>Just this one</h3>
@@ -146,13 +146,13 @@ out = Hermite( (v−b)/(h0−b), Su·H, y1, G·y1 )</code></pre>
 <footer class="site-foot">
   <div>
     <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
-    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">88f4f29</span>
+    <span class="muted">f05ba5f</span>
   </div>
 </footer>
 <script>

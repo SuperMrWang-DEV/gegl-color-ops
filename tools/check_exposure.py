@@ -16,7 +16,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from check_ps_hue_saturation import read_png, write_png
+from check_hue_saturation_basic import read_png, write_png
 
 TMP = os.path.join(os.path.dirname(HERE), "build", "exp-check")
 GEGL = os.environ.get("GEGL", r"D:/fastsoftware/GIMP 3/bin/gegl.exe")

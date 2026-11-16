@@ -8,7 +8,7 @@
   - pt_build_lut()   ：把系数烘成 33³ LUT
   - pt_sample()      ：三线性查表
 
-模型是 out = encode(clamp(P(lin_in)))：多项式活在线性域，PS 的硬裁切
+模型是 out = encode(clamp(P(lin_in)))：多项式活在线性域，经典图像编辑器 的硬裁切
 （线性值被压到负值后切成 0）由 clamp 精确复现。早先在编码域直接拟合
 编码值，裁切只能被逼近成一团糊，负色温区域的中位误差到过 90 码。
 
@@ -36,7 +36,7 @@ def main():
 
     out = []
     out.append('/* ===========================================================================')
-    out.append(' * SuperMrWang · PS 色温 / 色调的实测系数表')
+    out.append(' * SuperMrWang · 经典图像编辑器 色温 / 色调的实测系数表')
     out.append(' * ---------------------------------------------------------------------------')
     out.append(' * 由 tools/gen_temp_tint_tables.py 从 vibrance-cal/temp_tint_grid9.json 生成，')
     out.append(' * 请勿手改。标定方法见 ops/color-temperature-tint/README.md。')
@@ -192,7 +192,7 @@ pt_build_lut (gfloat  t,
           gfloat  f[PT_TERMS];
           gfloat *p = lut + ((ri * PT_LUT + gi) * PT_LUT + bi) * 3;
 
-          /* 编码值解码到线性域再套多项式；clamp 复现 PS 的硬裁切，
+          /* 编码值解码到线性域再套多项式；clamp 复现 经典图像编辑器 的硬裁切，
            * 这一步是整个模型里唯一能表达「线性值被压到负数」的地方 */
           pt_feats (pt_to_lin (ri / (gfloat) (PT_LUT - 1)),
                     pt_to_lin (gi / (gfloat) (PT_LUT - 1)),

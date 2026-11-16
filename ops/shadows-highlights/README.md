@@ -1,4 +1,4 @@
-# lb:shadows-highlights · Shadows/Highlights (Photoshop)
+# lb:shadows-highlights · Shadows/Highlights (the classic editor)
 
 > **不推荐日常使用（2026-11-15，性能原因）**　算子仍然可用、数值也仍然准确，
 > 但它是空间域算法：半径 30 时每像素约 1.4 µs，2048×1536 默认参数净耗时 0.7 s
@@ -7,21 +7,21 @@
 > 半径压到 10–15 会快很多。标记文件：`ops/shadows-highlights/.discouraged`
 > （只影响文档与站点展示，**不影响编译和发布**）。
 
-按黑盒标定得到的 Photoshop「图像 → 调整 → 阴影/高光」。和另外十几个算子的最大
+按黑盒标定得到的 经典图像编辑器的「图像 → 调整 → 阴影/高光」。和另外十几个算子的最大
 区别是**它看邻域**：同样一个 128 的像素，周围暗就多提、周围亮就少提，所以不可能简化
 成一条 LUT，必须做空间域滤波。
 
 - GEGL id：`lb:shadows-highlights`
 - 菜单：`Colors → SuperMrWang → Tone → Shadows/Highlights`
 - 类型：`GeglOperationFilter`（空间域，按 192 行一条带处理）
-- 参数（默认值照抄 PS）：阴影 `amount 35 / width 50 / radius 30`、高光 `0 / 50 / 30`、
+- 参数（默认值照抄 经典图像编辑器）：阴影 `amount 35 / width 50 / radius 30`、高光 `0 / 50 / 30`、
   `color-correction 20`、`midtone-contrast 0`、`black-clip 0.01`、`white-clip 0.01`
 
-## 先记一个坑：PS 的脚本入口不叫 Shadow/Highlight
+## 先记一个坑：经典图像编辑器的脚本入口不叫 Shadow/Highlight
 
-想把 PS 当 oracle，第一步是能用脚本调起它。`Shdw`、`ShHl`、`shadowsHighlights`、
+想把 经典图像编辑器 当 oracle，第一步是能用脚本调起它。`Shdw`、`ShHl`、`shadowsHighlights`、
 `shadowHighlight`、`adaptCorrectTones` … 13 个 charID 加 8 个 stringID 轮流试，
-全部报「命令<未知的>当前不可用」，`Photoshop.exe` 和 `Required/*.dll` 里也搜不到
+全部报「命令<未知的>当前不可用」，`编辑器进程` 和 `Required/*.dll` 里也搜不到
 `shadowsHighlights` 字样。
 
 真正的入口是 **`adaptCorrect`**，类名 `adaptCorrectTones`：
@@ -37,11 +37,11 @@ executeAction(s2t("adaptCorrect"), d, DialogModes.NO);
 ```
 
 `shadowMode`/`highlightMode` 里再放 `amount`/`width`/`radius`（`#Prc`），其余键都是
-stringID 小写。这条线索来自 Adobe 社区一个 Clean SL 脚本，比盲试 ID 快得多。
+stringID 小写。这条线索来自 官方用户社区一个 Clean SL 脚本，比盲试 ID 快得多。
 
 ## 算法结构
 
-六个阶段，数全部来自 PS 25.4 的黑盒拟合（同一结构见 PhotoCraft，MIT）：
+六个阶段，数全部来自 经典图像编辑器 25.4 的黑盒拟合（同一结构见 PhotoCraft，MIT）：
 
 1. **亮度** `lum = (max(R,G,B) + Rec.601 luma) / 2`，直接作用在 **sRGB 编码值**上
    （不是线性光）。这解释了为什么暗部提亮后颜色会发灰——它动的是显示值。
@@ -84,7 +84,7 @@ stringID 小写。这条线索来自 Adobe 社区一个 Clean SL 脚本，比盲
 
 ## 验收
 
-`python tools/check_shadows_highlights.py`（`--fast` 跳过 PS 对照）：
+`python tools/check_shadows_highlights.py`（`--fast` 跳过 经典图像编辑器 对照）：
 
 **一、独立 Python 参考实现 vs 算子**（平场，nb = 自身）。参考实现照上面六步直写，
 不复用 C 代码，只共用拟合出来的系数表：
@@ -99,7 +99,7 @@ stringID 小写。这条线索来自 Adobe 社区一个 Clean SL 脚本，比盲
 写这个脚本时抓到过一个真 bug：两个修剪都设 0 时 `clip_lo/clip_hi` 没初始化，
 `(y−0)/(0−0)` 把整图推成纯白。现在 `prepare()` 里复位成 0/1，除法也加了兜底。
 
-**二、和 PS 本身**（`shadows-highlights-cal/`）：
+**二、和 经典图像编辑器 本身**（`shadows-highlights-cal/`）：
 
 | 数据集 | 规模 | 逐点中位 | 最大 |
 |---|---|---|---|
@@ -114,19 +114,19 @@ stringID 小写。这条线索来自 Adobe 社区一个 Clean SL 脚本，比盲
 1. **极端局部对比的二维格点**（20×20 小块压在 99% 面积的极端背景上，
    `bg=16` 配亮块、`bg=240` 配暗块）最大差 11 码。平场对得上、只有这种「邻域和
    像素值差 200 码以上」的合成图案对不上，说明邻域核的边缘保持强度还差一点：
-   实测 PS 的 nb 比本算子更贴近像素自身。把 `SH_RANGE` 从 1.0152 往下调（边缘保持
+   实测 经典图像编辑器的 nb 比本算子更贴近像素自身。把 `SH_RANGE` 从 1.0152 往下调（边缘保持
    更强）会让 87% 的点变好但制造出 87 码的爆点；往上调（4.0 / 50，趋近纯高斯）
    则单调变差。1.0152 是实测的局部最优值，所以保持原样，这个尾巴留着。
 2. **`h_a100_w0` 的 5.7 码**：色调宽度 0 时遮罩退化成 Beta(1.95, 23) 在最暗一段的
    陡壁，插值表按宽度每 5 一档建，宽度 0 正好落在第一个节点上，误差最敏感。
-3. **半径 > 300 没标定**：PS 对话框上限 2500，标定只做到 300，更大半径按同一
+3. **半径 > 300 没标定**：经典图像编辑器 对话框上限 2500，标定只做到 300，更大半径按同一
    σ=1.1424·r 外推。
 4. `midtone_contrast` 与 `color_correction` 用的是参考实现的拟合系数，**没有单独做
-   PS 实测**（平场和彩色平场只验证了算子与参考实现一致，不是与 PS 一致）。
+   经典图像编辑器 实测**（平场和彩色平场只验证了算子与参考实现一致，不是与 经典图像编辑器 一致）。
 
 ## 复现标定
 
-`shadows-highlights-cal/` 里有全套脚本：`apply_cases.jsx`（PS 侧执行器）、
+`shadows-highlights-cal/` 里有全套脚本：`apply_cases.jsx`（经典图像编辑器 侧执行器）、
 `run_cases.py`（批量跑 + 读结果）、`make_ramp.py` / `make_grid.py`（三套探针：
 灰阶竖带、二维格点、阶跃边）、`compare_op.py`（逐点比对）、`dump_grid.py` /
 `analyze_nb.py`（单例残差与邻域反推）、`sweep.py`（邻域尺度扫参）。

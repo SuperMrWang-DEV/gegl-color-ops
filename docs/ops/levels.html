@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Levels · gegl-color-ops</title>
-<meta name="description" content="PS 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 PS 对话框的数字框一一对应">
+<meta name="description" content="经典图像编辑器 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 经典图像编辑器 对话框的数字框一一对应the classic editor Levels: composite">
 <meta property="og:title" content="Levels · gegl-color-ops">
-<meta property="og:description" content="PS 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 PS 对话框的数字框一一对应">
+<meta property="og:description" content="经典图像编辑器 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 经典图像编辑器 对话框的数字框一一对应the classic editor Levels: composite">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
 <script>
@@ -46,33 +46,33 @@
     <span class="tag t-tone">影调与色阶</span>
     <span>逐像素</span>
   </div>
-  <p class="lede">PS 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 PS 对话框的数字框一一对应</p>
+  <p class="lede">经典图像编辑器 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 经典图像编辑器 对话框的数字框一一对应the classic editor Levels: composite plus per-channel input black / gamma /white and output black / white, in 0-255 units so the numbersmatch the classic dialog field for field.</p>
 </section><div class="article-layout">
   <article class="prose">
-<p>PS「色阶」对话框的复刻：<strong>复合 + R/G/B 四组</strong>，每组都是 「输入黑场 / 输入灰点 / 输入白场 + 输出黑场 / 输出白场」五个数， 刻度 0–255，和 PS 的数字框一一对应。</p>
+<p>经典图像编辑器「色阶」对话框的复刻：<strong>复合 + R/G/B 四组</strong>，每组都是 「输入黑场 / 输入灰点 / 输入白场 + 输出黑场 / 输出白场」五个数， 刻度 0–255，和 经典图像编辑器的数字框一一对应。</p>
 <p>对应面板：<code>Colors → SuperMrWang → Tone → Levels</code>。</p>
 <h2 id="模型">模型</h2>
 <p>单通道：</p>
 <pre><code>t   = clamp((v - inLow) / (inHigh - inLow), 0, 1)
 t'  = t ^ (1 / gamma)
 out = outLow + t' * (outHigh - outLow)</code></pre>
-<ul><li><code>inLow</code> 及以下压成 <code>outLow</code>，<code>inHigh</code> 及以上压成 <code>outHigh</code>， 中间按 gamma 曲线重新分布；</li><li><strong>gamma &gt; 1 提亮，gamma &lt; 1 压暗</strong>（与 PS 数字框同向。注意这与 「标准 gamma」的直觉相反，因为 PS 的滑块值直接进的是 <code>1/gamma</code> 的倒数位置； 指数写成 <code>t^gamma</code> 会让方向整个反过来）；</li><li>输入区间会把整段拉伸：设了 <code>inLow = 64</code> 之后，<code>v = 240</code> 会变成 <code>235</code>， 不是原样保留；</li><li><code>inHigh == inLow</code> 时区间塌成一点，按台阶处理（≥ 该值为白），不除零。</li></ul>
-<p>执行顺序：<strong>先复合组（三通道同一条曲线），再各通道组</strong>。各通道组默认恒等， 所以「只动复合」与 PS 的 RGB 通道模式逐位一致；「只动红」等价于 PS 的 Red 通道模式。四组可以叠加使用，这比 PS 一次只能选一个通道更强。</p>
+<ul><li><code>inLow</code> 及以下压成 <code>outLow</code>，<code>inHigh</code> 及以上压成 <code>outHigh</code>， 中间按 gamma 曲线重新分布；</li><li><strong>gamma &gt; 1 提亮，gamma &lt; 1 压暗</strong>（与 经典图像编辑器 数字框同向。注意这与 「标准 gamma」的直觉相反，因为 经典图像编辑器的滑块值直接进的是 <code>1/gamma</code> 的倒数位置； 指数写成 <code>t^gamma</code> 会让方向整个反过来）；</li><li>输入区间会把整段拉伸：设了 <code>inLow = 64</code> 之后，<code>v = 240</code> 会变成 <code>235</code>， 不是原样保留；</li><li><code>inHigh == inLow</code> 时区间塌成一点，按台阶处理（≥ 该值为白），不除零。</li></ul>
+<p>执行顺序：<strong>先复合组（三通道同一条曲线），再各通道组</strong>。各通道组默认恒等， 所以「只动复合」与 经典图像编辑器的 RGB 通道模式逐位一致；「只动红」等价于 经典图像编辑器的 Red 通道模式。四组可以叠加使用，这比 经典图像编辑器 一次只能选一个通道更强。</p>
 <h2 id="域">域</h2>
-<p>在 <strong>8bit sRGB 伽马域</strong>逐通道直接算，不回线性光。色阶的黑白场是 「0–255 编码值」的语义，喂线性光会让数字框对不上 PS。算子自己在 <code>prepare</code> 里把两个 pad 钉成感知格式（<code>R~G~B~A float</code>），不需要前置 <code>linear-rgb</code>。</p>
+<p>在 <strong>8bit sRGB 伽马域</strong>逐通道直接算，不回线性光。色阶的黑白场是 「0–255 编码值」的语义，喂线性光会让数字框对不上 经典图像编辑器。算子自己在 <code>prepare</code> 里把两个 pad 钉成感知格式（<code>R~G~B~A float</code>），不需要前置 <code>linear-rgb</code>。</p>
 <h2 id="验证">验证</h2>
 <pre><code class="language-bash">python tools/check_levels_ps.py</code></pre>
 <p>11 项，两层：</p>
 <p><strong>A 数学层</strong> —— Python 侧逐行复刻 C 模型，256 列灰阶探针（第 x 列灰度恰好是 x， 采样不插值）逐像素比对，全 0.00 码：</p>
 <div class="table-wrap"><table><thead><tr><th>用例</th><th>检查点</th></tr></thead><tbody><tr><td>全默认</td><td>0 / 20 / 128 / 240 / 255 恒等</td></tr><tr><td>输入黑场 64</td><td>归零、中段、高段被拉伸到 235</td></tr><tr><td>输入白场 192</td><td>全白、暗端被拉伸到 27</td></tr><tr><td>输出收缩 50–200</td><td>两端落到 50 / 200，中段线性</td></tr><tr><td>gamma 2.0 / 0.5</td><td>提亮 / 压暗，端点不动</td></tr><tr><td>组合</td><td>50 / 0.7 / 200 → 30 / 220</td></tr><tr><td>单通道</td><td>只动红，绿蓝不动</td></tr></tbody></table></div>
-<p><strong>B 基准层</strong> —— 回放两个公开的 PS 实测点，专门卡住 gamma 的<strong>方向和指数形式</strong>：</p>
-<div class="table-wrap"><table><thead><tr><th>输入</th><th>gamma</th><th>PS 实测</th><th>本算子</th><th>偏差</th></tr></thead><tbody><tr><td>154</td><td>0.46</td><td>84</td><td>85</td><td>1.19 码</td></tr><tr><td>200</td><td>1.646</td><td>220</td><td>220</td><td>0.01 码</td></tr></tbody></table></div>
-<p>这两点很要紧：只做「C 和 Python 自洽」的验证是查不出指数写反的，两边会一起错。 基准取自 Adobe 社区里用户量出来的像素值与公认公式 <code>out = in^(1/gamma)</code>。</p>
+<p><strong>B 基准层</strong> —— 回放两个公开的 经典图像编辑器 实测点，专门卡住 gamma 的<strong>方向和指数形式</strong>：</p>
+<div class="table-wrap"><table><thead><tr><th>输入</th><th>gamma</th><th>经典图像编辑器 实测</th><th>本算子</th><th>偏差</th></tr></thead><tbody><tr><td>154</td><td>0.46</td><td>84</td><td>85</td><td>1.19 码</td></tr><tr><td>200</td><td>1.646</td><td>220</td><td>220</td><td>0.01 码</td></tr></tbody></table></div>
+<p>这两点很要紧：只做「C 和 Python 自洽」的验证是查不出指数写反的，两边会一起错。 基准取自 官方用户社区里用户量出来的像素值与公认公式 <code>out = in^(1/gamma)</code>。</p>
 <h2 id="本机为什么没做逐码标定">本机为什么没做逐码标定</h2>
-<p>PS 2025（26.10.0）在这台机器上：<code>executeAction</code> 的 <code>Lvls</code> 事件、以及 <code>Mk</code> 创建调整图层，都直接抛「不能完成命令，因为程序错误」；DOM 的 <code>LayerKind.LEVELS</code> 也给「只能改为文本或正常」。诊断日志见 <code>../lvls-cal/_diag2.txt</code>。<code>colorRange</code> 反而能跑，所以不是 ExtendScript 整体 不可用，是这两个命令在这套安装里被挡了。</p>
-<p>因此基准改用公开实测值，而不是本机标定。<strong>如果你在另一台机器上能跑 PS 脚本， 可以把 <code>lvls-cal/</code> 里的 <code>ps_levels.jsx</code> 修好重跑，就能升级成逐码标定。</strong></p>
+<p>经典图像编辑器 2025（26.10.0）在这台机器上：<code>executeAction</code> 的 <code>Lvls</code> 事件、以及 <code>Mk</code> 创建调整图层，都直接抛「不能完成命令，因为程序错误」；DOM 的 <code>LayerKind.LEVELS</code> 也给「只能改为文本或正常」。诊断日志见 <code>../lvls-cal/_diag2.txt</code>。<code>colorRange</code> 反而能跑，所以不是 ExtendScript 整体 不可用，是这两个命令在这套安装里被挡了。</p>
+<p>因此基准改用公开实测值，而不是本机标定。<strong>如果你在另一台机器上能跑 经典图像编辑器 脚本， 可以把 <code>lvls-cal/</code> 里的 <code>ps_levels.jsx</code> 修好重跑，就能升级成逐码标定。</strong></p>
 <h2 id="与-gimp-自带色阶的区别">与 GIMP 自带「色阶」的区别</h2>
-<p>GIMP 的 <code>Colors → Levels</code> 是 app 层私有实现，GEGL 里的 <code>gegl:levels</code> 只有 <code>in-low / in-high / out-low / out-high</code> <strong>四个</strong>属性——没有 gamma，没有每通道， 也没有 0–255 的数字刻度（<code>gegl --info gegl:levels</code> 可查）。所以这个算子补的是 GEGL 算子层面的真空白：脚本、批处理、<code>gegl</code> 命令行里都能用 PS 的色阶参数。</p><div class="op-dl">
+<p>GIMP 的 <code>Colors → Levels</code> 是 app 层私有实现，GEGL 里的 <code>gegl:levels</code> 只有 <code>in-low / in-high / out-low / out-high</code> <strong>四个</strong>属性——没有 gamma，没有每通道， 也没有 0–255 的数字刻度（<code>gegl --info gegl:levels</code> 可查）。所以这个算子补的是 GEGL 算子层面的真空白：脚本、批处理、<code>gegl</code> 命令行里都能用 经典图像编辑器的色阶参数。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>levels.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>levels.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
@@ -97,33 +97,33 @@ out = outLow + t' * (outHigh - outLow)</code></pre>
     <span class="tag t-tone">Tone</span>
     <span>per-pixel</span>
   </div>
-  <p class="lede">Photoshop's Levels dialog — composite plus R/G/B, five numbers each, 0–255 scale, with PS's gamma direction.</p>
+  <p class="lede">the classic editor's Levels dialog — composite plus R/G/B, five numbers each, 0–255 scale, with the classic editor's gamma direction.</p>
 </section><div class="article-layout">
   <article class="prose">
-<p>A reproduction of Photoshop's <strong>Levels</strong> dialog: <strong>composite plus R/G/B</strong>, four groups of five numbers each — input black, input grey, input white, output black, output white — on a 0–255 scale that matches PS's numeric fields one for one.</p>
+<p>A reproduction of the classic editor's <strong>Levels</strong> dialog: <strong>composite plus R/G/B</strong>, four groups of five numbers each — input black, input grey, input white, output black, output white — on a 0–255 scale that matches the classic editor's numeric fields one for one.</p>
 <p>Panel: <code>Colors → SuperMrWang → Tone → Levels</code>.</p>
 <h2 id="model">Model</h2>
 <p>Per channel:</p>
 <pre><code>t   = clamp((v - inLow) / (inHigh - inLow), 0, 1)
 t'  = t ^ (1 / gamma)
 out = outLow + t' * (outHigh - outLow)</code></pre>
-<ul><li><code>inLow</code> and below is crushed to <code>outLow</code>, <code>inHigh</code> and above to <code>outHigh</code>, and the middle is redistributed along the gamma curve;</li><li><strong>gamma &gt; 1 brightens, gamma &lt; 1 darkens</strong> — the same direction as PS's field. Note this is the opposite of the usual gamma intuition: PS's slider value goes straight into the reciprocal position of <code>1/gamma</code>, and writing the exponent as <code>t^gamma</code> flips the whole direction;</li><li>the input range stretches everything: after setting <code>inLow = 64</code>, <code>v = 240</code> becomes 235 rather than staying put;</li><li>when <code>inHigh == inLow</code> the range collapses to a point and is handled as a step (anything ≥ that value is white) instead of dividing by zero.</li></ul>
-<p>Order: <strong>the composite group first (one curve for all three channels), then the per-channel groups</strong>. Per-channel groups default to identity, so "touch only the composite" is bit-identical to PS's RGB mode and "touch only red" matches PS's Red channel mode. All four groups can be stacked, which is more than PS allows (one channel at a time).</p>
+<ul><li><code>inLow</code> and below is crushed to <code>outLow</code>, <code>inHigh</code> and above to <code>outHigh</code>, and the middle is redistributed along the gamma curve;</li><li><strong>gamma &gt; 1 brightens, gamma &lt; 1 darkens</strong> — the same direction as the classic editor's field. Note this is the opposite of the usual gamma intuition: the classic editor's slider value goes straight into the reciprocal position of <code>1/gamma</code>, and writing the exponent as <code>t^gamma</code> flips the whole direction;</li><li>the input range stretches everything: after setting <code>inLow = 64</code>, <code>v = 240</code> becomes 235 rather than staying put;</li><li>when <code>inHigh == inLow</code> the range collapses to a point and is handled as a step (anything ≥ that value is white) instead of dividing by zero.</li></ul>
+<p>Order: <strong>the composite group first (one curve for all three channels), then the per-channel groups</strong>. Per-channel groups default to identity, so "touch only the composite" is bit-identical to the classic editor's RGB mode and "touch only red" matches the classic editor's Red channel mode. All four groups can be stacked, which is more than the classic editor allows (one channel at a time).</p>
 <h2 id="domain">Domain</h2>
-<p>Everything is computed per channel in the <strong>8-bit sRGB gamma domain</strong>, never decoded to linear. Levels' black and white points mean "0–255 encoded values", and feeding linear light would make the numeric fields disagree with PS. The operator pins both pads to a perceptual format (<code>R~G~B~A float</code>) in <code>prepare</code>, so no upstream <code>linear-rgb</code> is needed.</p>
+<p>Everything is computed per channel in the <strong>8-bit sRGB gamma domain</strong>, never decoded to linear. Levels' black and white points mean "0–255 encoded values", and feeding linear light would make the numeric fields disagree with the classic editor. The operator pins both pads to a perceptual format (<code>R~G~B~A float</code>) in <code>prepare</code>, so no upstream <code>linear-rgb</code> is needed.</p>
 <h2 id="verification">Verification</h2>
 <pre><code class="language-bash">python tools/check_levels_ps.py</code></pre>
 <p>11 cases on two levels:</p>
 <p><strong>A — mathematics.</strong> A Python mirror of the C model, compared pixel by pixel on a 256-column greyscale probe (column x is exactly grey x, so no interpolation), all 0.00 code values:</p>
 <div class="table-wrap"><table><thead><tr><th>Case</th><th>Check</th></tr></thead><tbody><tr><td>all defaults</td><td>0 / 20 / 128 / 240 / 255 identity</td></tr><tr><td>input black 64</td><td>crush, mid and high end stretched to 235</td></tr><tr><td>input white 192</td><td>full white, low end stretched to 27</td></tr><tr><td>output 50–200</td><td>ends land on 50 / 200, middle stays linear</td></tr><tr><td>gamma 2.0 / 0.5</td><td>brighter / darker, endpoints fixed</td></tr><tr><td>combination</td><td>50 / 0.7 / 200 → 30 / 220</td></tr><tr><td>single channel</td><td>red only, green and blue untouched</td></tr></tbody></table></div>
-<p><strong>B — reference points.</strong> Two published PS measurements, specifically to pin down gamma's <strong>direction and exponent form</strong>:</p>
-<div class="table-wrap"><table><thead><tr><th>Input</th><th>gamma</th><th>PS</th><th>This operator</th><th>Deviation</th></tr></thead><tbody><tr><td>154</td><td>0.46</td><td>84</td><td>85</td><td>1.19 code</td></tr><tr><td>200</td><td>1.646</td><td>220</td><td>220</td><td>0.01 code</td></tr></tbody></table></div>
-<p>These matter: a test that only checks "C agrees with Python" cannot catch a reversed exponent, because both sides would be wrong together. The values come from a measured pixel posted in Adobe's community and the accepted <code>out = in^(1/gamma)</code>.</p>
+<p><strong>B — reference points.</strong> Two published the classic editor measurements, specifically to pin down gamma's <strong>direction and exponent form</strong>:</p>
+<div class="table-wrap"><table><thead><tr><th>Input</th><th>gamma</th><th>the classic editor</th><th>This operator</th><th>Deviation</th></tr></thead><tbody><tr><td>154</td><td>0.46</td><td>84</td><td>85</td><td>1.19 code</td></tr><tr><td>200</td><td>1.646</td><td>220</td><td>220</td><td>0.01 code</td></tr></tbody></table></div>
+<p>These matter: a test that only checks "C agrees with Python" cannot catch a reversed exponent, because both sides would be wrong together. The values come from a measured pixel posted in the vendor's community and the accepted <code>out = in^(1/gamma)</code>.</p>
 <h2 id="why-there-is-no-per-code-calibration-on-this-machine">Why there is no per-code calibration on this machine</h2>
-<p>On this machine, Photoshop 2025 (26.10.0) throws "could not complete the command because of a program error" for both the <code>Lvls</code> <code>executeAction</code> event and <code>Mk</code> adjustment-layer creation, and the DOM's <code>LayerKind.LEVELS</code> only offers text-or-normal. The diagnostic log is in <code>../lvls-cal/_diag2.txt</code>. <code>colorRange</code> does run, so ExtendScript as a whole is fine — those two commands are blocked in this installation.</p>
-<p>Hence the reference is public measurements rather than local calibration. <strong>If you can run PS scripts on another machine, fix <code>ps_levels.jsx</code> in <code>lvls-cal/</code> and re-run it, and this can be upgraded to a per-code calibration.</strong></p>
+<p>On this machine, the classic editor 2025 (26.10.0) throws "could not complete the command because of a program error" for both the <code>Lvls</code> <code>executeAction</code> event and <code>Mk</code> adjustment-layer creation, and the DOM's <code>LayerKind.LEVELS</code> only offers text-or-normal. The diagnostic log is in <code>../lvls-cal/_diag2.txt</code>. <code>colorRange</code> does run, so ExtendScript as a whole is fine — those two commands are blocked in this installation.</p>
+<p>Hence the reference is public measurements rather than local calibration. <strong>If you can run the classic editor scripts on another machine, fix <code>ps_levels.jsx</code> in <code>lvls-cal/</code> and re-run it, and this can be upgraded to a per-code calibration.</strong></p>
 <h2 id="difference-from-gimps-own-levels">Difference from GIMP's own Levels</h2>
-<p>GIMP's <code>Colors → Levels</code> is a private app-level implementation, and GEGL's <code>gegl:levels</code> has only <strong>four</strong> properties — <code>in-low / in-high / out-low / out-high</code> — with no gamma, no per-channel groups and no 0–255 scale (check <code>gegl --info gegl:levels</code>). This operator fills a genuine hole at the GEGL level: PS levels parameters now work from scripts, batch jobs and the <code>gegl</code> command line.</p><div class="op-dl">
+<p>GIMP's <code>Colors → Levels</code> is a private app-level implementation, and GEGL's <code>gegl:levels</code> has only <strong>four</strong> properties — <code>in-low / in-high / out-low / out-high</code> — with no gamma, no per-channel groups and no 0–255 scale (check <code>gegl --info gegl:levels</code>). This operator fills a genuine hole at the GEGL level: the classic editor levels parameters now work from scripts, batch jobs and the <code>gegl</code> command line.</p><div class="op-dl">
   <div>
     <h3>Just this one</h3>
     <p>Windows module <code>levels.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>levels.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
@@ -144,13 +144,13 @@ out = outLow + t' * (outHigh - outLow)</code></pre>
 <footer class="site-foot">
   <div>
     <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
-    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">88f4f29</span>
+    <span class="muted">f05ba5f</span>
   </div>
 </footer>
 <script>

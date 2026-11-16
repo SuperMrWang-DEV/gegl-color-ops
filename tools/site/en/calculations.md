@@ -1,11 +1,11 @@
 ---
 name: Calculations
-blurb: Photoshop's Image → Calculations: pull one channel from each of two sources, invert either, blend, and output a grey or alpha mask.
+blurb: the classic editor's Image → Calculations: pull one channel from each of two sources, invert either, blend, and output a grey or alpha mask.
 ---
 
 `lb:calculations` · menu **Colors → SuperMrWang → Blend → Calculations** · two inputs (input + aux)
 
-Replicates Photoshop's **Image → Calculations**: take one channel from each of two
+Replicates the classic editor's **Image → Calculations**: take one channel from each of two
 sources (each optionally inverted), blend them into a greyscale result, and output
 it as a grey mask or an alpha mask.
 
@@ -17,16 +17,16 @@ it as a grey mask or an alpha mask.
 | `invert-source1` | no | Invert source 1 |
 | `source2-channel` | Luminance | Channel read from aux |
 | `invert-source2` | no | Invert source 2 |
-| `blend-mode` | Multiply | 26 modes, matching Photoshop's list |
+| `blend-mode` | Multiply | 26 modes, matching the classic editor's list |
 | `opacity` | 100 | Blend strength |
 | `mask-enabled` | no | Use one more channel as a mask |
 | `mask-channel` | Luminance | Mask channel |
 | `invert-mask` | no | Invert the mask |
 | `output-mode` | grey mask | Grey mask (paste into a layer mask) or alpha mask (use directly as opacity) |
 
-## How it maps to Photoshop
+## How it maps to the classic editor
 
-| Photoshop | Here |
+| the classic editor | Here |
 |---|---|
 | Source 1: layer + channel + invert | input + `source1-channel` + `invert-source1` |
 | Source 2: layer + channel + invert | aux + `source2-channel` + `invert-source2` |
@@ -35,7 +35,7 @@ it as a grey mask or an alpha mask.
 | Result: new document / new channel | `output-mode` = grey mask; the grey layer works as a document or channel |
 | Result: selection | `output-mode` = alpha mask, then **Select → Selection from Alpha** |
 
-Photoshop's "Result: selection" cannot be produced straight from a GEGL operator
+the classic editor's "Result: selection" cannot be produced straight from a GEGL operator
 (operators only return pixels), so an alpha mask stands in for it: use it as the
 layer's opacity or convert it to a selection. "New document" is likewise replaced
 by a grey mask — copy that layer into a new image and you have a greyscale document.
@@ -43,11 +43,11 @@ by a grey mask — copy that layer into a new image and you have a greyscale doc
 ## Getting a selection or channel by hand
 
 A GEGL op produces pixels and cannot touch selections, channels or layers, so the
-Result drop-down of Photoshop's dialog collapses to "grey mask / alpha mask" here.
+Result drop-down of the classic editor's dialog collapses to "grey mask / alpha mask" here.
 You can still get the other two without changing code:
 
 1. **Ctrl+Shift+D to duplicate the layer — mandatory.** A GEGL filter rewrites the
-   pixels of the layer it runs on, unlike Photoshop's Calculations, so running on a
+   pixels of the layer it runs on, unlike the classic editor's Calculations, so running on a
    copy is what keeps the original intact.
 2. On the copy run **Colors → SuperMrWang → Blend → Calculations** with `Output` set
    to **Mask (alpha)**. This step matters: the alpha version writes the grey values
@@ -93,7 +93,7 @@ that plug-in is currently disabled — see "Python plug-in" in the root README.
   When source 2's channel *is* alpha, that value is data, not coverage, so it is
   not multiplied in again.
 - **A source layer smaller than the input or offset**: uncovered pixels take part
-  as black (which means 0 in the mask). Photoshop requires both sources to match in
+  as black (which means 0 in the mask). the classic editor requires both sources to match in
   size; this operator does not, and treats the missing part as black.
 
 ## Testing

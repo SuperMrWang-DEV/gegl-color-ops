@@ -3,7 +3,7 @@
  * ---------------------------------------------------------------------------
  * id         lb:calculations
  * menu       Calculations
- * purpose    PS 计算：两路通道按混合模式合成，输出灰度图或 alpha 蒙版
+ * purpose    经典图像编辑器 计算：两路通道按混合模式合成，输出灰度图或 alpha 蒙版
  *            Calculations: blend two channels with a blend mode and output
  *            a grey image or an alpha mask.
  * algorithm  主输入取 source1 通道、aux 取 source2 通道，按混合模式算出标量，
@@ -14,7 +14,7 @@
  *            Source 2's alpha acts as coverage, so where the source layer has
  *            no pixels the mask comes out 0.
  * type       GeglOperationPointComposer（input + aux 双输入 / two inputs）
- * reference  Photoshop「图像 → 计算」/ Image > Calculations
+ * reference  经典图像编辑器「图像 → 计算」/ Image > Calculations
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
  *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
@@ -58,12 +58,12 @@ enum_end (LbCalcBlend)
 
 /* ---- 通道选择 / channel selection --------------------------------------
  * 枚举值直接当编号传给 lb_channel（它按 LB_CH_* 编号取通道），所以第 0 位
- * 必须留给 Composite 占位——PS 的计算对话框没有 Composite 这一项，用
+ * 必须留给 Composite 占位——经典图像编辑器的计算对话框没有 Composite 这一项，用
  * enum_value_skip 占住编号但不进下拉列表。少了这个占位，整张表会整体错一
  * 位：默认的 Luminance 实际取到蓝通道，Red 取到亮度。
  * The enum values are passed straight to lb_channel, which indexes channels
  * by LB_CH_* ids; slot 0 therefore has to stay reserved for Composite.
- * Photoshop's Calculations dialog has no Composite entry, so enum_value_skip
+ * the classic editor's Calculations dialog has no Composite entry, so enum_value_skip
  * takes the slot without adding it to the drop-down. Without it the whole
  * table shifts by one: the default Luminance actually reads Blue, Red reads
  * Luminance. */
@@ -128,8 +128,8 @@ property_enum (output_mode, _("Output"), LbCalcOutput, lb_calc_output,
 
 /* ---- 格式 / formats ---------------------------------------------------- */
 
-/* 感知（非线性）格式：混合模式与 PS 的 8bit 伽马域口径一致
- * Perceptual (non-linear) format, matching Photoshop's 8-bit gamma domain. */
+/* 感知（非线性）格式：混合模式与 经典图像编辑器的 8bit 伽马域口径一致
+ * Perceptual (non-linear) format, matching the classic editor's 8-bit gamma domain. */
 static const Babl *
 perceptual_format (GeglOperation *op)
 {

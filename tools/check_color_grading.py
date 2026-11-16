@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """验收 lb:color-grading（无 ACR 参考机，按模型自洽验证）。
 
-本机 PS 2025 未装 Camera Raw，无法像 colorize / color-mask-select 那样做
+本机 经典图像编辑器 2025 未装 Camera Raw，无法像 colorize / color-mask-select 那样做
 逐码标定，所以这里验证的是「行为与设计模型一致」：
   1. 全默认 = 恒等
   2. 阴影/中间调/高光各自只作用于自己的亮度段（Python 侧复刻模型算期望值）

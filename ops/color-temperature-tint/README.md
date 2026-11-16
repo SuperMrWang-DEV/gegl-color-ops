@@ -1,12 +1,12 @@
-# lb:color-temperature-tint · Temperature & Tint (Photoshop)
+# lb:color-temperature-tint · Temperature & Tint (the classic editor)
 
-按黑盒标定得到的 Photoshop 2026「色彩与自然饱和度」调整图层里的**色温**和**色调**
-两个滑块。PS 27.0 把这两个滑块塞进了原来的 vibrance 图层（官方名 Color and
+按黑盒标定得到的 classic image editor 2026「色彩与自然饱和度」调整图层里的**色温**和**色调**
+两个滑块。经典图像编辑器 27.0 把这两个滑块塞进了原来的 vibrance 图层（官方名 Color and
 vibrance），Action Manager 里还是老的 `vibrance` 类，只是多带 `temperature` /
 `tint` 两个整数键，所以这里把白平衡部分单独拆成一个算子，便于叠加到任何管线里。
 
 - GEGL id：`lb:color-temperature-tint`
-- 菜单：`Colors → SuperMrWang → Color → Color Temperature & Tint PS`
+- 菜单：`Colors → SuperMrWang → Color → Color Temperature & Tint 经典图像编辑器`
 - 类型：`GeglOperationPointFilter`（逐像素，无邻域）
 - 参数：`temperature`（−100…100，负冷正暖）、`tint`（−100…100，负绿正洋红）
 
@@ -20,8 +20,8 @@ vibrance），Action Manager 里还是老的 `vibrance` 类，只是多带 `temp
 
 | 步骤 | 为什么 |
 |---|---|
-| 在线性域拟合 | 编码域拟合时 PS 的硬裁切只能被逼近成一团糊；实测负色温区域中位误差到过 90 码 |
-| `clamp` | PS 是「线性值被压到负数后切 0」。这是整条管线里唯一的强非线性，交给 clamp 精确复现，不要指望多项式 |
+| 在线性域拟合 | 编码域拟合时 经典图像编辑器的硬裁切只能被逼近成一团糊；实测负色温区域中位误差到过 90 码 |
+| `clamp` | 经典图像编辑器 是「线性值被压到负数后切 0」。这是整条管线里唯一的强非线性，交给 clamp 精确复现，不要指望多项式 |
 | 17×17 参数网格 + 双线性插值 | 映射随 (色温, 色调) 变化很快，25 一档跨得太大（网格间误差 10–90 码）；加密到 12/13 一档后降到 1–5 码 |
 | 烘成 33³ LUT | 逐像素算 20 项 + 两次 `powf` 太慢，一张图只烘一次 |
 
@@ -36,9 +36,9 @@ vibrance），Action Manager 里还是老的 `vibrance` 类，只是多带 `temp
 ## 标定方法
 
 1. `vibrance-cal/make_probe_all.py` 生成 32³ = 32768 色块的全色域探针
-   （1024×2048，横排 128 块，**必须嵌 sRGB ICC**，否则 PS 按工作空间解释后
+   （1024×2048，横排 128 块，**必须嵌 sRGB ICC**，否则 经典图像编辑器 按工作空间解释后
    饱和色会被裁，早期数据全废在这上面）。
-2. `vibrance-cal/batch_vib2026.jsx` 驱动 PS 2026 逐点套参数另存 PNG。
+2. `vibrance-cal/batch_vib2026.jsx` 驱动 经典图像编辑器 2026 逐点套参数另存 PNG。
 3. `vibrance-cal/fit_censored.py` 对每个网格点拟合。截断样本（输出 0 或 255）
    不含幅值信息但含「这一侧被削平」的信息，用**带删失的迭代回归**处理：
    先在未截断样本上拟合，再把方向错的截断样本按铰链目标补进去重拟合。
@@ -47,8 +47,8 @@ vibrance），Action Manager 里还是老的 `vibrance` 类，只是多带 `temp
 
 ## 验收
 
-`python vibrance-cal/check_op.py` —— gegl CLI 渲染全色域探针，和 PS 2026 的
-真实导出逐像素比（0–255 码；PS 侧任何通道 ≥249 的样本跳过，因为那已经削平、
+`python vibrance-cal/check_op.py` —— gegl CLI 渲染全色域探针，和 经典图像编辑器 2026 的
+真实导出逐像素比（0–255 码；经典图像编辑器 侧任何通道 ≥249 的样本跳过，因为那已经削平、
 比不出东西）：
 
 | (色温, 色调) | 中位 | p90 | p99 | 最大 |
@@ -74,14 +74,14 @@ vibrance），Action Manager 里还是老的 `vibrance` 类，只是多带 `temp
 
 ## 已知偏差
 
-除最后一行那种角落，全平面中位误差 ≤ 5 码。角落里不是实现问题，是 **PS 自己
+除最后一行那种角落，全平面中位误差 ≤ 5 码。角落里不是实现问题，是 **经典图像编辑器 自己
 在那里不连续**：
 
 色温 ≤ −50 且色调 ≥ +38 的对角线上（大致 `|色温| ≈ 色调` 且都超过 55），
-PS 会让某个通道的线性值穿过 0，整通道从 255 塌到 0。实测同一块中性灰
+经典图像编辑器 会让某个通道的线性值穿过 0，整通道从 255 塌到 0。实测同一块中性灰
 (123,132,132)：
 
-| 参数 | PS 输出 |
+| 参数 | 经典图像编辑器 输出 |
 |---|---|
 | (−62, 50) | (122, 148, **239**) |
 | (−50, 62) | (126, 140, **248**) |
@@ -106,12 +106,12 @@ Adobe RGB 里做三通道增益（内部样本中位 9.6–100 码）。多项�
 
 ## 与 `lb:vibrance` 的关系
 
-PS 2026 的「色彩与自然饱和度」是**先色温色调、再 Vibrance**的顺序（实验依据：
-把色温处理后的图喂给 PS 2025 的纯 Vibrance，与 PS 一次调完的结果中位差 1.4 码；
+经典图像编辑器 2026 的「色彩与自然饱和度」是**先色温色调、再 Vibrance**的顺序（实验依据：
+把色温处理后的图喂给 经典图像编辑器 2025 的纯 Vibrance，与 经典图像编辑器 一次调完的结果中位差 1.4 码；
 顺序反了差 36 码）。
 
 两个算子在工程里是**分工的，不互相调用**：本算子只做白平衡，`lb:vibrance` 只做
-Vibrance。要复刻 PS 2026 那个图层，把本算子叠在 `lb:vibrance` 前面即可 ——
+Vibrance。要复刻 经典图像编辑器 2026 那个图层，把本算子叠在 `lb:vibrance` 前面即可 ——
 
 ```
 lb:color-temperature-tint  →  lb:vibrance

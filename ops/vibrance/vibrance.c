@@ -3,9 +3,9 @@
  * ---------------------------------------------------------------------------
  * id         lb:vibrance
  * menu       Vibrance
- * purpose    按 Photoshop「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱
+ * purpose    按 经典图像编辑器「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱
  *            和主动收手、红带（肤色）额外保护、浅色少给一点，色相与明度不动
- *            Reproduce Photoshop's Vibrance: muted colours gain the most, vivid
+ *            Reproduce the classic editor's Vibrance: muted colours gain the most, vivid
  *            ones are held back, the red band (skin) is protected further and
  *            light colours receive a little less. Hue and lightness stay put.
  * algorithm  HSV 下按 S 取增量：ΔS = A(v)·S^p(v)·(1-S)^q(v)，再乘红带系数
@@ -23,12 +23,12 @@
  *            步长 5 标定数据导出，拟合残差 0.41 pp（v=+100）、0.02 pp（v=+5）
  *            The tables come from the 16-bit / step-5 calibration in
  *            vibrance-cal; fit residual 0.41 pp at v=+100, 0.02 pp at v=+5.
- * reference  Adobe Photoshop 26.10 自然饱和度（实测逆向，非经验近似）
- *            Adobe Photoshop 26.10 Vibrance, reverse-engineered by measurement
- * scope      只做 Vibrance。PS 2026 把色温/色调塞进了同一个图层，那部分在本工
+ * reference  classic image editor 26.10 自然饱和度（黑盒实测，非经验近似）
+ *            classic image editor 26.10 Vibrance, matched by black-box measurement
+ * scope      只做 Vibrance。经典图像编辑器 2026 把色温/色调塞进了同一个图层，那部分在本工
  *            程里是独立的 lb:color-temperature-tint，不在这里重复实现 ——
  *            需要「色彩与自然饱和度」时按顺序叠两个算子即可
- *            Vibrance only. PS 2026 bundled temperature/tint into the same
+ *            Vibrance only. 经典图像编辑器 2026 bundled temperature/tint into the same
  *            layer; here that lives in the separate lb:color-temperature-tint
  *            op, so stack the two in order instead of duplicating it.
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
@@ -43,7 +43,7 @@
 #ifdef GEGL_PROPERTIES
 
 property_double (vibrance, _("Vibrance"), 0.0)
-    description (_("Photoshop's Vibrance, -100 to +100. Low-saturation colours gain "
+    description (_("the classic editor's Vibrance, -100 to +100. Low-saturation colours gain "
                    "the most, already-vivid ones are held back, and the red band "
                    "carries extra protection"))
     value_range (-100.0, 100.0)
@@ -427,7 +427,7 @@ gegl_op_class_init (GeglOpClass *klass)
     "name",            "lb:vibrance",
     "title",           _("Vibrance"),
     "categories",      "color:enhance",
-    "description",     _("Photoshop's Vibrance, matched by measurement: "
+    "description",     _("the classic editor's Vibrance, matched by measurement: "
                          "dS = A(v)·S^p·(1-S)^q with tabulated red-band and "
                          "lightness terms, gamut-safe by construction"),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Color",

@@ -2,7 +2,7 @@
 """从 bc-cal/bc_model.json 生成 ops/brightness-contrast/bc-tables.h
 
 算子不手抄任何常数：改标定数据 → 重新跑这个脚本即可。
-表值是 8 位（0…254），与 Photoshop 内部 256 项 LUT 的粒度一致。
+表值是 8 位（0…254），与 经典图像编辑器 内部 256 项 LUT 的粒度一致。
 """
 import json, os, sys
 
@@ -44,7 +44,7 @@ def emit_table(name, rows, levels, step):
 
 hdr = '''/* 自动生成，勿手改 —— 由 tools/gen_bc_tables.py 从 bc-cal/bc_model.json 导出
  * Generated file, do not edit. Produced by tools/gen_bc_tables.py from
- * bc-cal/bc_model.json (Photoshop 26.10, 16 bit/channel calibration).
+ * bc-cal/bc_model.json (经典图像编辑器 26.10, 16 bit/channel calibration).
  *
  * 新版（useLegacy = false）：两张一维表 —— 亮度族 61 档、对比度族 31 档，
  *   每档一条 255 点曲线（x = 0…254）。x = 255 是纯白保护特例，见算子。

@@ -3,11 +3,11 @@
  * ---------------------------------------------------------------------------
  * id         lb:brightness-contrast
  * menu       Brightness/Contrast
- * purpose    复刻 Photoshop「亮度/对比度」，新版与旧版（「使用旧版」复选框）
+ * purpose    复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）
  *            两套行为都在里面
- *            Reproduce Photoshop's Brightness/Contrast, both the modern
+ *            Reproduce the classic editor's Brightness/Contrast, both the modern
  *            behaviour and the legacy one behind the "Use Legacy" checkbox.
- * algorithm  实测结论（Photoshop 26.10，16 位/通道标定）：
+ * algorithm  实测结论（classic image editor 26.10，16 位/通道标定）：
  *            ① 这是一条逐通道相同的 LUT —— 与邻居、位置、通道都无关
  *              （通道耦合实测 0.000，正/反向 ramp 逐位镜像）
  *            ② 新版 = 先亮度、后对比度：f(x) = F_c(F_b(x))，可分离误差 0.02 码
@@ -15,7 +15,7 @@
  *              89.0（不是 128）的线性缩放，K = 1/(1-c/100) 或 1+c/100；
  *              且 c>0 时先加亮度再缩放，c<0 时先缩放再加亮度
  *            ④ 新版把 x=255 原样保留（纯白保护），旧版没有这条规则
- *            Measured facts (Photoshop 26.10, 16 bit/ch calibration):
+ *            Measured facts (classic image editor 26.10, 16 bit/ch calibration):
  *            (1) it is one LUT applied identically to all three channels;
  *            (2) modern = brightness then contrast, separable to 0.02 codes;
  *            (3) legacy = clamp(x+b) with b clamped to ±100, and contrast is
@@ -25,7 +25,7 @@
  * type       GeglOperationPointFilter（逐像素 / per-pixel）
  * source     bc-cal/：标定图 + JSX 批量 + 16 位数据；参数表由
  *            tools/gen_bc_tables.py 从 bc_model.json 导出，算子不手抄常数
- * reference  Adobe Photoshop 26.10 亮度/对比度（实测逆向）
+ * reference  classic image editor 26.10 亮度/对比度（黑盒实测）
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
  * ======================================================================== */
 
@@ -37,21 +37,21 @@
 #ifdef GEGL_PROPERTIES
 
 property_double (brightness, _("Brightness"), 0.0)
-    description (_("Photoshop's Brightness, -150 to +150. In the legacy mode "
-                   "the value is clamped to ±100, exactly like Photoshop"))
+    description (_("the classic editor's Brightness, -150 to +150. In the legacy mode "
+                   "the value is clamped to ±100, exactly like the classic editor"))
     value_range (-150.0, 150.0)
     ui_range    (-150.0, 150.0)
     ui_steps    (1.0, 5.0)
 
 property_double (contrast, _("Contrast"), 0.0)
-    description (_("Photoshop's Contrast, -50 to +100. The pivot is 89/255, "
+    description (_("the classic editor's Contrast, -50 to +100. The pivot is 89/255, "
                    "not middle grey — that is what the measurement shows"))
     value_range (-50.0, 100.0)
     ui_range    (-50.0, 100.0)
     ui_steps    (1.0, 5.0)
 
 property_boolean (legacy, _("Use Legacy"), FALSE)
-    description (_("The pre-CS3 behaviour (Photoshop's \"Use Legacy\" checkbox): "
+    description (_("The legacy behaviour (the classic editor's \"Use Legacy\" checkbox): "
                    "brightness is a plain offset with hard clipping and the "
                    "contrast pivot sits at 89. Leave off for the modern curve"))
 
@@ -168,7 +168,7 @@ legacy_at (gfloat x,
   if (b < -BC_B_CLAMP) b = -BC_B_CLAMP;
   bb = b;
 
-  if (c >= 100.0f)          /* K 发散：PS 在 c=100 就是纯黑白两段 */
+  if (c >= 100.0f)          /* K 发散：经典图像编辑器 在 c=100 就是纯黑白两段 */
     return ((x + bb) > BC_PIVOT) ? 255.0f : 0.0f;
 
   if (c > 0.0f)
@@ -310,7 +310,7 @@ gegl_op_class_init (GeglOpClass *klass)
     "name",            "lb:brightness-contrast",
     "title",           _("Brightness/Contrast"),
     "categories",      "color:tonemap",
-    "description",     _("Photoshop's Brightness/Contrast, both the modern "
+    "description",     _("the classic editor's Brightness/Contrast, both the modern "
                          "curve and the legacy behaviour (offset + clip, "
                          "contrast about 89/255), matched by measurement"),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Tone",

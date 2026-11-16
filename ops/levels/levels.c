@@ -3,24 +3,24 @@
  * ---------------------------------------------------------------------------
  * id         lb:levels
  * menu       Levels
- * purpose    PS 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /
- *            白场」，数值刻度 0–255，与 PS 对话框的数字框一一对应
- *            PS Levels: composite plus per-channel input black / gamma /
+ * purpose    经典图像编辑器 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /
+ *            白场」，数值刻度 0–255，与 经典图像编辑器 对话框的数字框一一对应
+ *            the classic editor Levels: composite plus per-channel input black / gamma /
  *            white and output black / white, in 0-255 units so the numbers
- *            match the Photoshop dialog field for field.
+ *            match the classic dialog field for field.
  * algorithm  t   = clamp((v - inLow) / (inHigh - inLow), 0, 1)
  *            t'  = t ^ (1 / gamma)
  *            out = outLow + t' * (outHigh - outLow)
  *            逐通道在 8bit sRGB 伽马域直接算，不经线性光；复合组先做，再做
- *            各通道组（各通道默认恒等，所以「只动复合」与 PS 的 RGB 通道
+ *            各通道组（各通道默认恒等，所以「只动复合」与 经典图像编辑器的 RGB 通道
  *            模式逐位一致）。
  *            Evaluated per channel in the 8-bit sRGB gamma domain, never in
  *            linear light. The composite group runs first, then the per-
  *            channel groups; those default to identity, so "composite only"
- *            matches PS's RGB channel mode exactly.
+ *            matches the classic editor's RGB channel mode exactly.
  * type       GeglOperationPointFilter（无邻域、可并行）
- * reference  Photoshop「色阶」对话框
- *            Photoshop Levels dialog
+ * reference  经典图像编辑器「色阶」对话框
+ *            the classic editor Levels dialog
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
  *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
@@ -30,7 +30,7 @@
 #include <math.h>
 
 /* 归一化到 0–1 的输入区间，便于内部计算
- * Values are stored in 0-255 (PS units) and normalised to 0..1 internally */
+ * Values are stored in 0-255 (the classic editor units) and normalised to 0..1 internally */
 #define LEVELS_UNIT 255.0
 
 #ifdef GEGL_PROPERTIES
@@ -145,7 +145,7 @@ sanitize_f (gfloat v)
  * Single-channel levels transfer function.
 
  * in_high == in_low 时区间退化成一点：按「台阶」处理（>= 该值为白，否则黑），
- * 而不是除以 0。PS 的 UI 不允许把黑场拖过白场，但脚本/属性可以，得挡住。
+ * 而不是除以 0。经典图像编辑器的 UI 不允许把黑场拖过白场，但脚本/属性可以，得挡住。
  * When in_high == in_low the span collapses to a point; treat it as a step
  * (>= that value is white, below is black) instead of dividing by zero. */
 static inline gfloat
@@ -191,10 +191,10 @@ read_group (GObject *op, LevelsGroup *g,
 }
 
 /* 感知（非线性）格式：色阶的黑白场是 8bit sRGB 编码值语义，必须拿伽马值，
- * 否则 babl 会喂线性光，输入色阶的数字就和 PS 对不上
+ * 否则 babl 会喂线性光，输入色阶的数字就和 经典图像编辑器 对不上
  * Perceptual (non-linear) format: the black/white points are 8-bit sRGB
  * encoded values. Feeding linear light would make the numbers disagree
- * with PS. */
+ * with the classic editor. */
 static const Babl *
 perceptual_format (GeglOperation *op)
 {
@@ -271,7 +271,7 @@ gegl_op_class_init (GeglOpClass *klass)
   gegl_operation_class_set_keys (oclass,
     "name",            "lb:levels",
     "title",           _("Levels"),
-    "description",     _("Replicate Photoshop Levels (composite + per-channel input black/gamma/white and output black/white, 0-255 units). Evaluated in the 8-bit sRGB gamma domain, so the numbers agree with the PS dialog."),
+    "description",     _("Replicate the classic editor Levels (composite + per-channel input black/gamma/white and output black/white, 0-255 units). Evaluated in the 8-bit sRGB gamma domain, so the numbers agree with the classic dialog."),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Tone",
     "gimp:menu-label", _("Levels"),
     NULL);

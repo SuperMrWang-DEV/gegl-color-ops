@@ -58,7 +58,7 @@
 <h2 id="规则细则">规则细则</h2>
 <ul><li><strong>H 环形重映射</strong>：把圆在黑场处剪开，主弧（黑场 → 白场）映到输出弧， 剩余弧按比例跟进，两段共用 gamma。默认参数逐位还原；黑白场重合 = 纯色相旋转。</li><li><strong>C 线性</strong>：C 归零 → 全图变中性灰（Lab 的 a=b=0），这是最常用的「去色」 手法；C 反向输出（下限 &gt; 上限）会得到互补色的味道，但明度不动。</li><li><strong>L 线性</strong>：普通色阶语义，与 <code>lab-levels</code> 的 L 完全一致。</li><li><strong>黑白场交叉自动交换</strong>。</li><li><strong>alpha ≤ 0 透传</strong>。</li><li>C 超过色域的输入会被 clamp 到 132；输出 C 可以拉高，超出 sRGB 的部分由 babl 转回 RGB 时裁掉（等价于 GIMP 色域警告里的那些像素）。</li></ul>
 <h2 id="与-lblab-levels-lbhue-saturation-的关系">与 lb:lab-levels / lb:hue-saturation 的关系</h2>
-<div class="table-wrap"><table><thead><tr><th>需求</th><th>用哪个</th></tr></thead><tbody><tr><td>单独压/提色度，色相不动</td><td>本算子（C 通道）</td></tr><tr><td>单独转色相，色度不动</td><td>本算子（H 通道）</td></tr><tr><td>分别调 a、b 两轴（比如只加黄不加绿）</td><td><code>lb:lab-levels</code></td></tr><tr><td>按色相段分别调饱和度/明度（ACR 风格）</td><td><code>lb:hsl-seven</code></td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>需求</th><th>用哪个</th></tr></thead><tbody><tr><td>单独压/提色度，色相不动</td><td>本算子（C 通道）</td></tr><tr><td>单独转色相，色度不动</td><td>本算子（H 通道）</td></tr><tr><td>分别调 a、b 两轴（比如只加黄不加绿）</td><td><code>lb:lab-levels</code></td></tr><tr><td>按色相段分别调饱和度/明度（RAW 编辑器 风格）</td><td><code>lb:hsl-seven</code></td></tr></tbody></table></div>
 <h2 id="验证">验证</h2>
 <p><code>python tools/check_color_levels.py lch</code>（3 项）：</p>
 <div class="table-wrap"><table><thead><tr><th>用例</th><th>判据</th><th>实测</th></tr></thead><tbody><tr><td>恒等（默认参数）</td><td>与源图逐像素 ≤1 码</td><td>最大 0</td></tr><tr><td>色度归零</td><td>全图中性（|R−G|、|G−B| ≤2）</td><td>0</td></tr><tr><td>色相环 +180°</td><td>色相环那一行 80% 以上采样点明显变色</td><td>72/72</td></tr></tbody></table></div>
@@ -102,7 +102,7 @@
 <h2 id="rules">Rules</h2>
 <ul><li><strong>Circular hue remap</strong>: cut the circle at the black point, map the main arc (black point → white point) onto the output arc and the rest proportionally, both sharing the gamma. Bit-exact at defaults; black and white point at one angle means a pure hue rotation.</li><li><strong>C is linear</strong>: C to zero turns the image neutral grey (Lab a=b=0) — the most common way to desaturate. An inverted C output (low &gt; high) gives a complementary-looking result while lightness stays put.</li><li><strong>L is linear</strong>: ordinary levels semantics, identical to <code>lab-levels</code>' L.</li><li><strong>Crossed black and white points swap automatically.</strong></li><li><strong>alpha ≤ 0 passes through.</strong></li><li>Input above the gamut is clipped to C = 132; the output C can be pushed higher and whatever falls outside sRGB is clipped by babl's conversion back to RGB (the pixels GIMP's gamut warning would flag).</li></ul>
 <h2 id="which-operator-for-what">Which operator for what</h2>
-<div class="table-wrap"><table><thead><tr><th>Need</th><th>Use</th></tr></thead><tbody><tr><td>Lower or raise chroma alone, hue untouched</td><td>this operator (C channel)</td></tr><tr><td>Rotate hue alone, chroma untouched</td><td>this operator (H channel)</td></tr><tr><td>Move the a and b axes separately (add yellow without green)</td><td><code>lb:lab-levels</code></td></tr><tr><td>Per-hue-range saturation/lightness, ACR style</td><td><code>lb:hsl-seven</code></td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>Need</th><th>Use</th></tr></thead><tbody><tr><td>Lower or raise chroma alone, hue untouched</td><td>this operator (C channel)</td></tr><tr><td>Rotate hue alone, chroma untouched</td><td>this operator (H channel)</td></tr><tr><td>Move the a and b axes separately (add yellow without green)</td><td><code>lb:lab-levels</code></td></tr><tr><td>Per-hue-range saturation/lightness, the RAW editor style</td><td><code>lb:hsl-seven</code></td></tr></tbody></table></div>
 <h2 id="verification">Verification</h2>
 <p><code>python tools/check_color_levels.py lch</code> (3 cases):</p>
 <div class="table-wrap"><table><thead><tr><th>Case</th><th>Criterion</th><th>Measured</th></tr></thead><tbody><tr><td>identity (defaults)</td><td>≤1 code per pixel against the source</td><td>max 0</td></tr><tr><td>chroma to zero</td><td>neutral everywhere (|R−G|, |G−B| ≤ 2)</td><td>0</td></tr><tr><td>hue ring +180°</td><td>at least 80% of the ring row visibly changes colour</td><td>72/72</td></tr></tbody></table></div>
@@ -130,13 +130,13 @@
 <footer class="site-foot">
   <div>
     <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
-    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">88f4f29</span>
+    <span class="muted">f05ba5f</span>
   </div>
 </footer>
 <script>

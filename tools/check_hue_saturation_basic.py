@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""验收 lb:ps-hue-saturation：与规范参考（tools/ref_ps_hue_sat.py 浮点版）逐像素对拍。
+"""验收 lb:hue-saturation-basic：与规范参考（tools/ref_hue_sat_basic.py 浮点版）逐像素对拍。
 
-    python tools/check_ps_hue_saturation.py        # 默认 4096 色 × 27 组参数
-    python tools/check_ps_hue_saturation.py 512    # 抽少量颜色
+    python tools/check_hue_saturation_basic.py        # 默认 4096 色 × 27 组参数
+    python tools/check_hue_saturation_basic.py 512    # 抽少量颜色
 
 判定标准：单通道绝对偏差 ≤1 码（8 位刻度）。这一码只有一个来源 —— 8 位
 PNG 的输出量化，与算法无关；任何 >1 码的偏差都说明实现和公式不一致。
@@ -17,7 +17,7 @@ import zlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from ref_ps_hue_sat import ref_float
+from ref_hue_sat_basic import ref_float
 
 TMP = os.path.join(os.path.dirname(HERE), "build", "hs-check")
 GEGL = os.environ.get("GEGL", r"D:/fastsoftware/GIMP 3/bin/gegl.exe")
@@ -93,7 +93,7 @@ def render(src, dst, hue, sat, light):
     env = dict(os.environ)
     env["GEGL_PATH"] = ";".join(
         [os.path.join(os.path.dirname(HERE), "build"), SYS_OPS])
-    cmd = [GEGL, src, "-o", dst, "--", "lb:ps-hue-saturation",
+    cmd = [GEGL, src, "-o", dst, "--", "lb:hue-saturation-basic",
            "hue=%d" % hue, "saturation=%d" % sat, "lightness=%d" % light]
     r = subprocess.run(cmd, env=env, capture_output=True, text=True)
     if r.returncode != 0 or not os.path.exists(dst):

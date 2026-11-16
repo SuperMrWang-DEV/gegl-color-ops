@@ -1,11 +1,11 @@
 ---
 name: Apply Image
-blurb: Photoshop's Image → Apply Image: blend a second image into this one with a mode, opacity and mask, optionally into a single channel.
+blurb: the classic editor's Image → Apply Image: blend a second image into this one with a mode, opacity and mask, optionally into a single channel.
 ---
 
 `lb:apply-image` · menu **Colors → SuperMrWang → Blend → Apply Image** · two inputs (input + aux)
 
-Replicates Photoshop's **Image → Apply Image**: a second image (another layer, another
+Replicates the classic editor's **Image → Apply Image**: a second image (another layer, another
 file) acts as the source and is blended onto the current layer with a blend mode,
 opacity and mask — optionally into one channel only.
 
@@ -13,7 +13,7 @@ opacity and mask — optionally into one channel only.
 
 | Parameter | Default | Notes |
 |---|---|---|
-| `blend-mode` | Multiply | 26 modes, in Photoshop's order (Normal … Divide, Darker/Lighter Color, Hue … Luminosity) |
+| `blend-mode` | Multiply | 26 modes, in the classic editor's order (Normal … Divide, Darker/Lighter Color, Hue … Luminosity) |
 | `opacity` | 100 | Blend strength: 0 leaves the target alone, 100 applies it fully |
 | `target-channel` | Composite | Where the result goes: the whole composite, or a single R/G/B/luminance/alpha |
 | `source-channel` | Composite | Which channel of aux is read as the source |
@@ -21,12 +21,12 @@ opacity and mask — optionally into one channel only.
 | `mask-from` | Source layer | Take the mask from aux or from this layer |
 | `mask-channel` | Composite | Mask channel (Composite takes luminance) |
 | `invert-mask` | no | Invert the mask |
-| `preserve-transparency` | no | Leave fully transparent pixels untouched (PS's "Preserve Transparency") |
+| `preserve-transparency` | no | Leave fully transparent pixels untouched (the classic editor's "Preserve Transparency") |
 | `output-mode` | Composite | Composite result / grey mask / alpha mask |
 
-## How it maps to Photoshop
+## How it maps to the classic editor
 
-| Photoshop | Here |
+| the classic editor | Here |
 |---|---|
 | Source: image + layer | the `aux` pad, picked in the filter dialog |
 | Source: channel | `source-channel` |
@@ -35,7 +35,7 @@ opacity and mask — optionally into one channel only.
 | Preserve Transparency | `preserve-transparency` |
 | Mask: layer + channel + invert | `mask-from` + `mask-channel` + `invert-mask` |
 
-Photoshop's mask may point at a *third* image — neither the target nor the source.
+the classic editor's mask may point at a *third* image — neither the target nor the source.
 A GEGL composer only exposes two inputs, so the mask is limited to "this layer" or
 "the source layer", which covers the overwhelming majority of real use.
 
@@ -52,7 +52,7 @@ A GEGL composer only exposes two inputs, so the mask is limited to "this layer" 
 - Darker / Lighter Color compare whole-pixel luminance and then take **all**
   channels of the winner, not per-channel min/max — that is what separates them
   from Darken / Lighten.
-- Everything runs in the 8-bit sRGB gamma domain, the same domain Photoshop's blend
+- Everything runs in the 8-bit sRGB gamma domain, the same domain the classic editor's blend
   modes are defined in; the result is clipped to 0..1.
 - In GIMP these aux-carrying filters can currently only be applied destructively —
   they cannot be stored as a non-destructive fx.
@@ -63,7 +63,7 @@ A GEGL composer only exposes two inputs, so the mask is limited to "this layer" 
 
 ## Source layer size and position
 
-Photoshop requires both layers to have exactly the same pixel size and greys the
+the classic editor requires both layers to have exactly the same pixel size and greys the
 source out otherwise. GIMP layers may be smaller than the canvas or carry an offset,
 so the rule here is two-stage:
 
@@ -72,7 +72,7 @@ so the rule here is two-stage:
 - inside that area the source alpha decides whether a pixel really carries
   anything: alpha = 0 is passed through, and alpha between 0 and 1 attenuates by
   coverage. Only "belongs to the source layer *and* has a pixel" is modified, which
-  is what Photoshop means by "only the intersection takes effect".
+  is what the classic editor means by "only the intersection takes effect".
 
 The earlier version used `GeglOperationPointComposer`, whose `process` only gets a
 raw pointer — it cannot see the aux extent, so GEGL padded the outside with

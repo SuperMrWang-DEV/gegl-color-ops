@@ -3,8 +3,8 @@
  * ---------------------------------------------------------------------------
  * id         lb:exposure
  * menu       Exposure EV
- * purpose    PS 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）
- *            PS Exposure: EV, offset and gamma in three stages, measured in
+ * purpose    经典图像编辑器 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）
+ *            the classic editor Exposure: EV, offset and gamma in three stages, measured in
  *            exposure stops.
  * algorithm  两条公式，按输入精度自动选择 / Two formulas chosen automatically
  *            from the input precision:
@@ -50,7 +50,7 @@ enum_start (lb_exposure_precision)
 enum_end (LbExposurePrecision)
 
 property_double (exposure, _("Exposure"), 0.0)
-    description (_("Exposure (EV), same slider range as Photoshop"))
+    description (_("Exposure (EV), same slider range as the classic editor"))
     value_range (-20.0, 20.0)
     ui_range (-6.0, 6.0)
 
@@ -254,7 +254,7 @@ gegl_op_class_init(GeglOpClass *klass)
   gegl_operation_class_set_keys(oclass,
     "name",            "lb:exposure",
     "title",           _("Exposure EV"),
-    "description",     _("Photoshop Exposure: EV, offset and gamma. Picks the 8-bit (gamma) formula for integer images and the 32-bit (linear) formula for float images; override with the precision property."),
+    "description",     _("the classic editor Exposure: EV, offset and gamma. Picks the 8-bit (gamma) formula for integer images and the 32-bit (linear) formula for float images; override with the precision property."),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Tone",
     "gimp:menu-label", _("Exposure EV"),
     NULL);

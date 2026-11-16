@@ -2,10 +2,10 @@
 
 > `lb:apply-image` · 菜单 **颜色 → SuperMrWang → Blend → Apply Image** · 双输入（input + aux）
 
-对应 Photoshop 的 **图像 → 应用图像**：把一张图（另一个图层 / 另一个文件）当作源，
+对应 经典图像编辑器 的 **图像 → 应用图像**：把一张图（另一个图层 / 另一个文件）当作源，
 按混合模式、不透明度、遮罩压到当前图层上，还可以只作用于某一个通道。
 
-Replicates Photoshop's **Image → Apply Image**: takes a second image as the source,
+Replicates the classic editor's **Image → Apply Image**: takes a second image as the source,
 blends it onto the current layer with a blend mode, opacity and mask, optionally
 into a single channel.
 
@@ -13,7 +13,7 @@ into a single channel.
 
 | 参数 | 默认 | 说明 |
 |---|---|---|
-| `blend-mode` | Multiply | 26 种混合模式，顺序与 PS 一致（Normal … Divide、Darker/Lighter Color、Hue … Luminosity） |
+| `blend-mode` | Multiply | 26 种混合模式，顺序与 经典图像编辑器 一致（Normal … Divide、Darker/Lighter Color、Hue … Luminosity） |
 | `opacity` | 100 | 混合强度，0 = 不动，100 = 完全应用 |
 | `target-channel` | Composite | 结果写回哪个通道；可选整个合成或单个 R/G/B/亮度/Alpha |
 | `source-channel` | Composite | 从 aux 取哪个通道作为源 |
@@ -21,12 +21,12 @@ into a single channel.
 | `mask-from` | Source layer | 遮罩取自 aux 还是本层 |
 | `mask-channel` | Composite | 遮罩通道（Composite 取亮度） |
 | `invert-mask` | 否 | 遮罩反相 |
-| `preserve-transparency` | 否 | 全透明像素保持不动（PS 的「保留透明区域」） |
+| `preserve-transparency` | 否 | 全透明像素保持不动（经典图像编辑器的「保留透明区域」） |
 | `output-mode` | Composite | 输出合成结果 / 灰蒙版 / alpha 蒙版 |
 
-## 与 PS 的对应关系 / How it maps to Photoshop
+## 与 经典图像编辑器的对应关系 / How it maps to 经典图像编辑器
 
-| PS | 这里 |
+| 经典图像编辑器 | 这里 |
 |---|---|
 | Source: 图像 + 图层 | `aux` pad，在滤镜对话框里选 |
 | Source: 通道 | `source-channel` |
@@ -35,7 +35,7 @@ into a single channel.
 | Preserve Transparency | `preserve-transparency` |
 | Mask: 图层 + 通道 + 反相 | `mask-from` + `mask-channel` + `invert-mask` |
 
-PS 的遮罩可以指向**第三张**图（既不是目标也不是源），GEGL 的 composer 只有
+经典图像编辑器的遮罩可以指向**第三张**图（既不是目标也不是源），GEGL 的 composer 只有
 两个输入，所以这里限定在「本层」或「源层」二选一——实际用法里这两处覆盖了
 绝大多数场合。
 
@@ -54,7 +54,7 @@ PS 的遮罩可以指向**第三张**图（既不是目标也不是源），GEGL
   reduced to luminance.
 - 深色 / 浅色（Darker / Lighter Color）比较整像素亮度后取其中一方**全部通道**，
   不是逐通道取最小/最大——这一点和「变暗 / 变亮」不同。
-- 在 8bit sRGB 伽马域计算，与 PS 的混合模式定义同域；结果会裁到 0..1。
+- 在 8bit sRGB 伽马域计算，与 经典图像编辑器的混合模式定义同域；结果会裁到 0..1。
 - GIMP 里这类带 aux 的滤镜目前**只能合并应用**，不能保存成非破坏性 fx。
 
 ```bash
@@ -63,14 +63,14 @@ PS 的遮罩可以指向**第三张**图（既不是目标也不是源），GEGL
 
 ## 源图层的尺寸与位置 / Source layer size and position
 
-PS 的应用图像要求两个图层**像素尺寸完全一致**，尺寸不同时源图层直接灰掉；
+经典图像编辑器的应用图像要求两个图层**像素尺寸完全一致**，尺寸不同时源图层直接灰掉；
 GIMP 里图层可以比画布小、也可以带偏移，所以这里得自己定规则：
 
 - 算子按 `aux` 缓冲区自己的 extent（即源图层的大小和位置）做**粗筛**，没盖到
   的像素原样输出；
 - 盖到的范围内，再由源像素的 alpha 决定**真正有没有像素**：alpha = 0 的地方
   原样输出，alpha 介于 0 和 1 之间按覆盖率减弱。只有「既属于源层、又有像素」
-  的地方才被改动，这才是 PS 意义上「只有相交部分起作用」。
+  的地方才被改动，这才是 经典图像编辑器 意义上「只有相交部分起作用」。
 
 早先版本用的是 `GeglOperationPointComposer`，`process` 只拿到一段裸指针，
 看不到 aux 的 extent，界外被 GEGL 补成透明黑再参与混合：正片叠底会把外侧涂
@@ -81,7 +81,7 @@ GIMP 里图层可以比画布小、也可以带偏移，所以这里得自己定
 extent 只能说明「这块地方属于源层」，说明不了「这块地方有像素」——抠图的透明
 洞也在 extent 里面，光看 extent 会把洞一起乘黑。所以两者要配合用。
 
-Photoshop requires both layers to have exactly the same pixel size and greys the
+the classic editor requires both layers to have exactly the same pixel size and greys the
 source out otherwise; GIMP layers may be smaller than the canvas or offset, so
 the rule here is two-stage: the aux buffer's own extent is the coarse filter,
 and the source alpha decides which pixels inside that area really carry pixels.
@@ -99,6 +99,6 @@ python tools/check_blend.py     # 26 个用例，其中 19 个属于应用图像
                                # 通道、源层尺寸/偏移、源层透明与半透明覆盖率
 ```
 
-PS's mask may point at a *third* image. A GEGL composer only exposes two inputs,
+the classic editor's mask may point at a *third* image. A GEGL composer only exposes two inputs,
 so the mask is limited to either the target or the source, which covers the
 common cases.

@@ -2,10 +2,10 @@
 
 > `lb:calculations` · 菜单 **颜色 → SuperMrWang → Blend → Calculations** · 双输入（input + aux）
 
-对应 Photoshop 的 **图像 → 计算**：从两路各取一个通道（可以各自反相），按混合模式
+对应 经典图像编辑器 的 **图像 → 计算**：从两路各取一个通道（可以各自反相），按混合模式
 算出灰度结果，输出成灰蒙版或 alpha 蒙版。
 
-Replicates Photoshop's **Image → Calculations**: take one channel from each of two
+Replicates the classic editor's **Image → Calculations**: take one channel from each of two
 sources (each optionally inverted), blend them, and output a grey or alpha mask.
 
 ## 参数 / Parameters
@@ -16,16 +16,16 @@ sources (each optionally inverted), blend them, and output a grey or alpha mask.
 | `invert-source1` | 否 | 源 1 反相 |
 | `source2-channel` | Luminance | aux 取哪个通道 |
 | `invert-source2` | 否 | 源 2 反相 |
-| `blend-mode` | Multiply | 26 种混合模式，与 PS 列表一致 |
+| `blend-mode` | Multiply | 26 种混合模式，与 经典图像编辑器 列表一致 |
 | `opacity` | 100 | 混合强度 |
 | `mask-enabled` | 否 | 再用一路通道做遮罩 |
 | `mask-channel` | Luminance | 遮罩通道 |
 | `invert-mask` | 否 | 遮罩反相 |
 | `output-mode` | 灰蒙版 | 灰蒙版（贴图层蒙版）或 alpha 蒙版（直接当不透明度） |
 
-## 与 PS 的对应关系 / How it maps to Photoshop
+## 与 经典图像编辑器的对应关系 / How it maps to 经典图像编辑器
 
-| PS | 这里 |
+| 经典图像编辑器 | 这里 |
 |---|---|
 | Source 1: 图层 + 通道 + 反相 | input + `source1-channel` + `invert-source1` |
 | Source 2: 图层 + 通道 + 反相 | aux + `source2-channel` + `invert-source2` |
@@ -34,17 +34,17 @@ sources (each optionally inverted), blend them, and output a grey or alpha mask.
 | Result: 新建文档 / 新建通道 | `output-mode` = 灰蒙版，得到的灰色层可当文档或通道用 |
 | Result: 选区 | `output-mode` = alpha 蒙版，再配合 **选择 → 按 Alpha 转选区** |
 
-PS 的「结果为选区」在 GEGL 里没法直接建立选区（算子只能输出像素），所以用
-alpha 蒙版代替：把它当作图层的不透明度，或转成选区。PS 的「新建文档」也用
+经典图像编辑器的「结果为选区」在 GEGL 里没法直接建立选区（算子只能输出像素），所以用
+alpha 蒙版代替：把它当作图层的不透明度，或转成选区。经典图像编辑器的「新建文档」也用
 灰蒙版代替——灰蒙版单独复制一份就是灰度文档。
 
 ## 想要选区 / 通道：手动三步 / Getting a selection or channel by hand
 
-GEGL 算子只能产出像素，碰不到选区、通道、图层这些图像对象，所以 PS 计算对话框
+GEGL 算子只能产出像素，碰不到选区、通道、图层这些图像对象，所以 经典图像编辑器 计算对话框
 里的 Result 下拉在这里只能落到「灰蒙版 / alpha 蒙版」。要选区或通道，不改代码也
 能做到：
 
-1. **Ctrl+Shift+D 复制图层**——**必做**。GEGL 滤镜是直接改当前图层的像素，不像 PS
+1. **Ctrl+Shift+D 复制图层**——**必做**。GEGL 滤镜是直接改当前图层的像素，不像 经典图像编辑器
    的计算那样不碰原图，在副本上跑才不会把原图换掉。
 2. 在副本上跑 **Colors → SuperMrWang → Blend → Calculations**，`Output` 选
    **Mask (alpha)**。这一步是关键：alpha 版把灰度写在图层的 alpha 上，才能用
@@ -67,9 +67,9 @@ GEGL 算子只能产出像素，碰不到选区、通道、图层这些图像对
 README「Python 插件版」。
 
 GEGL ops can only return pixels — they cannot create selections, channels or layers —
-so PS's Result drop-down collapses to grey / alpha mask here. The three steps above
+so the classic editor's Result drop-down collapses to grey / alpha mask here. The three steps above
 get you the other two by hand. Note that the duplicate in step 1 is mandatory: a
-GEGL filter rewrites the layer it runs on, unlike PS's Calculations.
+GEGL filter rewrites the layer it runs on, unlike the classic editor's Calculations.
 
 ## 行为细节 / Behaviour notes
 
@@ -91,7 +91,7 @@ GEGL filter rewrites the layer it runs on, unlike PS's Calculations.
   coverage — 0 gives a 0 mask (not selected), and soft mattes fade. When
   source 2's channel *is* alpha, that value is data, not coverage.
 - **源层比主图小 / 带偏移**：aux 没覆盖到的像素按黑色参与计算（蒙版那里就是
-  0）。PS 的计算要求两个来源同尺寸，这里不强制，缺的部分当黑。
+  0）。经典图像编辑器的计算要求两个来源同尺寸，这里不强制，缺的部分当黑。
 
 ## 测试 / Testing
 

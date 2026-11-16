@@ -1,14 +1,14 @@
 /* ===========================================================================
  * SuperMrWang · GEGL 算子 / GEGL Operation
  * ---------------------------------------------------------------------------
- * id         lb:ps-hue-saturation
+ * id         lb:hue-saturation-basic
  * menu       Hue/Saturation (Basic)
  * purpose    三滑杆公式：全局色相旋转、饱和度相对缩放、明度向白/黑混合。
  *            Three-slider formula: global hue rotation, relative saturation
  *            scaling, lightness as a blend toward white/black.
- * algorithm  规范来源是 tools/ref_ps_hue_sat.py（用户给定 Python 代码的逐字
+ * algorithm  规范来源是 tools/ref_hue_sat_basic.py（用户给定 Python 代码的逐字
  *            转写 + 浮点版对照），处理链四步：
- *            Normative reference: tools/ref_ps_hue_sat.py, four steps:
+ *            Normative reference: tools/ref_hue_sat_basic.py, four steps:
  *            ① 明度：逐通道与中性灰做 screen(t>0) / multiply(t<0)，
  *               代数上等于 c' = c + t(1-c) 与 c' = c(1+t)，t = lightness/100。
  *               Lightness: screen / multiply against a neutral grey, i.e.
@@ -23,7 +23,7 @@
  *            Two deliberate deviations, both implementation defects rather
  *            than algorithm semantics:
  *            (a) 原代码把 h 取整到 1°、s/l 取整到 1% 再算，输出又 int() 截断；
- *                实测这层量化平均偏暗 1.7 码、最大 9 码（tools/ref_ps_hue_sat.py
+ *                实测这层量化平均偏暗 1.7 码、最大 9 码（tools/ref_hue_sat_basic.py
  *                的 breakdown 函数）。
  *                本算子全程浮点，量化误差交给 GEGL 的输出格式处理。
  *                The original rounds h to 1 deg and s/l to 1 %, then truncates
@@ -34,7 +34,7 @@
  *                At x = +1 the original divides by zero; the limit is full
  *                saturation, which is what this op returns.
  * type       GeglOperationPointFilter（逐像素 / per-pixel）
- * reference  tools/ref_ps_hue_sat.py
+ * reference  tools/ref_hue_sat_basic.py
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
  *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
@@ -67,8 +67,8 @@ property_double (lightness, _("Lightness"), 0.0)
 #else
 
 #define GEGL_OP_POINT_FILTER
-#define GEGL_OP_NAME     lb_ps_hue_saturation
-#define GEGL_OP_C_SOURCE ps-hue-saturation.c
+#define GEGL_OP_NAME     lb_hue_saturation_basic
+#define GEGL_OP_C_SOURCE hue-saturation-basic.c
 
 #include "gegl-op.h"
 
@@ -273,7 +273,7 @@ gegl_op_class_init (GeglOpClass *klass)
   point_filter_class->process = process;
 
   gegl_operation_class_set_keys (operation_class,
-                                 "name",            "lb:ps-hue-saturation",
+                                 "name",            "lb:hue-saturation-basic",
                                  "title",           _("Hue/Saturation (Basic)"),
                                  "categories",      "color:enhance",
                                  "description",     _("Hue rotation, relative saturation scaling "

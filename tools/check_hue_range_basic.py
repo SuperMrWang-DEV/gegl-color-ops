@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""验收 lb:ps-hue-range（色系范围 + 权重缩放的色相/饱和度/明度）。
+"""验收 lb:hue-range-basic（色系范围 + 权重缩放的色相/饱和度/明度）。
 
 做法：造一张色卡（9 个已知色相/饱和度的色块），对每组参数跑 gegl
 （支持 -- 链式串联 Master + Range），用 Python 参考实现（与本算子
@@ -11,9 +11,9 @@
   · 权重作用在原始色相上，调整量按 w 缩放（橙的色相位移是半量）；
   · 无彩像素不参与任何色系；
   · 柄拖过 0/360 环绕仍正确；
-  · w=1 时与 lb:ps-hue-saturation 逐位一致（链式用例间接覆盖）。
+  · w=1 时与 lb:hue-saturation-basic 逐位一致（链式用例间接覆盖）。
 
-    python tools/check_ps_hue_range.py
+    python tools/check_hue_range_basic.py
 """
 import os
 import struct
@@ -64,7 +64,7 @@ CHANNEL_DEFAULTS = {
 }
 
 
-# ---- 参考实现：与 ps-hue-range.c / ps-hue-saturation.c 逐字同式 ----------
+# ---- 参考实现：与 hue-range-basic.c / hue-saturation-basic.c 逐字同式 ----------
 
 def wrap_degrees(d):
     d = d % 360.0
@@ -327,7 +327,7 @@ def main():
 
     def add_range_case(desc, props, ref_fn):
         cases.append((desc,
-                      [['lb:ps-hue-range'] + props],
+                      [['lb:hue-range-basic'] + props],
                       ref_fn))
 
     # 1. 红系 hue=90：橙在 30° 处应得半量位移（45°）
@@ -363,8 +363,8 @@ def main():
                                               *handles('greens', None, None, None, None)))
     # 8. 链式：Master hue=-30 → 红系 hue=60
     cases.append(('链式 Master(-30) → 红系(+60)',
-                  [['lb:ps-hue-saturation', 'hue=-30'],
-                   ['lb:ps-hue-range', 'channel=reds', 'hue=60']],
+                  [['lb:hue-saturation-basic', 'hue=-30'],
+                   ['lb:hue-range-basic', 'channel=reds', 'hue=60']],
                   lambda r, g, b: ref_master_then_range(r, g, b, -30, 0, 0,
                                                         60, 0, 0,
                                                         *handles('reds', None, None, None, None))))

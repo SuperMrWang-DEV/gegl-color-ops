@@ -3,9 +3,9 @@
  * ---------------------------------------------------------------------------
  * id         lb:color-grading
  * menu       Color Grading
- * purpose    等价 ACR/Lightroom「颜色分级」：阴影 / 中间调 / 高光 / 全局四个
+ * purpose    等价 经典 RAW 编辑器的「颜色分级」：阴影 / 中间调 / 高光 / 全局四个
  *            轮盘（色相 + 饱和度）加各自的明度滑杆，按亮度分带给画面上色。
- *            The ACR/Lightroom Color Grading panel: Shadows / Midtones /
+ *            The classic RAW editors' Color Grading panel: Shadows / Midtones /
  *            Highlights / Global wheels (hue + saturation) with per-range
  *            Luminance sliders, tinting the picture by luminance band.
  * algorithm  逐像素（感知 / 伽马域）：
@@ -24,12 +24,12 @@
  *                 色相上不做插值 → 没有「旋转方向翻转」的接缝（见 apply_wheel）。
  *            4. 全局轮盘权重恒为 1，先做；三个带再做。
  *
- *            ACR 无法在本机标定（未装 Camera Raw 插件），分界 0.3/0.7、
+ *            该 RAW 编辑器无法在本机标定（未装其插件），分界 0.3/0.7、
  *            过渡 ±0.25、Rec.709 亮度等均为按公开行为设定的合理模型，
  *            不是黑盒实测值。
  * type       GeglOperationPointFilter（逐像素 / per-pixel）
- * reference  Adobe Camera Raw / Lightroom Classic 的 Color Grading 面板
- *            Adobe Camera Raw / Lightroom Classic Color Grading panel
+ * reference  经典 RAW 编辑器的 Color Grading 面板
+ *            classic RAW editors Color Grading panel
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
  *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */

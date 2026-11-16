@@ -2,11 +2,11 @@
 
 # GEGL_GIMP_PLUGIN_color_balance
 
-对应 Photoshop「色彩平衡」调整。两个模式：
+对应 经典图像编辑器的「色彩平衡」调整。两个模式：
 
-- **不保留明度（默认）**：PS 的逐通道曲线，见下面「算法」一节。
+- **不保留明度（默认）**：经典图像编辑器的逐通道曲线，见下面「算法」一节。
 - **保留明度**：MATLAB 零和矩阵（系数减中位数 → 高光 `in/(1−α)` → 阴影
-  `(in−α)/(1−α)` → 中间调 `in^γ`），与 PS 实测最大差 3.0 码，未做改动。
+  `(in−α)/(1−α)` → 中间调 `in^γ`），与 经典图像编辑器 实测最大差 3.0 码，未做改动。
 
 ---
 
@@ -25,7 +25,7 @@ u   = (v − b) / (W − b)
 out = 255 · u^G                       (u ≥ H)
 ```
 
-近黑端另有一段「趾部」：G < 1 时 u^G 在 0 处斜率无穷，PS 实际是有限斜率起步。
+近黑端另有一段「趾部」：G < 1 时 u^G 在 0 处斜率无穷，经典图像编辑器 实际是有限斜率起步。
 把 [b, h0] 这一段换成三次 Hermite：
 
 ```
@@ -41,7 +41,7 @@ out = Hermite( (v−b)/(h0−b), Su·H, y1, G·y1 )
   G ≥ 0.85 时 H 衰减到 0，趾部自然消失。
 - 忽略趾部的话，中间调 +100 在 v≈4 处会差 16 码；补上后全档 ≤ 0.3 码。
 
-参数由 `cb-cal` 的 Photoshop 标定得到（PS 26.10、16 位、600 档单区间 + 9 组合），
+参数由 `cb-cal` 的 经典图像编辑器 标定得到（经典图像编辑器 26.10、16 位、600 档单区间 + 9 组合），
 完整推导与精度见 `../../cb-cal/RESULTS.md`。
 
 **不要手改 `cb-tables.h`**，它由 `cb-cal/gen_cb_tables.py` 从标定数据生成。
@@ -123,12 +123,12 @@ Both `Su` (normalised initial slope) and `H` (toe width) depend on the
 composite exponent G alone — single-range and combo settings fall on the same
 Su(G) — and H decays to 0 at G >= 0.85 (table `CB_TOE`).
 
-Measured against Photoshop 26.10 (16-bit, 600 slider settings + 9 combos):
+Measured against classic image editor 26.10 (16-bit, 600 slider settings + 9 combos):
 max 0.30 codes per range, 0.65 codes for combos. See `../../cb-cal/RESULTS.md`.
 
 ### 4. Preserve luminosity
 
-Unchanged MATLAB zero-sum implementation; max 3.0 codes against Photoshop.
+Unchanged MATLAB zero-sum implementation; max 3.0 codes against the classic editor.
 
 ---
 
@@ -136,7 +136,7 @@ Unchanged MATLAB zero-sum implementation; max 3.0 codes against Photoshop.
 
 1. 色彩平衡调整图层的本质-背后的数学原理 - 王先生的副业 - 知乎
    https://zhuanlan.zhihu.com/p/679776283
-2. Photoshop 中的色彩平衡调整图层的原理分析 - 章佳杰 - 知乎
+2. 经典图像编辑器 中的色彩平衡调整图层的原理分析 - 章佳杰 - 知乎
    https://zhuanlan.zhihu.com/p/59450298
 
 第 1 篇的三段曲线模型与实测不符（见上）；第 2 篇的零和矩阵与保留明度模式吻合。

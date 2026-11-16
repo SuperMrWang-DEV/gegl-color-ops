@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""验收 lb:color-balance：gegl CLI 渲染标定图，与 PS 实测逐像素比对。
+"""验收 lb:color-balance：gegl CLI 渲染标定图，与 经典图像编辑器 实测逐像素比对。
 
 参考图来自 ../cb-cal/out1（结构探测）与 out2（步长扫描 + 组合 + 保留明度）。
 误差单位是 8 位码。分组统计，因为两类模式的性质完全不同：

@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Channel Mixer Plus · gegl-color-ops</title>
-<meta name="description" content="PS 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移">
+<meta name="description" content="经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移the classic editor Channel Mixer: every output channel is a weighted sum of">
 <meta property="og:title" content="Channel Mixer Plus · gegl-color-ops">
-<meta property="og:description" content="PS 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移">
+<meta property="og:description" content="经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移the classic editor Channel Mixer: every output channel is a weighted sum of">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
 <script>
@@ -46,7 +46,7 @@
     <span class="tag t-blend">混合与通道</span>
     <span>逐像素</span>
   </div>
-  <p class="lede">PS 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移</p>
+  <p class="lede">经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移the classic editor Channel Mixer: every output channel is a weighted sum of</p>
 </section><div class="article-layout">
   <article class="prose">
 <h2 id="算法">算法</h2>
@@ -56,11 +56,11 @@ G' = gr·R + gg·G + gb·B + g_off
 B' = br·R + bg·G + bb·B + b_off</code></pre>
 <p>默认是单位矩阵（对角 1、其余 0）、常数全 0，所以什么都不动时算子等于直通。 结果裁到 0..1。增益允许 −2…2，既能加也能减某个通道。</p>
 <h2 id="单色">单色</h2>
-<p><code>monochrome</code> 打开后三路共用一组系数（<code>mono_r</code> / <code>mono_g</code> / <code>mono_b</code>，默认 0.33 / 0.33 / 0.34）加一个 <code>mono_offset</code>，输出灰图——就是 PS 那个单色勾选框。 此时逐通道矩阵被忽略，两套设置可以共存，来回切换不丢。</p>
+<p><code>monochrome</code> 打开后三路共用一组系数（<code>mono_r</code> / <code>mono_g</code> / <code>mono_b</code>，默认 0.33 / 0.33 / 0.34）加一个 <code>mono_offset</code>，输出灰图——就是 经典图像编辑器 那个单色勾选框。 此时逐通道矩阵被忽略，两套设置可以共存，来回切换不丢。</p>
 <h2 id="参数">参数</h2>
-<div class="table-wrap"><table><thead><tr><th>参数</th><th>默认</th><th>说明</th></tr></thead><tbody><tr><td><code>monochrome</code></td><td>关</td><td>单组系数出灰（PS 单色）</td></tr><tr><td><code>mono_r</code> / <code>mono_g</code> / <code>mono_b</code></td><td>0.33 / 0.33 / 0.34</td><td>单色权重，默认和为 1</td></tr><tr><td><code>mono_offset</code></td><td>0</td><td>单色常数</td></tr><tr><td><code>rr_gain</code> / <code>rg_gain</code> / <code>rb_gain</code></td><td>1 / 0 / 0</td><td>输出 R 取 R / G / B 的权重</td></tr><tr><td><code>gr_gain</code> / <code>gg_gain</code> / <code>gb_gain</code></td><td>0 / 1 / 0</td><td>输出 G 的三个权重</td></tr><tr><td><code>r_offset</code> / <code>g_offset</code> / <code>b_offset</code></td><td>0</td><td>各输出通道的常数项</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>参数</th><th>默认</th><th>说明</th></tr></thead><tbody><tr><td><code>monochrome</code></td><td>关</td><td>单组系数出灰（经典图像编辑器 单色）</td></tr><tr><td><code>mono_r</code> / <code>mono_g</code> / <code>mono_b</code></td><td>0.33 / 0.33 / 0.34</td><td>单色权重，默认和为 1</td></tr><tr><td><code>mono_offset</code></td><td>0</td><td>单色常数</td></tr><tr><td><code>rr_gain</code> / <code>rg_gain</code> / <code>rb_gain</code></td><td>1 / 0 / 0</td><td>输出 R 取 R / G / B 的权重</td></tr><tr><td><code>gr_gain</code> / <code>gg_gain</code> / <code>gb_gain</code></td><td>0 / 1 / 0</td><td>输出 G 的三个权重</td></tr><tr><td><code>r_offset</code> / <code>g_offset</code> / <code>b_offset</code></td><td>0</td><td>各输出通道的常数项</td></tr></tbody></table></div>
 <h2 id="与-gegl-内置-channel-mixer-的差别">与 GEGL 内置 channel-mixer 的差别</h2>
-<p>GEGL 自带 <code>gegl:channel-mixer</code>，矩阵是一样的，但没有每通道常数，多一个 「保持明度」。本算子补上常数项（就是 PS 的「常数」滑杆），去掉保持明度： 加完常数再按亮度缩放，两个方向会互相拉扯。</p>
+<p>GEGL 自带 <code>gegl:channel-mixer</code>，矩阵是一样的，但没有每通道常数，多一个 「保持明度」。本算子补上常数项（就是 经典图像编辑器的「常数」滑杆），去掉保持明度： 加完常数再按亮度缩放，两个方向会互相拉扯。</p>
 <h2 id="验证">验证</h2>
 <p><code>python tools/check_gamma_domain.py</code>：单位矩阵下算子必须原样通过探针图。</p><div class="op-dl">
   <div>
@@ -99,7 +99,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <span class="tag t-blend">Blend</span>
     <span>per-pixel</span>
   </div>
-  <p class="lede">Photoshop's Channel Mixer — a 3×3 matrix from R/G/B into each output channel, plus a constant offset per channel and a monochrome mode.</p>
+  <p class="lede">the classic editor's Channel Mixer — a 3×3 matrix from R/G/B into each output channel, plus a constant offset per channel and a monochrome mode.</p>
 </section><div class="article-layout">
   <article class="prose">
 <p><code>lb:channel-mixer-plus</code> · menu <strong>Colors → SuperMrWang → Blend → Channel Mixer Plus</strong> · <code>GeglOperationPointFilter</code> (per-pixel)</p>
@@ -110,12 +110,12 @@ G' = gr·R + gg·G + gb·B + g_off
 B' = br·R + bg·G + bb·B + b_off</code></pre>
 <p>The defaults are the identity matrix (1 on the diagonal, 0 elsewhere) with every offset at 0, so the operator passes the image through untouched until you move something. Results are clipped to 0..1.</p>
 <h2 id="monochrome">Monochrome</h2>
-<p>With <code>monochrome</code> on, the three output channels share one set of coefficients (<code>mono_r</code> / <code>mono_g</code> / <code>mono_b</code>, plus <code>mono_offset</code>) and the image turns grey — the same thing Photoshop's monochrome checkbox does. The per-channel matrix is ignored in that mode, so you can keep both settings and flip between them.</p>
+<p>With <code>monochrome</code> on, the three output channels share one set of coefficients (<code>mono_r</code> / <code>mono_g</code> / <code>mono_b</code>, plus <code>mono_offset</code>) and the image turns grey — the same thing the classic editor's monochrome checkbox does. The per-channel matrix is ignored in that mode, so you can keep both settings and flip between them.</p>
 <h2 id="parameters">Parameters</h2>
-<div class="table-wrap"><table><thead><tr><th>Parameter</th><th>Default</th><th>Notes</th></tr></thead><tbody><tr><td><code>monochrome</code></td><td>off</td><td>Single-coefficient grey output, PS style</td></tr><tr><td><code>mono_r</code> / <code>mono_g</code> / <code>mono_b</code></td><td>0.33 / 0.33 / 0.34</td><td>Monochrome weights (sum to 1 by default)</td></tr><tr><td><code>mono_offset</code></td><td>0</td><td>Monochrome constant</td></tr><tr><td><code>rr_gain</code>, <code>rg_gain</code>, <code>rb_gain</code></td><td>1, 0, 0</td><td>R out of R / G / B</td></tr><tr><td><code>gr_gain</code>, <code>gg_gain</code>, <code>gb_gain</code></td><td>0, 1, 0</td><td>G out of R / G / B</td></tr><tr><td><code>bg_gain</code> etc.</td><td>…</td><td>Blue row, same layout</td></tr><tr><td><code>r_offset</code>, <code>g_offset</code>, <code>b_offset</code></td><td>0</td><td>Constant added to each output channel</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>Parameter</th><th>Default</th><th>Notes</th></tr></thead><tbody><tr><td><code>monochrome</code></td><td>off</td><td>Single-coefficient grey output, classic style</td></tr><tr><td><code>mono_r</code> / <code>mono_g</code> / <code>mono_b</code></td><td>0.33 / 0.33 / 0.34</td><td>Monochrome weights (sum to 1 by default)</td></tr><tr><td><code>mono_offset</code></td><td>0</td><td>Monochrome constant</td></tr><tr><td><code>rr_gain</code>, <code>rg_gain</code>, <code>rb_gain</code></td><td>1, 0, 0</td><td>R out of R / G / B</td></tr><tr><td><code>gr_gain</code>, <code>gg_gain</code>, <code>gb_gain</code></td><td>0, 1, 0</td><td>G out of R / G / B</td></tr><tr><td><code>bg_gain</code> etc.</td><td>…</td><td>Blue row, same layout</td></tr><tr><td><code>r_offset</code>, <code>g_offset</code>, <code>b_offset</code></td><td>0</td><td>Constant added to each output channel</td></tr></tbody></table></div>
 <p>Every gain accepts −2…2, so you can subtract a channel as well as add it.</p>
 <h2 id="how-it-differs-from-gegls-built-in-channel-mixer">How it differs from GEGL's built-in channel-mixer</h2>
-<p>GEGL core ships a <code>gegl:channel-mixer</code> with the same matrix, but no per-channel constant and a "keep luminosity" option. This operator adds the offsets — which is what Photoshop's Constant sliders are — and leaves luminosity preservation out, because adding a constant and then rescaling luminance pulls the result in two directions at once.</p>
+<p>GEGL core ships a <code>gegl:channel-mixer</code> with the same matrix, but no per-channel constant and a "keep luminosity" option. This operator adds the offsets — which is what the classic editor's Constant sliders are — and leaves luminosity preservation out, because adding a constant and then rescaling luminance pulls the result in two directions at once.</p>
 <h2 id="testing">Testing</h2>
 <pre><code class="language-bash">./build.sh
 python tools/check_gamma_domain.py   # with the identity matrix the operation must
@@ -155,13 +155,13 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
 <footer class="site-foot">
   <div>
     <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
-    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">88f4f29</span>
+    <span class="muted">f05ba5f</span>
   </div>
 </footer>
 <script>

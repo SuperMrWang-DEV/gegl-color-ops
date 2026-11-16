@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Black &amp; White · gegl-color-ops</title>
-<meta name="description" content="PS 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色">
+<meta name="description" content="经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色the classic editor Black &amp; White: six hue sliders (red, yellow, green, cyan,blue,">
 <meta property="og:title" content="Black &amp; White · gegl-color-ops">
-<meta property="og:description" content="PS 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色">
+<meta property="og:description" content="经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色the classic editor Black &amp; White: six hue sliders (red, yellow, green, cyan,blue,">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
 <script>
@@ -46,24 +46,24 @@
     <span class="tag t-tone">影调与色阶</span>
     <span>逐像素</span>
   </div>
-  <p class="lede">PS 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色</p>
+  <p class="lede">经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色the classic editor Black &amp; White: six hue sliders (red, yellow, green, cyan,blue, magenta) weight the grey conversion, with optionaltinting.</p>
 </section><div class="article-layout">
   <article class="prose">
 <h2 id="算法">算法</h2>
-<p>六个色相滑杆（红 / 黄 / 绿 / 青 / 蓝 / 品红）决定每种颜色对灰度的贡献， 结果还可以着色——就是 PS 的「黑白」对话框：把蓝拉低压暗天空，把黄推高提亮肤色， 其余部分不受影响。</p>
-<p>RGB 三通道按六色权重加权求和；滑块量程 −200…300 与 PS 界面一致，默认值 （红 40、黄 60、绿 40、青 60、蓝 20、品红 80）取自 Photoshop。</p>
+<p>六个色相滑杆（红 / 黄 / 绿 / 青 / 蓝 / 品红）决定每种颜色对灰度的贡献， 结果还可以着色——就是 经典图像编辑器的「黑白」对话框：把蓝拉低压暗天空，把黄推高提亮肤色， 其余部分不受影响。</p>
+<p>RGB 三通道按六色权重加权求和；滑块量程 −200…300 与 经典图像编辑器 界面一致，默认值 （红 40、黄 60、绿 40、青 60、蓝 20、品红 80）取自 经典图像编辑器。</p>
 <h2 id="参数">参数</h2>
 <div class="table-wrap"><table><thead><tr><th>参数</th><th>默认</th><th>说明</th></tr></thead><tbody><tr><td><code>red</code> / <code>yellow</code> / <code>green</code></td><td>40 / 60 / 40</td><td>各色系的权重，−200…300</td></tr><tr><td><code>cyan</code> / <code>blue</code> / <code>magenta</code></td><td>60 / 20 / 80</td><td>各色系的权重，−200…300</td></tr><tr><td><code>tint_enabled</code></td><td>关</td><td>给灰度结果着色</td></tr><tr><td><code>tint_color</code></td><td><code>#E0D4B2</code></td><td>着色颜色（默认是暖棕）</td></tr><tr><td><code>tint_strength</code></td><td>1</td><td>着色强度，0…1</td></tr></tbody></table></div>
 <h2 id="说明">说明</h2>
-<ul><li>逐像素在 8 位 sRGB 伽马域计算，滑块手感与 PS 对话框一致。</li><li>alpha 保留，透明像素仍然透明。</li><li>与 GIMP 的「去色」不同：这里的灰度不是固定亮度公式，每种颜色变成什么由你决定， 这正是「黑白」的用处。</li></ul>
+<ul><li>逐像素在 8 位 sRGB 伽马域计算，滑块手感与 经典图像编辑器 对话框一致。</li><li>alpha 保留，透明像素仍然透明。</li><li>与 GIMP 的「去色」不同：这里的灰度不是固定亮度公式，每种颜色变成什么由你决定， 这正是「黑白」的用处。</li></ul>
 <hr>
 <h2 id="算法-2">算法</h2>
-<p>六个色相滑杆（红 / 黄 / 绿 / 青 / 蓝 / 品红）决定每种颜色对灰度的贡献， 结果还可以着色——就是 PS 的「黑白」对话框：把蓝拉低压暗天空，把黄推高提亮肤色， 其余部分不受影响。</p>
-<p>RGB 三通道按六色权重加权求和；滑块量程 −200…300 与 PS 界面一致，默认值 （红 40、黄 60、绿 40、青 60、蓝 20、品红 80）取自 Photoshop。</p>
+<p>六个色相滑杆（红 / 黄 / 绿 / 青 / 蓝 / 品红）决定每种颜色对灰度的贡献， 结果还可以着色——就是 经典图像编辑器的「黑白」对话框：把蓝拉低压暗天空，把黄推高提亮肤色， 其余部分不受影响。</p>
+<p>RGB 三通道按六色权重加权求和；滑块量程 −200…300 与 经典图像编辑器 界面一致，默认值 （红 40、黄 60、绿 40、青 60、蓝 20、品红 80）取自 经典图像编辑器。</p>
 <h2 id="参数-2">参数</h2>
 <div class="table-wrap"><table><thead><tr><th>参数</th><th>默认</th><th>说明</th></tr></thead><tbody><tr><td><code>red</code> / <code>yellow</code> / <code>green</code></td><td>40 / 60 / 40</td><td>各色系的权重，−200…300</td></tr><tr><td><code>cyan</code> / <code>blue</code> / <code>magenta</code></td><td>60 / 20 / 80</td><td>各色系的权重，−200…300</td></tr><tr><td><code>tint_enabled</code></td><td>关</td><td>给灰度结果着色</td></tr><tr><td><code>tint_color</code></td><td><code>#E0D4B2</code></td><td>着色颜色（默认是暖棕）</td></tr><tr><td><code>tint_strength</code></td><td>1</td><td>着色强度，0…1</td></tr></tbody></table></div>
 <h2 id="说明-2">说明</h2>
-<ul><li>逐像素在 8 位 sRGB 伽马域计算，滑块手感与 PS 对话框一致。</li><li>alpha 保留，透明像素仍然透明。</li><li>与 GIMP 的「去色」不同：这里的灰度不是固定亮度公式，每种颜色变成什么由你决定， 这正是「黑白」的用处。</li></ul><div class="op-dl">
+<ul><li>逐像素在 8 位 sRGB 伽马域计算，滑块手感与 经典图像编辑器 对话框一致。</li><li>alpha 保留，透明像素仍然透明。</li><li>与 GIMP 的「去色」不同：这里的灰度不是固定亮度公式，每种颜色变成什么由你决定， 这正是「黑白」的用处。</li></ul><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>rgb-domain-grayscale.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>rgb-domain-grayscale.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
@@ -101,17 +101,17 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <span class="tag t-tone">Tone</span>
     <span>per-pixel</span>
   </div>
-  <p class="lede">Photoshop's Black & White — six hue sliders decide how much each colour contributes to grey, with an optional tint.</p>
+  <p class="lede">the classic editor's Black & White — six hue sliders decide how much each colour contributes to grey, with an optional tint.</p>
 </section><div class="article-layout">
   <article class="prose">
 <p><code>lb:rgb-domain-grayscale</code> · menu <strong>Colors → SuperMrWang → Tone → Black &amp; White</strong> · <code>GeglOperationPointFilter</code> (per-pixel)</p>
 <h2 id="what-it-does">What it does</h2>
-<p>Six hue sliders — red, yellow, green, cyan, blue, magenta — decide how strongly each colour in the image contributes to the grey result, and the grey can then be tinted. This is Photoshop's Black &amp; White dialog: pull blue down and a blue sky goes dark, push yellow up and skin brightens, without any of it touching the rest of the frame.</p>
-<p>The three RGB channels are combined with the six hue weights summed; the slider range −200…300 matches the PS dialog, and the defaults (red 40, yellow 60, green 40, cyan 60, blue 20, magenta 80) are Photoshop's.</p>
+<p>Six hue sliders — red, yellow, green, cyan, blue, magenta — decide how strongly each colour in the image contributes to the grey result, and the grey can then be tinted. This is the classic editor's Black &amp; White dialog: pull blue down and a blue sky goes dark, push yellow up and skin brightens, without any of it touching the rest of the frame.</p>
+<p>The three RGB channels are combined with the six hue weights summed; the slider range −200…300 matches the the classic editor dialog, and the defaults (red 40, yellow 60, green 40, cyan 60, blue 20, magenta 80) are the classic editor's.</p>
 <h2 id="parameters">Parameters</h2>
 <div class="table-wrap"><table><thead><tr><th>Parameter</th><th>Default</th><th>Notes</th></tr></thead><tbody><tr><td><code>red</code> / <code>yellow</code> / <code>green</code></td><td>40 / 60 / 40</td><td>Weight of each hue family, −200…300</td></tr><tr><td><code>cyan</code> / <code>blue</code> / <code>magenta</code></td><td>60 / 20 / 80</td><td>Weight of each hue family, −200…300</td></tr><tr><td><code>tint_enabled</code></td><td>off</td><td>Tint the grey result</td></tr><tr><td><code>tint_color</code></td><td><code>#E0D4B2</code></td><td>Tint colour (a warm sepia by default)</td></tr><tr><td><code>tint_strength</code></td><td>1</td><td>How strongly the tint is applied, 0…1</td></tr></tbody></table></div>
 <h2 id="notes">Notes</h2>
-<ul><li>The operator runs per pixel in the 8-bit sRGB gamma domain, so the weights behave like the ones in Photoshop's dialog.</li><li>Alpha is preserved; transparent pixels stay transparent.</li><li>Unlike GIMP's <code>Colors → Desaturate</code>, the conversion is not a fixed luma formula: you choose what each colour becomes, which is the whole point of Black &amp; White.</li></ul><div class="op-dl">
+<ul><li>The operator runs per pixel in the 8-bit sRGB gamma domain, so the weights behave like the ones in the classic editor's dialog.</li><li>Alpha is preserved; transparent pixels stay transparent.</li><li>Unlike GIMP's <code>Colors → Desaturate</code>, the conversion is not a fixed luma formula: you choose what each colour becomes, which is the whole point of Black &amp; White.</li></ul><div class="op-dl">
   <div>
     <h3>Just this one</h3>
     <p>Windows module <code>rgb-domain-grayscale.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>rgb-domain-grayscale.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
@@ -145,13 +145,13 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
 <footer class="site-foot">
   <div>
     <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
-    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">88f4f29</span>
+    <span class="muted">f05ba5f</span>
   </div>
 </footer>
 <script>

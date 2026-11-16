@@ -1,15 +1,15 @@
 ---
 name: Color Balance
-blurb: Photoshop's Color Balance — one merged levels-style curve per channel, measured against PS to 0.3 code values, plus the legacy preserve-luminosity mode.
+blurb: the classic editor's Color Balance — one merged levels-style curve per channel, measured against the classic editor to 0.3 code values, plus the legacy preserve-luminosity mode.
 ---
 
-Photoshop's **Color Balance**, in two modes:
+the classic editor's **Color Balance**, in two modes:
 
-- **Preserve luminosity off (default)**: Photoshop's per-channel curve, see
+- **Preserve luminosity off (default)**: the classic editor's per-channel curve, see
   "Algorithm" below.
 - **Preserve luminosity on**: the MATLAB zero-sum matrix (subtract the median from
   the coefficients → highlights `in/(1−α)` → shadows `(in−α)/(1−α)` → midtones
-  `in^γ`), left unchanged; max 3.0 code values from Photoshop.
+  `in^γ`), left unchanged; max 3.0 code values from the classic editor.
 
 ## Algorithm (preserve luminosity off)
 
@@ -28,7 +28,7 @@ out = 255 · u^G                                 (u ≥ H)
 ```
 
 Near black there is a **toe**: for G < 1, `u^G` has infinite slope at 0, while
-Photoshop starts with a finite slope. The segment `[b, h0]` is replaced by a cubic
+the classic editor starts with a finite slope. The segment `[b, h0]` is replaced by a cubic
 Hermite:
 
 ```
@@ -47,7 +47,7 @@ out = Hermite( (v−b)/(h0−b), Su·H, y1, G·y1 )
 - Ignoring the toe, midtones +100 is off by 16 code values at v≈4; with it, the
   whole range is within 0.3.
 
-The parameters come from the Photoshop calibration in `cb-cal` (PS 26.10, 16-bit,
+The parameters come from the the classic editor calibration in `cb-cal` (the classic editor 26.10, 16-bit,
 600 single-range settings + 9 combinations); the full derivation and accuracy are in
 `../../cb-cal/RESULTS.md`.
 
@@ -79,7 +79,7 @@ zero-sum matrix (preserve luminosity) does match the measurements and is kept as
 
 1. The mathematics behind the Color Balance adjustment layer — 王先生的副业, Zhihu
    https://zhuanlan.zhihu.com/p/679776283
-2. How Photoshop's Color Balance adjustment layer works — 章佳杰, Zhihu
+2. How 经典图像编辑器's Color Balance adjustment layer works — 章佳杰, Zhihu
    https://zhuanlan.zhihu.com/p/59450298
 
 Article 1's three-curve model does not match the measurements; article 2's zero-sum

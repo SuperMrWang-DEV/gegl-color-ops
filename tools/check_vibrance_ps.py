@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-"""验收 lb:vibrance：用 gegl CLI 渲染标定图，与 Photoshop 的真实输出逐像素比对。
+"""验收 lb:vibrance：用 gegl CLI 渲染标定图，与 经典图像编辑器 的真实输出逐像素比对。
 
     python tools/check_vibrance_ps.py            # 跑 ±60 / ±100 四档
     python tools/check_vibrance_ps.py 60 25 -40  # 指定档位
 
 依赖：GIMP 自带的 gegl.exe（自动查找）+ 已安装的算子（./install.sh）。
-PS 的输出图在 ../vibrance-cal/out/vib±N.png（8 位，原地导出）。
+经典图像编辑器 的输出图在 ../vibrance-cal/out/vib±N.png（8 位，原地导出）。
 报告的是「单通道最大绝对偏差（0-255 码）」，量化本身就有 ±0.5 码，
 所以理想结果是中位数 0-1、95 分位 ≤2。
 """
@@ -65,7 +65,7 @@ def render(exe, env, v, dst):
 
 
 def stats(v, a, b):
-    """a 为参考（PS），b 为算子输出。返回整幅图上的误差分布。"""
+    """a 为参考（参考图像编辑器），b 为算子输出。返回整幅图上的误差分布。"""
     w, h, A = a
     w2, h2, B = b
     assert (w, h) == (w2, h2), "尺寸不一致"
@@ -133,14 +133,14 @@ def main():
         else:
             ref_path = os.path.join(CAL, "out", "vib%+d.png" % int(v))
             if not os.path.exists(ref_path):
-                print("%6d  （缺少 PS 参考 %s，跳过）" % (v, os.path.basename(ref_path)))
+                print("%6d  （缺少 经典图像编辑器 参考 %s，跳过）" % (v, os.path.basename(ref_path)))
                 continue
             ref = read_png(ref_path)
 
         med, p95, mx, avg, same, worst = stats(v, ref, got)
         note = ""
         if worst:
-            note = "(%d,%d) PS%s 算子%s" % (worst[1], worst[2], worst[3], worst[4])
+            note = "(%d,%d) 参考图像编辑器%s 算子%s" % (worst[1], worst[2], worst[3], worst[4])
         print("%6d %6d %6d %6d %6.2f %7.1f%%  %s" % (v, med, p95, mx, avg, same, note))
         if mx > 3:
             bad += 1

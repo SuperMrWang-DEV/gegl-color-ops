@@ -51,13 +51,13 @@ OPS = {
                 "skipped.",
         type="GeglOperationPointFilter（逐像素 / per-pixel）",
         ref_zh="Camera Raw 的 HSL 面板",
-        ref_en="Adobe Camera Raw HSL panel",
+        ref_en="the RAW editor HSL panel",
     ),
     "channel-mixer-plus": dict(
         id="lb:channel-mixer-plus", label="Channel Mixer Plus",
         title="Channel Mixer Plus",
-        purpose_zh="PS 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移",
-        purpose_en="PS Channel Mixer: every output channel is a weighted sum of R/G/B, "
+        purpose_zh="经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移",
+        purpose_en="参考图像编辑器 Channel Mixer: every output channel is a weighted sum of R/G/B, "
                    "plus a constant offset per channel.",
         algo_zh="3×3 混合矩阵 + 每通道 offset；monochrome 打开时改用单组系数转灰",
         algo_en="A 3x3 mixing matrix plus one offset per channel; with 'monochrome' a "
@@ -78,14 +78,14 @@ OPS = {
         algo_en="Pick an RGB, luminance or LAB L/a/b channel. Values inside the range "
                 "stay opaque, values outside fade out by 'fuzziness' and 'feather'.",
         type="GeglOperationPointFilter（逐像素 / per-pixel）",
-        ref_zh="Photoshop「混合颜色带」(Blend If)",
-        ref_en="Photoshop Blend If",
+        ref_zh="经典图像编辑器的「混合颜色带」(Blend If)",
+        ref_en="经典图像编辑器 Blend If",
     ),
     "cmyk-primary-correction": dict(
         id="lb:cmyk-primary-correction", label="CMYK Primary",
         title="CMYK Primary Correction",
-        purpose_zh="PS 可选颜色：红/黄/绿/青/蓝/品红/白/中性/黑九组各自独立记忆 C/M/Y/K",
-        purpose_en="PS Selective Color: nine ranges (red, yellow, green, cyan, blue, "
+        purpose_zh="经典图像编辑器 可选颜色：红/黄/绿/青/蓝/品红/白/中性/黑九组各自独立记忆 C/M/Y/K",
+        purpose_en="参考图像编辑器 Selective Color: nine ranges (red, yellow, green, cyan, blue, "
                    "magenta, white, neutral, black), each keeping its own C/M/Y/K "
                    "values.",
         algo_zh="RGB → CMYK；九组色域分别算权重，逐像素把九组偏移同时叠加，支持绝对 / "
@@ -94,29 +94,29 @@ OPS = {
                 "are summed simultaneously; absolute and relative modes are supported "
                 "and greys are left untouched.",
         type="GeglOperationPointFilter（逐像素 / per-pixel）",
-        ref_zh="Photoshop「可选颜色」(Selective Color)",
-        ref_en="Photoshop Selective Color",
+        ref_zh="经典图像编辑器的「可选颜色」(Selective Color)",
+        ref_en="经典图像编辑器 Selective Color",
     ),
     "color-balance": dict(
         id="lb:color-balance", label="Color Balance", title="Color Balance",
-        purpose_zh="PS 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴",
-        purpose_en="PS Color Balance: shadow, midtone and highlight each carry three "
+        purpose_zh="经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴",
+        purpose_en="参考图像编辑器 Color Balance: shadow, midtone and highlight each carry three "
                    "axis pairs (C-R, M-G, Y-B).",
-        algo_zh="在 8bit sRGB 伽马域反推 PS 曲线，两种模式：原版 = 三区间独立通道曲线；"
+        algo_zh="在 8bit sRGB 伽马域反推 经典图像编辑器 曲线，两种模式：原版 = 三区间独立通道曲线；"
                 "MATLAB 版 = 零和矩阵（保明度）。输入须为伽马编码 sRGB，勿在前置节点用 "
                 "linear-rgb",
-        algo_en="Reverse-engineered PS curves in 8-bit sRGB gamma space, two modes: "
+        algo_en="Reverse-engineered 参考图像编辑器 curves in 8-bit sRGB gamma space, two modes: "
                 "original = independent per-region channel curves, MATLAB = zero-sum "
                 "matrix that preserves luminosity. Feed gamma-encoded sRGB; do not "
                 "insert linear-rgb before this op.",
         type="GeglOperationFilter（需整块区域 / whole-region）",
         ref_zh=["色彩平衡调整图层的本质-背后的数学原理（王先生的副业）",
                 "https://zhuanlan.zhihu.com/p/679776283",
-                "Photoshop 中的色彩平衡调整图层的原理分析（章佳杰）",
+                "经典图像编辑器 中的色彩平衡调整图层的原理分析（章佳杰）",
                 "https://zhuanlan.zhihu.com/p/59450298"],
         ref_en=["The math behind the Color Balance layer / Wang's side project",
                 "https://zhuanlan.zhihu.com/p/679776283",
-                "How the Photoshop Color Balance layer really works / Zhang Jiajie",
+                "How the 经典图像编辑器 Color Balance layer really works / Zhang Jiajie",
                 "https://zhuanlan.zhihu.com/p/59450298"],
     ),
     "colorize-hsl": dict(
@@ -130,20 +130,20 @@ OPS = {
                 "from HSL, substitute H/S, convert back to RGB. The output varies "
                 "between pixels only in L.",
         type="GeglOperationFilter（需整块区域 / whole-region）",
-        ref_zh="Photoshop「颜色」调整层 + Overlay 着色",
-        ref_en="Photoshop Color fill layer over an Overlay-blended grey",
+        ref_zh="经典图像编辑器的「颜色」调整层 + Overlay 着色",
+        ref_en="经典图像编辑器 Color fill layer over an Overlay-blended grey",
     ),
     "color-mask-select": dict(
         id="lb:color-mask-select", label="Mask by Color", title="Color Mask Select",
-        purpose_zh="PS 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览",
-        purpose_en="PS Color Range: build a mask from a picked colour, a fuzziness "
+        purpose_zh="经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览",
+        purpose_en="参考图像编辑器 Color Range: build a mask from a picked colour, a fuzziness "
                    "radius and feathering, with an optional red overlay preview.",
         algo_zh="九组预设色或图像取色 → 色距判定 → fuzziness / feather 生成 alpha",
         algo_en="Nine preset colours or a colour sampled from the image -> distance "
                 "test -> alpha from 'fuzziness' and 'feather'.",
         type="GeglOperationPointFilter（逐像素 / per-pixel）",
-        ref_zh="Photoshop「色彩范围」(Color Range)",
-        ref_en="Photoshop Color Range",
+        ref_zh="经典图像编辑器的「色彩范围」(Color Range)",
+        ref_en="经典图像编辑器 Color Range",
     ),
     "lab-levels": dict(
         id="lb:lab-levels", label="LAB Levels", title="LAB Levels",
@@ -158,29 +158,29 @@ OPS = {
     ),
     "exposure": dict(
         id="lb:exposure", label="Exposure EV", title="Exposure EV",
-        purpose_zh="PS 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）",
-        purpose_en="PS Exposure: EV, offset and gamma in three stages, measured in "
+        purpose_zh="经典图像编辑器 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）",
+        purpose_en="参考图像编辑器 Exposure: EV, offset and gamma in three stages, measured in "
                    "exposure stops.",
-        algo_zh="在 8bit sRGB 伽马域反推 PS 曝光层公式；输入须为伽马编码 sRGB，勿在前置"
+        algo_zh="在 8bit sRGB 伽马域反推 经典图像编辑器 曝光层公式；输入须为伽马编码 sRGB，勿在前置"
                 "节点用 linear-rgb",
-        algo_en="Reverse-engineered from the PS Exposure layer in 8-bit sRGB gamma "
+        algo_en="Reverse-engineered from the 参考图像编辑器 Exposure layer in 8-bit sRGB gamma "
                 "space. Feed gamma-encoded sRGB; do not insert linear-rgb before this "
                 "op.",
         type="GeglOperationFilter（需整块区域 / whole-region）",
-        ref_zh="Photoshop「曝光」调整层",
-        ref_en="Photoshop Exposure adjustment layer",
+        ref_zh="经典图像编辑器的「曝光」调整层",
+        ref_en="经典图像编辑器 Exposure adjustment layer",
     ),
     "rgb-domain-grayscale": dict(
         id="lb:rgb-domain-grayscale", label="Black & White", title="Black & White",
-        purpose_zh="PS 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色",
-        purpose_en="PS Black & White: six hue sliders (red, yellow, green, cyan, blue, "
+        purpose_zh="经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色",
+        purpose_en="参考图像编辑器 Black & White: six hue sliders (red, yellow, green, cyan, blue, "
                    "magenta) weight the grey conversion, with optional tinting.",
-        algo_zh="RGB 三通道按六色权重加权求和，-200~300 区间与 PS 界面对齐",
+        algo_zh="RGB 三通道按六色权重加权求和，-200~300 区间与 经典图像编辑器 界面对齐",
         algo_en="The three RGB channels are summed with six hue weights; the -200..300 "
-                "slider range matches the PS dialog.",
+                "slider range matches the 参考图像编辑器 dialog.",
         type="GeglOperationPointFilter（逐像素 / per-pixel）",
-        ref_zh="Photoshop「黑白」(Black & White)",
-        ref_en="Photoshop Black & White",
+        ref_zh="经典图像编辑器的「黑白」(Black & White)",
+        ref_en="经典图像编辑器 Black & White",
     ),
     "vibrance-hyper": dict(
         id="lb:vibrance-hyper", label="Natural Saturation",
@@ -194,8 +194,8 @@ OPS = {
                 "skin-hue window. Chroma grows along a fixed hue and is bisected back "
                 "into gamut instead of being clipped.",
         type="GeglOperationPointFilter（逐像素 / per-pixel）",
-        ref_zh="Adobe Camera Raw / Photoshop 的 Vibrance",
-        ref_en="Adobe Camera Raw / Photoshop Vibrance",
+        ref_zh="经典 RAW 编辑器 / 经典图像编辑器 的 Vibrance",
+        ref_en="the RAW editor / the classic editor Vibrance",
     ),
     "shadows-highlights": dict(
         id="lb:shadows-highlights", label="Shadows/Highlights", title="Shadows/Highlights",
@@ -211,16 +211,16 @@ OPS = {
                 "1 - (1-v)^q; the original chroma difference is scaled back in, then "
                 "midtone S-curve and histogram-end stretching.",
         type="GeglOperationFilter（空间域，按条带处理 / spatial, row strips）",
-        ref_zh="Photoshop「图像 → 调整 → 阴影/高光」（脚本入口 adaptCorrect）",
-        ref_en="Photoshop Image > Adjustments > Shadows/Highlights (script entry "
+        ref_zh="经典图像编辑器的「图像 → 调整 → 阴影/高光」（脚本入口 adaptCorrect）",
+        ref_en="经典图像编辑器 Image > Adjustments > Shadows/Highlights (script entry "
                "adaptCorrect)",
     ),
     "color-temperature-tint": dict(
         id="lb:color-temperature-tint", label="Color Temperature & Tint",
         title="Color Temperature & Tint",
-        purpose_zh="PS 2026「色彩与自然饱和度」里的色温 / 色调：中性灰跟着偏蓝-黄、"
+        purpose_zh="经典图像编辑器 2026「色彩与自然饱和度」里的色温 / 色调：中性灰跟着偏蓝-黄、"
                    "绿-洋红，黑白两端不动",
-        purpose_en="The Temperature and Tint sliders of Photoshop 2026's Color and "
+        purpose_en="The Temperature and Tint sliders of 经典图像编辑器 2026's Color and "
                    "vibrance layer: neutrals drift blue-yellow or green-magenta while "
                    "the black and white endpoints stay put.",
         algo_zh="编码值解码到线性 → 3 次多项式（20 项）→ clamp → 编码。系数在 17×17 的"
@@ -233,8 +233,8 @@ OPS = {
                 "samples are fitted with an iterated hinge regression and the hard "
                 "clip is left to the clamp.",
         type="GeglOperationPointFilter（逐像素 / per-pixel）",
-        ref_zh="Photoshop 2026（27.0）「色彩与自然饱和度」调整图层（实测逆向）",
-        ref_en="Photoshop 2026 (27.0) Color and vibrance adjustment layer",
+        ref_zh="经典图像编辑器 2026（27.0）「色彩与自然饱和度」调整图层（实测逆向）",
+        ref_en="经典图像编辑器 2026 (27.0) Color and vibrance adjustment layer",
     ),
     "xyz-multiply": dict(
         id="lb:xyz-multiply", label="XYZ Multiply", title="XYZ Multiply",

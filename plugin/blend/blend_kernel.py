@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""blend_kernel · PS 应用图像/计算的像素内核（供 blend.py 调用）
+"""blend_kernel · 经典图像编辑器 应用图像/计算的像素内核（供 blend.py 调用）
 
 优先加载同目录的 blend_core.dll/.so（ctypes，与 common/blend.h 同一套公式，
 速度约为纯 Python 的 50 倍）；没有编译产物时退化为纯 Python（结果一致，慢）。
@@ -16,7 +16,7 @@ import math
 import os
 
 # ---- 混合模式 / blend modes -----------------------------------------------
-# 顺序与 Photoshop 对话框一致（Darker Color 在 Linear Burn 之后、
+# 顺序与 经典图像编辑器 对话框一致（Darker Color 在 Linear Burn 之后、
 # Lighter Color 在 Linear Dodge 之后），也决定 C 内核的映射表
 BLENDS = [
     ("normal", "Normal"), ("darken", "Darken"), ("multiply", "Multiply"),
@@ -38,7 +38,7 @@ DARKER_COLOR = BLEND_INDEX["darker-color"]
 LIGHTER_COLOR = BLEND_INDEX["lighter-color"]
 
 # ---- 通道 / channels -------------------------------------------------------
-# gray = PS 的 Gray（亮度），mask = 图层蒙版（在读图阶段已被解析成灰度数据）
+# gray = 经典图像编辑器 的 Gray（亮度），mask = 图层蒙版（在读图阶段已被解析成灰度数据）
 CHANNELS = [("gray", "Gray"), ("red", "Red"), ("green", "Green"),
             ("blue", "Blue"), ("alpha", "Alpha"), ("mask", "Layer mask")]
 CH_GRAY, CH_RED, CH_GREEN, CH_BLUE, CH_ALPHA, CH_MASK = range(6)

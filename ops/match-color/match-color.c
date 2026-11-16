@@ -3,10 +3,10 @@
  * ---------------------------------------------------------------------------
  * id         lb:match-color
  * menu       Match Color
- * purpose    PS 匹配颜色：把另一张图（或另一层）的 L*a*b* 统计量迁移到本层
- *            PS Match Color: transfer the L*a*b* statistics of another image
+ * purpose    经典图像编辑器 匹配颜色：把另一张图（或另一层）的 L*a*b* 统计量迁移到本层
+ *            the classic editor Match Color: transfer the L*a*b* statistics of another image
  *            (or layer) onto this layer.
- * algorithm  与 PS 一致地工作在 CIELAB（D50）里：对 L、a、b 各通道算出目标
+ * algorithm  与 经典图像编辑器 一致地工作在 CIELAB（D50）里：对 L、a、b 各通道算出目标
  *            （本层）和来源（aux）的均值/标准差，逐像素做仿射映射
  *              out = (v − μ_t) · (σ_s / σ_t) + μ_s        （Reinhard 2001）
  *            亮度滑杆只缩放 L 的映射量，颜色强度只缩放 a/b 的映射量（按
@@ -19,7 +19,7 @@
  *            键为缓冲指针 + extent + 金字塔层级），后续块直接复用——预览时
  *            拖滑杆不会反复重算。来源图层内容变了（预览场景）勾一次
  *            「重算统计」即可。
- *            Works in CIELAB (D50) like PS: mean/std of L,a,b are taken over
+ *            Works in CIELAB (D50) like the classic editor: mean/std of L,a,b are taken over
  *            the whole input and the whole aux, and each pixel is mapped by
  *            an affine transform. Global statistics conflict with tiled
  *            rendering, so the first process() call reads both layers once
@@ -27,7 +27,7 @@
  *            keyed by buffer pointer + extent + level); later tiles reuse
  *            them, so preview slider drags don't recompute.
  * type       GeglOperationComposer（input + aux 双输入 / two inputs）
- * reference  Photoshop「图像 → 调整 → 匹配颜色」
+ * reference  经典图像编辑器「图像 → 调整 → 匹配颜色」
  *            Image > Adjustments > Match Color; Reinhard et al.,
  *            "Color Transfer between Images" (2001)
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
@@ -288,8 +288,8 @@ match_pixel (const gfloat *in,
       const gdouble slope = 1.0 + k * (r - 1.0);
       gdouble v = in[c] * slope + k * (mu_s - t_mean[c] * r);
 
-      /* PS 在 8bit L*a*b* 里工作，越界直接削到边界
-       * PS works in 8-bit L*a*b* and clips to the domain edges. */
+      /* 经典图像编辑器 在 8bit L*a*b* 里工作，越界直接削到边界
+       * the classic editor works in 8-bit L*a*b* and clips to the domain edges. */
       if (c == 0)
         v = CLAMP (v, 0.0, 100.0);
       else
@@ -398,7 +398,7 @@ gegl_op_class_init (GeglOpClass *klass)
   gegl_operation_class_set_keys (oclass,
     "name",            "lb:match-color",
     "title",           _("Match Color"),
-    "description",     _("PS Match Color: transfer the L*a*b* statistics "
+    "description",     _("the classic editor Match Color: transfer the L*a*b* statistics "
                          "(mean and standard deviation) of another image or "
                          "layer onto this one, with luminance, color "
                          "intensity, fade and neutralize."),

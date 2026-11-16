@@ -1,6 +1,6 @@
 ---
 name: Range → Alpha
-blurb: Turn a numeric range of one channel into alpha — Photoshop's "Blend If" as a standalone operator, with LAB and luminance channels available.
+blurb: Turn a numeric range of one channel into alpha — the classic editor's "Blend If" as a standalone operator, with LAB and luminance channels available.
 ---
 
 `lb:channel-range-to-alpha` · menu **Colors → SuperMrWang → Mask → Range → Alpha** ·
@@ -9,7 +9,7 @@ blurb: Turn a numeric range of one channel into alpha — Photoshop's "Blend If"
 ## What it does
 
 Pick one channel, set a window of values that should stay opaque, and everything
-outside it fades to transparent. This is Photoshop's **Blend If** (the sliders under
+outside it fades to transparent. This is the classic editor's **Blend If** (the sliders under
 "Blend If: Gray" in Layer Style) rebuilt as an operator you can stack anywhere.
 
 ```

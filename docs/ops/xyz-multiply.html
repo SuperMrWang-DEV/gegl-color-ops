@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Photo Filter · gegl-color-ops</title>
-<meta name="description" content="PS「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。">
+<meta name="description" content="经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。the classic editor&#x27;s Photo Filter: multiply the filter colour in XYZ s">
 <meta property="og:title" content="Photo Filter · gegl-color-ops">
-<meta property="og:description" content="PS「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。">
+<meta property="og:description" content="经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。the classic editor&#x27;s Photo Filter: multiply the filter colour in XYZ s">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
 <script>
@@ -46,26 +46,26 @@
     <span class="tag t-blend">混合与通道</span>
     <span>逐像素</span>
   </div>
-  <p class="lede">PS「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。</p>
+  <p class="lede">经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。the classic editor's Photo Filter: multiply the filter colour in XYZ space,density as opacity, with an optional preserve-luminosity switch.</p>
 </section><div class="article-layout">
   <article class="prose">
-<h2 id="这个算子就是-ps-的照片滤镜-this-is-photoshops-photo-filter">这个算子就是 PS 的「照片滤镜」/ This is Photoshop's Photo Filter</h2>
-<p>PS 的照片滤镜（<code>滤镜 → 调整 → 照片滤镜</code>）内部等价于「纯色填充 + 正片叠底 + 密度」，本算子按实测把整条链路复刻出来。参数一一对应：</p>
-<div class="table-wrap"><table><thead><tr><th>PS 照片滤镜</th><th><code>lb:xyz-multiply</code></th><th>说明</th></tr></thead><tbody><tr><td>滤镜（Filter）颜色</td><td><code>overlay_color</code></td><td>PS 的 20 多个预设只是快捷方式，本质仍是颜色</td></tr><tr><td>密度（Density）0–100%</td><td><code>opacity</code> 0–1</td><td>除以 100</td></tr><tr><td>保留明度（Preserve Luminosity）</td><td><code>preserve_luminosity</code></td><td><strong>默认开</strong>，与 PS 出厂设置一致</td></tr><tr><td>—（PS 没有）</td><td><code>white_mode</code></td><td>参照白点，<strong>默认 D50</strong>（PS 的 Lab 白点）</td></tr></tbody></table></div>
+<h2 id="这个算子就是-经典图像编辑器的照片滤镜-this-is-经典图像编辑器s-photo-filter">这个算子就是 经典图像编辑器的「照片滤镜」/ This is 经典图像编辑器's Photo Filter</h2>
+<p>经典图像编辑器的照片滤镜（<code>滤镜 → 调整 → 照片滤镜</code>）内部等价于「纯色填充 + 正片叠底 + 密度」，本算子按实测把整条链路复刻出来。参数一一对应：</p>
+<div class="table-wrap"><table><thead><tr><th>经典图像编辑器 照片滤镜</th><th><code>lb:xyz-multiply</code></th><th>说明</th></tr></thead><tbody><tr><td>滤镜（Filter）颜色</td><td><code>overlay_color</code></td><td>经典图像编辑器的 20 多个预设只是快捷方式，本质仍是颜色</td></tr><tr><td>密度（Density）0–100%</td><td><code>opacity</code> 0–1</td><td>除以 100</td></tr><tr><td>保留明度（Preserve Luminosity）</td><td><code>preserve_luminosity</code></td><td><strong>默认开</strong>，与 经典图像编辑器 出厂设置一致</td></tr><tr><td>—（经典图像编辑器 没有）</td><td><code>white_mode</code></td><td>参照白点，<strong>默认 D50</strong>（经典图像编辑器的 Lab 白点）</td></tr></tbody></table></div>
 <h3 id="算法实测反推不是猜的">算法（实测反推，不是猜的）</h3>
 <ol><li>sRGB 线性化，用<strong>标准 Bradford</strong>（锥响应矩阵，不是适配矩阵本身）转到 D50 XYZ；</li><li>逐通道乘 <code>k = (1-d) + d · (滤镜色XYZ / D50白点)</code>，<code>d</code> = 密度；</li><li>转回编码值；若开保留明度，再做 <strong>W3C / PDF 的 SetLum + ClipColor</strong> （编码值上、Rec.601 权重 0.3/0.59/0.11）。</li></ol>
 <p>前两步在线性 sRGB 里等价于一个常数 3×3 矩阵 <code>M = XYZ2sRGB · A⁻¹ · diag(k) · A · sRGB2XYZ</code>，每 process 只算一次。</p>
 <p>判据（都能在 <code>photo-filter-cal/</code> 里复现）：</p>
 <ul><li>纯红、密度 50% 时 128 灰 → G 通道 <strong>92</strong>。线性光乘给 92.6，编码域乘只会给 64。</li><li>纯红、密度 100%、保留明度时 128 灰 → <strong>(218, 90, 90)</strong>，SetLum 手算恰是 (217.6, 89.6, 89.6)；换成 Lab 保 L\*、乘性还原、Rec.709 权重都对不上（中位差 5～45 码）。</li><li>反推的滤镜色 XYZ (0.453, 0.222, 0.0166) 与「纯红转到 D50 再除以 D50 白点」 (0.4522, 0.2225, 0.0169) 差不到 1%；按 D65 归一化则差 4.4% —— 所以是 D50。</li></ul>
-<h3 id="实测精度ps-2025">实测精度（PS 2025）</h3>
+<h3 id="实测精度经典图像编辑器-2025">实测精度（经典图像编辑器 2025）</h3>
 <div class="table-wrap"><table><thead><tr><th>组</th><th>档数</th><th>最大差</th><th>中位差</th></tr></thead><tbody><tr><td>灰阶 256 级，不保留明度</td><td>9</td><td><strong>0.71 码</strong></td><td>0.12–0.40 码</td></tr><tr><td>灰阶 256 级，保留明度</td><td>3</td><td>1.86 码</td><td>0.26–0.42 码</td></tr><tr><td>彩色 64×64，不保留明度</td><td>3</td><td><strong>0.65 码</strong></td><td>0.35–0.39 码</td></tr><tr><td>彩色 64×64，保留明度</td><td>3</td><td>5.65 码</td><td>0.56–0.69 码</td></tr></tbody></table></div>
-<p>保留明度档的大误差只出现在裁剪边界（整幅彩色图 12288 个通道值里 55～96 个）， 是 PS 的取整顺序与 W3C 参考实现不同造成的，非边界点的中位差在 0.7 码以内。</p>
+<p>保留明度档的大误差只出现在裁剪边界（整幅彩色图 12288 个通道值里 55～96 个）， 是 经典图像编辑器的取整顺序与 W3C 参考实现不同造成的，非边界点的中位差在 0.7 码以内。</p>
 <p>复现链：</p>
 <pre><code class="language-bash">python photo-filter-cal/make_probe.py        # 256×16 灰阶探针（嵌 sRGB ICC）
-# PS 里跑 photo-filter-cal/batch_pf.jsx      # 12 档灰阶
-# PS 里跑 photo-filter-cal/batch_pf_color.jsx # 6 档彩色
-python photo-filter-cal/model_pf.py         # 模型 vs PS
-python tools/check_photo_filter.py          # 算子 vs PS（端到端）
+# 经典图像编辑器 里跑 photo-filter-cal/batch_pf.jsx      # 12 档灰阶
+# 经典图像编辑器 里跑 photo-filter-cal/batch_pf_color.jsx # 6 档彩色
+python photo-filter-cal/model_pf.py         # 模型 vs 经典图像编辑器
+python tools/check_photo_filter.py          # 算子 vs 经典图像编辑器（端到端）
 python tools/check_xyz_multiply.py --all    # 算子 vs 独立参考实现</code></pre><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
@@ -88,9 +88,9 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
   </article>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
-  <ul><li class="l2"><a href="#这个算子就是-ps-的照片滤镜-this-is-photoshops-photo-filter">这个算子就是 PS 的「照片滤镜」/ This is Photoshop&#x27;s Photo Filter</a></li>
+  <ul><li class="l2"><a href="#这个算子就是-经典图像编辑器的照片滤镜-this-is-经典图像编辑器s-photo-filter">这个算子就是 经典图像编辑器的「照片滤镜」/ This is 经典图像编辑器&#x27;s Photo Filter</a></li>
 <li class="l3"><a href="#算法实测反推不是猜的">算法（实测反推，不是猜的）</a></li>
-<li class="l3"><a href="#实测精度ps-2025">实测精度（PS 2025）</a></li></ul>
+<li class="l3"><a href="#实测精度经典图像编辑器-2025">实测精度（经典图像编辑器 2025）</a></li></ul>
 </aside>
 </div></div>
 <div class="l-en"><section class="page-head">
@@ -101,25 +101,25 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <span class="tag t-blend">Blend</span>
     <span>per-pixel</span>
   </div>
-  <p class="lede">Photoshop's Photo Filter, reproduced end to end — colour fill + multiply + density in linear sRGB, with W3C preserve-luminosity.</p>
+  <p class="lede">the classic editor's Photo Filter, reproduced end to end — colour fill + multiply + density in linear sRGB, with W3C preserve-luminosity.</p>
 </section><div class="article-layout">
   <article class="prose">
-<p>This operator <strong>is</strong> Photoshop's Photo Filter. Internally PS's <code>Filter → Adjustments → Photo Filter</code> is equivalent to "solid colour fill + multiply + density", and this operator reproduces the whole chain from measurement. The parameters map one for one:</p>
-<div class="table-wrap"><table><thead><tr><th>PS Photo Filter</th><th><code>lb:xyz-multiply</code></th><th>Notes</th></tr></thead><tbody><tr><td>Filter colour</td><td><code>overlay_color</code></td><td>PS's twenty-odd presets are shortcuts; it is still a colour underneath</td></tr><tr><td>Density 0–100%</td><td><code>opacity</code> 0–1</td><td>divided by 100</td></tr><tr><td>Preserve Luminosity</td><td><code>preserve_luminosity</code></td><td><strong>on by default</strong>, matching PS's factory setting</td></tr><tr><td>— (PS has none)</td><td><code>white_mode</code></td><td>reference white point, <strong>D50 by default</strong> (PS's Lab white)</td></tr></tbody></table></div>
+<p>This operator <strong>is</strong> the classic editor's Photo Filter. Internally the classic editor's <code>Filter → Adjustments → Photo Filter</code> is equivalent to "solid colour fill + multiply + density", and this operator reproduces the whole chain from measurement. The parameters map one for one:</p>
+<div class="table-wrap"><table><thead><tr><th>the classic editor Photo Filter</th><th><code>lb:xyz-multiply</code></th><th>Notes</th></tr></thead><tbody><tr><td>Filter colour</td><td><code>overlay_color</code></td><td>the classic editor's twenty-odd presets are shortcuts; it is still a colour underneath</td></tr><tr><td>Density 0–100%</td><td><code>opacity</code> 0–1</td><td>divided by 100</td></tr><tr><td>Preserve Luminosity</td><td><code>preserve_luminosity</code></td><td><strong>on by default</strong>, matching the classic editor's factory setting</td></tr><tr><td>— (the classic editor has none)</td><td><code>white_mode</code></td><td>reference white point, <strong>D50 by default</strong> (the classic editor's Lab white)</td></tr></tbody></table></div>
 <h2 id="algorithm-matched-by-measurement-not-guessed">Algorithm (matched by measurement, not guessed)</h2>
 <ol><li>Linearise sRGB and convert to D50 XYZ with the <strong>standard Bradford</strong> cone-response matrix (not the adaptation matrix itself);</li><li>multiply each channel by <code>k = (1-d) + d · (filter colour XYZ / D50 white)</code>, where <code>d</code> is the density;</li><li>convert back to encoded values; if preserve-luminosity is on, apply the <strong>W3C / PDF SetLum + ClipColor</strong> (on encoded values, Rec.601 weights 0.3/0.59/0.11).</li></ol>
 <p>Steps 1–2 in linear sRGB are equivalent to one constant 3×3 matrix <code>M = XYZ2sRGB · A⁻¹ · diag(k) · A · sRGB2XYZ</code>, computed once per <code>process</code>.</p>
 <p>The evidence (all reproducible from <code>photo-filter-cal/</code>):</p>
 <ul><li>pure red at 50% density turns 128 grey into a <strong>G of 92</strong>. Multiplying in linear light gives 92.6; multiplying encoded values would give only 64.</li><li>pure red, 100% density, preserve luminosity: 128 grey becomes <strong>(218, 90, 90)</strong>, and SetLum by hand is exactly (217.6, 89.6, 89.6); preserving L\* in Lab, multiplicative restoration or Rec.709 weights all miss (median 5–45 code values).</li><li>the back-solved filter colour XYZ (0.453, 0.222, 0.0166) is within 1% of "pure red converted to D50 divided by the D50 white" (0.4522, 0.2225, 0.0169), while normalising by D65 is off by 4.4% — hence D50.</li></ul>
-<h2 id="measured-accuracy-ps-2025">Measured accuracy (PS 2025)</h2>
+<h2 id="measured-accuracy-the-classic-editor-2025">Measured accuracy (the classic editor 2025)</h2>
 <div class="table-wrap"><table><thead><tr><th>Group</th><th>Settings</th><th>Max</th><th>Median</th></tr></thead><tbody><tr><td>256-step greyscale, no preserve-luminosity</td><td>9</td><td><strong>0.71 code</strong></td><td>0.12–0.40</td></tr><tr><td>256-step greyscale, preserve-luminosity</td><td>3</td><td>1.86 code</td><td>0.26–0.42</td></tr><tr><td>Colour 64×64, no preserve-luminosity</td><td>3</td><td><strong>0.65 code</strong></td><td>0.35–0.39</td></tr><tr><td>Colour 64×64, preserve-luminosity</td><td>3</td><td>5.65 code</td><td>0.56–0.69</td></tr></tbody></table></div>
-<p>The large errors in the preserve-luminosity groups occur only at clipping boundaries (55–96 of the 12288 channel values in a full colour chart) and come from PS rounding in a different order than the W3C reference; away from those boundaries the median is within 0.7 code values.</p>
+<p>The large errors in the preserve-luminosity groups occur only at clipping boundaries (55–96 of the 12288 channel values in a full colour chart) and come from the classic editor rounding in a different order than the W3C reference; away from those boundaries the median is within 0.7 code values.</p>
 <h2 id="reproducing-the-chain">Reproducing the chain</h2>
 <pre><code class="language-bash">python photo-filter-cal/make_probe.py        # 256×16 greyscale probe (sRGB ICC embedded)
-# run photo-filter-cal/batch_pf.jsx in PS       # 12 greyscale settings
-# run photo-filter-cal/batch_pf_color.jsx in PS # 6 colour settings
-python photo-filter-cal/model_pf.py         # model vs PS
-python tools/check_photo_filter.py          # operator vs PS (end to end)
+# run photo-filter-cal/batch_pf.jsx in the classic editor       # 12 greyscale settings
+# run photo-filter-cal/batch_pf_color.jsx in the classic editor # 6 colour settings
+python photo-filter-cal/model_pf.py         # model vs the classic editor
+python tools/check_photo_filter.py          # operator vs the classic editor (end to end)
 python tools/check_xyz_multiply.py --all    # operator vs an independent reference</code></pre><div class="op-dl">
   <div>
     <h3>Just this one</h3>
@@ -146,7 +146,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
   <aside class="toc">
   <p class="toc-title">On this page</p>
   <ul><li class="l2"><a href="#algorithm-matched-by-measurement-not-guessed">Algorithm (matched by measurement, not guessed)</a></li>
-<li class="l2"><a href="#measured-accuracy-ps-2025">Measured accuracy (PS 2025)</a></li>
+<li class="l2"><a href="#measured-accuracy-the-classic-editor-2025">Measured accuracy (the classic editor 2025)</a></li>
 <li class="l2"><a href="#reproducing-the-chain">Reproducing the chain</a></li></ul>
 </aside>
 </div></div>
@@ -154,13 +154,13 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
 <footer class="site-foot">
   <div>
     <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
-    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">88f4f29</span>
+    <span class="muted">f05ba5f</span>
   </div>
 </footer>
 <script>

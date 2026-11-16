@@ -1,12 +1,12 @@
 ---
 name: Match Color
-blurb: Photoshop's Match Color — Reinhard's Lab mean/variance transfer from another layer or image, with Luminance, Color Intensity, Fade and Neutralize.
+blurb: the classic editor's Match Color — Reinhard's Lab mean/variance transfer from another layer or image, with Luminance, Color Intensity, Fade and Neutralize.
 ---
 
-A reproduction of Photoshop's **Image → Adjustments → Match Color**: transfer the
+A reproduction of the classic editor's **Image → Adjustments → Match Color**: transfer the
 colour statistics of **another image or layer** onto this one. The core is the
 L\*a\*b\* mean–variance affine transfer proposed by Reinhard et al. in 2001, which
-Photoshop still uses.
+the classic editor still uses.
 
 ## Model
 
@@ -16,20 +16,20 @@ Working in CIELAB (D50), per channel, for L, a and b:
 out = (v − μ_target) · (σ_source / σ_target) + μ_source
 ```
 
-Statistics are computed over the **whole layer** (Photoshop does the same), with the
+Statistics are computed over the **whole layer** (the classic editor does the same), with the
 source coming from the layer wired to the `aux` pad. With no aux connected the source
 falls back to this layer itself, i.e. an identity map.
 
-## Mapping to Photoshop's sliders
+## Mapping to the classic editor's sliders
 
-| Photoshop | Here | Semantics (model-aligned, not code-calibrated) |
+| the classic editor | Here | Semantics (model-aligned, not code-calibrated) |
 |---|---|---|
 | Luminance (1–200, default 100) | `luminance` | Scales how much of the L map applies: `k = slider/100`, and the map converges as `lerp(1, ratio, k)`. 100 = exact match, 200 = double correction, 1 = almost nothing |
 | Color Intensity (default 100) | `color-intensity` | Same, for a/b only |
-| Fade (0–100) | `fade` | Multiplies the whole map by `(1 − fade/100)`; equivalent to PS's Edit → Fade |
+| Fade (0–100) | `fade` | Multiplies the whole map by `(1 − fade/100)`; equivalent to the classic editor's Edit → Fade |
 | Neutralize | `neutralize` | Forces the output a/b means to 0 (removes the cast) while L is untouched; the source still supplies contrast |
 
-> Photoshop 2025's Match Color **has no scripting interface** (no DOM API for the
+> the classic editor 2025's Match Color **has no scripting interface** (no DOM API for the
 > dialog, and both `Mk` and `matchColor` are refused), so there is no measured
 > reference to calibrate against. This is model alignment, not black-box calibration —
 > the same situation as Levels, and stated here honestly.
@@ -55,11 +55,11 @@ whole layer:
 - **σ guard**: σ < 1e-3 is treated as a constant channel and the ratio becomes 1. A
   flat-colour source just shifts the output mean to its own mean colour (the
   `(v − μt)` term is 0 anyway).
-- **Clipping**: output L to [0, 100], a/b to [−128, 127], matching Photoshop working
+- **Clipping**: output L to [0, 100], a/b to [−128, 127], matching the classic editor working
   in 8-bit L\*a\*b\*.
 - **Nothing to do with "only the intersection acts"**: Match Color is not a per-pixel
   blend. The source only donates statistics and the map applies to the whole target
-  layer — exactly Photoshop's behaviour.
+  layer — exactly the classic editor's behaviour.
 - The map is affine, so geometry need not line up: the source layer can be any size or
   offset.
 

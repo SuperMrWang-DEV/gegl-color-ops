@@ -1,10 +1,10 @@
 ---
 name: Vibrance
-blurb: Photoshop's Vibrance, matched by black-box measurement — measured tables, red-band protection, lightness compensation, and no white balance mixed in.
+blurb: the classic editor's Vibrance, matched by black-box measurement — measured tables, red-band protection, lightness compensation, and no white balance mixed in.
 ---
 
-Photoshop's **Vibrance**, matched by black-box measurement rather than
-approximated. The same calibration chart was pushed through PS 26.10 and through this
+the classic editor's **Vibrance**, matched by black-box measurement rather than
+approximated. The same calibration chart was pushed through the classic editor 26.10 and through this
 operator; the pixel-level comparison is in the acceptance section.
 
 - GEGL id: `lb:vibrance`
@@ -14,7 +14,7 @@ operator; the pixel-level comparison is in the acceptance section.
 
 ## Vibrance only — temperature and tint are elsewhere
 
-PS 2026 (27.0) renamed the Vibrance layer to "Color and vibrance" and added
+the classic editor 2026 (27.0) renamed the Vibrance layer to "Color and vibrance" and added
 **temperature / tint** sliders, which action-wise are **one white-balance layer
 followed by the old Vibrance**.
 
@@ -30,7 +30,7 @@ For 2025's plain Vibrance, delete the lower layer. Why split it:
 
 - each operator has one slider's worth of responsibility, so there is never a question
   of "does temperature act on the whole layer or only this segment";
-- the order is expressed by the layer stack (Photoshop's order is white balance first —
+- the order is expressed by the layer stack (the classic editor's order is white balance first —
   measured median difference 1.4 code values; reversed it is 36), and changing it means
   reordering layers instead of unticking a box;
 - the white-balance result is **bit-identical** to running
@@ -77,10 +77,10 @@ PNG encode/decode.
 ## Acceptance
 
 `python tools/check_vibrance_ps.py` renders the chart through the gegl CLI and compares
-it with Photoshop's real export, pixel by pixel (0–255 code values; quantisation alone
+it with the classic editor's real export, pixel by pixel (0–255 code values; quantisation alone
 is ±0.5):
 
-| v | Median | 95% | Max | Mean | Exactly equal to PS |
+| v | Median | 95% | Max | Mean | Exactly equal to the classic editor |
 |---|---|---|---|---|---|
 | 0 | 0 | 0 | 0 | 0.00 | 100% |
 | +60 | 0 | 4 | 7 | 0.83 | 63.5% |
@@ -92,10 +92,10 @@ is ±0.5):
 secretly touch pixels. The C implementation matches the Python reference in
 `vibrance-cal/vibrance_ref.py` pixel for pixel (≤1 code, pure rounding).
 
-The two-layer "Color and vibrance" acceptance against PS 2026, and the accuracy of the
+The two-layer "Color and vibrance" acceptance against the classic editor 2026, and the accuracy of the
 temperature/tint part, are in `ops/color-temperature-tint/README.md` — median/p90/p99/max
 over seven v/t/n combinations, plus the known deviation on the diagonal where
-temperature ≤ −50 and tint ≥ +38 and PS clips hard.
+temperature ≤ −50 and tint ≥ +38 and the classic editor clips hard.
 
 ## Known deviations
 
@@ -104,10 +104,10 @@ at v=+100); on a real image the bulk of the error sits in two places **the calib
 grid did not cover**:
 
 1. **Orange and skin tones near H≈17° inside the red band (segment B, L62)**: `r` was
-   fitted on H0 only, and PS suppresses H17 harder. At v=+60 that segment is off by a
+   fitted on H0 only, and the classic editor suppresses H17 harder. At v=+60 that segment is off by a
    median of 2.9 code values, 8.4 at v=+100 (max 14.8).
 2. **The negative direction's lightness change on light colours (segment E)**: the
-   `V'/V` table was fitted at L=50 only, and at L=80 PS presses much less than the
+   `V'/V` table was fitted at L=50 only, and at L=80 the classic editor presses much less than the
    table does (up to 29 code values there — a visible darkening in sRGB).
 
 Neither is an implementation bug: the model has too few dimensions (six hue samples,
@@ -118,5 +118,5 @@ and a refit of `r(H,S,v)` and of the negative `V'(S,L,v)`.
 
 `vibrance-hyper` is an **appearance model** in Lab (hyperbolic chroma mask, skin window,
 gamut mapping): pleasant to use with explainable parameters, but not guaranteed to
-match PS numerically. `vibrance` is the **numerical reproduction**: it matches
-Photoshop, but has no artistic parameters. Both exist; pick by need.
+match the classic editor numerically. `vibrance` is the **numerical reproduction**: it matches
+the classic editor, but has no artistic parameters. Both exist; pick by need.

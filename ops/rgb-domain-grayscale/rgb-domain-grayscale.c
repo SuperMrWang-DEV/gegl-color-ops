@@ -3,16 +3,16 @@
  * ---------------------------------------------------------------------------
  * id         lb:rgb-domain-grayscale
  * menu       Black & White
- * purpose    PS 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色
- *            PS Black & White: six hue sliders (red, yellow, green, cyan,
+ * purpose    经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色
+ *            the classic editor Black & White: six hue sliders (red, yellow, green, cyan,
  *            blue, magenta) weight the grey conversion, with optional
  *            tinting.
- * algorithm  RGB 三通道按六色权重加权求和，-200~300 区间与 PS 界面对齐
+ * algorithm  RGB 三通道按六色权重加权求和，-200~300 区间与 经典图像编辑器 界面对齐
  *            The three RGB channels are summed with six hue weights; the
- *            -200..300 slider range matches the PS dialog.
+ *            -200..300 slider range matches the classic editor dialog.
  * type       GeglOperationPointFilter（逐像素 / per-pixel）
- * reference  Photoshop「黑白」(Black & White)
- *            Photoshop Black & White
+ * reference  经典图像编辑器「黑白」(Black & White)
+ *            the classic editor Black & White
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
  *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
@@ -23,45 +23,45 @@
 
 #ifdef GEGL_PROPERTIES
 
-/* 6 个色相滑块：取值范围与 UI 可视范围统一为 -200 ~ 300，默认值对应 PS 原
+/* 6 个色相滑块：取值范围与 UI 可视范围统一为 -200 ~ 300，默认值对应 经典图像编辑器 原
  * 版的百分比
  * Six hue sliders: value range and UI range are both -200..300; the
- * defaults match the PS percentages. */
+ * defaults match the classic editor percentages. */
 property_double (red, _("Red"), 40.0)
   value_range (-200.0, 300.0)
   ui_range (-200.0, 300.0)
   ui_steps (1.0, 10.0)
-  description (_("Red color ratio (PS default 40 = 0.4)"))
+  description (_("Red color ratio (the classic editor default 40 = 0.4)"))
 
 property_double (yellow, _("Yellow"), 60.0)
   value_range (-200.0, 300.0)
   ui_range (-200.0, 300.0)
   ui_steps (1.0, 10.0)
-  description (_("Yellow color ratio (PS default 60 = 0.6)"))
+  description (_("Yellow color ratio (the classic editor default 60 = 0.6)"))
 
 property_double (green, _("Green"), 40.0)
   value_range (-200.0, 300.0)
   ui_range (-200.0, 300.0)
   ui_steps (1.0, 10.0)
-  description (_("Green color ratio (PS default 40 = 0.4)"))
+  description (_("Green color ratio (the classic editor default 40 = 0.4)"))
 
 property_double (cyan, _("Cyan"), 60.0)
   value_range (-200.0, 300.0)
   ui_range (-200.0, 300.0)
   ui_steps (1.0, 10.0)
-  description (_("Cyan color ratio (PS default 60 = 0.6)"))
+  description (_("Cyan color ratio (the classic editor default 60 = 0.6)"))
 
 property_double (blue, _("Blue"), 20.0)
   value_range (-200.0, 300.0)
   ui_range (-200.0, 300.0)
   ui_steps (1.0, 10.0)
-  description (_("Blue color ratio (PS default 20 = 0.2)"))
+  description (_("Blue color ratio (the classic editor default 20 = 0.2)"))
 
 property_double (magenta, _("Magenta"), 80.0)
   value_range (-200.0, 300.0)
   ui_range (-200.0, 300.0)
   ui_steps (1.0, 10.0)
-  description (_("Magenta color ratio (PS default 80 = 0.8)"))
+  description (_("Magenta color ratio (the classic editor default 80 = 0.8)"))
 
 /* ---- 着色控制属性 / tint controls -------------------------------------- */
 property_boolean (tint_enabled, _("Tint Enabled"), FALSE)
@@ -91,19 +91,19 @@ typedef enum {
   CH_B = 2
 } ChanIdx;
 
-/* ---- 线性 RGB 着色算法（PS 的真实实现）/ linear-RGB tint (what PS does) */
+/* ---- 线性 RGB 着色算法（经典图像编辑器的真实实现）/ linear-RGB tint (what 经典图像编辑器 does) */
 static void
 tint_pixel (gfloat gray, const gfloat tint_rgb[3], gfloat strength, gfloat out[3])
 {
-  /* PS 的着色 = 把灰度当亮度，用线性光模式混合目标色
-   * PS tint = treat the grey as luminance and blend the target colour in
+  /* 经典图像编辑器的着色 = 把灰度当亮度，用线性光模式混合目标色
+   * the classic editor tint = treat the grey as luminance and blend the target colour in
    * linear light */
   gfloat r = tint_rgb[0];
   gfloat g = tint_rgb[1];
   gfloat b = tint_rgb[2];
 
-  /* 线性亮度混合（与 PS 完全一致）
-   * linear luminance blend, identical to PS */
+  /* 线性亮度混合（与 经典图像编辑器 完全一致）
+   * linear luminance blend, identical to the classic editor */
   out[0] = gray * r;
   out[1] = gray * g;
   out[2] = gray * b;
@@ -123,9 +123,9 @@ tint_pixel (gfloat gray, const gfloat tint_rgb[3], gfloat strength, gfloat out[3
 
 /* ---- GEGL 算子标准接口 / GEGL operation interface ---------------------- */
 /* 感知（非线性）格式：公式按 8bit sRGB 伽马域推导，必须拿伽马值，否则 babl
- * 会喂线性光，数值与 PS 对不上
+ * 会喂线性光，数值与 经典图像编辑器 对不上
  * Perceptual (non-linear) format: the maths was derived in the 8-bit sRGB
- * gamma domain. Linear light from babl would drift away from Photoshop. */
+ * gamma domain. Linear light from babl would drift away from the classic editor. */
 static const Babl *
 perceptual_format (GeglOperation *op)
 {
@@ -290,7 +290,7 @@ gegl_op_class_init (GeglOpClass *klass)
   gegl_operation_class_set_keys (op_class,
     "name",            "lb:rgb-domain-grayscale",
     "title",           _("Black & White"),
-    "description",     _("PS Black & White: six color weights (red/yellow/green/cyan/blue/magenta) "
+    "description",     _("the classic editor Black & White: six color weights (red/yellow/green/cyan/blue/magenta) "
                          "in RGB domain, optional tint"),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Tone",
     "gimp:menu-label", _("Black & White"),

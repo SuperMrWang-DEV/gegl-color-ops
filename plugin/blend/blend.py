@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """===========================================================================
- SuperMrWang · PS 应用图像 / 计算 —— GIMP 3 Python 插件
+ SuperMrWang · 经典图像编辑器 应用图像 / 计算 —— GIMP 3 Python 插件
  ---------------------------------------------------------------------------
- purpose   复刻 Photoshop「图像 → 应用图像」与「图像 → 计算」的完整工作流：
+ purpose   复刻 经典图像编辑器的「图像 → 应用图像」与「图像 → 计算」的完整工作流：
            源可以是任意打开图像的任意图层/通道，遮罩可指向第三张图，计算
            的结果可以直接变成选区或新建 Alpha 通道——这些是 GEGL 算子
            （lb:apply-image / lb:calculations）做不了的部分。
@@ -112,9 +112,9 @@ def read_rgba(drawable, rect):
 
     注意：drawable.get_buffer() 的 extent 是图层本地坐标（实测恒为
     0,0,宽,高，不含图层偏移），所以这里必须先减偏移再读。界外补 0 对应
-    PS 把缺的那块当黑色。
+    经典图像编辑器 把缺的那块当黑色。
     Reads RGBA floats for a canvas-coordinate rect; out-of-bounds reads 0,
-    mirroring Photoshop pressing missing data as black. Note that
+    mirroring 经典图像编辑器 pressing missing data as black. Note that
     drawable.get_buffer() is in layer-local coordinates (its extent is always
     0,0,width,height — the layer offset is not part of it), so the offset has
     to be subtracted here."""
@@ -215,7 +215,7 @@ def new_grey_layer(image, rect, floats, name):
 def grey_to_channel(image, rect, floats, name):
     """把灰度结果放进一个 Alpha 通道 / store a grey result in a channel"""
     color = Gegl.Color.new("black")
-    # 通道/选区按画布对齐（画布原点恒为 0,0），与 PS 一致
+    # 通道/选区按画布对齐（画布原点恒为 0,0），与 经典图像编辑器 一致
     # Channels align to the canvas, whose origin is always 0,0, like PS
     ch = Gimp.Channel.new(image, name, rect[2], rect[3], 100.0, color)
     image.insert_channel(ch, None, -1)
@@ -270,7 +270,7 @@ def run_calculations(image, drawable, p):
     """p: dict(ch1, inv1, s1_layer, ch2, inv2, s2_layer, blend, opacity,
                use_mask, mask_layer, mch, inv_mask, result)"""
     iw, ih = image.get_width(), image.get_height()
-    rect = (0, 0, iw, ih)                    # 通道/选区按画布对齐，与 PS 一致
+    rect = (0, 0, iw, ih)                    # 通道/选区按画布对齐，与 经典图像编辑器 一致
 
     d1, c1 = source_drawable(p['s1_layer'], p['ch1'])
     d2, c2 = source_drawable(p['s2_layer'], p['ch2'])
@@ -619,7 +619,7 @@ class PsBlend(Gimp.PlugIn):
             procedure.set_documentation(
                 _("Apply Image: blend a layer from any open image onto "
                   "this one, per channel, with mask and opacity"),
-                _("Replicates Photoshop Image > Apply Image."), name)
+                _("Replicates 经典图像编辑器 Image > Apply Image."), name)
             procedure.set_menu_label(_("Apply Image..."))
             procedure.add_menu_path("<Image>/Colors/SuperMrWang")
 
@@ -667,7 +667,7 @@ class PsBlend(Gimp.PlugIn):
             procedure.set_documentation(
                 _("Calculations: blend two channels from any open image "
                   "into a selection, channel, grey layer or layer alpha"),
-                _("Replicates Photoshop Image > Calculations."), name)
+                _("Replicates 经典图像编辑器 Image > Calculations."), name)
             procedure.set_menu_label(_("Calculations..."))
             procedure.add_menu_path("<Image>/Colors/SuperMrWang")
 

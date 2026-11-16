@@ -3,9 +3,9 @@
  * ---------------------------------------------------------------------------
  * id         lb:hsl-seven
  * menu       HSL 7 Bands
- * purpose    红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，ACR 风格
+ * purpose    红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，经典 RAW 编辑器风格
  *            Eight hue bands (red, orange, yellow, green, cyan, blue,
- *            purple, magenta), each with its own H/S/L shift, Camera Raw
+ *            purple, magenta), each with its own H/S/L shift, the RAW editor
  *            style.
  * algorithm  24 个滑块按色相段加权叠加，段间由 feather 平滑过渡；低于
  *            min-saturation 的灰像素可选择跳过
@@ -13,8 +13,8 @@
  *            'feather' cross-fading adjacent bands. Pixels below
  *            'min-saturation' can be skipped.
  * type       GeglOperationPointFilter（逐像素 / per-pixel）
- * reference  Camera Raw 的 HSL 面板
- *            Adobe Camera Raw HSL panel
+ * reference  the RAW editor 的 HSL 面板
+ *            the RAW editor HSL panel
  * license    GPL-3.0-or-later，见工程根目录 LICENSE
  *            GPL-3.0-or-later, see LICENSE at the project root
  * ======================================================================== */
@@ -224,9 +224,9 @@ hsv_to_rgb(gfloat h, gfloat s, gfloat v, gfloat *r, gfloat *g, gfloat *b)
 }
 
 /* 感知（非线性）格式：公式按 8bit sRGB 伽马域推导，必须拿伽马值，否则 babl
- * 会喂线性光，数值与 PS 对不上
+ * 会喂线性光，数值与 经典图像编辑器 对不上
  * Perceptual (non-linear) format: the maths was derived in the 8-bit sRGB
- * gamma domain. Linear light from babl would drift away from Photoshop. */
+ * gamma domain. Linear light from babl would drift away from the classic editor. */
 static const Babl *
 perceptual_format (GeglOperation *op)
 {
@@ -299,9 +299,9 @@ process(GeglOperation       *op,
   gfloat *in_line  = g_new(gfloat, stride);
   gfloat *out_line = g_new(gfloat, stride);
 
-  /* ACR 标准八色色相区间，H 取 0~1。紫 / 洋红由原紫段 0.78~0.92 对半拆分
+  /* RAW 编辑器常用的标准八色色相区间，H 取 0~1。紫 / 洋红由原紫段 0.78~0.92 对半拆分
    * 而来，其余六段边界与七段版完全一致。
-   * ACR's eight standard hue ranges, H in 0..1. Purple / magenta split the
+   * the RAW editor's eight standard hue ranges, H in 0..1. Purple / magenta split the
    * old 0.78..0.92 band in half; the other six are unchanged from the
    * seven-band layout. */
   typedef struct {

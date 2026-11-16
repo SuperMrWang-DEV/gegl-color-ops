@@ -1,6 +1,6 @@
-# lb:color-grading — 颜色分级（ACR Color Grading 风格）
+# lb:color-grading — 颜色分级（RAW 编辑器 Color Grading 风格）
 
-2026-11-12 新增。复刻 Adobe Camera Raw / Lightroom Classic 的
+2026-11-12 新增。复刻 classic RAW editors 的
 **Color Grading（颜色分级）**面板：阴影 / 中间调 / 高光 / 全局四个轮盘
 （色相 + 饱和度），各带独立的明度滑杆，外加 Blending 与 Balance。
 
@@ -8,7 +8,7 @@
 
 `Colors → SuperMrWang → Color → Color Grading`
 
-## 参数（14 项，与 ACR 面板一一对应）
+## 参数（14 项，与 RAW 编辑器 面板一一对应）
 
 | 参数 | 范围 | 默认 | 说明 |
 |---|---|---|---|
@@ -46,9 +46,9 @@
 
 ## 标定状态（诚实声明）
 
-本机 PS 2025 **未装 Camera Raw 插件**，无法像 colorize / color-mask-select
-那样逐码标定。分界 0.3/0.7、过渡 ±0.25、Rec.709 亮度等均为按 ACR 公开
-行为设定的合理模型，**不是黑盒实测值**。结构、参数语义与 ACR 面板
+本机 经典图像编辑器 2025 **未装 RAW 编辑器 插件**，无法像 colorize / color-mask-select
+那样逐码标定。分界 0.3/0.7、过渡 ±0.25、Rec.709 亮度等均为按 RAW 编辑器 公开
+行为设定的合理模型，**不是黑盒实测值**。结构、参数语义与 RAW 编辑器 面板
 一一对应；数值行为由 `tools/check_color_grading.py` 按设计模型验证。
 
 ## 验证
@@ -60,7 +60,7 @@ python tools/smoke.sh                  # 全算子冒烟
 
 ## 已知限制
 
-- 轮盘没有独立的「范围」滑杆（ACR 悬停轮盘可调亮度范围端点）；
+- 轮盘没有独立的「范围」滑杆（RAW 编辑器 悬停轮盘可调亮度范围端点）；
   分界固定 0.3/0.7，只能用 Blending/Balance 调整过渡与偏移。
 - 亮度分带用的是像素自身亮度（Rec.709 伽马域），不是邻域亮度；
   要「按邻域」的效果请用 `lb:shadows-highlights`。

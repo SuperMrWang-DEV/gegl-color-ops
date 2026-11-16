@@ -1,6 +1,6 @@
 ---
 name: Black & White
-blurb: Photoshop's Black & White — six hue sliders decide how much each colour contributes to grey, with an optional tint.
+blurb: the classic editor's Black & White — six hue sliders decide how much each colour contributes to grey, with an optional tint.
 ---
 
 `lb:rgb-domain-grayscale` · menu **Colors → SuperMrWang → Tone → Black & White** ·
@@ -10,12 +10,12 @@ blurb: Photoshop's Black & White — six hue sliders decide how much each colour
 
 Six hue sliders — red, yellow, green, cyan, blue, magenta — decide how strongly each
 colour in the image contributes to the grey result, and the grey can then be tinted.
-This is Photoshop's Black & White dialog: pull blue down and a blue sky goes dark,
+This is the classic editor's Black & White dialog: pull blue down and a blue sky goes dark,
 push yellow up and skin brightens, without any of it touching the rest of the frame.
 
 The three RGB channels are combined with the six hue weights summed; the slider range
-−200…300 matches the PS dialog, and the defaults (red 40, yellow 60, green 40,
-cyan 60, blue 20, magenta 80) are Photoshop's.
+−200…300 matches the the classic editor dialog, and the defaults (red 40, yellow 60, green 40,
+cyan 60, blue 20, magenta 80) are the classic editor's.
 
 ## Parameters
 
@@ -30,7 +30,7 @@ cyan 60, blue 20, magenta 80) are Photoshop's.
 ## Notes
 
 - The operator runs per pixel in the 8-bit sRGB gamma domain, so the weights behave
-  like the ones in Photoshop's dialog.
+  like the ones in the classic editor's dialog.
 - Alpha is preserved; transparent pixels stay transparent.
 - Unlike GIMP's `Colors → Desaturate`, the conversion is not a fixed luma formula: you
   choose what each colour becomes, which is the whole point of Black & White.

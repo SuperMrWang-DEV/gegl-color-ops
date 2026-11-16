@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Hue/Saturation Range · gegl-color-ops</title>
-<meta name="description" content="色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，与 lb:ps-hue-saturation（全图）串联即接近某图像编辑器「色相/饱和度」对话框的「编辑」下拉 + 底部色条模型。">
+<meta name="description" content="色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，与 lb:hue-saturation-basic（全图）串联即接近某图像编辑器「色相/饱和度」对话框的「编辑」下拉 + 底部色条模型。">
 <meta property="og:title" content="Hue/Saturation Range · gegl-color-ops">
-<meta property="og:description" content="色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，与 lb:ps-hue-saturation（全图）串联即接近某图像编辑器「色相/饱和度」对话框的「编辑」下拉 + 底部色条模型。">
+<meta property="og:description" content="色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，与 lb:hue-saturation-basic（全图）串联即接近某图像编辑器「色相/饱和度」对话框的「编辑」下拉 + 底部色条模型。">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
 <script>
@@ -42,11 +42,11 @@
   <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 混合与通道</p>
   <h1>Hue/Saturation Range</h1>
   <div class="meta">
-    <code>lb:ps-hue-range</code>
+    <code>lb:hue-range-basic</code>
     <span class="tag t-blend">混合与通道</span>
     <span>逐像素</span>
   </div>
-  <p class="lede">色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，与 lb:ps-hue-saturation（全图）串联即接近某图像编辑器「色相/饱和度」对话框的「编辑」下拉 + 底部色条模型。</p>
+  <p class="lede">色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，与 lb:hue-saturation-basic（全图）串联即接近某图像编辑器「色相/饱和度」对话框的「编辑」下拉 + 底部色条模型。</p>
 </section><div class="article-layout">
   <article class="prose">
 <h2 id="中文">中文</h2>
@@ -58,12 +58,12 @@
 <h3 id="算法要点">算法要点</h3>
 <ul><li>权重作用在【原始】色相上（先算 w 再调整），语义与内部蒙版一致； 无彩像素（R=G=B）不参与任何色系。</li><li>调整量按 w 缩放后走全图算子的同一套公式（明度 screen/multiply → HSL → 色相加法 → 饱和度相对缩放）：w=1 时与 Hue/Saturation (Basic) 逐位一致， w=0 时逐位等于原图。</li><li>四柄可拖过 0/360，实现按内区跨度解环绕。</li></ul>
 <h3 id="验收">验收</h3>
-<p><code>tools/check_ps_hue_range.py</code>：9 色块色卡过 gegl，与 Python 参考实现 （逐字同式）逐像素对比——8 个用例（默认范围、权重缩放色相、饱和度拉满、 明度、环绕柄、绿系、链式 Master→Range）216 个采样点全部 <strong>0 码</strong>。</p><div class="op-dl">
+<p><code>tools/check_hue_range_basic.py</code>：9 色块色卡过 gegl，与 Python 参考实现 （逐字同式）逐像素对比——8 个用例（默认范围、权重缩放色相、饱和度拉满、 明度、环绕柄、绿系、链式 Master→Range）216 个采样点全部 <strong>0 码</strong>。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>ps-hue-range.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>ps-hue-range.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
+    <p>Windows 模块 <code>hue-range-basic.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
   </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/ps-hue-range.dll">下载 ps-hue-range.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/ps-hue-range.so">下载 ps-hue-range.so<span class="size">Linux x86_64</span></a></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hue-range-basic.dll">下载 hue-range-basic.dll<span class="size">Windows x64</span></a></div>
 </div><nav class="pager"><a class="prev" href="gray-to-component.html"><span>上一个</span>Gray To Component</a><a class="next" href="color-mask-select.html"><span>下一个</span>Mask by Color</a></nav>
   </article>
   <aside class="toc">
@@ -79,7 +79,7 @@
   <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Blend</p>
   <h1>Hue/Saturation Range</h1>
   <div class="meta">
-    <code>lb:ps-hue-range</code>
+    <code>lb:hue-range-basic</code>
     <span class="tag t-blend">Blend</span>
     <span>per-pixel</span>
   </div>
@@ -95,12 +95,12 @@
 <h3 id="weighted-adjustments-same-formula-as-the-master-op">Weighted adjustments, same formula as the master op</h3>
 <p>The weight is computed on the pixel's <strong>original</strong> hue — the range behaves like an internal mask. Achromatic pixels (R = G = B) join no family, so greys are never tinted. The adjustments then scale by the weight and run through the exact same formula as Hue/Saturation (Basic): lightness as screen/multiply toward white/black, hue as a rotation, saturation as a relative scale (s/(1−x) up, s(1+x) down). At weight 1 the result is bit-identical to the master op; at weight 0 the pixel passes through untouched.</p>
 <h3 id="verification">Verification</h3>
-<p><code>tools/check_ps_hue_range.py</code> renders a nine-patch swatch card and compares every pixel against a line-by-line Python reference of the same maths: 8 cases — default ranges, weight-scaled hue (orange at 30° gets exactly half the shift of red), saturation driven to full, lightness, wrap-around handles, the green family, and a chained master → range run — all match to <strong>0.0 codes</strong> across 216 sample points (tolerance 2).</p><div class="op-dl">
+<p><code>tools/check_hue_range_basic.py</code> renders a nine-patch swatch card and compares every pixel against a line-by-line Python reference of the same maths: 8 cases — default ranges, weight-scaled hue (orange at 30° gets exactly half the shift of red), saturation driven to full, lightness, wrap-around handles, the green family, and a chained master → range run — all match to <strong>0.0 codes</strong> across 216 sample points (tolerance 2).</p><div class="op-dl">
   <div>
     <h3>Just this one</h3>
-    <p>Windows module <code>ps-hue-range.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>ps-hue-range.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+    <p>Windows module <code>hue-range-basic.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/ps-hue-range.dll">Download ps-hue-range.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/ps-hue-range.so">Download ps-hue-range.so<span class="size">Linux x86_64</span></a></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hue-range-basic.dll">Download hue-range-basic.dll<span class="size">Windows x64</span></a></div>
 </div><nav class="pager"><a class="prev" href="gray-to-component.html"><span>Previous</span>Gray to Component</a><a class="next" href="color-mask-select.html"><span>Next</span>Mask by Color</a></nav>
   </article>
   <aside class="toc">
@@ -115,13 +115,13 @@
 <footer class="site-foot">
   <div>
     <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
-    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
   </div>
   <div class="foot-links">
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">88f4f29</span>
+    <span class="muted">f05ba5f</span>
   </div>
 </footer>
 <script>

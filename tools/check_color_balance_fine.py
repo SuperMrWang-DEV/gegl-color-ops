@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""细探针验收 lb:color-balance：与 PS 在全部整数档上的实测逐像素比对。
+"""细探针验收 lb:color-balance：与 经典图像编辑器 在全部整数档上的实测逐像素比对。
 
 cb-probe2.png 是 1024 px 的连续 16 位斜坡，每一档都能看清 0.25 码的细节；
 参考图来自 ../cb-cal/out6（三个区间各 -100…100 每一档）与 out5（组合档）。
@@ -134,7 +134,7 @@ def main():
         print("== %s ==  %d 组：最大 %.2f 码（%s），中位偏差 %.2f 码"
               % (g, len(rows), rows[0][0], rows[0][1], med))
         for mx, name, m2, p95, worst in rows[:3]:
-            print("   %-10s 最大 %5.2f  95%% %5.2f  中位 %5.2f   @(%d,%d) PS %s / GEGL %s"
+            print("   %-10s 最大 %5.2f  95%% %5.2f  中位 %5.2f   @(%d,%d) 参考图像编辑器 %s / GEGL %s"
                   % (name, mx, p95, m2, worst[1], worst[2], worst[3], worst[4]))
         if rows[0][0] > 1.5:
             ok = False

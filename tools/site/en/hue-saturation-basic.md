@@ -7,14 +7,14 @@ The three-slider variant: global hue rotation, relative saturation scaling, and
 lightness mixed toward white or black. No Colorize checkbox and no per-hue ranges.
 Behaviour matches the three sliders of the familiar Hue/Saturation dialog.
 
-- GEGL id: `lb:ps-hue-saturation`
+- GEGL id: `lb:hue-saturation-basic`
 - Menu: `Colors → SuperMrWang → Color → Hue/Saturation (Basic)`
 - Type: `GeglOperationPointFilter` (per-pixel, no neighbourhood)
 - Parameters: `hue` (−180…180°), `saturation` (−100…100), `lightness` (−100…100)
 
-The specification lives in `tools/ref_ps_hue_sat.py` (a literal transcription of the
+The specification lives in `tools/ref_hue_sat_basic.py` (a literal transcription of the
 original code plus a float comparison), and the acceptance script is
-`tools/check_ps_hue_saturation.py`.
+`tools/check_hue_saturation_basic.py`.
 
 ## Algorithm
 
@@ -44,15 +44,15 @@ Neither is about what the algorithm means; both are implementation defects:
 
 | Difference | Original | Here | Why |
 |---|---|---|---|
-| Precision | h rounded to 1°, s/l to 1%, output truncated with `int()` | all float | that quantisation is **1.73 code values** dark on average, **9** at worst (see the breakdown in `tools/ref_ps_hue_sat.py`) |
+| Precision | h rounded to 1°, s/l to 1%, output truncated with `int()` | all float | that quantisation is **1.73 code values** dark on average, **9** at worst (see the breakdown in `tools/ref_hue_sat_basic.py`) |
 | `saturation=+100` | `s/(1−1)` → `ZeroDivisionError` | full saturation (when `s>0`) | as `x→1⁻`, `s/(1−x)→+∞`, which clamps to 1 — the left limit |
 
 ## Acceptance
 
 ```bash
-python tools/check_ps_hue_saturation.py     # 27 parameter sets × 4096 colours
-python tools/ref_ps_hue_sat.py              # quantisation-error breakdown
-python tools/analyze_ps_hue_sat.py          # behaviour checks on the three curves
+python tools/check_hue_saturation_basic.py     # 27 parameter sets × 4096 colours
+python tools/ref_hue_sat_basic.py              # quantisation-error breakdown
+python tools/analyze_hue_sat_basic.py          # behaviour checks on the three curves
 ```
 
 Result: max deviation **0.002 code values** (one 16-bit LSB is 0.0039), i.e. code-exact
