@@ -56,12 +56,12 @@ ps_ch (gint ch, gfloat r, gfloat g, gfloat b, gfloat a)
  * Single-channel blend: Darker/Lighter degrade to Darken/Lighten and the
  * hue-family modes fall back to Normal. */
 static inline gfloat
-ps_scalar (gint mode, gfloat a, gfloat b)
+ps_scalar (gint mode, gfloat a, gfloat b, gfloat scale, gfloat offset)
 {
   if (mode == LB_BLEND_HUE || mode == LB_BLEND_SATURATION ||
       mode == LB_BLEND_COLOR || mode == LB_BLEND_LUMINOSITY)
     return b;
-  return lb_blend_separable (mode, a, b);
+  return lb_blend_separable (mode, a, b, scale, offset);
 }
 
 /* ---- 应用图像 / Apply Image ---------------------------------------------- */
@@ -69,7 +69,7 @@ PSEXPORT void
 blend_kernel_apply (const float *in, const float *aux, const float *mask,
                float *out, long n, int blend, int tch, int sch,
                float opacity, int use_mask, int inv_mask,
-               int keep_transp, int grey_out)
+               int keep_transp, int grey_out, float scale, float offset)
 {
   const gint mode = ps_blend_map[blend];
 
@@ -126,7 +126,8 @@ blend_kernel_apply (const float *in, const float *aux, const float *mask,
               mode == LB_BLEND_LIGHTER_COLOR)
             {
               gfloat br, bg, bb;
-              lb_blend_rgb (mode, ir, ig, ib, sr, sg, sb, &br, &bg, &bb);
+              lb_blend_rgb (mode, ir, ig, ib, sr, sg, sb, &br, &bg, &bb,
+                            scale, offset);
               orr = ir + (br - ir) * k;
               org = ig + (bg - ig) * k;
               ob  = ib + (bb - ib) * k;
@@ -135,9 +136,9 @@ blend_kernel_apply (const float *in, const float *aux, const float *mask,
             {
               const gfloat s = (sch == 0) ? lb_luma (sr, sg, sb)
                                           : ps_ch (sch, sr, sg, sb, sa);
-              orr = ir + (lb_clamp01 (ps_scalar (mode, ir, s)) - ir) * k;
-              org = ig + (lb_clamp01 (ps_scalar (mode, ig, s)) - ig) * k;
-              ob  = ib + (lb_clamp01 (ps_scalar (mode, ib, s)) - ib) * k;
+              orr = ir + (lb_clamp01 (ps_scalar (mode, ir, s, scale, offset)) - ir) * k;
+              org = ig + (lb_clamp01 (ps_scalar (mode, ig, s, scale, offset)) - ig) * k;
+              ob  = ib + (lb_clamp01 (ps_scalar (mode, ib, s, scale, offset)) - ib) * k;
             }
         }
       else
@@ -147,7 +148,8 @@ blend_kernel_apply (const float *in, const float *aux, const float *mask,
           const gfloat tv = ps_ch (tch, ir, ig, ib, ia);
           const gfloat sv = (sch == 0) ? lb_luma (sr, sg, sb)
                                        : ps_ch (sch, sr, sg, sb, sa);
-          const gfloat nv = tv + (lb_clamp01 (ps_scalar (mode, tv, sv)) - tv) * k;
+          const gfloat nv = tv + (lb_clamp01 (ps_scalar (mode, tv, sv,
+                                                          scale, offset)) - tv) * k;
 
           switch (tch)
             {
@@ -178,7 +180,8 @@ blend_kernel_apply (const float *in, const float *aux, const float *mask,
 PSEXPORT void
 blend_kernel_calc (const float *in, const float *aux, const float *mask,
               float *out, long n, int ch1, int inv1, int ch2, int inv2,
-              int blend, float opacity, int use_mask, int inv_mask)
+              int blend, float opacity, int use_mask, int inv_mask,
+              float scale, float offset)
 {
   const gint mode = ps_blend_map[blend];
 
@@ -211,11 +214,12 @@ blend_kernel_calc (const float *in, const float *aux, const float *mask,
           mode == LB_BLEND_LIGHTER_COLOR)
         {
           gfloat br, bg, bb;
-          lb_blend_rgb (mode, v1, v1, v1, v2, v2, v2, &br, &bg, &bb);
+          lb_blend_rgb (mode, v1, v1, v1, v2, v2, v2, &br, &bg, &bb,
+                        scale, offset);
           blended = (br + bg + bb) / 3.0f;
         }
       else
-        blended = lb_clamp01 (ps_scalar (mode, v1, v2));
+        blended = lb_clamp01 (ps_scalar (mode, v1, v2, scale, offset));
       grey    = v1 + (blended - v1) * k;
 
       /* 源 2 的透明像素没有数据：alpha 当覆盖率（0 → 蒙版 0，柔边按比例

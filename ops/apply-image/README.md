@@ -14,6 +14,8 @@ into a single channel.
 | 参数 | 默认 | 说明 |
 |---|---|---|
 | `blend-mode` | Multiply | 26 种混合模式，顺序与 经典图像编辑器 一致（Normal … Divide、Darker/Lighter Color、Hue … Luminosity） |
+| `scale` | 1.0 | **仅加法/减法**：结果 = (A ± B) / 缩放 + 补偿值，范围 1.0..2.0 |
+| `offset` | 0 | **仅加法/减法**：缩放后加上的补偿值，±255（8bit 口径） |
 | `opacity` | 100 | 混合强度，0 = 不动，100 = 完全应用 |
 | `target-channel` | Composite | 结果写回哪个通道；可选整个合成或单个 R/G/B/亮度/Alpha |
 | `source-channel` | Composite | 从 aux 取哪个通道作为源 |
@@ -32,6 +34,7 @@ into a single channel.
 | Source: 通道 | `source-channel` |
 | Target: 通道 | `target-channel` |
 | Blending / Opacity | `blend-mode` / `opacity` |
+| 加法/减法 的 Scale / Offset | `scale` / `offset` |
 | Preserve Transparency | `preserve-transparency` |
 | Mask: 图层 + 通道 + 反相 | `mask-from` + `mask-channel` + `invert-mask` |
 

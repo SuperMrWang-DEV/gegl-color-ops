@@ -70,8 +70,10 @@ def _ch_value(ch, r, g, b, a):
 
 
 # ---- 纯 Python 混合公式（与 blend.h 一致） ---------------------------------
+# scale/offset 只对 加法（linear-dodge）与 减法 生效：结果 = (A ± B)/缩放 + 补偿，
+# 对位经典图像编辑器 应用图像/计算；offset 传归一化后的值（±1 = ±255）。
 
-def _sep(mode, a, b):
+def _sep(mode, a, b, scale=1.0, offset=0.0):
     if mode == BLEND_INDEX["normal"]:
         return b
     if mode == BLEND_INDEX["darken"]:
@@ -91,7 +93,7 @@ def _sep(mode, a, b):
     if mode == BLEND_INDEX["color-dodge"]:
         return 1.0 if b >= 1.0 else _clamp01(a / (1.0 - b))
     if mode == BLEND_INDEX["linear-dodge"]:
-        return _clamp01(a + b)
+        return _clamp01((a + b) / scale + offset)
     if mode == BLEND_INDEX["lighter-color"]:
         return max(a, b)
     if mode == BLEND_INDEX["overlay"]:
@@ -119,7 +121,7 @@ def _sep(mode, a, b):
     if mode == BLEND_INDEX["exclusion"]:
         return a + b - 2.0 * a * b
     if mode == BLEND_INDEX["subtract"]:
-        return _clamp01(a - b)
+        return _clamp01((a - b) / scale + offset)
     if mode == BLEND_INDEX["divide"]:
         return 1.0 if b <= 0.0 else _clamp01(a / b)
     return b
@@ -210,12 +212,14 @@ def _load_core():
         lib.blend_kernel_apply.argtypes = [fp, fp, fp, fp, ctypes.c_long,
                                       ctypes.c_int, ctypes.c_int, ctypes.c_int,
                                       ctypes.c_float, ctypes.c_int,
-                                      ctypes.c_int, ctypes.c_int, ctypes.c_int]
+                                      ctypes.c_int, ctypes.c_int, ctypes.c_int,
+                                      ctypes.c_float, ctypes.c_float]
         lib.blend_kernel_calc.restype = None
         lib.blend_kernel_calc.argtypes = [fp, fp, fp, fp, ctypes.c_long,
                                      ctypes.c_int, ctypes.c_int, ctypes.c_int,
                                      ctypes.c_int, ctypes.c_int, ctypes.c_float,
-                                     ctypes.c_int, ctypes.c_int]
+                                     ctypes.c_int, ctypes.c_int,
+                                     ctypes.c_float, ctypes.c_float]
         _CORE = lib
     except Exception:
         _CORE = None
@@ -230,8 +234,10 @@ def _ptr(arr):
 # ---- 两个入口（与 C 内核同签名语义） ---------------------------------------
 
 def apply_image(inb, auxb, maskb, n, blend, tch, sch, opacity,
-                use_mask, inv_mask, keep_transp, grey_out):
-    """应用图像：inb/auxb/maskb 为 array('f') RGBA，返回 array('f') RGBA。"""
+                use_mask, inv_mask, keep_transp, grey_out,
+                scale=1.0, offset=0.0):
+    """应用图像：inb/auxb/maskb 为 array('f') RGBA，返回 array('f') RGBA。
+    scale/offset 仅对加法/减法生效；offset 已归一化（±1 = ±255）。"""
     core = _load_core()
     if core is not None:
         out = array.array("f", bytes(n * 16))
@@ -239,7 +245,8 @@ def apply_image(inb, auxb, maskb, n, blend, tch, sch, opacity,
         core.blend_kernel_apply(_ptr(inb), _ptr(auxb), m, _ptr(out),
                            ctypes.c_long(n), blend, tch, sch,
                            ctypes.c_float(opacity), use_mask, inv_mask,
-                           keep_transp, grey_out)
+                           keep_transp, grey_out,
+                           ctypes.c_float(scale), ctypes.c_float(offset))
         return out
 
     # ---- 纯 Python 兜底 ----
@@ -284,9 +291,9 @@ def apply_image(inb, auxb, maskb, n, blend, tch, sch, opacity,
                 # 可分离模式：Gray 源取亮度作标量，压进每一个通道
                 s = _luma(sr, sg, sb) if sch == CH_GRAY else \
                     _ch_value(sch, sr, sg, sb, sa)
-                br = _clamp01(_sep(blend, ir, s))
-                bg = _clamp01(_sep(blend, ig, s))
-                bb = _clamp01(_sep(blend, ib, s))
+                br = _clamp01(_sep(blend, ir, s, scale, offset))
+                bg = _clamp01(_sep(blend, ig, s, scale, offset))
+                bb = _clamp01(_sep(blend, ib, s, scale, offset))
             orr = ir + (br - ir) * k
             org = ig + (bg - ig) * k
             ob = ib + (bb - ib) * k
@@ -294,7 +301,7 @@ def apply_image(inb, auxb, maskb, n, blend, tch, sch, opacity,
             tv = _ch_value(tch, ir, ig, ib, ia)
             sv = _luma(sr, sg, sb) if sch == CH_GRAY else \
                 _ch_value(sch, sr, sg, sb, sa)
-            nv = tv + (_clamp01(_sep(blend, tv, sv)) - tv) * k
+            nv = tv + (_clamp01(_sep(blend, tv, sv, scale, offset)) - tv) * k
             if tch == 1:
                 orr = nv
             elif tch == 2:
@@ -314,15 +321,17 @@ def apply_image(inb, auxb, maskb, n, blend, tch, sch, opacity,
 
 
 def calculations(inb, auxb, maskb, n, ch1, inv1, ch2, inv2, blend, opacity,
-                 use_mask, inv_mask):
-    """计算：两路通道混合，返回灰度 array('f') RGBA（alpha=1）。"""
+                 use_mask, inv_mask, scale=1.0, offset=0.0):
+    """计算：两路通道混合，返回灰度 array('f') RGBA（alpha=1）。
+    scale/offset 仅对加法/减法生效；offset 已归一化（±1 = ±255）。"""
     core = _load_core()
     if core is not None:
         out = array.array("f", bytes(n * 16))
         m = _ptr(maskb) if maskb is not None else None
         core.blend_kernel_calc(_ptr(inb), _ptr(auxb), m, _ptr(out), ctypes.c_long(n),
                           ch1, inv1, ch2, inv2, blend,
-                          ctypes.c_float(opacity), use_mask, inv_mask)
+                          ctypes.c_float(opacity), use_mask, inv_mask,
+                          ctypes.c_float(scale), ctypes.c_float(offset))
         return out
 
     out = array.array("f", bytes(n * 16))
@@ -346,14 +355,14 @@ def calculations(inb, auxb, maskb, n, ch1, inv1, ch2, inv2, blend, opacity,
         else:
             k = opacity
 
-        if ch1 == 0 or ch2 == 0 or blend >= HUE_START \
-                or blend in (DARKER_COLOR, LIGHTER_COLOR):
-            # 涉及整像素语义时把两个标量塞进三通道统一处理
+        if blend >= HUE_START or blend in (DARKER_COLOR, LIGHTER_COLOR):
+            # 整像素语义（色相类、深/浅色）把两个标量塞进三通道统一处理；
+            # 灰通道走 _sep 即可，否则 scale/offset 会被整像素分支绕过
             g1 = g2 = v1
             r, g, b = _blend_pixel(blend, g1, g1, g1, v2, v2, v2)
             blended = (r + g + b) / 3.0
         else:
-            blended = _clamp01(_sep(blend, v1, v2))
+            blended = _clamp01(_sep(blend, v1, v2, scale, offset))
         grey = v1 + (blended - v1) * k
         # 源 2 的透明像素没有数据：alpha 当覆盖率，0 → 蒙版 0，柔边按比例衰减。
         # 源 2 通道就是 alpha 时它是数据不是覆盖率。

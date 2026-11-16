@@ -111,6 +111,14 @@ mod.run_apply_image(img, tgt, p2)
 check("应用图像·单通道 R（画布 2,2）", px(tgt, 1, 1), (8, 10, 128, 255))
 check("应用图像·单通道 R（画布 1,1 不动）", px(tgt, 0, 0), (10, 10, 128, 255))
 
+# 缩放/补偿值：加法 scale=2 → (A+B)/2。Gray 源取亮度压进每个通道
+# （PS 行为）：luma(200,100,50)=117.65，r=g=(10+117.65)/2≈64，b=(128+117.65)/2≈123
+p3 = dict(p, blend=blend_kernel.BLEND_INDEX['linear-dodge'],
+          scale=2.0, offset=0.0)
+fill(tgt, (10, 10, 128, 255))
+mod.run_apply_image(img, tgt, p3)
+check("应用图像·加法 缩放2 (A+B)/2", px(tgt, 1, 1), (64, 64, 123, 255))
+
 # ---------------- 计算：写入图层 alpha（带偏移图层） ----------------
 img2 = Gimp.Image.new(6, 6, Gimp.ImageBaseType.RGB)
 lay = Gimp.Layer.new(img2, "A", 4, 4, Gimp.ImageType.RGBA_IMAGE, 100.0,

@@ -101,6 +101,19 @@ property_boolean (invert_source2, _("Invert source 2"), FALSE)
 property_enum (blend_mode, _("Blend mode"), LbCalcBlend, lb_calc_blend, CALC_BLEND_MULTIPLY)
     description (_("Blend mode between source 1 and source 2"))
 
+/* 缩放/补偿值只对 加法（Linear Dodge）和 减法 生效，其余模式忽略，
+ * 对位经典图像编辑器 应用图像/计算对话框：结果 = (A ± B) / 缩放 + 补偿值。
+ * 补偿值用 8bit 口径 ±255，内部归一化。/ Scale and offset only affect
+ * Linear Dodge (Add) and Subtract (the classic editor shows them only for
+ * these two): result = (A ± B) / scale + offset; offset in 8-bit units. */
+property_double (scale, _("Scale"), 1.0)
+    description (_("Add/Subtract only: result = (A ± B) / scale + offset"))
+    value_range (1.0, 2.0)
+
+property_double (offset, _("Offset"), 0.0)
+    description (_("Add/Subtract only: value added after scaling, -255..255"))
+    value_range (-255.0, 255.0)
+
 property_double (opacity, _("Opacity"), 100.0)
     description (_("Blend strength, 0 = source 1 only, 100 = full blend"))
     value_range (0.0, 100.0)
@@ -181,6 +194,8 @@ process (GeglOperation       *op,
   const gint   mch     = (gint) o->mask_channel;
   const gint   omode   = (gint) o->output_mode;
   const gfloat opacity = (gfloat) (o->opacity / 100.0);
+  const gfloat scale   = (gfloat) o->scale;
+  const gfloat offs    = (gfloat) (o->offset / 255.0);
   const gboolean use_mask = o->mask_enabled;
   const gboolean inv_mask = o->invert_mask;
   const gboolean inv1     = o->invert_source1;
@@ -215,7 +230,8 @@ process (GeglOperation       *op,
             mask = 1.0f - mask;
         }
 
-      const gfloat blended = lb_clamp01 (lb_blend_separable (blend, v1, v2));
+      const gfloat blended = lb_clamp01 (lb_blend_separable (blend, v1, v2,
+                                                             scale, offs));
       const gfloat grey    = lb_mix (v1, blended, mask, opacity);
 
       /* 源 2 的透明像素没有数据可算：源层是抠图 / 文字层时透明区的 RGB 是 0，
@@ -260,7 +276,8 @@ gegl_op_class_init (GeglOpClass *klass)
     "name",            "lb:calculations",
     "title",           _("Calculations"),
     "description",     _("Calculations: blend two channels into a grey or alpha "
-                         "mask, 26 blend modes, per-source invert, mask and opacity."),
+                         "mask, 26 blend modes, per-source invert, mask and opacity, "
+                         "scale/offset for Add and Subtract."),
     "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Blend",
     "gimp:menu-label", _("Calculations"),
     NULL);

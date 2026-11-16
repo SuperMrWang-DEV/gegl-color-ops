@@ -91,6 +91,19 @@ enum_end (LbAiMaskFrom)
 property_enum (blend_mode, _("Blend mode"), LbAiBlend, lb_ai_blend, AI_BLEND_MULTIPLY)
     description (_("How the source (aux) is combined with the target"))
 
+/* 缩放/补偿值只对 加法（Linear Dodge）和 减法 生效，其余模式忽略，
+ * 对位经典图像编辑器 应用图像/计算对话框：结果 = (A ± B) / 缩放 + 补偿值。
+ * 补偿值用 8bit 口径 ±255，内部归一化。/ Scale and offset only affect
+ * Linear Dodge (Add) and Subtract (the classic editor shows them only for
+ * these two): result = (A ± B) / scale + offset; offset in 8-bit units. */
+property_double (scale, _("Scale"), 1.0)
+    description (_("Add/Subtract only: result = (A ± B) / scale + offset"))
+    value_range (1.0, 2.0)
+
+property_double (offset, _("Offset"), 0.0)
+    description (_("Add/Subtract only: value added after scaling, -255..255"))
+    value_range (-255.0, 255.0)
+
 property_double (opacity, _("Opacity"), 100.0)
     description (_("Blend strength, 0 = untouched target, 100 = full blend"))
     value_range (0.0, 100.0)
@@ -165,7 +178,7 @@ prepare (GeglOperation *op)
 typedef struct
 {
   gint     blend, tch, sch, mch, mfrom, omode;
-  gfloat   opacity;
+  gfloat   opacity, scale, offset;
   gboolean use_mask, inv_mask, keep_transp;
 } AiParams;
 
@@ -245,7 +258,8 @@ apply_pixel (const AiParams *p,
        * Composite x composite: blend all three channels, hue-family
        * modes go through the whole-pixel path. */
       gfloat br, bg, bb;
-      lb_blend_rgb (p->blend, ir, ig, ib, sr, sg, sb, &br, &bg, &bb);
+      lb_blend_rgb (p->blend, ir, ig, ib, sr, sg, sb, &br, &bg, &bb,
+                    p->scale, p->offset);
       rr = lb_mix (ir, br, mask, p->opacity);
       rg = lb_mix (ig, bg, mask, p->opacity);
       rb = lb_mix (ib, bb, mask, p->opacity);
@@ -259,7 +273,8 @@ apply_pixel (const AiParams *p,
       const gfloat sv = (p->sch == LB_CH_COMPOSITE)
                           ? lb_luma (sr, sg, sb)
                           : lb_channel (sr, sg, sb, sa, p->sch);
-      const gfloat nv = lb_mix (tv, lb_blend_separable (p->blend, tv, sv),
+      const gfloat nv = lb_mix (tv, lb_blend_separable (p->blend, tv, sv,
+                                                        p->scale, p->offset),
                                 mask, p->opacity);
 
       switch (p->tch)
@@ -280,9 +295,9 @@ apply_pixel (const AiParams *p,
        * composite. */
       const gfloat sv = lb_channel (sr, sg, sb, sa, p->sch);
       gfloat bv[3];
-      bv[0] = lb_blend_separable (p->blend, ir, sv);
-      bv[1] = lb_blend_separable (p->blend, ig, sv);
-      bv[2] = lb_blend_separable (p->blend, ib, sv);
+      bv[0] = lb_blend_separable (p->blend, ir, sv, p->scale, p->offset);
+      bv[1] = lb_blend_separable (p->blend, ig, sv, p->scale, p->offset);
+      bv[2] = lb_blend_separable (p->blend, ib, sv, p->scale, p->offset);
 
       rr = lb_mix (ir, lb_clamp01 (bv[0]), mask, p->opacity);
       rg = lb_mix (ig, lb_clamp01 (bv[1]), mask, p->opacity);
@@ -337,6 +352,8 @@ process (GeglOperation       *op,
   p.mfrom      = (gint) o->mask_from;
   p.omode      = (gint) o->output_mode;
   p.opacity    = (gfloat) (o->opacity / 100.0);
+  p.scale      = (gfloat) o->scale;
+  p.offset     = (gfloat) (o->offset / 255.0);
   p.use_mask   = o->mask_enabled;
   p.inv_mask   = o->invert_mask;
   p.keep_transp = o->preserve_transparency;

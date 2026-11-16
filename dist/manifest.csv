@@ -1,6 +1,6 @@
 platform,file,op_id,title,bytes,sha256
-windows-x64,apply-image.dll,lb:apply-image,Apply Image,117135,a0e35ac054cdb2c6e68a2883d43620467f2c894fd37d93cc767cdbd9b3a48d04
-windows-x64,calculations.dll,lb:calculations,Calculations,109496,e2b00bf4fb6f22c65e08e9a6d22de41c7ccfcd7a58bdb49466a10d132e42bd1d
+windows-x64,apply-image.dll,lb:apply-image,Apply Image,118671,331d1b9cb31212d7a0acb7e879593cfb13642a6b3f56b230227ccd36d799f5eb
+windows-x64,calculations.dll,lb:calculations,Calculations,110008,6ca7bdf7430ca0dfb754bdb8a81a0582e75b733a89856d3cae07ed01699adb34
 windows-x64,channel-mixer-plus.dll,lb:channel-mixer-plus,Channel Mixer Plus,107148,cbab9b12a7d4efef7194b9e21341870b82f004c490adbed39e51c75713752a1c
 windows-x64,channel-range-to-alpha.dll,lb:channel-range-to-alpha,Channel Range to Alpha,129726,2265e7fe8a90b9c44172d7007af7b145814e0f2afc1e01bf49cb260f041849e1
 windows-x64,cmyk-levels.dll,lb:cmyk-levels,CMYK Levels,131426,5775ba9c085353b6f79d91ec2cda1827f2bf07f2f776398f61b89e07b67b20f9

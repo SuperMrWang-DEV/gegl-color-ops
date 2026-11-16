@@ -252,7 +252,9 @@ def run_apply_image(image, drawable, p):
                               1 if p['use_mask'] else 0,
                               1 if p['inv_mask'] else 0,
                               1 if p['keep_transp'] else 0,
-                              1 if p['result'] == 1 else 0)
+                              1 if p['result'] == 1 else 0,
+                              p.get('scale', 1.0),
+                              p.get('offset', 0.0) / 255.0)
     keep_uncovered(out, inb, rect, sdrawable)
 
     image.undo_group_start()
@@ -287,7 +289,9 @@ def run_calculations(image, drawable, p):
                                 c2, 1 if p['inv2'] else 0,
                                 p['blend'], p['opacity'] / 100.0,
                                 1 if p['use_mask'] else 0,
-                                1 if p['inv_mask'] else 0)
+                                1 if p['inv_mask'] else 0,
+                                p.get('scale', 1.0),
+                                p.get('offset', 0.0) / 255.0)
 
     image.undo_group_start()
     result = p['result']
@@ -416,6 +420,17 @@ def _add_spin(grid, row, label, lo, hi, val):
     return sp
 
 
+def _add_spin_f(grid, row, label, lo, hi, val, step, digits):
+    """浮点微调框（缩放/补偿值用）/ float spinbutton for scale & offset"""
+    lbl = Gtk.Label.new(label)
+    lbl.set_halign(Gtk.Align.START)
+    grid.attach(lbl, 0, row, 1, 1)
+    adj = Gtk.Adjustment.new(val, lo, hi, step, step * 10.0, 0.0)
+    sp = Gtk.SpinButton.new(adj, step, digits)
+    grid.attach(sp, 1, row, 1, 1)
+    return sp
+
+
 def _mask_widgets(grid, row, title, current_image):
     use = _add_check(grid, row, title)
     use.set_halign(Gtk.Align.START)
@@ -465,17 +480,21 @@ class PsBlend(Gimp.PlugIn):
         bl = _add_combo(grid, r, _("Blending"),
                         [(n, l) for n, l in blend_kernel.BLENDS], 2); r += 1
         op = _add_spin(grid, r, _("Opacity"), 0, 100, 100); r += 1
+        # 缩放/补偿值：只对 加法（Linear Dodge）/ 减法 生效，其余模式忽略
+        sc = _add_spin_f(grid, r, _("Scale"), 1.0, 2.0, 1.0, 0.001, 3); r += 1
+        of = _add_spin_f(grid, r, _("Offset"), -255.0, 255.0, 0.0, 1.0, 0); r += 1
         kt = _add_check(grid, r, _("Preserve transparency")); r += 1
         kt.set_halign(Gtk.Align.START)
         use, pick, inv = _mask_widgets(grid, r, _("Mask"), image); r += 4
         res = _add_combo(grid, r, _("Result"),
                          [(n, _(l)) for n, l in blend_kernel.APPLY_RESULTS]); r += 1
-        return (src, tc, bl, op, kt, use, pick, inv, res)
+        return (src, tc, bl, op, sc, of, kt, use, pick, inv, res)
 
     def _ai_collect(self, w):
-        src, tc, bl, op, kt, use, pick, inv, res = w
+        src, tc, bl, op, sc, of, kt, use, pick, inv, res = w
         _img, layer, sch = pick.get()
         return dict(blend=bl.get_active(), opacity=op.get_value(),
+                    scale=sc.get_value(), offset=of.get_value(),
                     tch=tc.get_active(), sch=sch, src_layer=layer,
                     use_mask=use.get_active(), mask_layer=pick.get()[1],
                     mch=pick.get()[2], inv_mask=inv.get_active(),
@@ -498,17 +517,20 @@ class PsBlend(Gimp.PlugIn):
         bl = _add_combo(grid, r, _("Blending"),
                         [(n, l) for n, l in blend_kernel.BLENDS], 2); r += 1
         op = _add_spin(grid, r, _("Opacity"), 0, 100, 100); r += 1
+        sc = _add_spin_f(grid, r, _("Scale"), 1.0, 2.0, 1.0, 0.001, 3); r += 1
+        of = _add_spin_f(grid, r, _("Offset"), -255.0, 255.0, 0.0, 1.0, 0); r += 1
         use, pick, inv = _mask_widgets(grid, r, _("Mask"), image); r += 4
         res = _add_combo(grid, r, _("Result"), results); r += 1
-        return (s1, i1, s2, i2, bl, op, use, pick, inv, res)
+        return (s1, i1, s2, i2, bl, op, sc, of, use, pick, inv, res)
 
     def _calc_collect(self, w):
-        s1, i1, s2, i2, bl, op, use, pick, inv, res = w
+        s1, i1, s2, i2, bl, op, sc, of, use, pick, inv, res = w
         _img, lay1, c1 = s1.get()
         _img2, lay2, c2 = s2.get()
         return dict(ch1=c1, inv1=i1.get_active(), s1_layer=lay1,
                     ch2=c2, inv2=i2.get_active(), s2_layer=lay2,
                     blend=bl.get_active(), opacity=op.get_value(),
+                    scale=sc.get_value(), offset=of.get_value(),
                     use_mask=use.get_active(), mask_layer=pick.get()[1],
                     mch=pick.get()[2], inv_mask=inv.get_active(),
                     result=res.get_active())
@@ -556,6 +578,8 @@ class PsBlend(Gimp.PlugIn):
             mlay = resolve_layer(mimg, cfg.get_property('mask-layer'))
             return dict(blend=cfg.get_property('blend'),
                         opacity=cfg.get_property('opacity'),
+                        scale=cfg.get_property('scale'),
+                        offset=cfg.get_property('offset'),
                         tch=cfg.get_property('target-channel'),
                         sch=cfg.get_property('source-channel'),
                         src_layer=slay,
@@ -587,6 +611,8 @@ class PsBlend(Gimp.PlugIn):
                         s2_layer=l2,
                         blend=cfg.get_property('blend'),
                         opacity=cfg.get_property('opacity'),
+                        scale=cfg.get_property('scale'),
+                        offset=cfg.get_property('offset'),
                         use_mask=cfg.get_property('use-mask'),
                         mask_layer=mlay,
                         mch=cfg.get_property('mask-channel'),
@@ -629,6 +655,14 @@ class PsBlend(Gimp.PlugIn):
             procedure.add_double_argument("opacity", _("Opacity"),
                                           _("Blend strength"), 0.0, 100.0, 100.0,
                                           GObject.ParamFlags.READWRITE)
+            procedure.add_double_argument(
+                "scale", _("Scale"),
+                _("Add/Subtract only: result = (A ± B) / scale + offset"),
+                1.0, 2.0, 1.0, GObject.ParamFlags.READWRITE)
+            procedure.add_double_argument(
+                "offset", _("Offset"),
+                _("Add/Subtract only: value added after scaling (-255..255)"),
+                -255.0, 255.0, 0.0, GObject.ParamFlags.READWRITE)
             procedure.add_int_argument("target-channel", _("Target channel"),
                                        _("0 RGB, 1 R, 2 G, 3 B, 4 Alpha"),
                                        0, 4, 0, GObject.ParamFlags.READWRITE)
@@ -697,6 +731,14 @@ class PsBlend(Gimp.PlugIn):
             procedure.add_double_argument("opacity", _("Opacity"),
                                           _("Blend strength"), 0.0, 100.0, 100.0,
                                           GObject.ParamFlags.READWRITE)
+            procedure.add_double_argument(
+                "scale", _("Scale"),
+                _("Add/Subtract only: result = (A ± B) / scale + offset"),
+                1.0, 2.0, 1.0, GObject.ParamFlags.READWRITE)
+            procedure.add_double_argument(
+                "offset", _("Offset"),
+                _("Add/Subtract only: value added after scaling (-255..255)"),
+                -255.0, 255.0, 0.0, GObject.ParamFlags.READWRITE)
             procedure.add_boolean_argument("use-mask", _("Use mask"),
                                            _("Limit the effect with a mask"),
                                            False, GObject.ParamFlags.READWRITE)

@@ -153,6 +153,32 @@ CASES = [
      dict(blend_mode="normal", preserve_transparency="true"),
      (128, 128, 128, 0), 2),
 
+    # 缩放/补偿值：只对 加法（Linear Dodge）/ 减法 生效，对位经典图像编辑器
+    # 应用图像/计算对话框。结果 = (A ± B) / 缩放 + 补偿值，钳到 0..255。
+    # Scale/offset only affect Linear Dodge (Add) and Subtract:
+    # result = (A ± B) / scale + offset, clamped.
+    ("应用图像 · 加法 缩放2 = (A+B)/2", "lb:apply-image", GRAY_IN, GRAY_AUX,
+     dict(blend_mode="linear-dodge", scale=2), (164, 164, 164), 2),
+    ("应用图像 · 加法 补偿51", "lb:apply-image", (100, 100, 100), (100, 100, 100),
+     dict(blend_mode="linear-dodge", scale=1, offset=51), (251, 251, 251), 2),
+    ("应用图像 · 加法 补偿-51", "lb:apply-image", (100, 100, 100), (100, 100, 100),
+     dict(blend_mode="linear-dodge", scale=1, offset=-51), (149, 149, 149), 2),
+    ("应用图像 · 加法 缩放2 + 补偿51", "lb:apply-image", (100, 100, 100), (100, 100, 100),
+     dict(blend_mode="linear-dodge", scale=2, offset=51), (151, 151, 151), 2),
+    ("应用图像 · 减法 缩放2 + 补偿51", "lb:apply-image", (200, 200, 200), (100, 100, 100),
+     dict(blend_mode="subtract", scale=2, offset=51), (101, 101, 101), 2),
+    ("应用图像 · 减法 补偿-51 触底", "lb:apply-image", (100, 100, 100), (100, 100, 100),
+     dict(blend_mode="subtract", scale=1, offset=-51), (0, 0, 0), 2),
+    ("应用图像 · 其他模式忽略缩放补偿", "lb:apply-image", GRAY_IN, GRAY_AUX,
+     dict(blend_mode="multiply", scale=2, offset=51), (100, 100, 100), 2),
+
+    ("计算 · 加法 缩放2", "lb:calculations", GRAY_IN, GRAY_AUX,
+     dict(blend_mode="linear-dodge", scale=2, output_mode="mask-gray"),
+     (164, 164, 164, 255), 2),
+    ("计算 · 减法 缩放2 补偿51", "lb:calculations", (200, 200, 200), (100, 100, 100),
+     dict(blend_mode="subtract", scale=2, offset=51, output_mode="mask-gray"),
+     (101, 101, 101, 255), 2),
+
     ("计算 · 正片叠底出灰", "lb:calculations", GRAY_IN, GRAY_AUX,
      dict(blend_mode="multiply", output_mode="mask-gray"),
      (100, 100, 100, 255), 2),

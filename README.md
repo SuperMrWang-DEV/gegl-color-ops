@@ -90,8 +90,8 @@ gegl-color-ops/
 | `lb:xyz-multiply` | Photo Filter | Photo Filter | Blend | Point | **即 经典图像编辑器 照片滤镜**（实测复刻）：滤镜色在 D50 XYZ 域正片叠底，密度 + 保留明度（W3C SetLum）；不保留明度档 ≤0.71 码 |
 | `lb:shadows-highlights` | Shadows/Highlights | Shadows/Highlights | Tone | Filter | 经典图像编辑器 阴影/高光实测复刻：边缘感知邻域亮度决定提亮提多少，含色调宽度、颜色、中间调对比度、修剪黑白。**不推荐日常使用（慢）**：半径 30 时每像素约 1.4 µs，2048×1536 默认参数净耗时 0.7 s，交互拖滑杆会卡；整体明暗请用 `lb:levels` / `lb:lab-levels`，见 `ops/shadows-highlights/.discouraged` |
 | `lb:color-temperature-tint` | Color Temperature & Tint | Color Temperature & Tint | Color | Point | 经典图像编辑器 2026「色彩与自然饱和度」里的色温 / 色调：冷↔暖、绿↔洋红，中性灰跟着偏色、黑白不动 |
-| `lb:apply-image` | Apply Image | Apply Image | Blend | Composer | 经典图像编辑器 应用图像：aux 层按 26 种混合模式压到本层，可只作用单通道；源层没盖到和透明的地方原样输出 |
-| `lb:calculations` | Calculations | Calculations | Blend | Composer | 经典图像编辑器 计算：两路通道混合出灰/alpha 蒙版，双源可各自反相；源 2 透明处蒙版为 0 |
+| `lb:apply-image` | Apply Image | Apply Image | Blend | Composer | 经典图像编辑器 应用图像：aux 层按 26 种混合模式压到本层，可只作用单通道；加法/减法带 缩放(1..2)/补偿值(±255)；源层没盖到和透明的地方原样输出 |
+| `lb:calculations` | Calculations | Calculations | Blend | Composer | 经典图像编辑器 计算：两路通道混合出灰/alpha 蒙版，双源可各自反相；加法/减法带 缩放(1..2)/补偿值(±255)；源 2 透明处蒙版为 0 |
 | ~~`lb:gray-to-component`~~ | ~~Gray To Component~~ | Gray To Component | Blend | Point | **已废弃（2026-11-15）**：原本是「分量灰度 → 彩色编码 → 混合模式还原」这条三步流程的中间环节。现在每个色彩模式都有自己的分量色阶（`lb:hsl-levels` / `lb:hsb-levels` / `lb:lch-levels` / `lb:cmyk-levels` / `lb:hsi-levels`），直接在原图上按分量调，不再需要分解与重编码。源码与文档保留作存档，`ops/gray-to-component/.disabled` 标记停编译，不进安装包 |
 
 每个算子的算法说明、参数含义见 `ops/<算子名>/README.md`（原始文档）。
@@ -110,6 +110,12 @@ alpha 是细筛（这块地方真有像素吗）。抠图层的透明洞里 RGB 
 结果上：透明处蒙版为 0（不选中），半透明柔边按比例衰减。两个算子的判据一致——源层
 没有像素的地方不让它的 RGB 0 参与运算，区别只在落点（保留原值 / 归零）。
 
+**加法/减法的 缩放/补偿值**：与 经典图像编辑器 一致，混合模式选 加法
+（Linear Dodge）或 减法 时，公式变为 `结果 = (A ± B) / 缩放 + 补偿值`，缩放
+1.0..2.0、补偿值 ±255（8bit 口径，内部归一化）；其余模式这两个参数被忽略。
+共享内核 `common/blend.h` 的 `lb_blend_separable` 统一收 `scale/offset` 两个
+参数，GEGL 算子、ctypes C 内核和纯 Python 后备三条路径同源。
+
 - GIMP 里 aux 由滤镜对话框的输入选择器指定（GIMP 3 会打印 `aux_label` 的名字）；
   这类滤镜**只能合并应用**，不能做非破坏性 fx，是 GIMP 目前的限制。
 - aux 没接时自动退化为「源 = 本图」，此时等于同图内做通道混合——计算最常用的场景。
@@ -124,6 +130,8 @@ GEGL 算子只接住了像素计算那一半；**输入选择**（任意打开�
 
 - `Apply Image` / `Calculations`，位于 **颜色 → SuperMrWang**
 - 源可以是任意打开图像的任意图层；通道含 Gray/R/G/B/Alpha/图层蒙版
+- 混合模式选 加法/减法时多出 **缩放（1.0..2.0）与 补偿值（-255..255）**
+  两个输入框，其余模式忽略；GEGL 算子同名参数 `scale`/`offset`
 - 计算结果四选一：活动选区 / 新建 Alpha 通道 / 新建灰度图层 / 写入图层 alpha
 - 像素内核 `tools/blend_core.c` 编成 `blend_core.dll` 由 ctypes 调用，公式
   直接 include `common/blend.h`——**GEGL 算子与 Python 插件保证同一结果**；

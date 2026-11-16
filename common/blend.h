@@ -96,7 +96,13 @@ lb_channel (gfloat r, gfloat g, gfloat b, gfloat a, gint ch)
     }
 }
 
-/* ---- 可分离混合模式 / separable blend modes ----------------------------- */
+/* ---- 可分离混合模式 / separable blend modes -----------------------------
+ * scale / offset 只对「加法」「减法」生效，对位经典图像编辑器 应用图像 /
+ * 计算对话框的 缩放 (1..2) 与 补偿值 (±255 的 8bit 口径，归一化后 ±1)。
+ * 公式： 结果 = (A ± B) / 缩放 + 补偿值，最后钳到 0..1。
+ * scale / offset only affect Linear Dodge (Add) and Subtract, mirroring the
+ * classic editor's Apply Image / Calculations dialogs: result =
+ * (A ± B) / scale + offset, clamped to 0..1. Offset is normalized (±1 = ±255). */
 
 static inline gfloat
 lb_blend_color_burn (gfloat a, gfloat b)
@@ -125,7 +131,7 @@ lb_blend_soft_light (gfloat a, gfloat b)
 }
 
 static inline gfloat
-lb_blend_separable (gint mode, gfloat a, gfloat b)
+lb_blend_separable (gint mode, gfloat a, gfloat b, gfloat scale, gfloat offset)
 {
   switch (mode)
     {
@@ -137,7 +143,7 @@ lb_blend_separable (gint mode, gfloat a, gfloat b)
       case LB_BLEND_LIGHTEN:      return MAX (a, b);
       case LB_BLEND_SCREEN:       return 1.0f - (1.0f - a) * (1.0f - b);
       case LB_BLEND_COLOR_DODGE:  return lb_blend_color_dodge (a, b);
-      case LB_BLEND_LINEAR_DODGE: return lb_clamp01 (a + b);
+      case LB_BLEND_LINEAR_DODGE: return lb_clamp01 ((a + b) / scale + offset);
       case LB_BLEND_OVERLAY:      return (a <= 0.5f) ? 2.0f * a * b
                                                      : 1.0f - 2.0f * (1.0f - a) * (1.0f - b);
       case LB_BLEND_SOFT_LIGHT:   return lb_blend_soft_light (a, b);
@@ -152,7 +158,7 @@ lb_blend_separable (gint mode, gfloat a, gfloat b)
       case LB_BLEND_HARD_MIX:     return (a + b >= 1.0f) ? 1.0f : 0.0f;
       case LB_BLEND_DIFFERENCE:   return fabsf (a - b);
       case LB_BLEND_EXCLUSION:    return a + b - 2.0f * a * b;
-      case LB_BLEND_SUBTRACT:     return lb_clamp01 (a - b);
+      case LB_BLEND_SUBTRACT:     return lb_clamp01 ((a - b) / scale + offset);
       case LB_BLEND_DIVIDE:       return (b <= 0.0f) ? 1.0f : lb_clamp01 (a / b);
 
       /* 单通道上下文里「深色/浅色」退化为深/浅
@@ -253,7 +259,8 @@ static inline void
 lb_blend_rgb (gint mode,
               gfloat ar, gfloat ag, gfloat ab,
               gfloat br, gfloat bg, gfloat bb,
-              gfloat *or_, gfloat *og, gfloat *ob)
+              gfloat *or_, gfloat *og, gfloat *ob,
+              gfloat scale, gfloat offset)
 {
   /* 深色/浅色比较的是整像素亮度，取其中一方全部通道，不能逐通道取
    * Darker/Lighter Color compare whole-pixel luminance and keep one side
@@ -277,9 +284,9 @@ lb_blend_rgb (gint mode,
       return;
     }
 
-  *or_ = lb_clamp01 (lb_blend_separable (mode, ar, br));
-  *og  = lb_clamp01 (lb_blend_separable (mode, ag, bg));
-  *ob  = lb_clamp01 (lb_blend_separable (mode, ab, bb));
+  *or_ = lb_clamp01 (lb_blend_separable (mode, ar, br, scale, offset));
+  *og  = lb_clamp01 (lb_blend_separable (mode, ag, bg, scale, offset));
+  *ob  = lb_clamp01 (lb_blend_separable (mode, ab, bb, scale, offset));
 }
 
 /* 遮罩 + 不透明度：先把合成结果按 mask*opacity 混回目标

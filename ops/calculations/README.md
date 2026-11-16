@@ -17,6 +17,8 @@ sources (each optionally inverted), blend them, and output a grey or alpha mask.
 | `source2-channel` | Luminance | aux 取哪个通道 |
 | `invert-source2` | 否 | 源 2 反相 |
 | `blend-mode` | Multiply | 26 种混合模式，与 经典图像编辑器 列表一致 |
+| `scale` | 1.0 | **仅加法/减法**：结果 = (A ± B) / 缩放 + 补偿值，范围 1.0..2.0 |
+| `offset` | 0 | **仅加法/减法**：缩放后加上的补偿值，±255（8bit 口径） |
 | `opacity` | 100 | 混合强度 |
 | `mask-enabled` | 否 | 再用一路通道做遮罩 |
 | `mask-channel` | Luminance | 遮罩通道 |
@@ -30,6 +32,7 @@ sources (each optionally inverted), blend them, and output a grey or alpha mask.
 | Source 1: 图层 + 通道 + 反相 | input + `source1-channel` + `invert-source1` |
 | Source 2: 图层 + 通道 + 反相 | aux + `source2-channel` + `invert-source2` |
 | Blending / Opacity | `blend-mode` / `opacity` |
+| 加法/减法 的 Scale / Offset | `scale` / `offset` |
 | Mask | `mask-channel` + `invert-mask` |
 | Result: 新建文档 / 新建通道 | `output-mode` = 灰蒙版，得到的灰色层可当文档或通道用 |
 | Result: 选区 | `output-mode` = alpha 蒙版，再配合 **选择 → 按 Alpha 转选区** |
