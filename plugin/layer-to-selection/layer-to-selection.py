@@ -1,28 +1,26 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """===========================================================================
- SuperMrWang · 任意图层 → 选区 / Alpha 通道 —— GIMP 3 Python 插件
+ SuperMrWang · 任意图层 → 选区 —— GIMP 3 Python 插件
  ---------------------------------------------------------------------------
- purpose   右键点一个图层，就把它转成选区或 Alpha 通道。GEGL 算子（含本仓库
-           的 lb:color-mask-select、lb:calculations 等）跑完常常留下一张灰度
-           图，这张图往后的用途无非两种：当蒙版用（选区）或留档复用（通道）。
-           原生流程要点四步（复制 → 建通道 → 粘贴 → 蒙版转选区），本插件
-           一步到位，而且不要求图层是「纯灰度」——彩色图层会按亮度转。
-           Turn any layer into a selection or an alpha channel in one click,
-           straight from the layer context menu.
+ purpose   右键点一个图层，就把它转成当前选区。GEGL 算子（含本仓库的
+           lb:color-mask-select、lb:calculations 等）跑完常常留下一张灰度
+           图，它往后的用途多半是当蒙版——原生流程要点四步（复制 → 建通道 →
+           粘贴 → 蒙版转选区），本插件一步到位，而且不要求图层是「纯灰度」
+           ——彩色图层会按亮度转。
+           Turn any layer into the current selection in one click, straight
+           from the layer context menu.
 
- menu      图层右键 → SuperMrWang → Layer to Selection / Layer to Channel
+ menu      图层右键 → SuperMrWang → Layer to Selection
            也挂在 选择 → SuperMrWang 下，方便不用鼠标右键的场合。
 
- usage     选区可选 Gray（亮度）/ R / G / B / Alpha，还能换四种组合方式；
-           通道**恒为灰度**——彩色图层先按亮度转灰度，灰度图层原样，再把灰度
-           值写成通道值（彩色图层没有「取 R 通道」这种选项，避免拿到单色通道
-           而不是明暗）。两者都能反相。核心逻辑是模块级函数，
+ usage     选区可选 Gray（亮度）/ R / G / B / Alpha，四种组合方式
+           （替换 / 加 / 减 / 交），可反相。核心逻辑是模块级函数，
            tools/check_layer_to_mask.py 直接调用它们做回归。
 
  note      两个 GIMP 3 的坑（本插件绕开了）：
-           1. shadow buffer 的 merge 遵守当前选区，写通道前必须先把选区
-              挂起，否则通道只有选区内有内容、其余全黑；
+           1. shadow buffer 的 merge 遵守当前选区，先写临时通道再选它，
+              所以动手前要把选区挂起、结束再恢复；
            2. babl 的 "Y' float" 不是亮度加权（纯红会读成 0.51 的 HSL 明度），
               所以彩色图层的 Gray 走临时图层 desaturate，灰度图层才走
               零拷贝的通道切片快捷路径。
@@ -68,13 +66,6 @@ def _pdb(name, **props):
     for k, v in props.items():
         cfg.set_property(k, v)
     return proc.run(cfg)
-
-
-def _tint():
-    """通道缩略图用的淡紫色 / tint colour for the channel thumbnail"""
-    c = Gegl.Color()
-    c.set_rgba(0.5, 0.5, 1.0, 1.0)
-    return c
 
 
 # ---- 选区挂起 / selection suspend ------------------------------------------
@@ -206,7 +197,8 @@ def write_channel(image, plane, name):
     Create a canvas-sized channel and fill it. Must run while no selection is
     active: shadow merges honour the selection and would clip the write."""
     iw, ih = image.get_width(), image.get_height()
-    ch = Gimp.Channel.new(image, name, iw, ih, 100.0, _tint())
+    ch = Gimp.Channel.new(image, name, iw, ih, 100.0,
+                          _tint())
     image.insert_channel(ch, None, -1)
     r = Gegl.Rectangle.new(0, 0, iw, ih)
     shadow = ch.get_shadow_buffer()
@@ -216,7 +208,14 @@ def write_channel(image, plane, name):
     return ch
 
 
-# ---- 两个动作 / the two actions --------------------------------------------
+def _tint():
+    """通道缩略图用的淡紫色 / tint colour for the channel thumbnail"""
+    c = Gegl.Color()
+    c.set_rgba(0.5, 0.5, 1.0, 1.0)
+    return c
+
+
+# ---- 动作 / the action ------------------------------------------------------
 
 def layer_to_selection(image, layer, channel=CH_GRAY, invert=False, operation=0):
     """图层 → 选区。operation: 0 Replace / 1 Add / 2 Subtract / 3 Intersect"""
@@ -239,47 +238,15 @@ def layer_to_selection(image, layer, channel=CH_GRAY, invert=False, operation=0)
     Gimp.displays_flush()
 
 
-def layer_to_channel(image, layer, invert=False, name=""):
-    """图层 → 新建 Alpha 通道：先统一转灰度，再把灰度值写进通道。
+# ---- 程序包装 / procedure wrapper ------------------------------------------
 
-    彩色图层按亮度（LUMA）转成灰度，本来就走「灰度图层原样」的快路径；写进
-    通道的是 0..1 的灰度值，即「黑色=不选中、白色=完全选中」那套语义。
-    Layer -> channel: always convert to grayscale first (luma for colour layers,
-    the pixels themselves when already grey), then store those grey levels as
-    the channel values."""
-    if not name:
-        name = layer.get_name()
-    saved = selection_save(image)
-    selection_clear(image)                  # 同上：反相也只在选区内生效
-    image.undo_group_start()
-    try:
-        plane = layer_plane(image, layer, CH_GRAY)
-        ch = write_channel(image, plane, name)
-        if invert:
-            ch.invert(False)
-        if saved is not None:
-            selection_restore(image, saved)
-            image.remove_channel(saved)
-    finally:
-        image.undo_group_end()
-    Gimp.displays_flush()
-    try:                                    # 状态栏提示，省得以为没反应
-        Gimp.message(_("Channel \u201c%s\u201d created from the grey levels of "
-                       "\u201c%s\u201d") % (name, layer.get_name()))
-    except Exception:
-        pass
-    return ch
-
-
-# ---- 程序包装 / procedure wrappers -----------------------------------------
-
-class LayerToMaskPlugin(Gimp.PlugIn):
+class LayerToSelectionPlugin(Gimp.PlugIn):
 
     def do_set_i18n(self, procname):
         return True, 'gimp30-python', None
 
     def do_query_procedures(self):
-        return ['lb-plugin-layer-to-selection', 'lb-plugin-layer-to-channel']
+        return ['lb-plugin-layer-to-selection']
 
     def do_create_procedure(self, name):
         procedure = Gimp.ImageProcedure.new(
@@ -289,46 +256,28 @@ class LayerToMaskPlugin(Gimp.PlugIn):
                                        Gimp.ProcedureSensitivityMask.DRAWABLES)
         procedure.set_attribution("SuperMrWang", "SuperMrWang", "2026")
 
-        to_sel = name.endswith('to-selection')
-        procedure.set_menu_label(_("Layer to Selection") if to_sel
-                                 else _("Layer to Channel"))
+        procedure.set_menu_label(_("Layer to Selection"))
         # 两个入口：图层右键菜单（点哪个转哪个）+ 选择菜单
         procedure.add_menu_path("<Layers>/SuperMrWang")
         procedure.add_menu_path("<Image>/Select/SuperMrWang")
 
-        if to_sel:
-            procedure.set_documentation(
-                _("Layer to Selection: turn the clicked layer into the current "
-                  "selection (Gray/R/G/B/Alpha, invert, four combine modes)"),
-                _("One click 'any layer -> selection', no copy/paste detour."),
-                name)
-            procedure.add_int_argument(
-                "channel", _("Channel"),
-                _("0 Gray (luminosity), 1 Red, 2 Green, 3 Blue, 4 Alpha"),
-                0, 4, 0, GObject.ParamFlags.READWRITE)
-            procedure.add_boolean_argument(
-                "invert", _("Invert"),
-                _("Select the dark side instead of the bright side"),
-                False, GObject.ParamFlags.READWRITE)
-            procedure.add_int_argument(
-                "operation", _("Combine"),
-                _("0 Replace, 1 Add, 2 Subtract, 3 Intersect"),
-                0, 3, 0, GObject.ParamFlags.READWRITE)
-        else:
-            procedure.set_documentation(
-                _("Layer to Channel: turn the clicked layer into a new alpha "
-                  "channel. Colour layers are first converted to greyscale "
-                  "(luminosity); grey layers are used as they are, and those "
-                  "grey levels become the channel values."),
-                _("One click 'any layer -> channel'. Always grayscale: black = "
-                  "not selected, white = fully selected."), name)
-            procedure.add_boolean_argument(
-                "invert", _("Invert"), _("Invert the channel content"),
-                False, GObject.ParamFlags.READWRITE)
-            procedure.add_string_argument(
-                "name", _("Channel name"),
-                _("Empty = use the layer name"), "",
-                GObject.ParamFlags.READWRITE)
+        procedure.set_documentation(
+            _("Layer to Selection: turn the clicked layer into the current "
+              "selection (Gray/R/G/B/Alpha, invert, four combine modes)"),
+            _("One click 'any layer -> selection', no copy/paste detour."),
+            name)
+        procedure.add_int_argument(
+            "channel", _("Channel"),
+            _("0 Gray (luminosity), 1 Red, 2 Green, 3 Blue, 4 Alpha"),
+            0, 4, 0, GObject.ParamFlags.READWRITE)
+        procedure.add_boolean_argument(
+            "invert", _("Invert"),
+            _("Select the dark side instead of the bright side"),
+            False, GObject.ParamFlags.READWRITE)
+        procedure.add_int_argument(
+            "operation", _("Combine"),
+            _("0 Replace, 1 Add, 2 Subtract, 3 Intersect"),
+            0, 3, 0, GObject.ParamFlags.READWRITE)
         return procedure
 
     def run(self, procedure, run_mode, image, drawables, config, data):
@@ -337,22 +286,17 @@ class LayerToMaskPlugin(Gimp.PlugIn):
                 Gimp.PDBStatusType.CALLING_ERROR,
                 GLib.Error(_("No image or no layer selected")))
         try:
-            layer = drawables[0]
-            invert = config.get_property('invert')
-            if procedure.get_name().endswith('to-selection'):
-                layer_to_selection(image, layer,
-                                   config.get_property('channel'), invert,
-                                   config.get_property('operation'))
-            else:
-                layer_to_channel(image, layer, invert,
-                                 config.get_property('name'))
+            layer_to_selection(image, drawables[0],
+                               config.get_property('channel'),
+                               config.get_property('invert'),
+                               config.get_property('operation'))
             return procedure.new_return_values(
                 Gimp.PDBStatusType.SUCCESS, GLib.Error())
         except Exception as exc:
-            Gimp.message("layer-to-mask: %s" % exc)
+            Gimp.message("layer-to-selection: %s" % exc)
             return procedure.new_return_values(
                 Gimp.PDBStatusType.EXECUTION_ERROR, GLib.Error(str(exc)))
 
 
 if __name__ == '__main__':
-    Gimp.main(LayerToMaskPlugin.__gtype__, sys.argv)
+    Gimp.main(LayerToSelectionPlugin.__gtype__, sys.argv)

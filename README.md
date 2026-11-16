@@ -32,8 +32,9 @@ gegl-color-ops/
 ├── ops/<算子名>/          # 每个算子一个目录：<算子名>.c + 原始说明 + 截图
 ├── plugin/blend/      # Python 插件：应用图像/计算的完整复刻版（四种落地：选区/通道/灰度层/图层 alpha）
 ├── plugin/gray-mask/  # Python 插件：灰度图层一键 → 选区 / Alpha 通道
-├── plugin/layer-to-mask/ # Python 插件：右键任意图层 → 选区 / 通道（通道恒为灰度）
-├── plugin/sky-replace/ # Python 插件：一键换天（泛洪分割 + 蒙版合成 + 亮度匹配）
+├── plugin/layer-to-selection/ # Python 插件：右键任意图层 → 选区
+├── plugin/layer-to-channel/  # Python 插件：右键任意图层 → Alpha 通道（恒为灰度）
+├── plugin/sky-replace/       # Python 插件：一键换天（源码保留，.disabled 暂不安装）
 ├── dist/                 # 编好的模块，给不想编译的人直接下载（windows-x64 / linux-x64）
 ├── tools/                # 测试图生成、逐算子冒烟、对照表、文件头重排、注释双语化
 ├── tools/site/           # 站点样式源（生成时拷进 docs/assets/）
@@ -172,7 +173,7 @@ GEGL 算子只接住了像素计算那一半；**输入选择**（任意打开�
 回归：`tools/check_gray_mask.py`（8 条行为断言，跑在 gimp-console 的
 python-fu-eval 里，不要求插件已安装）。
 
-### Python 插件版：plugin/layer-to-mask
+### Python 插件：plugin/layer-to-selection 与 plugin/layer-to-channel
 
 **右键点哪个图层，就把它转成选区或通道。** GEGL 算子跑完常常留下一张灰度图，
 往后的用途无非两种：当蒙版用（选区）或留档复用（通道）。原生流程要点四步
@@ -180,7 +181,6 @@ python-fu-eval 里，不要求插件已安装）。
 「纯灰度」：
 
 - 入口：**图层右键 → SuperMrWang**，也挂在 **选择 → SuperMrWang** 下
-- 两个动作：`Layer to Selection` / `Layer to Channel`
 - `Layer to Selection`：通道可选 **Gray（亮度）/ R / G / B / Alpha**，可选四种
   组合方式（替换/加/减/交）与反相
 - `Layer to Channel`：**恒为灰度**——彩色图层先按亮度转灰度，灰度图层原样，
@@ -195,14 +195,17 @@ python-fu-eval 里，不要求插件已安装）。
 - 图层组没有自己的像素，会明确报错提示先合并组
 
 与 `plugin/gray-mask` 的分工：gray-mask 走复制/粘贴，会带上图层蒙版等显示
-效果；layer-to-mask 读原始像素、更快、支持任意通道，日常「灰度图 → 蒙版」
-优先用它。
+效果；这两个插件读原始像素、更快，日常「灰度图 → 蒙版」优先用它们。
 
 回归：`tools/check_layer_to_mask.py`（23 条断言：灰度值、反相、偏移图层、
 彩色亮度、四个单通道、通道值/名字/反相、**彩色图层转通道得到的是亮度而不是
 R 通道**、**有选区时转通道不被截断**、四种组合方式）。
 
-### Python 插件版：plugin/sky-replace
+### Python 插件：plugin/sky-replace（暂不发布）
+
+> 源码保留在仓库里，目录带 `.disabled` 标记，install-plugin.sh 不会安装；
+> 站点与下载包也暂不放出。想启用：删除 `plugin/sky-replace/.disabled`
+> 再跑 `./install-plugin.sh`。
 
 **一键换天**。选中照片图层 + 指定一张天空图，一次点击完成：
 

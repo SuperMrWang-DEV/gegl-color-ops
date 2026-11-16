@@ -33,6 +33,6 @@ for SRC in "$SRC_ROOT"/*/; do
 done
 echo "· 重启 GIMP 后生效："
 echo "    颜色 → SuperMrWang       应用图像 / 计算"
-echo "    选择 → SuperMrWang       图层 → 选区 / 通道（layer-to-mask、gray-mask）"
-echo "    图层右键 → SuperMrWang   点哪个图层就转哪个（layer-to-mask）"
-echo "    图层 → SuperMrWang       一键换天"
+echo "    选择 → SuperMrWang       图层 → 选区 / 通道（含 gray-mask）"
+echo "    图层右键 → SuperMrWang   Layer to Selection / Layer to Channel"
+echo "  （sky-replace 已标 .disabled 暂不安装；恢复：rm plugin/sky-replace/.disabled）"

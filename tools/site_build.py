@@ -472,6 +472,12 @@ def build_index(ops, stats, version):
          <code>dist/linux-x64/&lt;名字&gt;.so</code>。</p>
       <a class="btn ghost" href="{repo}/tree/main/dist/windows-x64">浏览模块列表</a>
     </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Python 插件</h3><span class="pill">.py · 免编译</span></div>
+      <p>Layer to Selection / Layer to Channel：右键任意图层，一键转成选区
+         或 Alpha 通道。每个插件一个包，放进 GIMP 的 plug-ins 目录。</p>
+      <a class="btn ghost" href="plugins.html#download">去插件页下载</a>
+    </div>
   </div>
   <p class="note">装不上、菜单里看不到、和 GIMP 自带算子重名——都写在
      <a href="guide.html">安装指南</a> 的排错一节。源码编译走 <code>./build.sh</code> 或 meson，同样在那一页。</p>
@@ -977,96 +983,145 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
                 desc="GIMP 3 GEGL 算子安装、验证与排错")
 
 
-def build_plugins(version):
+def build_plugin_zips(out_dir):
+    """两个 Python 插件各打一个包，与 dll/so 的免编译包同一套路。
+    sky-replace 源码保留但带 .disabled，暂不发布。"""
+    specs = [
+        ("gegl-color-ops-plugin-layer-to-selection.zip",
+         os.path.join(ROOT, "plugin", "layer-to-selection"),
+         "layer-to-selection.py", "Layer to Selection",
+         "Layer to Selection：右键任意图层，把它转成当前选区"
+         "（Gray/R/G/B/Alpha、四种组合方式、可反相）。",
+         "lb-plugin-layer-to-selection(image, layer, channel, invert, operation)"),
+        ("gegl-color-ops-plugin-layer-to-channel.zip",
+         os.path.join(ROOT, "plugin", "layer-to-channel"),
+         "layer-to-channel.py", "Layer to Channel",
+         "Layer to Channel：右键任意图层，把它变成一条新的 Alpha 通道"
+         "（恒为灰度：彩色图层先按亮度转灰度，再把灰度值写进通道）。",
+         "lb-plugin-layer-to-channel(image, layer, invert, name)"),
+    ]
+    zips = {}
+    for name, src_dir, py, menu, desc, pdb in specs:
+        key = "selection" if "selection" in name else "channel"
+        readme = """gegl-color-ops · {py}（GIMP 3 Python 插件）
+=====================================================
+
+{desc}
+
+安装：把这个 .py 放进 GIMP 的用户插件目录（目录不存在就新建）：
+    Windows:  %APPDATA%\\GIMP\\3.x\\plug-ins\\
+    Linux:    ~/.config/GIMP/3.x/plug-ins/
+    macOS:    ~/Library/Application Support/GIMP/3.x/plug-ins/
+
+然后完全退出 GIMP 再打开。菜单位置：
+    图层右键 → SuperMrWang → {menu}
+    选择 → SuperMrWang → {menu}
+
+批处理 / 脚本调用（PDB 过程）：
+    {pdb}
+
+源码与算法说明：{repo}
+
+GPL-3.0-or-later
+""".format(py=py, desc=desc, menu=menu, pdb=pdb, repo=REPO)
+        path = os.path.join(out_dir, name)
+        with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
+            z.write(os.path.join(src_dir, py), py)
+            z.writestr("安装说明.txt", readme)
+        zips[key] = {"name": name, "sha": _sha256_file(path),
+                     "kb": round(os.path.getsize(path) / 1024, 1)}
+    return zips
+
+
+def build_plugins(version, stats=None):
     # 与首页同一套框：facts 条、卡片、dl 盒、note 提示框、step-list、参数表、按钮。
+    z = stats.get("plugin_zips", {}) if stats else {}
+
+    def dl_box(key, title, blurb):
+        d = z.get(key)
+        if not d:
+            return ""
+        return """
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>{title}</h3><span class="pill">.py · 免编译</span></div>
+      <p>{blurb}</p>
+      <a class="btn primary" href="download/{name}">下载 {name}</a>
+      <p class="muted small">{kb} KB · 校验：<code>SHA256 {sha}</code></p>
+    </div>""".format(title=title, blurb=blurb, name=d["name"], kb=d["kb"],
+                    sha=d["sha"][:32] + "…")
+
     cards = """
 <div class="cards">
-  <a class="card" href="#sky">
-    <div class="card-top"><span class="tag t-color">换天</span><code>sky-replace</code></div>
-    <h3>Sky Replace · 一键换天</h3>
-    <p>选中照片 + 指定天空图，一次点击完成分割、合成、亮度匹配——经典泛洪算法，无需 AI 模型。</p>
-    <span class="more">看参数与细节 →</span>
+  <a class="card" href="#layer-to-selection">
+    <div class="card-top"><span class="tag t-mask">选区</span><code>layer-to-selection</code></div>
+    <h3>Layer to Selection</h3>
+    <p>右键点哪个图层，就把哪个图层转成当前选区——Gray / R / G / B / Alpha、
+       四种组合方式、可反相。</p>
+    <span class="more">看细节与下载 →</span>
   </a>
-  <a class="card" href="#layer-to-mask">
-    <div class="card-top"><span class="tag t-mask">蒙版</span><code>layer-to-mask</code></div>
-    <h3>Layer to Selection / Channel</h3>
-    <p>右键点哪个图层，就把哪个图层转成选区或 Alpha 通道——算子跑完留下的灰度图，一步接着用。</p>
-    <span class="more">看参数与细节 →</span>
+  <a class="card" href="#layer-to-channel">
+    <div class="card-top"><span class="tag t-mask">通道</span><code>layer-to-channel</code></div>
+    <h3>Layer to Channel</h3>
+    <p>右键点哪个图层，就把哪个图层变成一条新的 Alpha 通道——恒为灰度，
+       黑 = 不选中、白 = 完全选中。</p>
+    <span class="more">看细节与下载 →</span>
   </a>
 </div>"""
 
-    sky_boxes = """
+    sel_boxes = """
   <div class="dl-grid">
     <div class="dl">
-      <div class="dl-head"><h3>分割</h3><span class="pill">经典算法</span></div>
-      <p>从图像<b>顶边三个种子点</b>做泛洪选择，把连通的天空选出来（GIMP 3 的采样
-         阈值/判据走 context，插件用 context_push/pop 包住，不污染你的设置）。
-         蓝天、晴天照片效果最好。</p>
+      <div class="dl-head"><h3>通道</h3></div>
+      <p>可选 <b>Gray（亮度）/ R / G / B / Alpha</b>——彩色图层选 Gray 时按亮度算，
+         不是 HSL 明度（纯红 ≈ 54/255，而不是 130）。</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>收边</h3></div>
-      <p>选区按参数<b>收缩/羽化</b>：<code>edge</code> 正=收缩、负=扩张，默认收 1px
-         收掉前景光晕。顶行天空覆盖率低于 60% 时直接报错提示，而不是静默输出一张坏结果。</p>
+      <div class="dl-head"><h3>组合方式</h3></div>
+      <p><b>替换 / 加 / 减 / 交</b>，与 GIMP 选区菜单一致；可反相
+         （选暗部而不是亮部）。</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>合成</h3></div>
-      <p>天空图按 <b>cover 方式缩放、居中裁切</b>，插到照片图层<b>正上方</b>；
-         再按两张天空区的直方图均值算 gamma，把新天空亮度拉到与原天空一致
-         （可在对话框关掉）。</p>
+      <div class="dl-head"><h3>偏移图层</h3></div>
+      <p>图层比画布小、带偏移也没问题：只在自己位置生效，界外不选中。</p>
     </div>
-    <div class="dl">
-      <div class="dl-head"><h3>输出</h3></div>
-      <p>选区转成天空图层的<b>图层蒙版</b>，前景自然露出。可勾选存一条
-         <code>Sky Mask</code> 通道：对分割不满意时，用 <code>lb:color-mask-select</code>
-         等蒙版算子手工精修，再重新生成选区合成。</p>
-    </div>
-  </div>
-  <div class="table-wrap"><table>
-    <thead><tr><th>参数</th><th>范围 / 默认</th><th>做什么</th></tr></thead>
-    <tbody>
-      <tr><td><code>sky-file</code></td><td>文件</td><td>替换用的天空图</td></tr>
-      <tr><td><code>threshold</code></td><td>0 – 0.5</td><td>泛洪采样阈值</td></tr>
-      <tr><td><code>edge</code></td><td>默认 1</td><td>选区收缩（正值）/ 扩张（负值）像素数</td></tr>
-      <tr><td><code>feather</code></td><td>羽化半径</td><td>选区边缘羽化</td></tr>
-      <tr><td><code>match-brightness</code></td><td>开</td><td>gamma 亮度匹配，把新天空拉到原天空亮度</td></tr>
-      <tr><td><code>save-mask-channel</code></td><td>关</td><td>把分割蒙版存成 <code>Sky Mask</code> 通道，方便精修</td></tr>
-    </tbody>
-  </table></div>
-  <p class="note">效果边界：泛洪只认<b>颜色连通</b>，不认语义。云层破碎、天空被树枝
-     零碎切割、或前景顶边与天空颜色接近的照片，分割质量会下降——这类图建议勾上
-     「存 Sky Mask 通道」，用蒙版算子精修后再合成。</p>"""
+  </div>"""
 
-    ltm_boxes = """
+    chn_boxes = """
   <div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>Layer to Selection</h3><span class="pill">转选区</span></div>
-      <p>把点击的图层变成当前选区：</p>
-      <ul>
-        <li><b>通道</b>：Gray（亮度）/ R / G / B / Alpha 任选；</li>
-        <li><b>组合方式</b>：替换 / 加 / 减 / 交，与 GIMP 选区菜单一致；</li>
-        <li>可反相（选暗部而不是亮部）；</li>
-        <li>图层比画布小、带偏移也没问题：只在自己位置生效，界外不选中。</li>
-      </ul>
+      <div class="dl-head"><h3>恒为灰度</h3><span class="pill">语义明确</span></div>
+      <p>彩色图层先按亮度转成灰度，黑白图层原样——然后把这些<b>灰度值写进通道</b>
+         （黑 = 不选中、白 = 完全选中、中间灰 = 部分选中）。没有「取 R 通道」
+         这类选项——要的就是明暗，不给单色通道捣乱的机会。</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>Layer to Channel</h3><span class="pill">转通道</span></div>
-      <p>把点击的图层变成一条新的 Alpha 通道，<b>恒为灰度</b>：</p>
-      <ul>
-        <li>彩色图层先按亮度转灰度、黑白图层原样，再把这些<b>灰度值写进通道</b>
-            （黑 = 不选中、白 = 完全选中、中间灰 = 部分选中）；</li>
-        <li>没有「取 R 通道」这类选项——要的就是明暗，不给单色通道捣乱的机会；</li>
-        <li>可反相、可自定义通道名（默认沿用图层名），建好后状态栏提示通道名；</li>
-        <li>想变回选区：通道面板右键该通道 → <b>通道到选区</b>（GIMP 原生）。</li>
-      </ul>
+      <div class="dl-head"><h3>通道名与反相</h3></div>
+      <p>可反相、可自定义通道名（默认沿用图层名），建好后状态栏会提示通道名。
+         想把它变回选区：在「通道」面板右键该通道 → <b>通道到选区</b>
+         （GIMP 原生）。</p>
     </div>
   </div>
   <p class="note"><b>彩色图层的 Gray 是亮度，不是 HSL 明度</b>：纯红 ≈ 54/255，
      而不是 HSL 明度的 130——和你在 PS 里按亮度去色的结果一致。
-     实现上走临时副本去色（GIMP 3.2 的 LUMA 模式），用完即删，活动图层还原。</p>
-  <p class="note">与 <code>plugin/gray-mask</code> 的分工：gray-mask 走复制/粘贴，会带上
-     图层蒙版等<b>显示效果</b>；layer-to-mask 读<b>原始像素</b>、更快、支持任意通道。
-     日常「灰度图 → 蒙版」优先用它。有活动选区时写通道会先把选区挂起再恢复——
-     GIMP 的 shadow 合并遵守选区，不挂起的话通道会被截成选区那一块。</p>"""
+     实现上走临时副本去色（GIMP 3.2 的 LUMA 模式），用完即删，活动图层还原。</p>"""
+
+    download = """<section class="download" id="download">
+  <h2>下载</h2>
+  <div class="dl-grid">
+{sel_box}
+{chn_box}
+  </div>
+  <p class="note">和 <code>.dll</code> / <code>.so</code> 一个思路：免编译、解压即用。
+     区别只是 Python 插件放进 <b>GIMP</b> 的用户插件目录
+     （<code>%APPDATA%\\GIMP\\3.x\\plug-ins</code> 或
+     <code>~/.config/GIMP/3.x/plug-ins</code>），不是 GEGL 的；
+     包里的「安装说明.txt」写得很全。两个都装也行，菜单入口相同。</p>
+</section>""".format(sel_box=dl_box("selection", "Layer to Selection",
+                                    "右键任意图层，把它转成当前选区"
+                                    "（Gray/R/G/B/Alpha、四种组合方式、可反相）。"),
+                     chn_box=dl_box("channel", "Layer to Channel",
+                                    "右键任意图层，把它变成一条新的 Alpha 通道"
+                                    "（恒为灰度，可反相、可自定义通道名）。"))
 
     install = """<section class="steps" id="install">
   <h2>三步装上</h2>
@@ -1079,14 +1134,16 @@ cd gegl-color-ops</code></pre>
     <li>
       <h3>拷进 GIMP 插件目录</h3>
       <p>一条脚本把 <code>plugin/</code> 下的 <code>.py</code> 全部拷进 GIMP 的
-         plug-ins 目录（Windows / Linux 通用）：</p>
+         plug-ins 目录（Windows / Linux 通用；带 <code>.disabled</code> 标记的
+         插件会跳过）：</p>
       <pre><code>bash install-plugin.sh</code></pre>
+      <p>或者直接用上面下载区的两个 <code>.zip</code>，把 <code>.py</code>
+         解进同一个目录。</p>
     </li>
     <li>
       <h3>重启 GIMP，找菜单</h3>
-      <p><b>Sky Replace</b>：<code>图层 → SuperMrWang → Sky Replace</code>；
-         <b>Layer to Selection / Channel</b>：<code>图层右键 → SuperMrWang</code>，
-         另有一份挂在 <code>选择 → SuperMrWang</code> 下（不依赖右键、方便写脚本）。</p>
+      <p><b>图层右键 → SuperMrWang → Layer to Selection / Layer to Channel</b>，
+         另有一份挂在 <b>选择 → SuperMrWang</b> 下（不依赖右键、方便写脚本）。</p>
     </li>
   </ol>
 </section>""".format(repo=REPO)
@@ -1094,13 +1151,8 @@ cd gegl-color-ops</code></pre>
     pdb_table = """<div class="table-wrap"><table>
   <thead><tr><th>PDB 过程</th><th>参数</th><th>用途</th></tr></thead>
   <tbody>
-    <tr><td><code>lb-plugin-sky-replace</code></td>
-        <td><code>sky-file</code> / <code>threshold</code> / <code>edge</code> /
-            <code>feather</code> / <code>match-brightness</code> /
-            <code>save-mask-channel</code></td>
-        <td>批处理换天</td></tr>
     <tr><td><code>lb-plugin-layer-to-selection</code></td>
-        <td><code>channel</code> / <code>invert</code> / 组合方式</td>
+        <td><code>channel</code> / <code>invert</code> / <code>operation</code></td>
         <td>图层 → 选区</td></tr>
     <tr><td><code>lb-plugin-layer-to-channel</code></td>
         <td><code>invert</code> / <code>name</code></td>
@@ -1110,63 +1162,64 @@ cd gegl-color-ops</code></pre>
 
     body = """<section class="page-head">
   <p class="eyebrow"><a href="index.html">首页</a> / Python 插件</p>
-  <h1>两个 Python 插件</h1>
-  <p class="lede">一键换天，以及「右键图层 → 转选区/通道」。GEGL 算子的产出常常是一张
-     灰度蒙版，这两个插件把「蒙版 → 能用的东西」压成一次点击。</p>
+  <h1>两个一键转换插件</h1>
+  <p class="lede">GEGL 算子（计算、色彩范围、通道区间到 alpha……）的产出常常是一张
+     <b>灰度图</b>——它本身就是一张蒙版。原生流程要把它变成能用的东西得四步
+     （复制图层 → 新建通道 → 粘贴 → 蒙版转选区），这两个插件把它压成
+     <b>一次右键</b>，而且不要求图层是「纯灰度」。</p>
   <div class="cta">
-    <a class="btn primary" href="#install">三步装上</a>
-    <a class="btn" href="#sky">换天参数</a>
+    <a class="btn primary" href="#download">下载插件包</a>
+    <a class="btn" href="#install">三步装上</a>
     <a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/tree/main/plugin">看插件源码</a>
   </div>
   <ul class="facts">
     <li><b>2</b> 个插件</li>
-    <li><b>3</b> 个 PDB 过程</li>
-    <li><b>36</b> 条回归断言</li>
+    <li><b>2</b> 个 PDB 过程</li>
+    <li><b>23</b> 条回归断言</li>
     <li><b>0</b> 编译 · 纯 Python</li>
   </ul>
 </section>
 <section class="prose wide">
 {cards}
 
-  <section class="group" id="sky">
-    <h3 class="group-title"><span class="tag t-color">换天</span>
-      <span class="group-en">Sky Replace</span><span class="count">一键换天</span></h3>
-    <p class="group-desc">选中照片图层 + 指定一张天空图，一次点击完成：泛洪分割 →
-       收缩羽化 → 天空 cover 合成 → gamma 亮度匹配 → 图层蒙版。经典算法，
-       不需要 AI 模型，蓝天 / 晴天照片效果最好。</p>
-{sky_boxes}
+  <section class="group" id="layer-to-selection">
+    <h3 class="group-title"><span class="tag t-mask">选区</span>
+      <span class="group-en">Layer to Selection</span><span class="count">一键转选区</span></h3>
+    <p class="group-desc">把点击的图层变成当前选区。GEGL 算子跑完留下的灰度图，
+       一步就能接着用——当蒙版用（选区）的场合就归它。</p>
+{sel_boxes}
   </section>
 
-  <section class="group" id="layer-to-mask">
-    <h3 class="group-title"><span class="tag t-mask">蒙版</span>
-      <span class="group-en">Layer to Selection / Channel</span><span class="count">一键转选区 / 通道</span></h3>
-    <p class="group-desc">这套 GEGL 算子（计算、色彩范围、通道区间到 alpha……）的产出
-       常常是一张<b>灰度图</b>——它本身就是一张蒙版。原生流程要把它变成能用的东西得四步
-       （复制图层 → 新建通道 → 粘贴 → 蒙版转选区），这两个动作把它压成<b>一次右键</b>，
-       而且不要求图层是「纯灰度」。</p>
-{ltm_boxes}
+  <section class="group" id="layer-to-channel">
+    <h3 class="group-title"><span class="tag t-mask">通道</span>
+      <span class="group-en">Layer to Channel</span><span class="count">一键转通道</span></h3>
+    <p class="group-desc">把点击的图层变成一条新的 Alpha 通道，留档复用——
+       后续用通道到选区、或拿通道当图层蒙版都行。</p>
+{chn_boxes}
   </section>
+
+{download}
 
 {install}
 
   <h2 id="script">脚本调用</h2>
-  <p>三个动作都是标准 PDB 过程，脚本里直接调（第二个参数列表可留空走默认值）：</p>
+  <p>两个动作都是标准 PDB 过程，脚本里直接调（参数留空走默认值）：</p>
 {pdb_table}
   <p class="note">实现：直接读图层像素（array 的 C 级切片，100 万像素约 4 毫秒），
      不走复制粘贴；灰度内容走零拷贝快路径，彩色图层才临时复制一份做去色。
-     图层组没有自己的像素，会明确报错提示先合并组。</p>
+     有活动选区时写通道会先把选区挂起再恢复——GIMP 的 shadow 合并遵守选区，
+     不挂起的话通道会被截成选区那一块。图层组没有自己的像素，会明确报错提示
+     先合并组。与 <code>plugin/gray-mask</code> 的分工：gray-mask 走复制/粘贴，
+     会带上图层蒙版等<b>显示效果</b>；这两个插件读<b>原始像素</b>、更快。</p>
   <h2 id="tests">回归</h2>
-  <p>两套断言跑在 gimp-console 的 python-fu-eval 里：
-     <code>tools/check_sky_replace.py</code>（13 条：分层、蒙版、合成像素、亮度匹配、
-     开关行为、报错路径；直方图期望值按 255·enc_srgb(v) 刻度换算）与
-     <code>tools/check_layer_to_mask.py</code>（23 条：灰度值、反相、偏移图层、
-     彩色亮度、四个单通道、通道值/名字/反相、彩色转通道=亮度、选区不被截断、
-     四种组合方式）。</p>
-</section>""".format(cards=cards, sky_boxes=sky_boxes, ltm_boxes=ltm_boxes,
-                   install=install, pdb_table=pdb_table)
+  <p><code>tools/check_layer_to_mask.py</code>，23 条断言跑在 gimp-console 的
+     python-fu-eval 里：灰度值、反相、偏移图层、彩色亮度、四个单通道、
+     通道值/名字/反相、彩色转通道=亮度、选区不被截断、四种组合方式。</p>
+</section>""".format(cards=cards, sel_boxes=sel_boxes, chn_boxes=chn_boxes,
+                   download=download, install=install, pdb_table=pdb_table)
     return page("Python 插件 · gegl-color-ops", body,
-                desc="GIMP 3 Python 插件：Sky Replace 一键换天；Layer to Selection / "
-                     "Channel 右键任意图层一键转选区或灰度 Alpha 通道")
+                desc="GIMP 3 Python 插件下载：Layer to Selection / Layer to "
+                     "Channel——右键任意图层一键转选区或灰度 Alpha 通道")
 
 
 def build_feed(ops, version):
@@ -1301,6 +1354,7 @@ def main():
     os.makedirs(os.path.join(DOCS, "download"))
 
     build_zip(stats, os.path.join(DOCS, "download"))
+    stats["plugin_zips"] = build_plugin_zips(os.path.join(DOCS, "download"))
 
     # 样式与静态资源（tools/site/en 是英文正文的源文件目录，不是要拷的资源）
     for f in os.listdir(SRC):
@@ -1321,7 +1375,7 @@ def main():
     pages = {
         "index.html": build_index(ops, stats, version),
         "ops.html": build_ops_index(ops, version),
-        "plugins.html": build_plugins(version),
+        "plugins.html": build_plugins(version, stats),
         "guide.html": build_guide(version, stats),
         "feed.xml": build_feed(ops, version),
     }
@@ -1347,6 +1401,10 @@ def main():
     if stats.get("zip_linux_name"):
         print("           docs/download/%s（%d 个模块）"
               % (stats["zip_linux_name"], stats["linux_files"]))
+    for key in ("selection", "channel"):
+        d = stats.get("plugin_zips", {}).get(key)
+        if d:
+            print("           docs/download/%s（Python 插件）" % d["name"])
 
     if serve:
         import http.server
