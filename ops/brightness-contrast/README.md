@@ -1,6 +1,6 @@
 # lb:brightness-contrast · Brightness/Contrast
 
-按实测逆向出来的 Photoshop「亮度/对比度」，**新版与旧版（对话框里的「使用旧版」）两套行为都在里面**。
+按黑盒标定得到的 Photoshop「亮度/对比度」，**新版与旧版（对话框里的「使用旧版」）两套行为都在里面**。
 同一张标定图分别过 PS 26.10 和本算子，逐像素对比见文末「验收」。
 
 - GEGL id：`lb:brightness-contrast`

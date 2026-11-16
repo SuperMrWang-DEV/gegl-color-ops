@@ -49,7 +49,7 @@
   <p class="lede">按 Photoshop「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱和主动收手、红带（肤色）额外保护、浅色少给一点，色相与明度不动</p>
 </section><div class="article-layout">
   <article class="prose">
-<p>按实测逆向出来的 Photoshop「自然饱和度」，不是凭经验的近似。同一张标定图分别过 PS 26.10 和本算子，像素级逐位对比见文末「验收」。</p>
+<p>按黑盒标定得到的 Photoshop「自然饱和度」，不是凭经验的近似。同一张标定图分别过 PS 26.10 和本算子，像素级逐位对比见文末「验收」。</p>
 <ul><li>GEGL id：<code>lb:vibrance</code></li><li>菜单：<code>Colors → SuperMrWang → Color → Vibrance</code></li><li>类型：<code>GeglOperationPointFilter</code>（逐像素，无邻域）</li><li>参数：<code>vibrance</code>（−100…100）、<code>protect_reds</code>、<code>compensate_lightness</code></li></ul>
 <h2 id="只管-vibrance色温色调不在这里">只管 Vibrance，色温色调不在这里</h2>
 <p>PS 2026（27.0）把自然饱和度图层改名成「色彩与自然饱和度」，多出<strong>色温 / 色调</strong>两个 滑块，动作上就是<strong>先一层白平衡、再走原来的 Vibrance</strong>。</p>
@@ -103,10 +103,10 @@ S' = min(1, S + ΔS)</code></pre>
     <span class="tag t-color">Color</span>
     <span>per-pixel</span>
   </div>
-  <p class="lede">Photoshop's Vibrance, reverse-engineered from measurement — measured tables, red-band protection, lightness compensation, and no white balance mixed in.</p>
+  <p class="lede">Photoshop's Vibrance, matched by black-box measurement — measured tables, red-band protection, lightness compensation, and no white balance mixed in.</p>
 </section><div class="article-layout">
   <article class="prose">
-<p>Photoshop's <strong>Vibrance</strong>, reverse-engineered from measurement rather than approximated. The same calibration chart was pushed through PS 26.10 and through this operator; the pixel-level comparison is in the acceptance section.</p>
+<p>Photoshop's <strong>Vibrance</strong>, matched by black-box measurement rather than approximated. The same calibration chart was pushed through PS 26.10 and through this operator; the pixel-level comparison is in the acceptance section.</p>
 <ul><li>GEGL id: <code>lb:vibrance</code></li><li>Menu: <code>Colors → SuperMrWang → Color → Vibrance</code></li><li>Type: <code>GeglOperationPointFilter</code> (per-pixel, no neighbourhood)</li><li>Parameters: <code>vibrance</code> (−100…100), <code>protect_reds</code>, <code>compensate_lightness</code></li></ul>
 <h2 id="vibrance-only-temperature-and-tint-are-elsewhere">Vibrance only — temperature and tint are elsewhere</h2>
 <p>PS 2026 (27.0) renamed the Vibrance layer to "Color and vibrance" and added <strong>temperature / tint</strong> sliders, which action-wise are <strong>one white-balance layer followed by the old Vibrance</strong>.</p>
@@ -162,7 +162,7 @@ S' = min(1, S + ΔS)</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">adeb354</span>
+    <span class="muted">140e027</span>
   </div>
 </footer>
 <script>

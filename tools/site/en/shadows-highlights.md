@@ -12,7 +12,7 @@ blurb: Photoshop's Shadows/Highlights — an edge-aware neighbourhood algorithm,
 > the radius to 10–15 for a big speedup. Marker: `ops/shadows-highlights/.discouraged`
 > (documentation and site display only; **it does not affect building or publishing**).
 
-Photoshop's `Image → Adjustments → Shadows/Highlights`, reverse-engineered as a black
+Photoshop's `Image → Adjustments → Shadows/Highlights`, matched as a black
 box. What sets it apart from the other operators is that **it looks at the
 neighbourhood**: the same 128 pixel is lifted more when its surroundings are dark and
 less when they are bright, so it cannot collapse into a LUT and needs a spatial filter.

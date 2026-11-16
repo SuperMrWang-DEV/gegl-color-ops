@@ -1,9 +1,9 @@
 ---
 name: Vibrance
-blurb: Photoshop's Vibrance, reverse-engineered from measurement — measured tables, red-band protection, lightness compensation, and no white balance mixed in.
+blurb: Photoshop's Vibrance, matched by black-box measurement — measured tables, red-band protection, lightness compensation, and no white balance mixed in.
 ---
 
-Photoshop's **Vibrance**, reverse-engineered from measurement rather than
+Photoshop's **Vibrance**, matched by black-box measurement rather than
 approximated. The same calibration chart was pushed through PS 26.10 and through this
 operator; the pixel-level comparison is in the acceptance section.
 

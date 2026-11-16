@@ -51,7 +51,7 @@
 </section><div class="article-layout">
   <article class="prose">
 <blockquote><p><strong>不推荐日常使用（2026-11-15，性能原因）</strong>　算子仍然可用、数值也仍然准确， 但它是空间域算法：半径 30 时每像素约 1.4 µs，2048×1536 默认参数净耗时 0.7 s （含解码 2.1 s），在 GIMP 里拖一次滑杆就重算整图。整体明暗请用 <code>lb:levels</code> / <code>lb:lab-levels</code> / <code>lb:exposure</code>；确实需要「周围亮就少提」的局部行为再用它， 半径压到 10–15 会快很多。标记文件：<code>ops/shadows-highlights/.discouraged</code> （只影响文档与站点展示，<strong>不影响编译和发布</strong>）。</p></blockquote>
-<p>按黑盒实测逆向出来的 Photoshop「图像 → 调整 → 阴影/高光」。和另外十几个算子的最大 区别是<strong>它看邻域</strong>：同样一个 128 的像素，周围暗就多提、周围亮就少提，所以不可能简化 成一条 LUT，必须做空间域滤波。</p>
+<p>按黑盒标定得到的 Photoshop「图像 → 调整 → 阴影/高光」。和另外十几个算子的最大 区别是<strong>它看邻域</strong>：同样一个 128 的像素，周围暗就多提、周围亮就少提，所以不可能简化 成一条 LUT，必须做空间域滤波。</p>
 <ul><li>GEGL id：<code>lb:shadows-highlights</code></li><li>菜单：<code>Colors → SuperMrWang → Tone → Shadows/Highlights</code></li><li>类型：<code>GeglOperationFilter</code>（空间域，按 192 行一条带处理）</li><li>参数（默认值照抄 PS）：阴影 <code>amount 35 / width 50 / radius 30</code>、高光 <code>0 / 50 / 30</code>、 <code>color-correction 20</code>、<code>midtone-contrast 0</code>、<code>black-clip 0.01</code>、<code>white-clip 0.01</code></li></ul>
 <h2 id="先记一个坑ps-的脚本入口不叫-shadowhighlight">先记一个坑：PS 的脚本入口不叫 Shadow/Highlight</h2>
 <p>想把 PS 当 oracle，第一步是能用脚本调起它。<code>Shdw</code>、<code>ShHl</code>、<code>shadowsHighlights</code>、 <code>shadowHighlight</code>、<code>adaptCorrectTones</code> … 13 个 charID 加 8 个 stringID 轮流试， 全部报「命令&lt;未知的&gt;当前不可用」，<code>Photoshop.exe</code> 和 <code>Required/*.dll</code> 里也搜不到 <code>shadowsHighlights</code> 字样。</p>
@@ -124,7 +124,7 @@ executeAction(s2t("adaptCorrect"), d, DialogModes.NO);</code></pre>
 </section><div class="article-layout">
   <article class="prose">
 <blockquote><p><strong>Not recommended for daily use (2026-11-15, performance).</strong> The operator still works and is still numerically accurate, but it is a spatial algorithm: about 1.4 µs per pixel at radius 30, so a 2048×1536 image takes 0.7 s of compute (2.1 s including decode), and every slider drag in GIMP recomputes the whole image. For overall brightness use <code>lb:levels</code> / <code>lb:lab-levels</code> / <code>lb:exposure</code>; come back here only when you need the local "lift less where the surroundings are bright" behaviour, and drop the radius to 10–15 for a big speedup. Marker: <code>ops/shadows-highlights/.discouraged</code> (documentation and site display only; <strong>it does not affect building or publishing</strong>).</p></blockquote>
-<p>Photoshop's <code>Image → Adjustments → Shadows/Highlights</code>, reverse-engineered as a black box. What sets it apart from the other operators is that <strong>it looks at the neighbourhood</strong>: the same 128 pixel is lifted more when its surroundings are dark and less when they are bright, so it cannot collapse into a LUT and needs a spatial filter.</p>
+<p>Photoshop's <code>Image → Adjustments → Shadows/Highlights</code>, matched as a black box. What sets it apart from the other operators is that <strong>it looks at the neighbourhood</strong>: the same 128 pixel is lifted more when its surroundings are dark and less when they are bright, so it cannot collapse into a LUT and needs a spatial filter.</p>
 <ul><li>GEGL id: <code>lb:shadows-highlights</code></li><li>Menu: <code>Colors → SuperMrWang → Tone → Shadows/Highlights</code></li><li>Type: <code>GeglOperationFilter</code> (spatial, processed in strips of 192 rows)</li><li>Parameters (defaults copied from PS): shadows <code>amount 35 / width 50 / radius 30</code>, highlights <code>0 / 50 / 30</code>, <code>color-correction 20</code>, <code>midtone-contrast 0</code>, <code>black-clip 0.01</code>, <code>white-clip 0.01</code></li></ul>
 <h2 id="one-trap-first-pss-scripting-entry-is-not-called-shadowhighlight">One trap first: PS's scripting entry is not called Shadow/Highlight</h2>
 <p>To use PS as an oracle you first have to be able to invoke it from a script. <code>Shdw</code>, <code>ShHl</code>, <code>shadowsHighlights</code>, <code>shadowHighlight</code>, <code>adaptCorrectTones</code> … 13 charIDs and 8 stringIDs, all reporting "command &lt;unknown&gt; is not currently available", and the string <code>shadowsHighlights</code> does not appear anywhere in <code>Photoshop.exe</code> or <code>Required/*.dll</code>.</p>
@@ -192,7 +192,7 @@ executeAction(s2t("adaptCorrect"), d, DialogModes.NO);</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">adeb354</span>
+    <span class="muted">140e027</span>
   </div>
 </footer>
 <script>

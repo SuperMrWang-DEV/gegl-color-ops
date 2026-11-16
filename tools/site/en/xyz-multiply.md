@@ -14,7 +14,7 @@ operator reproduces the whole chain from measurement. The parameters map one for
 | Preserve Luminosity | `preserve_luminosity` | **on by default**, matching PS's factory setting |
 | — (PS has none) | `white_mode` | reference white point, **D50 by default** (PS's Lab white) |
 
-## Algorithm (reverse-engineered, not guessed)
+## Algorithm (matched by measurement, not guessed)
 
 1. Linearise sRGB and convert to D50 XYZ with the **standard Bradford** cone-response
    matrix (not the adaptation matrix itself);

@@ -49,7 +49,7 @@
   <p class="lede">PS 2026「色彩与自然饱和度」里的色温 / 色调：中性灰跟着偏蓝-黄、绿-洋红，黑白两端不动</p>
 </section><div class="article-layout">
   <article class="prose">
-<p>按实测逆向出来的 Photoshop 2026「色彩与自然饱和度」调整图层里的<strong>色温</strong>和<strong>色调</strong> 两个滑块。PS 27.0 把这两个滑块塞进了原来的 vibrance 图层（官方名 Color and vibrance），Action Manager 里还是老的 <code>vibrance</code> 类，只是多带 <code>temperature</code> / <code>tint</code> 两个整数键，所以这里把白平衡部分单独拆成一个算子，便于叠加到任何管线里。</p>
+<p>按黑盒标定得到的 Photoshop 2026「色彩与自然饱和度」调整图层里的<strong>色温</strong>和<strong>色调</strong> 两个滑块。PS 27.0 把这两个滑块塞进了原来的 vibrance 图层（官方名 Color and vibrance），Action Manager 里还是老的 <code>vibrance</code> 类，只是多带 <code>temperature</code> / <code>tint</code> 两个整数键，所以这里把白平衡部分单独拆成一个算子，便于叠加到任何管线里。</p>
 <ul><li>GEGL id：<code>lb:color-temperature-tint</code></li><li>菜单：<code>Colors → SuperMrWang → Color → Color Temperature &amp; Tint PS</code></li><li>类型：<code>GeglOperationPointFilter</code>（逐像素，无邻域）</li><li>参数：<code>temperature</code>（−100…100，负冷正暖）、<code>tint</code>（−100…100，负绿正洋红）</li></ul>
 <h2 id="算法">算法</h2>
 <pre><code>编码值 → 解码到线性 → 3 次多项式(20 项) → clamp 到 [0,1] → 编码</code></pre>
@@ -101,10 +101,10 @@
     <span class="tag t-color">Color</span>
     <span>per-pixel</span>
   </div>
-  <p class="lede">The temperature and tint sliders from Photoshop 2026's Color and Vibrance layer, reverse-engineered from measurement into a 33³ LUT.</p>
+  <p class="lede">The temperature and tint sliders from Photoshop 2026's Color and Vibrance layer, matched by black-box measurement into a 33³ LUT.</p>
 </section><div class="article-layout">
   <article class="prose">
-<p>The <strong>temperature</strong> and <strong>tint</strong> sliders of Photoshop 2026's <em>Color and vibrance</em> adjustment layer, reverse-engineered from measurement. PS 27.0 folded both sliders into the old vibrance layer (officially "Color and vibrance"); the Action Manager still uses the old <code>vibrance</code> class with two extra integer keys, <code>temperature</code> and <code>tint</code>. The white-balance part is split out into its own operator so it can be stacked into any pipeline.</p>
+<p>The <strong>temperature</strong> and <strong>tint</strong> sliders of Photoshop 2026's <em>Color and vibrance</em> adjustment layer, matched by black-box measurement. PS 27.0 folded both sliders into the old vibrance layer (officially "Color and vibrance"); the Action Manager still uses the old <code>vibrance</code> class with two extra integer keys, <code>temperature</code> and <code>tint</code>. The white-balance part is split out into its own operator so it can be stacked into any pipeline.</p>
 <ul><li>GEGL id: <code>lb:color-temperature-tint</code></li><li>Menu: <code>Colors → SuperMrWang → Color → Color Temperature &amp; Tint PS</code></li><li>Type: <code>GeglOperationPointFilter</code> (per-pixel, no neighbourhood)</li><li>Parameters: <code>temperature</code> (−100…100, negative = cooler), <code>tint</code> (−100…100, negative = green, positive = magenta)</li></ul>
 <h2 id="algorithm">Algorithm</h2>
 <pre><code>encoded -&gt; decode to linear -&gt; cubic polynomial (20 terms) -&gt; clamp to [0,1] -&gt; encode</code></pre>
@@ -158,7 +158,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">adeb354</span>
+    <span class="muted">140e027</span>
   </div>
 </footer>
 <script>

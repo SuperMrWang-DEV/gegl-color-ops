@@ -1,9 +1,9 @@
 ---
 name: Brightness/Contrast
-blurb: Photoshop's Brightness/Contrast, reverse-engineered from measurement — both the current and the legacy ("Use Legacy") behaviour live in one operator.
+blurb: Photoshop's Brightness/Contrast, matched by black-box measurement — both the current and the legacy ("Use Legacy") behaviour live in one operator.
 ---
 
-Photoshop's **Brightness/Contrast**, reverse-engineered from measurement. **Both the
+Photoshop's **Brightness/Contrast**, matched by black-box measurement. **Both the
 current and the legacy behaviour** (the "Use Legacy" checkbox in the dialog) are in
 here. The same calibration chart was pushed through PS 26.10 and through this
 operator and compared pixel by pixel; see the acceptance numbers at the end.

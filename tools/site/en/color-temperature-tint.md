@@ -1,10 +1,10 @@
 ---
 name: Color Temperature & Tint PS
-blurb: The temperature and tint sliders from Photoshop 2026's Color and Vibrance layer, reverse-engineered from measurement into a 33³ LUT.
+blurb: The temperature and tint sliders from Photoshop 2026's Color and Vibrance layer, matched by black-box measurement into a 33³ LUT.
 ---
 
 The **temperature** and **tint** sliders of Photoshop 2026's *Color and vibrance*
-adjustment layer, reverse-engineered from measurement. PS 27.0 folded both sliders
+adjustment layer, matched by black-box measurement. PS 27.0 folded both sliders
 into the old vibrance layer (officially "Color and vibrance"); the Action Manager
 still uses the old `vibrance` class with two extra integer keys, `temperature` and
 `tint`. The white-balance part is split out into its own operator so it can be

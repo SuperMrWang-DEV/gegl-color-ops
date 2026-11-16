@@ -49,7 +49,7 @@
   <p class="lede">复刻 Photoshop「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面</p>
 </section><div class="article-layout">
   <article class="prose">
-<p>按实测逆向出来的 Photoshop「亮度/对比度」，<strong>新版与旧版（对话框里的「使用旧版」）两套行为都在里面</strong>。 同一张标定图分别过 PS 26.10 和本算子，逐像素对比见文末「验收」。</p>
+<p>按黑盒标定得到的 Photoshop「亮度/对比度」，<strong>新版与旧版（对话框里的「使用旧版」）两套行为都在里面</strong>。 同一张标定图分别过 PS 26.10 和本算子，逐像素对比见文末「验收」。</p>
 <ul><li>GEGL id：<code>lb:brightness-contrast</code></li><li>菜单：<code>Colors → SuperMrWang → Tone → Brightness/Contrast</code></li><li>类型：<code>GeglOperationPointFilter</code>（逐像素，无邻域）</li><li>参数：<code>brightness</code>（−150…150）、<code>contrast</code>（−50…100）、<code>legacy</code>（默认关＝新版）</li></ul>
 <h2 id="先看一条结论它就是一条逐通道相同的-lut">先看一条结论：它就是一条逐通道相同的 LUT</h2>
 <p>标定图里放了灰阶 ramp、反向 ramp、R/G/B 单通道 ramp 和全色相环，实测：</p>
@@ -106,10 +106,10 @@ K 的两种写法 = 1/(1-c/100) 与 1+c/100，实测吻合到 1e-4</code></pre>
     <span class="tag t-tone">Tone</span>
     <span>per-pixel</span>
   </div>
-  <p class="lede">Photoshop's Brightness/Contrast, reverse-engineered from measurement — both the current and the legacy ("Use Legacy") behaviour live in one operator.</p>
+  <p class="lede">Photoshop's Brightness/Contrast, matched by black-box measurement — both the current and the legacy ("Use Legacy") behaviour live in one operator.</p>
 </section><div class="article-layout">
   <article class="prose">
-<p>Photoshop's <strong>Brightness/Contrast</strong>, reverse-engineered from measurement. <strong>Both the current and the legacy behaviour</strong> (the "Use Legacy" checkbox in the dialog) are in here. The same calibration chart was pushed through PS 26.10 and through this operator and compared pixel by pixel; see the acceptance numbers at the end.</p>
+<p>Photoshop's <strong>Brightness/Contrast</strong>, matched by black-box measurement. <strong>Both the current and the legacy behaviour</strong> (the "Use Legacy" checkbox in the dialog) are in here. The same calibration chart was pushed through PS 26.10 and through this operator and compared pixel by pixel; see the acceptance numbers at the end.</p>
 <ul><li>GEGL id: <code>lb:brightness-contrast</code></li><li>Menu: <code>Colors → SuperMrWang → Tone → Brightness/Contrast</code></li><li>Type: <code>GeglOperationPointFilter</code> (per-pixel, no neighbourhood)</li><li>Parameters: <code>brightness</code> (−150…150), <code>contrast</code> (−50…100), <code>legacy</code> (off = current)</li></ul>
 <h2 id="first-one-conclusion-it-is-a-lut-identical-for-every-channel">First, one conclusion: it is a LUT, identical for every channel</h2>
 <p>The chart holds grey ramps, inverted ramps, single-channel R/G/B ramps and a full hue wheel. Measurements:</p>
@@ -168,7 +168,7 @@ K, two ways = 1/(1-c/100) and 1+c/100, agree to 1e-4</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">adeb354</span>
+    <span class="muted">140e027</span>
   </div>
 </footer>
 <script>

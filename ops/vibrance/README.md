@@ -1,6 +1,6 @@
 # lb:vibrance · Vibrance
 
-按实测逆向出来的 Photoshop「自然饱和度」，不是凭经验的近似。同一张标定图分别过
+按黑盒标定得到的 Photoshop「自然饱和度」，不是凭经验的近似。同一张标定图分别过
 PS 26.10 和本算子，像素级逐位对比见文末「验收」。
 
 - GEGL id：`lb:vibrance`

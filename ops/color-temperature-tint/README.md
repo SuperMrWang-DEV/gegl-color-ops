@@ -1,6 +1,6 @@
 # lb:color-temperature-tint · Temperature & Tint (Photoshop)
 
-按实测逆向出来的 Photoshop 2026「色彩与自然饱和度」调整图层里的**色温**和**色调**
+按黑盒标定得到的 Photoshop 2026「色彩与自然饱和度」调整图层里的**色温**和**色调**
 两个滑块。PS 27.0 把这两个滑块塞进了原来的 vibrance 图层（官方名 Color and
 vibrance），Action Manager 里还是老的 `vibrance` 类，只是多带 `temperature` /
 `tint` 两个整数键，所以这里把白平衡部分单独拆成一个算子，便于叠加到任何管线里。

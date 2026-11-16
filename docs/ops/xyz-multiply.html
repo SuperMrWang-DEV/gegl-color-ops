@@ -106,7 +106,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
   <article class="prose">
 <p>This operator <strong>is</strong> Photoshop's Photo Filter. Internally PS's <code>Filter → Adjustments → Photo Filter</code> is equivalent to "solid colour fill + multiply + density", and this operator reproduces the whole chain from measurement. The parameters map one for one:</p>
 <div class="table-wrap"><table><thead><tr><th>PS Photo Filter</th><th><code>lb:xyz-multiply</code></th><th>Notes</th></tr></thead><tbody><tr><td>Filter colour</td><td><code>overlay_color</code></td><td>PS's twenty-odd presets are shortcuts; it is still a colour underneath</td></tr><tr><td>Density 0–100%</td><td><code>opacity</code> 0–1</td><td>divided by 100</td></tr><tr><td>Preserve Luminosity</td><td><code>preserve_luminosity</code></td><td><strong>on by default</strong>, matching PS's factory setting</td></tr><tr><td>— (PS has none)</td><td><code>white_mode</code></td><td>reference white point, <strong>D50 by default</strong> (PS's Lab white)</td></tr></tbody></table></div>
-<h2 id="algorithm-reverse-engineered-not-guessed">Algorithm (reverse-engineered, not guessed)</h2>
+<h2 id="algorithm-matched-by-measurement-not-guessed">Algorithm (matched by measurement, not guessed)</h2>
 <ol><li>Linearise sRGB and convert to D50 XYZ with the <strong>standard Bradford</strong> cone-response matrix (not the adaptation matrix itself);</li><li>multiply each channel by <code>k = (1-d) + d · (filter colour XYZ / D50 white)</code>, where <code>d</code> is the density;</li><li>convert back to encoded values; if preserve-luminosity is on, apply the <strong>W3C / PDF SetLum + ClipColor</strong> (on encoded values, Rec.601 weights 0.3/0.59/0.11).</li></ol>
 <p>Steps 1–2 in linear sRGB are equivalent to one constant 3×3 matrix <code>M = XYZ2sRGB · A⁻¹ · diag(k) · A · sRGB2XYZ</code>, computed once per <code>process</code>.</p>
 <p>The evidence (all reproducible from <code>photo-filter-cal/</code>):</p>
@@ -145,7 +145,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
   </article>
   <aside class="toc">
   <p class="toc-title">On this page</p>
-  <ul><li class="l2"><a href="#algorithm-reverse-engineered-not-guessed">Algorithm (reverse-engineered, not guessed)</a></li>
+  <ul><li class="l2"><a href="#algorithm-matched-by-measurement-not-guessed">Algorithm (matched by measurement, not guessed)</a></li>
 <li class="l2"><a href="#measured-accuracy-ps-2025">Measured accuracy (PS 2025)</a></li>
 <li class="l2"><a href="#reproducing-the-chain">Reproducing the chain</a></li></ul>
 </aside>
@@ -160,7 +160,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">adeb354</span>
+    <span class="muted">140e027</span>
   </div>
 </footer>
 <script>
