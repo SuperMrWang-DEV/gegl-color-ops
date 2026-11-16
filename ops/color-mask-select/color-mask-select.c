@@ -34,12 +34,24 @@
  *               sits at 0.555 of the band, not 0.5.
  *
  *            2) 色系预设 / 自定颜色 —— 统一模型：先把像素换算成「与目标的不
- *               匹配度」d ∈ [0,1]（0 = 精确匹配），色系按色环距离、自定色按
- *               归一化 RGB 距离；fuzziness 定容差窗 w = fz（fz=1 时窗宽到
- *               互补色 / 纯黑↔纯白），alpha = 1 - smoothstep(d, w*(1-feather), w)；
- *               色系预设再乘饱和度门限（灰阶无色相，不该被选中）。
+ *               匹配度」d ∈ [0,1]（0 = 精确匹配），色系按色环距离；自定色按
+ *               CIELAB ΔE 感知距离归一化（d = ΔE/100 钳到 1，黑白≈100 为
+ *               满刻度），并加 ΔE94 的明度权重 kL=2（明度差折半）——选色蒙版
+ *               要的是「同一族颜色」，暗红和亮红不该被明度差拆开；babl 整行
+ *               转换，目标色与像素走同一套源空间→Lab 通路；
+ *               fuzziness 定容差窗 w = fz（fz=1 时窗宽到最大不匹配度），
+ *               alpha = 1 - smoothstep(d, w*(1-feather), w)；
+ *               色系预设再乘彩度门限：门控用彩度 s×v 而不是单看饱和度——
+ *               近黑像素 v≈0 时 s 可以是 1，但色相纯属数值噪声，不该被选中。
  *               Colour presets and the picked colour keep the unified
- *               mismatch-window model, gated by saturation for hue presets.
+ *               mismatch-window model. The picked colour is matched by
+ *               perceptual CIELAB ΔE (d = ΔE/100, clamped) with ΔE94's
+ *               lightness weight kL = 2 (ΔL halved) - a mask picks colour
+ *               families, so dark red must not be split from bright red by
+ *               lightness alone. babl converts a row at a time through the
+ *               same source-space path as the pixels. Presets are gated by
+ *               chroma (s×v), not saturation alone - near-black pixels can
+ *               report s = 1 while their hue is pure numeric noise.
  *
  *            公共：可反相，可红色叠加预览 / invertible, optional red overlay.
  * type       GeglOperationPointFilter（逐像素 / per-pixel）
@@ -116,8 +128,9 @@ property_double (feather, _("Feather"), 10.0)
 property_double (saturation_min, _("Min Saturation"), 0.0)
     value_range (0.0, 100.0)
     ui_range (0.0, 100.0)
-    description (_("Pixels below this saturation never match a colour preset "
-                   "(grays have no hue). 0 uses a small fixed floor"))
+    description (_("Pixels whose chroma (saturation times value) is below "
+                   "this never match a colour preset (grays and near-blacks "
+                   "have no usable hue). 0 uses a small fixed floor"))
 
 property_boolean (invert, _("Invert"), FALSE)
     description (_("Invert the mask like Photoshop's Invert checkbox"))
@@ -160,15 +173,6 @@ static inline gfloat
 luminance(gfloat r, gfloat g, gfloat b)
 {
   return 0.299f * r + 0.587f * g + 0.114f * b;
-}
-
-static inline gfloat
-color_dist(gfloat r1, gfloat g1, gfloat b1, gfloat r2, gfloat g2, gfloat b2)
-{
-  gfloat dr = r1 - r2;
-  gfloat dg = g1 - g2;
-  gfloat db = b1 - b2;
-  return sqrtf(dr*dr + dg*dg + db*db);
 }
 
 static inline gfloat
@@ -339,9 +343,33 @@ process(GeglOperation       *op,
     "invert", &do_invert,
     NULL);
 
-  gdouble cr, cg, cb;
-  gegl_color_get_rgba(custom_color, &cr, &cg, &cb, NULL);
-  g_object_unref(custom_color);
+  /* 自定颜色：目标值直接按源空间伽马格式取。不能用 gegl_color_get_rgba ——
+   * 它返回线性光，而下面的像素是伽马域值，旧代码拿线性值对伽马值算距离，
+   * 口径不一致，暗色目标会整体偏。
+   * Custom colour: fetch the target straight in the source-space gamma
+   * format. gegl_color_get_rgba returns linear light, which does not match
+   * the gamma-domain pixels below - comparing across that mismatch shifted
+   * every dark target. The mismatch is also computed in CIELAB: babl
+   * converts a whole row at once, so per-pixel cost stays at one sqrt.
+   * ΔE76 is normalised as d = ΔE/100 (black↔white ≈ 100) and clamped, so
+   * the fuzziness window keeps the same semantics as the hue presets. */
+  gfloat       tgt_lab[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+  gfloat       tgt_rgb[4];
+  const Babl  *lab_fmt    = NULL;
+  const Babl  *fish_lab   = NULL;
+  gfloat      *lab_line   = NULL;
+
+  if (mode == MASK_CUSTOM)
+  {
+    lab_fmt  = babl_format ("CIE Lab alpha float");
+    fish_lab = babl_fish (perceptual_format (op), lab_fmt);
+    /* 目标色按源空间伽马格式取成像素，再进 Lab，保证和像素同一条通路。
+     * Fetch the target as a source-space gamma pixel first, then to Lab,
+     * so it travels the exact same conversion path as the image rows. */
+    gegl_color_get_pixel (custom_color, perceptual_format (op), tgt_rgb);
+    babl_process (fish_lab, tgt_rgb, tgt_lab, 1);
+  }
+  g_object_unref (custom_color);
 
   gfloat fz = fuzz * 0.01f;
   gfloat ft = feather * 0.01f;
@@ -355,11 +383,16 @@ process(GeglOperation       *op,
    * band inside the window. Same meaning in every mode. */
   const gfloat w = CLAMP(fz * 0.5f, 0.0f, 1.0f);
   const gfloat w_lo = w * (1.0f - CLAMP(ft, 0.0f, 1.0f));
-  /* 色系预设的饱和度门限：灰阶没有色相，不该被色相匹配选中。
-   * 默认 0 时用一个固定小底限，避免 0/0。
-   * Saturation gate for hue presets: grays have no hue. */
+  /* 色系预设的彩度门限（门控量是彩度 s×v）：灰阶与近黑像素没有可用色相，
+   * 不该被色相匹配选中。默认 0 时用固定底限 0.25：实测 (16,0,0) 这种近黑
+   * 彩度约 0.06，底限 0.05 挡不住它；0.25 ≈ RGB 通道差 13%，
+   * 再暗/再灰的色相就是噪声。
+   * Chroma gate for hue presets (gate input is chroma s×v): grays and
+   * near-blacks have no usable hue. With the default 0 the floor is 0.25:
+   * a measured (16,0,0) near-black has chroma ~0.06, which a 0.05 floor
+   * still lets through; 0.25 is ~13% RGB channel spread. */
   const gfloat sg_lo = st * 0.5f;
-  const gfloat sg_hi = MAX(st, 0.05f);
+  const gfloat sg_hi = MAX(st, 0.25f);
 
   /* 色调模式：阈值 + 容差 → 亮度响应查表。PS 的容差上限是 100，本算子沿用
    * 统一的 0–200，所以这里除以 200 得到 0–1 的 fzv。
@@ -397,11 +430,17 @@ process(GeglOperation       *op,
   gfloat *in_line  = g_new(gfloat, stride);
   gfloat *out_line = g_new(gfloat, stride);
 
+  if (lab_fmt)
+    lab_line = g_new(gfloat, stride);
+
   for (gint y = 0; y < roi->height; y++)
   {
     GeglRectangle row = { roi->x, roi->y + y, roi->width, 1 };
     gegl_buffer_get(in_buf, &row, 1.0f, perceptual_format(op),
                      in_line, GEGL_AUTO_ROWSTRIDE, GEGL_ABYSS_NONE);
+
+    if (lab_line)
+      babl_process (fish_lab, in_line, lab_line, roi->width);
 
     for (gint x = 0; x < roi->width; x++)
     {
@@ -411,7 +450,8 @@ process(GeglOperation       *op,
       gfloat b = in_line[p+2];
       gfloat h, s, v;
 
-      rgb_to_hsv(r, g, b, &h, &s, &v);
+      if (!tone_mode)
+        rgb_to_hsv(r, g, b, &h, &s, &v);
 
       gfloat alpha;
 
@@ -459,18 +499,36 @@ process(GeglOperation       *op,
             hue_mode = TRUE;
             break;
           case MASK_CUSTOM:
-            d = color_dist(r, g, b, cr, cg, cb) / 1.7320508f;
+          {
+            /* ΔE76 加 ΔE94 的明度权重 kL=2：明度差折半。选色蒙版要的是
+             * 「同一族颜色」，暗红和亮红是一族的，明度差不该否决它；
+             * 纯 ΔE76 会把 ΔL≈28 的暗红判到窗外（实测）。归一化仍是
+             * d = ΔE/100 鉗到 1，fz=200 时窗仍能覆盖最大不匹配度。
+             * ΔE76 with ΔE94's lightness weight kL=2 (ΔL halved): a mask
+             * picks colour families, and dark red is the same family as
+             * bright red - plain ΔE76 pushes ΔL≈28 out of the window.
+             * Still normalised as d = ΔE/100, clamped to 1, so fz = 200
+             * keeps covering everything. */
+            gfloat dl = (lab_line[p+0] - tgt_lab[0]) * 0.5f;
+            gfloat da = lab_line[p+1] - tgt_lab[1];
+            gfloat db = lab_line[p+2] - tgt_lab[2];
+            d = MIN (sqrtf (dl*dl + da*da + db*db) * 0.01f, 1.0f);
             break;
+          }
           default:
             d = 1.0f;
         }
 
         if (w >= 1.0f)
-          alpha = 1.0f;   /* fz=200：连精确互补色也选上 / fz=200 picks everything */
+          alpha = 1.0f;   /* fz=200：连极端差异也选上 / fz=200 picks everything */
         else
           alpha = 1.0f - smooth_step(d, w_lo, w);
         if (hue_mode)
-          alpha *= smooth_step(s, sg_lo, sg_hi);
+          /* 彩度门：s×v 而不是单看 s。近黑像素 v≈0 时 s 可以是 1，
+           * 但那个色相是数值噪声；彩度同时反映饱和度和明度。
+           * Chroma gate (s×v), not s alone: a near-black pixel can report
+           * s = 1 while its hue is numeric noise. Chroma folds value in. */
+          alpha *= smooth_step(s * v, sg_lo, sg_hi);
       }
       alpha = CLAMP(alpha, 0.0f, 1.0f);
       if (do_invert)
@@ -495,6 +553,7 @@ process(GeglOperation       *op,
 
   g_free(in_line);
   g_free(out_line);
+  g_free(lab_line);
   return TRUE;
 }
 

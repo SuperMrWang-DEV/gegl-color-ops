@@ -20,15 +20,15 @@ complementary hues, pure black ↔ pure white):
 
 | Mode | Definition of d |
 |---|---|
-| red/yellow/green/cyan/blue/magenta | hue-wheel distance (complement = 1), multiplied by the saturation gate — greys have no hue and do not take part |
+| red/yellow/green/cyan/blue/magenta | hue-wheel distance (complement = 1), multiplied by the chroma gate (s×v — a near-black pixel's hue is numeric noise) |
 | highlights | d = 1 − luminance |
 | shadows | d = luminance |
 | midtones | d = 2·\|luminance − 0.5\| |
-| custom colour | perceptual RGB distance ÷ √3 |
+| custom colour | CIELAB ΔE ÷ 100, with ΔE94's lightness weight kL=2 (lightness difference halved) |
 
 - feather (0–100): width of the transition inside the tolerance window's inner
   edge; feather=10 fades over the inner 10% of the window
-- Min Saturation: floor on saturation for the colour presets, 0 = a small fixed floor
+- Min Saturation: floor on chroma (s×v) for the colour presets, 0 = a fixed floor of 0.25
 - Invert (new): inverts the mask, like Photoshop's "Invert" checkbox
 - Red Overlay Preview now defaults to off: applying it with preview on bakes the red
   tint into the layer, so turn it off when you are done looking

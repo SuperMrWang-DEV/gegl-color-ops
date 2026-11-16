@@ -52,8 +52,8 @@
 <h2 id="行为变更记录2026-11-12-重写">行为变更记录（2026-11-12 重写）</h2>
 <p>旧实现有一个致命 bug：默认 <code>Min Saturation = 0</code> 时饱和度门限退化成 <code>smooth_step(s, 0, 0)</code>，对灰阶像素（s = 0）做 0/0 得 NaN，alpha 落盘即 0—— 所有灰阶在任何模式下都被判成透明，白/黑/中间调三个模式整体报废；<code>fuzziness = 0</code> 时同样 NaN。判定公式（通道差值 + 负起点过渡带）也让「容差」的含义随模式漂移。</p>
 <p>重写后的统一模型：每个模式把像素映射成「不匹配度」 d ∈ [0,1]（0 = 精确匹配）， <code>alpha = 1 - smoothstep(d, w*(1-feather), w)</code>，其中 <strong>w = fuzziness/200</strong> （fz=200 时窗宽到最大不匹配度：互补色相、纯黑↔纯白）：</p>
-<div class="table-wrap"><table><thead><tr><th>模式</th><th>d 的定义</th></tr></thead><tbody><tr><td>红/黄/绿/青/蓝/洋红</td><td>色环距离（互补色 = 1），乘饱和度门限——灰阶无色相不参与</td></tr><tr><td>高光</td><td>d = 1 − 亮度</td></tr><tr><td>阴影</td><td>d = 亮度</td></tr><tr><td>中间调</td><td>d = 2·|亮度 − 0.5|</td></tr><tr><td>自定颜色</td><td>感知 RGB 距离 ÷ √3</td></tr></tbody></table></div>
-<ul><li>feather（0–100）：容差窗内缘的过渡带宽度，feather=10 → 窗口内侧 10% 平滑衰减</li><li>Min Saturation：色系预设的饱和度下限，0 = 固定小底限</li><li>Invert（新增）：反相蒙版，同 PS 的「反相」勾选框</li><li>Red Overlay Preview 默认改为关：开着点确定会把红色混合烤进图层，预览完记得关</li></ul>
+<div class="table-wrap"><table><thead><tr><th>模式</th><th>d 的定义</th></tr></thead><tbody><tr><td>红/黄/绿/青/蓝/洋红</td><td>色环距离（互补色 = 1），乘彩度门限（s×v，近黑的色相是数值噪声）</td></tr><tr><td>高光</td><td>d = 1 − 亮度</td></tr><tr><td>阴影</td><td>d = 亮度</td></tr><tr><td>中间调</td><td>d = 2·|亮度 − 0.5|</td></tr><tr><td>自定颜色</td><td>CIELAB ΔE ÷ 100，加 ΔE94 明度权重 kL=2（明度差折半）</td></tr></tbody></table></div>
+<ul><li>feather（0–100）：容差窗内缘的过渡带宽度，feather=10 → 窗口内侧 10% 平滑衰减</li><li>Min Saturation：色系预设的彩度（s×v）下限，0 = 固定底限 0.25</li><li>Invert（新增）：反相蒙版，同 PS 的「反相」勾选框</li><li>Red Overlay Preview 默认改为关：开着点确定会把红色混合烤进图层，预览完记得关</li></ul>
 <p>16 色块回归：红/黄/白/黑/中间调/自定/反相/fz0/fz200 九个用例全部符合上表语义。</p>
 <hr>
 <h2 id="高光-阴影-中间调改成-ps-实测模型2026-11-12-二次修订">高光 / 阴影 / 中间调改成 PS 实测模型（2026-11-12 二次修订）</h2>
@@ -84,7 +84,19 @@ invert / colors(highlights|midtones|shadows|outOfGamut|skinTone)</code></pre>
 <h3 id="新增参数">新增参数</h3>
 <div class="table-wrap"><table><thead><tr><th>参数</th><th>默认</th><th>作用</th></tr></thead><tbody><tr><td><code>shadows-limit</code></td><td>64</td><td>阴影上限（低于它全选）</td></tr><tr><td><code>highlights-limit</code></td><td>192</td><td>高光下限（高于它全选）</td></tr><tr><td><code>midtone-low</code> / <code>midtone-high</code></td><td>64 / 192</td><td>中间调上下限</td></tr></tbody></table></div>
 <p>默认值也是实测出来的：PS 不传任何限制时，阴影 50% 交界在 85.8、高光在 167.7， 反解出来正是 limit=64/192 + 容差 20。</p>
-<p><strong>羽化在这三个模式里不参与</strong>——PS 的柔边完全由容差决定，硬塞一个羽化会破坏对拍。 色系预设与自定颜色仍是原来的容差窗模型（那部分没动）。</p><div class="op-dl">
+<p><strong>羽化在这三个模式里不参与</strong>——PS 的柔边完全由容差决定，硬塞一个羽化会破坏对拍。 色系预设与自定颜色仍是原来的容差窗模型（那部分没动）。</p>
+<hr>
+<h2 id="自定颜色改用-cielab-δe色系预设改彩度门2026-11-16">自定颜色改用 CIELAB ΔE，色系预设改彩度门（2026-11-16）</h2>
+<p>这次只动「匹配质量」，容差窗公式 <code>alpha = 1 − smoothstep(d, w·(1−feather), w)</code> 和色调模式一概没改（768 点对 PS 回归仍是平均 2.12 码）。</p>
+<h3 id="自定颜色rgb-距离-cielab-δeδe94-明度权重-kl2">自定颜色：RGB 距离 → CIELAB ΔE（ΔE94 明度权重 kL=2）</h3>
+<p>旧实现有三个问题：</p>
+<ol><li><strong>口径不一致</strong>：目标色用 <code>gegl_color_get_rgba</code> 取，它返回<strong>线性光</strong>， 而逐像素处理的是伽马域值——拿线性值对伽马值算距离，暗色目标整体偏。 现在用 <code>gegl_color_get_pixel</code> 直接按源空间伽马格式取目标色。</li><li><strong>RGB 距离不感知</strong>：灰 (128,128,128) 和目标红的 RGB 距离只有 0.86（÷√3 后 0.50），容差 100 时几乎全选；粉色也被判得很近。感知上它们是「无关色」。</li><li><strong>纯 ΔE76 对明度太敏感</strong>：暗红 (128,0,0) 与红的 ΔL 一项就贡献 27.7， ΔE≈51 刚好被 ΔE50 容差窗挡在门外——选色蒙版要的是「同一族颜色」， 暗红不该被明度差拆开。</li></ol>
+<p>现在的模型：babl 整行转 CIELAB（与像素同一套源空间→Lab 通路），逐像素只算 欧氏距离；<strong>ΔL 折半（ΔE94 的 kL=2），d = ΔE/100 钳到 1</strong>。实测色卡 （目标 = 纯红，羽化 0）：</p>
+<div class="table-wrap"><table><thead><tr><th>容差</th><th>入选</th><th>落选</th></tr></thead><tbody><tr><td>100（ΔE50 窗）</td><td>红、暗红、橙红</td><td>粉（ΔE≈50–60）、近黑、灰、白、蓝</td></tr><tr><td>140（ΔE70 窗）</td><td>＋粉</td><td>近黑、灰、白、蓝</td></tr><tr><td>60（ΔE30 窗）</td><td>红、橙红</td><td>暗红、粉</td></tr><tr><td>200</td><td>全部（按设计）</td><td>—</td></tr></tbody></table></div>
+<p>行为验收固化在 <code>tools/check_color_mask_custom.py</code>（15 条性质断言）。</p>
+<h3 id="色系预设饱和度门-彩度门">色系预设：饱和度门 → 彩度门</h3>
+<p>门控量从 HSV 的 s 改成<strong>彩度 s×v</strong>。旧的 s 门有个洞：近黑 (16,0,0) 的 s = 1（delta/cmax 在 v≈0 时照样拉满），色相纯属数值噪声，却在「红色」模式下 被全选。彩度同时反映饱和度和明度，近黑/灰自然掉出门外。默认底限从 0.05 提到 0.25（≈RGB 通道差 13%，实测 0.05 挡不住彩度 0.06 的近黑）。</p>
+<p>顺手的小优化：色调模式不再逐像素算 HSV（那里只用亮度）。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>color-mask-select.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>color-mask-select.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
@@ -112,7 +124,10 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
 <li class="l3"><a href="#参数键名别猜从二进制里挖">参数键名：别猜，从二进制里挖</a></li>
 <li class="l3"><a href="#实测出来的模型">实测出来的模型</a></li>
 <li class="l3"><a href="#精度对-ps-2025-实测0255-码">精度（对 PS 2025 实测，0–255 码）</a></li>
-<li class="l3"><a href="#新增参数">新增参数</a></li></ul>
+<li class="l3"><a href="#新增参数">新增参数</a></li>
+<li class="l2"><a href="#自定颜色改用-cielab-δe色系预设改彩度门2026-11-16">自定颜色改用 CIELAB ΔE，色系预设改彩度门（2026-11-16）</a></li>
+<li class="l3"><a href="#自定颜色rgb-距离-cielab-δeδe94-明度权重-kl2">自定颜色：RGB 距离 → CIELAB ΔE（ΔE94 明度权重 kL=2）</a></li>
+<li class="l3"><a href="#色系预设饱和度门-彩度门">色系预设：饱和度门 → 彩度门</a></li></ul>
 </aside>
 </div></div>
 <div class="l-en"><section class="page-head">
@@ -129,8 +144,8 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
 <h2 id="behaviour-change-rewritten-2026-11-12">Behaviour change (rewritten 2026-11-12)</h2>
 <p>The old implementation had a fatal bug: with the default <code>Min Saturation = 0</code> the saturation gate degenerated into <code>smooth_step(s, 0, 0)</code>, which is 0/0 for a grey pixel (s = 0) and yields NaN; alpha was written as 0, so <strong>every grey pixel was judged transparent in every mode</strong> — the white, black and midtone modes were entirely broken — and <code>fuzziness = 0</code> produced NaN too. The match formula (channel difference plus a negative-start transition band) also made "tolerance" mean something different in each mode.</p>
 <p>The rewritten unified model maps each pixel to a "mismatch" d ∈ [0,1] (0 = exact match) and sets <code>alpha = 1 − smoothstep(d, w·(1−feather), w)</code> with <strong>w = fuzziness/200</strong> (at fz=200 the window spans the largest possible mismatch: complementary hues, pure black ↔ pure white):</p>
-<div class="table-wrap"><table><thead><tr><th>Mode</th><th>Definition of d</th></tr></thead><tbody><tr><td>red/yellow/green/cyan/blue/magenta</td><td>hue-wheel distance (complement = 1), multiplied by the saturation gate — greys have no hue and do not take part</td></tr><tr><td>highlights</td><td>d = 1 − luminance</td></tr><tr><td>shadows</td><td>d = luminance</td></tr><tr><td>midtones</td><td>d = 2·|luminance − 0.5|</td></tr><tr><td>custom colour</td><td>perceptual RGB distance ÷ √3</td></tr></tbody></table></div>
-<ul><li>feather (0–100): width of the transition inside the tolerance window's inner edge; feather=10 fades over the inner 10% of the window</li><li>Min Saturation: floor on saturation for the colour presets, 0 = a small fixed floor</li><li>Invert (new): inverts the mask, like Photoshop's "Invert" checkbox</li><li>Red Overlay Preview now defaults to off: applying it with preview on bakes the red tint into the layer, so turn it off when you are done looking</li></ul>
+<div class="table-wrap"><table><thead><tr><th>Mode</th><th>Definition of d</th></tr></thead><tbody><tr><td>red/yellow/green/cyan/blue/magenta</td><td>hue-wheel distance (complement = 1), multiplied by the chroma gate (s×v — a near-black pixel's hue is numeric noise)</td></tr><tr><td>highlights</td><td>d = 1 − luminance</td></tr><tr><td>shadows</td><td>d = luminance</td></tr><tr><td>midtones</td><td>d = 2·|luminance − 0.5|</td></tr><tr><td>custom colour</td><td>CIELAB ΔE ÷ 100, with ΔE94's lightness weight kL=2 (lightness difference halved)</td></tr></tbody></table></div>
+<ul><li>feather (0–100): width of the transition inside the tolerance window's inner edge; feather=10 fades over the inner 10% of the window</li><li>Min Saturation: floor on chroma (s×v) for the colour presets, 0 = a fixed floor of 0.25</li><li>Invert (new): inverts the mask, like Photoshop's "Invert" checkbox</li><li>Red Overlay Preview now defaults to off: applying it with preview on bakes the red tint into the layer, so turn it off when you are done looking</li></ul>
 <p>Sixteen-patch regression: red / yellow / white / black / midtone / custom / invert / fz0 / fz200 all match the semantics above.</p>
 <h2 id="highlights-shadows-midtones-use-a-model-measured-from-photoshop">Highlights / shadows / midtones use a model measured from Photoshop</h2>
 <p>The unified model above still had a problem: <strong>one "tolerance" slider decided both the threshold and the softness</strong>, so tightening the range inevitably hardened the transition — while Photoshop has two independent sliders. That is exactly why it felt bad to use.</p>
@@ -204,7 +219,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">140e027</span>
+    <span class="muted">8957166</span>
   </div>
 </footer>
 <script>
