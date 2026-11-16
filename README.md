@@ -32,7 +32,7 @@ gegl-color-ops/
 ├── ops/<算子名>/          # 每个算子一个目录：<算子名>.c + 原始说明 + 截图
 ├── plugin/blend/      # Python 插件：应用图像/计算的完整复刻版（四种落地：选区/通道/灰度层/图层 alpha）
 ├── plugin/gray-mask/  # Python 插件：灰度图层一键 → 选区 / Alpha 通道
-├── plugin/layer-to-mask/ # Python 插件：右键任意图层 → 选区 / 通道（Gray/R/G/B/Alpha）
+├── plugin/layer-to-mask/ # Python 插件：右键任意图层 → 选区 / 通道（通道恒为灰度）
 ├── plugin/sky-replace/ # Python 插件：一键换天（泛洪分割 + 蒙版合成 + 亮度匹配）
 ├── dist/                 # 编好的模块，给不想编译的人直接下载（windows-x64 / linux-x64）
 ├── tools/                # 测试图生成、逐算子冒烟、对照表、文件头重排、注释双语化
@@ -181,20 +181,26 @@ python-fu-eval 里，不要求插件已安装）。
 
 - 入口：**图层右键 → SuperMrWang**，也挂在 **选择 → SuperMrWang** 下
 - 两个动作：`Layer to Selection` / `Layer to Channel`
-- 通道可选 **Gray（亮度）/ R / G / B / Alpha**；选区可选四种组合方式
-  （替换/加/减/交）；两者都能反相，通道可自定义名字
+- `Layer to Selection`：通道可选 **Gray（亮度）/ R / G / B / Alpha**，可选四种
+  组合方式（替换/加/减/交）与反相
+- `Layer to Channel`：**恒为灰度**——彩色图层先按亮度转灰度，灰度图层原样，
+  再把这些灰度值写成通道值（黑=不选中、白=完全选中）。没有「取 R 通道」这类
+  选项，避免拿到单色通道而不是明暗。可反相、可自定义通道名，建好会在状态栏
+  提示通道名
 - 直接读图层 buffer（不走复制粘贴），**比画布小、带偏移的图层**只在自己
   位置生效，界外不选中
 - 灰度内容走零拷贝的通道切片快捷路径；彩色图层的 Gray 才复制一份做
-  `desaturate`（babl 的 `Y' float` 是 HSL 明度——纯红会读成 0.51，不是亮度）
+  `desaturate`（babl 的 `Y' float` 是 HSL 明度——纯红会读成 0.51，不是亮度）；
+  临时图层用完就删，并把活动图层还给原来选中的那个
+- 图层组没有自己的像素，会明确报错提示先合并组
 
 与 `plugin/gray-mask` 的分工：gray-mask 走复制/粘贴，会带上图层蒙版等显示
 效果；layer-to-mask 读原始像素、更快、支持任意通道，日常「灰度图 → 蒙版」
 优先用它。
 
-回归：`tools/check_layer_to_mask.py`（21 条断言：灰度值、反相、偏移图层、
-彩色亮度、四个单通道、通道值/名字/反相、**有选区时转通道不被截断**、
-四种组合方式）。
+回归：`tools/check_layer_to_mask.py`（23 条断言：灰度值、反相、偏移图层、
+彩色亮度、四个单通道、通道值/名字/反相、**彩色图层转通道得到的是亮度而不是
+R 通道**、**有选区时转通道不被截断**、四种组合方式）。
 
 ### Python 插件版：plugin/sky-replace
 

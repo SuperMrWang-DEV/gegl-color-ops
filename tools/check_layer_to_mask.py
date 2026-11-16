@@ -147,6 +147,16 @@ ch2 = mod.layer_to_channel(img5, g200, invert=True, name="inv")
 check("通道反相 = 55", chan_val(ch2, 4, 4), [55])
 check("通道自定义名", [1 if ch2.get_name() == "inv" else 0], [1])
 
+# 通道恒为灰度：彩色图层写进去的是亮度，不是 R 通道（那会是 255）
+img5b = new_image()
+redch = mk_layer(img5b, "red", 8, 8, (255, 0, 0, 255))
+ch_red = mod.layer_to_channel(img5b, redch)
+check("彩色→通道 = 亮度(≈54)", chan_val(ch_red, 4, 4), [54], tol=4)
+img5c = new_image()
+nullch = mk_layer(img5c, "null", 8, 8, (0, 0, 255, 255))     # 纯蓝：亮度≈18
+ch_blue = mod.layer_to_channel(img5c, nullch)
+check("纯蓝→通道 = 亮度(≈18)", chan_val(ch_blue, 4, 4), [18], tol=4)
+
 # ---- 7. 有选区时转通道不被截断，且原选区恢复 -------------------------------
 img6 = new_image()
 white = mk_layer(img6, "white", 8, 8, (255, 255, 255, 255))
