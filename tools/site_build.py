@@ -203,12 +203,14 @@ def head_html(root="", bilingual=False):
   <a class="brand" href="{r}index.html"><span class="dot"></span>gegl-color-ops</a>
   <nav>
     <a href="{r}index.html#ops">{ops}</a>
+    <a href="{r}plugins.html">{plug}</a>
     <a href="{r}guide.html">{install}</a>
     <a href="{r}index.html#download">{download}</a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
 {sw}</header>""".format(r=root, sw=sw,
                         ops=t("算子", "Operators"),
+                        plug=t("插件", "Plug-ins"),
                         install=t("安装", "Install"),
                         download=t("下载", "Download"))
 
@@ -975,6 +977,64 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
                 desc="GIMP 3 GEGL 算子安装、验证与排错")
 
 
+def build_plugins(version):
+    body = """<section class="page-head">
+  <p class="eyebrow"><a href="index.html">首页</a> / Python 插件</p>
+  <h1>图层 → 选区 / 通道，一键</h1>
+  <p class="lede">配套的 GIMP 3 Python 插件（layer-to-mask）：右键点哪个图层，就把哪个
+     图层转成选区或 Alpha 通道——算子跑完留下的那张灰度图，一步就能接着用。</p>
+</section>
+<article class="prose wide">
+  <h2 id="why">为什么需要它</h2>
+  <p>这套 GEGL 算子（计算、色彩范围、通道区间到 alpha……）的产出常常是一张<b>灰度图</b>：
+     它本身就是一张蒙版。原生流程要把它变成能用的东西得四步——复制图层 → 新建通道 →
+     粘贴 → 蒙版转选区；这两个动作把它压成<b>一次右键</b>，而且不要求图层是「纯灰度」。</p>
+
+  <h2 id="selection">Layer to Selection</h2>
+  <p>把点击的图层变成当前选区：</p>
+  <ul>
+    <li><b>通道</b>：Gray（亮度）/ R / G / B / Alpha 任选——彩色图层选 Gray 时按亮度算，
+        不是 HSL 明度（纯红 ≈ 54/255，而不是 130）；</li>
+    <li><b>组合方式</b>：替换 / 加 / 减 / 交，与 GIMP 选区菜单一致；</li>
+    <li>可反相（选暗部而不是亮部）；</li>
+    <li>图层比画布小、带偏移也没问题：只在自己位置生效，界外不选中。</li>
+  </ul>
+
+  <h2 id="channel">Layer to Channel</h2>
+  <p>把点击的图层变成一条新的 Alpha 通道。<b>恒为灰度</b>：</p>
+  <ul>
+    <li>彩色图层先按亮度转成灰度，黑白图层原样——然后把这些<b>灰度值写进通道</b>
+        （黑 = 不选中、白 = 完全选中、中间灰 = 部分选中）；</li>
+    <li>没有「取 R 通道」这类选项——要的就是明暗，不给单色通道捣乱的机会；</li>
+    <li>可反相、可自定义通道名（默认沿用图层名）；建好后状态栏会提示通道名；</li>
+    <li>想把它变回选区：在「通道」面板右键该通道 → <b>通道到选区</b>（GIMP 原生）。</li>
+  </ul>
+
+  <h2 id="entry">入口与安装</h2>
+  <p>两个动作都挂在两处：<b>图层右键 → SuperMrWang → Layer to Selection / Layer to
+     Channel</b>，以及 <b>选择 → SuperMrWang</b> 下（不用鼠标右键、或想写脚本时用这处）。</p>
+  <pre><code>git clone {repo}.git
+cd gegl-color-ops
+bash install-plugin.sh   # 把 plugin/ 下的 .py 拷进 GIMP 的 plug-ins 目录
+</code></pre>
+  <p>然后完全重启 GIMP。脚本能直接调 PDB 过程
+     <code>lb-plugin-layer-to-selection</code> /
+     <code>lb-plugin-layer-to-channel</code>（后者参数 <code>invert</code> / <code>name</code>）。</p>
+
+  <h2 id="impl">实现与验证</h2>
+  <p>直接读图层像素（array 的 C 级切片，100 万像素约 4 毫秒），不走复制粘贴；灰度内容
+     走零拷贝快路径，彩色图层才临时复制一份做去色（用完即删，并把活动图层还给原来
+     选中的那个）。有活动选区时写通道会先把选区挂起再恢复——GIMP 的 shadow 合并
+     遵守选区，不挂起的话通道会被截成选区那一块。</p>
+  <p class="muted">回归：<code>tools/check_layer_to_mask.py</code>，23 条断言（灰度值、反相、
+     偏移图层、彩色亮度、四个单通道、通道值/名字/反相、彩色转通道=亮度、
+     选区不被截断、四种组合方式），跑在 gimp-console 的 python-fu-eval 里。</p>
+</article>""".format(repo=REPO)
+    return page("图层转选区/通道 · gegl-color-ops", body,
+                desc="GIMP 3 Python 插件：右键任意图层一键转选区或 Alpha 通道；"
+                     "通道恒为灰度")
+
+
 def build_feed(ops, version):
     """一个极简 Atom，方便订阅「最近加了什么算子」。GitHub Pages 不需要后端。"""
     entries = []
@@ -1127,6 +1187,7 @@ def main():
     pages = {
         "index.html": build_index(ops, stats, version),
         "ops.html": build_ops_index(ops, version),
+        "plugins.html": build_plugins(version),
         "guide.html": build_guide(version, stats),
         "feed.xml": build_feed(ops, version),
     }
@@ -1142,7 +1203,7 @@ def main():
     total = sum(os.path.getsize(os.path.join(dp, f))
                 for dp, _, fs in os.walk(DOCS) for f in fs)
     print("· docs/ 已生成：%d 个总览页、%d 篇算子文章、%d 个资源文件，共 %.1f MB（含下载包 %.1f MB）"
-          % (4, len(ops),
+          % (5, len(ops),
              sum(len(fs) for _, _, fs in os.walk(os.path.join(DOCS, "assets"))),
              total / 1048576, stats["zip_mb"]))
     print("· 分类：" + " / ".join("%s %d" % (GROUP_ZH[g][1],
