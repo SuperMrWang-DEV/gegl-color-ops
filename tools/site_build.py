@@ -228,8 +228,8 @@ def foot_html(version, root=""):
 </footer>""".format(
         r=root, v=version,
         tag=t("GIMP 3 的 GEGL 色彩算子集", "a GEGL colour operator set for GIMP 3"),
-        note=t("源码与文档同仓库，GPL-3.0-or-later。算法多由实测逆向，非官方移植；"
-               "与 Adobe、GIMP 官方均无隶属关系。",
+        note=t("源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，"
+               "非官方移植；与 Adobe、GIMP 官方均无隶属关系。",
                "Source and docs live in one repository, GPL-3.0-or-later. Most "
                "algorithms were matched to observed behaviour rather than ported "
                "from source; this project is not affiliated with Adobe or the GIMP team."),
@@ -479,11 +479,11 @@ def build_index(ops, stats, version):
 
     about = """<section class="about">
   <h2>这些算子是怎么来的</h2>
-  <p>多数按实测逆向：拿目标实现（多为 Photoshop 的调整图层）做对照，逐档采样、
-     拟合公式，再在 16 位精度上把残差压到几码以内。少数是直接实现公开的数学定义
-     （Lab / LCh / HSL 色阶就是换了个色彩空间做同一件事）。</p>
-  <p>所以每篇算法说明里都有误差表、以及「哪一段没能复刻、偏差多大」。没有说成
-     「完全一致」的地方，都是实测过确实对不上——例如 PS 在色温 / 色调对角线上的硬裁切。</p>
+  <p>多数是按黑盒标定做的：拿目标实现（多为常见修图软件的调整图层）做对照，逐档采样、
+     拟合公式，再在 16 位精度上把残差压到几码以内——只看输入输出，不读对方的代码。
+     少数是直接实现公开的数学定义（Lab / LCh / HSL 色阶就是换了个色彩空间做同一件事）。</p>
+  <p>所以每篇算法说明里都有误差表、以及「哪一段没能对上、偏差多大」。没有说成
+     「完全一致」的地方，都是实测过确实对不上——例如色温 / 色调对角线上的硬裁切。</p>
   <p class="muted">算法来源在文件头 <code>reference</code> 字段里逐条标注，源码与文档在同一个仓库。</p>
 </section>"""
 

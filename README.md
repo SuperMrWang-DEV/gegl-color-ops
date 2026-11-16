@@ -5,8 +5,10 @@
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
 [![Operations](https://img.shields.io/badge/operations-29-brightgreen)](#算子清单)
 
-一组逆向实现的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **29 个**，统一 `lb:` 命名空间，
-在 GIMP 里位于 **图像 → 颜色 → SuperMrWang**。
+一组自研的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **29 个**，统一 `lb:` 命名空间，
+在 GIMP 里位于 **图像 → 颜色 → SuperMrWang**。算法按公开公式与可观察的行为实现，
+不含任何商业软件的代码或素材；文中出现的产品名仅用于说明某个算子参照了哪种行为，
+与各厂商无隶属关系（详见文末「版权与商标」）。
 
 > **在线版**：<https://superMrwang-dev.github.io/gegl-color-ops/> —— 每个算子一篇
 > 算法说明（含参数、实测误差、示例图），首页直接下载免编译包。站点由
