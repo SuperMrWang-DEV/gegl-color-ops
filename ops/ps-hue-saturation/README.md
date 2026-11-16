@@ -8,6 +8,9 @@
 - 类型：`GeglOperationPointFilter`（逐像素，无邻域）
 - 参数：`hue`（−180…180°）、`saturation`（−100…100）、`lightness`（−100…100）
 
+> 2026-11-16：显示名从 `Hue/Saturation (PS)` 改为 `Hue/Saturation (Basic)`，菜单
+> 标签同步。GEGL id 仍是 `lb:ps-hue-saturation`，已存在的 XCF / 过滤器栈不受影响。
+
 规范实现是 `tools/ref_ps_hue_sat.py`（原代码的逐字转录 + 浮点对照），
 验收脚本是 `tools/check_ps_hue_saturation.py`。
 
