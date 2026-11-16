@@ -13,6 +13,7 @@ common_inc = include_directories('common')
 ops = [
   ['hue-saturation',          'hue-saturation',          'hue-saturation.c'],
   ['ps-hue-saturation',       'ps-hue-saturation',       'ps-hue-saturation.c'],
+  ['ps-hue-range',            'ps-hue-range',            'ps-hue-range.c'],
   ['channel-range-to-alpha',  'channel-range-to-alpha',  'channel-range-to-alpha.c'],
   ['channel-mixer-plus',      'channel-mixer-plus',      'channel-mixer-plus.c'],
   ['cmyk-primary-correction', 'cmyk-primary-correction', 'cmyk-primary-correction.c'],

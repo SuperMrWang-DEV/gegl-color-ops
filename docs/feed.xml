@@ -19,6 +19,13 @@
     <summary>PS 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览</summary>
   </entry>
   <entry>
+    <title>Hue/Saturation Range</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/ps-hue-range/README.md"/>
+    <id>tag:github.com,2026:lb:ps-hue-range</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，与 lb:ps-hue-saturation（全图）串联即接近某图像编辑器「色相/饱和度」对话框的「编辑」下拉 + 底部色条模型。</summary>
+  </entry>
+  <entry>
     <title>Gray To Component</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/gray-to-component/README.md"/>
     <id>tag:github.com,2026:lb:gray-to-component</id>

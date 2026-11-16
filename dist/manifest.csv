@@ -22,6 +22,7 @@ windows-x64,lb-exposure.dll,lb:exposure,Exposure EV,126347,54d4603a542408dd7ccf7
 windows-x64,lch-levels.dll,lb:lch-levels,LCH Levels,130908,de38c42d8d9b10a03447e7bb55d64fa83d26f8212d161a4aad9d1feb60cce0a2
 windows-x64,levels.dll,lb:levels,Levels,131495,f3f286ba846c767c6f3cff109b02791593292700b03c0c3da1fc64b78a59e2cc
 windows-x64,match-color.dll,lb:match-color,Match Color,107603,319f8b8ac84406c996b191da6590acc43fc0b8e4798e4f136a9dff5988fb887e
+windows-x64,ps-hue-range.dll,lb:ps-hue-range,Hue/Saturation Range,109436,714a4494667d564b6b043da02eba92a825241fa8c20675c8c57bf29207631eb3
 windows-x64,ps-hue-saturation.dll,lb:ps-hue-saturation,Hue/Saturation (Basic),104912,9708752f900733e6b412f5e9ea3e936c37dc6e416b6afade798bd20bcdaf032c
 windows-x64,rgb-domain-grayscale.dll,lb:rgb-domain-grayscale,Black & White,108038,86b54151180a5fa6495aef6d9701c3e0f74a305addd1b785ac50d9ae983db3ad
 windows-x64,shadows-highlights.dll,lb:shadows-highlights,Shadows/Highlights,167641,23132ac21a242d28392e9d7b5a6a4c2bc268db55d4532189eddc20c1b958b8cd

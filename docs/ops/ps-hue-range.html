@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-title-zh="Hue/Saturation Range · gegl-color-ops" data-title-en="Hue/Saturation Range · gegl-color-ops">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hue/Saturation Range · gegl-color-ops</title>
+<meta name="description" content="色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，与 lb:ps-hue-saturation（全图）串联即接近某图像编辑器「色相/饱和度」对话框的「编辑」下拉 + 底部色条模型。">
+<meta property="og:title" content="Hue/Saturation Range · gegl-color-ops">
+<meta property="og:description" content="色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，与 lb:ps-hue-saturation（全图）串联即接近某图像编辑器「色相/饱和度」对话框的「编辑」下拉 + 底部色条模型。">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+<main id="main">
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 混合与通道</p>
+  <h1>Hue/Saturation Range</h1>
+  <div class="meta">
+    <code>lb:ps-hue-range</code>
+    <span class="tag t-blend">混合与通道</span>
+    <span>逐像素</span>
+  </div>
+  <p class="lede">色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，与 lb:ps-hue-saturation（全图）串联即接近某图像编辑器「色相/饱和度」对话框的「编辑」下拉 + 底部色条模型。</p>
+</section><div class="article-layout">
+  <article class="prose">
+<h2 id="中文">中文</h2>
+<p><strong>色相/饱和度·范围</strong> —— 在一个色相族的软范围内调整色相、饱和度、明度。 与 <strong>Hue/Saturation (Basic)</strong>（全图/Master）串联，再用 <strong>Colorize</strong> 着色： 三个算子合起来复刻经典「色相/饱和度」对话框（编辑下拉 + 底部色条 + 着色）。</p>
+<h3 id="参数">参数</h3>
+<div class="table-wrap"><table><thead><tr><th>属性</th><th>默认</th><th>含义</th></tr></thead><tbody><tr><td>色系范围</td><td>红系</td><td>红 / 黄 / 绿 / 青 / 蓝 / 品红</td></tr><tr><td>过渡左 / 范围左 / 范围右 / 过渡右</td><td>-1</td><td>色条四柄：内二柄之间全选（权重 1），向外二柄<strong>线性</strong>过渡。-1 = 跟随色系默认（中心 ±15 全选、±45 过渡）；拖动后为绝对角度 0–360</td></tr><tr><td>色相</td><td>0</td><td>旋转角度，按逐像素范围权重缩放</td></tr><tr><td>饱和度</td><td>0</td><td>相对饱和度百分比（与全图算子同一公式）</td></tr><tr><td>明度</td><td>0</td><td>百分比，正向混白、负向混黑</td></tr></tbody></table></div>
+<h3 id="色系默认范围度">色系默认范围（度）</h3>
+<div class="table-wrap"><table><thead><tr><th>色系</th><th>过渡左</th><th>范围左</th><th>范围右</th><th>过渡右</th></tr></thead><tbody><tr><td>红</td><td>315</td><td>345</td><td>15</td><td>45</td></tr><tr><td>黄</td><td>15</td><td>45</td><td>75</td><td>105</td></tr><tr><td>绿</td><td>75</td><td>105</td><td>135</td><td>165</td></tr><tr><td>青</td><td>135</td><td>165</td><td>195</td><td>225</td></tr><tr><td>蓝</td><td>195</td><td>225</td><td>255</td><td>285</td></tr><tr><td>品红</td><td>255</td><td>285</td><td>315</td><td>345</td></tr></tbody></table></div>
+<h3 id="算法要点">算法要点</h3>
+<ul><li>权重作用在【原始】色相上（先算 w 再调整），语义与内部蒙版一致； 无彩像素（R=G=B）不参与任何色系。</li><li>调整量按 w 缩放后走全图算子的同一套公式（明度 screen/multiply → HSL → 色相加法 → 饱和度相对缩放）：w=1 时与 Hue/Saturation (Basic) 逐位一致， w=0 时逐位等于原图。</li><li>四柄可拖过 0/360，实现按内区跨度解环绕。</li></ul>
+<h3 id="验收">验收</h3>
+<p><code>tools/check_ps_hue_range.py</code>：9 色块色卡过 gegl，与 Python 参考实现 （逐字同式）逐像素对比——8 个用例（默认范围、权重缩放色相、饱和度拉满、 明度、环绕柄、绿系、链式 Master→Range）216 个采样点全部 <strong>0 码</strong>。</p><div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>ps-hue-range.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/ps-hue-range.dll">下载 ps-hue-range.dll<span class="size">Windows x64</span></a></div>
+</div><nav class="pager"><a class="prev" href="gray-to-component.html"><span>上一个</span>Gray To Component</a><a class="next" href="color-mask-select.html"><span>下一个</span>Mask by Color</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#中文">中文</a></li>
+<li class="l3"><a href="#参数">参数</a></li>
+<li class="l3"><a href="#色系默认范围度">色系默认范围（度）</a></li>
+<li class="l3"><a href="#算法要点">算法要点</a></li>
+<li class="l3"><a href="#验收">验收</a></li></ul>
+</aside>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Blend</p>
+  <h1>Hue/Saturation Range</h1>
+  <div class="meta">
+    <code>lb:ps-hue-range</code>
+    <span class="tag t-blend">Blend</span>
+    <span>per-pixel</span>
+  </div>
+  <p class="lede">Hue, saturation and lightness inside one hue family with a soft four-handle colour bar — the per-family half of the classic Hue/Saturation dialog. Chain it after Hue/Saturation (Basic) for master + per-family editing, and with Colorize the trio reproduces the whole dialog.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<h2 id="huesaturation-range">Hue/Saturation Range</h2>
+<p>A classic Hue/Saturation dialog does three things: master adjustments over the whole image, per-family adjustments inside soft hue ranges, and colorize. This project splits that across three operators — <strong>Hue/Saturation (Basic)</strong> covers the master path, <strong>Colorize</strong> covers colorize, and this op is the missing per-family half: pick a hue family, adjust hue / saturation / lightness inside its soft range.</p>
+<h3 id="the-four-handle-colour-bar">The four-handle colour bar</h3>
+<p>Each family has four handles on the hue circle. Pixels between the two inner handles are selected fully (weight 1); the weight ramps <strong>linearly</strong> from the inner handles out to the outer two handles; everything beyond is untouched. The defaults give each family centre ±15° selected and ±45° falloff, so the six families tile the wheel with overlapping feather:</p>
+<div class="table-wrap"><table><thead><tr><th>Family</th><th>Falloff L</th><th>Range L</th><th>Range R</th><th>Falloff R</th></tr></thead><tbody><tr><td>Reds</td><td>315</td><td>345</td><td>15</td><td>45</td></tr><tr><td>Yellows</td><td>15</td><td>45</td><td>75</td><td>105</td></tr><tr><td>Greens</td><td>75</td><td>105</td><td>135</td><td>165</td></tr><tr><td>Cyans</td><td>135</td><td>165</td><td>195</td><td>225</td></tr><tr><td>Blues</td><td>195</td><td>225</td><td>255</td><td>285</td></tr><tr><td>Magentas</td><td>255</td><td>285</td><td>315</td><td>345</td></tr></tbody></table></div>
+<p>A handle value of -1 (the default) follows the family default; dragging it sets an absolute angle from 0 to 360. Handles may cross 0/360 — the range is unwrapped around its inner span first.</p>
+<h3 id="weighted-adjustments-same-formula-as-the-master-op">Weighted adjustments, same formula as the master op</h3>
+<p>The weight is computed on the pixel's <strong>original</strong> hue — the range behaves like an internal mask. Achromatic pixels (R = G = B) join no family, so greys are never tinted. The adjustments then scale by the weight and run through the exact same formula as Hue/Saturation (Basic): lightness as screen/multiply toward white/black, hue as a rotation, saturation as a relative scale (s/(1−x) up, s(1+x) down). At weight 1 the result is bit-identical to the master op; at weight 0 the pixel passes through untouched.</p>
+<h3 id="verification">Verification</h3>
+<p><code>tools/check_ps_hue_range.py</code> renders a nine-patch swatch card and compares every pixel against a line-by-line Python reference of the same maths: 8 cases — default ranges, weight-scaled hue (orange at 30° gets exactly half the shift of red), saturation driven to full, lightness, wrap-around handles, the green family, and a chained master → range run — all match to <strong>0.0 codes</strong> across 216 sample points (tolerance 2).</p><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>ps-hue-range.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/ps-hue-range.dll">Download ps-hue-range.dll<span class="size">Windows x64</span></a></div>
+</div><nav class="pager"><a class="prev" href="gray-to-component.html"><span>Previous</span>Gray to Component</a><a class="next" href="color-mask-select.html"><span>Next</span>Mask by Color</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#huesaturation-range">Hue/Saturation Range</a></li>
+<li class="l3"><a href="#the-four-handle-colour-bar">The four-handle colour bar</a></li>
+<li class="l3"><a href="#weighted-adjustments-same-formula-as-the-master-op">Weighted adjustments, same formula as the master op</a></li>
+<li class="l3"><a href="#verification">Verification</a></li></ul>
+</aside>
+</div></div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与 Adobe、GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with Adobe or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">2dc0ea5</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
+</body>
+</html>
