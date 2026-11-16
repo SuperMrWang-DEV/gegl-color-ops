@@ -145,6 +145,82 @@ def read_rgba(drawable, rect):
     return out
 
 
+def read_selection_mask(image, rect):
+    """读当前选区成 0..1 的单通道数组（长度 = 宽×高），没有选区时返回 None。
+
+    Gimp.Selection 不是 drawable，拿不到 shadow buffer，但它的 buffer 就是
+    画布坐标的单通道 Y，直接按 "Y float" 取即可（注意 Gegl.Buffer.get 的签名
+    是 get(rect, scale, format, abyss)，不是 get(rect, format)）。
+    Read the current selection as a 0..1 single-channel array, or None when the
+    image has no selection. A Selection is not a drawable, so its buffer is read
+    directly as "Y float" in canvas coordinates."""
+    try:
+        sel = image.get_selection()
+        if sel is None:
+            return None
+        b = sel.bounds(image)
+        if not (b[0] and b[1]):                  # success, non_empty
+            return None
+        x, y, w, h = rect
+        raw = sel.get_buffer().get(Gegl.Rectangle.new(x, y, w, h), 1.0,
+                                   "Y float", Gegl.AbyssPolicy.NONE)
+        m = array.array('f')
+        m.frombytes(bytes(bytearray(raw)))
+        if len(m) < w * h:
+            return None
+        return m
+    except Exception:
+        return None                              # 选区读不到就按整幅算
+
+
+def load_grey_as_selection(image, rect, floats, name):
+    """把一份灰度结果载入为选区（临时通道，用完即删）。
+
+    Load a grey result as the image selection through a throw-away channel:
+    GIMP only lets a channel be turned into a selection, not a float buffer."""
+    ch = grey_to_channel(image, rect, floats, name)
+    image.select_item(Gimp.ChannelOps.REPLACE, ch)
+    image.remove_channel(ch)
+
+
+def _selection_suspend(image):
+    """把当前选区挂起成临时通道并清空，返回该通道（本来没选区则返回 None）。
+
+    shadow buffer 的 merge 会遵守选区：通道、灰度图层这类「离屏」写入会被
+    它截断，只有选区内落上数据。计算开始前挂起，最后再按需要恢复旧选区或
+    换成新结果。
+    Suspend the selection (saved to a throw-away channel) so off-screen writes
+    are not clipped by it — shadow merges honour the selection. Returns the
+    temp channel, or None when the image had no selection."""
+    try:
+        sel = image.get_selection()
+        if sel is None or not sel.bounds(image)[1]:
+            return None
+        pdb = Gimp.get_pdb()
+        proc = pdb.lookup_procedure('gimp-selection-save')
+        cfg = proc.create_config()
+        cfg.set_property('image', image)
+        ch = proc.run(cfg).index(1)
+        none_proc = pdb.lookup_procedure('gimp-selection-none')
+        cfg2 = none_proc.create_config()
+        cfg2.set_property('image', image)
+        none_proc.run(cfg2)
+        return ch
+    except Exception:
+        return None
+
+
+def _selection_restore(image, ch):
+    """把挂起的选区放回去 / put a suspended selection back."""
+    if ch is None:
+        return
+    try:
+        image.select_item(Gimp.ChannelOps.REPLACE, ch)
+        image.remove_channel(ch)
+    except Exception:
+        pass
+
+
 def write_rgba(drawable, rect, floats):
     """把结果经 shadow buffer 写回，产生一条可撤销的记录。
 
@@ -270,7 +346,11 @@ def run_apply_image(image, drawable, p):
 
 def run_calculations(image, drawable, p):
     """p: dict(ch1, inv1, s1_layer, ch2, inv2, s2_layer, blend, opacity,
-               use_mask, mask_layer, mch, inv_mask, result)"""
+               use_mask, mask_layer, mch, inv_mask, result, scope, load_selection)
+
+    scope: 0 = 整幅图层，1 = 只算当前选区；load_selection: 结果额外载入为选区。
+    scope: 0 = whole layer, 1 = current selection only; load_selection: also
+    load the result as the image selection."""
     iw, ih = image.get_width(), image.get_height()
     rect = (0, 0, iw, ih)                    # 通道/选区按画布对齐，与 经典图像编辑器 一致
 
@@ -293,12 +373,31 @@ def run_calculations(image, drawable, p):
                                 p.get('scale', 1.0),
                                 p.get('offset', 0.0) / 255.0)
 
+    # 计算范围：仅当前选区时，选区外归零（=不选中），灰度图层在选区外透明。
+    # 没有选区时退回整幅，和经典图像编辑器 一致（无选区 = 全图）。
+    # Range: inside the selection only. Outside values become 0 (= not
+    # selected) and a grey layer is transparent there. With no selection the
+    # whole layer is used, like the classic editor.
+    if p.get('scope', 0) == 1:
+        selmask = read_selection_mask(image, rect)
+        if selmask is not None:
+            blend_kernel.clip_to_mask(grey, selmask, iw * ih, True)
+
     image.undo_group_start()
     result = p['result']
+    # 落点写入必须在「没有选区」的状态下做，否则 shadow merge 只写选区内
+    # （通道里选区外会留一片黑）。写完再决定给新选区还是恢复旧选区。
+    # Writes have to happen while no selection is active, otherwise the shadow
+    # merge clips them (a new channel would be black outside the selection).
+    # The selection is restored — or replaced by the result — afterwards.
+    saved_sel = _selection_suspend(image)
+    wanted_sel = (result == 0) or bool(p.get('load_selection'))
+    # 「写入图层 alpha」会就地把 grey 的 RGB 换回原图，先留一份给选区用
+    # The layer-alpha branch overwrites grey's RGB in place, so keep a copy
+    sel_grey = array.array('f', grey) if wanted_sel else None
+
     if result == 0:                          # 选区 / selection
-        ch = grey_to_channel(image, rect, grey, _("Calculations"))
-        image.select_item(Gimp.ChannelOps.REPLACE, ch)
-        image.remove_channel(ch)
+        pass                                 # 下面统一设置
     elif result == 1:                        # 新建 Alpha 通道 / new channel
         grey_to_channel(image, rect, grey, _("Calculations"))
     elif result == 2:                        # 新建灰度图层 / grey layer
@@ -335,6 +434,13 @@ def run_calculations(image, drawable, p):
             d = (row * dw + cx0) * 4
             local[d:d + (cx1 - cx0) * 4] = grey[s:s + (cx1 - cx0) * 4]
         write_rgba(drawable, (0, 0, dw, dh), local)
+
+    if wanted_sel:                           # 结果当新选区 / result as selection
+        load_grey_as_selection(image, rect, sel_grey, _("Calculations"))
+        if saved_sel is not None:            # 旧选区已被替换，临时通道可以扔了
+            image.remove_channel(saved_sel)
+    else:                                    # 没要新选区就把旧的放回去
+        _selection_restore(image, saved_sel)
     image.undo_group_end()
     Gimp.displays_flush()
 
@@ -506,6 +612,7 @@ class PsBlend(Gimp.PlugIn):
         image = self._image
         ch = [c for c in blend_kernel.CHANNELS]
         results = [(n, _(l)) for n, l in blend_kernel.CALC_RESULTS]
+        ranges = [("whole", _("Whole layer")), ("selection", _("Selection only"))]
 
         r = 0
         s1 = _Picker(grid, r, _("Source 1"), image, ch); r += 1
@@ -520,11 +627,14 @@ class PsBlend(Gimp.PlugIn):
         sc = _add_spin_f(grid, r, _("Scale"), 1.0, 2.0, 1.0, 0.001, 3); r += 1
         of = _add_spin_f(grid, r, _("Offset"), -255.0, 255.0, 0.0, 1.0, 0); r += 1
         use, pick, inv = _mask_widgets(grid, r, _("Mask"), image); r += 4
+        rg = _add_combo(grid, r, _("Range"), ranges); r += 1
         res = _add_combo(grid, r, _("Result"), results); r += 1
-        return (s1, i1, s2, i2, bl, op, sc, of, use, pick, inv, res)
+        ls = _add_check(grid, r, _("Load result as selection")); r += 1
+        ls.set_halign(Gtk.Align.START)
+        return (s1, i1, s2, i2, bl, op, sc, of, use, pick, inv, rg, res, ls)
 
     def _calc_collect(self, w):
-        s1, i1, s2, i2, bl, op, sc, of, use, pick, inv, res = w
+        s1, i1, s2, i2, bl, op, sc, of, use, pick, inv, rg, res, ls = w
         _img, lay1, c1 = s1.get()
         _img2, lay2, c2 = s2.get()
         return dict(ch1=c1, inv1=i1.get_active(), s1_layer=lay1,
@@ -533,7 +643,8 @@ class PsBlend(Gimp.PlugIn):
                     scale=sc.get_value(), offset=of.get_value(),
                     use_mask=use.get_active(), mask_layer=pick.get()[1],
                     mch=pick.get()[2], inv_mask=inv.get_active(),
-                    result=res.get_active())
+                    scope=rg.get_active(), result=res.get_active(),
+                    load_selection=ls.get_active())
 
     # -- 通用 run / common run --
 
@@ -617,7 +728,9 @@ class PsBlend(Gimp.PlugIn):
                         mask_layer=mlay,
                         mch=cfg.get_property('mask-channel'),
                         inv_mask=cfg.get_property('invert-mask'),
-                        result=cfg.get_property('result'))
+                        result=cfg.get_property('result'),
+                        scope=cfg.get_property('scope'),
+                        load_selection=cfg.get_property('load-selection'))
 
         return self._run_common(procedure, run_mode, image, drawables[0],
                                 config, self._calc_build, self._calc_collect,
@@ -758,6 +871,17 @@ class PsBlend(Gimp.PlugIn):
                 "result", _("Result"),
                 _("0 selection, 1 new channel, 2 grey layer, 3 layer alpha"),
                 0, 3, 0, GObject.ParamFlags.READWRITE)
+            # 追加在末尾：PDB 参数按声明顺序排列，插到中间会让按位置传参的
+            # 旧脚本整体错位。/ Appended last: PDB arguments are positional,
+            # inserting one in the middle would shift existing scripts.
+            procedure.add_int_argument(
+                "scope", _("Range"),
+                _("0 whole layer, 1 current selection only"),
+                0, 1, 0, GObject.ParamFlags.READWRITE)
+            procedure.add_boolean_argument(
+                "load-selection", _("Load result as selection"),
+                _("Also load the computed grey as the image selection"),
+                False, GObject.ParamFlags.READWRITE)
         return procedure
 
 

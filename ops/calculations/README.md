@@ -103,3 +103,19 @@ GEGL filter rewrites the layer it runs on, unlike the classic editor's Calculati
 python tools/check_blend.py     # 含 9 个计算用例：叠底出灰、反相源 2、alpha 模式、四种通道取值、
                                # 源层透明与半透明覆盖率
 ```
+
+## 选区：范围与结果 / Selection: range and result
+
+GEGL 算子跑在像素上、拿不到选区，所以这两项只存在于 Python 插件版
+（`lb-plugin-calculations`，**颜色 → SuperMrWang → Calculations**）：
+
+| 插件选项 | PDB 参数 | 行为 |
+|---|---|---|
+| Range: Whole layer | `scope` = 0 | 整幅图层参与计算（默认，与算子一致） |
+| Range: Selection only | `scope` = 1 | 只算当前选区，选区外结果归零（=不选中），灰度图层在选区外透明；没有选区时退回整幅 |
+| Load result as selection | `load-selection` = true | 结果写成通道/灰度图层/图层 alpha 的同时，把同一份灰度也载入为活动选区 |
+
+实现上有两个要注意的地方：选区用 `Gimp.Selection` 的 buffer 按 `"Y float"` 读
+（`Gegl.Buffer.get` 的签名是 `get(rect, scale, format, abyss)`，不是 `get(rect, format)`）；
+写通道/灰度图层前必须**临时挂起选区**，因为 shadow buffer 的合并会遵守选区，否则新通道
+在选区外是一片黑。

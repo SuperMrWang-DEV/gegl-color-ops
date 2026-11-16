@@ -234,3 +234,25 @@ blend_kernel_calc (const float *in, const float *aux, const float *mask,
       out[j] = grey; out[j + 1] = grey; out[j + 2] = grey; out[j + 3] = 1.0f;
     }
 }
+
+/* ---- 按选区裁剪 / clip to selection --------------------------------------
+ * 计算结果只落在选区内：RGB 乘选区值，alpha_too 时 alpha 也置成选区值
+ * （灰度图层在选区外因此是透明的）。sel 是长度 n 的 0..1 单通道数组。
+ * Keep the result inside the selection: RGB is multiplied by the selection
+ * value and, when alpha_too is set, alpha becomes the selection value as well
+ * (so a grey layer is transparent outside the selection). */
+PSEXPORT void
+blend_kernel_clip_to_mask (float *buf, const float *sel, long n, int alpha_too)
+{
+  for (long i = 0; i < n; i++)
+    {
+      const long   j = i * 4;
+      const gfloat s = sel[i];
+
+      buf[j]     *= s;
+      buf[j + 1] *= s;
+      buf[j + 2] *= s;
+      if (alpha_too)
+        buf[j + 3] = s;
+    }
+}

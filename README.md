@@ -133,6 +133,16 @@ GEGL 算子只接住了像素计算那一半；**输入选择**（任意打开�
 - 混合模式选 加法/减法时多出 **缩放（1.0..2.0）与 补偿值（-255..255）**
   两个输入框，其余模式忽略；GEGL 算子同名参数 `scale`/`offset`
 - 计算结果四选一：活动选区 / 新建 Alpha 通道 / 新建灰度图层 / 写入图层 alpha
+- 计算多两个开关：
+  - **Range（计算范围）**：`Whole layer` 整幅图层 / `Selection only` 只算当前
+    选区——选区外结果归零（=不选中），灰度图层在选区外透明；没有选区时退回
+    整幅。批处理参数 `scope`（0/1）
+  - **Load result as selection（同时载入为选区）**：结果写成通道/灰度图层/
+    图层 alpha 的同时，把同一份灰度也载入为活动选区，一步到位。批处理参数
+    `load-selection`。已经存在的灰度图层可以用 gray-mask 插件的
+    **选择 → SuperMrWang → Grayscale Layer to Selection** 事后转
+- 写入通道/灰度图层时会**临时挂起当前选区**（shadow buffer 的合并会遵守选区，
+  否则新通道在选区外是黑的），写完后按需恢复旧选区或换成新结果
 - 像素内核 `tools/blend_core.c` 编成 `blend_core.dll` 由 ctypes 调用，公式
   直接 include `common/blend.h`——**GEGL 算子与 Python 插件保证同一结果**；
   没有编译产物时自动退化为纯 Python（一致但慢）

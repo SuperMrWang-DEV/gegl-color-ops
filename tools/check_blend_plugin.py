@@ -144,4 +144,54 @@ mod.run_calculations(img2, lay, pc)
 check("计算·图层 alpha 写在自己位置上", px(lay, 0, 0), (200, 100, 50, 54))
 check("计算·图层 alpha 右下角", px(lay, 3, 3), (200, 100, 50, 54))
 
+# ---------------- 计算：范围（整幅 / 仅选区）与「载入为选区」 ----------------
+img3 = Gimp.Image.new(8, 8, Gimp.ImageBaseType.RGB)
+a3 = Gimp.Layer.new(img3, "A3", 8, 8, Gimp.ImageType.RGBA_IMAGE, 100.0,
+                    Gimp.LayerMode.NORMAL)
+img3.insert_layer(a3, None, 0)
+b3 = Gimp.Layer.new(img3, "B3", 8, 8, Gimp.ImageType.RGBA_IMAGE, 100.0,
+                    Gimp.LayerMode.NORMAL)
+img3.insert_layer(b3, None, 0)
+fill(a3, (100, 100, 100, 255))
+fill(b3, (200, 200, 200, 255))
+
+base = dict(ch1=blend_kernel.CH_GRAY, inv1=False, s1_layer=a3,
+            ch2=blend_kernel.CH_GRAY, inv2=False, s2_layer=b3,
+            blend=blend_kernel.BLEND_INDEX['normal'], opacity=100.0,
+            use_mask=False, mask_layer=None, mch=blend_kernel.CH_GRAY,
+            inv_mask=False)
+
+
+def selv(image, x, y):
+    """选区在 (x,y) 的值，0..255（Gimp.Selection.value 已经是 0..255 刻度，
+    不是 0..1）/ selection value at a pixel; GIMP reports it on 0..255"""
+    return [round(image.get_selection().value(image, x, y))]
+
+
+# 1. 范围 = 仅选区：左半（选区内）有值，右半归零
+img3.select_rectangle(Gimp.ChannelOps.REPLACE, 0, 0, 4, 8)
+mod.run_calculations(img3, a3, dict(base, result=0, scope=1))
+check("计算·仅选区 内=200", selv(img3, 1, 1), [200])
+check("计算·仅选区 外=0", selv(img3, 6, 1), [0])
+
+# 2. 范围 = 整幅：选区外同样有值（旧行为不变）
+mod.run_calculations(img3, a3, dict(base, result=0, scope=0))
+check("计算·整幅 外也有值", selv(img3, 6, 1), [200])
+
+# 3. 结果 = 灰度图层 + 同时载入为选区：图层留档，选区也拿到同一份灰度
+img3.select_rectangle(Gimp.ChannelOps.REPLACE, 0, 0, 4, 8)
+mod.run_calculations(img3, a3, dict(base, result=2, scope=1,
+                                    load_selection=True))
+names = [l.get_name() for l in img3.get_layers()]
+check("计算·灰度图层已建", [1 if "Calculations" in names else 0], [1])
+check("计算·同时载入选区 内=200", selv(img3, 1, 1), [200])
+check("计算·同时载入选区 外=0", selv(img3, 6, 1), [0])
+
+# 4. 结果 = 图层 alpha + 同时载入：选区必须是计算结果，不是被改回原图的 RGB
+fill(a3, (100, 100, 100, 255))
+mod.run_calculations(img3, a3, dict(base, result=3, scope=0,
+                                    load_selection=True))
+check("计算·alpha+载入选区 值=灰度", selv(img3, 1, 1), [200])
+check("计算·alpha 已写入", [px(a3, 1, 1)[3]], [200])
+
 print("\n%s" % ("全部通过" if not FAIL else "失败：%s" % ", ".join(FAIL)))

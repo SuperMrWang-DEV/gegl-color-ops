@@ -220,6 +220,9 @@ def _load_core():
                                      ctypes.c_int, ctypes.c_int, ctypes.c_float,
                                      ctypes.c_int, ctypes.c_int,
                                      ctypes.c_float, ctypes.c_float]
+        lib.blend_kernel_clip_to_mask.restype = None
+        lib.blend_kernel_clip_to_mask.argtypes = [fp, fp, ctypes.c_long,
+                                                  ctypes.c_int]
         _CORE = lib
     except Exception:
         _CORE = None
@@ -229,6 +232,30 @@ def _load_core():
 def _ptr(arr):
     addr, _ = arr.buffer_info()
     return ctypes.cast(addr, ctypes.POINTER(ctypes.c_float))
+
+
+def clip_to_mask(buf, sel, n, alpha_too=True):
+    """把结果裁到选区内：RGB 乘选区值，alpha_too 时 alpha 也置成选区值。
+
+    sel 是长度 n 的 0..1 单通道数组（Gimp.Selection 的 buffer 按 "Y float"
+    读出）。alpha_too 让灰度图层在选区外透明，而不是留一圈黑。
+    Multiply a result by a selection mask; with alpha_too the alpha channel
+    becomes the selection value too (a grey layer is then transparent outside
+    the selection instead of showing black). sel is a 0..1 array of length n."""
+    core = _load_core()
+    if core is not None:
+        core.blend_kernel_clip_to_mask(_ptr(buf), _ptr(sel), ctypes.c_long(n),
+                                       1 if alpha_too else 0)
+        return buf
+    for i in range(n):
+        s = sel[i]
+        j = i * 4
+        buf[j] = buf[j] * s
+        buf[j + 1] = buf[j + 1] * s
+        buf[j + 2] = buf[j + 2] * s
+        if alpha_too:
+            buf[j + 3] = s
+    return buf
 
 
 # ---- 两个入口（与 C 内核同签名语义） ---------------------------------------
