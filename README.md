@@ -31,6 +31,7 @@ gegl-color-ops/
 ├── common/config.h       # 所有算子共用的版本宏 / GETTEXT_PACKAGE
 ├── ops/<算子名>/          # 每个算子一个目录：<算子名>.c + 原始说明 + 截图
 ├── plugin/blend/      # Python 插件：应用图像/计算的完整复刻版（四种落地：选区/通道/灰度层/图层 alpha）
+├── plugin/gray-mask/  # Python 插件：灰度图层一键 → 选区 / Alpha 通道
 ├── dist/                 # 编好的模块，给不想编译的人直接下载（windows-x64 / linux-x64）
 ├── tools/                # 测试图生成、逐算子冒烟、对照表、文件头重排、注释双语化
 ├── tools/site/           # 站点样式源（生成时拷进 docs/assets/）
@@ -133,6 +134,23 @@ GEGL 算子只接住了像素计算那一半；**输入选择**（任意打开�
 
 交互模式弹自定义对话框；批处理可用注册参数（`blend` 0..25 按 经典图像编辑器 顺序、
 `source-image`/`source-layer` 等，见 `do_create_procedure`）。
+
+### Python 插件版：plugin/gray-mask
+
+**灰度图层 → 选区 / Alpha 通道** 的一键化。原生做法要绕三步
+（加图层蒙版「灰度副本」→ 蒙版至选区 → 存储到通道）；插件把这条链压成
+两个菜单项，位于 **选择 → SuperMrWang**：
+
+- `Grayscale Layer to Selection`：活动图层灰度内容 → 当前选区，
+  可选组合方式（替换/加/减/交）与反相
+- `Grayscale Layer to Channel`：活动图层灰度内容 → 新建 Alpha 通道，
+  默认沿用图层名，可反相
+- `lb:color-mask-select` 等蒙版算子输出的黑白层可以直接接管后续流程；
+  复制前自动全选（`edit_copy` 会被当前选区裁剪），粘贴后挪回源图层
+  画布位置再锚定，偏移图层不会错位
+
+回归：`tools/check_gray_mask.py`（8 条行为断言，跑在 gimp-console 的
+python-fu-eval 里，不要求插件已安装）。
 
 ## 命名与代码风格约定
 
