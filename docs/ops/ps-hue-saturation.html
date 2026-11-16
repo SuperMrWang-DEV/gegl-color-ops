@@ -51,6 +51,7 @@
   <article class="prose">
 <p>三滑杆版本：全局色相旋转、饱和度相对缩放、明度向白/黑混合。不含「着色」复选框， 也没有分色相区间。行为上与常见图像软件的「色相/饱和度」对话框三根滑杆一致。</p>
 <ul><li>GEGL id：<code>lb:ps-hue-saturation</code></li><li>菜单：<code>Colors → SuperMrWang → Color → Hue/Saturation (Basic)</code></li><li>类型：<code>GeglOperationPointFilter</code>（逐像素，无邻域）</li><li>参数：<code>hue</code>（−180…180°）、<code>saturation</code>（−100…100）、<code>lightness</code>（−100…100）</li></ul>
+<blockquote><p>2026-11-16：显示名从 <code>Hue/Saturation (PS)</code> 改为 <code>Hue/Saturation (Basic)</code>，菜单 标签同步。GEGL id 仍是 <code>lb:ps-hue-saturation</code>，已存在的 XCF / 过滤器栈不受影响。</p></blockquote>
 <p>规范实现是 <code>tools/ref_ps_hue_sat.py</code>（原代码的逐字转录 + 浮点对照）， 验收脚本是 <code>tools/check_ps_hue_saturation.py</code>。</p>
 <h2 id="算法">算法</h2>
 <p>在 <strong>sRGB 编码值</strong>（<code>R~G~B~A float</code>，感知域而非线性光）上，四步：</p>
@@ -158,7 +159,7 @@ python tools/analyze_ps_hue_sat.py          # behaviour checks on the three curv
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">c3ff04a</span>
+    <span class="muted">adeb354</span>
   </div>
 </footer>
 <script>
