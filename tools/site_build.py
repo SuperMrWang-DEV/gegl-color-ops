@@ -1288,14 +1288,17 @@ def build_plugins(version, stats=None):
   <div class="dl-grid">
     <div class="dl primary-dl">
       <div class="dl-head"><h3>生成的结构</h3><span class="pill">穿透组</span></div>
-      <pre><code>HSV split        组 · 穿透
-  ├─ 1 · Hue        模式 HSV 色相
-  ├─ 2 · Saturation 模式 HSV 饱和度
+      <pre><code>HSV split        组 · 穿透（带 alpha 时组上还有蒙版）
   ├─ 3 · Value      模式 HSV 明度
-  └─ 原图层（不动）</code></pre>
+  ├─ 2 · Saturation 模式 HSV 饱和度
+  ├─ 1 · Hue        模式 HSV 色相   ← 垫底
+  └─ 原图层（不动，可以隐藏）</code></pre>
       <p>每层三条滤镜：<code>extract</code>（抽分量）→ <code>curve</code>
          （<b>你调的那条</b>）→ <code>encode</code>（一个 <code>lb:gray-to-component</code>
          滤镜，把灰度编码成携带该分量的彩色）。</p>
+      <p><b>层序不能反：</b>分量混合模式只替换一个分量，另外两个从下行读。最底层
+         必须自带真实色相（全饱和色环），所以 Hue 垫底、Value 在顶。反过来的话
+         最底是灰，上面两层读到 S=0，怎么换都是灰——<b>把原图层一隐藏就整幅崩掉</b>。</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>为什么是在做曲线</h3></div>
@@ -1308,6 +1311,10 @@ def build_plugins(version, stats=None):
       <p>32 位浮点与 8 位图的恒等往返都是 <b>0.5 码</b>；真实 512×512 图逐像素
          比对最大 <b>1 码</b>，仅 0.335% 的通道值有差异。剩下的误差是 8 位量化，
          编码本身没有查表误差——旧版三条曲线才有 256 点 LUT。</p>
+      <p>把<b>原图层隐藏掉</b>，三层自己叠出来还是 <b>0.5 码</b>；半透明区域的
+         透明度由组蒙版保住（三层必须不透明，否则混合模式会按 alpha 做 lerp）。</p>
+      <p>把<b>原图层隐藏掉</b>，三层自己叠出来还是 <b>0.5 码</b>；半透明区域的
+         透明度由组蒙版保住（三层必须不透明，否则混合模式会按 alpha 做 lerp）。</p>
     </div>
   </div>"""
 
@@ -1426,7 +1433,7 @@ cd gegl-color-ops</code></pre>
   <ul class="facts">
     <li><b>4</b> 个插件</li>
     <li><b>4</b> 个 PDB 过程</li>
-    <li><b>74</b> 条回归断言</li>
+    <li><b>82</b> 条回归断言</li>
     <li><b>0</b> 编译 · 纯 Python</li>
   </ul>
 </section>
