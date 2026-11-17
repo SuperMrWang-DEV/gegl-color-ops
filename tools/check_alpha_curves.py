@@ -166,8 +166,8 @@ AC.alpha_curves(img, lay, 'gray')          # 不传 shape → 默认 auto
 cur = cfg_curve(lay)
 check(int(cur.get_curve_type()) == int(Gimp.CurveType.SMOOTH),
       "默认曲线是 SMOOTH（平滑样条），不是手绘采样", int(cur.get_curve_type()))
-check(points_of(cur) == [(0.0, 1.0), (0.5, 1.0), (1.0, 1.0)],
-      "默认三个控制点 (0,255)(128,255)(255,255)", points_of(cur))
+check(points_of(cur) == [(0.0, 1.0), (0.502, 1.0), (1.0, 1.0)],
+      "默认三个控制点 (0,255)(128,255)(255,255)，踩在格点上", points_of(cur))
 check(cur.get_n_points() == 3, "就三个点（好拖，不是一堆）", cur.get_n_points())
 got = flatten(lay)
 close(alpha_at(got, 16), 1.0, 1.0, "默认把中间一档 alpha 拉满")
@@ -253,7 +253,7 @@ check(len(names) == 1, "只挂一条滤镜", names)
 cur = cfg_curve(lay)
 check(int(cur.get_curve_type()) == int(Gimp.CurveType.SMOOTH),
       "auto 的曲线是平滑的", int(cur.get_curve_type()))
-check(points_of(cur) == [(0.0, 1.0), (0.5, 1.0), (1.0, 1.0)],
+check(points_of(cur) == [(0.0, 1.0), (0.502, 1.0), (1.0, 1.0)],
       "auto：0 / 128 / 255 三个点都在顶", points_of(cur))
 got = flatten(lay)
 close(alpha_at(got, 12), 1.0, 1.0, "auto：alpha 拉满（原图不透明）")

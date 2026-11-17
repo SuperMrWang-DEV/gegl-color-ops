@@ -11,7 +11,7 @@
 2. 滤镜条数与执行顺序（decompose / 三条曲线 / compose 共 5 条），三条曲线
    分别挂在红 / 绿 / 蓝通道上；
 3. 32 位浮点图：恒等曲线往返 ≈ 0；
-4. 8 位图：恒等往返 ≤ 8 码（LCh 要过色相/彩度两张编码表，平滑曲线又各舍一次）；
+4. 8 位图：恒等往返 ≤ 1.5 码（就是 8 位量化本身）；
 5. 改 2 · L curve 曲线后，结果的 明度 L* = f(原 明度 L*)，另外两个分量不动；
 6. 改 3 · C curve 曲线后同理；
 7. 改 4 · h curve 曲线后同理；
@@ -276,8 +276,9 @@ def set_curve(layer, which, fn, channel):
             # 17 个控制点：够密，形状跟手画的函数几乎一样，又还不至于变成
             # 一堆抓不住的点。
             for i in range(17):
-                x = i / 16.0
-                curve.add_point(x, min(1.0, max(0.0, fn(x))))
+                x = round(i / 16.0 * 255.0) / 255.0
+                y = round(min(1.0, max(0.0, fn(x))) * 255.0) / 255.0
+                curve.add_point(x, y)
             cfg.set_property("curve", curve)
             cfg.set_property("channel", channel)
             cfg.set_property("trc", Gimp.TRCType.NON_LINEAR)
@@ -342,20 +343,20 @@ for f in curves:
           cur.get_n_points())
     pts = [(round(cur.get_point(i).x, 4), round(cur.get_point(i).y, 4))
            for i in range(cur.get_n_points())]
-    check(pts == [(0.0, 0.0), (0.5, 0.5), (1.0, 1.0)],
-          "%s：0 / 128 / 255 对角三点" % f.get_name(), pts)
+    check(pts == [(0.0, 0.0), (0.502, 0.502), (1.0, 1.0)],
+          "%s：0 / 128 / 255 对角三点（踩在格点上）" % f.get_name(), pts)
 imgc.delete()
 
 print("== 3. 浮点恒等往返 / float identity")
 imgf, basef, reff = make_image(float_prec=True)
 MOD.split_lch(imgf, basef)
-close(max_diff(reff, flatten(imgf)) * 255.0, 0.0, 8.0,
+close(max_diff(reff, flatten(imgf)) * 255.0, 0.0, 0.05,
       "浮点恒等往返 ≤ 8 码")
 
 print("== 4. 8 位恒等往返 / 8-bit identity")
 img8, base8, ref8 = make_image()
 MOD.split_lch(img8, base8)
-close(max_diff(ref8, flatten(img8)) * 255.0, 0.0, 8.0,
+close(max_diff(ref8, flatten(img8)) * 255.0, 0.0, 1.5,
       "8 位恒等往返 ≤ 8 码")
 
 
@@ -400,7 +401,7 @@ def effect(label, curve, channel, fn, index, circular=False):
                               abs(norm(g0[k], k) - norm(c0[k], k)))
     check(tested > 30, "%s：色域内的点够多" % label, tested)
     close(worst, 0.0, 1.5 / 255.0 if not circular else 1.2 / 360.0,
-          "%s：目标分量对得上" % label)
+          "%s：目标分量对得上（曲线是 17 点近似，见 set_curve）" % label)
     close(worst_other, 0.0, 1.5 / 255.0,
           "%s：另外两个分量没被碰" % label)
 
@@ -436,7 +437,7 @@ print("== 8b. 隐藏原图层后自足 / hide the source")
 imgh, baseh, refh = make_image(alpha_left=0.4)
 MOD.split_lch(imgh, baseh)
 baseh.set_visible(False)
-close(max_diff(refh, flatten(imgh)) * 255.0, 0.0, 8.0,
+close(max_diff(refh, flatten(imgh)) * 255.0, 0.0, 1.5,
       "原图层隐藏后仍能还原 RGB（≤8 码）")
 
 # ---- 9. 不收组 / 非法输入 ---------------------------------------------------
@@ -446,7 +447,7 @@ imgn, basen, refn = make_image(with_alpha=False)
 MOD.split_lch(imgn, basen, make_group=False)
 check(not imgn.get_layers()[0].is_group(), "顶层不是组")
 check(len(imgn.get_layers()) == 2, "原图 + 一层", len(imgn.get_layers()))
-close(max_diff(refn, flatten(imgn)) * 255.0, 0.0, 8.0, "不分组也还原")
+close(max_diff(refn, flatten(imgn)) * 255.0, 0.0, 1.5, "不分组也还原")
 
 imgz, basez, _ = make_image(alpha_left=0.5)
 MOD.split_lch(imgz, basez, make_group=False)
@@ -477,11 +478,11 @@ check([int(k.get_mode()) for k in kidsm] == [27, 25, 24],
       "分量混合模式", [int(k.get_mode()) for k in kidsm])
 check([len(k.get_filters()) for k in kidsm] == [3, 3, 3],
       "每层滤镜条数", [len(k.get_filters()) for k in kidsm])
-close(max_diff(refm, flatten(imgm)) * 255.0, 0.0, 8.0,
+close(max_diff(refm, flatten(imgm)) * 255.0, 0.0, 0.05,
       "multi 恒等往返 ≤ 8 码")
 
 basem.set_visible(False)
-close(max_diff(refm, flatten(imgm)) * 255.0, 0.0, 8.0,
+close(max_diff(refm, flatten(imgm)) * 255.0, 0.0, 1.5,
       "原图层隐藏后 multi 仍能叠回")
 
 imgm2, basem2, refm2 = make_image(float_prec=True)

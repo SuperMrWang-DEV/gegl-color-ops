@@ -123,7 +123,7 @@ def _force_opaque(layer):
     cfg = filt.get_config()
     curve = Gimp.Curve.new()
     curve.set_curve_type(Gimp.CurveType.SMOOTH)
-    for x in (0.0, 0.5, 1.0):
+    for x in (0.0, 128 / 255.0, 1.0):   # 踩格点，见 split 插件里的注释
         curve.add_point(x, 1.0)
     cfg.set_property("curve", curve)
     cfg.set_property("channel", Gimp.HistogramChannel.ALPHA)

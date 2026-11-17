@@ -276,7 +276,7 @@ for k in kids:
           int(cur.get_curve_type()))
     check(cur.get_n_points() == 3, "%s：三个控制点" % k.get_name(),
           cur.get_n_points())
-    check(points_of(cur) == [(0.0, 1.0), (0.5, 1.0), (1.0, 1.0)],
+    check(points_of(cur) == [(0.0, 1.0), (0.502, 1.0), (1.0, 1.0)],
           "%s：三点全在顶（alpha 拉满）" % k.get_name(), points_of(cur))
 
 print("== A3 恒等 / identity")

@@ -115,7 +115,7 @@ def _force_opaque(layer):
     cfg = filt.get_config()
     curve = Gimp.Curve.new()
     curve.set_curve_type(Gimp.CurveType.SMOOTH)
-    for x in (0.0, 0.5, 1.0):
+    for x in (0.0, 128 / 255.0, 1.0):   # 踩格点，见 split 插件里的注释
         curve.add_point(x, 1.0)
     cfg.set_property("curve", curve)
     cfg.set_property("channel", Gimp.HistogramChannel.ALPHA)
@@ -134,7 +134,7 @@ def _curve_fn(amount, sign):
 
 # 五个控制点：三点的样条画这条抛物线会差 2.6 码，五点是 0.6 码，手柄也还在
 # 一只手数得过来的范围里。
-CURVE_STEPS = (0.0, 0.25, 0.5, 0.75, 1.0)
+CURVE_STEPS = (0.0, 64 / 255.0, 128 / 255.0, 192 / 255.0, 1.0)
 
 
 def _append_curve(layer, label, fn):
