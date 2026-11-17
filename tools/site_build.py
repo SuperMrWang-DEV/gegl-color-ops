@@ -1032,8 +1032,8 @@ GPL-3.0-or-later
 """.format(py=py, desc=desc, menu=menu, pdb=pdb, repo=REPO)
         path = os.path.join(out_dir, name)
         with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
-            z.write(os.path.join(src_dir, py), py)
-            z.writestr("安装说明.txt", readme)
+            _zip_add_file(z, os.path.join(src_dir, py), py)
+            _zip_add_text(z, "安装说明.txt", readme)
         zips[key] = {"name": name, "sha": _sha256_file(path),
                      "kb": round(os.path.getsize(path) / 1024, 1)}
     return zips
@@ -1269,6 +1269,46 @@ def collect_stats():
             "linux_files": len(sos), "sos": sos, "linux_dir": lin}
 
 
+# 打包用固定时间戳：同一批文件重复打包应当得到同一个 zip，
+# 否则每次重建 docs/ 都会因为 mtime 变化刷出一堆二进制改动。
+ZIP_EPOCH = (2020, 1, 1, 0, 0, 0)
+
+
+def _zip_add_file(z, path, arcname):
+    info = zipfile.ZipInfo(arcname, date_time=ZIP_EPOCH)
+    info.compress_type = zipfile.ZIP_DEFLATED
+    info.external_attr = 0o644 << 16
+    with open(path, "rb") as f:
+        z.writestr(info, f.read())
+
+
+def _zip_add_text(z, arcname, text):
+    info = zipfile.ZipInfo(arcname, date_time=ZIP_EPOCH)
+    info.compress_type = zipfile.ZIP_DEFLATED
+    info.external_attr = 0o644 << 16
+    z.writestr(info, text.encode("utf-8"))
+
+
+# 打包用固定时间戳：同一批文件重复打包应当得到同一个 zip，
+# 否则每次重建 docs/ 都会因为 mtime 变化刷出一堆二进制改动。
+ZIP_EPOCH = (2020, 1, 1, 0, 0, 0)
+
+
+def _zip_add_file(z, path, arcname):
+    info = zipfile.ZipInfo(arcname, date_time=ZIP_EPOCH)
+    info.compress_type = zipfile.ZIP_DEFLATED
+    info.external_attr = 0o644 << 16
+    with open(path, "rb") as f:
+        z.writestr(info, f.read())
+
+
+def _zip_add_text(z, arcname, text):
+    info = zipfile.ZipInfo(arcname, date_time=ZIP_EPOCH)
+    info.compress_type = zipfile.ZIP_DEFLATED
+    info.external_attr = 0o644 << 16
+    z.writestr(info, text.encode("utf-8"))
+
+
 def _sha256_file(path):
     """自己算，不调 sha256sum：Windows 下 os.path.join 会拼出含反斜杠的路径，
     GNU coreutils 见到反斜杠会在整行前加一个 '\\' 做转义，split()[0] 就把这个
@@ -1284,11 +1324,11 @@ def _zip_one(out_dir, name, files, root_dir, readme):
     path = os.path.join(out_dir, name)
     with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
         for f in files:
-            z.write(os.path.join(root_dir, f), f)
-        z.writestr("安装说明.txt", readme)
+            _zip_add_file(z, os.path.join(root_dir, f), f)
+        _zip_add_text(z, "安装说明.txt", readme)
         man = os.path.join(DIST, "manifest.csv")
         if os.path.exists(man):
-            z.write(man, "manifest.csv")
+            _zip_add_file(z, man, "manifest.csv")
     sha = _sha256_file(path)
     size = round(os.path.getsize(path) / (1024 * 1024), 1)
     return path, sha, size
