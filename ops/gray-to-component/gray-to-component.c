@@ -455,7 +455,7 @@ gegl_op_class_init (GeglOpClass *klass)
     "name",            "lb:gray-to-component",
     "title",           _("Gray To Component"),
     "description",     _("Re-encode a decomposed component gray layer into a color layer that GIMP's color-group blend modes read back exactly. Feed the result as a blend layer: Hue mode for 'hue', Saturation for 'saturation', Color for 'color', Value for 'value', LCh Lightness for 'lightness', Luminance for 'luminance', LCh Hue / LCh Color for 'lch-hue' / 'lch-color', LCh Chroma for 'lch-chroma', and Lighten to recombine the red/green/blue channel layers. Encoding formulas are calibrated by identity round-trip against GIMP 3 blend modes."),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Component",
+    "gimp:menu-path",  "<Image>/SuperMrWang/Component",
     "gimp:menu-label", _("Gray To Component"),
     NULL);
 }

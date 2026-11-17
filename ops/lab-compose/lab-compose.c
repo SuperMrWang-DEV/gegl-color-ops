@@ -134,7 +134,7 @@ gegl_op_class_init (GeglOpClass *klass)
     "categories",      "color",
     "description",     _("Turn the data image (R=a, G=b, B=L) back into "
                          "real Lab colour"),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Component",
+    "gimp:menu-path",  "<Image>/SuperMrWang/Component",
     "gimp:menu-label", _("Lab Compose"),
     NULL);
 }

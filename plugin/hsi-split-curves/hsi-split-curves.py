@@ -11,7 +11,7 @@
            Curve HSI itself, by computing all three components in one data
            image (GIMP has no HSI component blend modes).
 
- menu      颜色 → SuperMrWang → Shortcut → HSI Split (Curves) · single
+ menu      SuperMrWang → Shortcut → HSI Split (Curves) · single
            图层右键 → SuperMrWang → Shortcut → HSI Split (Curves) · single
 
  usage     选中一个栅格图层 → 菜单项。生成的结构（自上而下）：
@@ -304,7 +304,7 @@ class HsiSplitPlugin(Gimp.PlugIn):
         procedure.set_attribution("SuperMrWang", "SuperMrWang", "2026")
 
         procedure.set_menu_label(_("HSI Split (Curves) · single"))
-        procedure.add_menu_path("<Image>/Colors/SuperMrWang/Shortcut")
+        procedure.add_menu_path("<Image>/SuperMrWang/Shortcut")
         procedure.add_menu_path("<Layers>/SuperMrWang/Shortcut")
 
         procedure.set_documentation(

@@ -352,7 +352,7 @@ static void gegl_op_class_init (GeglOpClass *klass)
     "categories",      "color",
     "description",     _("Natural saturation in LAB: chroma-driven hyperbola mask plus "
                          "skin-hue protection, gamut-limited so hue and lightness never shift"),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Color",
+    "gimp:menu-path",  "<Image>/SuperMrWang/Color",
     "gimp:menu-label", _("Natural Saturation"),
     NULL);
 }

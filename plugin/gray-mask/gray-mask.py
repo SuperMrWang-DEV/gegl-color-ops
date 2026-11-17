@@ -9,7 +9,7 @@
            （lb:color-mask-select 等）输出的黑白层可以直接接管后续流程。
            Turn a grayscale layer into a selection or a new alpha channel in
            one click; natively this takes mask + mask-to-selection + save.
- menu      选择 → SuperMrWang → Grayscale Layer to Selection / to Channel
+ menu      SuperMrWang → Convert → Grayscale Layer to Selection / to Channel
  usage     选中黑白图层后点击菜单；批处理用注册参数（operation 0..3、
            invert、name）。核心逻辑在模块级函数里，tools/check_gray_mask.py
            直接调用它们做回归。
@@ -164,7 +164,7 @@ class GrayMaskPlugin(Gimp.PlugIn):
                 _("One-click 'grayscale layer -> selection' (mask-copy + "
                   "mask-to-selection fused)."), name)
             procedure.set_menu_label(_("Grayscale Layer to Selection"))
-            procedure.add_menu_path("<Image>/Select/SuperMrWang")
+            procedure.add_menu_path("<Image>/SuperMrWang/Convert")
             procedure.add_int_argument(
                 "operation", _("Combine"),
                 _("0 Replace, 1 Add, 2 Subtract, 3 Intersect"),
@@ -179,7 +179,7 @@ class GrayMaskPlugin(Gimp.PlugIn):
                   "grayscale content into a new alpha channel"),
                 _("One-click 'grayscale layer -> channel'."), name)
             procedure.set_menu_label(_("Grayscale Layer to Channel"))
-            procedure.add_menu_path("<Image>/Select/SuperMrWang")
+            procedure.add_menu_path("<Image>/SuperMrWang/Convert")
             procedure.add_boolean_argument(
                 "invert", _("Invert"), _("Invert the channel content"),
                 False, GObject.ParamFlags.READWRITE)

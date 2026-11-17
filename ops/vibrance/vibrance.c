@@ -430,7 +430,7 @@ gegl_op_class_init (GeglOpClass *klass)
     "description",     _("the classic editor's Vibrance, matched by measurement: "
                          "dS = A(v)·S^p·(1-S)^q with tabulated red-band and "
                          "lightness terms, gamut-safe by construction"),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Color",
+    "gimp:menu-path",  "<Image>/SuperMrWang/Color",
     "gimp:menu-label", _("Vibrance"),
     NULL);
 }

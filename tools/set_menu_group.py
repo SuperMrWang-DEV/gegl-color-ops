@@ -10,7 +10,11 @@ XCF 里已经用过的滤镜照旧能打开，变的只是菜单位置。
     python tools/set_menu_group.py            # 写入
     python tools/set_menu_group.py --check    # 只报告现状，不写
 
-分组调整就在 GROU经典图像编辑器 里挪名字，然后 ./build.sh + 重启 GIMP。
+分组调整就在 GROUPS 里挪名字，然后 ./build.sh + 重启 GIMP。
+
+BASE 是菜单根：写成 `<Image>/SuperMrWang` 会在菜单栏建一个和「颜色」「图层」
+平级的顶层菜单；旧值 `<Image>/Colors/SuperMrWang` 是挂在「颜色」下面。
+PATTERN 同时认这两种，所以来回改都能一次刷干净。
 """
 
 import os
@@ -21,7 +25,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 OPS = os.path.join(ROOT, "ops")
 
-BASE = "<Image>/Colors/SuperMrWang"
+BASE = "<Image>/SuperMrWang"
 
 # 按「找算子时的念头」分组；组名会出现在 GIMP 的子菜单里。
 # Levels 与 Component 是一级目录（各自的家族全在自己名下），其余四组平铺。
@@ -44,8 +48,8 @@ GROUPS = {
     "Mask":  ["color-mask-select", "channel-range-to-alpha"],
 }
 
-# 匹配已有的 menu-path 值（带或不带分组后缀）
-PATTERN = re.compile(rb'<Image>/Colors/SuperMrWang(?:/[A-Za-z]+)?')
+# 匹配已有的 menu-path 值（带或不带 /Colors 前缀、带或不带分组后缀）
+PATTERN = re.compile(rb'<Image>/(?:Colors/)?SuperMrWang(?:/[A-Za-z]+)?')
 
 
 def group_of(op_dir):

@@ -491,7 +491,7 @@ gegl_op_class_init (GeglOpClass *klass)
     "description",     _("Apply Image: blend a second image over this one with "
                          "26 blend modes, per-channel targets, mask and opacity. "
                          "Areas the source layer does not cover stay untouched."),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Blend",
+    "gimp:menu-path",  "<Image>/SuperMrWang/Blend",
     "gimp:menu-label", _("Apply Image"),
     NULL);
 }

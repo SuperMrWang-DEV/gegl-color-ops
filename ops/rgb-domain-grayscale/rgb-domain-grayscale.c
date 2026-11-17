@@ -331,7 +331,7 @@ gegl_op_class_init (GeglOpClass *klass)
     "title",           _("Black & White"),
     "description",     _("the classic editor Black & White: six color weights (red/yellow/green/cyan/blue/magenta) "
                          "in RGB domain, optional tint"),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Tone",
+    "gimp:menu-path",  "<Image>/SuperMrWang/Tone",
     "gimp:menu-label", _("Black & White"),
     NULL);
 }

@@ -397,7 +397,7 @@ gegl_op_class_init (GeglOpClass *klass)
                                                       "hue family with a soft four-handle range; "
                                                       "chain after Hue/Saturation (Basic) for the "
                                                       "full master + per-family workflow."),
-                                 "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Color",
+                                 "gimp:menu-path",  "<Image>/SuperMrWang/Color",
                                  "gimp:menu-label", _("Hue/Saturation Range"),
                                  NULL);
 }

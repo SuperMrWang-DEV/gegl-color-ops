@@ -112,7 +112,7 @@ gegl_op_class_init (GeglOpClass *klass)
     "categories",      "color",
     "description",     _("Pack HSI saturation, intensity and hue into one "
                          "data image (R=S, G=I, B=H/360) for curve editing"),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Component",
+    "gimp:menu-path",  "<Image>/SuperMrWang/Component",
     "gimp:menu-label", _("HSI Dual Extract"),
     NULL);
 }

@@ -467,7 +467,7 @@ gegl_op_class_init(GeglOpClass *klass)
     "title",           _("Photo Filter"),
     "description",     _("the classic editor's Photo Filter: filter colour multiplied in XYZ space, "
                          "with density and preserve-luminosity"),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Blend",
+    "gimp:menu-path",  "<Image>/SuperMrWang/Blend",
     "gimp:menu-label", _("Photo Filter"),
     NULL);
 }

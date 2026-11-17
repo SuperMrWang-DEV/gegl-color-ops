@@ -402,7 +402,7 @@ gegl_op_class_init (GeglOpClass *klass)
                          "(mean and standard deviation) of another image or "
                          "layer onto this one, with luminance, color "
                          "intensity, fade and neutralize."),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Color",
+    "gimp:menu-path",  "<Image>/SuperMrWang/Color",
     "gimp:menu-label", _("Match Color"),
     NULL);
 }

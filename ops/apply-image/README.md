@@ -1,6 +1,6 @@
 # Apply Image · 应用图像
 
-> `lb:apply-image` · 菜单 **颜色 → SuperMrWang → Blend → Apply Image** · 双输入（input + aux）
+> `lb:apply-image` · 菜单 **SuperMrWang → Blend → Apply Image** · 双输入（input + aux）
 
 对应 经典图像编辑器 的 **图像 → 应用图像**：把一张图（另一个图层 / 另一个文件）当作源，
 按混合模式、不透明度、遮罩压到当前图层上，还可以只作用于某一个通道。

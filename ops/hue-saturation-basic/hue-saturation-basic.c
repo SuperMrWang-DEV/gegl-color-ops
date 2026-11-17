@@ -278,7 +278,7 @@ gegl_op_class_init (GeglOpClass *klass)
                                  "categories",      "color:enhance",
                                  "description",     _("Hue rotation, relative saturation scaling "
                                                       "and lightness blended toward white/black."),
-                                 "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Color",
+                                 "gimp:menu-path",  "<Image>/SuperMrWang/Color",
                                  "gimp:menu-label", _("Hue/Saturation (Basic)"),
                                  NULL);
 }

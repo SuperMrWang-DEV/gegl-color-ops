@@ -124,7 +124,7 @@ gegl_op_class_init (GeglOpClass *klass)
     "categories",      "color",
     "description",     _("Pack Lab a, b and lightness into one data image "
                          "(R=a, G=b, B=L) for curve editing"),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Component",
+    "gimp:menu-path",  "<Image>/SuperMrWang/Component",
     "gimp:menu-label", _("Lab Dual Extract"),
     NULL);
 }

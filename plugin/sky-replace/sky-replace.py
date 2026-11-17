@@ -15,7 +15,7 @@
               等蒙版算子精修后再重来（蒙版不会被本插件覆盖，手工改通道
               后用 选择→SuperMrWang→Grayscale Layer to Selection 或
               通道→选区 即可重新合成）。
- menu      图层 → SuperMrWang → Sky Replace
+ menu      SuperMrWang → Blend → Sky Replace
  usage     对话框参数：sky-file、threshold（采样阈值 0..0.5）、edge
            （正=收缩 px，负=扩张）、feather（羽化半径）、
            match-brightness、save-mask-channel。核心逻辑在模块级函数
@@ -191,7 +191,7 @@ class SkyReplacePlugin(Gimp.PlugIn):
                                        Gimp.ProcedureSensitivityMask.DRAWABLES)
         procedure.set_attribution("SuperMrWang", "SuperMrWang", "2026")
         procedure.set_menu_label(_("Sky Replace"))
-        procedure.add_menu_path("<Image>/Layer/SuperMrWang")
+        procedure.add_menu_path("<Image>/SuperMrWang/Blend")
         procedure.set_documentation(
             _("Sky Replace: flood-select the sky from the top edge, insert a "
               "sky image below the photo layer and mask it with the selection"),

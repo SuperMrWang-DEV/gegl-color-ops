@@ -1,6 +1,6 @@
 # Calculations · 计算
 
-> `lb:calculations` · 菜单 **颜色 → SuperMrWang → Blend → Calculations** · 双输入（input + aux）
+> `lb:calculations` · 菜单 **SuperMrWang → Blend → Calculations** · 双输入（input + aux）
 
 对应 经典图像编辑器 的 **图像 → 计算**：从两路各取一个通道（可以各自反相），按混合模式
 算出灰度结果，输出成灰蒙版或 alpha 蒙版。
@@ -136,7 +136,7 @@ python tools/check_blend.py     # 含 9 个计算用例：叠底出灰、反相�
 ## 选区：范围与结果 / Selection: range and result
 
 GEGL 算子跑在像素上、拿不到选区，所以这两项只存在于 Python 插件版
-（`lb-plugin-calculations`，**颜色 → SuperMrWang → Calculations**）：
+（`lb-plugin-calculations`，**SuperMrWang → Calculations**）：
 
 | 插件选项 | PDB 参数 | 行为 |
 |---|---|---|

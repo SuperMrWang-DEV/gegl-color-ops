@@ -192,7 +192,7 @@ gegl_op_class_init (GeglOpClass *klass)
     "title",           _("CMYK Levels"),
     "categories",      "color",
     "description",     _("Independent levels adjustment for C, M, Y and K inks (babl separation, not ICC)"),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Levels",
+    "gimp:menu-path",  "<Image>/SuperMrWang/Levels",
     "gimp:menu-label", _("CMYK Levels"),
     NULL);
 }

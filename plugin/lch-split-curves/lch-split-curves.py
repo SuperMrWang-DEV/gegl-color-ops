@@ -17,8 +17,8 @@
            Curve CIE LCh itself in two modes: one packed data layer, or the
            three component layers on GIMP's native LCh blend modes.
 
- menu      颜色 → SuperMrWang → Shortcut → LCh Split (Curves) · single
-           颜色 → SuperMrWang → Shortcut → LCh Split (Curves) · multi
+ menu      SuperMrWang → Shortcut → LCh Split (Curves) · single
+           SuperMrWang → Shortcut → LCh Split (Curves) · multi
           图层右键 → SuperMrWang → Shortcut → 同上两条
           （single 与 multi 是两个独立的过程，不再是对话框里的下拉）
 
@@ -707,7 +707,7 @@ class LchSplitPlugin(Gimp.PlugIn):
         multi = name.endswith('-multi')
         procedure.set_menu_label(
             _("LCh Split (Curves) · %s") % ('multi' if multi else 'single'))
-        procedure.add_menu_path("<Image>/Colors/SuperMrWang/Shortcut")
+        procedure.add_menu_path("<Image>/SuperMrWang/Shortcut")
         procedure.add_menu_path("<Layers>/SuperMrWang/Shortcut")
 
         if multi:

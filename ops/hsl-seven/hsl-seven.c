@@ -428,7 +428,7 @@ gegl_op_class_init(GeglOpClass *klass)
     "name",            "lb:hsl-seven",
     "title",           _("HSL 8 Bands"),
     "description",     _("Red Orange Yellow Green Cyan Blue Purple Magenta independent Hue/Sat/Lum"),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Color",
+    "gimp:menu-path",  "<Image>/SuperMrWang/Color",
     "gimp:menu-label", _("HSL 8 Bands"),
     NULL);
 }

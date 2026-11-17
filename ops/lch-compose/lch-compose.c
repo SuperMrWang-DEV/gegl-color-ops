@@ -117,7 +117,7 @@ gegl_op_class_init (GeglOpClass *klass)
     "categories",      "color",
     "description",     _("Turn the data image (R=L/100, G=C/140, B=h/360) "
                          "back into real LCh colour"),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Component",
+    "gimp:menu-path",  "<Image>/SuperMrWang/Component",
     "gimp:menu-label", _("LCh Compose"),
     NULL);
 }

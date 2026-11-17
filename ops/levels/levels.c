@@ -272,7 +272,7 @@ gegl_op_class_init (GeglOpClass *klass)
     "name",            "lb:levels",
     "title",           _("Levels"),
     "description",     _("Replicate the classic editor Levels (composite + per-channel input black/gamma/white and output black/white, 0-255 units). Evaluated in the 8-bit sRGB gamma domain, so the numbers agree with the classic dialog."),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Levels",
+    "gimp:menu-path",  "<Image>/SuperMrWang/Levels",
     "gimp:menu-label", _("Levels"),
     NULL);
 }

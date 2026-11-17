@@ -278,7 +278,7 @@ gegl_op_class_init (GeglOpClass *klass)
     "description",     _("Calculations: blend two channels into a grey or alpha "
                          "mask, 26 blend modes, per-source invert, mask and opacity, "
                          "scale/offset for Add and Subtract."),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Blend",
+    "gimp:menu-path",  "<Image>/SuperMrWang/Blend",
     "gimp:menu-label", _("Calculations"),
     NULL);
 }

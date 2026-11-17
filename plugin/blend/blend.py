@@ -9,7 +9,7 @@
            （lb:apply-image / lb:calculations）做不了的部分。
            Pixel math lives in blend_kernel.py（优先 blend_core.dll 加速，公式
            与 GEGL 算子共用 common/blend.h，两边结果一致）。
- menu      颜色 → SuperMrWang → Apply Image / Calculations
+ menu      SuperMrWang → Blend → Apply Image / Calculations
  usage     交互模式弹自定义对话框；批处理用注册的参数（见 do_create_procedure）。
  license   GPL-3.0-or-later，见工程根目录 LICENSE
  ==========================================================================="""
@@ -760,7 +760,7 @@ class PsBlend(Gimp.PlugIn):
                   "this one, per channel, with mask and opacity"),
                 _("Replicates 经典图像编辑器 Image > Apply Image."), name)
             procedure.set_menu_label(_("Apply Image..."))
-            procedure.add_menu_path("<Image>/Colors/SuperMrWang")
+            procedure.add_menu_path("<Image>/SuperMrWang/Blend")
 
             procedure.add_int_argument("blend", _("Blend mode"),
                                        _("0 = Normal .. 25 = Luminosity (PS order)"),
@@ -816,7 +816,7 @@ class PsBlend(Gimp.PlugIn):
                   "into a selection, channel, grey layer or layer alpha"),
                 _("Replicates 经典图像编辑器 Image > Calculations."), name)
             procedure.set_menu_label(_("Calculations..."))
-            procedure.add_menu_path("<Image>/Colors/SuperMrWang")
+            procedure.add_menu_path("<Image>/SuperMrWang/Blend")
 
             # Source 1 / Source 2 各一套：通道、反相、图像、图层
             # Source 1 / Source 2 each get channel, invert, image and layer

@@ -328,7 +328,7 @@ gegl_op_class_init(GeglOpClass *klass)
     "name",            "lb:color-grading",
     "title",           _("Color Grading"),
     "description",     _("Shadows Midtones Highlights Global color wheels with Luminance, Blending and Balance"),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Color",
+    "gimp:menu-path",  "<Image>/SuperMrWang/Color",
     "gimp:menu-label", _("Color Grading"),
     NULL);
 }

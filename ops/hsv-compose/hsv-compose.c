@@ -114,7 +114,7 @@ gegl_op_class_init (GeglOpClass *klass)
     "categories",      "color",
     "description",     _("Turn the data image (R=S, G=V, B=H/360) back into "
                          "real HSV colour"),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Component",
+    "gimp:menu-path",  "<Image>/SuperMrWang/Component",
     "gimp:menu-label", _("HSV Compose"),
     NULL);
 }

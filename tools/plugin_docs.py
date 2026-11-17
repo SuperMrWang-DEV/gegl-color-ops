@@ -14,7 +14,7 @@ PAGES = [
         count='图层 → 选区',
         menu='图层右键 → SuperMrWang → Layer to Selection',
         menus=['图层右键 → SuperMrWang → Layer to Selection',
-               '选择 → SuperMrWang → Layer to Selection'],
+               'SuperMrWang → Convert → Layer to Selection'],
         pdb='lb-plugin-layer-to-selection(\n    image, drawables, channel, invert, operation)',
         lede="""右键点一个图层，就把它转成当前选区。GEGL 算子跑完往往留下一张灰度图，
        它往后的用途多半是当蒙版——原生流程要点四步（复制 → 建通道 → 粘贴 →
@@ -65,7 +65,7 @@ PAGES = [
         count='图层 → 通道',
         menu='图层右键 → SuperMrWang → Layer to Channel',
         menus=['图层右键 → SuperMrWang → Layer to Channel',
-               '选择 → SuperMrWang → Layer to Channel'],
+               'SuperMrWang → Convert → Layer to Channel'],
         pdb='lb-plugin-layer-to-channel(\n    image, drawables, invert, name)',
         lede="""右键点一个图层，就把它变成一条新的 Alpha 通道，留档复用。恒为灰度：
        黑 = 不选中、白 = 完全选中、中间灰 = 部分选中。想拿它当蒙版，就在通道
@@ -116,9 +116,9 @@ PAGES = [
         title='HSV Split (Curves)',
         tag=('曲线', 't-color'),
         count='H / S / V',
-        menu='颜色 → SuperMrWang → Shortcut → HSV Split (Curves) · single',
-        menus=['颜色 → SuperMrWang → Shortcut → HSV Split (Curves) · single',
-               '颜色 → SuperMrWang → Shortcut → HSV Split (Curves) · multi',
+        menu='SuperMrWang → Shortcut → HSV Split (Curves) · single',
+        menus=['SuperMrWang → Shortcut → HSV Split (Curves) · single',
+               'SuperMrWang → Shortcut → HSV Split (Curves) · multi',
                '图层右键 → SuperMrWang → Shortcut → 同上两条'],
         pdb='lb-plugin-hsv-split-curves(image, drawables, group)\n'
             'lb-plugin-hsv-split-curves-multi(image, drawables, group)',
@@ -179,9 +179,9 @@ multi    HSV split            组 · 穿透（带 alpha 时组上还有蒙版）
         title='LCh Split (Curves)',
         tag=('曲线', 't-blend'),
         count='L / C / h',
-        menu='颜色 → SuperMrWang → Shortcut → LCh Split (Curves) · single',
-        menus=['颜色 → SuperMrWang → Shortcut → LCh Split (Curves) · single',
-               '颜色 → SuperMrWang → Shortcut → LCh Split (Curves) · multi',
+        menu='SuperMrWang → Shortcut → LCh Split (Curves) · single',
+        menus=['SuperMrWang → Shortcut → LCh Split (Curves) · single',
+               'SuperMrWang → Shortcut → LCh Split (Curves) · multi',
                '图层右键 → SuperMrWang → Shortcut → 同上两条'],
         pdb='lb-plugin-lch-split-curves(image, drawables, group)\n'
             'lb-plugin-lch-split-curves-multi(image, drawables, group)',
@@ -235,9 +235,9 @@ multi    LCh split            组 · 穿透（带 alpha 时组上还有蒙版）
         title='HSL Split (Curves)',
         tag=('曲线', 't-color'),
         count='H / S / L',
-        menu='颜色 → SuperMrWang → Shortcut → HSL Split (Curves) · single',
-        menus=['颜色 → SuperMrWang → Shortcut → HSL Split (Curves) · single',
-               '颜色 → SuperMrWang → Shortcut → HSL Split (Curves) · multi',
+        menu='SuperMrWang → Shortcut → HSL Split (Curves) · single',
+        menus=['SuperMrWang → Shortcut → HSL Split (Curves) · single',
+               'SuperMrWang → Shortcut → HSL Split (Curves) · multi',
                '图层右键 → SuperMrWang → Shortcut → 同上两条'],
         pdb='lb-plugin-hsl-split-curves(image, drawables, group)\n'
             'lb-plugin-hsl-split-curves-multi(image, drawables, group)',
@@ -290,9 +290,9 @@ multi    HSL split            组 · 穿透（带 alpha 时组上还有蒙版）
         title='Lab Split (Curves)',
         tag=('曲线', 't-blend'),
         count='L / a / b',
-        menu='颜色 → SuperMrWang → Shortcut → Lab Split (Curves) · single',
-        menus=['颜色 → SuperMrWang → Shortcut → Lab Split (Curves) · single',
-               '颜色 → SuperMrWang → Shortcut → Lab Split (Curves) · multi',
+        menu='SuperMrWang → Shortcut → Lab Split (Curves) · single',
+        menus=['SuperMrWang → Shortcut → Lab Split (Curves) · single',
+               'SuperMrWang → Shortcut → Lab Split (Curves) · multi',
                '图层右键 → SuperMrWang → Shortcut → 同上两条'],
         pdb='lb-plugin-lab-split-curves(image, drawables, group)\n'
             'lb-plugin-lab-split-curves-multi(image, drawables, group)',
@@ -345,8 +345,8 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
         title='HSI Split (Curves)',
         tag=('曲线', 't-color'),
         count='H / S / I',
-        menu='颜色 → SuperMrWang → Shortcut → HSI Split (Curves) · single',
-        menus=['颜色 → SuperMrWang → Shortcut → HSI Split (Curves) · single',
+        menu='SuperMrWang → Shortcut → HSI Split (Curves) · single',
+        menus=['SuperMrWang → Shortcut → HSI Split (Curves) · single',
                '图层右键 → SuperMrWang → Shortcut → HSI Split (Curves) · single'],
         pdb='lb-plugin-hsi-split-curves(image, drawables, group)',
         lede="""HSI 的 I 是 (R+G+B)/3，色相又用余弦定义——GIMP 的六条分量
@@ -390,7 +390,7 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
         title='高低频磨皮',
         tag=('磨皮', 't-tone'),
         count='一键',
-        menu='颜色 → SuperMrWang → Shortcut → 高低频磨皮',
+        menu='SuperMrWang → Shortcut → 高低频磨皮',
         pdb='lb-plugin-frequency-separation(image, drawables, radius, group)',
         lede="""把一张脸拆成<b>影调</b>与<b>细节</b>两层：低频管大块明暗与肤色过渡，高频管毛孔、痘印、细纹。调低频等于重新铺光，调高频等于控制质感，两者互不干扰——这是影楼修图里最老也最稳的一套结构。""",
         body="""  <div class="dl-grid">
@@ -446,7 +446,7 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
         title='双曲线磨皮',
         tag=('磨皮', 't-tone'),
         count='一键',
-        menu='颜色 → SuperMrWang → Shortcut → 双曲线磨皮',
+        menu='SuperMrWang → Shortcut → 双曲线磨皮',
         pdb='lb-plugin-dodge-burn(image, drawables, amount, group)',
         lede="""提亮一条曲线、压暗一条曲线，各自压在一张全黑蒙版下。涂到哪里，哪里才变亮或变暗——没涂的地方与原图逐像素相同，所以可以反复叠加、随时反悔。""",
         body="""  <div class="dl-grid">
@@ -500,7 +500,7 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
         title='中性灰磨皮',
         tag=('磨皮', 't-tone'),
         count='一键',
-        menu='颜色 → SuperMrWang → Shortcut → 中性灰磨皮',
+        menu='SuperMrWang → Shortcut → 中性灰磨皮',
         pdb='lb-plugin-neutral-grey(image, drawables, group)',
         lede="""一张 50% 灰的柔光层，柔光在 0.5 处是恒等映射——刚建好时与原图逐像素相同。之后白色画笔提亮、黑色画笔压暗，原图像素一个都没动，整层删掉就能回到起点。""",
         body="""  <div class="dl-grid">
@@ -554,8 +554,8 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
         tag=('蒙版', 't-mask'),
         count='α',
         area='Mask',
-        menu='颜色 → SuperMrWang → Mask → Alpha Curves',
-        menus=['颜色 → SuperMrWang → Mask → Alpha Curves',
+        menu='SuperMrWang → Mask → Alpha Curves',
+        menus=['SuperMrWang → Mask → Alpha Curves',
                '图层右键 → SuperMrWang → Shortcut → Alpha Curves'],
         pdb='lb-plugin-alpha-curves(image, drawables, channel, shape)',
         lede="""GIMP 的曲线工具本来就有 Alpha 通道，但那条曲线只能调「已经存在的
@@ -660,7 +660,7 @@ for _p in PAGES:
     _p["deps"] = DEPS.get(_p["key"], [])
     if "menus" not in _p:
         _name = _p["menu"].split("→")[-1].strip()
-        _p["menus"] = ["颜色 → SuperMrWang → Shortcut → " + _name,
+        _p["menus"] = ["SuperMrWang → Shortcut → " + _name,
                        "图层右键 → SuperMrWang → Shortcut → " + _name]
     _p["deps_note"] = DEPS_NOTE.get(
         _p["key"], "靠下面这些算子干活。<b>它们已经打进这个插件的下载包</b>"

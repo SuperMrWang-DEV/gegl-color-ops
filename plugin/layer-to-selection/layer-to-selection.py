@@ -12,7 +12,7 @@
            from the layer context menu.
 
  menu      图层右键 → SuperMrWang → Layer to Selection
-           也挂在 选择 → SuperMrWang 下，方便不用鼠标右键的场合。
+           也挂在 SuperMrWang → Convert 下，方便不用鼠标右键的场合。
 
  usage     选区可选 Gray（亮度）/ R / G / B / Alpha，四种组合方式
            （替换 / 加 / 减 / 交），可反相。核心逻辑是模块级函数，
@@ -259,7 +259,7 @@ class LayerToSelectionPlugin(Gimp.PlugIn):
         procedure.set_menu_label(_("Layer to Selection"))
         # 两个入口：图层右键菜单（点哪个转哪个）+ 选择菜单
         procedure.add_menu_path("<Layers>/SuperMrWang")
-        procedure.add_menu_path("<Image>/Select/SuperMrWang")
+        procedure.add_menu_path("<Image>/SuperMrWang/Convert")
 
         procedure.set_documentation(
             _("Layer to Selection: turn the clicked layer into the current "

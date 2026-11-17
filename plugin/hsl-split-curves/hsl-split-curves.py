@@ -15,8 +15,8 @@
            Curve HSL itself in two modes: one packed data layer, or the
            Hue + S/L stack that borrows GIMP's HSV hue mode.
 
- menu      颜色 → SuperMrWang → Shortcut → HSL Split (Curves) · single
-           颜色 → SuperMrWang → Shortcut → HSL Split (Curves) · multi
+ menu      SuperMrWang → Shortcut → HSL Split (Curves) · single
+           SuperMrWang → Shortcut → HSL Split (Curves) · multi
           图层右键 → SuperMrWang → Shortcut → 同上两条
           （single 与 multi 是两个独立的过程，不再是对话框里的下拉）
 
@@ -522,7 +522,7 @@ class HslSplitPlugin(Gimp.PlugIn):
         multi = name.endswith('-multi')
         procedure.set_menu_label(
             _("HSL Split (Curves) · %s") % ('multi' if multi else 'single'))
-        procedure.add_menu_path("<Image>/Colors/SuperMrWang/Shortcut")
+        procedure.add_menu_path("<Image>/SuperMrWang/Shortcut")
         procedure.add_menu_path("<Layers>/SuperMrWang/Shortcut")
 
         if multi:

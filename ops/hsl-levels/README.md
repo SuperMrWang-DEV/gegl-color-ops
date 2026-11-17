@@ -1,6 +1,6 @@
 # HSL Levels（lb:hsl-levels）
 
-菜单：`颜色 → SuperMrWang → Levels → HSL Levels`（Filter 类）
+菜单：`SuperMrWang → Levels → HSL Levels`（Filter 类）
 
 ## 概述
 

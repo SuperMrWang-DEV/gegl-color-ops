@@ -11,7 +11,7 @@
            from the layer context menu.
 
  menu      图层右键 → SuperMrWang → Layer to Channel
-           也挂在 选择 → SuperMrWang 下，方便不用鼠标右键的场合。
+           也挂在 SuperMrWang → Convert 下，方便不用鼠标右键的场合。
 
  usage     **恒为灰度**：彩色图层先按亮度（LUMA）转灰度，灰度图层原样，
            再把灰度值写成通道值（黑 = 不选中、白 = 完全选中、中间灰 = 部分
@@ -258,7 +258,7 @@ class LayerToChannelPlugin(Gimp.PlugIn):
         procedure.set_menu_label(_("Layer to Channel"))
         # 两个入口：图层右键菜单（点哪个转哪个）+ 选择菜单
         procedure.add_menu_path("<Layers>/SuperMrWang")
-        procedure.add_menu_path("<Image>/Select/SuperMrWang")
+        procedure.add_menu_path("<Image>/SuperMrWang/Convert")
 
         procedure.set_documentation(
             _("Layer to Channel: turn the clicked layer into a new alpha "

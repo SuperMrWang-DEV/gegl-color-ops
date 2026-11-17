@@ -63,7 +63,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/
 
 #### 方法一：菜单打开（推荐）
 
-菜单路径：`颜色 → SuperMrWang → Mask → Mask by Color`
+菜单路径：`SuperMrWang → Mask → Mask by Color`
 
 #### 方法二：GEGL 操作打开
 

@@ -6,7 +6,7 @@
 [![Operations](https://img.shields.io/badge/operations-37-brightgreen)](#算子清单)
 
 一组自研的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **41 个**，统一 `lb:` 命名空间，
-在 GIMP 里位于 **图像 → 颜色 → SuperMrWang**。算法按公开公式与可观察的行为实现，
+在 GIMP 里收在菜单栏顶层的 **SuperMrWang** 菜单下（和「颜色」「图层」平级）。算法按公开公式与可观察的行为实现，
 不含任何商业软件的代码或素材；文中出现的产品名仅用于说明某个算子参照了哪种行为，
 与各厂商无隶属关系（详见文末「版权与商标」）。
 
@@ -159,7 +159,7 @@ GEGL 算子只接住了像素计算那一半；**输入选择**（任意打开�
 遮罩指向第三张图）和**结果落地**（直接生成选区/新建 Alpha 通道）是插件 API 的
 主场。`plugin/blend` 是一对 Python-Fu 插件，把 经典图像编辑器 对话框完整搬过来：
 
-- `Apply Image` / `Calculations`，位于 **颜色 → SuperMrWang**
+- `Apply Image` / `Calculations`，位于 **SuperMrWang**
 - 源可以是任意打开图像的任意图层；通道含 Gray/R/G/B/Alpha/图层蒙版
 - 混合模式选 加法/减法时多出 **缩放（1.0..2.0）与 补偿值（-255..255）**
   两个输入框，其余模式忽略；GEGL 算子同名参数 `scale`/`offset`
@@ -171,7 +171,7 @@ GEGL 算子只接住了像素计算那一半；**输入选择**（任意打开�
   - **Load result as selection（同时载入为选区）**：结果写成通道/灰度图层/
     图层 alpha 的同时，把同一份灰度也载入为活动选区，一步到位。批处理参数
     `load-selection`。已经存在的灰度图层可以用 gray-mask 插件的
-    **选择 → SuperMrWang → Grayscale Layer to Selection** 事后转
+    **SuperMrWang → Convert → Grayscale Layer to Selection** 事后转
 - 写入通道/灰度图层时会**临时挂起当前选区**（shadow buffer 的合并会遵守选区，
   否则新通道在选区外是黑的），写完后按需恢复旧选区或换成新结果
 - 像素内核 `tools/blend_core.c` 编成 `blend_core.dll` 由 ctypes 调用，公式
@@ -189,7 +189,7 @@ GEGL 算子只接住了像素计算那一半；**输入选择**（任意打开�
 
 **灰度图层 → 选区 / Alpha 通道** 的一键化。原生做法要绕三步
 （加图层蒙版「灰度副本」→ 蒙版至选区 → 存储到通道）；插件把这条链压成
-两个菜单项，位于 **选择 → SuperMrWang**：
+两个菜单项，位于 **SuperMrWang → Convert**：
 
 - `Grayscale Layer to Selection`：活动图层灰度内容 → 当前选区，
   可选组合方式（替换/加/减/交）与反相
@@ -209,7 +209,7 @@ python-fu-eval 里，不要求插件已安装）。
 （复制 → 建通道 → 粘贴 → 蒙版转选区），这个插件一步完成，而且不要求图层是
 「纯灰度」：
 
-- 入口：**图层右键 → SuperMrWang**，也挂在 **选择 → SuperMrWang** 下
+- 入口：**图层右键 → SuperMrWang**，也挂在 **SuperMrWang → Convert** 下
 - `Layer to Selection`：通道可选 **Gray（亮度）/ R / G / B / Alpha**，可选四种
   组合方式（替换/加/减/交）与反相
 - `Layer to Channel`：**恒为灰度**——彩色图层先按亮度转灰度，灰度图层原样，
@@ -240,7 +240,7 @@ R 通道**、**有选区时转通道不被截断**、四种组合方式）。
    `l1=0 / l2=255 / r1=r2=255`，斜坡占满全程，退化成「alpha ← 通道值」；
 2. `2 · Alpha 曲线` —— `gimp:curves`，通道 = Alpha，**一条普通的曲线**。
 
-位置：**颜色 → SuperMrWang → Mask → Alpha Curves**，或图层右键 →
+位置：**SuperMrWang → Mask → Alpha Curves**，或图层右键 →
 SuperMrWang → Shortcut。参数两项：源通道（gray / R / G / B / LAB L·A·B /
 alpha）与初始形状（auto / band 梯形 / identity / soft）。
 
@@ -275,7 +275,7 @@ alpha）与初始形状（auto / band 梯形 / identity / soft）。
 6. 可选存为 `Sky Mask` 通道：对分割不满意时，用 lb:color-mask-select
    等蒙版算子手工精修，再用 gray-mask 插件重新生成选区合成。
 
-菜单位置 **图层 → SuperMrWang → Sky Replace**；批处理参数
+菜单位置 **SuperMrWang → Blend → Sky Replace**；批处理参数
 `sky-file`/`threshold`(0..0.5)/`edge`/`feather`/`match-brightness`/
 `save-mask-channel`。
 
@@ -484,9 +484,9 @@ touch plugin/blend/.disabled        # 停用 Python 插件
 避免一长串：
 
 ```
-图像 → 颜色 → SuperMrWang → Levels    → <算子>   （7 个色阶）
-图像 → 颜色 → SuperMrWang → Component → <算子>   （10 个 dual / compose + 灰度转分量）
-图像 → 颜色 → SuperMrWang → Tone / Color / Blend / Mask → <算子>
+SuperMrWang → Levels    → <算子>   （7 个色阶）
+SuperMrWang → Component → <算子>   （10 个 dual / compose + 灰度转分量）
+SuperMrWang → Tone / Color / Blend / Mask → <算子>
 ```
 
 41 个算子按「找算子时的念头」分六组，避免一个子菜单里平铺二十多项：
@@ -503,7 +503,7 @@ touch plugin/blend/.disabled        # 停用 Python 插件
 对应源码里的两个 class key（每个 `ops/*/*.c` 都有）：
 
 ```c
-"gimp:menu-path",  "<Image>/Colors/SuperMrWang/Tone",
+"gimp:menu-path",  "<Image>/SuperMrWang/Tone",
 "gimp:menu-label", _("界面里显示的名字"),
 ```
 
@@ -515,9 +515,10 @@ python tools/set_menu_group.py --check   # 先看现状与漏网
 python tools/set_menu_group.py           # 写入
 ```
 
-`<Image>` 是图像菜单，`/Colors` 是"颜色"子菜单，`/SuperMrWang` 是自建分组，
-最后一节是组名。GIMP 3 的 `menu-path` 支持多级——内置就有
-`<Image>/Image/Mode/Color Profile`——组不存在时会自动建。
+`<Image>` 是图像菜单，`/SuperMrWang` 是菜单栏顶层的自建菜单（第一级不在内置
+菜单里，GIMP 就新建一个，出现在「滤镜」右边），后面几节是分组名。GIMP 3 的
+`menu-path` 支持多级——内置就有 `<Image>/Image/Mode/Color Profile`——组不存在
+时会自动建。
 
 改 `menu-path` **不影响 op id**：XCF 里已经用过的滤镜照旧能打开，
 只是菜单位置会变，需要重新 `./build.sh` 并重启 GIMP。

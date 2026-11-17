@@ -17,7 +17,7 @@
            put an editable gimp:curves on the alpha channel. Both are
            non-destructive drawable filters.
 
- menu      颜色 → SuperMrWang → Mask → Alpha Curves
+ menu      SuperMrWang → Mask → Alpha Curves
            图层右键 → SuperMrWang → Shortcut → Alpha Curves
 
  usage     选中一个栅格图层 → 菜单项。图层上多出两条滤镜（图层面板可见）：
@@ -224,7 +224,7 @@ class AlphaCurvesPlugin(Gimp.PlugIn):
         procedure.set_attribution("SuperMrWang", "SuperMrWang", "2026")
 
         procedure.set_menu_label(_("Alpha Curves（透明通道曲线）"))
-        procedure.add_menu_path("<Image>/Colors/SuperMrWang/Mask")
+        procedure.add_menu_path("<Image>/SuperMrWang/Mask")
         procedure.add_menu_path("<Layers>/SuperMrWang/Shortcut")
 
         procedure.set_documentation(

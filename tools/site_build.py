@@ -536,7 +536,7 @@ def build_index(ops, stats, version):
     </li>
     <li>
       <h3><span class="l-zh">在菜单里找</span><span class="l-en">Find them in the menu</span></h3>
-      <p><span class="l-zh">滤镜位于 <code>图像 → 颜色 → SuperMrWang</code>：色阶家族收在一级目录
+      <p><span class="l-zh">菜单栏顶层就有 <code>SuperMrWang</code>（和「颜色」「图层」平级）：色阶家族收在一级目录
      <b>Levels</b> 子菜单里（Levels / LAB / HSL / HSB / LCH / CMYK / HSI），
      分量家族的 dual / compose 与 gray-to-component 收在一级目录 <b>Component</b> 里，
      其余按 Tone / Color / Blend / Mask 四组排开；
@@ -545,7 +545,8 @@ def build_index(ops, stats, version):
      CMYK / HSI), the component family (dual / compose pairs and gray-to-component)
      in a top-level <b>Component</b> submenu, and the rest in four groups —
      Tone / Color / Blend / Mask. You can also press <code>/</code> and search by
-     operator name.</span></p>
+     operator name.</span><span class="l-en"> It is a top-level menu of its
+     own in the menu bar, a sibling of <b>Colors</b> and <b>Layer</b>.</span></p>
     </li>
   </ol>
 </section>""".format(files=stats["win_files"])
@@ -1116,7 +1117,7 @@ def build_guide(version, stats):
      <code>bin/</code> 里，Windows 上通常是 <code>C:\\Program Files\\GIMP 3\\bin\\gegl.exe</code>。</p>
 
   <h2 id="use">怎么用</h2>
-  <p>菜单在 <code>图像 → 颜色 → SuperMrWang</code>：色阶家族（Levels / LAB / HSL /
+  <p>菜单栏顶层多了 <code>SuperMrWang</code>（和「颜色」「图层」平级）：色阶家族（Levels / LAB / HSL /
      HSB / LCH / CMYK / HSI Levels）收在 <b>Levels</b> 子菜单里，分量家族
      （HSL / Lab / HSI 的 dual + compose 与 gray-to-component）收在 <b>Component</b>
      子菜单里，分量曲线那几个一键插件收在 <b>Shortcut</b> 子菜单里，其余分
@@ -1239,7 +1240,7 @@ def build_plugin_zips(out_dir):
              src_dir=os.path.join(ROOT, "plugin", "layer-to-selection"),
              py="layer-to-selection.py", menu="Layer to Selection",
              menus="    图层右键 → SuperMrWang → Layer to Selection\n"
-                   "    选择 → SuperMrWang → Layer to Selection",
+                   "    SuperMrWang → Convert → Layer to Selection",
              desc="Layer to Selection：右键任意图层，把它转成当前选区"
                   "（Gray/R/G/B/Alpha、四种组合方式、可反相）。",
              pdb="lb-plugin-layer-to-selection(image, layer, channel, invert, operation)"),
@@ -1248,7 +1249,7 @@ def build_plugin_zips(out_dir):
              src_dir=os.path.join(ROOT, "plugin", "layer-to-channel"),
              py="layer-to-channel.py", menu="Layer to Channel",
              menus="    图层右键 → SuperMrWang → Layer to Channel\n"
-                   "    选择 → SuperMrWang → Layer to Channel",
+                   "    SuperMrWang → Convert → Layer to Channel",
              desc="Layer to Channel：右键任意图层，把它变成一条新的 Alpha 通道"
                   "（恒为灰度：彩色图层先按亮度转灰度，再把灰度值写进通道）。",
              pdb="lb-plugin-layer-to-channel(image, layer, invert, name)"),
@@ -1256,8 +1257,8 @@ def build_plugin_zips(out_dir):
              name="gegl-color-ops-plugin-hsv-split-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "hsv-split-curves"),
              py="hsv-split-curves.py", menu="HSV Split (Curves)",
-             menus="    颜色 → SuperMrWang → Shortcut → HSV Split (Curves) · single\n"
-                   "    颜色 → SuperMrWang → Shortcut → HSV Split (Curves) · multi\n"
+             menus="    SuperMrWang → Shortcut → HSV Split (Curves) · single\n"
+                   "    SuperMrWang → Shortcut → HSV Split (Curves) · multi\n"
                    "    图层右键 → SuperMrWang → Shortcut → 同上两条",
              desc="HSV Split (Curves)：在 HSV 空间里调曲线。一张数据图同时携带"
                   "S、V、H（红=S、绿=V、蓝=H/360），三条曲线各管一个分量，再由"
@@ -1268,8 +1269,8 @@ def build_plugin_zips(out_dir):
              name="gegl-color-ops-plugin-lch-split-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "lch-split-curves"),
              py="lch-split-curves.py", menu="LCh Split (Curves)",
-             menus="    颜色 → SuperMrWang → Shortcut → LCh Split (Curves) · single\n"
-                   "    颜色 → SuperMrWang → Shortcut → LCh Split (Curves) · multi\n"
+             menus="    SuperMrWang → Shortcut → LCh Split (Curves) · single\n"
+                   "    SuperMrWang → Shortcut → LCh Split (Curves) · multi\n"
                    "    图层右键 → SuperMrWang → Shortcut → 同上两条",
              desc="LCh Split (Curves)：在 CIE LCh 里调曲线。一张数据图同时携带"
                   "L*、C*、h（红=L/100、绿=C/140、蓝=h/360），三条曲线各管一个"
@@ -1280,8 +1281,8 @@ def build_plugin_zips(out_dir):
              name="gegl-color-ops-plugin-hsl-split-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "hsl-split-curves"),
              py="hsl-split-curves.py", menu="HSL Split (Curves)",
-             menus="    颜色 → SuperMrWang → Shortcut → HSL Split (Curves) · single\n"
-                   "    颜色 → SuperMrWang → Shortcut → HSL Split (Curves) · multi\n"
+             menus="    SuperMrWang → Shortcut → HSL Split (Curves) · single\n"
+                   "    SuperMrWang → Shortcut → HSL Split (Curves) · multi\n"
                    "    图层右键 → SuperMrWang → Shortcut → 同上两条",
              desc="HSL Split (Curves)：在 HSL 空间里调曲线。GIMP 没有 HSL 分量混合"
                   "模式，插件用 lb:hsl-dual / lb:hsl-compose 把 S、L、H 打包进一张"
@@ -1293,8 +1294,8 @@ def build_plugin_zips(out_dir):
              name="gegl-color-ops-plugin-lab-split-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "lab-split-curves"),
              py="lab-split-curves.py", menu="Lab Split (Curves)",
-             menus="    颜色 → SuperMrWang → Shortcut → Lab Split (Curves) · single\n"
-                   "    颜色 → SuperMrWang → Shortcut → Lab Split (Curves) · multi\n"
+             menus="    SuperMrWang → Shortcut → Lab Split (Curves) · single\n"
+                   "    SuperMrWang → Shortcut → Lab Split (Curves) · multi\n"
                    "    图层右键 → SuperMrWang → Shortcut → 同上两条",
              desc="Lab Split (Curves)：在 CIE Lab 空间里调曲线。一张数据图同时携带"
                   "a、b、L*（红=a、绿=b、蓝=L*/100），三条曲线各管一个分量，再由"
@@ -1305,7 +1306,7 @@ def build_plugin_zips(out_dir):
              name="gegl-color-ops-plugin-hsi-split-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "hsi-split-curves"),
              py="hsi-split-curves.py", menu="HSI Split (Curves)",
-             menus="    颜色 → SuperMrWang → Shortcut → HSI Split (Curves) · single\n"
+             menus="    SuperMrWang → Shortcut → HSI Split (Curves) · single\n"
                    "    图层右键 → SuperMrWang → Shortcut → HSI Split (Curves)",
              desc="HSI Split (Curves)：在 HSI 空间里调曲线。HSI 的 I 是 (R+G+B)/3，"
                   "GIMP 的六条分量模式一条也对不上；插件用 lb:hsi-dual / "
@@ -1316,7 +1317,7 @@ def build_plugin_zips(out_dir):
              name="gegl-color-ops-plugin-frequency-separation.zip",
              src_dir=os.path.join(ROOT, "plugin", "frequency-separation"),
              py="frequency-separation.py", menu="高低频磨皮 (Frequency Separation)",
-             menus="    颜色 → SuperMrWang → Shortcut → 高低频磨皮\n"
+             menus="    SuperMrWang → Shortcut → 高低频磨皮\n"
                    "    图层右键 → SuperMrWang → Shortcut → 高低频磨皮",
              desc="高低频磨皮：一次生成低频（高斯模糊，管影调与颜色）与高频"
                   "（颗粒合并 + 高通，管细节与质感）两层，恒等时合成就是原图。"
@@ -1326,7 +1327,7 @@ def build_plugin_zips(out_dir):
              name="gegl-color-ops-plugin-dodge-burn.zip",
              src_dir=os.path.join(ROOT, "plugin", "dodge-burn"),
              py="dodge-burn.py", menu="双曲线磨皮 (Dodge & Burn)",
-             menus="    颜色 → SuperMrWang → Shortcut → 双曲线磨皮\n"
+             menus="    SuperMrWang → Shortcut → 双曲线磨皮\n"
                    "    图层右键 → SuperMrWang → Shortcut → 双曲线磨皮",
              desc="双曲线磨皮：生成提亮、压暗两条曲线层，蒙版全黑。用白色柔边"
                   "画笔在蒙版上涂抹，涂到哪里就提亮/压暗到哪里，没涂的地方与"
@@ -1336,7 +1337,7 @@ def build_plugin_zips(out_dir):
              name="gegl-color-ops-plugin-neutral-grey.zip",
              src_dir=os.path.join(ROOT, "plugin", "neutral-grey"),
              py="neutral-grey.py", menu="中性灰磨皮 (Neutral Grey)",
-             menus="    颜色 → SuperMrWang → Shortcut → 中性灰磨皮\n"
+             menus="    SuperMrWang → Shortcut → 中性灰磨皮\n"
                    "    图层右键 → SuperMrWang → Shortcut → 中性灰磨皮",
              desc="中性灰磨皮：加一张 50% 灰的柔光层，恒等时与原图逐像素相同。"
                   "白色画笔提亮、黑色画笔压暗，反复涂抹把皮肤推平。",
@@ -1345,7 +1346,7 @@ def build_plugin_zips(out_dir):
              name="gegl-color-ops-plugin-alpha-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "alpha-curves"),
              py="alpha-curves.py", menu="Alpha Curves（透明通道曲线）",
-             menus="    颜色 → SuperMrWang → Mask → Alpha Curves\n"
+             menus="    SuperMrWang → Mask → Alpha Curves\n"
                    "    图层右键 → SuperMrWang → Shortcut → Alpha Curves",
              desc="Alpha Curves：先把选定颜色通道写进 alpha，再接一条可以随便"
                   "画的曲线（gimp:curves，通道 = Alpha）。两条都是非破坏滤镜，"
@@ -1489,8 +1490,8 @@ def build_plugins(version, stats=None):
   <p class="eyebrow"><a href="index.html">首页</a> / Python 插件</p>
   <h1>11 个 Python 插件</h1>
   <p class="lede">免编译的 GIMP 3 插件，装进 <code>plug-ins</code> 目录、重启即用。
-     两处入口：<b>图层右键 → SuperMrWang</b>（十一个都在）与
-     <b>颜色 → SuperMrWang</b>。</p>
+     两处入口：菜单栏顶层的 <b>SuperMrWang</b>（十一个都在），以及
+     <b>图层右键 → SuperMrWang</b>。</p>
   <ul class="facts">
     <li><b>11</b> 个插件</li>
     <li><b>11</b> 个 PDB 过程</li>
@@ -1740,7 +1741,7 @@ def build_zip(stats, out_dir):
     %LOCALAPPDATA%\\gegl-0.4\\plug-ins
 
 然后完全退出 GIMP 再打开。菜单位置：
-    图像 -> 颜色 -> SuperMrWang
+    菜单栏顶层的 SuperMrWang（和「颜色」「图层」平级）
 
 验证是否加载成功（用 GIMP 自带的 gegl）：
     "C:////Program Files////GIMP 3////bin////gegl.exe" --info lb:hsl-levels
@@ -1765,7 +1766,7 @@ GPL-3.0-or-later
  /usr/lib/x86_64-linux-gnu/gegl-0.4，需要 sudo。）
 
 然后完全退出 GIMP 再打开。菜单位置：
-    图像 -> 颜色 -> SuperMrWang
+    菜单栏顶层的 SuperMrWang（和「颜色」「图层」平级）
 
 验证是否加载成功：
     GEGL_PATH="$HOME/.local/share/gegl-0.4/plug-ins" gegl --info lb:hsl-levels

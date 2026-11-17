@@ -333,7 +333,7 @@ static void gegl_op_class_init(GeglOpClass *klass)
         "name",            "lb:channel-range-to-alpha",
         "title",           _("Channel Range to Alpha"),
         "description",     "Adjust opacity based on channel values, supports RGB, Gray and LAB L/A/B, slider 0~255",
-        "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Mask",
+        "gimp:menu-path",  "<Image>/SuperMrWang/Mask",
         "gimp:menu-label", _("Range → Alpha"),
         NULL);
 }

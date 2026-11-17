@@ -255,7 +255,7 @@ gegl_op_class_init(GeglOpClass *klass)
     "name",            "lb:exposure",
     "title",           _("Exposure EV"),
     "description",     _("the classic editor Exposure: EV, offset and gamma. Picks the 8-bit (gamma) formula for integer images and the 32-bit (linear) formula for float images; override with the precision property."),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Tone",
+    "gimp:menu-path",  "<Image>/SuperMrWang/Tone",
     "gimp:menu-label", _("Exposure EV"),
     NULL);
 }

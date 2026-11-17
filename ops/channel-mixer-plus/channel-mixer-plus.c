@@ -290,7 +290,7 @@ gegl_op_class_init (GeglOpClass *klass)
     "name",            "lb:channel-mixer-plus",
     "title",           _("Channel Mixer Plus"),
     "description",     _("Mix RGB channels with independent offsets, classic-style monochrome grayscale mode, no luminosity preservation"),
-    "gimp:menu-path",  "<Image>/Colors/SuperMrWang/Blend",
+    "gimp:menu-path",  "<Image>/SuperMrWang/Blend",
     "gimp:menu-label", _("Channel Mixer Plus"),
     NULL);
 }
