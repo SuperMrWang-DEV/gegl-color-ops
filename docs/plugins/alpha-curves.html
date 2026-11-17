@@ -71,29 +71,37 @@
       <p>第 1 条把选定通道线性写进 alpha：四个滑块拉到 <code>l1=0、l2=255、
          r1=r2=255</code>，斜坡占满全程，映射退化成「alpha ← 通道值」。
          第 2 条就是普通的曲线，输入正好是那个通道值。</p>
-      <p>点开「2 · Alpha 曲线」拖控制点，画成什么就是什么映射——S 形、
-         来回起伏、只压半透明，都行。</p>
+      <p>点开「2 · Alpha 曲线」，初始是<b>三个控制点、一条平顶线</b>：
+         <code>(0, 255)</code>、<code>(128, 255)</code>、<code>(255, 255)</code>。
+         曲线是 <b>SMOOTH（平滑样条）</b>而不是手绘采样——只有三个抓手，往下拖任意
+         一个，整条曲线跟着走，不用在几十个采样点里找位置。往下压一点就是「暗部
+         半透明」，压到底就是「暗部全透明」，画成什么就是什么映射。</p>
+      <p>挂上来的瞬间该通道被推成满不透明；想要「装上去先不动」的样子，把三个点
+         拖回对角（45°）即可。</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>和 Range → Alpha 的关系</h3></div>
       <p><code>lb:channel-range-to-alpha</code> 一步做完两件事：选通道、按四滑块
          的梯形把它乘进 alpha。曲线不能一步做——它看不到「通道是多少」，只能
          作用于 alpha 自己。所以这里拆成两条：先把通道搬进 alpha，再画曲线。</p>
-      <p>反过来，算子的梯形只是曲线的一种形状。用曲线能做的更多：</p>
+      <p>反过来，算子的梯形只是曲线的一种形状。<code>shape</code> 参数给了四个
+         现成起点（都是平滑曲线，挂上去以后随便拖）：</p>
       <ul class="deps">
-        <li>梯形（默认 band）＝ 混合颜色带</li>
-        <li>S 形（smoothstep）＝ 暗部更透、亮部更实</li>
-        <li>恒等（45°）＝ alpha 等于通道值，纯拷贝</li>
-        <li>任意起伏 ＝ 中间某一段透明、别处不透明</li>
+        <li><code>auto</code> / <code>flat</code>（默认）＝ 三点全在顶，alpha 拉满</li>
+        <li><code>band</code> ＝ 混合颜色带：两端收、中间满</li>
+        <li><code>identity</code>（45°）＝ alpha 等于通道值，纯拷贝</li>
+        <li><code>soft</code> ＝ smoothstep：暗部更透、亮部更实</li>
       </ul>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>实测</h3><span class="pill">check_alpha_curves.py</span></div>
-      <p>恒等曲线时 alpha 与所选通道值差 <b>≤ 0.01 码</b>，RGB 一个码都不动；
-         梯形曲线与 <code>lb:channel-range-to-alpha</code> 逐像素一致
-         （<b>0.0005 码</b>）；8 位图 ≤ <b>1 码</b>。</p>
+      <p>恒等曲线时 alpha 与所选通道值差 <b>≤ 1 码</b>，RGB 一个码都不动；
+         默认平顶把 alpha 拉满（最暗处也是 1）；<code>band</code> 与
+         <code>lb:channel-range-to-alpha</code> 的梯形在两端与中段一致（<b>≤ 3 码</b>），
+         最陡的拐角被样条磨圆，最多差 <b>42 码</b>——曲线是软的，算子的是硬拐角。
+         8 位图 ≤ <b>2 码</b>。</p>
       <p>原图半透明时是<b>乘</b>不是替换：<code>alpha = 原 alpha × 曲线(通道值)</code>，
-         与算子一致。回归 32 项。</p>
+         与算子一致。回归 45 项。</p>
     </div>
   </div>
   <p class="note">两条滤镜都在图层上，图层面板里可以逐条关掉、随时改参数，不碰像素。
@@ -107,7 +115,7 @@
     <div class="dl-head"><h3>Alpha Curves</h3><span class="pill">含 1 个模块 · 免编译</span></div>
     <p>包里有一个 <code>.py</code>、1 个算子模块和一份安装说明。<b>算子依赖已经附在里面，不用另外去下。</b><code>.py</code> 进 GIMP 的 <code>plug-ins</code>，模块进 GEGL 的 <code>gegl-0.4/plug-ins</code>——两个目录不一样，包内说明分步写了。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-alpha-curves.zip">下载 Alpha Curves</a>
-    <p class="muted small">58.9 KB · 校验：<code>SHA256 d25bee0e6deab14f5152a644bf0f3654…</code></p>
+    <p class="muted small">59.2 KB · 校验：<code>SHA256 c81904ab28f044b80458e6c27bf6f88c…</code></p>
   </div>
 </section>
 
@@ -131,7 +139,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">d8f03c7</span>
+    <span class="muted">77f226e</span>
   </div>
 </footer>
 </body>

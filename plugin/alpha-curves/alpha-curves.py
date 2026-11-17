@@ -26,9 +26,10 @@
                ├─ 2 · Alpha 曲线          gimp:curves（通道 = Alpha）
                └─ 1 · 通道 → Alpha        lb:channel-range-to-alpha
 
-           默认给一个「混合颜色带」式的梯形：最暗 8% 与最亮 8% 变透明，
-           中间不透明。想改形状就点开「2 · Alpha 曲线」拖控制点——这就是
-           一个普通的曲线，画成什么就是什么映射。
+           默认是一条**平顶**曲线：0 / 128 / 255 三个控制点，输出都在 255。
+           打开滤镜就看见三个抓手，往下拖任意一个就是形状；曲线是 SMOOTH
+           （平滑样条），不是那种几十个采样点的手绘线。想要现成的形状可以用
+           shape 参数选 band / identity / soft。
 
  note      为什么曲线不能一步做完：gimp:curves 的输入只有像素自己，它不知道
            「红通道是多少」，所以曲线只能作用于 alpha（或 R/G/B）。要按颜色
@@ -80,32 +81,39 @@ CHANNELS = [
 
 
 # ---- 曲线形状 / curve shapes ------------------------------------------------
-
-def _trap(x, l1, l2, r1, r2):
-    """区间内 1、两侧线性降到 0——Range → Alpha 的梯形。"""
-    if x < l1 or x > r2:
-        return 0.0
-    if x < l2:
-        return (x - l1) / (l2 - l1)
-    if x <= r1:
-        return 1.0
-    return 1.0 - (x - r1) / (r2 - r1)
-
+#
+# 形状一律用**控制点**表示（坐标 0…1，界面上就是 0…255），挂 SMOOTH 平滑
+# 曲线：点少，打开滤镜就能直接拖。不用 FREE（手绘）——那种曲线是几十个
+# 采样点串出来的，想动某一段得先在一堆点里找准，手没法拖。
+#
+#     flat      0 / 128 / 255 三个点都在顶（默认）
+#     band      两端收到 0、中间满，混合颜色带的样子
+#     identity  45° 直线，alpha 正好等于通道值
+#     soft      smoothstep 的取样点，两端平、中间陡
 
 SHAPES = {
-    # 混合颜色带式的默认形状：掐掉最暗 8% 与最亮 8%
-    'band': lambda t: _trap(t, 0.0, 0.08, 0.92, 1.0),
-    'identity': lambda t: t,
-    # 轻柔的 S 形：两端斜率 0、中间陡——单调，不会把亮部又压回去
-    'soft': lambda t: t * t * (3.0 - 2.0 * t),
+    'flat': ((0.0, 1.0), (0.5, 1.0), (1.0, 1.0)),
+    'band': ((0.0, 0.0), (0.08, 1.0), (0.5, 1.0), (0.92, 1.0), (1.0, 0.0)),
+    'identity': ((0.0, 0.0), (0.5, 0.5), (1.0, 1.0)),
+    'soft': ((0.0, 0.0), (0.25, 0.15625), (0.5, 0.5),
+             (0.75, 0.84375), (1.0, 1.0)),
 }
 
 
 def _shape_for(shape, channel):
-    """auto：按通道挑一个合理的默认形状。"""
-    if shape in SHAPES:
-        return shape
-    return 'identity' if channel == 'alpha' else 'band'
+    """auto（以及任何不认识的值）：三个点都在顶的平顶曲线。
+
+    打开插件先看到一条满不透明的曲线，再往下拖成想要的形状。"""
+    return shape if shape in SHAPES else 'flat'
+
+
+def _point_curve(points):
+    """按控制点造一条平滑曲线（SMOOTH）。"""
+    curve = Gimp.Curve.new()
+    curve.set_curve_type(Gimp.CurveType.SMOOTH)
+    for x, y in points:
+        curve.add_point(float(x), float(y))
+    return curve
 
 
 # ---- 滤镜 / filters ---------------------------------------------------------
@@ -129,17 +137,10 @@ def _add_range_to_alpha(layer, channel):
 
 
 def _add_alpha_curve(layer, shape):
-    """第 2 条：alpha 上的一条可编辑曲线。"""
+    """第 2 条：alpha 上的一条可编辑曲线（平滑，少量控制点）。"""
     filt = Gimp.DrawableFilter.new(layer, CURVE_OP, _("2 · Alpha 曲线"))
     cfg = filt.get_config()
-    curve = Gimp.Curve.new()
-    curve.set_curve_type(Gimp.CurveType.FREE)
-    n = curve.get_n_samples()
-    fn = SHAPES[shape]
-    for i in range(n):
-        t = i / float(n - 1)
-        curve.set_sample(t, max(0.0, min(1.0, fn(t))))
-    cfg.set_property('curve', curve)
+    cfg.set_property('curve', _point_curve(SHAPES[shape]))
     cfg.set_property('channel', Gimp.HistogramChannel.ALPHA)
     cfg.set_property('trc', TRC)
     filt.update()
@@ -195,6 +196,7 @@ def alpha_curves(image, base, channel='gray', shape='auto'):
     try:
         msg = _("Alpha Curves 已挂上：%s。点开「2 · Alpha 曲线」就能拖控制点，"
                 "画成任意映射——恒等时 alpha 正好等于该通道值。"
+                "（初始是平顶：三个点都在 255，往下拖即成形状。）"
                 % (_("两条滤镜（通道 → Alpha，Alpha 曲线）")
                    if channel != 'alpha' else _("一条 Alpha 曲线")))
         Gimp.message(msg)
@@ -243,13 +245,15 @@ class AlphaCurvesPlugin(Gimp.PlugIn):
 
         shape = Gimp.Choice.new()
         shape.add('auto', 0, _("auto（自动）"),
-                  _("源通道不是 alpha 时给「混合颜色带」梯形，是 alpha 时给恒等曲线"))
-        shape.add('band', 1, _("band（梯形）"),
-                  _("最暗 8% 与最亮 8% 变透明，中间不透明"))
-        shape.add('identity', 2, _("identity（恒等）"),
+                  _("平顶曲线：0 / 128 / 255 三个点都在顶，往下拖就是形状"))
+        shape.add('flat', 1, _("flat（平顶）"),
+                  _("三个控制点全在 255：alpha 拉满，之后自己往下拖"))
+        shape.add('band', 2, _("band（混合颜色带）"),
+                  _("两端收到透明、中间不透明，用平滑曲线拐弯"))
+        shape.add('identity', 3, _("identity（恒等）"),
                   _("45° 直线：alpha 正好等于通道值，之后自己拖点"))
-        shape.add('soft', 3, _("soft（S 形）"),
-                  _("smoothstep：两端平、中间陡，单调不减"))
+        shape.add('soft', 4, _("soft（S 形）"),
+                  _("smoothstep 的取样点：两端平、中间陡，单调不减"))
         procedure.add_choice_argument(
             "shape", _("初始曲线"), _("挂上去时曲线的初始形状，之后随便改"),
             shape, 'auto', GObject.ParamFlags.READWRITE)
