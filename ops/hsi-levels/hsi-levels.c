@@ -5,7 +5,7 @@
  * menu       HSI Levels
  * purpose    HSI 三个分量各自设输入 / 输出黑白场与伽马
  *            Independent input/output black-white points and gamma for H, S and I (intensity).
- * algorithm  babl 没有 HSI，自己转：I = (R+G+B)/3，S = 1 − min/I，H 与 HSV 同角度；逆变换用 HSI 的余弦式（不是 HSV 的线性扇区）。H 环形映射，S/I 线性。I 高时逆变换可能出界，按 sRGB 裁到 [0,1]
+ * algorithm  babl 没有 HSI，自己转：I = (R+G+B)/3，S = 1 − min/I，H 用余弦式（等亮度平面里的真实夹角，与 HSV 的参数角最多差 1.117°）；逆变换同样走余弦式，不用 HSV 的线性扇区。H 环形映射，S/I 线性。I 高时逆变换可能出界，按 sRGB 裁到 [0,1]
  *            No HSI model in babl, so it converts here: I = mean(RGB), S = 1 - min/I, hue at HSV's angle; the inverse uses HSI's cosine form, not HSV's linear sectors. Out-of-gamut results clamp to sRGB.
  * type       GeglOperationFilter（需整块区域 / whole-region）
  * reference  Common HSI Levels 工作流：HSI 常见于图像分析（亮度取均值，比 HSV 的 max 更接近感知亮度）

@@ -289,7 +289,10 @@ lb_cl_process (GeglBuffer          *in_buf,
 
 /* ------------------------------------------------------------------ HSI ---
  * babl 只有 HSL / HSV / HCY / Lab / LCh / CMYK，没有 HSI，所以这一套自备。
- * HSI: I = (R+G+B)/3，S = 1 − min/I，H 用与 HSV 同一个色相角（0° 红）。
+ * HSI: I = (R+G+B)/3，S = 1 − min/I，H 用余弦定义（等亮度平面里的真实夹角，
+ * 0° 红）。它和 HSV 的参数角只在 0°/30°/60° 重合，中间最多差 1.117°——两者
+ * 不能互换，所以下面的逆变换必须用余弦式。（实测见 tools/check_hsi_split.py
+ * 的 7b 项。）
  * babl has no HSI model, so the conversion lives here. HSI with I as the mean
  * of the three channels and S as 1 - min/I. */
 
