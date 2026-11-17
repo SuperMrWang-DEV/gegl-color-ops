@@ -454,6 +454,10 @@ h2 { font-size: clamp(22px, 2.5vw, 28px); font-weight: 650; margin-top: 84px; }
   display: grid; gap: 14px;
   grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
 }
+/* 插件页只有四张卡：放宽到四列，避免 3+1 落单 */
+.cards.cards-4 {
+  grid-template-columns: repeat(auto-fit, minmax(232px, 1fr));
+}
 .card {
   position: relative; overflow: hidden;
   display: flex; flex-direction: column;

@@ -3,9 +3,9 @@
 [![GIMP 3](https://img.shields.io/badge/GIMP-3.x-5C5543?logo=gimp&logoColor=white)](https://www.gimp.org/)
 [![GEGL 0.4](https://img.shields.io/badge/GEGL-0.4-2C4C6B)](https://gegl.org/)
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
-[![Operations](https://img.shields.io/badge/operations-29-brightgreen)](#算子清单)
+[![Operations](https://img.shields.io/badge/operations-30-brightgreen)](#算子清单)
 
-一组自研的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **29 个**，统一 `lb:` 命名空间，
+一组自研的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **30 个**，统一 `lb:` 命名空间，
 在 GIMP 里位于 **图像 → 颜色 → SuperMrWang**。算法按公开公式与可观察的行为实现，
 不含任何商业软件的代码或素材；文中出现的产品名仅用于说明某个算子参照了哪种行为，
 与各厂商无隶属关系（详见文末「版权与商标」）。
@@ -94,7 +94,7 @@ gegl-color-ops/
 | `lb:color-temperature-tint` | Color Temperature & Tint | Color Temperature & Tint | Color | Point | 经典图像编辑器 2026「色彩与自然饱和度」里的色温 / 色调：冷↔暖、绿↔洋红，中性灰跟着偏色、黑白不动 |
 | `lb:apply-image` | Apply Image | Apply Image | Blend | Composer | 经典图像编辑器 应用图像：aux 层按 26 种混合模式压到本层，可只作用单通道；加法/减法带 缩放(1..2)/补偿值(±255)；源层没盖到和透明的地方原样输出 |
 | `lb:calculations` | Calculations | Calculations | Blend | Composer | 经典图像编辑器 计算：两路通道混合出灰/alpha 蒙版，双源可各自反相；加法/减法带 缩放(1..2)/补偿值(±255)；源 2 透明处蒙版为 0 |
-| ~~`lb:gray-to-component`~~ | ~~Gray To Component~~ | Gray To Component | Blend | Point | **已废弃（2026-11-15）**：原本是「分量灰度 → 彩色编码 → 混合模式还原」这条三步流程的中间环节。现在每个色彩模式都有自己的分量色阶（`lb:hsl-levels` / `lb:hsb-levels` / `lb:lch-levels` / `lb:cmyk-levels` / `lb:hsi-levels`），直接在原图上按分量调，不再需要分解与重编码。源码与文档保留作存档，`ops/gray-to-component/.disabled` 标记停编译，不进安装包 |
+| `lb:gray-to-component` | Gray To Component | Gray To Component | Blend | Point | 分量灰度 → 彩色编码：把 `component-extract` 出来的灰度层编成「携带该分量」的彩色，混合模式才读得出来。`HSV Split (Curves)` / `LCh Split (Curves)` 插件的最后一步，一个滤镜顶掉原来的三条曲线 |
 
 每个算子的算法说明、参数含义见 `ops/<算子名>/README.md`（原始文档）。
 
@@ -482,7 +482,7 @@ python tools/check_color_grading.py         # 行为验证：颜色分级（恒�
 python tools/check_levels_ps.py             # 与 经典图像编辑器 实测点比对：色阶（含 gamma 方向与指数形式）
 python tools/check_lab_levels.py            # 数值回归：LAB 色阶（gimp-console 跑，21 项）
 python tools/check_match_color.py           # 数值回归：匹配颜色（gimp-console 跑，17 项）
-python tools/check_gray_to_component.py     # （已废弃）灰度转分量，需先删 ops/gray-to-component/.disabled
+python tools/check_gray_to_component.py     # 灰度转分量：九个混合模式的恒等往返，39 条
 python tools/check_xyz_multiply.py --all    # 数值回归：XYZ 正片叠底（36 组白点×叠加色×不透明度）
 python tools/normalize_headers.py           # 预览文件头/命名重排，加 --write 落盘
 python tools/set_menu_group.py --check      # 核对菜分组映射表与 ops 目录是否一一对应

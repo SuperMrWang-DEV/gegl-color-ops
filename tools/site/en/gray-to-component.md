@@ -1,24 +1,15 @@
 ---
 name: Gray to Component
-blurb: Retired. The encoder in the "decompose → grey → re-encode → blend-mode" workflow; component levels now do the job in one step.
+blurb: The encoder behind HSV/LCh Split (Curves): turns a component grey layer into the colour layer a blend mode can read, in one filter instead of three curves.
 ---
-
-> **Retired (2026-11-15).** This operator is no longer compiled or shipped; this page
-> is an archive.
->
-> It filled the missing link in the three-step "channel decompose → grey → re-encode →
-> blend mode" workflow. Every colour model now has its own component levels, so you
-> adjust components directly on the original image in one step:
-> `lb:hsl-levels`, `lb:hsb-levels`, `lb:lch-levels`, `lb:cmyk-levels`,
-> `lb:hsi-levels`.
->
-> The disable marker is `ops/gray-to-component/.disabled` (with the reason); delete it
-> and run `./build.sh` to build it temporarily. The formulas and measurements below
-> are still useful for old project files.
 
 The **encoder** of the channel-grey grading workflow: take a decomposed component
 grey layer and re-encode it into a colour layer "carrying" that component, so GIMP's
 component blend modes can read it back.
+
+It is the last step of the `HSV Split (Curves)` / `LCh Split (Curves)` plugins: one
+filter replaces the old "scale + three `gimp:curves`" stack, so each component layer
+is just **extract → curve → encode**.
 
 ```
 image ──decompose──> component grey layer (H / S / L / C …)
@@ -33,8 +24,26 @@ image ──decompose──> component grey layer (H / S / L / C …)
 Why the step is needed: **a grey pixel has no defined hue or saturation.** Putting a
 decomposed H grey layer into Hue blend mode does nothing — the mode cannot read a hue
 out of grey. It first has to be encoded into a real colour on the wheel. GIMP has the
-decomposition and the blend modes; the middle step was missing, and this operator was
+decomposition and the blend modes; the middle step was missing, and this operator is
 it.
+
+## What the input is
+
+The grey layer's **pixel value is the component value** (`component-extract` output is
+exactly that kind of layer): 0.5 in a `hue` layer means 180°, 0.5 in `lab-l` means
+L* = 50. The operator takes the R channel as g and passes alpha straight through.
+
+`input-space` says which domain those pixel values live in:
+
+| Value | Used for | Stack buffer format |
+|---|---|---|
+| `encoded` (default) | 8/16-bit layers | `R'G'B'A float` |
+| `linear` | 32-bit float linear images | `RGBA float` |
+
+Getting it wrong makes babl insert one extra gamma step and the encoded values come
+out too bright — the old version always declared `YA float` (reading the value as
+linear luminance), which is why round trips were off by 83–255 code values on 8-bit
+images.
 
 ## Mode table (encoding formulas calibrated by identity round trips in hsl-cal)
 
@@ -107,7 +116,7 @@ Three hard, calibrated conclusions (measured in hsl-cal, error in 0–255):
 | `lch-l` | 54 | Fixed lightness for the LCh modes. When the blend mode reads only hue/chroma this value does not reach the result; a middling value keeps it inside the common gamut |
 | `lch-c` | 30 | Fixed chroma for `lch-hue` / `lch-color`. Higher is more vivid; too high leaves sRGB |
 | `lch-h` | 30 | Fixed hue angle for `lch-chroma` (0 = red); likewise does not reach the result |
-| `chroma-scale` | 100 | Full range of `lch-chroma` (how much chroma grey 1.0 means). sRGB blue/magenta reach C ≈ 130; raise it for wide gamut, **but keep it consistent with the decomposition side** |
+| `chroma-scale` | 100 | Full range of `lch-chroma` (how much chroma grey 1.0 means). `component-extract` normalises C to 200 (`lch-c` = C/200), so feed decomposition output with **200**; keep 100 when building grey layers by hand |
 
 ## Typical uses
 
@@ -172,5 +181,5 @@ pins chroma to `lch-c` as well.
   not blocked by `Gimp.DrawableFilter`'s refusal of aux operators), making the whole
   workflow non-destructive.
 - Transparent pixels (alpha ≤ 0) stay transparent.
-- Input `YA float`: an RGBA grey layer is converted to CIE luminance by babl
-  automatically.
+- The input pad is `R'G'B'A float` (or `RGBA float` with `input-space=linear`), the
+  same domain as the upstream buffer, so babl never re-gammas the component value.

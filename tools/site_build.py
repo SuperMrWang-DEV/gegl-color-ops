@@ -1124,25 +1124,50 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
 
 
 def build_plugin_zips(out_dir):
-    """两个 Python 插件各打一个包，与 dll/so 的免编译包同一套路。
+    """每个 Python 插件打一个包，与 dll/so 的免编译包同一套路。
     sky-replace 源码保留但带 .disabled，暂不发布。"""
     specs = [
-        ("gegl-color-ops-plugin-layer-to-selection.zip",
-         os.path.join(ROOT, "plugin", "layer-to-selection"),
-         "layer-to-selection.py", "Layer to Selection",
-         "Layer to Selection：右键任意图层，把它转成当前选区"
-         "（Gray/R/G/B/Alpha、四种组合方式、可反相）。",
-         "lb-plugin-layer-to-selection(image, layer, channel, invert, operation)"),
-        ("gegl-color-ops-plugin-layer-to-channel.zip",
-         os.path.join(ROOT, "plugin", "layer-to-channel"),
-         "layer-to-channel.py", "Layer to Channel",
-         "Layer to Channel：右键任意图层，把它变成一条新的 Alpha 通道"
-         "（恒为灰度：彩色图层先按亮度转灰度，再把灰度值写进通道）。",
-         "lb-plugin-layer-to-channel(image, layer, invert, name)"),
+        dict(key="selection",
+             name="gegl-color-ops-plugin-layer-to-selection.zip",
+             src_dir=os.path.join(ROOT, "plugin", "layer-to-selection"),
+             py="layer-to-selection.py", menu="Layer to Selection",
+             menus="    图层右键 → SuperMrWang → Layer to Selection\n"
+                   "    选择 → SuperMrWang → Layer to Selection",
+             desc="Layer to Selection：右键任意图层，把它转成当前选区"
+                  "（Gray/R/G/B/Alpha、四种组合方式、可反相）。",
+             pdb="lb-plugin-layer-to-selection(image, layer, channel, invert, operation)"),
+        dict(key="channel",
+             name="gegl-color-ops-plugin-layer-to-channel.zip",
+             src_dir=os.path.join(ROOT, "plugin", "layer-to-channel"),
+             py="layer-to-channel.py", menu="Layer to Channel",
+             menus="    图层右键 → SuperMrWang → Layer to Channel\n"
+                   "    选择 → SuperMrWang → Layer to Channel",
+             desc="Layer to Channel：右键任意图层，把它变成一条新的 Alpha 通道"
+                  "（恒为灰度：彩色图层先按亮度转灰度，再把灰度值写进通道）。",
+             pdb="lb-plugin-layer-to-channel(image, layer, invert, name)"),
+        dict(key="hsv",
+             name="gegl-color-ops-plugin-hsv-split-curves.zip",
+             src_dir=os.path.join(ROOT, "plugin", "hsv-split-curves"),
+             py="hsv-split-curves.py", menu="HSV Split (Curves)",
+             menus="    颜色 → SuperMrWang → HSV Split (Curves)\n"
+                   "    图层右键 → SuperMrWang → HSV Split (Curves)",
+             desc="HSV Split (Curves)：把一个图层拆成 H / S / V 三张分量层，每层挂"
+                  "一条可编辑曲线，再用 HSV 色相/饱和度/明度三条混合模式叠回去。"
+                  "恒等曲线时逐位还原原图。",
+             pdb="lb-plugin-hsv-split-curves(image, drawable, group)"),
+        dict(key="lch",
+             name="gegl-color-ops-plugin-lch-split-curves.zip",
+             src_dir=os.path.join(ROOT, "plugin", "lch-split-curves"),
+             py="lch-split-curves.py", menu="LCh Split (Curves)",
+             menus="    颜色 → SuperMrWang → LCh Split (Curves)\n"
+                   "    图层右键 → SuperMrWang → LCh Split (Curves)",
+             desc="LCh Split (Curves)：把一个图层拆成 L / C / h 三张分量层，每层挂"
+                  "一条可编辑曲线，再用 LCh 明度/彩度/色相三条混合模式叠回去。"
+                  "恒等曲线时还原原图。",
+             pdb="lb-plugin-lch-split-curves(image, drawable, group)"),
     ]
     zips = {}
-    for name, src_dir, py, menu, desc, pdb in specs:
-        key = "selection" if "selection" in name else "channel"
+    for sp in specs:
         readme = """gegl-color-ops · {py}（GIMP 3 Python 插件）
 =====================================================
 
@@ -1154,8 +1179,7 @@ def build_plugin_zips(out_dir):
     macOS:    ~/Library/Application Support/GIMP/3.x/plug-ins/
 
 然后完全退出 GIMP 再打开。菜单位置：
-    图层右键 → SuperMrWang → {menu}
-    选择 → SuperMrWang → {menu}
+{menus}
 
 批处理 / 脚本调用（PDB 过程）：
     {pdb}
@@ -1163,13 +1187,14 @@ def build_plugin_zips(out_dir):
 源码与算法说明：{repo}
 
 GPL-3.0-or-later
-""".format(py=py, desc=desc, menu=menu, pdb=pdb, repo=REPO)
-        path = os.path.join(out_dir, name)
+""".format(py=sp["py"], desc=sp["desc"], menus=sp["menus"],
+           pdb=sp["pdb"], repo=REPO)
+        path = os.path.join(out_dir, sp["name"])
         with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
-            _zip_add_file(z, os.path.join(src_dir, py), py)
+            _zip_add_file(z, os.path.join(sp["src_dir"], sp["py"]), sp["py"])
             _zip_add_text(z, "安装说明.txt", readme)
-        zips[key] = {"name": name, "sha": _sha256_file(path),
-                     "kb": round(os.path.getsize(path) / 1024, 1)}
+        zips[sp["key"]] = {"name": sp["name"], "sha": _sha256_file(path),
+                           "kb": round(os.path.getsize(path) / 1024, 1)}
     return zips
 
 
@@ -1191,7 +1216,7 @@ def build_plugins(version, stats=None):
                     sha=d["sha"][:32] + "…")
 
     cards = """
-<div class="cards">
+<div class="cards cards-4">
   <a class="card" href="#layer-to-selection">
     <div class="card-top"><span class="tag t-mask">选区</span><code>layer-to-selection</code></div>
     <h3>Layer to Selection</h3>
@@ -1204,6 +1229,20 @@ def build_plugins(version, stats=None):
     <h3>Layer to Channel</h3>
     <p>右键点哪个图层，就把哪个图层变成一条新的 Alpha 通道——恒为灰度，
        黑 = 不选中、白 = 完全选中。</p>
+    <span class="more">看细节与下载 →</span>
+  </a>
+  <a class="card" href="#hsv-split">
+    <div class="card-top"><span class="tag t-color">曲线</span><code>hsv-split-curves</code></div>
+    <h3>HSV Split (Curves)</h3>
+    <p>拆成 H / S / V 三张分量层，每层一条原生曲线，用 HSV 三条分量模式叠回去。
+       恒等曲线逐位还原——等于在 HSV 里调曲线。</p>
+    <span class="more">看细节与下载 →</span>
+  </a>
+  <a class="card" href="#lch-split">
+    <div class="card-top"><span class="tag t-color">曲线</span><code>lch-split-curves</code></div>
+    <h3>LCh Split (Curves)</h3>
+    <p>同上，但换成 CIE LCh 三个分量（明度 / 彩度 / 色相）——感知均匀，
+       做亮度与彩度分级比 HSV 稳。</p>
     <span class="more">看细节与下载 →</span>
   </a>
 </div>"""
@@ -1245,23 +1284,86 @@ def build_plugins(version, stats=None):
      而不是 HSL 明度的 130——和你在 PS 里按亮度去色的结果一致。
      实现上走临时副本去色（GIMP 3.2 的 LUMA 模式），用完即删，活动图层还原。</p>"""
 
+    split_boxes = """
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>生成的结构</h3><span class="pill">穿透组</span></div>
+      <pre><code>HSV split        组 · 穿透
+  ├─ 1 · Hue        模式 HSV 色相
+  ├─ 2 · Saturation 模式 HSV 饱和度
+  ├─ 3 · Value      模式 HSV 明度
+  └─ 原图层（不动）</code></pre>
+      <p>每层三条滤镜：<code>extract</code>（抽分量）→ <code>curve</code>
+         （<b>你调的那条</b>）→ <code>encode</code>（一个 <code>lb:gray-to-component</code>
+         滤镜，把灰度编码成携带该分量的彩色）。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>为什么是在做曲线</h3></div>
+      <p>恒等曲线时三层合成回来<b>逐位还原</b>原图，所以改一条曲线就等于
+         「在 HSV 空间里曲那一个分量」。GIMP 内置曲线只能选
+         R/G/B/Alpha——H、S、LCh 这些分量它读不到，这正是缺口。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>实测精度</h3></div>
+      <p>32 位浮点与 8 位图的恒等往返都是 <b>0.5 码</b>；真实 512×512 图逐像素
+         比对最大 <b>1 码</b>，仅 0.335% 的通道值有差异。剩下的误差是 8 位量化，
+         编码本身没有查表误差——旧版三条曲线才有 256 点 LUT。</p>
+    </div>
+  </div>"""
+
+    lch_boxes = """
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>量程是标定出来的</h3><span class="pill">D50</span></div>
+      <p><code>component-extract</code> 报的不是原始单位：<code>lab-l</code> = L/100、
+         <code>lch-h</code> = h/360，而 <code>lch-c</code> = <b>C/200</b>（sRGB 内只到
+         0.656）。编码时算子按 <code>chroma-scale = 200</code> 把灰度乘回真实 C*，
+         所以彩度层不用再插一条 scale 曲线——曲线的 0.656 处就是 sRGB 最大彩度
+         （纯蓝 131.21）。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>编码路径的坑</h3></div>
+      <p>色相模式对色相误差极其敏感：ΔH=0.5° 在 C*=90 时就是 9.6 个码值。
+         所以色相编码不用全饱和色轮，而用<b>等 L 等 C 的色相圆</b>
+         （L*=70、C*=39.8）——角度严格线性，插值误差从 0.22° 降到 0.002°。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>实测精度</h3></div>
+      <p>浮点恒等往返 ≤ <b>0.02 码</b>，8 位 ≤ <b>0.5 码</b>，真实照片 512×512
+         最大 <b>0.03 码</b>（超过 1.5 码的像素 <b>0 个</b>）。8 位图会被自动收进组里：
+         不分组时逐层量化会让色相偏到 11 码级。</p>
+    </div>
+  </div>
+  <p class="note"><b>选 LCh 还是 HSV</b>：HSV 的 V/S 是相对量，调 S 会随 V 变；
+     LCh 的 L/C 是感知均匀的绝对量，做亮度、彩度分级更稳。论完整度也是 LCh 更高
+     ——GIMP 的 HSV 组里那个「HSL 颜色」其实混了模型，而 LCh 组 H/C/L/Color 四项
+     齐全，另有一个 Luminance。</p>"""
+
     download = """<section class="download" id="download">
   <h2>下载</h2>
   <div class="dl-grid">
 {sel_box}
 {chn_box}
+{hsv_box}
+{lch_box}
   </div>
   <p class="note">和 <code>.dll</code> / <code>.so</code> 一个思路：免编译、解压即用。
      区别只是 Python 插件放进 <b>GIMP</b> 的用户插件目录
      （<code>%APPDATA%\\GIMP\\3.x\\plug-ins</code> 或
      <code>~/.config/GIMP/3.x/plug-ins</code>），不是 GEGL 的；
-     包里的「安装说明.txt」写得很全。两个都装也行，菜单入口相同。</p>
+     包里的「安装说明.txt」写得很全。四个都装也行，菜单入口各自独立。</p>
 </section>""".format(sel_box=dl_box("selection", "Layer to Selection",
                                     "右键任意图层，把它转成当前选区"
                                     "（Gray/R/G/B/Alpha、四种组合方式、可反相）。"),
                      chn_box=dl_box("channel", "Layer to Channel",
                                     "右键任意图层，把它变成一条新的 Alpha 通道"
-                                    "（恒为灰度，可反相、可自定义通道名）。"))
+                                    "（恒为灰度，可反相、可自定义通道名）。"),
+                     hsv_box=dl_box("hsv", "HSV Split (Curves)",
+                                    "拆成 H / S / V 三张分量层，每层一条原生曲线，"
+                                    "用 HSV 三条分量模式叠回去；恒等曲线逐位还原。"),
+                     lch_box=dl_box("lch", "LCh Split (Curves)",
+                                    "拆成 L / C / h 三张分量层，每层一条原生曲线，"
+                                    "用 LCh 三条分量模式叠回去；恒等曲线还原原图。"))
 
     install = """<section class="steps" id="install">
   <h2>三步装上</h2>
@@ -1277,13 +1379,15 @@ cd gegl-color-ops</code></pre>
          plug-ins 目录（Windows / Linux 通用；带 <code>.disabled</code> 标记的
          插件会跳过）：</p>
       <pre><code>bash install-plugin.sh</code></pre>
-      <p>或者直接用上面下载区的两个 <code>.zip</code>，把 <code>.py</code>
-         解进同一个目录。</p>
+      <p>或者直接用上面下载区的四个 <code>.zip</code>，把 <code>.py</code>
+         解进同一个目录（每个插件一个子目录也行，GIMP 会扫描下去）。</p>
     </li>
     <li>
       <h3>重启 GIMP，找菜单</h3>
-      <p><b>图层右键 → SuperMrWang → Layer to Selection / Layer to Channel</b>，
-         另有一份挂在 <b>选择 → SuperMrWang</b> 下（不依赖右键、方便写脚本）。</p>
+      <p><b>颜色 → SuperMrWang</b> 下是 HSV / LCh Split (Curves)；
+         <b>图层右键 → SuperMrWang</b> 下四个都在；
+         <b>选择 → SuperMrWang</b> 下是 Layer to Selection / Channel
+         （不依赖右键、方便写脚本）。</p>
     </li>
   </ol>
 </section>""".format(repo=REPO)
@@ -1297,25 +1401,32 @@ cd gegl-color-ops</code></pre>
     <tr><td><code>lb-plugin-layer-to-channel</code></td>
         <td><code>invert</code> / <code>name</code></td>
         <td>图层 → 灰度 Alpha 通道</td></tr>
+    <tr><td><code>lb-plugin-hsv-split-curves</code></td>
+        <td><code>group</code></td>
+        <td>图层 → H/S/V 三层分量曲线</td></tr>
+    <tr><td><code>lb-plugin-lch-split-curves</code></td>
+        <td><code>group</code></td>
+        <td>图层 → L/C/h 三层分量曲线</td></tr>
   </tbody>
 </table></div>"""
 
     body = """<section class="page-head">
   <p class="eyebrow"><a href="index.html">首页</a> / Python 插件</p>
-  <h1>两个一键转换插件</h1>
-  <p class="lede">GEGL 算子（计算、色彩范围、通道区间到 alpha……）的产出常常是一张
-     <b>灰度图</b>——它本身就是一张蒙版。原生流程要把它变成能用的东西得四步
-     （复制图层 → 新建通道 → 粘贴 → 蒙版转选区），这两个插件把它压成
-     <b>一次右键</b>，而且不要求图层是「纯灰度」。</p>
+  <h1>四个 Python 插件</h1>
+  <p class="lede">两件事原生 GIMP 做不顺：<b>灰度图变不成能用的东西</b>（复制图层 →
+     新建通道 → 粘贴 → 蒙版转选区，四步），以及<b>曲线选不到分量</b>（只有
+     R/G/B/Alpha，没有 H、S、LCh）。前两个插件把转换压成一次右键，后两个把图层
+     拆成三张分量层各挂一条原生曲线，恒等时逐位还原——所以调曲线就等于在那个
+     色彩空间里调那一维。</p>
   <div class="cta">
     <a class="btn primary" href="#download">下载插件包</a>
     <a class="btn" href="#install">三步装上</a>
     <a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/tree/main/plugin">看插件源码</a>
   </div>
   <ul class="facts">
-    <li><b>2</b> 个插件</li>
-    <li><b>2</b> 个 PDB 过程</li>
-    <li><b>23</b> 条回归断言</li>
+    <li><b>4</b> 个插件</li>
+    <li><b>4</b> 个 PDB 过程</li>
+    <li><b>74</b> 条回归断言</li>
     <li><b>0</b> 编译 · 纯 Python</li>
   </ul>
 </section>
@@ -1338,28 +1449,57 @@ cd gegl-color-ops</code></pre>
 {chn_boxes}
   </section>
 
+  <section class="group" id="hsv-split">
+    <h3 class="group-title"><span class="tag t-color">曲线</span>
+      <span class="group-en">HSV Split</span><span class="count">H / S / V</span></h3>
+    <p class="group-desc">GIMP 的曲线只能选 R / G / B / Alpha——想单独曲「色相」或
+       「饱和度」没有入口。这个插件把图层拆成三张分量层、每层给一条曲线，
+       再按 HSV 分量模式叠回去：恒等时逐位还原，所以改曲线就等于曲那个分量。</p>
+{split_boxes}
+  </section>
+
+  <section class="group" id="lch-split">
+    <h3 class="group-title"><span class="tag t-blend">曲线</span>
+      <span class="group-en">LCh Split</span><span class="count">L / C / h</span></h3>
+    <p class="group-desc">同样的思路换到 CIE LCh：明度、彩度、色相三条曲线。
+       LCh 是「颜色」组里唯一完整、且没有 legacy 包袱的一组分量模式，
+       感知均匀，做明暗与彩度分级比 HSV 稳。</p>
+{lch_boxes}
+  </section>
+
 {download}
 
 {install}
 
   <h2 id="script">脚本调用</h2>
-  <p>两个动作都是标准 PDB 过程，脚本里直接调（参数留空走默认值）：</p>
+  <p>四个动作都是标准 PDB 过程，脚本里直接调（参数留空走默认值）：</p>
 {pdb_table}
-  <p class="note">实现：直接读图层像素（array 的 C 级切片，100 万像素约 4 毫秒），
+  <p class="note">实现：转换类直接读图层像素（array 的 C 级切片，100 万像素约 4 毫秒），
      不走复制粘贴；灰度内容走零拷贝快路径，彩色图层才临时复制一份做去色。
      有活动选区时写通道会先把选区挂起再恢复——GIMP 的 shadow 合并遵守选区，
      不挂起的话通道会被截成选区那一块。图层组没有自己的像素，会明确报错提示
      先合并组。与 <code>plugin/gray-mask</code> 的分工：gray-mask 走复制/粘贴，
-     会带上图层蒙版等<b>显示效果</b>；这两个插件读<b>原始像素</b>、更快。</p>
+     会带上图层蒙版等<b>显示效果</b>；这两个插件读<b>原始像素</b>、更快。
+     分量曲线类用 <code>gegl:component-extract</code> 抽分量、
+     <code>gimp:curves</code> 当可调曲线，编码交给本仓库的
+     <code>lb:gray-to-component</code>——没装这个算子时自动退回三条曲线，
+     所以只装 Python 插件也能跑。</p>
   <h2 id="tests">回归</h2>
   <p><code>tools/check_layer_to_mask.py</code>，23 条断言跑在 gimp-console 的
      python-fu-eval 里：灰度值、反相、偏移图层、彩色亮度、四个单通道、
      通道值/名字/反相、彩色转通道=亮度、选区不被截断、四种组合方式。</p>
+  <p>分量曲线另有两个脚本：<code>check_hsv_split.py</code>（19 条）与
+     <code>check_lch_split.py</code>（32 条）——结构、滤镜栈顺序、浮点与 8 位
+     恒等往返、曲线与直接改分量的数学期望对照、alpha 穿透、不分组、非法输入、
+     编码路径量程。全部跑在真实的 GIMP 3.2 里，不是 mock。
+     编码算子自己还有 <code>check_gray_to_component.py</code>（39 条），
+     九个混合模式的恒等往返全在 2 码以内。</p>
 </section>""".format(cards=cards, sel_boxes=sel_boxes, chn_boxes=chn_boxes,
+                   split_boxes=split_boxes, lch_boxes=lch_boxes,
                    download=download, install=install, pdb_table=pdb_table)
     return page("Python 插件 · gegl-color-ops", body,
-                desc="GIMP 3 Python 插件下载：Layer to Selection / Layer to "
-                     "Channel——右键任意图层一键转选区或灰度 Alpha 通道")
+                desc="GIMP 3 Python 插件下载：图层转选区 / Alpha 通道，"
+                     "HSV 与 LCh 分量分层 + 曲线——免编译，解压即用")
 
 
 def build_feed(ops, version):

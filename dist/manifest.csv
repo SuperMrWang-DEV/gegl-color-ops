@@ -11,6 +11,7 @@ windows-x64,color-lookup.dll,lb:color-lookup,Color Lookup,111990,0a19856e5965e9b
 windows-x64,color-mask-select.dll,lb:color-mask-select,Color Mask Select,136912,1209e21500a5d45fecce345ba1849c04f0944aeb4b7042f3234ad0ecbb72b258
 windows-x64,color-temperature-tint.dll,lb:color-temperature-tint,Color Temperature & Tint,198501,289a8542893a70eaa7d527f8bd241a42ca7cea50ea3d88db968e59e6f4536c66
 windows-x64,colorize-hsl.dll,lb:colorize-hsl,Colorize,103326,d253d6f8f603c575f41093a56a9d80483d54f0435639640d2f6f4b6c5d8a6b12
+windows-x64,gray-to-component.dll,lb:gray-to-component,Gray To Component,111332,a9136a79d9c2bba3f0168ccb96146c97700bfe95e5944ca559153301e53ce966
 windows-x64,hsb-levels.dll,lb:hsb-levels,HSB Levels,130908,65dcc27ca90b5c3f7bde9271c5f35a2f9fcecf9c1ecd81f56f922b7fba2a738c
 windows-x64,hsi-levels.dll,lb:hsi-levels,HSI Levels,142894,d54723baab2c3aa49808900f335c8cdb3750790aea1dc5f388a0cce2e90a0ec9
 windows-x64,hsl-levels.dll,lb:hsl-levels,HSL Levels,130908,1bd1d035c858587d87aa9324ca6188b3a547676c333692ce527e4294fdbda9f0

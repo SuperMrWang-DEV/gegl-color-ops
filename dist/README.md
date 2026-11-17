@@ -3,7 +3,7 @@
 这里放的是**已经编译好的 GEGL 模块**，下载后扔进 GEGL 插件目录就能用，不需要装
 GCC、MSYS2、meson 那一套。内容与当前分支的源码同步（`tools/make_dist.py` 生成）。
 
-想要一次性拿齐（28 个 `.dll` 打成一个包、附安装说明）：
+想要一次性拿齐（31 个 `.dll` 打成一个包、附安装说明）：
 [`docs/download/gegl-color-ops-windows-x64.zip`](../docs/download/)（约 1.3 MB，
 由 `python tools/site_build.py` 顺带打包）。在线说明页：
 <https://superMrwang-dev.github.io/gegl-color-ops/>。
@@ -12,14 +12,18 @@ GCC、MSYS2、meson 那一套。内容与当前分支的源码同步（`tools/ma
 
 | 系统 | 下载 | 放到 |
 |---|---|---|
-| Windows x64 | [`windows-x64/`](windows-x64) 里的 28 个 `.dll` | `%LOCALAPPDATA%\gegl-0.4\plug-ins` |
-| Linux x86_64 | [`linux-x64/`](linux-x64) 里的 28 个 `.so` | `~/.local/share/gegl-0.4/plug-ins` |
+| Windows x64 | [`windows-x64/`](windows-x64) 里的 31 个 `.dll` | `%LOCALAPPDATA%\gegl-0.4\plug-ins` |
+| Linux x86_64 | [`linux-x64/`](linux-x64) 里的 30 个 `.so` | `~/.local/share/gegl-0.4/plug-ins` |
 | macOS (Apple Silicon) | 本目录暂无，见下方「macOS 怎么拿」 | `~/Library/Application Support/gegl-0.4/plug-ins` |
 
 > **两端产物同源**：Windows 由本机 MSYS2 交叉编译，Linux 由 GitHub Actions 的
 > `ubuntu-latest` 编出后取回，模块名与 `manifest.csv` 一一对应。
-> `lb:gray-to-component` 已于 2026-11-15 废弃（源码保留在 `ops/` 下但不再编译），
-> 所以现在两端各 28 个，不是 29 个。
+>
+> `gray-to-component.dll` 目前只有 Windows 版（Linux 那个 `.so` 等下一次 CI 出）。
+> 它只给 HSV/LCh 分量曲线插件当编码器用；Linux 上暂时缺它时插件会自动退回三条
+> 曲线编码，功能不受影响。
+> `lb:gray-to-component` 2026-11-15 曾停编，2026-11-17 起恢复（HSV/LCh 分量曲线
+> 插件要用它当编码器，一个滤镜顶三条曲线），所以模块数从 28 变成 30/31。
 
 - GIMP Flatpak（Linux）：放进 `~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins`
 
@@ -27,7 +31,7 @@ GCC、MSYS2、meson 那一套。内容与当前分支的源码同步（`tools/ma
 
 macOS 包由 GitHub Actions 在 Apple Silicon 云机器（`macos-15`）上编译：仓库
 **每次 push 都会构建**，产物以 artifact 形式挂在 Actions 运行页
-（`macos-arm64`，与算子总数同步，当前 28 个 `.dylib`）——GitHub 上打开 Actions → 选最新一次 run →
+（`macos-arm64`，与算子总数同步，当前 31 个 `.dylib`）——GitHub 上打开 Actions → 选最新一次 run →
 Artifacts 里下载。装了 Homebrew GIMP 的用户把这些 `.dylib` 放到
 `~/Library/Application Support/gegl-0.4/plug-ins` 即可。
 
