@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="gegl-color-ops · GIMP 3 色彩算子集" data-title-en="gegl-color-ops · colour operators for GIMP 3">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,6 +9,18 @@
 <meta property="og:description" content="30 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
 <a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
@@ -21,454 +33,492 @@
     <a href="index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
 <section class="hero">
   <p class="eyebrow">GIMP 3.x · GEGL 0.4 · GPL-3.0</p>
-  <h1>给 GIMP 3 的一整套<br><span class="grad">色彩算子</span></h1>
-  <p class="lede">30 个 <code>lb:</code> 前缀的 GEGL 算子，覆盖色阶、色彩平衡、自然饱和度、
-     白平衡、通道混合、蒙版生成。每个都是单文件 C，装完即用，能当非破坏滤镜挂在图层上。
-     <span class="muted">另有 1 个已废弃，只作存档。</span></p>
+  <h1><span class="l-zh">给 GIMP 3 的一整套<br><span class="grad">色彩算子</span></span><span class="l-en">A complete set of<br><span class="grad">colour operators</span> for GIMP 3</span></h1>
+  <p class="lede"><span class="l-zh">30 个 <code>lb:</code> 前缀的 GEGL 算子，覆盖色阶、色彩平衡、自然饱和度、
+     白平衡、通道混合、蒙版生成。每个都是单文件 C，装完即用，能当非破坏滤镜挂在图层上。</span><span class="l-en">30 GEGL operators with the <code>lb:</code> prefix, covering levels, colour
+     balance, vibrance, white balance, channel mixing and mask building. Each one is a
+     single C file, works out of the box, and mounts on a layer as a non-destructive
+     fx filter.</span>
+     <span class="muted"><span class="l-zh">另有 1 个已废弃，只作存档。</span><span class="l-en">Plus 1 retired, kept as an archive.</span></span></p>
   <div class="cta">
-    <a class="btn primary" href="#download">下载 Windows 包<span class="size">1.3 MB</span></a>
-    <a class="btn" href="#ops">浏览 30 个算子</a>
-    <a class="btn ghost" href="guide.html">怎么装</a>
+    <a class="btn primary" href="#download"><span class="l-zh">下载 Windows 包</span><span class="l-en">Download the Windows bundle</span><span class="size">1.3 MB</span></a>
+    <a class="btn" href="#ops"><span class="l-zh">浏览 30 个算子</span><span class="l-en">Browse the 30 operators</span></a>
+    <a class="btn ghost" href="guide.html"><span class="l-zh">怎么装</span><span class="l-en">How to install</span></a>
   </div>
   <ul class="facts">
-    <li><b>30</b> 个算子</li>
-    <li><b>5</b> 个分类</li>
-    <li><b>0</b> 依赖 · 免编译包</li>
-    <li><b>30</b> 个 Windows 模块已随仓库发布</li>
+    <li><b>30</b> <span class="l-zh">个算子</span><span class="l-en">operators</span></li>
+    <li><b>5</b> <span class="l-zh">个分类</span><span class="l-en">categories</span></li>
+    <li><b>0</b> <span class="l-zh">依赖 · 免编译包</span><span class="l-en">dependencies · prebuilt</span></li>
+    <li><b>30</b> <span class="l-zh">个 Windows 模块已随仓库发布</span><span class="l-en">Windows modules shipped with the repo</span></li>
   </ul>
 </section><section class="steps" id="start">
-  <h2>三分钟装上</h2>
+  <h2><span class="l-zh">三分钟装上</span><span class="l-en">Set up in three minutes</span></h2>
   <ol class="step-list">
     <li>
-      <h3>解开压缩包</h3>
-      <p>把 30 个 <code>.dll</code> 放进 GEGL 的用户插件目录，目录不存在就自己建一个：</p>
+      <h3><span class="l-zh">解开压缩包</span><span class="l-en">Unpack the archive</span></h3>
+      <p><span class="l-zh">把 30 个 <code>.dll</code> 放进 GEGL 的用户插件目录，目录不存在就自己建一个：</span><span class="l-en">Drop the 30 <code>.dll</code> files into GEGL's user plug-in directory — create it if it doesn't exist:</span></p>
       <pre><code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code></pre>
     </li>
     <li>
-      <h3>重启 GIMP</h3>
-      <p>没有安装步骤，也没有注册表。GEGL 启动时扫描这个目录，GIMP 跟着加载。</p>
+      <h3><span class="l-zh">重启 GIMP</span><span class="l-en">Restart GIMP</span></h3>
+      <p><span class="l-zh">没有安装步骤，也没有注册表。GEGL 启动时扫描这个目录，GIMP 跟着加载。</span><span class="l-en">No installer, no registry. GEGL scans that directory at startup and GIMP picks the modules up.</span></p>
     </li>
     <li>
-      <h3>在菜单里找</h3>
-  <p>滤镜位于 <code>图像 → 颜色 → SuperMrWang</code>：色阶家族收在一级目录
+      <h3><span class="l-zh">在菜单里找</span><span class="l-en">Find them in the menu</span></h3>
+      <p><span class="l-zh">滤镜位于 <code>图像 → 颜色 → SuperMrWang</code>：色阶家族收在一级目录
      <b>Levels</b> 子菜单里（Levels / LAB / HSL / HSB / LCH / CMYK / HSI），
      其余按 Tone / Color / Blend / Mask 四组排开；
-     也可以按 <code>/</code> 搜算子名直接调。</p>
+     也可以按 <code>/</code> 搜算子名直接调。</span><span class="l-en">The filters live under <code>Colors → SuperMrWang</code>: the levels family is
+     grouped in a top-level <b>Levels</b> submenu (Levels / LAB / HSL / HSB / LCH /
+     CMYK / HSI), the rest are laid out in four groups — Tone / Color / Blend / Mask.
+     You can also press <code>/</code> and search by operator name.</span></p>
     </li>
   </ol>
 </section>
 <section class="ops" id="ops">
-  <h2>30 个算子</h2>
-  <p class="section-lede">按「找算子时的念头」分了五组，和 GIMP 菜单里的分组一致——
-     七个色阶收在 Levels 一级目录里。点任一算子进去看算法、参数与实测误差。</p>
+  <h2><span class="l-zh">30 个算子</span><span class="l-en">30 operators</span></h2>
+  <p class="section-lede"><span class="l-zh">按「找算子时的念头」分了五组，和 GIMP 菜单里的分组一致——
+     七个色阶收在 Levels 一级目录里。点任一算子进去看算法、参数与实测误差。</span><span class="l-en">Five groups organised by the question you ask when hunting for an operator,
+     matching the GIMP menu grouping — the levels family sits in one top-level Levels
+     submenu. Open any operator for its algorithm, parameters and measured error.</span></p>
 
 <section class="group" id="g-Levels">
-  <h3 class="group-title"><span class="tag t-levels">色阶家族</span>
-    <span class="group-en">Levels</span><span class="count">7 个</span></h3>
-  <p class="group-desc">色阶一个不落，全收在一级目录 Levels 里：基础色阶，以及 HSL / HSB / HSI / LCH / LAB / CMYK 六条分量色阶——同一个黑白场+伽马模型，换个色彩空间。</p>
+  <h3 class="group-title"><span class="tag t-levels"><span class="l-zh">色阶家族</span><span class="l-en">Levels</span></span>
+    <span class="group-en"><span class="l-zh">Levels</span><span class="l-en"></span></span><span class="count"><span class="l-zh">7 个</span><span class="l-en">7</span></span></h3>
+  <p class="group-desc"><span class="l-zh">色阶一个不落，全收在一级目录 Levels 里：基础色阶，以及 HSL / HSB / HSI / LCH / LAB / CMYK 六条分量色阶——同一个黑白场+伽马模型，换个色彩空间。</span><span class="l-en">Every levels flavour in one top-level Levels submenu: basic Levels plus six component levels — HSL / HSB / HSI / LCh / Lab / CMYK. One black-point / white-point + gamma model, six colour spaces.</span></p>
   <div class="cards">
     <a class="card" href="ops/levels.html">
   <div class="card-top">
-    <span class="tag t-levels">色阶家族</span>
+    <span class="tag t-levels"><span class="l-zh">色阶家族</span><span class="l-en">Levels</span></span>
     <code>lb:levels</code>
     
   </div>
-  <h3>Levels</h3>
-  <p>经典图像编辑器 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0…</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">Levels</span><span class="l-en">Levels</span></h3>
+  <p><span class="l-zh">经典图像编辑器 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0…</span><span class="l-en">The classic editor's Levels dialog — composite plus R/G/B, five numbers each, 0–255…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/lab-levels.html">
   <div class="card-top">
-    <span class="tag t-levels">色阶家族</span>
+    <span class="tag t-levels"><span class="l-zh">色阶家族</span><span class="l-en">Levels</span></span>
     <code>lb:lab-levels</code>
     
   </div>
-  <h3>LAB Levels</h3>
-  <p>LAB 三通道各自设输入 / 输出黑白场与伽马</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">LAB Levels</span><span class="l-en">LAB Levels</span></h3>
+  <p><span class="l-zh">LAB 三通道各自设输入 / 输出黑白场与伽马</span><span class="l-en">Levels on CIELAB L, a and b — perceptual lightness and the two colour axes, each with its…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/hsl-levels.html">
   <div class="card-top">
-    <span class="tag t-levels">色阶家族</span>
+    <span class="tag t-levels"><span class="l-zh">色阶家族</span><span class="l-en">Levels</span></span>
     <code>lb:hsl-levels</code>
     
   </div>
-  <h3>HSL Levels</h3>
-  <p>HSL 三个分量各自设输入 / 输出黑白场与伽马</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">HSL Levels</span><span class="l-en">HSL Levels</span></h3>
+  <p><span class="l-zh">HSL 三个分量各自设输入 / 输出黑白场与伽马</span><span class="l-en">Levels on H, S and L separately — hue, saturation and lightness each get their own…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/hsb-levels.html">
   <div class="card-top">
-    <span class="tag t-levels">色阶家族</span>
+    <span class="tag t-levels"><span class="l-zh">色阶家族</span><span class="l-en">Levels</span></span>
     <code>lb:hsb-levels</code>
     
   </div>
-  <h3>HSB Levels</h3>
-  <p>HSB（=HSV）三个分量各自设输入 / 输出黑白场与伽马</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">HSB Levels</span><span class="l-en">HSB Levels</span></h3>
+  <p><span class="l-zh">HSB（=HSV）三个分量各自设输入 / 输出黑白场与伽马</span><span class="l-en">Levels on H, S and B (the numbers your colour picker shows) — nearly identical to HSL…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/lch-levels.html">
   <div class="card-top">
-    <span class="tag t-levels">色阶家族</span>
+    <span class="tag t-levels"><span class="l-zh">色阶家族</span><span class="l-en">Levels</span></span>
     <code>lb:lch-levels</code>
     
   </div>
-  <h3>LCH Levels</h3>
-  <p>CIE LCh 三个分量各自设输入 / 输出黑白场与伽马</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">LCH Levels</span><span class="l-en">LCH Levels</span></h3>
+  <p><span class="l-zh">CIE LCh 三个分量各自设输入 / 输出黑白场与伽马</span><span class="l-en">Levels on CIE LCh — chroma and hue angle as separate channels, so changing one never…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/cmyk-levels.html">
   <div class="card-top">
-    <span class="tag t-levels">色阶家族</span>
+    <span class="tag t-levels"><span class="l-zh">色阶家族</span><span class="l-en">Levels</span></span>
     <code>lb:cmyk-levels</code>
     
   </div>
-  <h3>CMYK Levels</h3>
-  <p>CMYK 四个分量各自设输入 / 输出黑白场与伽马</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">CMYK Levels</span><span class="l-en">CMYK Levels</span></h3>
+  <p><span class="l-zh">CMYK 四个分量各自设输入 / 输出黑白场与伽马</span><span class="l-en">Independent levels for the C/M/Y/K plates — ink black and white points, gamma, output…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/hsi-levels.html">
   <div class="card-top">
-    <span class="tag t-levels">色阶家族</span>
+    <span class="tag t-levels"><span class="l-zh">色阶家族</span><span class="l-en">Levels</span></span>
     <code>lb:hsi-levels</code>
     
   </div>
-  <h3>HSI Levels</h3>
-  <p>HSI 三个分量各自设输入 / 输出黑白场与伽马</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">HSI Levels</span><span class="l-en">HSI Levels</span></h3>
+  <p><span class="l-zh">HSI 三个分量各自设输入 / 输出黑白场与伽马</span><span class="l-en">Levels on H, S and I — the image-analysis model whose intensity is the mean of the three…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
   </div>
 </section>
 
 <section class="group" id="g-Tone">
-  <h3 class="group-title"><span class="tag t-tone">影调</span>
-    <span class="group-en">Tone</span><span class="count">4 个</span></h3>
-  <p class="group-desc">明暗与影调：曝光、亮度/对比度、阴影-高光、黑白转换。色阶都在上面的 Levels 组。</p>
+  <h3 class="group-title"><span class="tag t-tone"><span class="l-zh">影调</span><span class="l-en">Tone</span></span>
+    <span class="group-en"><span class="l-zh">Tone</span><span class="l-en"></span></span><span class="count"><span class="l-zh">4 个</span><span class="l-en">4</span></span></h3>
+  <p class="group-desc"><span class="l-zh">明暗与影调：曝光、亮度/对比度、阴影-高光、黑白转换。色阶都在上面的 Levels 组。</span><span class="l-en">Light and dark: exposure, brightness/contrast, shadows–highlights, black & white. The levels family lives in the Levels group above.</span></p>
   <div class="cards">
     <a class="card" href="ops/exposure.html">
   <div class="card-top">
-    <span class="tag t-tone">影调</span>
+    <span class="tag t-tone"><span class="l-zh">影调</span><span class="l-en">Tone</span></span>
     <code>lb:exposure</code>
     
   </div>
-  <h3>Exposure EV</h3>
-  <p>经典图像编辑器 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）the classic editor Exp…</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">Exposure EV</span><span class="l-en">Exposure EV</span></h3>
+  <p><span class="l-zh">经典图像编辑器 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）the classic editor Exp…</span><span class="l-en">The classic editor's Exposure adjustment with two formulas — 8-bit sRGB and 32-bit linear…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/brightness-contrast.html">
   <div class="card-top">
-    <span class="tag t-tone">影调</span>
+    <span class="tag t-tone"><span class="l-zh">影调</span><span class="l-en">Tone</span></span>
     <code>lb:brightness-contrast</code>
     
   </div>
-  <h3>Brightness/Contrast</h3>
-  <p>复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">Brightness/Contrast</span><span class="l-en">Brightness/Contrast</span></h3>
+  <p><span class="l-zh">复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面</span><span class="l-en">The classic editor's Brightness/Contrast, matched by black-box measurement — both the…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/shadows-highlights.html">
   <div class="card-top">
-    <span class="tag t-tone">影调</span>
+    <span class="tag t-tone"><span class="l-zh">影调</span><span class="l-en">Tone</span></span>
     <code>lb:shadows-highlights</code>
     <span class="badge warn"><span class="l-zh">不推荐</span><span class="l-en">Not recommended</span></span>
   </div>
-  <h3>Shadows/Highlights</h3>
-  <p>等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">Shadows/Highlights</span><span class="l-en">Shadows/Highlights</span></h3>
+  <p><span class="l-zh">等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。</span><span class="l-en">The classic editor's Shadows/Highlights — an edge-aware neighbourhood algorithm, so it…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/rgb-domain-grayscale.html">
   <div class="card-top">
-    <span class="tag t-tone">影调</span>
+    <span class="tag t-tone"><span class="l-zh">影调</span><span class="l-en">Tone</span></span>
     <code>lb:rgb-domain-grayscale</code>
     
   </div>
-  <h3>Black &amp; White</h3>
-  <p>经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色the classic editor…</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">Black &amp; White</span><span class="l-en">Black &amp; White</span></h3>
+  <p><span class="l-zh">经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色the classic editor…</span><span class="l-en">The classic editor's Black &amp; White — six hue sliders decide how much each colour…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
   </div>
 </section>
 
 <section class="group" id="g-Color">
-  <h3 class="group-title"><span class="tag t-color">色彩</span>
-    <span class="group-en">Color</span><span class="count">11 个</span></h3>
-  <p class="group-desc">调整颜色的方向与浓度：色相饱和度、色彩平衡、白平衡、自然饱和度、可选颜色、匹配颜色。</p>
+  <h3 class="group-title"><span class="tag t-color"><span class="l-zh">色彩</span><span class="l-en">Color</span></span>
+    <span class="group-en"><span class="l-zh">Color</span><span class="l-en"></span></span><span class="count"><span class="l-zh">11 个</span><span class="l-en">11</span></span></h3>
+  <p class="group-desc"><span class="l-zh">调整颜色的方向与浓度：色相饱和度、色彩平衡、白平衡、自然饱和度、可选颜色、匹配颜色。</span><span class="l-en">Steer hue and intensity: hue/saturation, colour balance, white balance, vibrance, selective colour, match colour.</span></p>
   <div class="cards">
     <a class="card" href="ops/hue-saturation.html">
   <div class="card-top">
-    <span class="tag t-color">色彩</span>
+    <span class="tag t-color"><span class="l-zh">色彩</span><span class="l-en">Color</span></span>
     <code>lb:hue-saturation</code>
     
   </div>
-  <h3>Hue/Saturation</h3>
-  <p>全局或按红/黄/绿/青/蓝/品红六个色相区间调整色相、饱和度、明度</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">Hue/Saturation</span><span class="l-en">Hue/Saturation</span></h3>
+  <p><span class="l-zh">全局或按红/黄/绿/青/蓝/品红六个色相区间调整色相、饱和度、明度</span><span class="l-en">GIMP-style Hue/Saturation — a master control plus six hue ranges, all offsets added in…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/hue-saturation-basic.html">
   <div class="card-top">
-    <span class="tag t-color">色彩</span>
+    <span class="tag t-color"><span class="l-zh">色彩</span><span class="l-en">Color</span></span>
     <code>lb:hue-saturation-basic</code>
     
   </div>
-  <h3>Hue/Saturation (Basic)</h3>
-  <p>三滑杆公式：全局色相旋转、饱和度相对缩放、明度向白/黑混合。</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">Hue/Saturation (Basic)</span><span class="l-en">Hue/Saturation (Basic)</span></h3>
+  <p><span class="l-zh">三滑杆公式：全局色相旋转、饱和度相对缩放、明度向白/黑混合。</span><span class="l-en">Three sliders — global hue rotation, relative saturation scaling, lightness mixed toward…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/hsl-seven.html">
   <div class="card-top">
-    <span class="tag t-color">色彩</span>
+    <span class="tag t-color"><span class="l-zh">色彩</span><span class="l-en">Color</span></span>
     <code>lb:hsl-seven</code>
     
   </div>
-  <h3>HSL 7 Bands</h3>
-  <p>红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，经典 RAW 编辑器风格</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">HSL 7 Bands</span><span class="l-en">HSL 8 Bands</span></h3>
+  <p><span class="l-zh">红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，经典 RAW 编辑器风格</span><span class="l-en">Eight hue bands (red, orange, yellow, green, cyan, blue, purple, magenta), each with its…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/color-balance.html">
   <div class="card-top">
-    <span class="tag t-color">色彩</span>
+    <span class="tag t-color"><span class="l-zh">色彩</span><span class="l-en">Color</span></span>
     <code>lb:color-balance</code>
     
   </div>
-  <h3>Color Balance</h3>
-  <p>经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴the classic…</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">Color Balance</span><span class="l-en">Color Balance</span></h3>
+  <p><span class="l-zh">经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴the classic…</span><span class="l-en">The classic editor's Color Balance — one merged levels-style curve per channel, measured…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/color-grading.html">
   <div class="card-top">
-    <span class="tag t-color">色彩</span>
+    <span class="tag t-color"><span class="l-zh">色彩</span><span class="l-en">Color</span></span>
     <code>lb:color-grading</code>
     
   </div>
-  <h3>Color Grading</h3>
-  <p>等价 经典 RAW 编辑器的「颜色分级」：阴影 / 中间调 / 高光 / 全局四个轮盘（色相 + 饱和度）加各自的明…</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">Color Grading</span><span class="l-en">Color Grading</span></h3>
+  <p><span class="l-zh">等价 经典 RAW 编辑器的「颜色分级」：阴影 / 中间调 / 高光 / 全局四个轮盘（色相 + 饱和度）加各自的明…</span><span class="l-en">The RAW editor's Color Grading panel — shadow, midtone, highlight and global wheels with…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/color-temperature-tint.html">
   <div class="card-top">
-    <span class="tag t-color">色彩</span>
+    <span class="tag t-color"><span class="l-zh">色彩</span><span class="l-en">Color</span></span>
     <code>lb:color-temperature-tint</code>
     
   </div>
-  <h3>Color Temperature &amp; Tint</h3>
-  <p>经典图像编辑器 2026「色彩与自然饱和度」里的色温 / 色调：中性灰跟着偏蓝-黄、绿-洋红，黑白两端不动</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">Color Temperature &amp; Tint</span><span class="l-en">Color Temperature &amp; Tint the classic editor</span></h3>
+  <p><span class="l-zh">经典图像编辑器 2026「色彩与自然饱和度」里的色温 / 色调：中性灰跟着偏蓝-黄、绿-洋红，黑白两端不动</span><span class="l-en">The temperature and tint sliders from classic image editor 2026's Color and Vibrance…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/vibrance.html">
   <div class="card-top">
-    <span class="tag t-color">色彩</span>
+    <span class="tag t-color"><span class="l-zh">色彩</span><span class="l-en">Color</span></span>
     <code>lb:vibrance</code>
     
   </div>
-  <h3>Vibrance</h3>
-  <p>按 经典图像编辑器「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱和主动收手、红带（肤色）额外保护、浅色少给一点…</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">Vibrance</span><span class="l-en">Vibrance</span></h3>
+  <p><span class="l-zh">按 经典图像编辑器「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱和主动收手、红带（肤色）额外保护、浅色少给一点…</span><span class="l-en">The classic editor's Vibrance, matched by black-box measurement — measured tables…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/vibrance-hyper.html">
   <div class="card-top">
-    <span class="tag t-color">色彩</span>
+    <span class="tag t-color"><span class="l-zh">色彩</span><span class="l-en">Color</span></span>
     <code>lb:vibrance-hyper</code>
     
   </div>
-  <h3>Natural Saturation</h3>
-  <p>自然饱和度：提升低饱和区，抑制高饱和与肤色，不破坏色相</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">Natural Saturation</span><span class="l-en">Vibrance (Lab)</span></h3>
+  <p><span class="l-zh">自然饱和度：提升低饱和区，抑制高饱和与肤色，不破坏色相</span><span class="l-en">An appearance-based vibrance in Lab — hyperbolic chroma mask, skin-tone protection and…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/cmyk-primary-correction.html">
   <div class="card-top">
-    <span class="tag t-color">色彩</span>
+    <span class="tag t-color"><span class="l-zh">色彩</span><span class="l-en">Color</span></span>
     <code>lb:cmyk-primary-correction</code>
     
   </div>
-  <h3>CMYK Primary</h3>
-  <p>经典图像编辑器 可选颜色：红/黄/绿/青/蓝/品红/白/中性/黑九组各自独立记忆</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">CMYK Primary</span><span class="l-en">CMYK Primary</span></h3>
+  <p><span class="l-zh">经典图像编辑器 可选颜色：红/黄/绿/青/蓝/品红/白/中性/黑九组各自独立记忆</span><span class="l-en">The classic editor's Selective Color — nine colour-range tabs, each holding its own…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/colorize-hsl.html">
   <div class="card-top">
-    <span class="tag t-color">色彩</span>
+    <span class="tag t-color"><span class="l-zh">色彩</span><span class="l-en">Color</span></span>
     <code>lb:colorize-hsl</code>
     
   </div>
-  <h3>Colorize</h3>
-  <p>复刻 经典图像编辑器「色相/饱和度」里的「着色」复选框</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">Colorize</span><span class="l-en">Colorize</span></h3>
+  <p><span class="l-zh">复刻 经典图像编辑器「色相/饱和度」里的「着色」复选框</span><span class="l-en">The classic editor's Colorize checkbox from Hue/Saturation — input hue and saturation are…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/match-color.html">
   <div class="card-top">
-    <span class="tag t-color">色彩</span>
+    <span class="tag t-color"><span class="l-zh">色彩</span><span class="l-en">Color</span></span>
     <code>lb:match-color</code>
     
   </div>
-  <h3>Match Color</h3>
-  <p>经典图像编辑器 匹配颜色：把另一张图（或另一层）的 Lab 统计量迁移到本层the classic editor M…</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">Match Color</span><span class="l-en">Match Color</span></h3>
+  <p><span class="l-zh">经典图像编辑器 匹配颜色：把另一张图（或另一层）的 Lab 统计量迁移到本层the classic editor M…</span><span class="l-en">The classic editor's Match Color — Reinhard's Lab mean/variance transfer from another…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
   </div>
 </section>
 
 <section class="group" id="g-Blend">
-  <h3 class="group-title"><span class="tag t-blend">混合与通道</span>
-    <span class="group-en">Blend</span><span class="count">7 个</span></h3>
-  <p class="group-desc">把两层或多路通道混起来：应用图像、计算、通道混合器、XYZ 正片叠底、颜色查找、灰度转分量。</p>
+  <h3 class="group-title"><span class="tag t-blend"><span class="l-zh">混合与通道</span><span class="l-en">Blend</span></span>
+    <span class="group-en"><span class="l-zh">Blend</span><span class="l-en"></span></span><span class="count"><span class="l-zh">7 个</span><span class="l-en">7</span></span></h3>
+  <p class="group-desc"><span class="l-zh">把两层或多路通道混起来：应用图像、计算、通道混合器、XYZ 正片叠底、颜色查找、灰度转分量。</span><span class="l-en">Mix two layers or several channels: apply image, calculations, channel mixer, XYZ multiply, colour lookup, gray to component.</span></p>
   <div class="cards">
     <a class="card" href="ops/apply-image.html">
   <div class="card-top">
-    <span class="tag t-blend">混合与通道</span>
+    <span class="tag t-blend"><span class="l-zh">混合与通道</span><span class="l-en">Blend</span></span>
     <code>lb:apply-image</code>
     
   </div>
-  <h3>Apply Image</h3>
-  <p>经典图像编辑器 应用图像：把 aux 输入当成源，按混合模式、不透明度与遮罩压到主输入上，可选只作用于某一个通道</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">Apply Image</span><span class="l-en">Apply Image</span></h3>
+  <p><span class="l-zh">经典图像编辑器 应用图像：把 aux 输入当成源，按混合模式、不透明度与遮罩压到主输入上，可选只作用于某一个通道</span><span class="l-en">The classic editor's Image → Apply Image: blend a second image into this one with a mode…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/calculations.html">
   <div class="card-top">
-    <span class="tag t-blend">混合与通道</span>
+    <span class="tag t-blend"><span class="l-zh">混合与通道</span><span class="l-en">Blend</span></span>
     <code>lb:calculations</code>
     
   </div>
-  <h3>Calculations</h3>
-  <p>经典图像编辑器 计算：两路通道按混合模式合成，输出灰度图或 alpha 蒙版</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">Calculations</span><span class="l-en">Calculations</span></h3>
+  <p><span class="l-zh">经典图像编辑器 计算：两路通道按混合模式合成，输出灰度图或 alpha 蒙版</span><span class="l-en">The classic editor's Image → Calculations: pull one channel from each of two sources…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/channel-mixer-plus.html">
   <div class="card-top">
-    <span class="tag t-blend">混合与通道</span>
+    <span class="tag t-blend"><span class="l-zh">混合与通道</span><span class="l-en">Blend</span></span>
     <code>lb:channel-mixer-plus</code>
     
   </div>
-  <h3>Channel Mixer Plus</h3>
-  <p>经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移the classic editor…</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">Channel Mixer Plus</span><span class="l-en">Channel Mixer Plus</span></h3>
+  <p><span class="l-zh">经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移the classic editor…</span><span class="l-en">The classic editor's Channel Mixer — a 3×3 matrix from R/G/B into each output channel…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/xyz-multiply.html">
   <div class="card-top">
-    <span class="tag t-blend">混合与通道</span>
+    <span class="tag t-blend"><span class="l-zh">混合与通道</span><span class="l-en">Blend</span></span>
     <code>lb:xyz-multiply</code>
     
   </div>
-  <h3>Photo Filter</h3>
-  <p>经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。the clas…</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">Photo Filter</span><span class="l-en">Photo Filter</span></h3>
+  <p><span class="l-zh">经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。the clas…</span><span class="l-en">The classic editor's Photo Filter, reproduced end to end — colour fill + multiply +…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/color-lookup.html">
   <div class="card-top">
-    <span class="tag t-blend">混合与通道</span>
+    <span class="tag t-blend"><span class="l-zh">混合与通道</span><span class="l-en">Blend</span></span>
     <code>lb:color-lookup</code>
     
   </div>
-  <h3>Color Lookup</h3>
-  <p>按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价于经典图像编辑器「颜色查找」调整图层；强度按…</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">Color Lookup</span><span class="l-en">Color Lookup</span></h3>
+  <p><span class="l-zh">按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价于经典图像编辑器「颜色查找」调整图层；强度按…</span><span class="l-en">The classic editor's Color Lookup adjustment built on the Adobe Cube LUT spec — trilinear…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/gray-to-component.html">
   <div class="card-top">
-    <span class="tag t-blend">混合与通道</span>
+    <span class="tag t-blend"><span class="l-zh">混合与通道</span><span class="l-en">Blend</span></span>
     <code>lb:gray-to-component</code>
     <span class="badge off"><span class="l-zh">已废弃</span><span class="l-en">Retired</span></span>
   </div>
-  <h3>Gray To Component</h3>
-  <p>通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue…</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">Gray To Component</span><span class="l-en">Gray to Component</span></h3>
+  <p><span class="l-zh">通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue…</span><span class="l-en">Retired. The encoder in the "decompose → grey → re-encode → blend-mode" workflow…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/hue-range-basic.html">
   <div class="card-top">
-    <span class="tag t-blend">混合与通道</span>
+    <span class="tag t-blend"><span class="l-zh">混合与通道</span><span class="l-en">Blend</span></span>
     <code>lb:hue-range-basic</code>
     
   </div>
-  <h3>Hue/Saturation Range</h3>
-  <p>色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，与 lb:hue-saturation-basic（…</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">Hue/Saturation Range</span><span class="l-en">Hue/Saturation Range</span></h3>
+  <p><span class="l-zh">色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，与 lb:hue-saturation-basic（…</span><span class="l-en">Hue, saturation and lightness inside one hue family with a soft four-handle colour bar —…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
   </div>
 </section>
 
 <section class="group" id="g-Mask">
-  <h3 class="group-title"><span class="tag t-mask">蒙版</span>
-    <span class="group-en">Mask</span><span class="count">2 个</span></h3>
-  <p class="group-desc">按颜色或数值区间取蒙版：色彩范围、通道区间到 alpha。</p>
+  <h3 class="group-title"><span class="tag t-mask"><span class="l-zh">蒙版</span><span class="l-en">Mask</span></span>
+    <span class="group-en"><span class="l-zh">Mask</span><span class="l-en"></span></span><span class="count"><span class="l-zh">2 个</span><span class="l-en">2</span></span></h3>
+  <p class="group-desc"><span class="l-zh">按颜色或数值区间取蒙版：色彩范围、通道区间到 alpha。</span><span class="l-en">Build masks from colour ranges or value intervals: colour range, channel range to alpha.</span></p>
   <div class="cards">
     <a class="card" href="ops/color-mask-select.html">
   <div class="card-top">
-    <span class="tag t-mask">蒙版</span>
+    <span class="tag t-mask"><span class="l-zh">蒙版</span><span class="l-en">Mask</span></span>
     <code>lb:color-mask-select</code>
     
   </div>
-  <h3>Mask by Color</h3>
-  <p>经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览the classic editor…</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">Mask by Color</span><span class="l-en">Mask by Color</span></h3>
+  <p><span class="l-zh">经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览the classic editor…</span><span class="l-en">The classic editor's Color Range as a mask operator — colour presets, custom colour, and…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/channel-range-to-alpha.html">
   <div class="card-top">
-    <span class="tag t-mask">蒙版</span>
+    <span class="tag t-mask"><span class="l-zh">蒙版</span><span class="l-en">Mask</span></span>
     <code>lb:channel-range-to-alpha</code>
     
   </div>
-  <h3>Range → Alpha</h3>
-  <p>按通道数值区间（0–255）生成 alpha，实现「混合颜色带」式透明控制</p>
-  <span class="more">读算法说明 →</span>
+  <h3><span class="l-zh">Range → Alpha</span><span class="l-en">Range → Alpha</span></h3>
+  <p><span class="l-zh">按通道数值区间（0–255）生成 alpha，实现「混合颜色带」式透明控制</span><span class="l-en">Turn a numeric range of one channel into alpha — the classic editor's "Blend If" as a…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
   </div>
 </section>
 </section><section class="download" id="download">
-  <h2>下载</h2>
+  <h2><span class="l-zh">下载</span><span class="l-en">Download</span></h2>
   <div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>Windows x64</h3><span class="pill">推荐</span></div>
-      <p>30 个 <code>.dll</code>（1.3 MB）。解到
-         <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，重启 GIMP 即可。</p>
-      <a class="btn primary" href="download/gegl-color-ops-windows-x64.zip">下载 gegl-color-ops-windows-x64.zip</a>
-      <p class="muted small">校验：<code>SHA256 30d0a5bc865669149e875db804283789…</code></p>
+      <div class="dl-head"><h3>Windows x64</h3><span class="pill"><span class="l-zh">推荐</span><span class="l-en">Recommended</span></span></div>
+      <p><span class="l-zh">30 个 <code>.dll</code>（1.3 MB）。解到
+         <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，重启 GIMP 即可。</span><span class="l-en">30 <code>.dll</code> files (1.3 MB). Unpack into
+         <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code> and restart GIMP.</span></p>
+      <a class="btn primary" href="download/gegl-color-ops-windows-x64.zip">gegl-color-ops-windows-x64.zip</a>
+      <p class="muted small"><span class="l-zh">校验：</span><span class="l-en">Checksum: </span><code>SHA256 30d0a5bc865669149e875db804283789…</code></p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>Linux x86_64</h3></div>
-      <p>30 个 <code>.so</code>（0.3 MB）。解到
-         <code>~/.local/share/gegl-0.4/plug-ins</code>，重启 GIMP 即可。</p>
-      <a class="btn" href="download/gegl-color-ops-linux-x64.zip">下载 gegl-color-ops-linux-x64.zip</a>
-      <p class="muted small">校验：<code>SHA256 2b2944c9382e52343054c3f9b4ff111b…</code></p>
+      <p><span class="l-zh">30 个 <code>.so</code>（0.3 MB）。解到
+         <code>~/.local/share/gegl-0.4/plug-ins</code>，重启 GIMP 即可。</span><span class="l-en">30 <code>.so</code> files (0.3 MB). Unpack into
+         <code>~/.local/share/gegl-0.4/plug-ins</code> and restart GIMP.</span></p>
+      <a class="btn" href="download/gegl-color-ops-linux-x64.zip">gegl-color-ops-linux-x64.zip</a>
+      <p class="muted small"><span class="l-zh">校验：</span><span class="l-en">Checksum: </span><code>SHA256 2b2944c9382e52343054c3f9b4ff111b…</code></p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>单个算子</h3></div>
-      <p>只想试一个？每个算子的文章页底部有它自己的模块直链，
+      <div class="dl-head"><h3><span class="l-zh">单个算子</span><span class="l-en">A single operator</span></h3></div>
+      <p><span class="l-zh">只想试一个？每个算子的文章页底部有它自己的模块直链，
          或者从仓库里挑：<code>dist/windows-x64/&lt;名字&gt;.dll</code>、
-         <code>dist/linux-x64/&lt;名字&gt;.so</code>。</p>
-      <a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/tree/main/dist/windows-x64">浏览模块列表</a>
+         <code>dist/linux-x64/&lt;名字&gt;.so</code>。</span><span class="l-en">Just one? Every operator page links its own module at the bottom,
+         or pick from the repo: <code>dist/windows-x64/&lt;name&gt;.dll</code>,
+         <code>dist/linux-x64/&lt;name&gt;.so</code>.</span></p>
+      <a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/tree/main/dist/windows-x64"><span class="l-zh">浏览模块列表</span><span class="l-en">Browse the module list</span></a>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>Python 插件</h3><span class="pill">.py · 免编译</span></div>
-      <p>Layer to Selection / Layer to Channel：右键任意图层，一键转成选区
-         或 Alpha 通道。每个插件一个包，放进 GIMP 的 plug-ins 目录。</p>
-      <a class="btn ghost" href="plugins.html#download">去插件页下载</a>
+      <div class="dl-head"><h3><span class="l-zh">Python 插件</span><span class="l-en">Python plug-ins</span></h3><span class="pill"><span class="l-zh">.py · 免编译</span><span class="l-en">.py · no build</span></span></div>
+      <p><span class="l-zh">Layer to Selection / Layer to Channel：右键任意图层，一键转成选区
+         或 Alpha 通道。每个插件一个包，放进 GIMP 的 plug-ins 目录。</span><span class="l-en">Layer to Selection / Layer to Channel: right-click any layer to turn it
+         into a selection or an alpha channel in one click. One zip per plug-in,
+         drop it into GIMP's plug-ins directory.</span></p>
+      <a class="btn ghost" href="plugins.html#download"><span class="l-zh">去插件页下载</span><span class="l-en">Get them on the plug-ins page</span></a>
     </div>
   </div>
-  <p class="note">装不上、菜单里看不到、和 GIMP 自带算子重名——都写在
-     <a href="guide.html">安装指南</a> 的排错一节。源码编译走 <code>./build.sh</code> 或 meson，同样在那一页。</p>
+  <p class="note"><span class="l-zh">装不上、菜单里看不到、和 GIMP 自带算子重名——都写在
+     <a href="guide.html">安装指南</a> 的排错一节。源码编译走 <code>./build.sh</code> 或 meson，同样在那一页。</span><span class="l-en">Won't install, missing from the menu, name clashes with a built-in — the
+     troubleshooting section of the <a href="guide.html">install guide</a> covers all of it.
+     Building from source via <code>./build.sh</code> or meson is on the same page.</span></p>
 </section><section class="about">
-  <h2>这些算子是怎么来的</h2>
-  <p>多数是按黑盒标定做的：拿目标实现（多为常见修图软件的调整图层）做对照，逐档采样、
+  <h2><span class="l-zh">这些算子是怎么来的</span><span class="l-en">Where these operators come from</span></h2>
+  <p><span class="l-zh">多数是按黑盒标定做的：拿目标实现（多为常见修图软件的调整图层）做对照，逐档采样、
      拟合公式，再在 16 位精度上把残差压到几码以内——只看输入输出，不读对方的代码。
-     少数是直接实现公开的数学定义（Lab / LCh / HSL 色阶就是换了个色彩空间做同一件事）。</p>
-  <p>所以每篇算法说明里都有误差表、以及「哪一段没能对上、偏差多大」。没有说成
-     「完全一致」的地方，都是实测过确实对不上——例如色温 / 色调对角线上的硬裁切。</p>
-  <p class="muted">算法来源在文件头 <code>reference</code> 字段里逐条标注，源码与文档在同一个仓库。</p>
+     少数是直接实现公开的数学定义（Lab / LCh / HSL 色阶就是换了个色彩空间做同一件事）。</span><span class="l-en">Most were built by black-box calibration: sample a reference implementation
+     (usually a well-known photo editor's adjustment layers) step by step, fit the
+     formula, then press the residual down to a few code values at 16-bit precision —
+     inputs and outputs only, no source reading. A few implement published mathematical
+     definitions directly (the Lab / LCh / HSL levels are the same model in a different
+     colour space).</span></p>
+  <p><span class="l-zh">所以每篇算法说明里都有误差表、以及「哪一段没能对上、偏差多大」。没有说成
+     「完全一致」的地方，都是实测过确实对不上——例如色温 / 色调对角线上的硬裁切。</span><span class="l-en">That's why every algorithm note carries an error table plus a note on which
+     part didn't match and by how much. Anything not described as identical was measured
+     and genuinely doesn't match — the hard clipping along the colour temperature / tint
+     diagonals, for example.</span></p>
+  <p class="muted"><span class="l-zh">算法来源在文件头 <code>reference</code> 字段里逐条标注，源码与文档在同一个仓库。</span><span class="l-en">Sources are listed per operator in the <code>reference</code> field of each file
+     header; source and docs share one repository.</span></p>
 </section><section class="about" id="legal">
-  <h2>版权与商标</h2>
-  <p>这里的算子都是自己写的：按公开的数学公式与可观察的行为实现，没有复制任何商业软件的
-     源代码或二进制，没有反编译产物，也不调用任何厂商的专有接口或 SDK。</p>
-  <p>菜单名、对话框标题、算子显示名与页面正文都是本项目自定表述（<code>lb:</code>
+  <h2><span class="l-zh">版权与商标</span><span class="l-en">Copyright &amp; trademarks</span></h2>
+  <p><span class="l-zh">这里的算子都是自己写的：按公开的数学公式与可观察的行为实现，没有复制任何商业软件的
+     源代码或二进制，没有反编译产物，也不调用任何厂商的专有接口或 SDK。</span><span class="l-en">Every operator here was written from scratch: implemented from published
+     mathematics and observable behaviour, with no vendor source code or binaries
+     copied, no decompilation, and no calls to proprietary interfaces or SDKs.</span></p>
+  <p><span class="l-zh">菜单名、对话框标题、算子显示名与页面正文都是本项目自定表述（<code>lb:</code>
      命名空间），不使用任何厂商的 logo、图标或界面截图。仅对业界公开的格式与色空间规范
      沿用标准名称（如 <code>.cube</code> LUT、Adobe RGB），属于指示性引用，不表示与
-     本项目存在隶属关系。站点截图是在 GIMP 里运行本项目算子的界面。</p>
-  <p class="muted">All code here is original, written from published mathematics and observable
-     behaviour, with no vendor-specific interfaces or SDKs. Names and copy are this project's
-     own; standard format and colour-space names are cited nominatively only. This project
-     is not affiliated with, endorsed by, or authorised by any vendor.
-     如认为此处有不当使用，请开 issue，核实后会调整措辞或移除相关内容。</p>
+     本项目存在隶属关系。站点截图是在 GIMP 里运行本项目算子的界面。</span><span class="l-en">Menu names, dialog titles, operator labels and page copy are this project's own
+     wording (the <code>lb:</code> namespace); no vendor logo, icon or UI screenshot is
+     used. Standard names of industry-published formats and colour spaces (such as
+     <code>.cube</code> LUTs or Adobe RGB) are cited nominatively only and imply no
+     affiliation. Site screenshots show this project's own operators running in GIMP.</span></p>
+  <p class="muted"><span class="l-zh">所有代码均为原创，依据公开数学与可观察行为自行实现，不使用任何厂商专有接口或
+     SDK；名称与文案为本项目自定表述，标准格式与色空间名称仅作指示性引用，不构成隶属关系。
+     如认为此处有不当使用，请开 issue，核实后会调整措辞或移除相关内容。</span><span class="l-en">All code here is original, written from published mathematics and observable
+     behaviour, with no vendor-specific interfaces or SDKs. Names and copy are this
+     project's own; standard format and colour-space names are cited nominatively only.
+     This project is not affiliated with, endorsed by, or authorised by any vendor.
+     If you believe something here is misused, open an issue and it will be reworded
+     or removed once verified.</span></p>
 </section>
 </main>
 <footer class="site-foot">
@@ -480,8 +530,44 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">bc25d51</span>
+    <span class="muted">ea47fe8</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

@@ -7,7 +7,8 @@
 算子页是**中英双语**的：中文正文来自 ops/<dir>/README.md，英文正文来自
 tools/site/en/<dir>.md（front matter 给 name / blurb）。两套内容同时写进同一个
 HTML，靠 <html data-lang> 决定显示哪一套，页头的 中文/EN 按钮切换并记住偏好
-（localStorage + ?lang=en）。首页、清单页、安装页只有中文，不显示切换按钮。
+（localStorage + ?lang=en）。首页也是双语的；清单页、插件页、安装页只有中文，
+不显示切换按钮。
 
     python tools/site_build.py           # 生成 docs/
     python tools/site_build.py --serve   # 生成后起本地服务看效果
@@ -60,6 +61,20 @@ GROUP_DESC = {
     "Color": "调整颜色的方向与浓度：色相饱和度、色彩平衡、白平衡、自然饱和度、可选颜色、匹配颜色。",
     "Blend": "把两层或多路通道混起来：应用图像、计算、通道混合器、XYZ 正片叠底、颜色查找、灰度转分量。",
     "Mask":  "按颜色或数值区间取蒙版：色彩范围、通道区间到 alpha。",
+}
+
+GROUP_DESC_EN = {
+    "Levels": "Every levels flavour in one top-level Levels submenu: basic Levels plus "
+              "six component levels — HSL / HSB / HSI / LCh / Lab / CMYK. One "
+              "black-point / white-point + gamma model, six colour spaces.",
+    "Tone":  "Light and dark: exposure, brightness/contrast, shadows–highlights, "
+             "black & white. The levels family lives in the Levels group above.",
+    "Color": "Steer hue and intensity: hue/saturation, colour balance, white balance, "
+             "vibrance, selective colour, match colour.",
+    "Blend": "Mix two layers or several channels: apply image, calculations, channel "
+             "mixer, XYZ multiply, colour lookup, gray to component.",
+    "Mask":  "Build masks from colour ranges or value intervals: colour range, "
+             "channel range to alpha.",
 }
 
 TYPE_ZH = {
@@ -118,7 +133,13 @@ def split_zh_en(lines):
 
 def short(text, n=58):
     text = re.sub(r"\s+", " ", text).strip()
-    return text if len(text) <= n else text[:n].rstrip("，。;；、 ") + "…"
+    if len(text) <= n:
+        return text
+    cut = text[:n]
+    # 英文（ASCII 为主）退回最后一个空格，别把单词切成两半；中文按字数断
+    if cut.count(" ") >= 3 and sum(1 for ch in cut if ord(ch) < 128) / len(cut) > 0.7:
+        cut = cut[:cut.rfind(" ")]
+    return cut.rstrip("，。;；、, ") + "…"
 
 
 def load_ops():
@@ -406,21 +427,32 @@ def warn_badge(op):
         if op.get("discouraged") else ""
 
 
+def en_blurb(op, n=90):
+    """卡片上的一句话：优先用 tools/site/en 里手写的 blurb（比文件头
+    purpose 的英文更紧凑、且每篇都有），其次回退到文件头的英文行。"""
+    e = load_en(op)
+    txt = (e or {}).get("blurb") or op["purpose_en"]
+    return short(txt, n) if txt else short(op["purpose_text"], n)
+
+
 def card(op):
     badge = off_badge(op) + warn_badge(op)
     return """<a class="card" href="ops/{slug}.html">
   <div class="card-top">
-    <span class="tag t-{g}">{gz}</span>
+    <span class="tag t-{g}">{tag}</span>
     <code>{oid}</code>
     {badge}
   </div>
   <h3>{menu}</h3>
   <p>{blurb}</p>
-  <span class="more">读算法说明 →</span>
+  <span class="more">{more}</span>
 </a>""".format(slug=op["dir"], g=op["group"].lower(),
-               gz=GROUP_ZH[op["group"]][1], oid=html.escape(op["id"]),
-               badge=badge, menu=html.escape(op["menu"]),
-               blurb=inline(short(op["purpose_text"])))
+               tag=t(GROUP_ZH[op["group"]][1], GROUP_ZH[op["group"]][0]),
+               oid=html.escape(op["id"]),
+               badge=badge,
+               menu=t(html.escape(op["menu"]), html.escape(en_name(op))),
+               blurb=t(inline(short(op["purpose_text"])), inline(en_blurb(op))),
+               more=t("读算法说明 →", "Read the notes →"))
 
 
 def group_section(g, ops):
@@ -429,14 +461,17 @@ def group_section(g, ops):
         return ""
     return """
 <section class="group" id="g-{g}">
-  <h3 class="group-title"><span class="tag t-{gl}">{gz}</span>
-    <span class="group-en">{ge}</span><span class="count">{n} 个</span></h3>
+  <h3 class="group-title"><span class="tag t-{gl}">{tag}</span>
+    <span class="group-en">{ge}</span><span class="count">{n}</span></h3>
   <p class="group-desc">{desc}</p>
   <div class="cards">
 {cards}
   </div>
-</section>""".format(g=g, gl=g.lower(), gz=GROUP_ZH[g][1], ge=GROUP_ZH[g][0],
-                     n=len(members), desc=GROUP_DESC[g],
+</section>""".format(g=g, gl=g.lower(),
+                     tag=t(GROUP_ZH[g][1], GROUP_ZH[g][0]),
+                     ge=t(GROUP_ZH[g][0], ""),
+                     n=t("%d 个" % len(members), "%d" % len(members)),
+                     desc=t(GROUP_DESC[g], GROUP_DESC_EN[g]),
                      cards="\n".join("    " + card(o) for o in members))
 
 
@@ -447,131 +482,177 @@ def group_section(g, ops):
 def build_index(ops, stats, version):
     n_live = sum(1 for o in ops if not o.get("deprecated"))
     n_dep = len(ops) - n_live
-    dep_note = ('<span class="muted">另有 %d 个已废弃，只作存档。</span>' % n_dep) if n_dep else ""
+    dep_note = ('<span class="muted">%s</span>' %
+                t("另有 %d 个已废弃，只作存档。" % n_dep,
+                  "Plus %d retired, kept as an archive." % n_dep)) if n_dep else ""
     by_g = "\n".join(group_section(g, ops) for g in SMG.GROUPS)
 
     hero = """<section class="hero">
   <p class="eyebrow">GIMP 3.x · GEGL 0.4 · GPL-3.0</p>
-  <h1>给 GIMP 3 的一整套<br><span class="grad">色彩算子</span></h1>
-  <p class="lede">{n} 个 <code>lb:</code> 前缀的 GEGL 算子，覆盖色阶、色彩平衡、自然饱和度、
-     白平衡、通道混合、蒙版生成。每个都是单文件 C，装完即用，能当非破坏滤镜挂在图层上。
+  <h1><span class="l-zh">给 GIMP 3 的一整套<br><span class="grad">色彩算子</span></span><span class="l-en">A complete set of<br><span class="grad">colour operators</span> for GIMP 3</span></h1>
+  <p class="lede"><span class="l-zh">{n} 个 <code>lb:</code> 前缀的 GEGL 算子，覆盖色阶、色彩平衡、自然饱和度、
+     白平衡、通道混合、蒙版生成。每个都是单文件 C，装完即用，能当非破坏滤镜挂在图层上。</span><span class="l-en">{n} GEGL operators with the <code>lb:</code> prefix, covering levels, colour
+     balance, vibrance, white balance, channel mixing and mask building. Each one is a
+     single C file, works out of the box, and mounts on a layer as a non-destructive
+     fx filter.</span>
      {dep}</p>
   <div class="cta">
-    <a class="btn primary" href="#download">下载 Windows 包<span class="size">{size} MB</span></a>
-    <a class="btn" href="#ops">浏览 {n} 个算子</a>
-    <a class="btn ghost" href="guide.html">怎么装</a>
+    <a class="btn primary" href="#download"><span class="l-zh">下载 Windows 包</span><span class="l-en">Download the Windows bundle</span><span class="size">{size} MB</span></a>
+    <a class="btn" href="#ops"><span class="l-zh">浏览 {n} 个算子</span><span class="l-en">Browse the {n} operators</span></a>
+    <a class="btn ghost" href="guide.html"><span class="l-zh">怎么装</span><span class="l-en">How to install</span></a>
   </div>
   <ul class="facts">
-    <li><b>{n}</b> 个算子</li>
-    <li><b>5</b> 个分类</li>
-    <li><b>0</b> 依赖 · 免编译包</li>
-    <li><b>{files}</b> 个 Windows 模块已随仓库发布</li>
+    <li><b>{n}</b> <span class="l-zh">个算子</span><span class="l-en">operators</span></li>
+    <li><b>5</b> <span class="l-zh">个分类</span><span class="l-en">categories</span></li>
+    <li><b>0</b> <span class="l-zh">依赖 · 免编译包</span><span class="l-en">dependencies · prebuilt</span></li>
+    <li><b>{files}</b> <span class="l-zh">个 Windows 模块已随仓库发布</span><span class="l-en">Windows modules shipped with the repo</span></li>
   </ul>
 </section>""".format(n=n_live, dep=dep_note, size=stats["zip_mb"], files=stats["win_files"])
 
     steps = """<section class="steps" id="start">
-  <h2>三分钟装上</h2>
+  <h2><span class="l-zh">三分钟装上</span><span class="l-en">Set up in three minutes</span></h2>
   <ol class="step-list">
     <li>
-      <h3>解开压缩包</h3>
-      <p>把 {files} 个 <code>.dll</code> 放进 GEGL 的用户插件目录，目录不存在就自己建一个：</p>
+      <h3><span class="l-zh">解开压缩包</span><span class="l-en">Unpack the archive</span></h3>
+      <p><span class="l-zh">把 {files} 个 <code>.dll</code> 放进 GEGL 的用户插件目录，目录不存在就自己建一个：</span><span class="l-en">Drop the {files} <code>.dll</code> files into GEGL's user plug-in directory — create it if it doesn't exist:</span></p>
       <pre><code>%LOCALAPPDATA%\\gegl-0.4\\plug-ins</code></pre>
     </li>
     <li>
-      <h3>重启 GIMP</h3>
-      <p>没有安装步骤，也没有注册表。GEGL 启动时扫描这个目录，GIMP 跟着加载。</p>
+      <h3><span class="l-zh">重启 GIMP</span><span class="l-en">Restart GIMP</span></h3>
+      <p><span class="l-zh">没有安装步骤，也没有注册表。GEGL 启动时扫描这个目录，GIMP 跟着加载。</span><span class="l-en">No installer, no registry. GEGL scans that directory at startup and GIMP picks the modules up.</span></p>
     </li>
     <li>
-      <h3>在菜单里找</h3>
-  <p>滤镜位于 <code>图像 → 颜色 → SuperMrWang</code>：色阶家族收在一级目录
+      <h3><span class="l-zh">在菜单里找</span><span class="l-en">Find them in the menu</span></h3>
+      <p><span class="l-zh">滤镜位于 <code>图像 → 颜色 → SuperMrWang</code>：色阶家族收在一级目录
      <b>Levels</b> 子菜单里（Levels / LAB / HSL / HSB / LCH / CMYK / HSI），
      其余按 Tone / Color / Blend / Mask 四组排开；
-     也可以按 <code>/</code> 搜算子名直接调。</p>
+     也可以按 <code>/</code> 搜算子名直接调。</span><span class="l-en">The filters live under <code>Colors → SuperMrWang</code>: the levels family is
+     grouped in a top-level <b>Levels</b> submenu (Levels / LAB / HSL / HSB / LCH /
+     CMYK / HSI), the rest are laid out in four groups — Tone / Color / Blend / Mask.
+     You can also press <code>/</code> and search by operator name.</span></p>
     </li>
   </ol>
 </section>""".format(files=stats["win_files"])
 
     if stats.get("zip_linux_name"):
-        lin_body = """<p>{lin} 个 <code>.so</code>（{lsize} MB）。解到
-         <code>~/.local/share/gegl-0.4/plug-ins</code>，重启 GIMP 即可。</p>
-      <a class="btn" href="download/{lzip}">下载 gegl-color-ops-linux-x64.zip</a>
-      <p class="muted small">校验：<code>SHA256 {lsha}</code></p>""".format(
+        lin_body = """<p><span class="l-zh">{lin} 个 <code>.so</code>（{lsize} MB）。解到
+         <code>~/.local/share/gegl-0.4/plug-ins</code>，重启 GIMP 即可。</span><span class="l-en">{lin} <code>.so</code> files ({lsize} MB). Unpack into
+         <code>~/.local/share/gegl-0.4/plug-ins</code> and restart GIMP.</span></p>
+      <a class="btn" href="download/{lzip}">gegl-color-ops-linux-x64.zip</a>
+      <p class="muted small">{chk}<code>SHA256 {lsha}</code></p>""".format(
             lin=stats["linux_files"], lsize=stats["zip_linux_mb"],
-            lzip=stats["zip_linux_name"], lsha=stats["zip_linux_sha"][:32] + "…")
+            lzip=stats["zip_linux_name"], lsha=stats["zip_linux_sha"][:32] + "…",
+            chk=t("校验：", "Checksum: "))
     else:
-        lin_body = """<p>暂时没有预编译包，跑 <code>./build.sh</code> 自己编（需要 GEGL 开发头文件）。</p>
-      <a class="btn" href="{repo}/tree/main/dist/linux-x64">看 Linux 目录</a>""".format(repo=REPO)
+        lin_body = """<p><span class="l-zh">暂时没有预编译包，跑 <code>./build.sh</code> 自己编（需要 GEGL 开发头文件）。</span><span class="l-en">No prebuilt bundle yet — build your own with <code>./build.sh</code> (needs GEGL development headers).</span></p>
+      <a class="btn" href="{repo}/tree/main/dist/linux-x64"><span class="l-zh">看 Linux 目录</span><span class="l-en">Browse the Linux directory</span></a>""".format(repo=REPO)
 
     download = """<section class="download" id="download">
-  <h2>下载</h2>
+  <h2><span class="l-zh">下载</span><span class="l-en">Download</span></h2>
   <div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>Windows x64</h3><span class="pill">推荐</span></div>
-      <p>{n} 个 <code>.dll</code>（{size} MB）。解到
-         <code>%LOCALAPPDATA%\\gegl-0.4\\plug-ins</code>，重启 GIMP 即可。</p>
-      <a class="btn primary" href="download/{zip}">下载 gegl-color-ops-windows-x64.zip</a>
-      <p class="muted small">校验：<code>SHA256 {sha}</code></p>
+      <div class="dl-head"><h3>Windows x64</h3><span class="pill">{rec}</span></div>
+      <p><span class="l-zh">{n} 个 <code>.dll</code>（{size} MB）。解到
+         <code>%LOCALAPPDATA%\\gegl-0.4\\plug-ins</code>，重启 GIMP 即可。</span><span class="l-en">{n} <code>.dll</code> files ({size} MB). Unpack into
+         <code>%LOCALAPPDATA%\\gegl-0.4\\plug-ins</code> and restart GIMP.</span></p>
+      <a class="btn primary" href="download/{zip}">gegl-color-ops-windows-x64.zip</a>
+      <p class="muted small">{chk}<code>SHA256 {sha}</code></p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>Linux x86_64</h3></div>
       {lin_body}
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>单个算子</h3></div>
-      <p>只想试一个？每个算子的文章页底部有它自己的模块直链，
+      <div class="dl-head"><h3>{single}</h3></div>
+      <p><span class="l-zh">只想试一个？每个算子的文章页底部有它自己的模块直链，
          或者从仓库里挑：<code>dist/windows-x64/&lt;名字&gt;.dll</code>、
-         <code>dist/linux-x64/&lt;名字&gt;.so</code>。</p>
-      <a class="btn ghost" href="{repo}/tree/main/dist/windows-x64">浏览模块列表</a>
+         <code>dist/linux-x64/&lt;名字&gt;.so</code>。</span><span class="l-en">Just one? Every operator page links its own module at the bottom,
+         or pick from the repo: <code>dist/windows-x64/&lt;name&gt;.dll</code>,
+         <code>dist/linux-x64/&lt;name&gt;.so</code>.</span></p>
+      <a class="btn ghost" href="{repo}/tree/main/dist/windows-x64">{browse}</a>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>Python 插件</h3><span class="pill">.py · 免编译</span></div>
-      <p>Layer to Selection / Layer to Channel：右键任意图层，一键转成选区
-         或 Alpha 通道。每个插件一个包，放进 GIMP 的 plug-ins 目录。</p>
-      <a class="btn ghost" href="plugins.html#download">去插件页下载</a>
+      <div class="dl-head"><h3>{pyplug}</h3><span class="pill">{pypill}</span></div>
+      <p><span class="l-zh">Layer to Selection / Layer to Channel：右键任意图层，一键转成选区
+         或 Alpha 通道。每个插件一个包，放进 GIMP 的 plug-ins 目录。</span><span class="l-en">Layer to Selection / Layer to Channel: right-click any layer to turn it
+         into a selection or an alpha channel in one click. One zip per plug-in,
+         drop it into GIMP's plug-ins directory.</span></p>
+      <a class="btn ghost" href="plugins.html#download">{goplugins}</a>
     </div>
   </div>
-  <p class="note">装不上、菜单里看不到、和 GIMP 自带算子重名——都写在
-     <a href="guide.html">安装指南</a> 的排错一节。源码编译走 <code>./build.sh</code> 或 meson，同样在那一页。</p>
+  <p class="note"><span class="l-zh">装不上、菜单里看不到、和 GIMP 自带算子重名——都写在
+     <a href="guide.html">安装指南</a> 的排错一节。源码编译走 <code>./build.sh</code> 或 meson，同样在那一页。</span><span class="l-en">Won't install, missing from the menu, name clashes with a built-in — the
+     troubleshooting section of the <a href="guide.html">install guide</a> covers all of it.
+     Building from source via <code>./build.sh</code> or meson is on the same page.</span></p>
 </section>""".format(n=stats["win_files"], size=stats["zip_mb"], zip=stats["zip_name"],
-                   sha=stats["zip_sha"][:32] + "…", lin_body=lin_body,
-                   repo=REPO)
+                     sha=stats["zip_sha"][:32] + "…", lin_body=lin_body,
+                     repo=REPO, chk=t("校验：", "Checksum: "),
+                     rec=t("推荐", "Recommended"),
+                     single=t("单个算子", "A single operator"),
+                     browse=t("浏览模块列表", "Browse the module list"),
+                     pyplug=t("Python 插件", "Python plug-ins"),
+                     pypill=t(".py · 免编译", ".py · no build"),
+                     goplugins=t("去插件页下载", "Get them on the plug-ins page"))
 
     about = """<section class="about">
-  <h2>这些算子是怎么来的</h2>
-  <p>多数是按黑盒标定做的：拿目标实现（多为常见修图软件的调整图层）做对照，逐档采样、
+  <h2><span class="l-zh">这些算子是怎么来的</span><span class="l-en">Where these operators come from</span></h2>
+  <p><span class="l-zh">多数是按黑盒标定做的：拿目标实现（多为常见修图软件的调整图层）做对照，逐档采样、
      拟合公式，再在 16 位精度上把残差压到几码以内——只看输入输出，不读对方的代码。
-     少数是直接实现公开的数学定义（Lab / LCh / HSL 色阶就是换了个色彩空间做同一件事）。</p>
-  <p>所以每篇算法说明里都有误差表、以及「哪一段没能对上、偏差多大」。没有说成
-     「完全一致」的地方，都是实测过确实对不上——例如色温 / 色调对角线上的硬裁切。</p>
-  <p class="muted">算法来源在文件头 <code>reference</code> 字段里逐条标注，源码与文档在同一个仓库。</p>
+     少数是直接实现公开的数学定义（Lab / LCh / HSL 色阶就是换了个色彩空间做同一件事）。</span><span class="l-en">Most were built by black-box calibration: sample a reference implementation
+     (usually a well-known photo editor's adjustment layers) step by step, fit the
+     formula, then press the residual down to a few code values at 16-bit precision —
+     inputs and outputs only, no source reading. A few implement published mathematical
+     definitions directly (the Lab / LCh / HSL levels are the same model in a different
+     colour space).</span></p>
+  <p><span class="l-zh">所以每篇算法说明里都有误差表、以及「哪一段没能对上、偏差多大」。没有说成
+     「完全一致」的地方，都是实测过确实对不上——例如色温 / 色调对角线上的硬裁切。</span><span class="l-en">That's why every algorithm note carries an error table plus a note on which
+     part didn't match and by how much. Anything not described as identical was measured
+     and genuinely doesn't match — the hard clipping along the colour temperature / tint
+     diagonals, for example.</span></p>
+  <p class="muted"><span class="l-zh">算法来源在文件头 <code>reference</code> 字段里逐条标注，源码与文档在同一个仓库。</span><span class="l-en">Sources are listed per operator in the <code>reference</code> field of each file
+     header; source and docs share one repository.</span></p>
 </section>"""
 
     legal = """<section class="about" id="legal">
-  <h2>版权与商标</h2>
-  <p>这里的算子都是自己写的：按公开的数学公式与可观察的行为实现，没有复制任何商业软件的
-     源代码或二进制，没有反编译产物，也不调用任何厂商的专有接口或 SDK。</p>
-  <p>菜单名、对话框标题、算子显示名与页面正文都是本项目自定表述（<code>lb:</code>
+  <h2><span class="l-zh">版权与商标</span><span class="l-en">Copyright &amp; trademarks</span></h2>
+  <p><span class="l-zh">这里的算子都是自己写的：按公开的数学公式与可观察的行为实现，没有复制任何商业软件的
+     源代码或二进制，没有反编译产物，也不调用任何厂商的专有接口或 SDK。</span><span class="l-en">Every operator here was written from scratch: implemented from published
+     mathematics and observable behaviour, with no vendor source code or binaries
+     copied, no decompilation, and no calls to proprietary interfaces or SDKs.</span></p>
+  <p><span class="l-zh">菜单名、对话框标题、算子显示名与页面正文都是本项目自定表述（<code>lb:</code>
      命名空间），不使用任何厂商的 logo、图标或界面截图。仅对业界公开的格式与色空间规范
      沿用标准名称（如 <code>.cube</code> LUT、Adobe RGB），属于指示性引用，不表示与
-     本项目存在隶属关系。站点截图是在 GIMP 里运行本项目算子的界面。</p>
-  <p class="muted">All code here is original, written from published mathematics and observable
-     behaviour, with no vendor-specific interfaces or SDKs. Names and copy are this project's
-     own; standard format and colour-space names are cited nominatively only. This project
-     is not affiliated with, endorsed by, or authorised by any vendor.
-     如认为此处有不当使用，请开 issue，核实后会调整措辞或移除相关内容。</p>
+     本项目存在隶属关系。站点截图是在 GIMP 里运行本项目算子的界面。</span><span class="l-en">Menu names, dialog titles, operator labels and page copy are this project's own
+     wording (the <code>lb:</code> namespace); no vendor logo, icon or UI screenshot is
+     used. Standard names of industry-published formats and colour spaces (such as
+     <code>.cube</code> LUTs or Adobe RGB) are cited nominatively only and imply no
+     affiliation. Site screenshots show this project's own operators running in GIMP.</span></p>
+  <p class="muted"><span class="l-zh">所有代码均为原创，依据公开数学与可观察行为自行实现，不使用任何厂商专有接口或
+     SDK；名称与文案为本项目自定表述，标准格式与色空间名称仅作指示性引用，不构成隶属关系。
+     如认为此处有不当使用，请开 issue，核实后会调整措辞或移除相关内容。</span><span class="l-en">All code here is original, written from published mathematics and observable
+     behaviour, with no vendor-specific interfaces or SDKs. Names and copy are this
+     project's own; standard format and colour-space names are cited nominatively only.
+     This project is not affiliated with, endorsed by, or authorised by any vendor.
+     If you believe something here is misused, open an issue and it will be reworded
+     or removed once verified.</span></p>
 </section>"""
 
     body = hero + steps + """
 <section class="ops" id="ops">
-  <h2>{n} 个算子</h2>
-  <p class="section-lede">按「找算子时的念头」分了五组，和 GIMP 菜单里的分组一致——
-     七个色阶收在 Levels 一级目录里。点任一算子进去看算法、参数与实测误差。</p>
+  <h2>{n}</h2>
+  <p class="section-lede"><span class="l-zh">按「找算子时的念头」分了五组，和 GIMP 菜单里的分组一致——
+     七个色阶收在 Levels 一级目录里。点任一算子进去看算法、参数与实测误差。</span><span class="l-en">Five groups organised by the question you ask when hunting for an operator,
+     matching the GIMP menu grouping — the levels family sits in one top-level Levels
+     submenu. Open any operator for its algorithm, parameters and measured error.</span></p>
 {by_g}
-</section>""".format(n=n_live, by_g=by_g) + download + about + legal
+</section>""".format(n=t("%d 个算子" % n_live, "%d operators" % n_live), by_g=by_g) \
+        + download + about + legal
 
     return page("gegl-color-ops · GIMP 3 色彩算子集", body,
                 desc="%d 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、"
-                     "白平衡、通道混合、蒙版。免编译包直接下载。" % n_live)
+                     "白平衡、通道混合、蒙版。免编译包直接下载。" % n_live,
+                titles=("gegl-color-ops · GIMP 3 色彩算子集",
+                        "gegl-color-ops · colour operators for GIMP 3"))
 
 
 def build_ops_index(ops, version):
@@ -664,6 +745,12 @@ def split_legacy_intro(md):
 _EN_CACHE = {}
 
 
+def _cap(s):
+    """英文 blurb 原稿多以「the classic editor's …」开头，单独当 lede / 卡片文案时
+    需要句首大写；只动第一个字母，中英文都安全。"""
+    return (s[:1].upper() + s[1:]) if s[:1].islower() else s
+
+
 def load_en(op):
     """读 tools/site/en/<dir>.md：front matter 给 name / blurb，其后是正文 md。
 
@@ -686,7 +773,7 @@ def load_en(op):
                     meta[k.strip().lower()] = v.strip()
             body = txt[m.end():]
         ent = {"name": meta.get("name") or op["menu"],
-               "blurb": meta.get("blurb") or "",
+               "blurb": _cap(meta.get("blurb") or ""),
                "md": body.strip("\n")}
     _EN_CACHE[d] = ent
     return ent

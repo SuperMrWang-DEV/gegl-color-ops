@@ -185,7 +185,7 @@ y'' = y_2 + k\,(y_2-0.5)\bigl(4y_2(1-y_2)\bigr)^p$$</div>
     <span>area</span> <span class="badge warn"><span class="l-zh">不推荐</span><span class="l-en">Not recommended</span></span>
   </div>
   <p class="slow-note"><b>Not recommended for daily use</b> — bilateral over four Gaussian passes costs about 1.4 µs per pixel at radius 30: 0.7 s for a 2048×1536 image at defaults, 2.1 s including decode, and every slider drag in GIMP recomputes the whole image. For overall brightness use <a href="levels.html">Levels</a> / <a href="lab-levels.html">LAB Levels</a>; come back here only when you need the local “lift less where the surroundings are bright” behaviour, and drop the radius to 10–15 for a big speedup. See <code>ops/shadows-highlights/.discouraged</code>.</p>
-  <p class="lede">the classic editor's Shadows/Highlights — an edge-aware neighbourhood algorithm, so it cannot be a LUT. Accurate, but it is a spatial filter and costs like one.</p>
+  <p class="lede">The classic editor's Shadows/Highlights — an edge-aware neighbourhood algorithm, so it cannot be a LUT. Accurate, but it is a spatial filter and costs like one.</p>
 </section><div class="article-layout">
   <article class="prose">
 <blockquote><p><strong>Not recommended for daily use (2026-11-15, performance).</strong> The operator still works and is still numerically accurate, but it is a spatial algorithm: about 1.4 µs per pixel at radius 30, so a 2048×1536 image takes 0.7 s of compute (2.1 s including decode), and every slider drag in GIMP recomputes the whole image. For overall brightness use <code>lb:levels</code> / <code>lb:lab-levels</code> / <code>lb:exposure</code>; come back here only when you need the local "lift less where the surroundings are bright" behaviour, and drop the radius to 10–15 for a big speedup. Marker: <code>ops/shadows-highlights/.discouraged</code> (documentation and site display only; <strong>it does not affect building or publishing</strong>).</p></blockquote>
@@ -283,7 +283,7 @@ y'' = y_2 + k\,(y_2-0.5)\bigl(4y_2(1-y_2)\bigr)^p$$</div>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">bc25d51</span>
+    <span class="muted">ea47fe8</span>
   </div>
 </footer>
 <script>
