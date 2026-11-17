@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>LCh Split (Curves) · Shortcut · gegl-color-ops</title>
+<title>LCh Split (Curves) · Python 插件 · gegl-color-ops</title>
 <meta name="description" content="同样的思路换到 CIE LCh：明度、彩度、色相三条曲线。
        LCh 是「颜色」组里唯一完整、且没有 legacy 包袱的一组分量模式，
        感知均匀，做明暗与彩度分级比 HSV 稳。">
-<meta property="og:title" content="LCh Split (Curves) · Shortcut · gegl-color-ops">
+<meta property="og:title" content="LCh Split (Curves) · Python 插件 · gegl-color-ops">
 <meta property="og:description" content="同样的思路换到 CIE LCh：明度、彩度、色相三条曲线。
        LCh 是「颜色」组里唯一完整、且没有 legacy 包袱的一组分量模式，
        感知均匀，做明暗与彩度分级比 HSV 稳。">
@@ -29,7 +29,7 @@
 <main id="main">
 <section class="page-head">
   <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../plugins.html">插件</a>
-    / Shortcut / LCh Split (Curves)</p>
+    / Shortcut 快捷方式</p>
   <h1>LCh Split (Curves)</h1>
   <div class="meta">
     <code>plugin/lch-split-curves</code>
@@ -44,9 +44,8 @@
 <div class="prose wide">
   <div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>菜单位置</h3><span class="pill">两级</span></div>
-      <pre><code>颜色 → SuperMrWang → Shortcut → LCh Split (Curves)
-图层右键 → SuperMrWang → Shortcut → LCh Split (Curves)</code></pre>
+      <div class="dl-head"><h3>菜单位置</h3><span class="pill">两处</span></div>
+      <ul class="menu-list"><li>颜色 → SuperMrWang → Shortcut → LCh Split (Curves)</li><li>图层右键 → SuperMrWang → Shortcut → LCh Split (Curves)</li></ul>
       <p>两处是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——
          组没有自己的像素，会直接报错并提示先合并。</p>
     </div>
@@ -57,7 +56,7 @@
     </div>
     <div class="dl">
       <div class="dl-head"><h3>依赖</h3></div>
-      <p>这一层靠下面这些算子/滤镜干活，装插件时它们必须已经在 GEGL 里注册（<code>build.sh</code> 或仓库发的 dll 包里都有）：</p>
+      <p>靠下面这些算子干活，装插件时它们必须已注册（<code>build.sh</code> 或 dll 包里都有）：</p>
       <ul class="deps"><li><code>gegl:component-extract</code></li><li><code>gimp:curves</code></li><li><code>lb:gray-to-component</code></li></ul>
     </div>
   </div>
@@ -116,7 +115,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">e37c3b9</span>
+    <span class="muted">b251293</span>
   </div>
 </footer>
 </body>

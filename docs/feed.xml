@@ -5,29 +5,29 @@
   <updated>2026-11-17T00:00:00Z</updated>
   <id>tag:github.com,2026:gegl-color-ops</id>
   <entry>
-    <title>Shortcut · 中性灰磨皮 (Neutral Grey)</title>
-    <link href="https://superMrwang-dev.github.io/gegl-color-ops/shortcut/neutral-grey.html"/>
+    <title>插件 · 中性灰磨皮</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/neutral-grey.html"/>
     <id>tag:github.com,2026:plugin-neutral-grey</id>
     <updated>2026-11-17T00:00:00Z</updated>
     <summary>一张 50% 灰的柔光层，柔光在 0.5 处是恒等映射——刚建好时与原图逐像素相同。之后白色画笔提亮、黑色画笔压暗，原图像素一个都没动，整层删掉就能回到起点。</summary>
   </entry>
   <entry>
-    <title>Shortcut · 双曲线磨皮 (Dodge &amp; Burn)</title>
-    <link href="https://superMrwang-dev.github.io/gegl-color-ops/shortcut/dodge-burn.html"/>
+    <title>插件 · 双曲线磨皮</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/dodge-burn.html"/>
     <id>tag:github.com,2026:plugin-dodge-burn</id>
     <updated>2026-11-17T00:00:00Z</updated>
     <summary>提亮一条曲线、压暗一条曲线，各自压在一张全黑蒙版下。涂到哪里，哪里才变亮或变暗——没涂的地方与原图逐像素相同，所以可以反复叠加、随时反悔。</summary>
   </entry>
   <entry>
-    <title>Shortcut · 高低频磨皮 (Frequency Separation)</title>
-    <link href="https://superMrwang-dev.github.io/gegl-color-ops/shortcut/frequency-separation.html"/>
+    <title>插件 · 高低频磨皮</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/frequency-separation.html"/>
     <id>tag:github.com,2026:plugin-frequency-separation</id>
     <updated>2026-11-17T00:00:00Z</updated>
     <summary>把一张脸拆成影调与细节两层：低频管大块明暗与肤色过渡，高频管毛孔、痘印、细纹。调低频等于重新铺光，调高频等于控制质感，两者互不干扰——这是影楼修图里最老也最稳的一套结构。</summary>
   </entry>
   <entry>
-    <title>Shortcut · HSI Split (Curves)</title>
-    <link href="https://superMrwang-dev.github.io/gegl-color-ops/shortcut/hsi-split-curves.html"/>
+    <title>插件 · HSI Split (Curves)</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/hsi-split-curves.html"/>
     <id>tag:github.com,2026:plugin-hsi-split-curves</id>
     <updated>2026-11-17T00:00:00Z</updated>
     <summary>HSI 的 I 是 (R+G+B)/3，色相又用余弦定义——GIMP 的六条分量
@@ -35,8 +35,8 @@
        合进同一层：红=S、绿=I、蓝=色相，三条曲线各管一个分量。</summary>
   </entry>
   <entry>
-    <title>Shortcut · Lab Split (Curves)</title>
-    <link href="https://superMrwang-dev.github.io/gegl-color-ops/shortcut/lab-split-curves.html"/>
+    <title>插件 · Lab Split (Curves)</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/lab-split-curves.html"/>
     <id>tag:github.com,2026:plugin-lab-split-curves</id>
     <updated>2026-11-17T00:00:00Z</updated>
     <summary>Lab 的 a、b 是直角坐标，GIMP 一条
@@ -45,8 +45,8 @@
        调 a 只动 a、调 b 只动 b。</summary>
   </entry>
   <entry>
-    <title>Shortcut · HSL Split (Curves)</title>
-    <link href="https://superMrwang-dev.github.io/gegl-color-ops/shortcut/hsl-split-curves.html"/>
+    <title>插件 · HSL Split (Curves)</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/hsl-split-curves.html"/>
     <id>tag:github.com,2026:plugin-hsl-split-curves</id>
     <updated>2026-11-17T00:00:00Z</updated>
     <summary>GIMP 给 HSV 和 LCh 都配了分量混合模式，唯独 HSL 没有。
@@ -55,8 +55,8 @@
        调哪条曲线就只动那个 HSL 分量。</summary>
   </entry>
   <entry>
-    <title>Shortcut · LCh Split (Curves)</title>
-    <link href="https://superMrwang-dev.github.io/gegl-color-ops/shortcut/lch-split-curves.html"/>
+    <title>插件 · LCh Split (Curves)</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/lch-split-curves.html"/>
     <id>tag:github.com,2026:plugin-lch-split-curves</id>
     <updated>2026-11-17T00:00:00Z</updated>
     <summary>同样的思路换到 CIE LCh：明度、彩度、色相三条曲线。
@@ -64,13 +64,31 @@
        感知均匀，做明暗与彩度分级比 HSV 稳。</summary>
   </entry>
   <entry>
-    <title>Shortcut · HSV Split (Curves)</title>
-    <link href="https://superMrwang-dev.github.io/gegl-color-ops/shortcut/hsv-split-curves.html"/>
+    <title>插件 · HSV Split (Curves)</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/hsv-split-curves.html"/>
     <id>tag:github.com,2026:plugin-hsv-split-curves</id>
     <updated>2026-11-17T00:00:00Z</updated>
     <summary>GIMP 的曲线只能选 R / G / B / Alpha——想单独曲「色相」或
        「饱和度」没有入口。这个插件把图层拆成三张分量层、每层给一条曲线，
        再按 HSV 分量模式叠回去：恒等时逐位还原，所以改曲线就等于曲那个分量。</summary>
+  </entry>
+  <entry>
+    <title>插件 · Layer to Channel</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/layer-to-channel.html"/>
+    <id>tag:github.com,2026:plugin-layer-to-channel</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>右键点一个图层，就把它变成一条新的 Alpha 通道，留档复用。恒为灰度：
+       黑 = 不选中、白 = 完全选中、中间灰 = 部分选中。想拿它当蒙版，就在通道
+       面板右键「通道到选区」（GIMP 原生）再回图层。</summary>
+  </entry>
+  <entry>
+    <title>插件 · Layer to Selection</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/layer-to-selection.html"/>
+    <id>tag:github.com,2026:plugin-layer-to-selection</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>右键点一个图层，就把它转成当前选区。GEGL 算子跑完往往留下一张灰度图，
+       它往后的用途多半是当蒙版——原生流程要点四步（复制 → 建通道 → 粘贴 →
+       蒙版转选区），这里一步到位，而且彩色图层也能直接用。</summary>
   </entry>
   <entry>
     <title>Range → Alpha</title>

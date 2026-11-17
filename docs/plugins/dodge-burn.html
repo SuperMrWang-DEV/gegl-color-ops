@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>双曲线磨皮 (Dodge &amp; Burn) · Shortcut · gegl-color-ops</title>
+<title>双曲线磨皮 · Python 插件 · gegl-color-ops</title>
 <meta name="description" content="提亮一条曲线、压暗一条曲线，各自压在一张全黑蒙版下。涂到哪里，哪里才变亮或变暗——没涂的地方与原图逐像素相同，所以可以反复叠加、随时反悔。">
-<meta property="og:title" content="双曲线磨皮 (Dodge &amp; Burn) · Shortcut · gegl-color-ops">
+<meta property="og:title" content="双曲线磨皮 · Python 插件 · gegl-color-ops">
 <meta property="og:description" content="提亮一条曲线、压暗一条曲线，各自压在一张全黑蒙版下。涂到哪里，哪里才变亮或变暗——没涂的地方与原图逐像素相同，所以可以反复叠加、随时反悔。">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
@@ -25,8 +25,8 @@
 <main id="main">
 <section class="page-head">
   <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../plugins.html">插件</a>
-    / Shortcut / 双曲线磨皮 (Dodge & Burn)</p>
-  <h1>双曲线磨皮 (Dodge & Burn)</h1>
+    / Shortcut 快捷方式</p>
+  <h1>双曲线磨皮</h1>
   <div class="meta">
     <code>plugin/dodge-burn</code>
     <span class="tag t-tone">磨皮</span>
@@ -38,9 +38,8 @@
 <div class="prose wide">
   <div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>菜单位置</h3><span class="pill">两级</span></div>
-      <pre><code>颜色 → SuperMrWang → Shortcut → 双曲线磨皮
-图层右键 → SuperMrWang → Shortcut → 双曲线磨皮</code></pre>
+      <div class="dl-head"><h3>菜单位置</h3><span class="pill">两处</span></div>
+      <ul class="menu-list"><li>颜色 → SuperMrWang → Shortcut → 双曲线磨皮</li><li>图层右键 → SuperMrWang → Shortcut → 双曲线磨皮</li></ul>
       <p>两处是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——
          组没有自己的像素，会直接报错并提示先合并。</p>
     </div>
@@ -51,7 +50,7 @@
     </div>
     <div class="dl">
       <div class="dl-head"><h3>依赖</h3></div>
-      <p>这一层靠下面这些算子/滤镜干活，装插件时它们必须已经在 GEGL 里注册（<code>build.sh</code> 或仓库发的 dll 包里都有）：</p>
+      <p>靠下面这些算子干活，装插件时它们必须已注册（<code>build.sh</code> 或 dll 包里都有）：</p>
       <ul class="deps"><li><code>gimp:curves</code></li></ul>
     </div>
   </div>
@@ -115,7 +114,7 @@
 
 <nav class="pager">
   <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
-  <a class="prev" href="frequency-separation.html"><span>上一篇</span>高低频磨皮 (Frequency Separation)</a><a class="next" href="neutral-grey.html"><span>下一篇</span>中性灰磨皮 (Neutral Grey)</a>
+  <a class="prev" href="frequency-separation.html"><span>上一篇</span>高低频磨皮</a><a class="next" href="neutral-grey.html"><span>下一篇</span>中性灰磨皮</a>
 </nav>
 </div>
 </main>
@@ -128,7 +127,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">e37c3b9</span>
+    <span class="muted">b251293</span>
   </div>
 </footer>
 </body>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Layer to Selection · Python 插件 · gegl-color-ops</title>
+<meta name="description" content="右键点一个图层，就把它转成当前选区。GEGL 算子跑完往往留下一张灰度图，
+       它往后的用途多半是当蒙版——原生流程要点四步（复制 → 建通道 → 粘贴 →
+       蒙版转选区），这里一步到位，而且彩色图层也能直接用。">
+<meta property="og:title" content="Layer to Selection · Python 插件 · gegl-color-ops">
+<meta property="og:description" content="右键点一个图层，就把它转成当前选区。GEGL 算子跑完往往留下一张灰度图，
+       它往后的用途多半是当蒙版——原生流程要点四步（复制 → 建通道 → 粘贴 →
+       蒙版转选区），这里一步到位，而且彩色图层也能直接用。">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+</head>
+<body>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+</header>
+<main id="main">
+<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../plugins.html">插件</a>
+    / 图层转换</p>
+  <h1>Layer to Selection</h1>
+  <div class="meta">
+    <code>plugin/layer-to-selection</code>
+    <span class="tag t-mask">选区</span>
+    <span>图层转换</span>
+  </div>
+  <p class="lede">右键点一个图层，就把它转成当前选区。GEGL 算子跑完往往留下一张灰度图，
+       它往后的用途多半是当蒙版——原生流程要点四步（复制 → 建通道 → 粘贴 →
+       蒙版转选区），这里一步到位，而且彩色图层也能直接用。</p>
+</section>
+
+<div class="prose wide">
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>菜单位置</h3><span class="pill">两处</span></div>
+      <ul class="menu-list"><li>图层右键 → SuperMrWang → Layer to Selection</li><li>选择 → SuperMrWang → Layer to Selection</li></ul>
+      <p>两处是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——
+         组没有自己的像素，会直接报错并提示先合并。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>脚本调用</h3></div>
+      <pre><code>lb-plugin-layer-to-selection(
+    image, drawable, channel, invert, operation)</code></pre>
+      <p>标准 PDB 过程，参数留空走默认值。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>依赖</h3></div>
+      <p>不依赖任何自研算子：直接读图层字节（array 的 C 级切片，100 万像素约 4 毫秒），只调 GIMP 自己的选区 PDB。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>转什么内容</h3><span class="pill">五种通道</span></div>
+      <p>可选 <b>Gray（亮度）/ R / G / B / Alpha</b>——彩色图层选 Gray 时按亮度算，
+         不是 HSL 明度（纯红 ≈ 54/255，而不是 130）。黑白图层走零拷贝的通道切片
+         快捷路径，不改动任何像素。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>怎么合进现有选区</h3></div>
+      <p><b>替换 / 加 / 减 / 交</b>，与 GIMP 选区菜单一致；还能反相
+         （选暗部而不是亮部）。已经有选区时不会丢，按你选的组合方式并进去。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>偏移图层</h3></div>
+      <p>图层比画布小、带偏移也没问题：只在自己位置生效，界外不选中。图层组没有
+         自己的像素，会明确报错并提示先合并。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>两个 GIMP 3 的坑</h3><span class="pill">已绕开</span></div>
+      <p><b>1. 临时通道会被选区截断。</b>shadow buffer 的 merge 遵守当前选区，
+         所以读写临时通道前先 <code>Selection.none</code> 挂起、结束再恢复，
+         否则通道只有选区内有内容。</p>
+      <p><b>2. <code>Y' float</code> 不是亮度。</b>babl 的 Y' 对纯红给 0.51，
+         那是 HSL 明度不是亮度，所以彩色图层的 Gray 走临时副本
+         <code>desaturate</code>（LUMA），用完即删。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>实测</h3></div>
+      <p><code>tools/check_layer_to_mask.py</code> 23 条断言跑在真实 GIMP 3.2 里：
+         灰度值、反相、偏移图层、彩色亮度、四个单通道、四种组合方式、
+         以及有选区时结果不被截断。</p>
+      <p>速度：直接读 array 的 C 级切片，100 万像素约 4 毫秒。</p>
+    </div>
+  </div>
+
+<section class="download" id="download">
+  <h2>下载这一个</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>Layer to Selection</h3><span class="pill">.py · 免编译</span></div>
+    <p>包里只有一个 <code>.py</code> 和一份安装说明。解压到 GIMP 的
+       <code>plug-ins</code> 目录（Windows <code>%APPDATA%\GIMP\3.x\plug-ins</code>，
+       Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-layer-to-selection.zip">下载 gegl-color-ops-plugin-layer-to-selection.zip</a>
+    <p class="muted small">5.7 KB · 校验：<code>SHA256 60622341ee130c78a2f5a6afe77b16bd…</code></p>
+  </div>
+</section>
+
+<nav class="pager">
+  <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
+  <a class="next" href="layer-to-channel.html"><span>下一篇</span>Layer to Channel</a>
+</nav>
+</div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">b251293</span>
+  </div>
+</footer>
+</body>
+</html>

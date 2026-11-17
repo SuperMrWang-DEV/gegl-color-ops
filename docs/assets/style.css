@@ -879,8 +879,6 @@ pre.mermaid svg { max-width: 100%; height: auto; }
 @media (max-width: 560px) {
   .cards.cards-8 { grid-template-columns: 1fr; }
 }
-/* 插件页每节末尾的「读全文」一行 */
-.more-line { margin: 14px 0 0; }
 /* 插件文章页的依赖清单 */
 ul.deps { display: flex; flex-wrap: wrap; gap: 6px; list-style: none;
   margin: 10px 0 0; padding: 0; }
@@ -896,10 +894,15 @@ ul.deps li { background: var(--chip, rgba(127,127,127,.12)); border-radius: 6px;
 @media (max-width: 560px) {
   .cards.cards-8 { grid-template-columns: 1fr; }
 }
-/* 插件页每节末尾的「读全文」一行 */
-.more-line { margin: 14px 0 0; }
 /* 插件文章页的依赖清单 */
 ul.deps { display: flex; flex-wrap: wrap; gap: 6px; list-style: none;
   margin: 10px 0 0; padding: 0; }
 ul.deps li { background: var(--chip, rgba(127,127,127,.12)); border-radius: 6px;
   padding: 2px 8px; font-size: 12.5px; }
+/* 插件页「菜单位置」盒：两处菜单各自一行，长名字允许折行（pre 会截断） */
+ul.menu-list { list-style: none; margin: 0 0 10px; padding: 0; }
+ul.menu-list li { font-family: var(--mono, ui-monospace, monospace); font-size: 12.5px;
+  line-height: 1.5; padding: 5px 8px; margin: 0 0 4px; border-radius: 6px;
+  background: var(--chip, rgba(127,127,127,.12)); overflow-wrap: anywhere; }
+/* 插件页信息盒里的代码：盒子窄，长签名折行而不是被截断 */
+.dl pre code { white-space: pre-wrap; overflow-wrap: anywhere; }

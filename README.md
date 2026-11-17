@@ -43,9 +43,9 @@ gegl-color-ops/
 ├── dist/                 # 编好的模块，给不想编译的人直接下载（windows-x64 / linux-x64）
 ├── tools/                # 测试图生成、逐算子冒烟、对照表、文件头重排、注释双语化
 ├── tools/site/           # 站点样式源（生成时拷进 docs/assets/）
-├── tools/plugin_docs.py  # Shortcut 八节的正文数据（插件页与 shortcut/ 文章页共用）
+├── tools/plugin_docs.py  # 十个插件页的正文与卡片文案（plugins/<slug> 文章页用）
 ├── docs/                 #  GitHub Pages 站点（tools/site_build.py 生成，别手改）
-│   └── shortcut/         #  Shortcut 八个插件各一篇（菜单结构、原理、用法、实测）
+│   └── plugins/          #  十个插件各一篇（菜单结构、原理、用法、实测）
 ├── build/                # 编译产物（build.sh 生成，可随时删）
 └── LICENSE               # GPL-3.0
 ```

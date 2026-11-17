@@ -1,12 +1,115 @@
 # -*- coding: utf-8 -*-
-"""Shortcut 下八个组件的页面数据。
+"""十个 Python 插件的页面数据。
 
-plugins.html 的章节与 shortcut/<slug>.html 的文章正文共用这里的 body，
-改一处两边一起变；正文来源是各插件 README 与回归实测，数字都在
-tools/check_*_split.py 与 check_retouch.py 里可复现。
+plugins.html 的卡片与 plugins/<slug>.html 的文章正文都从这里来，改一处两边
+一起变；正文来源是各插件源码与回归实测，数字都在 tools/check_*.py 里可复现。
 """
 
 PAGES = [
+    dict(
+        key='selection',
+        slug='layer-to-selection',
+        title='Layer to Selection',
+        tag=('选区', 't-mask'),
+        count='图层 → 选区',
+        menu='图层右键 → SuperMrWang → Layer to Selection',
+        menus=['图层右键 → SuperMrWang → Layer to Selection',
+               '选择 → SuperMrWang → Layer to Selection'],
+        pdb='lb-plugin-layer-to-selection(\n    image, drawable, channel, invert, operation)',
+        lede="""右键点一个图层，就把它转成当前选区。GEGL 算子跑完往往留下一张灰度图，
+       它往后的用途多半是当蒙版——原生流程要点四步（复制 → 建通道 → 粘贴 →
+       蒙版转选区），这里一步到位，而且彩色图层也能直接用。""",
+        body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>转什么内容</h3><span class="pill">五种通道</span></div>
+      <p>可选 <b>Gray（亮度）/ R / G / B / Alpha</b>——彩色图层选 Gray 时按亮度算，
+         不是 HSL 明度（纯红 ≈ 54/255，而不是 130）。黑白图层走零拷贝的通道切片
+         快捷路径，不改动任何像素。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>怎么合进现有选区</h3></div>
+      <p><b>替换 / 加 / 减 / 交</b>，与 GIMP 选区菜单一致；还能反相
+         （选暗部而不是亮部）。已经有选区时不会丢，按你选的组合方式并进去。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>偏移图层</h3></div>
+      <p>图层比画布小、带偏移也没问题：只在自己位置生效，界外不选中。图层组没有
+         自己的像素，会明确报错并提示先合并。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>两个 GIMP 3 的坑</h3><span class="pill">已绕开</span></div>
+      <p><b>1. 临时通道会被选区截断。</b>shadow buffer 的 merge 遵守当前选区，
+         所以读写临时通道前先 <code>Selection.none</code> 挂起、结束再恢复，
+         否则通道只有选区内有内容。</p>
+      <p><b>2. <code>Y' float</code> 不是亮度。</b>babl 的 Y' 对纯红给 0.51，
+         那是 HSL 明度不是亮度，所以彩色图层的 Gray 走临时副本
+         <code>desaturate</code>（LUMA），用完即删。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>实测</h3></div>
+      <p><code>tools/check_layer_to_mask.py</code> 23 条断言跑在真实 GIMP 3.2 里：
+         灰度值、反相、偏移图层、彩色亮度、四个单通道、四种组合方式、
+         以及有选区时结果不被截断。</p>
+      <p>速度：直接读 array 的 C 级切片，100 万像素约 4 毫秒。</p>
+    </div>
+  </div>""",
+    ),
+    dict(
+        key='channel',
+        slug='layer-to-channel',
+        title='Layer to Channel',
+        tag=('通道', 't-mask'),
+        count='图层 → 通道',
+        menu='图层右键 → SuperMrWang → Layer to Channel',
+        menus=['图层右键 → SuperMrWang → Layer to Channel',
+               '选择 → SuperMrWang → Layer to Channel'],
+        pdb='lb-plugin-layer-to-channel(\n    image, drawable, invert, name)',
+        lede="""右键点一个图层，就把它变成一条新的 Alpha 通道，留档复用。恒为灰度：
+       黑 = 不选中、白 = 完全选中、中间灰 = 部分选中。想拿它当蒙版，就在通道
+       面板右键「通道到选区」（GIMP 原生）再回图层。""",
+        body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>恒为灰度</h3><span class="pill">语义明确</span></div>
+      <p>彩色图层先按亮度转成灰度，黑白图层原样——然后把这些<b>灰度值写进通道</b>。
+         没有「取 R 通道」这类选项：要的就是明暗，不给单色通道捣乱的机会。</p>
+      <pre><code>通道值 = 该像素是否被选中
+  黑 0     → 不选中
+  中灰     → 部分选中
+  白 255   → 完全选中</code></pre>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>名字与反相</h3></div>
+      <p>默认沿用图层名，可以自己改——通道面板里一眼能认出来。可反相，
+         建好后状态栏会提示通道名。</p>
+      <p>想把它变回选区：通道面板右键该通道 → <b>通道到选区</b>（GIMP 原生），
+         或者反过来用 Layer to Selection 直接从图层取。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>为什么现成通道不行</h3></div>
+      <p>复制粘贴能把灰度塞进通道，但会带上图层蒙版等<b>显示效果</b>，
+         而且要先新建通道、再定位粘贴为选区，四步。这里读的是<b>原始像素</b>，
+         一步，而且更快。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>实测</h3><span class="pill">23 条</span></div>
+      <p><code>tools/check_layer_to_mask.py</code>：通道值、名字、反相、
+         彩色转通道 = 亮度、半透明图按 alpha 加权、有活动选区时通道不被截断
+         （写通道前先挂起选区，写完恢复）。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>和 gray-mask 的分工</h3></div>
+      <p><code>plugin/gray-mask</code> 走复制粘贴，会带上<b>显示效果</b>（蒙版、
+         图层模式）；这两个插件读<b>原始像素</b>、不认显示效果，也更快。
+         要「所见即所得」用 gray-mask，要「数据本身」用这两个。</p>
+    </div>
+  </div>""",
+    ),
     dict(
         key='hsv',
         slug='hsv-split-curves',
@@ -221,7 +324,7 @@ PAGES = [
     dict(
         key='frequency',
         slug='frequency-separation',
-        title='高低频磨皮 (Frequency Separation)',
+        title='高低频磨皮',
         tag=('磨皮', 't-tone'),
         count='一键',
         menu='颜色 → SuperMrWang → Shortcut → 高低频磨皮',
@@ -277,7 +380,7 @@ PAGES = [
     dict(
         key='dodge',
         slug='dodge-burn',
-        title='双曲线磨皮 (Dodge & Burn)',
+        title='双曲线磨皮',
         tag=('磨皮', 't-tone'),
         count='一键',
         menu='颜色 → SuperMrWang → Shortcut → 双曲线磨皮',
@@ -331,7 +434,7 @@ PAGES = [
     dict(
         key='grey',
         slug='neutral-grey',
-        title='中性灰磨皮 (Neutral Grey)',
+        title='中性灰磨皮',
         tag=('磨皮', 't-tone'),
         count='一键',
         menu='颜色 → SuperMrWang → Shortcut → 中性灰磨皮',
@@ -384,3 +487,54 @@ PAGES = [
 ]
 
 BY_KEY = {p["key"]: p for p in PAGES}
+
+# ---- 卡片与文章页共用的派生字段 ---------------------------------------------
+# 卡片只放一句（plugins.html 就只剩十块方格），长的都在文章页里。
+
+BRIEF = {
+    "selection": "右键任意图层，把它转成当前选区：Gray / R / G / B / Alpha，"
+                 "四种组合方式，可反相。",
+    "channel": "右键任意图层，把它变成一条灰度 Alpha 通道，可反相、可自定义名。",
+    "hsv": "拆成 H / S / V 三张分量层，每层一条原生曲线，恒等还原。",
+    "lch": "同上，换成 CIE LCh 明度 / 彩度 / 色相，感知均匀。",
+    "hsl": "GIMP 没有 HSL 分量模式，这个插件精确换算，不拿 HSV 近似。",
+    "lab": "a 与 b 合一层、L* 一层，调 a 只动 a、调 b 只动 b。",
+    "hsi": "I 借不到任何分量模式，三个分量合进一层、三条曲线各管一个。",
+    "frequency": "低频管影调、高频管细节，叠起来就是原图；半径决定分界。",
+    "dodge": "提亮 / 压暗两条曲线压在黑蒙版下：涂到哪里动哪里。",
+    "grey": "一层 50% 灰、柔光下恒等；白笔提亮、黑笔压暗、灰盖回去。",
+}
+
+AREA = {"selection": "图层转换", "channel": "图层转换"}
+
+DEPS = {
+    "hsv": ["gegl:component-extract", "gimp:curves", "lb:gray-to-component"],
+    "lch": ["gegl:component-extract", "gimp:curves", "lb:gray-to-component"],
+    "hsl": ["lb:hsl-dual", "lb:hsl-compose", "lb:gray-to-component"],
+    "lab": ["lb:lab-dual", "lb:lab-compose", "lb:gray-to-component"],
+    "hsi": ["lb:hsi-dual", "lb:hsi-compose"],
+    "frequency": ["gegl:gaussian-blur", "gegl:high-pass"],
+    "dodge": ["gimp:curves"],
+    "grey": [],
+}
+
+DEPS_NOTE = {
+    "grey": "不依赖任何自研算子：只往缓冲区里写像素，用 GIMP 自己的柔光混合模式。"
+            "装了插件就能用。",
+    "selection": "不依赖任何自研算子：直接读图层字节（array 的 C 级切片，"
+                 "100 万像素约 4 毫秒），只调 GIMP 自己的选区 PDB。",
+    "channel": "不依赖任何自研算子：直接读图层字节，只调 GIMP 自己的通道 PDB。",
+}
+
+for _p in PAGES:
+    _p["brief"] = BRIEF[_p["key"]]
+    _p["area"] = AREA.get(_p["key"], "Shortcut 快捷方式")
+    _p["deps"] = DEPS.get(_p["key"], [])
+    if "menus" not in _p:
+        _name = _p["menu"].split("→")[-1].strip()
+        _p["menus"] = ["颜色 → SuperMrWang → Shortcut → " + _name,
+                       "图层右键 → SuperMrWang → Shortcut → " + _name]
+    _p["deps_note"] = DEPS_NOTE.get(
+        _p["key"], "靠下面这些算子干活，装插件时它们必须已注册"
+                   "（<code>build.sh</code> 或 dll 包里都有）：")
+del _p
