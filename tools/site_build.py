@@ -1283,33 +1283,42 @@ GPL-3.0-or-later
 
 
 def build_plugins(version, stats=None):
-    """插件总览：两块方格。Shortcut 八个别处不再重复，转换两个单独一块。
+    """插件总览：和首页同一套「分组 + 方格」，只放入口不写正文。
 
-    结构、原理、实测误差、下载与安装都在 plugins/<slug>.html 里，这里只放入口。
+    结构与算子页一样：分组标题带标签和数量，配一句 group-desc，下面是卡片；
+    每个插件讲什么、怎么用、误差多少全在 plugins/<slug>.html 里，点开才看到。
     """
     def card(p):
-        # 四列窄卡里放不下 <code>frequency-separation</code> 这种长目录名，
-        # 目录名在文章页的信息条里就有，这里只留标签与名字。
         return """  <a class="card" href="plugins/{slug}.html">
     <div class="card-top"><span class="tag {cls}">{tag}</span></div>
     <h3>{title}</h3>
     <p>{brief}</p>
-    <span class="more">打开 →</span>
+    <span class="more">读插件说明 →</span>
   </a>""".format(slug=p["slug"], cls=p["tag"][1], tag=p["tag"][0],
                  title=html.escape(p["title"]), brief=p["brief"])
 
+    def group(key, tag, cls, desc, members):
+        return """<section class="group" id="{key}">
+  <h3 class="group-title"><span class="tag {cls}">{tag}</span>
+    <span class="group-en">{en}</span><span class="count">{n} 个</span></h3>
+  <p class="group-desc">{desc}</p>
+  <div class="cards">
+{cards}
+  </div>
+</section>""".format(key=key, tag=tag, cls=cls, en=key.capitalize(),
+                     n=len(members),
+                     desc=desc,
+                     cards="\n".join(card(p) for p in members))
+
     shortcut = [p for p in PD.PAGES if p["area"].startswith("Shortcut")]
     convert = [p for p in PD.PAGES if p["area"] == "图层转换"]
-
-    shortcut_cards = "\n".join(card(p) for p in shortcut)
-    convert_cards = "\n".join(card(p) for p in convert)
 
     body = """<section class="page-head">
   <p class="eyebrow"><a href="index.html">首页</a> / Python 插件</p>
   <h1>十个 Python 插件</h1>
   <p class="lede">免编译的 GIMP 3 插件，装进 <code>plug-ins</code> 目录、重启即用。
      两处入口：<b>图层右键 → SuperMrWang</b>（十个都在）与
-     <b>颜色 → SuperMrWang</b>。点方块进去看结构、原理、实测误差与下载。</p>
+     <b>颜色 → SuperMrWang</b>。</p>
   <ul class="facts">
     <li><b>10</b> 个插件</li>
     <li><b>10</b> 个 PDB 过程</li>
@@ -1319,32 +1328,16 @@ def build_plugins(version, stats=None):
 </section>
 
 <div class="prose wide">
-<section class="group" id="shortcut">
-  <h2>Shortcut：八个一键动作</h2>
-  <p class="section-lede">这八个不是 <code>lb:</code> 算子，是 GIMP 3 的 Python 插件：装进
-     <code>plug-ins</code> 目录后出现在 <code>颜色 → SuperMrWang → Shortcut</code> 和图层右键菜单里。
-     五个分量曲线把图层拆成能单独曲线的分量层，三个磨皮一次把整套修图结构摆好。
-     每个都有一篇独立文章：结构、原理、用法与实测误差。</p>
-  <div class="cards cards-8">
-{shortcut_cards}
-  </div>
-  <p class="note">安装：<code>install-plugin.sh</code> 一次装齐，或从各自的文章页单独下某一个包。
-     恒等是它们的共同点——刚建好那一刻结果与原图逐像素相同，之后的每一笔都能删掉重来。</p>
-</section>
-
-<section class="group" id="convert">
-  <h2>图层转换：转选区 / 转通道</h2>
-  <p class="section-lede">GEGL 算子跑完常留下灰度图，它往后的用途多半是当蒙版或留档。
-     这两个把「复制 → 建通道 → 粘贴 → 蒙版转选区」四步压成一次右键，也挂在
-     <code>选择 → SuperMrWang</code> 下，方便写脚本。</p>
-  <div class="cards">
-{convert_cards}
-  </div>
-  <p class="note">每个插件页里各有一个 <code>.zip</code>（只有一个 <code>.py</code>
-     和一份安装说明）；一次装全部就跑 <code>bash install-plugin.sh</code>，
-     细节见 <a href="guide.html">安装指南</a>。</p>
-</section>
-</div>""".format(shortcut_cards=shortcut_cards, convert_cards=convert_cards)
+{shortcut}
+{convert}
+  <p class="note">安装：<code>bash install-plugin.sh</code> 一次装齐，或从各自的页面
+     单独下某一个 <code>.zip</code>；细节见 <a href="guide.html">安装指南</a>。</p>
+</div>""".format(
+        shortcut=group("shortcut", "Shortcut", "t-color",
+                       "五个分量曲线、三个磨皮：把一串手工步骤压成一次点击。",
+                       shortcut),
+        convert=group("convert", "图层转换", "t-mask",
+                      "算子跑完留下的灰度图，一步变成蒙版或选区存档。", convert))
 
     return page("Python 插件 · gegl-color-ops", body,
                 desc="GIMP 3 Python 插件：图层转选区 / Alpha 通道，"

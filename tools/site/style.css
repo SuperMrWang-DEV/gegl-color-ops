@@ -467,20 +467,6 @@ h2 { font-size: clamp(22px, 2.5vw, 28px); font-weight: 650; margin-top: 84px; }
 @media (max-width: 720px) {
   .cards.cards-5 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
 }
-/* 十张卡：5 + 5 两行（一行十列会把名字压成省略号） */
-.cards.cards-10 {
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-}
-.cards.cards-10 .card { padding: 15px 14px 11px; }
-.cards.cards-10 .card p { font-size: 13px; }
-.cards.cards-10 .card h3 { font-size: 15.5px; }
-.cards.cards-10 .card-top code { font-size: 9px; letter-spacing: -.01em; }
-.cards.cards-10 .card-top { gap: 6px; }
-@media (max-width: 720px) {
-  .cards.cards-10 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-  .cards.cards-10 .card { padding: 16px 15px 12px; }
-  .cards.cards-10 .card p { font-size: 13.5px; }
-}
 .card {
   position: relative; overflow: hidden;
   display: flex; flex-direction: column;
@@ -868,16 +854,6 @@ pre.mermaid {
 pre.mermaid svg { max-width: 100%; height: auto; }
 .mermaid .node rect, .mermaid .node polygon, .mermaid .node circle {
   rx: 8; ry: 8;
-}
-/* 八张卡：4 + 4 两行，宽屏不落单 */
-.cards.cards-8 {
-  grid-template-columns: repeat(4, 1fr);
-}
-@media (max-width: 900px) {
-  .cards.cards-8 { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 560px) {
-  .cards.cards-8 { grid-template-columns: 1fr; }
 }
 /* 插件文章页的依赖清单 */
 ul.deps { display: flex; flex-wrap: wrap; gap: 6px; list-style: none;
