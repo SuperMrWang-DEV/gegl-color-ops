@@ -40,6 +40,17 @@
 <tr><td><a href="ops/cmyk-levels.html"><b>CMYK Levels</b></a></td><td><code>lb:cmyk-levels</code></td><td class="nowrap">整块区域</td><td>CMYK 四个分量各自设输入 / 输出黑白场与伽马</td></tr>
 <tr><td><a href="ops/hsi-levels.html"><b>HSI Levels</b></a></td><td><code>lb:hsi-levels</code></td><td class="nowrap">整块区域</td><td>HSI 三个分量各自设输入 / 输出黑白场与伽马</td></tr>
 </tbody></table></div>
+<h2 id="g-Component"><span class="tag t-component">分量</span> 把分量打包成一张数据图、再解回来：HSL / Lab / HSI 各自成对的 dual + compose，加上灰度→分量的单通道编码。分量曲线插件就架在这组上。</h2>
+<div class="table-wrap"><table class="op-table">
+<thead><tr><th>菜单名</th><th>GEGL id</th><th>类型</th><th>做什么</th></tr></thead><tbody>
+<tr><td><a href="ops/hsl-dual.html"><b>HSL Dual Extract</b></a></td><td><code>lb:hsl-dual</code></td><td class="nowrap">整块区域</td><td>HSL 分量曲线工作流的提取器：把一张图拆成「R = HSL 饱和度、G = HSL 明度、B = 色相/360」的数据图，一张图同时携带三…</td></tr>
+<tr><td><a href="ops/hsl-compose.html"><b>HSL Compose</b></a></td><td><code>lb:hsl-compose</code></td><td class="nowrap">整块区域</td><td>HSL 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色</td></tr>
+<tr><td><a href="ops/lab-dual.html"><b>Lab Dual Extract</b></a></td><td><code>lb:lab-dual</code></td><td class="nowrap">整块区域</td><td>Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量</td></tr>
+<tr><td><a href="ops/lab-compose.html"><b>Lab Compose</b></a></td><td><code>lb:lab-compose</code></td><td class="nowrap">整块区域</td><td>Lab 分量曲线工作流的合成器：把「R = a、G = b、B = L」的数据图还原成真实颜色</td></tr>
+<tr><td><a href="ops/hsi-dual.html"><b>HSI Dual Extract</b></a></td><td><code>lb:hsi-dual</code></td><td class="nowrap">整块区域</td><td>HSI 分量曲线工作流的提取器：把一张图拆成「R = 饱和度、G = 强度、B = 色相/360」的数据图，一张图同时携带三个分量</td></tr>
+<tr><td><a href="ops/hsi-compose.html"><b>HSI Compose</b></a></td><td><code>lb:hsi-compose</code></td><td class="nowrap">整块区域</td><td>HSI 分量曲线工作流的合成器：把「R = 饱和度、G = 强度、B = 色相/360」的数据图还原成真实颜色</td></tr>
+<tr><td><a href="ops/gray-to-component.html"><b>Gray To Component</b></a></td><td><code>lb:gray-to-component</code></td><td class="nowrap">整块区域</td><td>通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue /</td></tr>
+</tbody></table></div>
 <h2 id="g-Tone"><span class="tag t-tone">影调</span> 明暗与影调：曝光、亮度/对比度、阴影-高光、黑白转换。色阶都在上面的 Levels 组。</h2>
 <div class="table-wrap"><table class="op-table">
 <thead><tr><th>菜单名</th><th>GEGL id</th><th>类型</th><th>做什么</th></tr></thead><tbody>
@@ -61,6 +72,7 @@
 <tr><td><a href="ops/vibrance-hyper.html"><b>Natural Saturation</b></a></td><td><code>lb:vibrance-hyper</code></td><td class="nowrap">逐像素</td><td>自然饱和度：提升低饱和区，抑制高饱和与肤色，不破坏色相</td></tr>
 <tr><td><a href="ops/cmyk-primary-correction.html"><b>CMYK Primary</b></a></td><td><code>lb:cmyk-primary-correction</code></td><td class="nowrap">逐像素</td><td>经典图像编辑器 可选颜色：红/黄/绿/青/蓝/品红/白/中性/黑九组各自独立记忆</td></tr>
 <tr><td><a href="ops/colorize-hsl.html"><b>Colorize</b></a></td><td><code>lb:colorize-hsl</code></td><td class="nowrap">逐像素</td><td>复刻 经典图像编辑器「色相/饱和度」里的「着色」复选框</td></tr>
+<tr><td><a href="ops/hue-range-basic.html"><b>Hue/Saturation Range</b></a></td><td><code>lb:hue-range-basic</code></td><td class="nowrap">逐像素</td><td>色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，与 lb:hue-saturation-basic（全图）串联即接近某图像编…</td></tr>
 <tr><td><a href="ops/match-color.html"><b>Match Color</b></a></td><td><code>lb:match-color</code></td><td class="nowrap">双输入</td><td>经典图像编辑器 匹配颜色：把另一张图（或另一层）的 L<em>a</em>b* 统计量迁移到本层the classic editor Match Colo…</td></tr>
 </tbody></table></div>
 <h2 id="g-Blend"><span class="tag t-blend">混合与通道</span> 把两层或多路通道混起来：应用图像、计算、通道混合器、XYZ 正片叠底、颜色查找、灰度转分量。</h2>
@@ -71,14 +83,6 @@
 <tr><td><a href="ops/channel-mixer-plus.html"><b>Channel Mixer Plus</b></a></td><td><code>lb:channel-mixer-plus</code></td><td class="nowrap">逐像素</td><td>经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移the classic editor Channel Mixe…</td></tr>
 <tr><td><a href="ops/xyz-multiply.html"><b>Photo Filter</b></a></td><td><code>lb:xyz-multiply</code></td><td class="nowrap">逐像素</td><td>经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。the classic editor's…</td></tr>
 <tr><td><a href="ops/color-lookup.html"><b>Color Lookup</b></a></td><td><code>lb:color-lookup</code></td><td class="nowrap">整块区域</td><td>按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价于经典图像编辑器「颜色查找」调整图层；强度按 0..1 与原图线性混…</td></tr>
-<tr><td><a href="ops/gray-to-component.html"><b>Gray To Component</b></a></td><td><code>lb:gray-to-component</code></td><td class="nowrap">整块区域</td><td>通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue /</td></tr>
-<tr><td><a href="ops/hsi-compose.html"><b>HSI Compose</b></a></td><td><code>lb:hsi-compose</code></td><td class="nowrap">整块区域</td><td>HSI 分量曲线工作流的合成器：把「R = 饱和度、G = 强度、B = 色相/360」的数据图还原成真实颜色</td></tr>
-<tr><td><a href="ops/hsi-dual.html"><b>HSI Dual Extract</b></a></td><td><code>lb:hsi-dual</code></td><td class="nowrap">整块区域</td><td>HSI 分量曲线工作流的提取器：把一张图拆成「R = 饱和度、G = 强度、B = 色相/360」的数据图，一张图同时携带三个分量</td></tr>
-<tr><td><a href="ops/hsl-compose.html"><b>HSL Compose</b></a></td><td><code>lb:hsl-compose</code></td><td class="nowrap">整块区域</td><td>HSL 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色</td></tr>
-<tr><td><a href="ops/hsl-dual.html"><b>HSL Dual Extract</b></a></td><td><code>lb:hsl-dual</code></td><td class="nowrap">整块区域</td><td>HSL 分量曲线工作流的提取器：把一张图拆成「R = HSL 饱和度、G = HSL 明度、B = 色相/360」的数据图，一张图同时携带三…</td></tr>
-<tr><td><a href="ops/hue-range-basic.html"><b>Hue/Saturation Range</b></a></td><td><code>lb:hue-range-basic</code></td><td class="nowrap">逐像素</td><td>色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，与 lb:hue-saturation-basic（全图）串联即接近某图像编…</td></tr>
-<tr><td><a href="ops/lab-compose.html"><b>Lab Compose</b></a></td><td><code>lb:lab-compose</code></td><td class="nowrap">整块区域</td><td>Lab 分量曲线工作流的合成器：把「R = a、G = b、B = L」的数据图还原成真实颜色</td></tr>
-<tr><td><a href="ops/lab-dual.html"><b>Lab Dual Extract</b></a></td><td><code>lb:lab-dual</code></td><td class="nowrap">整块区域</td><td>Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量</td></tr>
 </tbody></table></div>
 <h2 id="g-Mask"><span class="tag t-mask">蒙版</span> 按颜色或数值区间取蒙版：色彩范围、通道区间到 alpha。</h2>
 <div class="table-wrap"><table class="op-table">
@@ -97,7 +101,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">7422bdd</span>
+    <span class="muted">5288353</span>
   </div>
 </footer>
 </body>

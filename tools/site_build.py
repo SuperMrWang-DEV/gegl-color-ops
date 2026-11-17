@@ -55,6 +55,7 @@ EN_DIR = os.path.join(SRC, "en")
 
 GROUP_ZH = {
     "Levels": ("Levels", "色阶家族"),
+    "Component": ("Component", "分量"),
     "Tone":  ("Tone",  "影调"),
     "Color": ("Color", "色彩"),
     "Blend": ("Blend", "混合与通道"),
@@ -64,6 +65,8 @@ GROUP_ZH = {
 GROUP_DESC = {
     "Levels": "色阶一个不落，全收在一级目录 Levels 里：基础色阶，以及 HSL / HSB / "
               "HSI / LCH / LAB / CMYK 六条分量色阶——同一个黑白场+伽马模型，换个色彩空间。",
+    "Component": "把分量打包成一张数据图、再解回来：HSL / Lab / HSI 各自成对的 "
+                 "dual + compose，加上灰度→分量的单通道编码。分量曲线插件就架在这组上。",
     "Tone":  "明暗与影调：曝光、亮度/对比度、阴影-高光、黑白转换。色阶都在上面的 Levels 组。",
     "Color": "调整颜色的方向与浓度：色相饱和度、色彩平衡、白平衡、自然饱和度、可选颜色、匹配颜色。",
     "Blend": "把两层或多路通道混起来：应用图像、计算、通道混合器、XYZ 正片叠底、颜色查找、灰度转分量。",
@@ -74,6 +77,9 @@ GROUP_DESC_EN = {
     "Levels": "Every levels flavour in one top-level Levels submenu: basic Levels plus "
               "six component levels — HSL / HSB / HSI / LCh / Lab / CMYK. One "
               "black-point / white-point + gamma model, six colour spaces.",
+    "Component": "Pack components into one data image and unpack it again: paired "
+                 "dual + compose for HSL / Lab / HSI, plus the single-channel "
+                 "gray-to-component. The component-curve plug-ins sit on top.",
     "Tone":  "Light and dark: exposure, brightness/contrast, shadows–highlights, "
              "black & white. The levels family lives in the Levels group above.",
     "Color": "Steer hue and intensity: hue/saturation, colour balance, white balance, "
@@ -532,11 +538,14 @@ def build_index(ops, stats, version):
       <h3><span class="l-zh">在菜单里找</span><span class="l-en">Find them in the menu</span></h3>
       <p><span class="l-zh">滤镜位于 <code>图像 → 颜色 → SuperMrWang</code>：色阶家族收在一级目录
      <b>Levels</b> 子菜单里（Levels / LAB / HSL / HSB / LCH / CMYK / HSI），
+     分量家族的 dual / compose 与 gray-to-component 收在一级目录 <b>Component</b> 里，
      其余按 Tone / Color / Blend / Mask 四组排开；
      也可以按 <code>/</code> 搜算子名直接调。</span><span class="l-en">The filters live under <code>Colors → SuperMrWang</code>: the levels family is
      grouped in a top-level <b>Levels</b> submenu (Levels / LAB / HSL / HSB / LCH /
-     CMYK / HSI), the rest are laid out in four groups — Tone / Color / Blend / Mask.
-     You can also press <code>/</code> and search by operator name.</span></p>
+     CMYK / HSI), the component family (dual / compose pairs and gray-to-component)
+     in a top-level <b>Component</b> submenu, and the rest in four groups —
+     Tone / Color / Blend / Mask. You can also press <code>/</code> and search by
+     operator name.</span></p>
     </li>
   </ol>
 </section>""".format(files=stats["win_files"])
@@ -703,10 +712,12 @@ def build_index(ops, stats, version):
     body = hero + steps + """
 <section class="ops" id="ops">
   <h2>{n}</h2>
-  <p class="section-lede"><span class="l-zh">按「找算子时的念头」分了五组，和 GIMP 菜单里的分组一致——
-     七个色阶收在 Levels 一级目录里。点任一算子进去看算法、参数与实测误差。</span><span class="l-en">Five groups organised by the question you ask when hunting for an operator,
-     matching the GIMP menu grouping — the levels family sits in one top-level Levels
-     submenu. Open any operator for its algorithm, parameters and measured error.</span></p>
+  <p class="section-lede"><span class="l-zh">按「找算子时的念头」分了六组，和 GIMP 菜单里的分组一致——
+     七个色阶收在 Levels 一级目录里，分量家族收在 Component 一级目录里。
+     点任一算子进去看算法、参数与实测误差。</span><span class="l-en">Six groups organised by the question you ask when hunting for an operator,
+     matching the GIMP menu grouping — the levels family and the component family
+     each sit in their own top-level submenu. Open any operator for its algorithm,
+     parameters and measured error.</span></p>
 {by_g}
 </section>""".format(n=t("%d 个算子" % n_live, "%d operators" % n_live), by_g=by_g) \
         + shortcut + download + about + legal
@@ -1144,8 +1155,9 @@ def build_guide(version, stats):
 
   <h2 id="use">怎么用</h2>
   <p>菜单在 <code>图像 → 颜色 → SuperMrWang</code>：色阶家族（Levels / LAB / HSL /
-     HSB / LCH / CMYK / HSI Levels）收在 <b>Levels</b> 子菜单里，分量曲线那几个
-     一键插件收在 <b>Shortcut</b> 子菜单里，其余分
+     HSB / LCH / CMYK / HSI Levels）收在 <b>Levels</b> 子菜单里，分量家族
+     （HSL / Lab / HSI 的 dual + compose 与 gray-to-component）收在 <b>Component</b>
+     子菜单里，分量曲线那几个一键插件收在 <b>Shortcut</b> 子菜单里，其余分
      Tone / Color / Blend / Mask 四组。也可以在 <code>/</code>（搜索动作）里直接输算子名。</p>
   <p>绝大多数算子是 <b>Point</b> 或 <b>Filter</b> 类型，GIMP 会把它们当非破坏性 fx
      挂在图层上——参数随时能改，原像素不动。双输入算子（应用图像 / 计算）目前只能合并应用。</p>

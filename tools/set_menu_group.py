@@ -24,18 +24,22 @@ OPS = os.path.join(ROOT, "ops")
 BASE = "<Image>/Colors/SuperMrWang"
 
 # 按「找算子时的念头」分组；组名会出现在 GIMP 的子菜单里。
-# Levels 是一级目录（色阶家族全在它下面），其余四组平铺。
+# Levels 与 Component 是一级目录（各自的家族全在自己名下），其余四组平铺。
 GROUPS = {
     "Levels": ["levels", "lab-levels", "hsl-levels", "hsb-levels", "lch-levels",
                "cmyk-levels", "hsi-levels"],
+    # 分量：把几个分量打包成一张数据图、再解回来。dual 与 compose 成对使用，
+    # gray-to-component 是单分量的编码器（HSV / LCh 的分量曲线插件用它）。
+    "Component": ["hsl-dual", "hsl-compose", "lab-dual", "lab-compose",
+                  "hsi-dual", "hsi-compose", "gray-to-component"],
     "Tone":  ["exposure", "brightness-contrast",
               "shadows-highlights", "rgb-domain-grayscale"],
     "Color": ["hue-saturation", "hue-saturation-basic", "hsl-seven", "color-balance",
               "color-grading", "color-temperature-tint", "vibrance",
               "vibrance-hyper", "cmyk-primary-correction", "colorize-hsl",
-              "match-color"],
+              "hue-range-basic", "match-color"],
     "Blend": ["apply-image", "calculations", "channel-mixer-plus",
-              "xyz-multiply", "color-lookup", "gray-to-component"],
+              "xyz-multiply", "color-lookup"],
     "Mask":  ["color-mask-select", "channel-range-to-alpha"],
 }
 

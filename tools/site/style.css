@@ -906,3 +906,8 @@ ul.menu-list li { font-family: var(--mono, ui-monospace, monospace); font-size: 
   background: var(--chip, rgba(127,127,127,.12)); overflow-wrap: anywhere; }
 /* 插件页信息盒里的代码：盒子窄，长签名折行而不是被截断 */
 .dl pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+/* 分量家族：与 Levels 的蓝、Blend 的靛区分开 */
+.t-component { background: color-mix(in srgb, #06b6d4 9%, transparent); color: #0e7490; border-color: color-mix(in srgb, #06b6d4 26%, transparent); }
+@media (prefers-color-scheme: dark) {
+  .t-component { color: #67e8f9; }
+}

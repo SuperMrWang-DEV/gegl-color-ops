@@ -366,7 +366,7 @@ python tools/i18n_blocks.py check                    # 与 git HEAD 比对代码
 
 ```bash
 cd gegl-color-ops
-./build.sh                 # 产物在 build/ 下，29 个 .dll/.so/.dylib
+./build.sh                 # 产物在 build/ 下，37 个 .dll/.so/.dylib
 ```
 
 脚本会自动探测 `gegl-0.4.pc`（先试 `D:/fastsoftware/GIMP 3/lib/pkgconfig` 等常见位置），也可手动指定：
@@ -441,21 +441,24 @@ touch plugin/blend/.disabled        # 停用 Python 插件
 
 ## 在 GIMP 菜单位置
 
-29 个算子注册在同一个菜单目录下；色阶家族单独收进一级目录 Levels，避免一长串：
+37 个算子注册在同一个菜单目录下；色阶家族与分量家族各自单独收进一级目录，
+避免一长串：
 
 ```
-图像 → 颜色 → SuperMrWang → Levels → <算子>      （7 个色阶）
+图像 → 颜色 → SuperMrWang → Levels    → <算子>   （7 个色阶）
+图像 → 颜色 → SuperMrWang → Component → <算子>   （6 个 dual / compose + 灰度转分量）
 图像 → 颜色 → SuperMrWang → Tone / Color / Blend / Mask → <算子>
 ```
 
-29 个算子按「找算子时的念头」分五组，避免一个子菜单里平铺二十多项：
+37 个算子按「找算子时的念头」分六组，避免一个子菜单里平铺二十多项：
 
 | 组 | 想干什么 | 放什么 |
 |---|---|---|
 | `Levels` | 拉黑白场 / 调中间调（gamma） | Levels、LAB / HSL / HSB / LCH / CMYK / HSI 色阶——一级目录 |
+| `Component` | 把分量拆开 / 拼回来 | HSL / Lab / HSI 的 `dual` + `compose` 成对，加灰度 → 分量编码——一级目录 |
 | `Tone` | 太暗 / 太灰 / 反差不对 | 曝光、亮度/对比度、阴影/高光、黑白 |
 | `Color` | 颜色不对 / 想加味道 | 色相饱和度、HSL 8 Bands、色彩平衡、颜色分级、色温色调、自然饱和度、Vibrance、可选颜色、着色 |
-| `Blend` | 要把两样东西合起来 | 应用图像、计算、通道混合器、照片滤镜、颜色查找、灰度转分量 |
+| `Blend` | 要把两样东西合起来 | 应用图像、计算、通道混合器、照片滤镜、颜色查找 |
 | `Mask` | 要一个选区 | 色彩范围、通道区间 → alpha |
 
 对应源码里的两个 class key（每个 `ops/*/*.c` 都有）：
@@ -465,7 +468,7 @@ touch plugin/blend/.disabled        # 停用 Python 插件
 "gimp:menu-label", _("界面里显示的名字"),
 ```
 
-**别手改 29 个文件**。分组表在 `tools/set_menu_group.py` 里，改完跑一遍即可
+**别手改 37 个文件**。分组表在 `tools/set_menu_group.py` 里，改完跑一遍即可
 （按字节替换，仓库里 LF / CRLF 混用也不会把行尾搞乱）：
 
 ```bash
