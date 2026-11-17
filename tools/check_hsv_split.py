@@ -185,14 +185,25 @@ print("== 2. 滤镜栈 / filter stack")
 hue_l, sat_l, val_l = kids
 check(len(val_l.get_filters()) == 2, "Value 层 2 条滤镜",
       len(val_l.get_filters()))
-check(len(sat_l.get_filters()) == 5, "Saturation 层 5 条滤镜",
+check(len(sat_l.get_filters()) == 3, "Saturation 层 3 条滤镜",
       len(sat_l.get_filters()))
-check(len(hue_l.get_filters()) == 5, "Hue 层 5 条滤镜", len(hue_l.get_filters()))
+check(len(hue_l.get_filters()) == 3, "Hue 层 3 条滤镜", len(hue_l.get_filters()))
 # get_filters() 是「最新在前」，执行顺序是它的反序
 names = [f.get_name() for f in hue_l.get_filters()][::-1]
-check(names == ["1 · extract", "2 · curve", "3 · encode", "3 · encode",
-                "3 · encode"],
-      "滤镜执行顺序 extract → curve → encode×3", names)
+check(names == ["1 · extract", "2 · curve", "3 · encode"],
+      "滤镜执行顺序 extract → curve → encode", names)
+
+# 编码由一个算子完成：hue / saturation 各取对应的分量模式。
+# 缺 lb:gray-to-component 时插件退回三条曲线，那时这条断言自动跳过。
+gtc = [f for f in hue_l.get_filters() if f.get_name() == "3 · encode"]
+if gtc and len(gtc) == 1 and HSV._GTC_OK:
+    modes = []
+    for lay in (hue_l, sat_l):
+        f = [x for x in lay.get_filters() if x.get_name() == "3 · encode"][0]
+        modes.append(f.get_config().get_property("mode"))
+    check(modes == ["hue", "saturation"], "编码算子模式对", modes)
+else:
+    print("  .. 跳过算子断言（未安装 lb:gray-to-component，走曲线回退）")
 
 print("== 3. 浮点图恒等往返 / float identity")
 got = flatten(img)

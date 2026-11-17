@@ -37,9 +37,11 @@ ops = [
   ['brightness-contrast',  'lb-brightness-contrast',  'lb-brightness-contrast.c'],
   ['xyz-multiply',            'xyz-multiply',            'xyz-multiply.c'],
   ['shadows-highlights',      'shadows-highlights',      'shadows-highlights.c'],
+  # 分量层编码器：HSV/LCh Split 插件的最后一步
+  ['gray-to-component',       'gray-to-component',       'gray-to-component.c'],
   # 双输入（aux）算子。本表是手工维护的，加算子时必须同步；带 .disabled 标记的
-  # 算子（当前为 gray-to-component）不入表也不编译。CI 用集合比对核对本表与
-  # ops/ 下的源码目录，漏列或多列都会点名。
+  # 算子不入表也不编译。CI 用集合比对核对本表与 ops/ 下的源码目录，漏列或多列
+  # 都会点名。
   ['apply-image',             'apply-image',             'apply-image.c'],
   ['calculations',            'calculations',            'calculations.c'],
   ['match-color',             'match-color',             'match-color.c'],

@@ -11,8 +11,8 @@
 
 ```
 HSV split                 组，混合模式 = 穿透
-  ├─ 1 · Hue              模式 HSV 色相      extract → curve → encode×3
-  ├─ 2 · Saturation       模式 HSV 饱和度    extract → curve → encode×3
+  ├─ 1 · Hue              模式 HSV 色相      extract → curve → encode
+  ├─ 2 · Saturation       模式 HSV 饱和度    extract → curve → encode
   ├─ 3 · Value            模式 HSV 明度      extract → curve
   └─ 原图层（不动）
 ```
@@ -23,28 +23,28 @@ HSV split                 组，混合模式 = 穿透
 |---|---|---|
 | `1 · extract` | `gegl:component-extract` | 抽出该分量，输出灰度（`hue` / `hsv-s` / `hsv-v`） |
 | `2 · curve` | `gimp:curves`（通道 = 值） | **给用户调的那条**，默认恒等 |
-| `3 · encode` ×3 | `gimp:curves`（通道 = R / G / B） | 把灰度重新编码成「携带该分量」的彩色，混合模式才读得出来 |
+| `3 · encode` | `lb:gray-to-component` | 把灰度重新编码成「携带该分量」的彩色，混合模式才读得出来 |
 
 Value 层不需要编码：**灰色本身就是 V**，所以只有两条滤镜。
 
-## 为什么需要 encode 这三步
+## 为什么需要 encode
 
 灰度像素的色相、饱和度是**无定义**的。把 H 灰度层直接设成「HSV 色相」模式不会有
 任何效果——混合模式从灰里读不出色相。必须先把灰度映射到色环上的真实颜色。
 
-这三条编码都是「灰度 → 单通道」的一维映射，用三条 `gimp:curves` 就能精确表达，
-**不需要任何 `lb:` 算子**（原来干这事的 `lb:gray-to-component` 已于 2026-11-15
-废弃；实测它在真实滤镜栈里把输入当线性光读，往返是错的，约 83–255 码偏差）。
+这一步交给自己仓库的 GEGL 算子 `lb:gray-to-component`，**一个滤镜**顶掉原来的
+三条 `gimp:curves`（旧版三条曲线是 256 点查表，色相环上一格 1.4°）。没装这个
+算子时插件自动退回三条曲线，结果一样，只是少了算子的精确进制。
 
 | 层 | 编码公式（sRGB 编码值域） |
 |---|---|
-| Hue | `hsl(g·360°, 1, 0.5)` 逐通道——饱和度/明度拉满的色相轮；色相模式只读色相，另两个分量无所谓 |
+| Hue | `hsl(g·360°, 1, 0.5)`——饱和度/明度拉满的色相轮；色相模式只读色相，另两个分量无所谓 |
 | Saturation | `(1, 1−g, 1−g)`——红相、V=1 的 HSV 饱和度；同样只读饱和度，取直线最省 |
 | Value | 恒等（灰层本身就是 V） |
 
 ## 实测精度
 
-`tools/check_hsv_split.py`（跑在 GIMP 3.2.8 的 Python 里，18 项）：
+`tools/check_hsv_split.py`（跑在 GIMP 3.2.8 的 Python 里，19 项）：
 
 | 场景 | 结果 |
 |---|---|
@@ -54,9 +54,8 @@ Value 层不需要编码：**灰色本身就是 V**，所以只有两条滤镜�
 | 真实 512×512 图，恒等往返（PNG 逐像素比对） | 最大 **1 码**，仅 0.335% 的通道值有差异 |
 | 透明区域 alpha | 逐位保留（分量混合模式沿用下层 alpha，不需要蒙版） |
 
-误差来源是 `gimp:curves` 内部的 **256 项查表**（色相环上一个采样点 = 1.4°），
-不是公式；单位曲线本身实测 0 误差。想更准就把图像设成 16/32 位浮点——但曲线
-的 256 项 LUT 依然是下限。
+0.5 码那部分来自 8 位量化与曲线回退路径的 256 项查表；装 `lb:gray-to-component`
+时编码本身没有查表误差。
 
 ## 用起来的几条经验
 
@@ -102,9 +101,8 @@ Linux:   ~/.config/GIMP/3.x/plug-ins/hsv-split-curves/
 
 ## 已知限制
 
-- LCh 版（L/C/h）**没做**：GIMP 的 `gegl:component-extract` 的 `lch-c` 量程是
-  C/200（D50 适配 Lab），编码端与 `LCh Chroma` 混合模式的口径对不上，实测恒等
-  往返还有 83 码残差，需要单独标定后再加。
-- 8 位以外的精度受曲线 LUT 限制，见上表。
+- LCh 版（L/C/h）**不在这个插件里**，另见 `plugin/lch-split-curves/`。
+- 没装 `lb:gray-to-component` 时自动退回三条 `gimp:curves`，精度掉到 0.5 码级；
+  算子在仓库根的 `dist/` 与 `./install.sh` 里。
 
 GPL-3.0-or-later，见工程根目录 LICENSE。

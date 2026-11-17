@@ -21,34 +21,33 @@
                 ├─ 3 Value         分量层：hsv-v 灰 → 曲线         模式 = HSV 明度
                 └─ 原图层（不动）
 
-           每层的滤镜栈是固定的三条（Value 层只有前两条），图层面板里从上往下
-           读是 3 → 2 → 1，实际执行顺序与之相反（最下面那条先跑）：
+           每层的滤镜栈（图层面板里从上往下读是 3 → 2 → 1，实际执行顺序相反）：
 
-              1 · extract      gegl:component-extract —— 抽出该分量，输出灰度
-              2 · curve        gimp:curves（通道 = 值）—— 就是给用户调的那条
-              3 · encode R/G/B gimp:curves —— 把灰度重新编码成「携带该分量」
-                               的彩色，混合模式才读得出来
+              1 · extract   gegl:component-extract —— 抽出该分量，输出灰度
+              2 · curve     gimp:curves（通道 = 值）—— 给用户调的那条
+              3 · encode    lb:gray-to-component —— 把灰度编码成「携带该分量」
+                            的彩色，混合模式才读得出来
 
            Value 层不需要编码（灰就是 V），所以只有前两条。
 
- note      为什么要 encode 那三步：灰度像素的色相/饱和度是无定义的，把 H
-           灰度层直接设成「HSV 色相」模式不会有任何效果——混合模式从灰里读
-           不出色相。必须先把它映射到色环上的真实颜色。每一步都是逐通道的一
-           维映射，所以用三条 gimp:curves 就能精确表达（不需要额外的 GEGL
-           算子，装不上 lb: 也能跑）。
+ note      为什么要 encode：灰度像素的色相/饱和度是无定义的，把 H 灰度层直接
+           设成「HSV 色相」模式不会有任何效果——混合模式从灰里读不出色相。必
+           须先把它映射到色环上的真实颜色。
 
-           三条编码曲线的公式（sRGB 编码值域）：
-             hue        hsl(g·360°, 1, 0.5) 逐通道
-             saturation (1, 1−g, 1−g) —— red 相、V=1 的 HSV 饱和度
+           这一步由本仓库的 GEGL 算子 lb:gray-to-component 一个滤镜完成（不再
+           是三条 gimp:curves）。灰度值 g 按模式编码（sRGB 编码值域）：
+             hue        hsl(g·360°, 1, 0.5)
+             saturation hsv(0°, g, 1) = (1, 1−g, 1−g) —— red 相、V=1
              value      恒等（灰层本身就是 V）
+
+           没装这个算子时自动退回三条曲线编码，结果几乎一致（曲线是 256 点
+           查表，色相环上一格 1.4°）。
 
            实测（GIMP 3.2.8，覆盖全色相/饱和度/明度的测试图，见
            tools/check_hsv_split.py）：
              32 位浮点图，恒等曲线往返：最大通道误差 0.00196（0.50 码）
              8 位图，恒等曲线往返：      最大通道误差 0.00196（0.50 码）
              8 位图，曲线 vs 直接改 HSV 的数学期望：1.84 码
-           误差来自 gimp:curves 内部的 256 项查表（色相环上一个采样点 = 1.4°），
-           不是公式；曲线本身是精确的（单位曲线实测 0 误差）。
 
            注意事项：
            - 色相曲线必须是连续的：两端相等、中间不跳变。**整体旋转色相**不
@@ -133,6 +132,40 @@ def _sat_channel(k):
 HUE_ENCODE = tuple(_hue_channel(k) for k in range(3))
 SAT_ENCODE = tuple(_sat_channel(k) for k in range(3))
 
+# 一个滤镜顶三条曲线的编码算子（本仓库 ops/gray-to-component）
+GTC_OP = "lb:gray-to-component"
+
+_GTC_OK = None
+
+
+def _append_encoder(layer, mode, label, encode):
+    """给灰度层挂编码：优先 lb:gray-to-component，缺算子时退回三条曲线。
+
+    mode 是算子的分量名（hue / saturation / …）；encode 是等价的曲线三元组。
+    可用性靠「能不能真的建出这个滤镜」判断（GEGL 没有给 GI 暴露注册表查询）。
+    Attach the encoder. Falls back to three curve filters when the GEGL op is
+    not installed, so the plugin still works on a bare GIMP."""
+    global _GTC_OK
+    if _GTC_OK is not False:
+        try:
+            filt = Gimp.DrawableFilter.new(layer, GTC_OP, label)
+            cfg = filt.get_config()
+            cfg.set_property("mode", mode)
+            filt.update()
+            layer.append_filter(filt)
+            _GTC_OK = True
+            return [filt]
+        except Exception:
+            _GTC_OK = False
+
+    added = []
+    for channel, fn in zip((Gimp.HistogramChannel.RED,
+                            Gimp.HistogramChannel.GREEN,
+                            Gimp.HistogramChannel.BLUE), encode):
+        added.append(_append_curve(layer, label, fn, channel))
+    return added
+
+
 
 # ---- 滤镜栈 / the filter stack ---------------------------------------------
 
@@ -160,7 +193,7 @@ def _append_curve(layer, label, fn, channel):
 
 
 def _component_layer(image, base, title, component, encode, mode, parent):
-    """造一张分量层：extract → curve → encode×n，并挂好混合模式。
+    """造一张分量层：extract → curve → encode，并挂好混合模式。
 
     extract 输出的是灰度，alpha 会被写成不透明；不用补蒙版——分量混合模式
     在合成时沿用下层的 alpha，透明区域照样透出去（实测 alpha 逐位一致）。
@@ -181,10 +214,7 @@ def _component_layer(image, base, title, component, encode, mode, parent):
     _append_curve(layer, _("2 · curve"), _identity, Gimp.HistogramChannel.VALUE)
 
     if encode:
-        for channel, fn in zip((Gimp.HistogramChannel.RED,
-                                Gimp.HistogramChannel.GREEN,
-                                Gimp.HistogramChannel.BLUE), encode):
-            _append_curve(layer, _("3 · encode"), fn, channel)
+        _append_encoder(layer, encode[0], _("3 · encode"), encode[1])
     return layer
 
 
@@ -230,9 +260,11 @@ def split_hsv(image, base, make_group=True):
         value = _component_layer(image, base, _("3 · Value"), "hsv-v", None,
                                  Gimp.LayerMode.HSV_VALUE, host)
         sat = _component_layer(image, base, _("2 · Saturation"), "hsv-s",
-                               SAT_ENCODE, Gimp.LayerMode.HSV_SATURATION, host)
+                               ("saturation", SAT_ENCODE),
+                               Gimp.LayerMode.HSV_SATURATION, host)
         hue = _component_layer(image, base, _("1 · Hue"), "hue",
-                               HUE_ENCODE, Gimp.LayerMode.HSV_HUE, host)
+                               ("hue", HUE_ENCODE),
+                               Gimp.LayerMode.HSV_HUE, host)
 
         try:
             image.set_selected_layers([host or hue])

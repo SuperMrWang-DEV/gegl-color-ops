@@ -40,7 +40,7 @@ Gegl.init()
 FMT_RGB = "R'G'B'A float"
 FMT_LAB = "CIE Lab alpha float"
 FMT_LCH = "CIE LCH(ab) alpha float"
-FMT_GRAY = "YA float"
+FMT_GRAY = "R'G'B'A float"
 
 PASS = 0
 FAIL = 0
@@ -75,7 +75,7 @@ def make_gray_buf(grays, alpha=None, w=None, h=None):
     alpha = alpha or [1.0] * n
     a = array.array('f')
     for i in range(n):
-        a.extend([grays[i], alpha[i]])
+        a.extend([grays[i], grays[i], grays[i], alpha[i]])
     buf = Gegl.Buffer.new(FMT_GRAY, 0, 0, w, h)
     buf.set(Gegl.Rectangle.new(0, 0, w, h), FMT_GRAY, a.tobytes())
     return buf
@@ -86,7 +86,7 @@ def read_fmt(buf, fmt, w, h):
                    Gegl.AbyssPolicy.NONE)
     flat = array.array('f')
     flat.frombytes(data)
-    n = {FMT_RGB: 4, FMT_LAB: 4, FMT_LCH: 4, FMT_GRAY: 2}[fmt]
+    n = {FMT_RGB: 4, FMT_LAB: 4, FMT_LCH: 4, FMT_GRAY: 4}[fmt]
     return [tuple(flat[i * n:(i + 1) * n]) for i in range(w * h)]
 
 
@@ -261,7 +261,7 @@ for y in range(AH):
 abuf = Gegl.Buffer.new(FMT_GRAY, 0, 0, AW, AH)
 arr = array.array('f')
 for g, al in zip(a_gray, a_alpha):
-    arr.extend([g, al])
+    arr.extend([g, g, g, al])
 abuf.set(Gegl.Rectangle.new(0, 0, AW, AH), FMT_GRAY, arr.tobytes())
 
 root = Gegl.Node.new()

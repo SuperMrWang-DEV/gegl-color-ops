@@ -9,6 +9,15 @@
  *            Encoder for the grayscale-component color-grading workflow:
  *            re-encodes a decomposed component gray layer into a color
  *            layer that GIMP's component blend modes can read back.
+ * input      输入是「灰度层，像素值即分量数值」：component-extract 的输出，
+ *            或者用户自己建的灰度层。g 直接取 R 通道（灰度三通道相等），
+ *            alpha 原样透传。数值的域由 input-space 决定：
+ *            encoded（默认）—— 8/16 位图层，滤镜栈缓冲是 R'G'B'A float，
+ *                               像素值就是分量数值本身（H/360、L/100…）
+ *            linear        —— 32 位浮点线性图，栈缓冲是 RGBA float
+ *            这两者必须与图像的精度对上，否则 babl 会把「数值」当成亮度做
+ *            一次多余的 gamma 编码（旧版固定声明 YA float 就是这么错的：
+ *            在 8 位图上往返偏 83-255 码）。
  * algorithm  灰度 g∈[0,1] 按模式映射（编码公式经 hsl-cal 恒等往返校准，
  *            见 ops/gray-to-component/README.md）。覆盖 GIMP 3「颜色」组
  *            全部 9 个混合模式：
@@ -42,6 +51,8 @@
  *            RGB 模式经 babl fish 转 Lab，与 GIMP 内部转换同源）。
  *            Lab/LCh 编码允许超出 sRGB 色域的值原样保留（float32）。
  * type       GeglOperationFilter（纯逐像素，无 aux，可挂非破坏滤镜）
+ * used-by    plugin/hsv-split-curves、plugin/lch-split-curves —— 每张分量层
+ *            的编码步骤；替代原来的三条 gimp:curves，一行滤镜搞定
  * reference  GIMP 3 图层混合模式「颜色」组（9 个：Hue / Saturation /
  *            Color / Value / LCh Hue / LCh Chroma / LCh Color /
  *            LCh Lightness / Luminance）
@@ -75,6 +86,18 @@ property_enum (mode, _("Mode"), LbGtcMode, lb_gtc_mode, GTC_MODE_HUE)
                    "value 配 HSV·HSL 组混合模式，lightness/luminance/lch-* "
                    "配 LCh 组与 Luminance，RGB 三通道用 Lighten 叠合还原"))
 
+enum_start (lb_gtc_space)
+  enum_value (GTC_SPACE_ENCODED, "encoded", "Encoded (8/16-bit layers)")
+  enum_value (GTC_SPACE_LINEAR,  "linear",  "Linear (32-bit float layers)")
+enum_end (LbGtcSpace)
+
+property_enum (input_space, _("Input Space"), LbGtcSpace, lb_gtc_space,
+               GTC_SPACE_ENCODED)
+    description (_("输入像素值所在的域。分量灰度层是从 8/16 位图层来的就选 "
+                   "encoded（滤镜栈缓冲为 R'G'B'A float），从 32 位浮点线性"
+                   "图来的选 linear（缓冲为 RGBA float）。选错会让 babl 多"
+                   "做一次 gamma 编码，编码值整体偏亮"))
+
 property_double (sat_hue, _("Saturation Hue"), 0.0)
     description (_("Saturation 模式使用的色相（度）；0=红，按需可改。该层只"
                    "提供饱和度信息，色相在混合还原时不进入结果"))
@@ -105,10 +128,11 @@ property_double (lch_h, _("LCh Hue Angle"), 30.0)
 
 property_double (chroma_scale, _("Chroma Scale"), 100.0)
     description (_("LCh Chroma 模式的满量程：灰度 1.0 对应的色度上限。GIMP "
-                   "的 LCh 分解把 C 0..100 映射到满量程；要覆盖更宽色域"
-                   "（sRGB 可达 ~130）可调大，但必须与分解侧的缩放一致"))
-    value_range (50.0, 160.0)
-    ui_range (50.0, 150.0)
+                   "的 component-extract 把 C 归一化到 200（lch-c = C/200），"
+                   "所以喂分解结果时要设成 200；自己建灰度层时保持 100 更直观。"
+                   "sRGB 色域内 C 最大约 131，超出的部分在 float32 下仍可往返"))
+    value_range (0.0, 256.0)
+    ui_range (0.0, 200.0)
 
 #else
 
@@ -119,11 +143,16 @@ property_double (chroma_scale, _("Chroma Scale"), 100.0)
 
 #define DEG2RAD (G_PI / 180.0f)
 
-static const Babl *gtc_input_format(void)
+static const Babl *gtc_input_format(GeglOperation *op)
 {
-  /* 灰度输入：YA float（亮度+alpha）。分解出的灰度层是 RGBA 时 babl
-   * 自动转 Y（CIE 亮度）；需要保 alpha 供混合模式正常工作 */
-  return babl_format("YA float");
+  /* 读的是「数值」而不是亮度：声明与上游缓冲同域的四通道格式，babl 才不会
+   * 在中间做 gamma 往返。灰度层的三通道相等，取 R 即可，alpha 照抄。
+   * Four-channel format in the same domain as the upstream buffer, so babl
+   * passes the component value through untouched. */
+  gint space = GTC_SPACE_ENCODED;
+  g_object_get (G_OBJECT (op), "input-space", &space, NULL);
+  return babl_format (space == GTC_SPACE_LINEAR ? "RGBA float"
+                                               : "R'G'B'A float");
 }
 
 static const Babl *gtc_output_format(void)
@@ -254,7 +283,7 @@ static inline void gtc_rgb_for_mode(gint          mode,
 static void
 prepare (GeglOperation *op)
 {
-  gegl_operation_set_format (op, "input",  gtc_input_format ());
+  gegl_operation_set_format (op, "input",  gtc_input_format (op));
   gegl_operation_set_format (op, "output", gtc_output_format ());
 }
 
@@ -280,11 +309,11 @@ process (GeglOperation       *op,
                 "chroma-scale", &chroma_scale,
                 NULL);
 
-  const Babl *fmt_in  = gtc_input_format ();
+  const Babl *fmt_in  = gtc_input_format (op);
   const Babl *fmt_out = gtc_output_format ();
 
   const gint w      = roi->width;
-  const gint n_in   = w * 2;    /* YA float */
+  const gint n_in   = w * 4;    /* R'G'B'A / RGBA float */
   const gint n_out  = w * 4;    /* CIE Lab alpha float */
 
   gfloat *in_line   = g_new (gfloat, n_in);
@@ -323,11 +352,11 @@ process (GeglOperation       *op,
 
     for (gint x = 0; x < w; x++)
     {
-      gint px_in  = x * 2;
+      gint px_in  = x * 4;
       gint px_out = x * 4;
 
       gfloat gray = in_line[px_in + 0];
-      gfloat a    = in_line[px_in + 1];
+      gfloat a    = in_line[px_in + 3];
 
       /* 透明像素：Lab(0,0,0) + 原 alpha，与全仓透明像素规则一致
        * Fully transparent pixels stay transparent */
