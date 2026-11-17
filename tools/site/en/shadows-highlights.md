@@ -52,9 +52,13 @@ community and was far faster than guessing IDs.
 Six stages, all numbers from black-box fitting against the classic editor 25.4 (PhotoCraft uses the same
 structure, MIT):
 
-1. **Luminance** `lum = (max(R,G,B) + Rec.601 luma) / 2`, applied to **sRGB encoded
-   values** (not linear light). That is why lifting the shadows makes colours look
-   washed out — it moves display values.
+1. **Luminance**: the mean of the max channel and Rec.601 luma, applied to **sRGB
+   encoded values** (not linear light). That is why lifting the shadows makes colours
+   look washed out — it moves display values:
+
+```math
+y = \tfrac{1}{2}\bigl(\max(R,G,B) + 0.299R + 0.587G + 0.114B\bigr)
+```
 2. **Neighbourhood luminance**: an edge-aware bilateral in Durand–Dorsey's piecewise
    linear form. `lum` is first blurred lightly (σ=1.3559) into a `guide` (noise
    suppression only; it does not set the scale); pixels are quantised into **17 levels**
@@ -66,10 +70,20 @@ structure, MIT):
 3. **Tonal mask**: `nb` indexes a 256-entry table `1 − BetaCDF(level)`. The shape
    interpolates between Beta(a,b) by tonal width: 0 → Beta(1.95, 23) (only the darkest
    sliver), ≥95 → `1 − L` (everything). Highlights mirror it with `255 − nb`.
-4. **Curve**: a self-screen `1 − (1−v)^q`, with q ∈ {1,2,4,8} blended by amount
-   (`u = (amount/100)^0.6216`; `strength = u/0.3` for u ≤ 0.3, otherwise
-   `(1+20u)/7`, i.e. amount 15≈1, 50≈2, 100≈3). Shadows lift each channel by
-   `mask × (curve − v)`; highlights push back with the mirror.
+4. **Curve**: a self-screen $c_q(v) = 1-(1-v)^q$, with $q \in \{1,2,4,8\}$ blended by
+   amount $A$:
+
+```math
+u = \left(\frac{A}{100}\right)^{0.6216},\qquad
+s = \begin{cases}
+u/0.3, & u \le 0.3 \\[4pt]
+(1+20u)/7, & u > 0.3
+\end{cases}
+\qquad\Longrightarrow\qquad A = 15 \approx 1,\ 50 \approx 2,\ 100 \approx 3
+```
+
+   Shadows lift each channel by $m\cdot s\,\bigl(c_q(y)-y\bigr)$; highlights push back
+   with the mirror.
 5. **Colour**: keep only the new luminance `y2`; the chroma difference comes from the
    **original** pixel `q` minus its own luminance `y1`, scaled by
    `exp(k·|ΔY|/maxY)` (for negative values `1 + k·|ΔY|/maxY`) and added back, then
@@ -77,6 +91,29 @@ structure, MIT):
 6. **Midtone contrast**: a global S-curve on luminance,
    `y + k(y−0.5)(4y(1−y))^p`, pivoting exactly at 0.5; **black/white clip** is a
    **stretch** of the histogram ends.
+
+```mermaid
+flowchart TD
+  A["sRGB encoded values"] --> B["luminance y = (max + Rec.601) / 2"]
+  B --> C["edge-aware bilateral: 17 levels + Gaussian → nb"]
+  C --> D["tonal mask m = 1 − BetaCDF(nb)"]
+  D --> E["self-screen 1−(1−v)^q<br/>blended over q = 1/2/4/8"]
+  E --> F["keep new luminance y2<br/>restore chroma by exp(k·|ΔY|/maxY)"]
+  F --> G["midtone contrast + black / white clip"]
+  G --> H["out"]
+```
+
+Stages five and six as formulas:
+
+```math
+\text{out}_{ch} = y_2 + (q_{ch}-y_1)\cdot
+\begin{cases}
+\exp\!\bigl(k\,|\Delta Y|/\max Y\bigr), & \Delta Y \ge 0 \\[6pt]
+1 + k\,|\Delta Y|/\max Y, & \Delta Y < 0
+\end{cases}
+\qquad
+y'' = y_2 + k\,(y_2-0.5)\bigl(4y_2(1-y_2)\bigr)^p
+```
 
 ## Two counter-intuitive measurements
 

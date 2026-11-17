@@ -23,6 +23,30 @@ the source colour space automatically.
 - All-zero parameters `memcpy` straight through (alpha included); HDR values outside
   the range are clipped to [0,1] before the maths
 
+## Algorithm
+
+Per pixel in HSL: each of the six hue ranges carries its own offset, blended with
+triangular weights and added to the master values.
+
+```math
+w_k(h) = \max\!\left(0,\ 1-\frac{\lvert h-c_k\rvert_{\text{circ}}}{60°\,(1+o)}\right),
+\qquad c_k = 60°\,k,\quad k = 0..5
+```
+
+```math
+\hat w_k = \frac{w_k}{\sum_{j=0}^{5} w_j},\qquad
+H \mathrel{+}= \text{hue} + \sum_k \hat w_k\,\text{hue}_k,\quad
+S \mathrel{+}= \sum_k \hat w_k\,\text{sat}_k,\quad
+L \mathrel{+}= \sum_k \hat w_k\,\text{light}_k
+```
+
+- $o$ is `overlap`: the half width is $60°(1+o)$, so at 0 the six ranges tile the
+  circle exactly and each centre gets full weight;
+- greys ($S<10^{-5}$) skip hue and saturation and only take lightness, so they are
+  never tinted;
+- all-zero parameters memcpy straight through.
+
+
 ## Usage in GIMP 3 Python
 
 ```python

@@ -9,7 +9,45 @@
 <meta property="og:description" content="自然饱和度：提升低饱和区，抑制高饱和与肤色，不破坏色相">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
 (function () {
   try {
     var q = new URLSearchParams(location.search).get("lang");
@@ -52,8 +90,8 @@
   <article class="prose">
 <h2 id="算法说明2026-11-重写">算法说明（2026-11 重写）</h2>
 <p>在 LAB（D65）空间处理，工作于线性 sRGB，自动跟随输入色彩空间。</p>
-<p><strong>蒙版结构</strong> <code>M = M_chroma(C*) × M_skin(h) × M_gamut</code></p>
-<ul><li><code>M_chroma = 1/(1 + atten·(C*/50)^1.3)</code>：读<strong>源图</strong>色度 C<em>，色度越高增益越低； 指数 1.3 让 C</em>&gt;60 掉得比纯双曲线更快。与 Saturation 滑杆互不影响。</li><li><code>M_skin</code>：LAB 色相 55° 附近（橙/肤色带）、色度 8–80 区间时降权， 用 smoothstep 软窗，边界无硬边。强度由 <code>Skin Protection</code>（默认 0.7）控制，0 = 关闭。</li><li><code>M_gamut</code>：色度沿<strong>原色相、原明度</strong>放大后，若超出 sRGB 色域，按 5 步二分收敛 到色域边界内的最大值。色相与明度恒不变，替代逐通道硬裁剪（硬裁剪会扭色相）。</li></ul>
+<p><strong>蒙版结构</strong> <span class="math">$M = M_{\text{chroma}}(C^*)\times M_{\text{skin}}(h)\times M_{\text{gamut}}$</span></p>
+<ul><li><span class="math">$M_{\text{chroma}} = \dfrac{1}{1+\alpha\,(C^*/50)^{1.3}}$</span>：读<strong>源图</strong>色度 <span class="math">$C^*$</span>，色度越高增益越低； 指数 1.3 让 C*&gt;60 掉得比纯双曲线更快。与 Saturation 滑杆互不影响。</li><li><code>M_skin</code>：LAB 色相 55° 附近（橙/肤色带）、色度 8–80 区间时降权， 用 smoothstep 软窗，边界无硬边。强度由 <code>Skin Protection</code>（默认 0.7）控制，0 = 关闭。</li><li><code>M_gamut</code>：色度沿<strong>原色相、原明度</strong>放大后，若超出 sRGB 色域，按 5 步二分收敛 到色域边界内的最大值。色相与明度恒不变，替代逐通道硬裁剪（硬裁剪会扭色相）。</li></ul>
 <p><code>vibrance</code> 滑杆（±50 UI 范围）等效于低饱和区 C* 的最大 ×2（+50）/ ×3（+100）放大； 全局 <code>Saturation</code> 是独立的线性色度乘法，与蒙版无关。</p>
 <p>实测（10 个标准色块，vibrance=+50）：色相偏移 ≤0.7°（旧版最高 10.2°）； 肤色增幅 1.16–1.18×（旧版 1.47–1.55×）；低饱和区 1.76–2.00×。 vibrance=0 且 saturation=1 时输出与输入逐字节一致。</p><div class="op-dl">
   <div>
@@ -94,7 +132,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
 <h2 id="algorithm-rewritten-2026-11">Algorithm (rewritten 2026-11)</h2>
 <p>Everything happens in LAB (D65) on linear sRGB, following the input colour space automatically.</p>
 <p><strong>Mask structure</strong> <code>M = M_chroma(C*) × M_skin(h) × M_gamut</code></p>
-<ul><li><code>M_chroma = 1/(1 + atten·(C*/50)^1.3)</code>: reads the <strong>source</strong> chroma C\<em>, so the higher the chroma the lower the gain; the exponent 1.3 makes C\</em>&gt;60 fall off faster than a plain hyperbola. Independent of the Saturation slider.</li><li><code>M_skin</code>: reduces the weight around LAB hue 55° (orange and skin tones) with chroma 8–80, using a smoothstep window so the boundary has no hard edge. Strength is set by <code>Skin Protection</code> (default 0.7); 0 disables it.</li><li><code>M_gamut</code>: after chroma is scaled at the <strong>original hue and lightness</strong>, anything outside sRGB is pulled back by a five-step bisection to the largest value inside the gamut. Hue and lightness never change, which replaces per-channel clipping (clipping twists hue).</li></ul>
+<ul><li><span class="math">$M_{\text{chroma}} = \dfrac{1}{1+\alpha\,(C^*/50)^{1.3}}$</span>: reads the <strong>source</strong> chroma C\<em>, so the higher the chroma the lower the gain; the exponent 1.3 makes C\</em>&gt;60 fall off faster than a plain hyperbola. Independent of the Saturation slider.</li><li><code>M_skin</code>: reduces the weight around LAB hue 55° (orange and skin tones) with chroma 8–80, using a smoothstep window so the boundary has no hard edge. Strength is set by <code>Skin Protection</code> (default 0.7); 0 disables it.</li><li><code>M_gamut</code>: after chroma is scaled at the <strong>original hue and lightness</strong>, anything outside sRGB is pulled back by a five-step bisection to the largest value inside the gamut. Hue and lightness never change, which replaces per-channel clipping (clipping twists hue).</li></ul>
 <p>The <code>vibrance</code> slider (±50 in the UI) is equivalent to at most ×2 at +50 and ×3 at +100 for low-chroma C\*; the global <code>Saturation</code> is a separate linear chroma multiply that ignores the mask.</p>
 <p>Measured (10 standard patches, vibrance=+50): hue shift ≤ 0.7° (the old build reached 10.2°); skin tones gain 1.16–1.18× (old build 1.47–1.55×); low-chroma areas 1.76–2.00×. At vibrance=0 and saturation=1 the output is byte-identical to the input.</p>
 <h2 id="relation-to-lbvibrance">Relation to <code>lb:vibrance</code></h2>
@@ -136,7 +174,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">597e2cf</span>
+    <span class="muted">bc25d51</span>
   </div>
 </footer>
 <script>

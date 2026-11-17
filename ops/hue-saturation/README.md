@@ -13,6 +13,27 @@
 - 灰阶像素（S < 1e-5）不染色：色相/饱和度调整被跳过，仅应用明度
 - 全零参数时直接 memcpy 透传（含 alpha），HDR 超范围值按 [0,1] 截断后计算
 
+## 算法
+
+在 HSL 上逐像素：六个色相区间各有一套增量，按三角权重混合后与主控叠加。
+
+```math
+w_k(h) = \max\!\left(0,\ 1-\frac{\lvert h-c_k\rvert_{\text{circ}}}{60°\,(1+o)}\right),
+\qquad c_k = 60°\,k,\quad k = 0..5
+```
+
+```math
+\hat w_k = \frac{w_k}{\sum_{j=0}^{5} w_j},\qquad
+H \mathrel{+}= \text{hue} + \sum_k \hat w_k\,\text{hue}_k,\quad
+S \mathrel{+}= \sum_k \hat w_k\,\text{sat}_k,\quad
+L \mathrel{+}= \sum_k \hat w_k\,\text{light}_k
+```
+
+- $o$ 是 `overlap`：区间半宽 $60°(1+o)$，为 0 时六块刚好铺满色环、区间中心拿满权重；
+- 灰阶（$S<10^{-5}$）跳过色相与饱和度，只加明度，避免灰被染色；
+- 全零参数直接透传。
+
+
 ## 构建（MSYS2 mingw64 / Git Bash）
 
 ```bash

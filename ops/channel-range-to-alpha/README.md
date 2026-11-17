@@ -79,11 +79,13 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/
 选一路通道，划出一段「不透明区间」，区间外按线性斜坡淡出——即 经典图像编辑器的
 **混合颜色带**（图层样式里的「混合颜色带：灰色」那对滑杆）单独做成算子。
 
-```
-x < l1  或  x > r2        -> alpha = 0
-l2 <= x <= r1             -> alpha = 1
-l1 <= x <  l2             -> alpha = (x - l1) / (l2 - l1)
-r1 <  x <= r2             -> alpha = 1 - (x - r1) / (r2 - r1)
+```math
+\alpha(x) = \begin{cases}
+0, & x < l_1 \ \text{或}\ x > r_2 \\[4pt]
+\dfrac{x-l_1}{l_2-l_1}, & l_1 \le x < l_2 \\[10pt]
+1, & l_2 \le x \le r_1 \\[4pt]
+1-\dfrac{x-r_1}{r_2-r_1}, & r_1 < x \le r_2
+\end{cases}
 ```
 
 `l1 → l2` 是阴影侧斜坡，`r1 → r2` 是高光侧斜坡。两个滑块重合（`l1 = l2` 或

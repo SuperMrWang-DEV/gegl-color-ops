@@ -17,6 +17,17 @@ RGB↔Lab 交给 babl——数值口径与 GIMP 原生 Lab 工具（指针、曲
 及 `lb:match-color` 一致。在 Lab 域做 levels 等价于感知域映射，
 不依赖"线性光"前提（历史版本自带 D65 线性 RGB→XYZ 转换，已废弃）。
 
+```math
+x \leftarrow \operatorname{clamp}(x,\ i_{\text{lo}},\ i_{\text{hi}}),\qquad
+x' = \begin{cases}
+o_{\text{lo}} + u_{-}^{1/\gamma}\,\bigl(0 - o_{\text{lo}}\bigr), & x < 0,\quad u_{-} = \dfrac{x - i_{\text{lo}}}{0 - i_{\text{lo}}} \\[12pt]
+o_{\text{hi}}\,u_{+}^{1/\gamma}, & x \ge 0,\quad u_{+} = \dfrac{x}{i_{\text{hi}}}
+\end{cases}
+```
+
+两个半轴各自归一到 $[0,1]$ 再做 gamma，所以 $x = 0$（中性轴）在任意 $\gamma$
+下都不动。
+
 ## 规则细则
 
 - **a/b 的 gamma 绕中性轴 0 转动**：负半轴 `[in_black, 0]` 与正半轴

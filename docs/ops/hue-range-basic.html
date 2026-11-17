@@ -9,7 +9,45 @@
 <meta property="og:description" content="色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，与 lb:hue-saturation-basic（全图）串联即接近某图像编辑器「色相/饱和度」对话框的「编辑」下拉 + 底部色条模型。">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
 (function () {
   try {
     var q = new URLSearchParams(location.search).get("lang");
@@ -57,7 +95,15 @@
 <h3 id="色系默认范围度">色系默认范围（度）</h3>
 <div class="table-wrap"><table><thead><tr><th>色系</th><th>过渡左</th><th>范围左</th><th>范围右</th><th>过渡右</th></tr></thead><tbody><tr><td>红</td><td>315</td><td>345</td><td>15</td><td>45</td></tr><tr><td>黄</td><td>15</td><td>45</td><td>75</td><td>105</td></tr><tr><td>绿</td><td>75</td><td>105</td><td>135</td><td>165</td></tr><tr><td>青</td><td>135</td><td>165</td><td>195</td><td>225</td></tr><tr><td>蓝</td><td>195</td><td>225</td><td>255</td><td>285</td></tr><tr><td>品红</td><td>255</td><td>285</td><td>315</td><td>345</td></tr></tbody></table></div>
 <h3 id="算法要点">算法要点</h3>
-<ul><li>权重作用在【原始】色相上（先算 w 再调整），语义与内部蒙版一致； 无彩像素（R=G=B）不参与任何色系。</li><li>调整量按 w 缩放后走全图算子的同一套公式（明度 screen/multiply → HSL → 色相加法 → 饱和度相对缩放）：w=1 时与 Hue/Saturation (Basic) 逐位一致， w=0 时逐位等于原图。</li><li>四柄可拖过 0/360，实现按内区跨度解环绕。</li></ul>
+<ul><li>权重作用在【原始】色相上（先算 w 再调整），语义与内部蒙版一致； 无彩像素（R=G=B）不参与任何色系。四柄色条的权重是分段线性：</li></ul>
+<div class="math-display">$$w(h) = \begin{cases}
+0, &amp; h &lt; o_l \ \text{或}\ h &gt; o_r \\[4pt]
+1, &amp; i_l \le h \le i_r \\[4pt]
+\dfrac{h-o_l}{i_l-o_l}, &amp; o_l \le h &lt; i_l \\[10pt]
+\dfrac{o_r-h}{o_r-i_r}, &amp; i_r &lt; h \le o_r
+\end{cases}$$</div>
+<p>四柄都在 <span class="math">$0..360°$</span> 的圆上，先绕内区跨度解环绕再分段，所以范围可以拖过 <span class="math">$0/360$</span>。</p>
+<ul><li>调整量按 w 缩放后走全图算子的同一套公式（明度 screen/multiply → HSL → 色相加法 → 饱和度相对缩放）：w=1 时与 Hue/Saturation (Basic) 逐位一致， w=0 时逐位等于原图。</li><li>四柄可拖过 0/360，实现按内区跨度解环绕。</li></ul>
 <h3 id="验收">验收</h3>
 <p><code>tools/check_hue_range_basic.py</code>：9 色块色卡过 gegl，与 Python 参考实现 （逐字同式）逐像素对比——8 个用例（默认范围、权重缩放色相、饱和度拉满、 明度、环绕柄、绿系、链式 Master→Range）216 个采样点全部 <strong>0 码</strong>。</p><div class="op-dl">
   <div>
@@ -94,7 +140,14 @@
 <div class="table-wrap"><table><thead><tr><th>Family</th><th>Falloff L</th><th>Range L</th><th>Range R</th><th>Falloff R</th></tr></thead><tbody><tr><td>Reds</td><td>315</td><td>345</td><td>15</td><td>45</td></tr><tr><td>Yellows</td><td>15</td><td>45</td><td>75</td><td>105</td></tr><tr><td>Greens</td><td>75</td><td>105</td><td>135</td><td>165</td></tr><tr><td>Cyans</td><td>135</td><td>165</td><td>195</td><td>225</td></tr><tr><td>Blues</td><td>195</td><td>225</td><td>255</td><td>285</td></tr><tr><td>Magentas</td><td>255</td><td>285</td><td>315</td><td>345</td></tr></tbody></table></div>
 <p>A handle value of -1 (the default) follows the family default; dragging it sets an absolute angle from 0 to 360. Handles may cross 0/360 — the range is unwrapped around its inner span first.</p>
 <h3 id="weighted-adjustments-same-formula-as-the-master-op">Weighted adjustments, same formula as the master op</h3>
-<p>The weight is computed on the pixel's <strong>original</strong> hue — the range behaves like an internal mask. Achromatic pixels (R = G = B) join no family, so greys are never tinted. The adjustments then scale by the weight and run through the exact same formula as Hue/Saturation (Basic): lightness as screen/multiply toward white/black, hue as a rotation, saturation as a relative scale (s/(1−x) up, s(1+x) down). At weight 1 the result is bit-identical to the master op; at weight 0 the pixel passes through untouched.</p>
+<p>The weight is computed on the pixel's <strong>original</strong> hue — the range behaves like an internal mask. Achromatic pixels (R = G = B) join no family, so greys are never tinted. The four-handle bar weights are piecewise linear:</p>
+<div class="math-display">$$w(h) = \begin{cases}
+0, &amp; h &lt; o_l \ \text{or}\ h &gt; o_r \\[4pt]
+1, &amp; i_l \le h \le i_r \\[4pt]
+\dfrac{h-o_l}{i_l-o_l}, &amp; o_l \le h &lt; i_l \\[10pt]
+\dfrac{o_r-h}{o_r-i_r}, &amp; i_r &lt; h \le o_r
+\end{cases}$$</div>
+<p>Handles live on the <span class="math">$0..360°$</span> circle; the range is unwrapped around its inner span first, so handles dragged across <span class="math">$0/360$</span> still work. The adjustments then scale by the weight and run through the exact same formula as Hue/Saturation (Basic): lightness as screen/multiply toward white/black, hue as a rotation, saturation as a relative scale (s/(1−x) up, s(1+x) down). At weight 1 the result is bit-identical to the master op; at weight 0 the pixel passes through untouched.</p>
 <h3 id="verification">Verification</h3>
 <p><code>tools/check_hue_range_basic.py</code> renders a nine-patch swatch card and compares every pixel against a line-by-line Python reference of the same maths: 8 cases — default ranges, weight-scaled hue (orange at 30° gets exactly half the shift of red), saturation driven to full, lightness, wrap-around handles, the green family, and a chained master → range run — all match to <strong>0.0 codes</strong> across 216 sample points (tolerance 2).</p><div class="op-dl">
   <div>
@@ -122,7 +175,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">597e2cf</span>
+    <span class="muted">bc25d51</span>
   </div>
 </footer>
 <script>

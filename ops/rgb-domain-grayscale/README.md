@@ -80,25 +80,46 @@ colour contributes to the grey result, and the result can then be tinted — the
 classic editor's Black & White dialog: pull blue down to darken a sky, push yellow up
 to brighten skin, everything else stays put.
 
-The three RGB channels are summed with the six hue weights; the −200…300 range
-matches the classic editor dialog and the defaults (red 40, yellow 60, green 40,
-cyan 60, blue 20, magenta 80) are taken from it.
+For each pixel the three channels are sorted into $v_{\max} \ge v_{\text{mid}} \ge v_{\min}$.
+Two weights apply: the slider of the **max channel's colour**, and the slider of the
+"between" colour (yellow for R+G, cyan for G+B, magenta for B+R):
+
+```math
+v_{\max},\ v_{\text{mid}},\ v_{\min}\ \text{sorted} \quad\Rightarrow\quad
+g = (v_{\max}-v_{\text{mid}})\,w_{\max} + (v_{\text{mid}}-v_{\min})\,w_{\text{hue}} + v_{\min}
+```
+
+Slider range −200…300 matches the classic editor dialog; the defaults (red 40,
+yellow 60, green 40, cyan 60, blue 20, magenta 80) are taken from it.
 
 ### Tint
 
 Tinting reproduces the classic editor's own maths, calibrated black-box against it
 (18 tints, per-code agreement — see `bw-cal/RESULTS.md`). It is **not** a
-`grey × colour` multiply. With `tint = (tR,tG,tB)`, `L = 0.3·tR + 0.59·tG + 0.11·tB`
-(NTSC luma, encoding domain):
+`grey × colour` multiply. With tint $t=(t_R,t_G,t_B)$ and NTSC luma
+$L = 0.3\,t_R + 0.59\,t_G + 0.11\,t_B$ (encoding domain), each output channel is:
 
-| region | condition | output |
-|---|---|---|
-| middle | otherwise | `out = grey + tint − L` (unit-slope shift, black and white stay black and white) |
-| top | `grey ≥ 1 − (tmax − L)` | `out = 1 − (tmax − tint)·(1 − grey)/(tmax − L)` |
-| bottom | `grey ≤ L − tmin` | `out = (tint − tmin)·grey/(L − tmin)` |
+```math
+\text{out}_{ch} = \begin{cases}
+(t_{ch}-t_{\min})\cdot \dfrac{g}{\,L-t_{\min}\,}, & g \le L-t_{\min} \quad \text{(bottom)} \\[8pt]
+g + t_{ch} - L, & \text{otherwise} \quad \text{(middle)} \\[8pt]
+1-(t_{\max}-t_{ch})\cdot \dfrac{1-g}{\,t_{\max}-L\,}, & g \ge 1-(t_{\max}-L) \quad \text{(top)}
+\end{cases}
+```
 
-The pieces join continuously and the top/bottom ones pass exactly through
-white/black, so a tinted image keeps its full tonal range.
+then pulled back toward grey by the strength slider, $\text{out}_{ch} \leftarrow
+g + (\text{out}_{ch}-g)\cdot s$. The three pieces join continuously and the top/bottom
+ones pass exactly through white/black, so a tinted image keeps its full tonal range.
+
+```mermaid
+flowchart TD
+  A["像素 r, g, b<br/>排序成 max / mid / min"] --> B["按 max–mid 的通道组合<br/>取「最大值色相」+「夹色」两根滑杆"]
+  B --> C["g = (max−mid)·w₁ + (mid−min)·w₂ + min"]
+  C --> D{"着色开？"}
+  D -- "否" --> E["输出中性灰"]
+  D -- "是" --> F["三段 SetLum<br/>中段 g + t − L；顶/底段向白 / 黑收缩"]
+  F --> G["按强度回插<br/>彩色输出"]
+```
 
 ## Parameters
 
@@ -126,22 +147,42 @@ white/black, so a tinted image keeps its full tonal range.
 结果还可以着色——就是 经典图像编辑器的「黑白」对话框：把蓝拉低压暗天空，把黄推高提亮肤色，
 其余部分不受影响。
 
-RGB 三通道按六色权重加权求和；滑块量程 −200…300 与 经典图像编辑器 界面一致，默认值
+逐像素把三通道排序成 $v_{\max} \ge v_{\text{mid}} \ge v_{\min}$，用到两个权重：
+**最大值通道**的色相滑杆，以及夹在中间的那根滑杆（红+绿用黄、绿+蓝用青、蓝+红用品红）：
+
+```math
+g = (v_{\max}-v_{\text{mid}})\,w_{\max} + (v_{\text{mid}}-v_{\min})\,w_{\text{夹色}} + v_{\min}
+```
+
+滑块量程 −200…300 与 经典图像编辑器 界面一致，默认值
 （红 40、黄 60、绿 40、青 60、蓝 20、品红 80）取自 经典图像编辑器。
 
 ### 着色
 
 着色走的是 经典图像编辑器 自己的算法（18 组色相 × 饱和度黑盒标定，逐码吻合，见
-`bw-cal/RESULTS.md`），**不是**「灰度 × 颜色」的乘法。记 `tint = (tR,tG,tB)`，
-`L = 0.3·tR + 0.59·tG + 0.11·tB`（NTSC 亮度，编码域），`tmax / tmin` 为三分量极值：
+`bw-cal/RESULTS.md`），**不是**「灰度 × 颜色」的乘法。记着色 $t=(t_R,t_G,t_B)$，
+NTSC 亮度 $L = 0.3\,t_R + 0.59\,t_G + 0.11\,t_B$（编码域），每个输出通道：
 
-| 区间 | 条件 | 输出 |
-|---|---|---|
-| 中段 | 其余情况 | `out = 灰度 + tint − L`（斜率 1 平移，黑仍黑、白仍白） |
-| 顶部 | `灰度 ≥ 1 − (tmax − L)` | `out = 1 − (tmax − tint)·(1 − 灰度)/(tmax − L)` |
-| 底部 | `灰度 ≤ L − tmin` | `out = (tint − tmin)·灰度/(L − tmin)` |
+```math
+\text{out}_{ch} = \begin{cases}
+(t_{ch}-t_{\min})\cdot \dfrac{g}{\,L-t_{\min}\,}, & g \le L-t_{\min} \quad \text{（底部）} \\[8pt]
+g + t_{ch} - L, & \text{其余} \quad \text{（中段）} \\[8pt]
+1-(t_{\max}-t_{ch})\cdot \dfrac{1-g}{\,t_{\max}-L\,}, & g \ge 1-(t_{\max}-L) \quad \text{（顶部）}
+\end{cases}
+```
 
+再按强度滑杆往灰度回插：$\text{out}_{ch} \leftarrow g + (\text{out}_{ch}-g)\cdot s$。
 三段在断点处连续，顶/底两段精确过白/黑端点，所以着色后整幅图的明暗层次不会塌掉。
+
+```mermaid
+flowchart TD
+  A["像素 r, g, b<br/>排序成 max / mid / min"] --> B["按 max–mid 的通道组合<br/>取「最大值色相」+「夹色」两根滑杆"]
+  B --> C["g = (max−mid)·w₁ + (mid−min)·w₂ + min"]
+  C --> D{"着色开？"}
+  D -- "否" --> E["输出中性灰"]
+  D -- "是" --> F["三段 SetLum<br/>中段 g + t − L；顶/底段向白 / 黑收缩"]
+  F --> G["按强度回插<br/>彩色输出"]
+```
 
 ## 参数
 

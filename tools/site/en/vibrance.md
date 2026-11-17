@@ -42,9 +42,8 @@ For 2025's plain Vibrance, delete the lower layer. Why split it:
 Convert to HSV on **sRGB encoded values** (`R~G~B~A float`, the perceptual domain, not
 linear light) and derive an increment from the source saturation S:
 
-```
-ΔS = A(v) · S^p(v) · (1−S)^q(v) · r(H,S,v) · c(L)
-S' = min(1, S + ΔS)
+```math
+\Delta S = A(v)\,S^{p(v)}\,(1-S)^{q(v)}\,r(H,S,v)\,c(L),\qquad S' = \min(1,\ S+\Delta S)
 ```
 
 | Term | Meaning | Data source |
@@ -53,8 +52,11 @@ S' = min(1, S + ΔS)
 | `r(H,S,v)` | extra suppression in the red band (within 40° of red), fading linearly out from 26° to 40° | ratio of H0 to H120 at the same v |
 | `c(L)` | lightness correction: give less to light colours (0.72× at L=80, 1.39× at L=20) | the L ladder of segment E |
 
-RGB reconstruction: keep max fixed and scale the other channels by `S'/S` —
-`out = mx − (mx − c)·S'/S`. Since `mx − mn = S·mx`, whenever `S' ≤ 1` the minimum
+RGB reconstruction: keep max fixed and scale the other channels by $S'/S$:
+
+```math
+\text{out}_{ch} = m_x - \bigl(m_x - c_{ch}\bigr)\frac{S'}{S}
+``` Since `mx − mn = S·mx`, whenever `S' ≤ 1` the minimum
 channel lands exactly in `[0, mx]`, so **the maths cannot leave the gamut** and no
 clipping or gamut mapping is needed.
 

@@ -9,7 +9,45 @@
 <meta property="og:description" content="经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色the classic editor Black &amp; White: six hue sliders (red, yellow, green, cyan,blue,">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
 (function () {
   try {
     var q = new URLSearchParams(location.search).get("lang");
@@ -52,11 +90,25 @@
   <article class="prose">
 <h2 id="algorithm">Algorithm</h2>
 <p>Six hue sliders (red / yellow / green / cyan / blue / magenta) decide how much each colour contributes to the grey result, and the result can then be tinted — the classic editor's Black &amp; White dialog: pull blue down to darken a sky, push yellow up to brighten skin, everything else stays put.</p>
-<p>The three RGB channels are summed with the six hue weights; the −200…300 range matches the classic editor dialog and the defaults (red 40, yellow 60, green 40, cyan 60, blue 20, magenta 80) are taken from it.</p>
+<p>For each pixel the three channels are sorted into <span class="math">$v_{\max} \ge v_{\text{mid}} \ge v_{\min}$</span>. Two weights apply: the slider of the <strong>max channel's colour</strong>, and the slider of the "between" colour (yellow for R+G, cyan for G+B, magenta for B+R):</p>
+<div class="math-display">$$v_{\max},\ v_{\text{mid}},\ v_{\min}\ \text{sorted} \quad\Rightarrow\quad
+g = (v_{\max}-v_{\text{mid}})\,w_{\max} + (v_{\text{mid}}-v_{\min})\,w_{\text{hue}} + v_{\min}$$</div>
+<p>Slider range −200…300 matches the classic editor dialog; the defaults (red 40, yellow 60, green 40, cyan 60, blue 20, magenta 80) are taken from it.</p>
 <h3 id="tint">Tint</h3>
-<p>Tinting reproduces the classic editor's own maths, calibrated black-box against it (18 tints, per-code agreement — see <code>bw-cal/RESULTS.md</code>). It is <strong>not</strong> a <code>grey × colour</code> multiply. With <code>tint = (tR,tG,tB)</code>, <code>L = 0.3·tR + 0.59·tG + 0.11·tB</code> (NTSC luma, encoding domain):</p>
-<div class="table-wrap"><table><thead><tr><th>region</th><th>condition</th><th>output</th></tr></thead><tbody><tr><td>middle</td><td>otherwise</td><td><code>out = grey + tint − L</code> (unit-slope shift, black and white stay black and white)</td></tr><tr><td>top</td><td><code>grey ≥ 1 − (tmax − L)</code></td><td><code>out = 1 − (tmax − tint)·(1 − grey)/(tmax − L)</code></td></tr><tr><td>bottom</td><td><code>grey ≤ L − tmin</code></td><td><code>out = (tint − tmin)·grey/(L − tmin)</code></td></tr></tbody></table></div>
-<p>The pieces join continuously and the top/bottom ones pass exactly through white/black, so a tinted image keeps its full tonal range.</p>
+<p>Tinting reproduces the classic editor's own maths, calibrated black-box against it (18 tints, per-code agreement — see <code>bw-cal/RESULTS.md</code>). It is <strong>not</strong> a <code>grey × colour</code> multiply. With tint <span class="math">$t=(t_R,t_G,t_B)$</span> and NTSC luma <span class="math">$L = 0.3\,t_R + 0.59\,t_G + 0.11\,t_B$</span> (encoding domain), each output channel is:</p>
+<div class="math-display">$$\text{out}_{ch} = \begin{cases}
+(t_{ch}-t_{\min})\cdot \dfrac{g}{\,L-t_{\min}\,}, &amp; g \le L-t_{\min} \quad \text{(bottom)} \\[8pt]
+g + t_{ch} - L, &amp; \text{otherwise} \quad \text{(middle)} \\[8pt]
+1-(t_{\max}-t_{ch})\cdot \dfrac{1-g}{\,t_{\max}-L\,}, &amp; g \ge 1-(t_{\max}-L) \quad \text{(top)}
+\end{cases}$$</div>
+<p>then pulled back toward grey by the strength slider, <span class="math">$\text{out}_{ch} \leftarrow g + (\text{out}_{ch}-g)\cdot s$</span>. The three pieces join continuously and the top/bottom ones pass exactly through white/black, so a tinted image keeps its full tonal range.</p>
+<pre class="mermaid">flowchart TD
+  A["像素 r, g, b&lt;br/&gt;排序成 max / mid / min"] --&gt; B["按 max–mid 的通道组合&lt;br/&gt;取「最大值色相」+「夹色」两根滑杆"]
+  B --&gt; C["g = (max−mid)·w₁ + (mid−min)·w₂ + min"]
+  C --&gt; D{"着色开？"}
+  D -- "否" --&gt; E["输出中性灰"]
+  D -- "是" --&gt; F["三段 SetLum&lt;br/&gt;中段 g + t − L；顶/底段向白 / 黑收缩"]
+  F --&gt; G["按强度回插&lt;br/&gt;彩色输出"]</pre>
 <h2 id="parameters">Parameters</h2>
 <div class="table-wrap"><table><thead><tr><th>parameter</th><th>default</th><th>meaning</th></tr></thead><tbody><tr><td><code>red</code> / <code>yellow</code> / <code>green</code></td><td>40 / 60 / 40</td><td>hue weights, −200…300</td></tr><tr><td><code>cyan</code> / <code>blue</code> / <code>magenta</code></td><td>60 / 20 / 80</td><td>hue weights, −200…300</td></tr><tr><td><code>tint_enabled</code></td><td>off</td><td>tint the grey result</td></tr><tr><td><code>tint_color</code></td><td><code>#E0D4B2</code></td><td>tint colour (warm brown by default)</td></tr><tr><td><code>tint_strength</code></td><td>1</td><td>tint strength, 0…1</td></tr></tbody></table></div>
 <h2 id="notes">Notes</h2>
@@ -64,11 +116,24 @@
 <hr>
 <h2 id="算法">算法</h2>
 <p>六个色相滑杆（红 / 黄 / 绿 / 青 / 蓝 / 品红）决定每种颜色对灰度的贡献， 结果还可以着色——就是 经典图像编辑器的「黑白」对话框：把蓝拉低压暗天空，把黄推高提亮肤色， 其余部分不受影响。</p>
-<p>RGB 三通道按六色权重加权求和；滑块量程 −200…300 与 经典图像编辑器 界面一致，默认值 （红 40、黄 60、绿 40、青 60、蓝 20、品红 80）取自 经典图像编辑器。</p>
+<p>逐像素把三通道排序成 <span class="math">$v_{\max} \ge v_{\text{mid}} \ge v_{\min}$</span>，用到两个权重： <strong>最大值通道</strong>的色相滑杆，以及夹在中间的那根滑杆（红+绿用黄、绿+蓝用青、蓝+红用品红）：</p>
+<div class="math-display">$$g = (v_{\max}-v_{\text{mid}})\,w_{\max} + (v_{\text{mid}}-v_{\min})\,w_{\text{夹色}} + v_{\min}$$</div>
+<p>滑块量程 −200…300 与 经典图像编辑器 界面一致，默认值 （红 40、黄 60、绿 40、青 60、蓝 20、品红 80）取自 经典图像编辑器。</p>
 <h3 id="着色">着色</h3>
-<p>着色走的是 经典图像编辑器 自己的算法（18 组色相 × 饱和度黑盒标定，逐码吻合，见 <code>bw-cal/RESULTS.md</code>），<strong>不是</strong>「灰度 × 颜色」的乘法。记 <code>tint = (tR,tG,tB)</code>， <code>L = 0.3·tR + 0.59·tG + 0.11·tB</code>（NTSC 亮度，编码域），<code>tmax / tmin</code> 为三分量极值：</p>
-<div class="table-wrap"><table><thead><tr><th>区间</th><th>条件</th><th>输出</th></tr></thead><tbody><tr><td>中段</td><td>其余情况</td><td><code>out = 灰度 + tint − L</code>（斜率 1 平移，黑仍黑、白仍白）</td></tr><tr><td>顶部</td><td><code>灰度 ≥ 1 − (tmax − L)</code></td><td><code>out = 1 − (tmax − tint)·(1 − 灰度)/(tmax − L)</code></td></tr><tr><td>底部</td><td><code>灰度 ≤ L − tmin</code></td><td><code>out = (tint − tmin)·灰度/(L − tmin)</code></td></tr></tbody></table></div>
-<p>三段在断点处连续，顶/底两段精确过白/黑端点，所以着色后整幅图的明暗层次不会塌掉。</p>
+<p>着色走的是 经典图像编辑器 自己的算法（18 组色相 × 饱和度黑盒标定，逐码吻合，见 <code>bw-cal/RESULTS.md</code>），<strong>不是</strong>「灰度 × 颜色」的乘法。记着色 <span class="math">$t=(t_R,t_G,t_B)$</span>， NTSC 亮度 <span class="math">$L = 0.3\,t_R + 0.59\,t_G + 0.11\,t_B$</span>（编码域），每个输出通道：</p>
+<div class="math-display">$$\text{out}_{ch} = \begin{cases}
+(t_{ch}-t_{\min})\cdot \dfrac{g}{\,L-t_{\min}\,}, &amp; g \le L-t_{\min} \quad \text{（底部）} \\[8pt]
+g + t_{ch} - L, &amp; \text{其余} \quad \text{（中段）} \\[8pt]
+1-(t_{\max}-t_{ch})\cdot \dfrac{1-g}{\,t_{\max}-L\,}, &amp; g \ge 1-(t_{\max}-L) \quad \text{（顶部）}
+\end{cases}$$</div>
+<p>再按强度滑杆往灰度回插：<span class="math">$\text{out}_{ch} \leftarrow g + (\text{out}_{ch}-g)\cdot s$</span>。 三段在断点处连续，顶/底两段精确过白/黑端点，所以着色后整幅图的明暗层次不会塌掉。</p>
+<pre class="mermaid">flowchart TD
+  A["像素 r, g, b&lt;br/&gt;排序成 max / mid / min"] --&gt; B["按 max–mid 的通道组合&lt;br/&gt;取「最大值色相」+「夹色」两根滑杆"]
+  B --&gt; C["g = (max−mid)·w₁ + (mid−min)·w₂ + min"]
+  C --&gt; D{"着色开？"}
+  D -- "否" --&gt; E["输出中性灰"]
+  D -- "是" --&gt; F["三段 SetLum&lt;br/&gt;中段 g + t − L；顶/底段向白 / 黑收缩"]
+  F --&gt; G["按强度回插&lt;br/&gt;彩色输出"]</pre>
 <h2 id="参数">参数</h2>
 <div class="table-wrap"><table><thead><tr><th>参数</th><th>默认</th><th>说明</th></tr></thead><tbody><tr><td><code>red</code> / <code>yellow</code> / <code>green</code></td><td>40 / 60 / 40</td><td>各色系的权重，−200…300</td></tr><tr><td><code>cyan</code> / <code>blue</code> / <code>magenta</code></td><td>60 / 20 / 80</td><td>各色系的权重，−200…300</td></tr><tr><td><code>tint_enabled</code></td><td>关</td><td>给灰度结果着色</td></tr><tr><td><code>tint_color</code></td><td><code>#E0D4B2</code></td><td>着色颜色（默认是暖棕）</td></tr><tr><td><code>tint_strength</code></td><td>1</td><td>着色强度，0…1</td></tr></tbody></table></div>
 <h2 id="说明">说明</h2>
@@ -120,9 +185,20 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
 <p>Six hue sliders — red, yellow, green, cyan, blue, magenta — decide how strongly each colour in the image contributes to the grey result, and the grey can then be tinted. This is the classic editor's Black &amp; White dialog: pull blue down and a blue sky goes dark, push yellow up and skin brightens, without any of it touching the rest of the frame.</p>
 <p>The three RGB channels are combined with the six hue weights summed; the slider range −200…300 matches the the classic editor dialog, and the defaults (red 40, yellow 60, green 40, cyan 60, blue 20, magenta 80) are the classic editor's.</p>
 <h2 id="how-the-tint-works">How the tint works</h2>
-<p>The tint is calibrated black-box against the classic editor (18 tints, per-code agreement — see <code>bw-cal/RESULTS.md</code>). It is not a <code>grey × colour</code> multiply. With <code>tint = (tR,tG,tB)</code> and <code>L = 0.3·tR + 0.59·tG + 0.11·tB</code> (NTSC luma, encoding domain):</p>
-<div class="table-wrap"><table><thead><tr><th>Region</th><th>Condition</th><th>Output</th></tr></thead><tbody><tr><td>Middle</td><td>otherwise</td><td><code>grey + tint − L</code> — a unit-slope shift, so black and white stay black and white</td></tr><tr><td>Top</td><td><code>grey ≥ 1 − (tmax − L)</code></td><td><code>1 − (tmax − tint)·(1 − grey)/(tmax − L)</code></td></tr><tr><td>Bottom</td><td><code>grey ≤ L − tmin</code></td><td><code>(tint − tmin)·grey/(L − tmin)</code></td></tr></tbody></table></div>
-<p>The pieces join continuously and the outer two pass exactly through white and black, so tinting never crushes the tonal range — highlights stay highlights.</p>
+<p>The tint is calibrated black-box against the classic editor (18 tints, per-code agreement — see <code>bw-cal/RESULTS.md</code>). It is not a <code>grey × colour</code> multiply. With tint <span class="math">$t=(t_R,t_G,t_B)$</span> and NTSC luma <span class="math">$L = 0.3\,t_R + 0.59\,t_G + 0.11\,t_B$</span> (encoding domain), each output channel is</p>
+<div class="math-display">$$\text{out}_{ch} = \begin{cases}
+(t_{ch}-t_{\min})\cdot \dfrac{g}{\,L-t_{\min}\,}, &amp; g \le L-t_{\min} \quad \text{(bottom)} \\[8pt]
+g + t_{ch} - L, &amp; \text{otherwise} \quad \text{(middle)} \\[8pt]
+1-(t_{\max}-t_{ch})\cdot \dfrac{1-g}{\,t_{\max}-L\,}, &amp; g \ge 1-(t_{\max}-L) \quad \text{(top)}
+\end{cases}$$</div>
+<p>and then pulled back toward grey by strength, <span class="math">$\text{out}_{ch} \leftarrow g + (\text{out}_{ch}-g)\cdot s$</span>. The pieces join continuously and the outer two pass exactly through white and black, so tinting never crushes the tonal range — highlights stay highlights.</p>
+<pre class="mermaid">flowchart TD
+  A["pixel r, g, b&lt;br/&gt;sorted to max / mid / min"] --&gt; B["pick two sliders by the max–mid pair"]
+  B --&gt; C["g = (max−mid)·w₁ + (mid−min)·w₂ + min"]
+  C --&gt; D{"tint on?"}
+  D -- "no" --&gt; E["neutral grey out"]
+  D -- "yes" --&gt; F["three-piece SetLum&lt;br/&gt;middle g + t − L, top / bottom collapse"]
+  F --&gt; G["blend by strength&lt;br/&gt;colour out"]</pre>
 <h2 id="parameters">Parameters</h2>
 <div class="table-wrap"><table><thead><tr><th>Parameter</th><th>Default</th><th>Notes</th></tr></thead><tbody><tr><td><code>red</code> / <code>yellow</code> / <code>green</code></td><td>40 / 60 / 40</td><td>Weight of each hue family, −200…300</td></tr><tr><td><code>cyan</code> / <code>blue</code> / <code>magenta</code></td><td>60 / 20 / 80</td><td>Weight of each hue family, −200…300</td></tr><tr><td><code>tint_enabled</code></td><td>off</td><td>Tint the grey result</td></tr><tr><td><code>tint_color</code></td><td><code>#E0D4B2</code></td><td>Tint colour (a warm sepia by default)</td></tr><tr><td><code>tint_strength</code></td><td>1</td><td>How strongly the tint is applied, 0…1</td></tr></tbody></table></div>
 <h2 id="notes">Notes</h2>
@@ -167,7 +243,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">597e2cf</span>
+    <span class="muted">bc25d51</span>
   </div>
 </footer>
 <script>

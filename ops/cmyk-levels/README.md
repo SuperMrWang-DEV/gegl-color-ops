@@ -24,6 +24,15 @@
 特性文件（SWOP/FOGRA 等）分色，得走 ICC 流程，本算子只提供「设备无关的
 babl 分色 + 分版色阶」。
 
+```math
+u = \operatorname{clamp}\!\left(\frac{x-x_{\text{lo}}}{x_{\text{hi}}-x_{\text{lo}}},\,0,\,1\right),
+\qquad
+\text{out} = o_{\text{lo}} + u^{1/\gamma}\,\bigl(o_{\text{hi}}-o_{\text{lo}}\bigr)
+```
+
+$o_{\text{lo}} > o_{\text{hi}}$ 时输出反相；结果夹在
+$[\min(o_{\text{lo}},o_{\text{hi}}),\ \max(o_{\text{lo}},o_{\text{hi}})]$ 内。
+
 ## 规则细则
 
 - 四个分量都是**线性 0–100% 墨量通道**：clamp → 归一化 → gamma → 输出范围。

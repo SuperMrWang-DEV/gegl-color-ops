@@ -17,24 +17,25 @@ One channel (C-R drives R, M-G drives G, Y-B drives B) is decided by its own sli
 alone, independent of the other two. The three tonal-range parameters first merge
 into **a single** curve:
 
+```math
+G = g_{\text{shadow}}\cdot g_{\text{midtone}}\cdot g_{\text{highlight}},\qquad
+b = \begin{cases} |s_{\text{sh}}|, & s_{\text{sh}} < 0 \\ 0, & \text{otherwise} \end{cases},
+\qquad
+W = \begin{cases} 255-s_{\text{hi}}, & s_{\text{hi}} > 0 \\ 255, & \text{otherwise} \end{cases}
 ```
-G = g_shadow · g_midtone · g_highlight          the three exponents multiply
-b = |s|        when the shadow slider is negative  (black point raised)
-W = 255 − s    when the highlight slider is positive (white point lowered)
-otherwise b = 0, W = 255
 
-u   = (v − b) / (W − b)
-out = 255 · u^G                                 (u ≥ H)
+```math
+u = \frac{v-b}{W-b},\qquad \text{out} = 255\,u^{G}\quad (u \ge H)
 ```
 
 Near black there is a **toe**: for G < 1, `u^G` has infinite slope at 0, while
 the classic editor starts with a finite slope. The segment `[b, h0]` is replaced by a cubic
 Hermite:
 
-```
-h0  = b + H · (W − b)
-y1  = 255 · H^G                       value at the right end of the segment
-out = Hermite( (v−b)/(h0−b), Su·H, y1, G·y1 )
+```math
+h_0 = b + H\,(W-b),\qquad
+y_1 = 255\,H^{G},\qquad
+\text{out} = \operatorname{Hermite}\!\left(\frac{v-b}{h_0-b},\ S_u H,\ y_1,\ G\,y_1\right)
 ```
 
 - Exponents: midtones `2^(∓s/100)`, shadows and highlights half of that

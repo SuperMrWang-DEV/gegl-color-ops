@@ -78,7 +78,18 @@ match to **0.0 codes** (216 sample points, tolerance 2).
 ### 算法要点
 
 - 权重作用在【原始】色相上（先算 w 再调整），语义与内部蒙版一致；
-  无彩像素（R=G=B）不参与任何色系。
+  无彩像素（R=G=B）不参与任何色系。四柄色条的权重是分段线性：
+
+```math
+w(h) = \begin{cases}
+0, & h < o_l \ \text{或}\ h > o_r \\[4pt]
+1, & i_l \le h \le i_r \\[4pt]
+\dfrac{h-o_l}{i_l-o_l}, & o_l \le h < i_l \\[10pt]
+\dfrac{o_r-h}{o_r-i_r}, & i_r < h \le o_r
+\end{cases}
+```
+
+  四柄都在 $0..360°$ 的圆上，先绕内区跨度解环绕再分段，所以范围可以拖过 $0/360$。
 - 调整量按 w 缩放后走全图算子的同一套公式（明度 screen/multiply → HSL →
   色相加法 → 饱和度相对缩放）：w=1 时与 Hue/Saturation (Basic) 逐位一致，
   w=0 时逐位等于原图。

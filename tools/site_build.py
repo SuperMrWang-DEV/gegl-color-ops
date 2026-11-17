@@ -296,7 +296,52 @@ LANG_FOOT_JS = """<script>
 </script>"""
 
 
-def page(title, body, root="", desc="", titles=None):
+# 文章页的公式与流程图：KaTeX 负责公式（auto-render 扫正文里的 $..$ / $$..$$），
+# mermaid 负责流程图。CDN 加载，本机离线预览时公式退化为原文、图退化为代码块。
+# mermaid 不开 startOnLoad：双语页另一套语言是 display:none，隐藏元素量不出
+# 文字尺寸，必须等可见时再画（切换语言后对新露出来的图补一次）。
+MATH_HEAD = """<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script>"""
+
+
+def page(title, body, root="", desc="", titles=None, math=False):
     """titles=(中文标题, English title)。给了就说明这页是双语的，带上切换按钮。"""
     bilingual = bool(titles)
     lang_head, lang_foot, lang_attrs = "", "", ""
@@ -316,7 +361,7 @@ def page(title, body, root="", desc="", titles=None):
 <meta property="og:description" content="{desc}">
 <link rel="stylesheet" href="{root}assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="{root}feed.xml">
-{lang_head}</head>
+{math_head}{lang_head}</head>
 <body>
 <a class="skip" href="#main">{skip}</a>
 {head}
@@ -329,6 +374,7 @@ def page(title, body, root="", desc="", titles=None):
 """.format(title=html.escape(title), body=body, desc=html.escape(desc),
            root=root, head=head_html(root, bilingual), foot=foot_html(VERSION, root),
            attrs=lang_attrs, lang_head=lang_head, lang_foot=lang_foot,
+           math_head=MATH_HEAD if math else "",
            skip=t("跳到正文", "Skip to content"))
 
 
@@ -907,7 +953,8 @@ def build_article(op, version):
         titles = None
 
     title = "%s · %s" % (op["menu"], "gegl-color-ops")
-    return page(title, body, root="../", desc=op["purpose_text"][:120], titles=titles)
+    return page(title, body, root="../", desc=op["purpose_text"][:120], titles=titles,
+                math=True)
 
 
 def build_guide(version, stats):

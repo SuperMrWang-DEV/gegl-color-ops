@@ -24,6 +24,36 @@ it as a grey mask or an alpha mask.
 | `invert-mask` | no | Invert the mask |
 | `output-mode` | grey mask | Grey mask (paste into a layer mask) or alpha mask (use directly as opacity) |
 
+## Algorithm
+
+```mermaid
+flowchart TD
+  A["input"] --> C1["source 1 channel<br/>(optionally inverted)"]
+  B["aux (falls back to input)"] --> C2["source 2 channel<br/>(optionally inverted)"]
+  C1 --> M["B = mode(A, B)"]
+  C2 --> M
+  M --> N["composite with opacity and mask"]
+  N --> O{"output-mode"}
+  O -- "grey mask" --> P["grey layer, alpha = 1"]
+  O -- "alpha mask" --> Q["opacity = grey value"]
+```
+
+After the mode, blend back toward the base by opacity and mask:
+
+```math
+R = (1-\alpha)\,A + \alpha\,B_{\text{mode}}(A,B),\qquad
+\alpha = \frac{\text{opacity}}{100}\cdot m
+```
+
+Add / Subtract carry their own scale and offset:
+
+```math
+R = \operatorname{clamp}\!\left(\frac{A \pm B}{\text{scale}} + \frac{\text{offset}}{255},\ 0,\ 1\right)
+```
+
+Source 2's alpha acts as coverage, so holes give $m=0$: $m \leftarrow m\cdot\alpha_2$
+(not applied when the channel *is* alpha).
+
 ## How it maps to the classic editor
 
 | the classic editor | Here |

@@ -18,9 +18,23 @@ stacked into any pipeline.
 
 ## Algorithm
 
+```mermaid
+flowchart TD
+  A["sRGB encoded"] --> B["decode to linear"]
+  B --> C["centre to [−1,1]: c' = 2c − 1"]
+  C --> D["cubic polynomial, 20 terms<br/>coefficients bilinear over a 17×17 (temperature, tint) grid"]
+  D --> E["clamp to [0,1]"]
+  E --> F["encode back to sRGB"]
+  F --> G["bake into a 33³ LUT (once per image)"]
 ```
-encoded -> decode to linear -> cubic polynomial (20 terms) -> clamp to [0,1] -> encode
+
+```math
+c' = 2c-1,\qquad
+\text{out} = \operatorname{clamp}\!\left(
+\sum_{d=0}^{3}\ \sum_{\substack{i+j+k=d\\ i,j,k\ge0}} a_{ijk}(T,t)\;r'^{i}g'^{j}b'^{k},\ 0,\ 1\right)
 ```
+
+$a_{ijk}(T,t)$ is the bilinear interpolation of the 17×17 parameter grid.
 
 Three decisions, each with a reason:
 

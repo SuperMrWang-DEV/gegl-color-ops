@@ -9,7 +9,45 @@
 <meta property="og:description" content="经典图像编辑器 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）the classic editor Exposure: EV, offset and gamma in three stages, measured inexposu">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
 (function () {
   try {
     var q = new URLSearchParams(location.search).get("lang");
@@ -66,7 +104,17 @@ v2 = clamp(v1, 0, ∞)^(1/gamma)</code></pre>
 <h2 id="验收">验收</h2>
 <pre><code class="language-bash">python tools/check_exposure.py</code></pre>
 <p>12 组参数（EV −3…+2、offset ±0.15、gamma 0.45…2.2）× 64 级灰阶：</p>
-<ul><li>分支一对拍 Java <code>exposureChannel</code>：最大 <strong>0.00 码</strong></li><li>分支二对拍 Java <code>exposureChannel2</code>：最大 <strong>0.00 码</strong></li><li>整数 PNG 输入下 <code>auto</code> 与 <code>encoded</code> 逐像素完全相同（0 处不同）</li><li>浮点 EXR 输入下 <code>auto</code> 与 <code>linear</code> 完全相同，与 <code>encoded</code> 在 2944 个像素上不同 —— 说明 auto 真的切了分支，而不只是多了个开关</li></ul><div class="op-dl">
+<ul><li>分支一对拍 Java <code>exposureChannel</code>：最大 <strong>0.00 码</strong></li><li>分支二对拍 Java <code>exposureChannel2</code>：最大 <strong>0.00 码</strong></li><li>整数 PNG 输入下 <code>auto</code> 与 <code>encoded</code> 逐像素完全相同（0 处不同）</li><li>浮点 EXR 输入下 <code>auto</code> 与 <code>linear</code> 完全相同，与 <code>encoded</code> 在 2944 个像素上不同 —— 说明 auto 真的切了分支，而不只是多了个开关</li></ul>
+<h2 id="算法">算法</h2>
+<p>同一套 EV 与 offset，按输入精度分两条路径。<code>precision=auto</code> 读输入 pad 的格式： 整数格式（<code>u8</code> / <code>u16</code>）走编码域，浮点格式（<code>float</code> / <code>half</code> / <code>double</code>）走线性域； 16 位图同样是伽马编码的，和 8 位同路。</p>
+<p><strong>整数格式（sRGB 编码值）</strong>：先在编码域乘 <span class="math">$2^{EV/2.2}$</span>（等价于线性域乘 <span class="math">$2^{EV}$</span>， 但省掉两次幂运算），再解码、加线性域的 offset、编码回去：</p>
+<div class="math-display">$$v_1 = \min\!\left(c\cdot 2^{EV/2.2},\ 1\right),\qquad
+v_2 = \operatorname{clamp}\!\left(v_1^{2.2} + o,\ 0,\ 1\right)^{1/2.2},\qquad
+v_3 = v_2^{\,1/\gamma}$$</div>
+<p>那个 <span class="math">$\min(\cdot,1)$</span> 不能省：先裁高光、再加 offset，负 offset 才能把过曝的高光拉回来； 去掉它，<span class="math">$EV&gt;0$</span> 配负 offset 会把整片亮部推成纯白。</p>
+<p><strong>浮点格式（线性光）</strong>：输入已是线性，只需一次乘法与一次加法：</p>
+<div class="math-display">$$v_1 = c\cdot 2^{EV} + o,\qquad v_2 = \bigl(\max(v_1,\,0)\bigr)^{1/\gamma}$$</div>
+<p>只夹下界、不夹上界：32 位图允许 HDR，裁到 <span class="math">$0..1$</span> 会把高光压平；但负值必须夹， 否则 <code>pow</code> 会返回 NaN。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>lb-exposure.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>lb-exposure.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
@@ -91,7 +139,8 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
   <ul><li class="l2"><a href="#两条公式按输入精度自动选路">两条公式，按输入精度自动选路</a></li>
 <li class="l3"><a href="#分支一整数格式srgb-伽马编码值">分支一：整数格式（sRGB 伽马编码值）</a></li>
 <li class="l3"><a href="#分支二浮点格式线性光">分支二：浮点格式（线性光）</a></li>
-<li class="l2"><a href="#验收">验收</a></li></ul>
+<li class="l2"><a href="#验收">验收</a></li>
+<li class="l2"><a href="#算法">算法</a></li></ul>
 </aside>
 </div></div>
 <div class="l-en"><section class="page-head">
@@ -109,14 +158,13 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
 <h2 id="two-formulas-picked-from-the-input-precision">Two formulas, picked from the input precision</h2>
 <p><code>precision</code> property: <code>auto</code> (default) / <code>encoded</code> (force the 8-bit path) / <code>linear</code> (force the 32-bit path). <code>auto</code> reads the source format of the input pad: integer formats (<code>u8</code> / <code>u16</code>) take branch one, float formats (<code>float</code> / <code>half</code> / <code>double</code>) take branch two. 16-bit images are gamma-encoded as well, so they share branch one with 8-bit.</p>
 <h3 id="branch-one-integer-formats-srgb-gamma-encoded-values">Branch one: integer formats (sRGB gamma-encoded values)</h3>
-<pre><code>v1 = min(c · 2^(EV/2.2), 1)
-v2 = clamp(v1^2.2 + offset, 0, 1)^(1/2.2)
-v3 = v2^(1/gamma)</code></pre>
+<div class="math-display">$$v_1 = \min\!\left(c\cdot 2^{EV/2.2},\ 1\right),\qquad
+v_2 = \operatorname{clamp}\!\left(v_1^{2.2} + o,\ 0,\ 1\right)^{1/2.2},\qquad
+v_3 = v_2^{\,1/\gamma}$$</div>
 <p>Multiplying by <code>2^(EV/2.2)</code> in the gamma domain is exactly equivalent to multiplying by <code>2^EV</code> in linear light and saves two exponentiations; <code>offset</code> is a linear-light quantity, hence the single decode to 2.2 in the middle and the re-encode afterwards.</p>
 <p><strong>The <code>min(…, 1)</code> cannot be dropped.</strong> Highlights are clipped first and the offset is added afterwards, which is what lets a negative offset pull blown highlights back. Skip it and <code>EV&gt;0</code> with a negative offset pushes the whole bright region to solid white. The old implementation was missing this line.</p>
 <h3 id="branch-two-float-formats-linear-light">Branch two: float formats (linear light)</h3>
-<pre><code>v1 = c · 2^EV + offset
-v2 = clamp(v1, 0, ∞)^(1/gamma)</code></pre>
+<div class="math-display">$$v_1 = c\cdot 2^{EV} + o,\qquad v_2 = \bigl(\max(v_1,\,0)\bigr)^{1/\gamma}$$</div>
 <p>The input is already linear, so there is no 2.2 round trip; exposure is one multiply and the offset is added directly.</p>
 <p><strong>One difference from the Java version</strong>: Java ends with <code>clamp(…, 0, 1)</code>, this operator only clamps the lower bound. 32-bit images allow HDR, and truncating to 0…1 would flatten the highlights; negative values must be clamped or <code>pow</code> returns NaN.</p>
 <h2 id="acceptance">Acceptance</h2>
@@ -162,7 +210,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">597e2cf</span>
+    <span class="muted">bc25d51</span>
   </div>
 </footer>
 <script>

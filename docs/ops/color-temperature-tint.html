@@ -9,7 +9,45 @@
 <meta property="og:description" content="经典图像编辑器 2026「色彩与自然饱和度」里的色温 / 色调：中性灰跟着偏蓝-黄、绿-洋红，黑白两端不动">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
 (function () {
   try {
     var q = new URLSearchParams(location.search).get("lang");
@@ -53,7 +91,17 @@
 <p>按黑盒标定得到的 classic image editor 2026「色彩与自然饱和度」调整图层里的<strong>色温</strong>和<strong>色调</strong> 两个滑块。经典图像编辑器 27.0 把这两个滑块塞进了原来的 vibrance 图层（官方名 Color and vibrance），Action Manager 里还是老的 <code>vibrance</code> 类，只是多带 <code>temperature</code> / <code>tint</code> 两个整数键，所以这里把白平衡部分单独拆成一个算子，便于叠加到任何管线里。</p>
 <ul><li>GEGL id：<code>lb:color-temperature-tint</code></li><li>菜单：<code>Colors → SuperMrWang → Color → Color Temperature &amp; Tint 经典图像编辑器</code></li><li>类型：<code>GeglOperationPointFilter</code>（逐像素，无邻域）</li><li>参数：<code>temperature</code>（−100…100，负冷正暖）、<code>tint</code>（−100…100，负绿正洋红）</li></ul>
 <h2 id="算法">算法</h2>
-<pre><code>编码值 → 解码到线性 → 3 次多项式(20 项) → clamp 到 [0,1] → 编码</code></pre>
+<pre class="mermaid">flowchart TD
+  A["sRGB 编码值"] --&gt; B["解码到线性光"]
+  B --&gt; C["居中到 [−1,1]：c' = 2c − 1"]
+  C --&gt; D["3 次多项式，20 项&lt;br/&gt;系数按 (色温, 色调) 在 17×17 网格上双线性插值"]
+  D --&gt; E["clamp 到 [0,1]"]
+  E --&gt; F["编码回 sRGB"]
+  F --&gt; G["烘焙进 33³ LUT（每张图一次）"]</pre>
+<div class="math-display">$$c' = 2c-1,\qquad
+\text{out} = \operatorname{clamp}\!\left(
+\sum_{d=0}^{3}\ \sum_{\substack{i+j+k=d\\ i,j,k\ge0}} a_{ijk}(T,t)\;r'^{i}g'^{j}b'^{k},\ 0,\ 1\right)$$</div>
+<p><span class="math">$a_{ijk}(T,t)$</span> 是 17×17 参数网格上的双线性插值结果。</p>
 <p>三个动作，每个都有明确来源：</p>
 <div class="table-wrap"><table><thead><tr><th>步骤</th><th>为什么</th></tr></thead><tbody><tr><td>在线性域拟合</td><td>编码域拟合时 经典图像编辑器的硬裁切只能被逼近成一团糊；实测负色温区域中位误差到过 90 码</td></tr><tr><td><code>clamp</code></td><td>经典图像编辑器 是「线性值被压到负数后切 0」。这是整条管线里唯一的强非线性，交给 clamp 精确复现，不要指望多项式</td></tr><tr><td>17×17 参数网格 + 双线性插值</td><td>映射随 (色温, 色调) 变化很快，25 一档跨得太大（网格间误差 10–90 码）；加密到 12/13 一档后降到 1–5 码</td></tr><tr><td>烘成 33³ LUT</td><td>逐像素算 20 项 + 两次 <code>powf</code> 太慢，一张图只烘一次</td></tr></tbody></table></div>
 <p>系数一共 17×17×20×3 = 17340 个数，在 <code>common/temp-tint.h</code> 里，由 <code>tools/gen_temp_tint_tables.py</code> 从 <code>vibrance-cal/temp_tint_grid17_lin.json</code> 生成 —— 要改数值请改上游数据再重新生成，不要手抄。</p>
@@ -108,7 +156,17 @@
 <p>The <strong>temperature</strong> and <strong>tint</strong> sliders of classic image editor 2026's <em>Color and vibrance</em> adjustment layer, matched by black-box measurement. the classic editor 27.0 folded both sliders into the old vibrance layer (officially "Color and vibrance"); the Action Manager still uses the old <code>vibrance</code> class with two extra integer keys, <code>temperature</code> and <code>tint</code>. The white-balance part is split out into its own operator so it can be stacked into any pipeline.</p>
 <ul><li>GEGL id: <code>lb:color-temperature-tint</code></li><li>Menu: <code>Colors → SuperMrWang → Color → Color Temperature &amp; Tint the classic editor</code></li><li>Type: <code>GeglOperationPointFilter</code> (per-pixel, no neighbourhood)</li><li>Parameters: <code>temperature</code> (−100…100, negative = cooler), <code>tint</code> (−100…100, negative = green, positive = magenta)</li></ul>
 <h2 id="algorithm">Algorithm</h2>
-<pre><code>encoded -&gt; decode to linear -&gt; cubic polynomial (20 terms) -&gt; clamp to [0,1] -&gt; encode</code></pre>
+<pre class="mermaid">flowchart TD
+  A["sRGB encoded"] --&gt; B["decode to linear"]
+  B --&gt; C["centre to [−1,1]: c' = 2c − 1"]
+  C --&gt; D["cubic polynomial, 20 terms&lt;br/&gt;coefficients bilinear over a 17×17 (temperature, tint) grid"]
+  D --&gt; E["clamp to [0,1]"]
+  E --&gt; F["encode back to sRGB"]
+  F --&gt; G["bake into a 33³ LUT (once per image)"]</pre>
+<div class="math-display">$$c' = 2c-1,\qquad
+\text{out} = \operatorname{clamp}\!\left(
+\sum_{d=0}^{3}\ \sum_{\substack{i+j+k=d\\ i,j,k\ge0}} a_{ijk}(T,t)\;r'^{i}g'^{j}b'^{k},\ 0,\ 1\right)$$</div>
+<p><span class="math">$a_{ijk}(T,t)$</span> is the bilinear interpolation of the 17×17 parameter grid.</p>
 <p>Three decisions, each with a reason:</p>
 <div class="table-wrap"><table><thead><tr><th>Step</th><th>Why</th></tr></thead><tbody><tr><td>fit in the linear domain</td><td>fitting in the encoded domain can only smear the classic editor's hard clipping into mush; the negative-temperature region was measured at a median error of 90 code values</td></tr><tr><td>the <code>clamp</code></td><td>the classic editor clips linear values that go negative to 0. This is the only strong non-linearity in the chain; reproduce it exactly with a clamp instead of expecting a polynomial to do it</td></tr><tr><td>17×17 parameter grid + bilinear</td><td>the map changes quickly with (temperature, tint); steps of 25 were far too coarse (10–90 code values between grid points), while 12–13 brings it down to 1–5</td></tr><tr><td>bake into a 33³ LUT</td><td>20 terms plus two <code>powf</code> per pixel is slow; bake once per image</td></tr></tbody></table></div>
 <p>That is 17×17×20×3 = 17340 coefficients in <code>common/temp-tint.h</code>, generated by <code>tools/gen_temp_tint_tables.py</code> from <code>vibrance-cal/temp_tint_grid17_lin.json</code> — change the upstream data and regenerate, never hand-edit.</p>
@@ -159,7 +217,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">597e2cf</span>
+    <span class="muted">bc25d51</span>
   </div>
 </footer>
 <script>

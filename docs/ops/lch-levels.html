@@ -9,7 +9,45 @@
 <meta property="og:description" content="CIE LCh 三个分量各自设输入 / 输出黑白场与伽马">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
 (function () {
   try {
     var q = new URLSearchParams(location.search).get("lang");
@@ -56,6 +94,20 @@
 <h2 id="色彩空间">色彩空间</h2>
 <p>直接工作在 babl 的 <code>CIE LCH(ab) alpha float</code>（<strong>D50 白点</strong>）上，RGB↔LCh 交给 babl，与 GIMP「分解 → LCH」同一套口径。</p>
 <div class="table-wrap"><table><thead><tr><th>分量</th><th>量程</th><th>说明</th></tr></thead><tbody><tr><td>L</td><td>0–100</td><td>CIE 明度</td></tr><tr><td>C</td><td>0–~132</td><td>色度，sRGB 色域内最大约 131（纯蓝），所以量程给到 132</td></tr><tr><td>H</td><td>0–360°</td><td>色相角，0° 偏红（纯红约 40°，纯蓝约 301°）</td></tr></tbody></table></div>
+<div class="math-display">$$z = (h-\text{ia}) \bmod 360,\qquad
+S_{\text{in}} = (\text{ib}-\text{ia}) \bmod 360,\qquad
+S_{\text{out}} = (\text{ob}-\text{oa}) \bmod 360$$</div>
+<div class="math-display">$$h' = \bigl(\text{base} + \text{span}\cdot t^{1/\gamma}\bigr) \bmod 360,\qquad
+(t,\ \text{base},\ \text{span}) =
+\begin{cases}
+\left(\dfrac{z}{S_{\text{in}}},\ \text{oa},\ S_{\text{out}}\right), &amp; z \le S_{\text{in}} \\[10pt]
+\left(\dfrac{z-S_{\text{in}}}{360-S_{\text{in}}},\ \text{oa}+S_{\text{out}},\ 360-S_{\text{out}}\right), &amp; z &gt; S_{\text{in}}
+\end{cases}$$</div>
+<p><span class="math">$S_{\text{in}}$</span> 或 <span class="math">$S_{\text{out}}$</span> 为 0（黑白场重合）时按整圈 <span class="math">$360°$</span> 处理。</p>
+<div class="math-display">$$u = \operatorname{clamp}\!\left(\frac{x-x_{\text{lo}}}{x_{\text{hi}}-x_{\text{lo}}},\,0,\,1\right),
+\qquad
+\text{out} = o_{\text{lo}} + u^{1/\gamma}\,\bigl(o_{\text{hi}}-o_{\text{lo}}\bigr)$$</div>
+<p><span class="math">$o_{\text{lo}} &gt; o_{\text{hi}}$</span> 时输出反相；结果夹在 <span class="math">$[\min(o_{\text{lo}},o_{\text{hi}}),\ \max(o_{\text{lo}},o_{\text{hi}})]$</span> 内。</p>
 <h2 id="规则细则">规则细则</h2>
 <ul><li><strong>H 环形重映射</strong>：把圆在黑场处剪开，主弧（黑场 → 白场）映到输出弧， 剩余弧按比例跟进，两段共用 gamma。默认参数逐位还原；黑白场重合 = 纯色相旋转。</li><li><strong>C 线性</strong>：C 归零 → 全图变中性灰（Lab 的 a=b=0），这是最常用的「去色」 手法；C 反向输出（下限 &gt; 上限）会得到互补色的味道，但明度不动。</li><li><strong>L 线性</strong>：普通色阶语义，与 <code>lab-levels</code> 的 L 完全一致。</li><li><strong>黑白场交叉自动交换</strong>。</li><li><strong>alpha ≤ 0 透传</strong>。</li><li>C 超过色域的输入会被 clamp 到 132；输出 C 可以拉高，超出 sRGB 的部分由 babl 转回 RGB 时裁掉（等价于 GIMP 色域警告里的那些像素）。</li></ul>
 <h2 id="与-lblab-levels-lbhue-saturation-的关系">与 lb:lab-levels / lb:hue-saturation 的关系</h2>
@@ -100,6 +152,20 @@
 <h2 id="colour-space">Colour space</h2>
 <p>Works directly on babl's <code>CIE LCH(ab) alpha float</code> (<strong>D50 white point</strong>); RGB↔LCh is babl's job, the same convention as GIMP's "Decompose → LCH".</p>
 <div class="table-wrap"><table><thead><tr><th>Component</th><th>Range</th><th>Notes</th></tr></thead><tbody><tr><td>L</td><td>0–100</td><td>CIE lightness</td></tr><tr><td>C</td><td>0–~132</td><td>chroma; inside sRGB the maximum is about 131 (pure blue), hence 132</td></tr><tr><td>H</td><td>0–360°</td><td>hue angle; 0° leans red (pure red is about 40°, pure blue about 301°)</td></tr></tbody></table></div>
+<div class="math-display">$$z = (h-\text{ia}) \bmod 360,\qquad
+S_{\text{in}} = (\text{ib}-\text{ia}) \bmod 360,\qquad
+S_{\text{out}} = (\text{ob}-\text{oa}) \bmod 360$$</div>
+<div class="math-display">$$h' = \bigl(\text{base} + \text{span}\cdot t^{1/\gamma}\bigr) \bmod 360,\qquad
+(t,\ \text{base},\ \text{span}) =
+\begin{cases}
+\left(\dfrac{z}{S_{\text{in}}},\ \text{oa},\ S_{\text{out}}\right), &amp; z \le S_{\text{in}} \\[10pt]
+\left(\dfrac{z-S_{\text{in}}}{360-S_{\text{in}}},\ \text{oa}+S_{\text{out}},\ 360-S_{\text{out}}\right), &amp; z &gt; S_{\text{in}}
+\end{cases}$$</div>
+<p>A zero <span class="math">$S_{\text{in}}$</span> or <span class="math">$S_{\text{out}}$</span> (coincident black / white points) is treated as the full <span class="math">$360°$</span> circle.</p>
+<div class="math-display">$$u = \operatorname{clamp}\!\left(\frac{x-x_{\text{lo}}}{x_{\text{hi}}-x_{\text{lo}}},\,0,\,1\right),
+\qquad
+\text{out} = o_{\text{lo}} + u^{1/\gamma}\,\bigl(o_{\text{hi}}-o_{\text{lo}}\bigr)$$</div>
+<p>An inverted output (<span class="math">$o_{\text{lo}} &gt; o_{\text{hi}}$</span>) gives a negative-style inverse; the result is clamped to <span class="math">$[\min(o_{\text{lo}},o_{\text{hi}}),\ \max(o_{\text{lo}},o_{\text{hi}})]$</span>.</p>
 <h2 id="rules">Rules</h2>
 <ul><li><strong>Circular hue remap</strong>: cut the circle at the black point, map the main arc (black point → white point) onto the output arc and the rest proportionally, both sharing the gamma. Bit-exact at defaults; black and white point at one angle means a pure hue rotation.</li><li><strong>C is linear</strong>: C to zero turns the image neutral grey (Lab a=b=0) — the most common way to desaturate. An inverted C output (low &gt; high) gives a complementary-looking result while lightness stays put.</li><li><strong>L is linear</strong>: ordinary levels semantics, identical to <code>lab-levels</code>' L.</li><li><strong>Crossed black and white points swap automatically.</strong></li><li><strong>alpha ≤ 0 passes through.</strong></li><li>Input above the gamut is clipped to C = 132; the output C can be pushed higher and whatever falls outside sRGB is clipped by babl's conversion back to RGB (the pixels GIMP's gamut warning would flag).</li></ul>
 <h2 id="which-operator-for-what">Which operator for what</h2>
@@ -137,7 +203,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">597e2cf</span>
+    <span class="muted">bc25d51</span>
   </div>
 </footer>
 <script>

@@ -75,9 +75,9 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/
 
 在 LAB（D65）空间处理，工作于线性 sRGB，自动跟随输入色彩空间。
 
-**蒙版结构** `M = M_chroma(C*) × M_skin(h) × M_gamut`
+**蒙版结构** $M = M_{\text{chroma}}(C^*)\times M_{\text{skin}}(h)\times M_{\text{gamut}}$
 
-- `M_chroma = 1/(1 + atten·(C*/50)^1.3)`：读**源图**色度 C*，色度越高增益越低；
+- $M_{\text{chroma}} = \dfrac{1}{1+\alpha\,(C^*/50)^{1.3}}$：读**源图**色度 $C^*$，色度越高增益越低；
   指数 1.3 让 C*>60 掉得比纯双曲线更快。与 Saturation 滑杆互不影响。
 - `M_skin`：LAB 色相 55° 附近（橙/肤色带）、色度 8–80 区间时降权，
   用 smoothstep 软窗，边界无硬边。强度由 `Skin Protection`（默认 0.7）控制，0 = 关闭。

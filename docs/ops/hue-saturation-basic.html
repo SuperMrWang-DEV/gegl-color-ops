@@ -9,7 +9,45 @@
 <meta property="og:description" content="三滑杆公式：全局色相旋转、饱和度相对缩放、明度向白/黑混合。">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
 (function () {
   try {
     var q = new URLSearchParams(location.search).get("lang");
@@ -56,16 +94,22 @@
 <p>规范实现是 <code>tools/ref_hue_sat_basic.py</code>（原代码的逐字转录 + 浮点对照）， 验收脚本是 <code>tools/check_hue_saturation_basic.py</code>。</p>
 <h2 id="算法">算法</h2>
 <p>在 <strong>sRGB 编码值</strong>（<code>R~G~B~A float</code>，感知域而非线性光）上，四步：</p>
-<pre><code>t = lightness / 100
-r,g,b ← c + t·(1−c)   (t &gt; 0)      # 与中性灰做滤色
-        c·(1+t)       (t &lt; 0)      # 与中性灰做正片叠底
-h,s,l ← RGB2HSL(r,g,b)
-h ← (h + hue) mod 360
-x = saturation / 100
-s ← s/(1−x)  (x &gt; 0)                # 双曲放大
-    s·(1+x)  (x &lt; 0)                # 线性收缩
-s ← clamp(s, 0, 1)
-out = HSL2RGB(h, s, l)</code></pre>
+<div class="math-display">$$\begin{aligned}
+t &amp;= \frac{\text{lightness}}{100} \\[2pt]
+c' &amp;= \begin{cases}
+c + t\,(1-c), &amp; t &gt; 0 \quad \text{（与中性灰做滤色）} \\[4pt]
+c\,(1+t), &amp; t &lt; 0 \quad \text{（与中性灰做正片叠底）}
+\end{cases}\quad c \in \{R,G,B\} \\[8pt]
+(h,s,l) &amp;= \operatorname{RGB2HSL}(R',G',B') \\
+h' &amp;= (h + \text{hue}) \bmod 360 \\[2pt]
+x &amp;= \frac{\text{saturation}}{100} \\[2pt]
+s' &amp;= \operatorname{clamp}\!\left(
+\begin{cases}
+\dfrac{s}{1-x}, &amp; x &gt; 0 \quad \text{（双曲放大）} \\[8pt]
+s\,(1+x), &amp; x &lt; 0 \quad \text{（线性收缩）}
+\end{cases},\ 0,\ 1\right) \\[8pt]
+\text{out} &amp;= \operatorname{HSL2RGB}(h',s',l)
+\end{aligned}$$</div>
 <p>顺序有意义：明度先落进 RGB，再把结果转 HSL 做色相与饱和度 —— 所以饱和度作用在 「提亮/压暗之后」的 S 上，而不是原图的 S。</p>
 <h2 id="与原代码的两处差别">与原代码的两处差别</h2>
 <p>两处都不是算法语义，是实现缺陷：</p>
@@ -111,16 +155,22 @@ python tools/analyze_hue_sat_basic.py          # 三条曲线的行为体检</co
 <p>The specification lives in <code>tools/ref_hue_sat_basic.py</code> (a literal transcription of the original code plus a float comparison), and the acceptance script is <code>tools/check_hue_saturation_basic.py</code>.</p>
 <h2 id="algorithm">Algorithm</h2>
 <p>On <strong>sRGB encoded values</strong> (<code>R~G~B~A float</code>, the perceptual domain, not linear light), in four steps:</p>
-<pre><code>t = lightness / 100
-r,g,b &lt;- c + t·(1−c)   (t &gt; 0)      # screen with neutral grey
-         c·(1+t)       (t &lt; 0)      # multiply with neutral grey
-h,s,l &lt;- RGB2HSL(r,g,b)
-h &lt;- (h + hue) mod 360
-x = saturation / 100
-s &lt;- s/(1−x)  (x &gt; 0)                # hyperbolic expansion
-     s·(1+x)  (x &lt; 0)                # linear contraction
-s &lt;- clamp(s, 0, 1)
-out = HSL2RGB(h, s, l)</code></pre>
+<div class="math-display">$$\begin{aligned}
+t &amp;= \frac{\text{lightness}}{100} \\[2pt]
+c' &amp;= \begin{cases}
+c + t\,(1-c), &amp; t &gt; 0 \quad \text{(screen with neutral grey)} \\[4pt]
+c\,(1+t), &amp; t &lt; 0 \quad \text{(multiply with neutral grey)}
+\end{cases}\quad c \in \{R,G,B\} \\[8pt]
+(h,s,l) &amp;= \operatorname{RGB2HSL}(R',G',B') \\
+h' &amp;= (h + \text{hue}) \bmod 360 \\[2pt]
+x &amp;= \frac{\text{saturation}}{100} \\[2pt]
+s' &amp;= \operatorname{clamp}\!\left(
+\begin{cases}
+\dfrac{s}{1-x}, &amp; x &gt; 0 \quad \text{(hyperbolic expansion)} \\[8pt]
+s\,(1+x), &amp; x &lt; 0 \quad \text{(linear contraction)}
+\end{cases},\ 0,\ 1\right) \\[8pt]
+\text{out} &amp;= \operatorname{HSL2RGB}(h',s',l)
+\end{aligned}$$</div>
 <p>The order matters: lightness lands in RGB first, then the result is converted to HSL for hue and saturation — so saturation acts on the <strong>post-lightness</strong> S, not on the original one.</p>
 <h2 id="two-differences-from-the-original-code">Two differences from the original code</h2>
 <p>Neither is about what the algorithm means; both are implementation defects:</p>
@@ -160,7 +210,7 @@ python tools/analyze_hue_sat_basic.py          # behaviour checks on the three c
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">597e2cf</span>
+    <span class="muted">bc25d51</span>
   </div>
 </footer>
 <script>

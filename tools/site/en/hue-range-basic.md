@@ -37,7 +37,19 @@ unwrapped around its inner span first.
 
 The weight is computed on the pixel's **original** hue — the range behaves
 like an internal mask. Achromatic pixels (R = G = B) join no family, so greys
-are never tinted. The adjustments then scale by the weight and run through the
+are never tinted. The four-handle bar weights are piecewise linear:
+
+```math
+w(h) = \begin{cases}
+0, & h < o_l \ \text{or}\ h > o_r \\[4pt]
+1, & i_l \le h \le i_r \\[4pt]
+\dfrac{h-o_l}{i_l-o_l}, & o_l \le h < i_l \\[10pt]
+\dfrac{o_r-h}{o_r-i_r}, & i_r < h \le o_r
+\end{cases}
+```
+
+Handles live on the $0..360°$ circle; the range is unwrapped around its inner span
+first, so handles dragged across $0/360$ still work. The adjustments then scale by the weight and run through the
 exact same formula as Hue/Saturation (Basic): lightness as screen/multiply
 toward white/black, hue as a rotation, saturation as a relative scale
 (s/(1−x) up, s(1+x) down). At weight 1 the result is bit-identical to the

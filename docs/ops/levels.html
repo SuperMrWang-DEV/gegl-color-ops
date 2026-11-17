@@ -9,7 +9,45 @@
 <meta property="og:description" content="经典图像编辑器 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 经典图像编辑器 对话框的数字框一一对应the classic editor Levels: composite">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
 (function () {
   try {
     var q = new URLSearchParams(location.search).get("lang");
@@ -54,10 +92,12 @@
 <p>对应面板：<code>Colors → SuperMrWang → Levels → Levels</code>。</p>
 <h2 id="模型">模型</h2>
 <p>单通道：</p>
-<pre><code>t   = clamp((v - inLow) / (inHigh - inLow), 0, 1)
-t'  = t ^ (1 / gamma)
-out = outLow + t' * (outHigh - outLow)</code></pre>
-<ul><li><code>inLow</code> 及以下压成 <code>outLow</code>，<code>inHigh</code> 及以上压成 <code>outHigh</code>， 中间按 gamma 曲线重新分布；</li><li><strong>gamma &gt; 1 提亮，gamma &lt; 1 压暗</strong>（与 经典图像编辑器 数字框同向。注意这与 「标准 gamma」的直觉相反，因为 经典图像编辑器的滑块值直接进的是 <code>1/gamma</code> 的倒数位置； 指数写成 <code>t^gamma</code> 会让方向整个反过来）；</li><li>输入区间会把整段拉伸：设了 <code>inLow = 64</code> 之后，<code>v = 240</code> 会变成 <code>235</code>， 不是原样保留；</li><li><code>inHigh == inLow</code> 时区间塌成一点，按台阶处理（≥ 该值为白），不除零。</li></ul>
+<div class="math-display">$$t = \operatorname{clamp}\!\left(\frac{v-\text{inLow}}{\text{inHigh}-\text{inLow}},\,0,\,1\right),
+\qquad
+t' = t^{1/\gamma},
+\qquad
+\text{out} = \text{outLow} + t'\,\bigl(\text{outHigh}-\text{outLow}\bigr)$$</div>
+<ul><li><code>inLow</code> 及以下压成 <code>outLow</code>，<code>inHigh</code> 及以上压成 <code>outHigh</code>， 中间按 gamma 曲线重新分布；</li><li><strong>gamma &gt; 1 提亮，gamma &lt; 1 压暗</strong>（与 经典图像编辑器 数字框同向。注意这与 「标准 gamma」的直觉相反，因为 经典图像编辑器的滑块值直接进的是 <code>1/gamma</code> 的倒数位置； 指数写成 <code>t^gamma</code> 会让方向整个反过来）；</li><li>输入区间会把整段拉伸：设了 <code>inLow = 64</code> 之后，<code>v = 240</code> 会变成 <code>235</code>， 不是原样保留；</li><li><code>inHigh == inLow</code> 时区间塌成一点，该通道原样透传（不除零，也不会压成单值）。</li></ul>
 <p>执行顺序：<strong>先复合组（三通道同一条曲线），再各通道组</strong>。各通道组默认恒等， 所以「只动复合」与 经典图像编辑器的 RGB 通道模式逐位一致；「只动红」等价于 经典图像编辑器的 Red 通道模式。四组可以叠加使用，这比 经典图像编辑器 一次只能选一个通道更强。</p>
 <h2 id="域">域</h2>
 <p>在 <strong>8bit sRGB 伽马域</strong>逐通道直接算，不回线性光。色阶的黑白场是 「0–255 编码值」的语义，喂线性光会让数字框对不上 经典图像编辑器。算子自己在 <code>prepare</code> 里把两个 pad 钉成感知格式（<code>R~G~B~A float</code>），不需要前置 <code>linear-rgb</code>。</p>
@@ -105,9 +145,11 @@ out = outLow + t' * (outHigh - outLow)</code></pre>
 <p>Panel: <code>Colors → SuperMrWang → Tone → Levels</code>.</p>
 <h2 id="model">Model</h2>
 <p>Per channel:</p>
-<pre><code>t   = clamp((v - inLow) / (inHigh - inLow), 0, 1)
-t'  = t ^ (1 / gamma)
-out = outLow + t' * (outHigh - outLow)</code></pre>
+<div class="math-display">$$t = \operatorname{clamp}\!\left(\frac{v-\text{inLow}}{\text{inHigh}-\text{inLow}},\,0,\,1\right),
+\qquad
+t' = t^{1/\gamma},
+\qquad
+\text{out} = \text{outLow} + t'\,\bigl(\text{outHigh}-\text{outLow}\bigr)$$</div>
 <ul><li><code>inLow</code> and below is crushed to <code>outLow</code>, <code>inHigh</code> and above to <code>outHigh</code>, and the middle is redistributed along the gamma curve;</li><li><strong>gamma &gt; 1 brightens, gamma &lt; 1 darkens</strong> — the same direction as the classic editor's field. Note this is the opposite of the usual gamma intuition: the classic editor's slider value goes straight into the reciprocal position of <code>1/gamma</code>, and writing the exponent as <code>t^gamma</code> flips the whole direction;</li><li>the input range stretches everything: after setting <code>inLow = 64</code>, <code>v = 240</code> becomes 235 rather than staying put;</li><li>when <code>inHigh == inLow</code> the range collapses to a point and is handled as a step (anything ≥ that value is white) instead of dividing by zero.</li></ul>
 <p>Order: <strong>the composite group first (one curve for all three channels), then the per-channel groups</strong>. Per-channel groups default to identity, so "touch only the composite" is bit-identical to the classic editor's RGB mode and "touch only red" matches the classic editor's Red channel mode. All four groups can be stacked, which is more than the classic editor allows (one channel at a time).</p>
 <h2 id="domain">Domain</h2>
@@ -151,7 +193,7 @@ out = outLow + t' * (outHigh - outLow)</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">597e2cf</span>
+    <span class="muted">bc25d51</span>
   </div>
 </footer>
 <script>

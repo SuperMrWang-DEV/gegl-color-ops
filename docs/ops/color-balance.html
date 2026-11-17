@@ -9,7 +9,45 @@
 <meta property="og:description" content="经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴the classic editor Color Balance: shadow, midtone and highlight each carry">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
 (function () {
   try {
     var q = new URLSearchParams(location.search).get("lang");
@@ -55,17 +93,15 @@
 <hr>
 <h2 id="算法不保留明度">算法（不保留明度）</h2>
 <p>一个通道（C-R 动 R、M-G 动 G、Y-B 动 B）只由自己那条滑杆决定，与其它两个通道无关。 三个色调区间的参数先合并成<strong>一条</strong>曲线：</p>
-<pre><code>G = g_阴影 · g_中间调 · g_高光          三个指数相乘
-b = |s|        当阴影滑杆为负（黑场抬起来）
-W = 255 − s    当高光滑杆为正（白场压下来）
-其余情况 b = 0、W = 255
-
-u   = (v − b) / (W − b)
-out = 255 · u^G                       (u ≥ H)</code></pre>
+<div class="math-display">$$G = g_{\text{阴影}}\cdot g_{\text{中间调}}\cdot g_{\text{高光}},\qquad
+b = \begin{cases} |s_{\text{阴}}|, &amp; s_{\text{阴}} &lt; 0 \\ 0, &amp; \text{否则} \end{cases},
+\qquad
+W = \begin{cases} 255-s_{\text{高}}, &amp; s_{\text{高}} &gt; 0 \\ 255, &amp; \text{否则} \end{cases}$$</div>
+<div class="math-display">$$u = \frac{v-b}{W-b},\qquad \text{out} = 255\,u^{G}\quad (u \ge H)$$</div>
 <p>近黑端另有一段「趾部」：G &lt; 1 时 u^G 在 0 处斜率无穷，经典图像编辑器 实际是有限斜率起步。 把 [b, h0] 这一段换成三次 Hermite：</p>
-<pre><code>h0  = b + H · (W − b)
-y1  = 255 · H^G                      区间右端值
-out = Hermite( (v−b)/(h0−b), Su·H, y1, G·y1 )</code></pre>
+<div class="math-display">$$h_0 = b + H\,(W-b),\qquad
+y_1 = 255\,H^{G},\qquad
+\text{out} = \operatorname{Hermite}\!\left(\frac{v-b}{h_0-b},\ S_u H,\ y_1,\ G\,y_1\right)$$</div>
 <ul><li>指数：中间调 <code>2^(∓s/100)</code>，阴影和高光各只有它的一半 <code>2^(∓s/200)</code>； 算子用实测表（<code>cb-tables.h</code> 的 <code>CB_G</code>），不套公式。</li><li><code>Su</code>（归一化起点斜率）与 <code>H</code>（趾部宽度占比）都<strong>只随复合指数 G 变化</strong>， 与「这个 G 是哪个区间给的」无关：单区间档与组合档落在同一条曲线上（表 <code>CB_TOE</code>）。 G ≥ 0.85 时 H 衰减到 0，趾部自然消失。</li><li>忽略趾部的话，中间调 +100 在 v≈4 处会差 16 码；补上后全档 ≤ 0.3 码。</li></ul>
 <p>参数由 <code>cb-cal</code> 的 经典图像编辑器 标定得到（经典图像编辑器 26.10、16 位、600 档单区间 + 9 组合）， 完整推导与精度见 <code>../../cb-cal/RESULTS.md</code>。</p>
 <p><strong>不要手改 <code>cb-tables.h</code></strong>，它由 <code>cb-cal/gen_cb_tables.py</code> 从标定数据生成。</p>
@@ -107,17 +143,15 @@ out = Hermite( (v−b)/(h0−b), Su·H, y1, G·y1 )</code></pre>
 <ul><li><strong>Preserve luminosity off (default)</strong>: the classic editor's per-channel curve, see "Algorithm" below.</li><li><strong>Preserve luminosity on</strong>: the MATLAB zero-sum matrix (subtract the median from the coefficients → highlights <code>in/(1−α)</code> → shadows <code>(in−α)/(1−α)</code> → midtones <code>in^γ</code>), left unchanged; max 3.0 code values from the classic editor.</li></ul>
 <h2 id="algorithm-preserve-luminosity-off">Algorithm (preserve luminosity off)</h2>
 <p>One channel (C-R drives R, M-G drives G, Y-B drives B) is decided by its own slider alone, independent of the other two. The three tonal-range parameters first merge into <strong>a single</strong> curve:</p>
-<pre><code>G = g_shadow · g_midtone · g_highlight          the three exponents multiply
-b = |s|        when the shadow slider is negative  (black point raised)
-W = 255 − s    when the highlight slider is positive (white point lowered)
-otherwise b = 0, W = 255
-
-u   = (v − b) / (W − b)
-out = 255 · u^G                                 (u ≥ H)</code></pre>
+<div class="math-display">$$G = g_{\text{shadow}}\cdot g_{\text{midtone}}\cdot g_{\text{highlight}},\qquad
+b = \begin{cases} |s_{\text{sh}}|, &amp; s_{\text{sh}} &lt; 0 \\ 0, &amp; \text{otherwise} \end{cases},
+\qquad
+W = \begin{cases} 255-s_{\text{hi}}, &amp; s_{\text{hi}} &gt; 0 \\ 255, &amp; \text{otherwise} \end{cases}$$</div>
+<div class="math-display">$$u = \frac{v-b}{W-b},\qquad \text{out} = 255\,u^{G}\quad (u \ge H)$$</div>
 <p>Near black there is a <strong>toe</strong>: for G &lt; 1, <code>u^G</code> has infinite slope at 0, while the classic editor starts with a finite slope. The segment <code>[b, h0]</code> is replaced by a cubic Hermite:</p>
-<pre><code>h0  = b + H · (W − b)
-y1  = 255 · H^G                       value at the right end of the segment
-out = Hermite( (v−b)/(h0−b), Su·H, y1, G·y1 )</code></pre>
+<div class="math-display">$$h_0 = b + H\,(W-b),\qquad
+y_1 = 255\,H^{G},\qquad
+\text{out} = \operatorname{Hermite}\!\left(\frac{v-b}{h_0-b},\ S_u H,\ y_1,\ G\,y_1\right)$$</div>
 <ul><li>Exponents: midtones <code>2^(∓s/100)</code>, shadows and highlights half of that <code>2^(∓s/200)</code>; the operator reads measured tables (<code>CB_G</code> in <code>cb-tables.h</code>) rather than evaluating the formula.</li><li><code>Su</code> (normalised initial slope) and <code>H</code> (toe width as a fraction) depend on the composite exponent G alone, not on which range produced it: single-range and combined settings fall on the same curve (table <code>CB_TOE</code>). At G ≥ 0.85, H decays to 0 and the toe disappears on its own.</li><li>Ignoring the toe, midtones +100 is off by 16 code values at v≈4; with it, the whole range is within 0.3.</li></ul>
 <p>The parameters come from the the classic editor calibration in <code>cb-cal</code> (the classic editor 26.10, 16-bit, 600 single-range settings + 9 combinations); the full derivation and accuracy are in <code>../../cb-cal/RESULTS.md</code>.</p>
 <p><strong>Do not edit <code>cb-tables.h</code> by hand</strong> — it is generated from the calibration data by <code>cb-cal/gen_cb_tables.py</code>.</p>
@@ -153,7 +187,7 @@ out = Hermite( (v−b)/(h0−b), Su·H, y1, G·y1 )</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">597e2cf</span>
+    <span class="muted">bc25d51</span>
   </div>
 </footer>
 <script>

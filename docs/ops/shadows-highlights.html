@@ -9,7 +9,45 @@
 <meta property="og:description" content="等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
 (function () {
   try {
     var q = new URLSearchParams(location.search).get("lang");
@@ -67,9 +105,35 @@ executeAction(s2t("adaptCorrect"), d, DialogModes.NO);</code></pre>
 <p><code>shadowMode</code>/<code>highlightMode</code> 里再放 <code>amount</code>/<code>width</code>/<code>radius</code>（<code>#Prc</code>），其余键都是 stringID 小写。这条线索来自 官方用户社区一个 Clean SL 脚本，比盲试 ID 快得多。</p>
 <h2 id="算法结构">算法结构</h2>
 <p>六个阶段，数全部来自 经典图像编辑器 25.4 的黑盒拟合（同一结构见 PhotoCraft，MIT）：</p>
-<ol><li><strong>亮度</strong> <code>lum = (max(R,G,B) + Rec.601 luma) / 2</code>，直接作用在 <strong>sRGB 编码值</strong>上 （不是线性光）。这解释了为什么暗部提亮后颜色会发灰——它动的是显示值。</li><li><strong>邻域亮度</strong> 边缘感知双边，Durand–Dorsey 的分段线性形式：<ul><li>先把 <code>lum</code> 按 σ=1.3559 轻模糊成 <code>guide</code>（只为了抗噪，不决定尺度）；</li><li>像素按 <code>guide</code> 量化到 <strong>17 级</strong>，每级用权重 <code>w = 1 − |lum − g|/1.0152</code> 单独加权平均；</li><li>权重和 / 加权和在 <code>d = ⌊σ/4⌋</code> 的格子上先累加，再用 <strong>σ = 1.1424·radius</strong> 的高斯模糊；</li><li>最后按 <code>guide</code> 的小数级在相邻两级间插值，双线性上采样回全分辨率。</li></ul></li></ol>
+<ol><li><strong>亮度</strong>：最大通道与 Rec.601 亮度的平均，直接作用在 <strong>sRGB 编码值</strong>上 （不是线性光）。这解释了为什么暗部提亮后颜色会发灰——它动的是显示值：</li></ol>
+<div class="math-display">$$y = \tfrac{1}{2}\bigl(\max(R,G,B) + 0.299R + 0.587G + 0.114B\bigr)$$</div>
+<ol><li><strong>邻域亮度</strong> 边缘感知双边，Durand–Dorsey 的分段线性形式：<ul><li>先把 <code>lum</code> 按 σ=1.3559 轻模糊成 <code>guide</code>（只为了抗噪，不决定尺度）；</li><li>像素按 <code>guide</code> 量化到 <strong>17 级</strong>，每级用权重 <code>w = 1 − |lum − g|/1.0152</code> 单独加权平均；</li><li>权重和 / 加权和在 <code>d = ⌊σ/4⌋</code> 的格子上先累加，再用 <strong>σ = 1.1424·radius</strong> 的高斯模糊；</li><li>最后按 <code>guide</code> 的小数级在相邻两级间插值，双线性上采样回全分辨率。</li></ul></li></ol>
 <p>这么做等价于「只和亮度相近的邻居平均」，所以边缘两侧各算各的，不会互相污染。</p>
-<ol><li><strong>色调遮罩</strong> 把 nb 当自变量查 256 项表，表 = <code>1 − BetaCDF(level)</code>。形状随 「色调宽度」在 Beta(a,b) 之间线性插值：宽度 0 → Beta(1.95, 23)（只有最暗一小段）， 宽度 ≥95 → <code>1 − L</code>（全线）。高光用 <code>255 − nb</code> 的镜像。</li><li><strong>曲线</strong> 自屏幕 <code>1 − (1−v)^q</code>，q ∈ {1,2,4,8} 按「数量」混合（<code>u = (amount/100)^0.6216</code>， u ≤ 0.3 时 <code>strength = u/0.3</code>，否则 <code>(1+20u)/7</code>，即数量 15≈1、50≈2、100≈3）。 阴影把每个通道抬 <code>mask × (curve − v)</code>，高光用镜像压回。</li><li><strong>颜色</strong> 只保留结果的新亮度 <code>y2</code>；色差取<strong>原像素</strong> <code>q</code> 与它自己亮度 <code>y1</code> 之差， 按 <code>exp(k·|ΔY|/maxY)</code>（负值 <code>1 + k·|ΔY|/maxY</code>）缩放后加回，并统一收进色域。</li><li><strong>中间调对比度</strong> 亮度上的全局 S 曲线 <code>y + k(y−0.5)(4y(1−y))^p</code>，支点恰在 0.5； <strong>修剪黑/白</strong> 是直方图两端的<strong>拉伸</strong>。</li></ol>
+<ol><li><strong>色调遮罩</strong> 把 nb 当自变量查 256 项表，表 = <code>1 − BetaCDF(level)</code>。形状随 「色调宽度」在 Beta(a,b) 之间线性插值：宽度 0 → Beta(1.95, 23)（只有最暗一小段）， 宽度 ≥95 → <code>1 − L</code>（全线）。高光用 <code>255 − nb</code> 的镜像。</li><li><strong>曲线</strong> 自屏幕 <span class="math">$c_q(v) = 1-(1-v)^q$</span>，<span class="math">$q \in \{1,2,4,8\}$</span> 按「数量」<span class="math">$A$</span> 混合：</li></ol>
+<div class="math-display">$$u = \left(\frac{A}{100}\right)^{0.6216},\qquad
+s = \begin{cases}
+u/0.3, &amp; u \le 0.3 \\[4pt]
+(1+20u)/7, &amp; u &gt; 0.3
+\end{cases}
+\qquad\Longrightarrow\qquad A = 15 \approx 1,\ 50 \approx 2,\ 100 \approx 3$$</div>
+<p>阴影把每个通道抬 <span class="math">$m\cdot s\,\bigl(c_q(y)-y\bigr)$</span>，高光用镜像压回。</p>
+<ol><li><strong>颜色</strong> 只保留结果的新亮度 <code>y2</code>；色差取<strong>原像素</strong> <code>q</code> 与它自己亮度 <code>y1</code> 之差， 按 <code>exp(k·|ΔY|/maxY)</code>（负值 <code>1 + k·|ΔY|/maxY</code>）缩放后加回，并统一收进色域。</li><li><strong>中间调对比度</strong> 亮度上的全局 S 曲线 <code>y + k(y−0.5)(4y(1−y))^p</code>，支点恰在 0.5； <strong>修剪黑/白</strong> 是直方图两端的<strong>拉伸</strong>。</li></ol>
+<pre class="mermaid">flowchart TD
+  A["sRGB 编码值"] --&gt; B["亮度 y = (max + Rec.601) / 2"]
+  B --&gt; C["边缘感知双边：17 级量化 + 高斯，得 nb"]
+  C --&gt; D["色调遮罩 m = 1 − BetaCDF(nb)"]
+  D --&gt; E["自屏幕曲线 1−(1−v)^q&lt;br/&gt;按数量在 q=1/2/4/8 间混合"]
+  E --&gt; F["只留新亮度 y2&lt;br/&gt;原色差按 exp(k·|ΔY|/maxY) 加回"]
+  F --&gt; G["中间调对比度 + 黑白场修剪"]
+  G --&gt; H["输出"]</pre>
+<p>五、六两步写成式子：</p>
+<div class="math-display">$$\text{out}_{ch} = y_2 + (q_{ch}-y_1)\cdot
+\begin{cases}
+\exp\!\bigl(k\,|\Delta Y|/\max Y\bigr), &amp; \Delta Y \ge 0 \\[6pt]
+1 + k\,|\Delta Y|/\max Y, &amp; \Delta Y &lt; 0
+\end{cases}
+\qquad
+y'' = y_2 + k\,(y_2-0.5)\bigl(4y_2(1-y_2)\bigr)^p$$</div>
 <h2 id="两个反直觉的实测结论">两个反直觉的实测结论</h2>
 <p><strong>默认的 0.01% 修剪真的会改变画面。</strong> 一开始用 16 条灰带（16…240）做探针， 首尾两条总被拉到 0/255，误以为是算子串色。实际是 <code>blackClip</code>/<code>whiteClip</code> 的百分比 是<strong>相对直方图</strong>的：探针没覆盖 0 和 255，0.01% 就把最暗那条当成黑场拉下去了。 换成覆盖 0 与 255 的 129 条 ramp 后假象消失；对照组 <code>a100/clip0</code> vs <code>a100/clip01</code> 上黑块 0 vs 7、背景 91 vs 87，差得很清楚。</p>
 <p><strong>半径改的不是模糊宽度，是「邻域里亮像素的占比」。</strong> 阶跃边（左 12 右 240）上， 半径从 0 加到 100，远离边缘的平台值单调 73 → 65，而紧贴亮边的那个像素一直是 48–50。 这说明边缘感知权重把亮邻居的贡献压到 ~12%，所以过渡只有 1–2 像素宽；半径变大只是 把更多亮像素拉进窗口，缓慢抬高 nb。用纯高斯直觉去调 σ 是调不对的。</p>
@@ -140,7 +204,33 @@ executeAction(s2t("adaptCorrect"), d, DialogModes.NO);</code></pre>
 <p><code>shadowMode</code>/<code>highlightMode</code> then hold <code>amount</code>/<code>width</code>/<code>radius</code> (<code>#Prc</code>), everything else being lowercase stringIDs. The lead came from a Clean SL script in the vendor's community and was far faster than guessing IDs.</p>
 <h2 id="structure">Structure</h2>
 <p>Six stages, all numbers from black-box fitting against the classic editor 25.4 (PhotoCraft uses the same structure, MIT):</p>
-<ol><li><strong>Luminance</strong> <code>lum = (max(R,G,B) + Rec.601 luma) / 2</code>, applied to <strong>sRGB encoded values</strong> (not linear light). That is why lifting the shadows makes colours look washed out — it moves display values.</li><li><strong>Neighbourhood luminance</strong>: an edge-aware bilateral in Durand–Dorsey's piecewise linear form. <code>lum</code> is first blurred lightly (σ=1.3559) into a <code>guide</code> (noise suppression only; it does not set the scale); pixels are quantised into <strong>17 levels</strong> by <code>guide</code>, each level averaged separately with weight <code>w = 1 − |lum − g|/1.0152</code>; sums are accumulated on a grid of <code>d = ⌊σ/4⌋</code> and blurred with a Gaussian of <strong>σ = 1.1424·radius</strong>; finally the fractional level interpolates between neighbouring levels and is bilinearly upsampled to full resolution. The effect is "average only with neighbours of similar brightness", so the two sides of an edge stay separate.</li><li><strong>Tonal mask</strong>: <code>nb</code> indexes a 256-entry table <code>1 − BetaCDF(level)</code>. The shape interpolates between Beta(a,b) by tonal width: 0 → Beta(1.95, 23) (only the darkest sliver), ≥95 → <code>1 − L</code> (everything). Highlights mirror it with <code>255 − nb</code>.</li><li><strong>Curve</strong>: a self-screen <code>1 − (1−v)^q</code>, with q ∈ {1,2,4,8} blended by amount (<code>u = (amount/100)^0.6216</code>; <code>strength = u/0.3</code> for u ≤ 0.3, otherwise <code>(1+20u)/7</code>, i.e. amount 15≈1, 50≈2, 100≈3). Shadows lift each channel by <code>mask × (curve − v)</code>; highlights push back with the mirror.</li><li><strong>Colour</strong>: keep only the new luminance <code>y2</code>; the chroma difference comes from the <strong>original</strong> pixel <code>q</code> minus its own luminance <code>y1</code>, scaled by <code>exp(k·|ΔY|/maxY)</code> (for negative values <code>1 + k·|ΔY|/maxY</code>) and added back, then everything is brought into gamut.</li><li><strong>Midtone contrast</strong>: a global S-curve on luminance, <code>y + k(y−0.5)(4y(1−y))^p</code>, pivoting exactly at 0.5; <strong>black/white clip</strong> is a <strong>stretch</strong> of the histogram ends.</li></ol>
+<ol><li><strong>Luminance</strong>: the mean of the max channel and Rec.601 luma, applied to <strong>sRGB encoded values</strong> (not linear light). That is why lifting the shadows makes colours look washed out — it moves display values:</li></ol>
+<div class="math-display">$$y = \tfrac{1}{2}\bigl(\max(R,G,B) + 0.299R + 0.587G + 0.114B\bigr)$$</div>
+<ol><li><strong>Neighbourhood luminance</strong>: an edge-aware bilateral in Durand–Dorsey's piecewise linear form. <code>lum</code> is first blurred lightly (σ=1.3559) into a <code>guide</code> (noise suppression only; it does not set the scale); pixels are quantised into <strong>17 levels</strong> by <code>guide</code>, each level averaged separately with weight <code>w = 1 − |lum − g|/1.0152</code>; sums are accumulated on a grid of <code>d = ⌊σ/4⌋</code> and blurred with a Gaussian of <strong>σ = 1.1424·radius</strong>; finally the fractional level interpolates between neighbouring levels and is bilinearly upsampled to full resolution. The effect is "average only with neighbours of similar brightness", so the two sides of an edge stay separate.</li><li><strong>Tonal mask</strong>: <code>nb</code> indexes a 256-entry table <code>1 − BetaCDF(level)</code>. The shape interpolates between Beta(a,b) by tonal width: 0 → Beta(1.95, 23) (only the darkest sliver), ≥95 → <code>1 − L</code> (everything). Highlights mirror it with <code>255 − nb</code>.</li><li><strong>Curve</strong>: a self-screen <span class="math">$c_q(v) = 1-(1-v)^q$</span>, with <span class="math">$q \in \{1,2,4,8\}$</span> blended by amount <span class="math">$A$</span>:</li></ol>
+<div class="math-display">$$u = \left(\frac{A}{100}\right)^{0.6216},\qquad
+s = \begin{cases}
+u/0.3, &amp; u \le 0.3 \\[4pt]
+(1+20u)/7, &amp; u &gt; 0.3
+\end{cases}
+\qquad\Longrightarrow\qquad A = 15 \approx 1,\ 50 \approx 2,\ 100 \approx 3$$</div>
+<p>Shadows lift each channel by <span class="math">$m\cdot s\,\bigl(c_q(y)-y\bigr)$</span>; highlights push back with the mirror.</p>
+<ol><li><strong>Colour</strong>: keep only the new luminance <code>y2</code>; the chroma difference comes from the <strong>original</strong> pixel <code>q</code> minus its own luminance <code>y1</code>, scaled by <code>exp(k·|ΔY|/maxY)</code> (for negative values <code>1 + k·|ΔY|/maxY</code>) and added back, then everything is brought into gamut.</li><li><strong>Midtone contrast</strong>: a global S-curve on luminance, <code>y + k(y−0.5)(4y(1−y))^p</code>, pivoting exactly at 0.5; <strong>black/white clip</strong> is a <strong>stretch</strong> of the histogram ends.</li></ol>
+<pre class="mermaid">flowchart TD
+  A["sRGB encoded values"] --&gt; B["luminance y = (max + Rec.601) / 2"]
+  B --&gt; C["edge-aware bilateral: 17 levels + Gaussian → nb"]
+  C --&gt; D["tonal mask m = 1 − BetaCDF(nb)"]
+  D --&gt; E["self-screen 1−(1−v)^q&lt;br/&gt;blended over q = 1/2/4/8"]
+  E --&gt; F["keep new luminance y2&lt;br/&gt;restore chroma by exp(k·|ΔY|/maxY)"]
+  F --&gt; G["midtone contrast + black / white clip"]
+  G --&gt; H["out"]</pre>
+<p>Stages five and six as formulas:</p>
+<div class="math-display">$$\text{out}_{ch} = y_2 + (q_{ch}-y_1)\cdot
+\begin{cases}
+\exp\!\bigl(k\,|\Delta Y|/\max Y\bigr), &amp; \Delta Y \ge 0 \\[6pt]
+1 + k\,|\Delta Y|/\max Y, &amp; \Delta Y &lt; 0
+\end{cases}
+\qquad
+y'' = y_2 + k\,(y_2-0.5)\bigl(4y_2(1-y_2)\bigr)^p$$</div>
 <h2 id="two-counter-intuitive-measurements">Two counter-intuitive measurements</h2>
 <p><strong>The default 0.01% clip really does change the picture.</strong> The first probe used 16 grey bands (16…240); the outer two were always pulled to 0/255, which looked like crosstalk. In fact <code>blackClip</code>/<code>whiteClip</code> percentages are <strong>relative to the histogram</strong>: the probe had no 0 or 255, so 0.01% treated the darkest band as the black point. A 129-band ramp that includes 0 and 255 removed the artefact; the control pair <code>a100/clip0</code> vs <code>a100/clip01</code> shows black patch 0 vs 7 and background 91 vs 87, plainly.</p>
 <p><strong>Radius does not change the blur width, but the fraction of bright pixels in the neighbourhood.</strong> On a step edge (12 on the left, 240 on the right), raising the radius from 0 to 100 moves the plateau far from the edge monotonically from 73 to 65, while the pixel right at the bright edge stays at 48–50. The edge-aware weight suppresses bright neighbours to about 12%, so the transition is only 1–2 pixels wide; a larger radius just pulls more bright pixels into the window and slowly raises <code>nb</code>. Tuning σ by pure Gaussian intuition does not work.</p>
@@ -193,7 +283,7 @@ executeAction(s2t("adaptCorrect"), d, DialogModes.NO);</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">597e2cf</span>
+    <span class="muted">bc25d51</span>
   </div>
 </footer>
 <script>

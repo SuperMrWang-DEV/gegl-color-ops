@@ -31,6 +31,18 @@ Bands are chosen from the pixel's own Rec.709 luminance (gamma domain):
   each), and the midtone weight is 1 − shadow − highlight;
 - Balance ±100 shifts both boundaries by ±0.25.
 
+```math
+h = 0.25\cdot\frac{\text{Blending}}{100},\qquad
+e_{\text{sh}} = 0.3 + 0.25\cdot\frac{B}{100},\qquad
+e_{\text{hi}} = 0.7 + 0.25\cdot\frac{B}{100}
+```
+
+```math
+w_{\text{sh}} = 1-\operatorname{smooth}\!\left(\frac{Y-e_{\text{sh}}}{2h}+\frac{1}{2}\right),\qquad
+w_{\text{hi}} = \operatorname{smooth}\!\left(\frac{Y-e_{\text{hi}}}{2h}+\frac{1}{2}\right),\qquad
+w_{\text{mid}} = 1-w_{\text{sh}}-w_{\text{hi}}
+```
+
 One pass of a wheel (multiplied by the band weight w):
 
 - luminance: `V += Lw × 0.005 × w` (same coefficient as `lb:hsl-seven`);
@@ -39,6 +51,13 @@ One pass of a wheel (multiplied by the band weight w):
   Grey pixels pick up the tint naturally; a hue close to the wheel's complement is
   desaturated (mixed with grey). **Hue is never interpolated**, so there is no seam
   where the rotation direction flips.
+
+```math
+V \leftarrow V + 0.005\,L_w\,w,\qquad
+t = \frac{\text{Sat}}{100}\,w,\qquad
+\text{rgb} \leftarrow \text{rgb}\,(1-t) + \text{tint}\,t,\qquad
+\text{tint} = \operatorname{HSV}(h_w,\,1,\,V)
+```
 
 > Fixed 2026-11-12: the first version used "converge the hue toward the wheel hue",
 > which flipped `roundf`'s rotation direction at complementary hues (≈180° apart)

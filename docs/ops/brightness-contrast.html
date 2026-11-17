@@ -9,7 +9,45 @@
 <meta property="og:description" content="复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
 (function () {
   try {
     var q = new URLSearchParams(location.search).get("lang");
@@ -59,11 +97,14 @@
 <h2 id="两个版本的结构">两个版本的结构</h2>
 <div class="table-wrap"><table><thead><tr><th></th><th>新版（<code>legacy=false</code>）</th><th>旧版（<code>legacy=true</code>）</th></tr></thead><tbody><tr><td>亮度</td><td>非线性曲线族，x=0 与 x=255 固定</td><td><code>clamp(x + b)</code>，<strong>b 先夹到 ±100</strong></td></tr><tr><td>对比度</td><td>围绕 <strong>128</strong> 的 S 曲线，两端压缩</td><td>围绕 <strong>89</strong> 的线性缩放，K 见下</td></tr><tr><td>组合顺序</td><td>先亮度 → 后对比度</td><td>c&gt;0：先亮度后对比度；c&lt;0：反过来</td></tr><tr><td>纯白</td><td>b&gt;0 曲线自然收在 255；b&lt;0 时 x=255 强制 255</td><td>无此规则（255 照样被压）</td></tr></tbody></table></div>
 <p>旧版闭式（实测精确到 0.13 码）：</p>
-<pre><code>bb = clamp(b, -100, 100)
-c &gt; 0 : out = clamp(89.00 + (x + bb - 89.00) / (1 - c/100))     ← b 也被 K 放大
-c &lt; 0 : out = clamp(89.00 + (x - 89.00) * (1 + c/100) + bb)     ← b 不被缩小
-c = 0 : out = clamp(x + bb)
-K 的两种写法 = 1/(1-c/100) 与 1+c/100，实测吻合到 1e-4</code></pre>
+<div class="math-display">$$b' = \operatorname{clamp}(b,\,-100,\,100),\qquad
+\text{out} = \operatorname{clamp}\bigl(89 + K\,(x-89) + \beta,\ 0,\ 255\bigr)$$</div>
+<div class="math-display">$$(K,\ \beta) = \begin{cases}
+\left(\dfrac{1}{1-c/100},\ \dfrac{b'}{1-c/100}\right), &amp; c &gt; 0 \quad \text{（$b$ 也被 $K$ 放大）} \\[12pt]
+\left(1+\dfrac{c}{100},\ b'\right), &amp; c &lt; 0 \quad \text{（$b$ 不被缩小）} \\[10pt]
+\bigl(1,\ b'\bigr), &amp; c = 0
+\end{cases}$$</div>
+<p><span class="math">$K$</span> 的两种写法 <span class="math">$1/(1-c/100)$</span> 与 <span class="math">$1+c/100$</span> 实测吻合到 <span class="math">$10^{-4}$</span>。</p>
 <p><strong>对比度的支点不是 128 而是 89.00</strong>（= 255 × 0.349），这是旧版最反直觉的一处： c=50、b=0 时 128 → 167，中灰会被推亮。这一点用 31 条曲线做公共不动点最小二乘得到， 不同 c 之间一致性在 ±0.03 码内。</p>
 <p>新版没有闭式，用两张一维表：亮度族 61 档（b 步长 5）、对比度族 31 档（c 步长 5）， 每档一条 255 点曲线，参数方向与 x 方向都线性插值。表由 <code>tools/gen_bc_tables.py</code> 从 <code>bc-cal/bc_model.json</code> 生成，算子不手抄常数。</p>
 <h2 id="为什么新版要查表">为什么新版要查表</h2>
@@ -119,11 +160,14 @@ K 的两种写法 = 1/(1-c/100) 与 1+c/100，实测吻合到 1e-4</code></pre>
 <h2 id="structure-of-the-two-versions">Structure of the two versions</h2>
 <div class="table-wrap"><table><thead><tr><th></th><th>Current (<code>legacy=false</code>)</th><th>Legacy (<code>legacy=true</code>)</th></tr></thead><tbody><tr><td>Brightness</td><td>a family of non-linear curves, x=0 and x=255 pinned</td><td><code>clamp(x + b)</code>, with <strong>b clamped to ±100 first</strong></td></tr><tr><td>Contrast</td><td>S-curve around <strong>128</strong>, both ends compressed</td><td>linear scaling around <strong>89</strong>, K below</td></tr><tr><td>Order</td><td>brightness, then contrast</td><td>c&gt;0: brightness then contrast; c&lt;0: the reverse</td></tr><tr><td>Pure white</td><td>with b&gt;0 the curve naturally ends at 255; with b&lt;0, x=255 is forced to 255</td><td>no such rule (255 gets compressed too)</td></tr></tbody></table></div>
 <p>Legacy closed form (agrees with measurement to 0.13 code values):</p>
-<pre><code>bb = clamp(b, -100, 100)
-c &gt; 0 : out = clamp(89.00 + (x + bb - 89.00) / (1 - c/100))     &lt;- b is scaled by K too
-c &lt; 0 : out = clamp(89.00 + (x - 89.00) * (1 + c/100) + bb)     &lt;- b is not scaled
-c = 0 : out = clamp(x + bb)
-K, two ways = 1/(1-c/100) and 1+c/100, agree to 1e-4</code></pre>
+<div class="math-display">$$b' = \operatorname{clamp}(b,\,-100,\,100),\qquad
+\text{out} = \operatorname{clamp}\bigl(89 + K\,(x-89) + \beta,\ 0,\ 255\bigr)$$</div>
+<div class="math-display">$$(K,\ \beta) = \begin{cases}
+\left(\dfrac{1}{1-c/100},\ \dfrac{b'}{1-c/100}\right), &amp; c &gt; 0 \quad (b \text{ is scaled by } K) \\[12pt]
+\left(1+\dfrac{c}{100},\ b'\right), &amp; c &lt; 0 \quad (b \text{ is not scaled}) \\[10pt]
+\bigl(1,\ b'\bigr), &amp; c = 0
+\end{cases}$$</div>
+<p>The two ways of writing <span class="math">$K$</span>, <span class="math">$1/(1-c/100)$</span> and <span class="math">$1+c/100$</span>, agree to <span class="math">$10^{-4}$</span>.</p>
 <p><strong>The contrast pivot is not 128 but 89.00</strong> (= 255 × 0.349). This is the most counter-intuitive part of the legacy version: at c=50, b=0 an input of 128 becomes 167, i.e. mid grey is pushed brighter. It came out of a least-squares search for the common fixed point over 31 curves, consistent across c to within ±0.03 code values.</p>
 <p>The current version has no closed form. It uses two one-dimensional tables: 61 brightness steps (b in steps of 5) and 31 contrast steps (c in steps of 5), each a 255-point curve, interpolated linearly in both the parameter and x direction. The tables are generated by <code>tools/gen_bc_tables.py</code> from <code>bc-cal/bc_model.json</code>; no constants are copied by hand.</p>
 <h2 id="why-the-current-version-needs-tables">Why the current version needs tables</h2>
@@ -169,7 +213,7 @@ K, two ways = 1/(1-c/100) and 1+c/100, agree to 1e-4</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">597e2cf</span>
+    <span class="muted">bc25d51</span>
   </div>
 </footer>
 <script>

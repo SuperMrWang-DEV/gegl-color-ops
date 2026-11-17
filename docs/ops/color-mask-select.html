@@ -9,7 +9,45 @@
 <meta property="og:description" content="经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览the classic editor Color Range: build a mask from a picked colour, a fuzzinessrad">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
 (function () {
   try {
     var q = new URLSearchParams(location.search).get("lang");
@@ -88,11 +126,15 @@ invert / colors(highlights|midtones|shadows|outOfGamut|skinTone)</code></pre>
 <p><strong>羽化在这三个模式里不参与</strong>——经典图像编辑器的柔边完全由容差决定，硬塞一个羽化会破坏对拍。 色系预设与自定颜色仍是原来的容差窗模型（那部分没动）。</p>
 <hr>
 <h2 id="自定颜色改用-cielab-δe色系预设改彩度门2026-11-16">自定颜色改用 CIELAB ΔE，色系预设改彩度门（2026-11-16）</h2>
-<p>这次只动「匹配质量」，容差窗公式 <code>alpha = 1 − smoothstep(d, w·(1−feather), w)</code> 和色调模式一概没改（768 点对 经典图像编辑器 回归仍是平均 2.12 码）。</p>
+<p>这次只动「匹配质量」，容差窗公式和色调模式一概没改（768 点对 经典图像编辑器 回归仍是平均 2.12 码）。</p>
 <h3 id="自定颜色rgb-距离-cielab-δeδe94-明度权重-kl2">自定颜色：RGB 距离 → CIELAB ΔE（ΔE94 明度权重 kL=2）</h3>
 <p>旧实现有三个问题：</p>
 <ol><li><strong>口径不一致</strong>：目标色用 <code>gegl_color_get_rgba</code> 取，它返回<strong>线性光</strong>， 而逐像素处理的是伽马域值——拿线性值对伽马值算距离，暗色目标整体偏。 现在用 <code>gegl_color_get_pixel</code> 直接按源空间伽马格式取目标色。</li><li><strong>RGB 距离不感知</strong>：灰 (128,128,128) 和目标红的 RGB 距离只有 0.86（÷√3 后 0.50），容差 100 时几乎全选；粉色也被判得很近。感知上它们是「无关色」。</li><li><strong>纯 ΔE76 对明度太敏感</strong>：暗红 (128,0,0) 与红的 ΔL 一项就贡献 27.7， ΔE≈51 刚好被 ΔE50 容差窗挡在门外——选色蒙版要的是「同一族颜色」， 暗红不该被明度差拆开。</li></ol>
-<p>现在的模型：babl 整行转 CIELAB（与像素同一套源空间→Lab 通路），逐像素只算 欧氏距离；<strong>ΔL 折半（ΔE94 的 kL=2），d = ΔE/100 钳到 1</strong>。实测色卡 （目标 = 纯红，羽化 0）：</p>
+<p>现在的模型：babl 整行转 CIELAB（与像素同一套源空间→Lab 通路），逐像素只算 欧氏距离；<strong>ΔL 折半（ΔE94 的 kL=2），d = ΔE/100 钳到 1</strong>：</p>
+<div class="math-display">$$\Delta E = \sqrt{\Bigl(\frac{\Delta L}{2}\Bigr)^2 + \Delta a^2 + \Delta b^2},\qquad
+d = \min\!\left(\frac{\Delta E}{100},\ 1\right)$$</div>
+<div class="math-display">$$\alpha = 1-\operatorname{smoothstep}\bigl(d,\ w\,(1-\text{feather}),\ w\bigr)$$</div>
+<p>（目标 = 纯红，羽化 0）：</p>
 <div class="table-wrap"><table><thead><tr><th>容差</th><th>入选</th><th>落选</th></tr></thead><tbody><tr><td>100（ΔE50 窗）</td><td>红、暗红、橙红</td><td>粉（ΔE≈50–60）、近黑、灰、白、蓝</td></tr><tr><td>140（ΔE70 窗）</td><td>＋粉</td><td>近黑、灰、白、蓝</td></tr><tr><td>60（ΔE30 窗）</td><td>红、橙红</td><td>暗红、粉</td></tr><tr><td>200</td><td>全部（按设计）</td><td>—</td></tr></tbody></table></div>
 <p>行为验收固化在 <code>tools/check_color_mask_custom.py</code>（15 条性质断言）。</p>
 <h3 id="色系预设饱和度门-彩度门">色系预设：饱和度门 → 彩度门</h3>
@@ -220,7 +262,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">597e2cf</span>
+    <span class="muted">bc25d51</span>
   </div>
 </footer>
 <script>

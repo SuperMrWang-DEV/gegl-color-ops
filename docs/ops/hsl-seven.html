@@ -9,7 +9,45 @@
 <meta property="og:description" content="红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，经典 RAW 编辑器风格">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
 (function () {
   try {
     var q = new URLSearchParams(location.search).get("lang");
@@ -53,6 +91,14 @@
 <blockquote><p>2026-11-12：按 RAW 编辑器 8 段混色器补齐洋红段——原紫段 0.78~0.92 对半拆为 紫 0.78~0.85 与洋红 0.85~0.92。旧 7 段属性名与边界行为不变，算子 id 仍为 <code>lb:hsl-seven</code>（GIMP 存进 XCF 的字符串，不能改）。</p></blockquote>
 <h2 id="这个算子做什么">这个算子做什么</h2>
 <p>八段色相（红 / 橙 / 黄 / 绿 / 青 / 蓝 / 紫 / 洋红）各带一组 H/S/L 偏移，共 24 个 滑块，按色相段加权叠加，段间由 <code>feather</code> 交叉淡化；饱和度低于 <code>min-saturation</code> 的灰像素可以选择跳过（灰没有有意义的色相）。参照物是 RAW 编辑器 的 HSL 面板： 只想压掉某几个色相的饱和、或者只把某个色相提亮，就拖那一段。</p>
+<h2 id="算法">算法</h2>
+<p>八段色相各有一套 H/S/L 偏移，按段权重叠加；段边界用 smoothstep 交叉淡化：</p>
+<div class="math-display">$$w_k(h) = \sigma\!\left(h,\ s_k-f,\ s_k\right)\cdot\Bigl(1-\sigma\bigl(h,\ e_k,\ e_k+f\bigr)\Bigr),
+\qquad f = 0.01\cdot\text{feather}$$</div>
+<div class="math-display">$$H \mathrel{+}= \frac{\Delta H_k}{100}\cdot 60°\,w_k,\qquad
+S \mathrel{+}= \frac{\Delta S_k}{100}\,w_k,\qquad
+L \mathrel{+}= \frac{\Delta L_k}{100}\,w_k$$</div>
+<p>八段首尾相接（红 0–45°、橙 45–90°……洋红 315–360°），权重和恒为 1； <span class="math">$S &lt; \text{min-saturation}$</span> 的灰像素可以整段跳过。</p>
 <h2 id="2026-11-12补上洋红段">2026-11-12：补上洋红段</h2>
 <p>RAW 编辑器 的混色器是八段，本算子原来只有七段。原紫段（0.78–0.92）对半拆成 紫 0.78–0.85 与洋红 0.85–0.92。</p>
 <p>原来七段的属性名与边界行为不变，算子 id 仍是 <code>lb:hsl-seven</code>——这个字符串是 GIMP 存进 XCF 的东西，不能改。</p>
@@ -80,6 +126,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
   <ul><li class="l2"><a href="#这个算子做什么">这个算子做什么</a></li>
+<li class="l2"><a href="#算法">算法</a></li>
 <li class="l2"><a href="#2026-11-12补上洋红段">2026-11-12：补上洋红段</a></li>
 <li class="l2"><a href="#与-lbhue-saturation-的分工">与 lb:hue-saturation 的分工</a></li></ul>
 </aside>
@@ -102,6 +149,14 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
 <h2 id="change-of-2026-11-12-the-magenta-band-was-added">Change of 2026-11-12: the magenta band was added</h2>
 <p>the RAW editor's mixer has eight bands; this operator had seven. The old purple band (0.78–0.92) is now split in half: purple 0.78–0.85 and magenta 0.85–0.92.</p>
 <p>The seven original property names and their boundary behaviour are unchanged, and the operator id stays <code>lb:hsl-seven</code> — that string is what GIMP stores in XCF files and cannot be renamed.</p>
+<h2 id="algorithm">Algorithm</h2>
+<p>Eight hue bands each carry their own H/S/L offset, summed with band weights; the boundaries cross-fade with smoothstep:</p>
+<div class="math-display">$$w_k(h) = \sigma\!\left(h,\ s_k-f,\ s_k\right)\cdot\Bigl(1-\sigma\bigl(h,\ e_k,\ e_k+f\bigr)\Bigr),
+\qquad f = 0.01\cdot\text{feather}$$</div>
+<div class="math-display">$$H \mathrel{+}= \frac{\Delta H_k}{100}\cdot 60°\,w_k,\qquad
+S \mathrel{+}= \frac{\Delta S_k}{100}\,w_k,\qquad
+L \mathrel{+}= \frac{\Delta L_k}{100}\,w_k$$</div>
+<p>The bands tile the circle (red 0–45°, orange 45–90°, … magenta 315–360°), so the weights sum to 1. Pixels below <code>min-saturation</code> can be skipped entirely.</p>
 <h2 id="relation-to-lbhue-saturation">Relation to <code>lb:hue-saturation</code></h2>
 <p><code>lb:hue-saturation</code> is the classic editor's dialog: a master control plus six hue ranges, relative offsets, HSL arithmetic. This one is the RAW editor's mixer: eight bands, all three components per band. Same idea, different layout and different numbers — pick the one whose panel you are used to.</p><div class="op-dl">
   <div>
@@ -128,6 +183,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
   <p class="toc-title">On this page</p>
   <ul><li class="l2"><a href="#what-it-does">What it does</a></li>
 <li class="l2"><a href="#change-of-2026-11-12-the-magenta-band-was-added">Change of 2026-11-12: the magenta band was added</a></li>
+<li class="l2"><a href="#algorithm">Algorithm</a></li>
 <li class="l2"><a href="#relation-to-lbhue-saturation">Relation to lb:hue-saturation</a></li></ul>
 </aside>
 </div></div>
@@ -141,7 +197,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">597e2cf</span>
+    <span class="muted">bc25d51</span>
   </div>
 </footer>
 <script>

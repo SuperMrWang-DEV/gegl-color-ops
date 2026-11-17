@@ -12,11 +12,13 @@ Pick one channel, set a window of values that should stay opaque, and everything
 outside it fades to transparent. This is the classic editor's **Blend If** (the sliders under
 "Blend If: Gray" in Layer Style) rebuilt as an operator you can stack anywhere.
 
-```
-x < l1  or  x > r2            -> alpha = 0
-l2 <= x <= r1                 -> alpha = 1
-l1 <= x <  l2                 -> alpha = (x - l1) / (l2 - l1)
-r1 <  x <= r2                 -> alpha = 1 - (x - r1) / (r2 - r1)
+```math
+\alpha(x) = \begin{cases}
+0, & x < l_1 \ \text{or}\ x > r_2 \\[4pt]
+\dfrac{x-l_1}{l_2-l_1}, & l_1 \le x < l_2 \\[10pt]
+1, & l_2 \le x \le r_1 \\[4pt]
+1-\dfrac{x-r_1}{r_2-r_1}, & r_1 < x \le r_2
+\end{cases}
 ```
 
 `l1 → l2` is the shadow ramp, `r1 → r2` the highlight ramp. Setting `l1 = l2` (or

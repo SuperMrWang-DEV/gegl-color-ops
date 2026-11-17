@@ -9,7 +9,45 @@
 <meta property="og:description" content="按通道数值区间（0–255）生成 alpha，实现「混合颜色带」式透明控制">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
 (function () {
   try {
     var q = new URLSearchParams(location.search).get("lang");
@@ -53,10 +91,12 @@
 <img src="../assets/ops/channel-range-to-alpha/channelrangetoalpha.png" width="700" alt="GEGL操作工具界面">
 <h2 id="算法">算法</h2>
 <p>选一路通道，划出一段「不透明区间」，区间外按线性斜坡淡出——即 经典图像编辑器的 <strong>混合颜色带</strong>（图层样式里的「混合颜色带：灰色」那对滑杆）单独做成算子。</p>
-<pre><code>x &lt; l1  或  x &gt; r2        -&gt; alpha = 0
-l2 &lt;= x &lt;= r1             -&gt; alpha = 1
-l1 &lt;= x &lt;  l2             -&gt; alpha = (x - l1) / (l2 - l1)
-r1 &lt;  x &lt;= r2             -&gt; alpha = 1 - (x - r1) / (r2 - r1)</code></pre>
+<div class="math-display">$$\alpha(x) = \begin{cases}
+0, &amp; x &lt; l_1 \ \text{或}\ x &gt; r_2 \\[4pt]
+\dfrac{x-l_1}{l_2-l_1}, &amp; l_1 \le x &lt; l_2 \\[10pt]
+1, &amp; l_2 \le x \le r_1 \\[4pt]
+1-\dfrac{x-r_1}{r_2-r_1}, &amp; r_1 &lt; x \le r_2
+\end{cases}$$</div>
 <p><code>l1 → l2</code> 是阴影侧斜坡，<code>r1 → r2</code> 是高光侧斜坡。两个滑块重合（<code>l1 = l2</code> 或 <code>r1 = r2</code>）就是硬边，不是需要修复的退化情形。</p>
 <h2 id="通道">通道</h2>
 <div class="table-wrap"><table><thead><tr><th><code>channel</code></th><th>映射到 0–255 滑块刻度的量</th></tr></thead><tbody><tr><td><code>red</code> / <code>green</code> / <code>blue</code></td><td>伽马编码值 × 255</td></tr><tr><td><code>gray</code></td><td>0.299 R + 0.587 G + 0.114 B，× 255</td></tr><tr><td><code>lab-l</code></td><td>L*（0…100）归一到 0…255</td></tr><tr><td><code>lab-a</code></td><td>a*（−128…127）归一到 0…255</td></tr><tr><td><code>lab-b</code></td><td>b*（−128…127）归一到 0…255</td></tr></tbody></table></div>
@@ -103,10 +143,12 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
 <p><code>lb:channel-range-to-alpha</code> · menu <strong>Colors → SuperMrWang → Mask → Range → Alpha</strong> · <code>GeglOperationPointFilter</code> (per-pixel)</p>
 <h2 id="what-it-does">What it does</h2>
 <p>Pick one channel, set a window of values that should stay opaque, and everything outside it fades to transparent. This is the classic editor's <strong>Blend If</strong> (the sliders under "Blend If: Gray" in Layer Style) rebuilt as an operator you can stack anywhere.</p>
-<pre><code>x &lt; l1  or  x &gt; r2            -&gt; alpha = 0
-l2 &lt;= x &lt;= r1                 -&gt; alpha = 1
-l1 &lt;= x &lt;  l2                 -&gt; alpha = (x - l1) / (l2 - l1)
-r1 &lt;  x &lt;= r2                 -&gt; alpha = 1 - (x - r1) / (r2 - r1)</code></pre>
+<div class="math-display">$$\alpha(x) = \begin{cases}
+0, &amp; x &lt; l_1 \ \text{or}\ x &gt; r_2 \\[4pt]
+\dfrac{x-l_1}{l_2-l_1}, &amp; l_1 \le x &lt; l_2 \\[10pt]
+1, &amp; l_2 \le x \le r_1 \\[4pt]
+1-\dfrac{x-r_1}{r_2-r_1}, &amp; r_1 &lt; x \le r_2
+\end{cases}$$</div>
 <p><code>l1 → l2</code> is the shadow ramp, <code>r1 → r2</code> the highlight ramp. Setting <code>l1 = l2</code> (or <code>r1 = r2</code>) gives a hard edge instead of a ramp; that is deliberate, not a degenerate case to be repaired.</p>
 <h2 id="channels">Channels</h2>
 <div class="table-wrap"><table><thead><tr><th><code>channel</code></th><th>Value mapped to the 0–255 slider scale</th></tr></thead><tbody><tr><td><code>red</code>, <code>green</code>, <code>blue</code></td><td>the gamma-encoded channel × 255</td></tr><tr><td><code>gray</code></td><td>0.299 R + 0.587 G + 0.114 B, × 255</td></tr><tr><td><code>lab-l</code></td><td>L* (0…100) normalised to 0…255</td></tr><tr><td><code>lab-a</code></td><td>a* (−128…127) normalised to 0…255</td></tr><tr><td><code>lab-b</code></td><td>b* (−128…127) normalised to 0…255</td></tr></tbody></table></div>
@@ -150,7 +192,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">597e2cf</span>
+    <span class="muted">bc25d51</span>
   </div>
 </footer>
 <script>

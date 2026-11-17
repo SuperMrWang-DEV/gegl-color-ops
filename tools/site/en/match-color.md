@@ -12,8 +12,16 @@ the classic editor still uses.
 
 Working in CIELAB (D50), per channel, for L, a and b:
 
+```math
+\text{out} = \bigl(v-\mu_t\bigr)\cdot\frac{\sigma_s}{\sigma_t} + \mu_s
 ```
-out = (v − μ_target) · (σ_source / σ_target) + μ_source
+
+```mermaid
+flowchart TD
+  A["input layer + aux layer (CIELAB D50)"] --> B["whole-layer scan: accumulate sum / sum²<br/>→ μ, σ per channel"]
+  B --> C["cache on the operation instance<br/>key = buffer pointer + extent + level"]
+  C --> D["per-tile process<br/>out = (v − μ_t)·σ_s/σ_t + μ_s"]
+  D --> E["out"]
 ```
 
 Statistics are computed over the **whole layer** (the classic editor does the same), with the

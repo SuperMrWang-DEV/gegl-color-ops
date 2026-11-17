@@ -9,7 +9,45 @@
 <meta property="og:description" content="按 经典图像编辑器「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱和主动收手、红带（肤色）额外保护、浅色少给一点，色相与明度不动">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
 (function () {
   try {
     var q = new URLSearchParams(location.search).get("lang");
@@ -60,10 +98,11 @@
 <ul><li>两个算子各有一个滑块职责，界面上不会出现「这个色温到底管整层还是只管这段」；</li><li>顺序由图层栈显式表达（经典图像编辑器的顺序是白平衡在前，实测中位差 1.4 码；反过来差 36 码）， 想换顺序就换图层顺序，不用再来回勾开关；</li><li>白平衡的结果和 <code>lb:color-temperature-tint</code> 单跑<strong>逐位相同</strong>，不存在两套代码 各自漂移的问题。</li></ul>
 <h2 id="算法">算法</h2>
 <p>在 <strong>sRGB 编码值</strong>（<code>R~G~B~A float</code>，感知域而非线性光）上转 HSV，按源图饱和度 S 取增量：</p>
-<pre><code>ΔS = A(v) · S^p(v) · (1−S)^q(v) · r(H,S,v) · c(L)
-S' = min(1, S + ΔS)</code></pre>
+<div class="math-display">$$\Delta S = A(v)\,S^{p(v)}\,(1-S)^{q(v)}\,r(H,S,v)\,c(L),\qquad S' = \min(1,\ S+\Delta S)$$</div>
 <div class="table-wrap"><table><thead><tr><th>项</th><th>含义</th><th>数据来源</th></tr></thead><tbody><tr><td><code>A(v)</code>、<code>p(v)</code>、<code>q(v)</code></td><td>幅度与两端曲率，随 v 逐档查表</td><td>16 位 / 步长 5 标定，20 档</td></tr><tr><td><code>r(H,S,v)</code></td><td>红带（离红色 40° 以内）的额外压制；26°–40° 线性过渡出去</td><td>同 v 下 H0 与 H120 的比值</td></tr><tr><td><code>c(L)</code></td><td>亮度修正：浅色少给（L=80 只有 0.72 倍，L=20 有 1.39 倍）</td><td>E 段 L 阶梯</td></tr></tbody></table></div>
-<p>RGB 重建：保持 max 不动，其余通道按 <code>S'/S</code> 缩放 —— <code>out = mx − (mx − c)·S'/S</code>。 因为 <code>mx − mn = S·mx</code>，当 <code>S' ≤ 1</code> 时最小通道恰好落在 <code>[0, mx]</code>，<strong>数学上不会越界</strong>， 不需要任何裁剪或色域收敛。</p>
+<p>RGB 重建：保持 max 不动，其余通道按 <span class="math">$S'/S$</span> 缩放：</p>
+<div class="math-display">$$\text{out}_{ch} = m_x - \bigl(m_x - c_{ch}\bigr)\frac{S'}{S}$$</div>
+<p>—— <code>out = mx − (mx − c)·S'/S</code>。 因为 <code>mx − mn = S·mx</code>，当 <code>S' ≤ 1</code> 时最小通道恰好落在 <code>[0, mx]</code>，<strong>数学上不会越界</strong>， 不需要任何裁剪或色域收敛。</p>
 <p>负方向（v&lt;0）是<strong>另一套机制</strong>，不是正向的镜像：实测结果是 S 降、V 也会跟着降， 而且没有色相项，所以直接用两张表（<code>S'</code> 与 <code>V'/V</code>），同样按 (v, S) 双线性插值。</p>
 <p>参数表在 <code>vibrance-tables.h</code> 里，由 <code>tools/gen_vibrance_tables.py</code> 从 <code>vibrance-cal/vibrance_model.json</code> 生成 —— 要改数值请改上游 JSON 再重新生成， 不要手抄。</p>
 <h2 id="性能">性能</h2>
@@ -117,10 +156,11 @@ S' = min(1, S + ΔS)</code></pre>
 <ul><li>each operator has one slider's worth of responsibility, so there is never a question of "does temperature act on the whole layer or only this segment";</li><li>the order is expressed by the layer stack (the classic editor's order is white balance first — measured median difference 1.4 code values; reversed it is 36), and changing it means reordering layers instead of unticking a box;</li><li>the white-balance result is <strong>bit-identical</strong> to running <code>lb:color-temperature-tint</code> alone, so there are not two implementations drifting apart.</li></ul>
 <h2 id="algorithm">Algorithm</h2>
 <p>Convert to HSV on <strong>sRGB encoded values</strong> (<code>R~G~B~A float</code>, the perceptual domain, not linear light) and derive an increment from the source saturation S:</p>
-<pre><code>ΔS = A(v) · S^p(v) · (1−S)^q(v) · r(H,S,v) · c(L)
-S' = min(1, S + ΔS)</code></pre>
+<div class="math-display">$$\Delta S = A(v)\,S^{p(v)}\,(1-S)^{q(v)}\,r(H,S,v)\,c(L),\qquad S' = \min(1,\ S+\Delta S)$$</div>
 <div class="table-wrap"><table><thead><tr><th>Term</th><th>Meaning</th><th>Data source</th></tr></thead><tbody><tr><td><code>A(v)</code>, <code>p(v)</code>, <code>q(v)</code></td><td>amplitude and the curvature at both ends, per step of v</td><td>16-bit calibration in steps of 5, 20 steps</td></tr><tr><td><code>r(H,S,v)</code></td><td>extra suppression in the red band (within 40° of red), fading linearly out from 26° to 40°</td><td>ratio of H0 to H120 at the same v</td></tr><tr><td><code>c(L)</code></td><td>lightness correction: give less to light colours (0.72× at L=80, 1.39× at L=20)</td><td>the L ladder of segment E</td></tr></tbody></table></div>
-<p>RGB reconstruction: keep max fixed and scale the other channels by <code>S'/S</code> — <code>out = mx − (mx − c)·S'/S</code>. Since <code>mx − mn = S·mx</code>, whenever <code>S' ≤ 1</code> the minimum channel lands exactly in <code>[0, mx]</code>, so <strong>the maths cannot leave the gamut</strong> and no clipping or gamut mapping is needed.</p>
+<p>RGB reconstruction: keep max fixed and scale the other channels by <span class="math">$S'/S$</span>:</p>
+<div class="math-display">$$\text{out}_{ch} = m_x - \bigl(m_x - c_{ch}\bigr)\frac{S'}{S}$$</div>
+<p>channel lands exactly in <code>[0, mx]</code>, so <strong>the maths cannot leave the gamut</strong> and no clipping or gamut mapping is needed.</p>
 <p>The negative direction (v&lt;0) is <strong>a different mechanism</strong>, not a mirror of the positive one: measurements show S drops <em>and</em> V drops with it, and there is no hue term, so it uses two tables (<code>S'</code> and <code>V'/V</code>), also bilinearly interpolated over (v, S).</p>
 <p>The tables live in <code>vibrance-tables.h</code>, generated by <code>tools/gen_vibrance_tables.py</code> from <code>vibrance-cal/vibrance_model.json</code> — change the JSON and regenerate, never hand-edit.</p>
 <h2 id="performance">Performance</h2>
@@ -163,7 +203,7 @@ S' = min(1, S + ΔS)</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">597e2cf</span>
+    <span class="muted">bc25d51</span>
   </div>
 </footer>
 <script>

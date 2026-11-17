@@ -9,7 +9,45 @@
 <meta property="og:description" content="复刻 经典图像编辑器「色相/饱和度」里的「着色」复选框">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
 (function () {
   try {
     var q = new URLSearchParams(location.search).get("lang");
@@ -54,10 +92,13 @@
 <ul><li>GEGL id：<code>lb:colorize-hsl</code></li><li>菜单：<code>Colors → SuperMrWang → Color → Colorize</code></li><li>类型：<code>GeglOperationPointFilter</code>（逐像素，无邻域）</li><li>参数：<code>hue</code>（0…360，绝对色相）、<code>saturation</code>（0…100，绝对值）、<code>lightness</code>（−100…100）</li></ul>
 <h2 id="算法">算法</h2>
 <p>在 <strong>sRGB 编码值</strong>（<code>R~G~B~A float</code>，感知域而非线性光）上取 HSL 的 L，然后：</p>
-<pre><code>t  = lightness / 100
-L' = L + t·(1−L)      (t &gt; 0)
-L' = L·(1+t)          (t &lt; 0)
-out = HSL2RGB(hue, saturation/100, L')</code></pre>
+<div class="math-display">$$t = \frac{\text{lightness}}{100},\qquad
+L' = \begin{cases}
+L + t\,(1-L), &amp; t &gt; 0 \\[4pt]
+L\,(1+t), &amp; t &lt; 0 \\[4pt]
+L, &amp; t = 0
+\end{cases}$$</div>
+<div class="math-display">$$\text{out} = \operatorname{HSL2RGB}\!\left(\text{hue},\ \frac{\text{saturation}}{100},\ L'\right)$$</div>
 <p>就这些。三条结论撑起整个模型：</p>
 <ol><li><strong>输入像素的 H 与 S 被完全丢弃。</strong> 等 L、等 S、色相绕一整圈的色环，过完着色后 同一带内输出离散度是 <strong>0.00 码</strong> —— 输出只由输入 L 决定。</li><li><strong>三根滑杆都是绝对量，不是增量。</strong> 色相 0/30/60/120/180/240/300 精确落回同名 色相；饱和度 25/50/75 落回 HSL S = 0.250/0.500/0.750；明度 0 时 <code>L' = L</code>。</li><li><strong>明度滑杆是 L 的线性函数</strong>，中点 L=0.5 时位移正好 t/2，两端不动。0 和 1 之外 自动钳位（l=+100 全白、l=−100 全黑）。</li></ol>
 <p>色相滑杆<strong>不回绕</strong>：负值被钳到 0（实测 −20 给出纯红，不是 340°）。这一条已在算子 里显式处理，<code>value_range</code> 也限定在 0…360。</p>
@@ -97,10 +138,13 @@ out = HSL2RGB(hue, saturation/100, L')</code></pre>
 <ul><li>GEGL id: <code>lb:colorize-hsl</code></li><li>Menu: <code>Colors → SuperMrWang → Color → Colorize</code></li><li>Type: <code>GeglOperationPointFilter</code> (per-pixel, no neighbourhood)</li><li>Parameters: <code>hue</code> (0…360, absolute hue), <code>saturation</code> (0…100, absolute), <code>lightness</code> (−100…100)</li></ul>
 <h2 id="algorithm">Algorithm</h2>
 <p>Take HSL's L on <strong>sRGB encoded values</strong> (<code>R~G~B~A float</code>, the perceptual domain, not linear light), then:</p>
-<pre><code>t  = lightness / 100
-L' = L + t·(1−L)      (t &gt; 0)
-L' = L·(1+t)          (t &lt; 0)
-out = HSL2RGB(hue, saturation/100, L')</code></pre>
+<div class="math-display">$$t = \frac{\text{lightness}}{100},\qquad
+L' = \begin{cases}
+L + t\,(1-L), &amp; t &gt; 0 \\[4pt]
+L\,(1+t), &amp; t &lt; 0 \\[4pt]
+L, &amp; t = 0
+\end{cases}$$</div>
+<div class="math-display">$$\text{out} = \operatorname{HSL2RGB}\!\left(\text{hue},\ \frac{\text{saturation}}{100},\ L'\right)$$</div>
 <p>That is all. Three findings carry the whole model:</p>
 <ol><li><strong>The input pixel's H and S are discarded entirely.</strong> A hue ring with equal L and equal S, one full turn around the wheel, comes out with a spread of <strong>0.00 code values</strong> inside a single band — the output depends on input L alone.</li><li><strong>All three sliders are absolute, not relative.</strong> Hues 0/30/60/120/180/240/300 land exactly on the hue of the same name; saturations 25/50/75 land on HSL S = 0.250/0.500/0.750; lightness 0 leaves <code>L' = L</code>.</li><li><strong>The lightness slider is linear in L</strong>, moving exactly t/2 at the midpoint L=0.5 and nothing at either end. Outside 0 and 1 it clamps (l=+100 is white, l=−100 is black).</li></ol>
 <p>The hue slider <strong>does not wrap</strong>: negative values clamp to 0 (measured −20 gives pure red, not 340°). The operator handles that explicitly and <code>value_range</code> is 0…360.</p>
@@ -135,7 +179,7 @@ out = HSL2RGB(hue, saturation/100, L')</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">597e2cf</span>
+    <span class="muted">bc25d51</span>
   </div>
 </footer>
 <script>

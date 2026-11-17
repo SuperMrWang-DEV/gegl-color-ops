@@ -9,7 +9,45 @@
 <meta property="og:description" content="按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价于经典图像编辑器「颜色查找」调整图层；强度按 0..1 与原图线性混合">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
 (function () {
   try {
     var q = new URLSearchParams(location.search).get("lang");
@@ -53,6 +91,22 @@
 <p>按 Adobe Cube LUT 规范实现的「颜色查找」，对应 经典图像编辑器的「颜色查找」调整图层。 经典图像编辑器 那侧只能手动跑脚本标定（见文末），所以这一支的数值验收先对齐<strong>独立写的 Python 参考实现</strong>，而不是 经典图像编辑器 输出。</p>
 <ul><li>GEGL id：<code>lb:color-lookup</code></li><li>菜单：<code>Colors → SuperMrWang → Blend → Color Lookup</code></li><li>类型：<code>GeglOperationFilter</code>（按行扫描；LUT 在 <code>prepare()</code> 里加载并缓存）</li><li>参数：<code>file</code>（.cube 路径）、<code>strength</code>（0…1，默认 1）、 <code>interpolation</code>（<code>trilinear</code> 默认 / <code>tetrahedral</code>）</li></ul>
 <h2 id="算法">算法</h2>
+<pre class="mermaid">flowchart TD
+  A[".cube 文件"] --&gt; B["解析 LUT_3D_SIZE / DOMAIN_MIN / MAX&lt;br/&gt;节点值按声明 domain 归一到 0..1"]
+  B --&gt; C{"有 1D shaper?"}
+  C -- "有" --&gt; D["1D 逐通道线性插值&lt;br/&gt;先把值压一段曲线"]
+  C -- "无" --&gt; E["直接进 3D 表"]
+  D --&gt; E
+  E --&gt; F["3D 采样：三线性 或 四面体"]
+  F --&gt; G["按 strength 与源值 lerp"]
+  G --&gt; H["clamp 到 0..1，alpha 透传"]</pre>
+<p>三线性就是在立方体 8 个角点上按体积权重求和：</p>
+<div class="math-display">$$C = \sum_{i,j,k\in\{0,1\}} w_i(r)\,w_j(g)\,w_k(b)\;L_{i,j,k},\qquad
+w_1(t)=t,\quad w_0(t)=1-t$$</div>
+<p>四面体则按 <span class="math">$f_r/f_g/f_b$</span> 的大小关系把立方体切成 6 块，每块只用 3 条棱：</p>
+<div class="math-display">$$C = L_{000} + \sum_{\text{3 条棱}} f_{\text{棱}}\cdot\bigl(L_{\text{棱}\to}-L_{\text{棱}\text{起}}\bigr)$$</div>
+<p>强度插值在<strong>编码值</strong>上做：</p>
+<div class="math-display">$$\text{out} = \text{src} + \bigl(\text{lookup}(\text{src})-\text{src}\bigr)\cdot s$$</div>
 <ol><li><strong>解析</strong>：<code>LUT_1D_SIZE</code> / <code>LUT_3D_SIZE</code> / <code>DOMAIN_MIN</code> / <code>DOMAIN_MAX</code> / <code>LUT_1D_INPUT_RANGE</code> / <code>LUT_3D_INPUT_RANGE</code> / <code>TITLE</code> / <code>#</code> 注释。 节点值按声明的 domain 归一化到 0..1（<code>DOMAIN_MAX 255</code> 的表因此与 0..1 表等价）。</li><li><strong>1D shaper</strong>（可选）：逐通道线性插值，先压一段曲线。</li><li><strong>3D 表</strong>：文件里<strong>红变化最快</strong>，索引 <code>r + g·n + b·n²</code>。采样两种：<ul><li>三线性：8 个角点按体积权重相加；</li><li>四面体：按 <code>fr/fg/fb</code> 的大小关系把立方体切成 6 个四面体，每个只走 3 条棱。 灰轴附近不会出现三线性的楔形偏色，但离格点越远、表越不平滑， 与三线性的差别越大（zigzag 表上可达 0.35，约 90 码）。</li></ul></li><li><strong>强度</strong>：<code>out = 源 + (查表结果 − 源) · strength</code>，在编码值上做 lerp。</li><li>输出夹到 0..1；alpha 原样透传。</li></ol>
 <p>格式支持：<strong>只认 <code>.cube</code></strong>（3D、纯 1D、1D+3D 都行）。<code>.3dl</code> / <code>.look</code> / <code>.csp</code> 尚未实现 —— <code>.3dl</code> 的轴序（红最快还是蓝最快）需要拿 经典图像编辑器 实测确认，不能靠猜。</p>
 <h2 id="为什么钉在感知格式">为什么钉在感知格式</h2>
@@ -99,6 +153,22 @@ python tools/check_color_lookup.py x.cube     # 额外比对指定文件</code><
 <p>An implementation of "Color Lookup" following the Adobe Cube LUT specification, matching the classic editor's Color Lookup adjustment layer. the classic editor can only be calibrated with a manually-run script here (see the end), so numeric acceptance targets an <strong>independently written Python reference</strong> rather than the classic editor output.</p>
 <ul><li>GEGL id: <code>lb:color-lookup</code></li><li>Menu: <code>Colors → SuperMrWang → Blend → Color Lookup</code></li><li>Type: <code>GeglOperationFilter</code> (row scan; the LUT is loaded and cached in <code>prepare()</code>)</li><li>Parameters: <code>file</code> (a .cube path), <code>strength</code> (0…1, default 1), <code>interpolation</code> (<code>trilinear</code> default / <code>tetrahedral</code>)</li></ul>
 <h2 id="algorithm">Algorithm</h2>
+<pre class="mermaid">flowchart TD
+  A[".cube file"] --&gt; B["parse LUT_3D_SIZE / DOMAIN_MIN / MAX&lt;br/&gt;normalise nodes by the declared domain"]
+  B --&gt; C{"1D shaper?"}
+  C -- "yes" --&gt; D["per-channel linear 1D interpolation"]
+  C -- "no" --&gt; E["straight to the 3D table"]
+  D --&gt; E
+  E --&gt; F["3D sampling: trilinear or tetrahedral"]
+  F --&gt; G["lerp with the source by strength"]
+  G --&gt; H["clamp to 0..1, alpha passes through"]</pre>
+<p>Trilinear sums the eight corners with volume weights:</p>
+<div class="math-display">$$C = \sum_{i,j,k\in\{0,1\}} w_i(r)\,w_j(g)\,w_k(b)\;L_{i,j,k},\qquad
+w_1(t)=t,\quad w_0(t)=1-t$$</div>
+<p>Tetrahedral splits the cube into six tetrahedra by the ordering of <span class="math">$f_r/f_g/f_b$</span> and walks only three edges per tetrahedron:</p>
+<div class="math-display">$$C = L_{000} + \sum_{\text{3 edges}} f_{\text{edge}}\cdot\bigl(L_{\text{edge}\to}-L_{\text{edge start}}\bigr)$$</div>
+<p>Strength is applied on <strong>encoded values</strong>:</p>
+<div class="math-display">$$\text{out} = \text{src} + \bigl(\text{lookup}(\text{src})-\text{src}\bigr)\cdot s$$</div>
 <ol><li><strong>Parse</strong>: <code>LUT_1D_SIZE</code> / <code>LUT_3D_SIZE</code> / <code>DOMAIN_MIN</code> / <code>DOMAIN_MAX</code> / <code>LUT_1D_INPUT_RANGE</code> / <code>LUT_3D_INPUT_RANGE</code> / <code>TITLE</code> / <code>#</code> comments. Node values are normalised to 0..1 by the declared domain, so a table with <code>DOMAIN_MAX 255</code> behaves the same as a 0..1 table.</li><li><strong>1D shaper</strong> (optional): per-channel linear interpolation, one curve first.</li><li><strong>3D table</strong>: <strong>red varies fastest</strong> in the file, index <code>r + g·n + b·n²</code>. Two ways to sample:<ul><li>trilinear: the 8 corners weighted by volume;</li><li>tetrahedral: split the cube into 6 tetrahedra according to the ordering of <code>fr/fg/fb</code>, each using only 3 edges. No trilinear wedge near the grey axis, but the further from a lattice point and the less smooth the table, the more it differs from trilinear (up to 0.35 on the zigzag table, about 90 code values).</li></ul></li><li><strong>Strength</strong>: <code>out = source + (lookup − source) · strength</code>, lerped on encoded values.</li><li>Output clipped to 0..1; alpha passes through untouched.</li></ol>
 <p>Format support: <strong><code>.cube</code> only</strong> (3D, pure 1D, 1D+3D). <code>.3dl</code> / <code>.look</code> / <code>.csp</code> are not implemented — <code>.3dl</code>'s axis order (red fastest or blue fastest) would need to be confirmed against the classic editor, and guessing is not good enough.</p>
 <h2 id="why-the-perceptual-format-is-pinned">Why the perceptual format is pinned</h2>
@@ -141,7 +211,7 @@ python tools/check_color_lookup.py x.cube     # additionally compare a given fil
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">597e2cf</span>
+    <span class="muted">bc25d51</span>
   </div>
 </footer>
 <script>

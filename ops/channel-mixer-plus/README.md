@@ -77,10 +77,12 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/
 
 每路输出通道都是 RGB 三源通道的加权和，再加该通道自己的常数项：
 
-```
-R' = rr·R + rg·G + rb·B + r_off
-G' = gr·R + gg·G + gb·B + g_off
-B' = br·R + bg·G + bb·B + b_off
+```math
+\begin{aligned}
+R' &= r_r\,R + r_g\,G + r_b\,B + r_{\text{off}} \\
+G' &= g_r\,R + g_g\,G + g_b\,B + g_{\text{off}} \\
+B' &= b_r\,R + b_g\,G + b_b\,B + b_{\text{off}}
+\end{aligned}
 ```
 
 默认是单位矩阵（对角 1、其余 0）、常数全 0，所以什么都不动时算子等于直通。

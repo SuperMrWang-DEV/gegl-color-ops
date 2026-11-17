@@ -8,8 +8,16 @@ L\*a\*b\* 均值-方差仿射迁移。
 
 工作在 CIELAB（D50）里，对 L、a、b 各通道分别做：
 
+```math
+\text{out} = \bigl(v-\mu_t\bigr)\cdot\frac{\sigma_s}{\sigma_t} + \mu_s
 ```
-out = (v − μ_target) · (σ_source / σ_target) + μ_source
+
+```mermaid
+flowchart TD
+  A["input 层 + aux 层（CIELAB D50）"] --> B["整层扫描：累加 sum / sum²<br/>得 μ, σ（三通道）"]
+  B --> C["缓存到 operation 实例<br/>键 = 缓冲指针 + extent + 层级"]
+  C --> D["逐块 process<br/>out = (v − μ_t)·σ_s/σ_t + μ_s"]
+  D --> E["输出"]
 ```
 
 统计量对**整层**计算（经典图像编辑器 亦然），来源是 `aux` pad 接的图层；没接 aux 时

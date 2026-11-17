@@ -10,10 +10,12 @@
 
 单通道：
 
-```
-t   = clamp((v - inLow) / (inHigh - inLow), 0, 1)
-t'  = t ^ (1 / gamma)
-out = outLow + t' * (outHigh - outLow)
+```math
+t = \operatorname{clamp}\!\left(\frac{v-\text{inLow}}{\text{inHigh}-\text{inLow}},\,0,\,1\right),
+\qquad
+t' = t^{1/\gamma},
+\qquad
+\text{out} = \text{outLow} + t'\,\bigl(\text{outHigh}-\text{outLow}\bigr)
 ```
 
 - `inLow` 及以下压成 `outLow`，`inHigh` 及以上压成 `outHigh`，
@@ -23,7 +25,7 @@ out = outLow + t' * (outHigh - outLow)
   指数写成 `t^gamma` 会让方向整个反过来）；
 - 输入区间会把整段拉伸：设了 `inLow = 64` 之后，`v = 240` 会变成 `235`，
   不是原样保留；
-- `inHigh == inLow` 时区间塌成一点，按台阶处理（≥ 该值为白），不除零。
+- `inHigh == inLow` 时区间塌成一点，该通道原样透传（不除零，也不会压成单值）。
 
 执行顺序：**先复合组（三通道同一条曲线），再各通道组**。各通道组默认恒等，
 所以「只动复合」与 经典图像编辑器的 RGB 通道模式逐位一致；「只动红」等价于 经典图像编辑器的

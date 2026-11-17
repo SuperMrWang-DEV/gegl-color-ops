@@ -9,7 +9,45 @@
 <meta property="og:description" content="HSB（=HSV）三个分量各自设输入 / 输出黑白场与伽马">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
 (function () {
   try {
     var q = new URLSearchParams(location.search).get("lang");
@@ -57,6 +95,20 @@
 <p>工作在 babl 的 <code>HSVA float</code> 上，RGB↔HSV 交给 babl。</p>
 <div class="table-wrap"><table><thead><tr><th>分量</th><th>量程</th><th>定义</th></tr></thead><tbody><tr><td>H</td><td>0–360°</td><td>与 HSL 同一个色相角</td></tr><tr><td>S</td><td>0–100%</td><td><code>S = (max−min)/max = 1 − min/V</code>（HSV 的 S）</td></tr><tr><td>B</td><td>0–100%</td><td><code>B = V = max(R,G,B)</code>，即最亮的那个通道</td></tr></tbody></table></div>
 <p>HSL 的 S 是 <code>(max−min)/(1−|2L−1|)</code>，HSV 的 S 是 <code>(max−min)/max</code>——同一块 颜色两边的数值可以差很多（比如纯红：HSL 的 S=100%，HSV 的 S 也是 100%， 但浅粉色 HSL 的 S=100% 时 HSV 只有约 20%）。所以「把 S 压到 60%」这两个 算子给出的画面完全不同。</p>
+<div class="math-display">$$z = (h-\text{ia}) \bmod 360,\qquad
+S_{\text{in}} = (\text{ib}-\text{ia}) \bmod 360,\qquad
+S_{\text{out}} = (\text{ob}-\text{oa}) \bmod 360$$</div>
+<div class="math-display">$$h' = \bigl(\text{base} + \text{span}\cdot t^{1/\gamma}\bigr) \bmod 360,\qquad
+(t,\ \text{base},\ \text{span}) =
+\begin{cases}
+\left(\dfrac{z}{S_{\text{in}}},\ \text{oa},\ S_{\text{out}}\right), &amp; z \le S_{\text{in}} \\[10pt]
+\left(\dfrac{z-S_{\text{in}}}{360-S_{\text{in}}},\ \text{oa}+S_{\text{out}},\ 360-S_{\text{out}}\right), &amp; z &gt; S_{\text{in}}
+\end{cases}$$</div>
+<p><span class="math">$S_{\text{in}}$</span> 或 <span class="math">$S_{\text{out}}$</span> 为 0（黑白场重合）时按整圈 <span class="math">$360°$</span> 处理。</p>
+<div class="math-display">$$u = \operatorname{clamp}\!\left(\frac{x-x_{\text{lo}}}{x_{\text{hi}}-x_{\text{lo}}},\,0,\,1\right),
+\qquad
+\text{out} = o_{\text{lo}} + u^{1/\gamma}\,\bigl(o_{\text{hi}}-o_{\text{lo}}\bigr)$$</div>
+<p><span class="math">$o_{\text{lo}} &gt; o_{\text{hi}}$</span> 时输出反相；结果夹在 <span class="math">$[\min(o_{\text{lo}},o_{\text{hi}}),\ \max(o_{\text{lo}},o_{\text{hi}})]$</span> 内。</p>
 <h2 id="规则细则">规则细则</h2>
 <ul><li><strong>H 环形重映射</strong>：主弧（黑场 → 白场）映到输出弧，剩余弧按比例跟进， 两段共用 gamma；整圈连续，默认参数逐位还原。黑白场重合按整圈处理 = 纯色相旋转。</li><li><strong>S/B 线性</strong>：clamp → 归一化 → gamma → 输出范围，输出反向即反相。</li><li><strong>黑白场交叉自动交换</strong>。</li><li><strong>alpha ≤ 0 透传</strong>。</li><li>B 归零 = 全黑（V 是最大通道，压到 0 三通道全 0）；B 的反向输出会得到 「亮部变暗、暗部变亮」的负片式结果，但色相与饱和度仍保留各自的映射。</li></ul>
 <h2 id="与-lbhsl-levels-的选择">与 lb:hsl-levels 的选择</h2>
@@ -102,6 +154,20 @@
 <p>The operator works on babl's <code>HSVA float</code>; RGB↔HSV is babl's job.</p>
 <div class="table-wrap"><table><thead><tr><th>Component</th><th>Range</th><th>Definition</th></tr></thead><tbody><tr><td>H</td><td>0–360°</td><td>the same hue angle as HSL</td></tr><tr><td>S</td><td>0–100%</td><td><code>S = (max−min)/max = 1 − min/V</code> (HSV's S)</td></tr><tr><td>B</td><td>0–100%</td><td><code>B = V = max(R,G,B)</code>, the brightest channel</td></tr></tbody></table></div>
 <p>HSL's S is <code>(max−min)/(1−|2L−1|)</code>, HSV's is <code>(max−min)/max</code> — the same colour can sit at very different numbers on the two scales (light pink is HSL S=100% but HSV S≈20%). So "push S down to 60%" gives visibly different pictures in the two operators.</p>
+<div class="math-display">$$z = (h-\text{ia}) \bmod 360,\qquad
+S_{\text{in}} = (\text{ib}-\text{ia}) \bmod 360,\qquad
+S_{\text{out}} = (\text{ob}-\text{oa}) \bmod 360$$</div>
+<div class="math-display">$$h' = \bigl(\text{base} + \text{span}\cdot t^{1/\gamma}\bigr) \bmod 360,\qquad
+(t,\ \text{base},\ \text{span}) =
+\begin{cases}
+\left(\dfrac{z}{S_{\text{in}}},\ \text{oa},\ S_{\text{out}}\right), &amp; z \le S_{\text{in}} \\[10pt]
+\left(\dfrac{z-S_{\text{in}}}{360-S_{\text{in}}},\ \text{oa}+S_{\text{out}},\ 360-S_{\text{out}}\right), &amp; z &gt; S_{\text{in}}
+\end{cases}$$</div>
+<p>A zero <span class="math">$S_{\text{in}}$</span> or <span class="math">$S_{\text{out}}$</span> (coincident black / white points) is treated as the full <span class="math">$360°$</span> circle.</p>
+<div class="math-display">$$u = \operatorname{clamp}\!\left(\frac{x-x_{\text{lo}}}{x_{\text{hi}}-x_{\text{lo}}},\,0,\,1\right),
+\qquad
+\text{out} = o_{\text{lo}} + u^{1/\gamma}\,\bigl(o_{\text{hi}}-o_{\text{lo}}\bigr)$$</div>
+<p>An inverted output (<span class="math">$o_{\text{lo}} &gt; o_{\text{hi}}$</span>) gives a negative-style inverse; the result is clamped to <span class="math">$[\min(o_{\text{lo}},o_{\text{hi}}),\ \max(o_{\text{lo}},o_{\text{hi}})]$</span>.</p>
 <h2 id="rules">Rules</h2>
 <ul><li><strong>Circular hue remap</strong>: the main arc (black point → white point) maps onto the output arc, the rest follows proportionally, both sharing the gamma; continuous around the circle, bit-exact at defaults. Black and white point at the same angle means the whole circle, i.e. a pure hue rotation.</li><li><strong>S and B are linear</strong>: clamp → normalise → gamma → output range; an inverted output is an inverse.</li><li><strong>Crossed black and white points swap automatically.</strong></li><li><strong>alpha ≤ 0 passes through.</strong></li><li>B to zero is pure black (V is the max channel, so 0 means all three are 0). An inverted B output gives a negative-style "bright goes dark, dark goes bright" result while hue and saturation keep their own mappings.</li></ul>
 <h2 id="choosing-between-this-and-lbhsl-levels">Choosing between this and lb:hsl-levels</h2>
@@ -139,7 +205,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">597e2cf</span>
+    <span class="muted">bc25d51</span>
   </div>
 </footer>
 <script>

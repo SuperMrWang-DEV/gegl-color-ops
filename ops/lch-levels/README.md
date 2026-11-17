@@ -20,6 +20,33 @@ Lab 底子，区别在坐标：Lab 是直角坐标（a、b 两轴），LCh 是�
 | C | 0–~132 | 色度，sRGB 色域内最大约 131（纯蓝），所以量程给到 132 |
 | H | 0–360° | 色相角，0° 偏红（纯红约 40°，纯蓝约 301°） |
 
+```math
+z = (h-\text{ia}) \bmod 360,\qquad
+S_{\text{in}} = (\text{ib}-\text{ia}) \bmod 360,\qquad
+S_{\text{out}} = (\text{ob}-\text{oa}) \bmod 360
+```
+
+```math
+h' = \bigl(\text{base} + \text{span}\cdot t^{1/\gamma}\bigr) \bmod 360,\qquad
+(t,\ \text{base},\ \text{span}) =
+\begin{cases}
+\left(\dfrac{z}{S_{\text{in}}},\ \text{oa},\ S_{\text{out}}\right), & z \le S_{\text{in}} \\[10pt]
+\left(\dfrac{z-S_{\text{in}}}{360-S_{\text{in}}},\ \text{oa}+S_{\text{out}},\ 360-S_{\text{out}}\right), & z > S_{\text{in}}
+\end{cases}
+```
+
+$S_{\text{in}}$ 或 $S_{\text{out}}$ 为 0（黑白场重合）时按整圈 $360°$ 处理。
+
+
+```math
+u = \operatorname{clamp}\!\left(\frac{x-x_{\text{lo}}}{x_{\text{hi}}-x_{\text{lo}}},\,0,\,1\right),
+\qquad
+\text{out} = o_{\text{lo}} + u^{1/\gamma}\,\bigl(o_{\text{hi}}-o_{\text{lo}}\bigr)
+```
+
+$o_{\text{lo}} > o_{\text{hi}}$ 时输出反相；结果夹在
+$[\min(o_{\text{lo}},o_{\text{hi}}),\ \max(o_{\text{lo}},o_{\text{hi}})]$ 内。
+
 ## 规则细则
 
 - **H 环形重映射**：把圆在黑场处剪开，主弧（黑场 → 白场）映到输出弧，

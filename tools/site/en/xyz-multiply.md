@@ -18,13 +18,27 @@ operator reproduces the whole chain from measurement. The parameters map one for
 
 1. Linearise sRGB and convert to D50 XYZ with the **standard Bradford** cone-response
    matrix (not the adaptation matrix itself);
-2. multiply each channel by `k = (1-d) + d · (filter colour XYZ / D50 white)`, where
-   `d` is the density;
-3. convert back to encoded values; if preserve-luminosity is on, apply the **W3C /
-   PDF SetLum + ClipColor** (on encoded values, Rec.601 weights 0.3/0.59/0.11).
+2. multiply each channel by a gain, where $d$ is the density:
 
-Steps 1–2 in linear sRGB are equivalent to one constant 3×3 matrix
-`M = XYZ2sRGB · A⁻¹ · diag(k) · A · sRGB2XYZ`, computed once per `process`.
+```math
+k_c = (1-d) + d\cdot\frac{\bigl[\text{XYZ}_{\text{filter}}\bigr]_c}{\bigl[\text{XYZ}_{D50}\bigr]_c}
+```
+
+3. convert back to encoded values; if preserve-luminosity is on, apply the **W3C /
+   PDF SetLum + ClipColor**:
+
+```math
+L = 0.3R + 0.59G + 0.11B,\qquad \text{out}_{ch} \leftarrow \text{out}_{ch} + (L_{\text{in}}-L_{\text{out}})
+```
+
+(on encoded values, Rec.601 weights; ClipColor then scales out-of-gamut pixels back.)
+
+Steps 1–2 in linear sRGB are equivalent to one constant $3\times3$ matrix, computed
+once per `process`:
+
+```math
+M = A_{\text{XYZ}}^{-1}\cdot\operatorname{diag}(k)\cdot A_{\text{sRGB}}
+```
 
 The evidence (all reproducible from `photo-filter-cal/`):
 

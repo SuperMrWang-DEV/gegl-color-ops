@@ -21,17 +21,23 @@ original code plus a float comparison), and the acceptance script is
 On **sRGB encoded values** (`R~G~B~A float`, the perceptual domain, not linear
 light), in four steps:
 
-```
-t = lightness / 100
-r,g,b <- c + t·(1−c)   (t > 0)      # screen with neutral grey
-         c·(1+t)       (t < 0)      # multiply with neutral grey
-h,s,l <- RGB2HSL(r,g,b)
-h <- (h + hue) mod 360
-x = saturation / 100
-s <- s/(1−x)  (x > 0)                # hyperbolic expansion
-     s·(1+x)  (x < 0)                # linear contraction
-s <- clamp(s, 0, 1)
-out = HSL2RGB(h, s, l)
+```math
+\begin{aligned}
+t &= \frac{\text{lightness}}{100} \\[2pt]
+c' &= \begin{cases}
+c + t\,(1-c), & t > 0 \quad \text{(screen with neutral grey)} \\[4pt]
+c\,(1+t), & t < 0 \quad \text{(multiply with neutral grey)}
+\end{cases}\quad c \in \{R,G,B\} \\[8pt]
+(h,s,l) &= \operatorname{RGB2HSL}(R',G',B') \\
+h' &= (h + \text{hue}) \bmod 360 \\[2pt]
+x &= \frac{\text{saturation}}{100} \\[2pt]
+s' &= \operatorname{clamp}\!\left(
+\begin{cases}
+\dfrac{s}{1-x}, & x > 0 \quad \text{(hyperbolic expansion)} \\[8pt]
+s\,(1+x), & x < 0 \quad \text{(linear contraction)}
+\end{cases},\ 0,\ 1\right) \\[8pt]
+\text{out} &= \operatorname{HSL2RGB}(h',s',l)
+\end{aligned}
 ```
 
 The order matters: lightness lands in RGB first, then the result is converted to HSL

@@ -25,6 +25,35 @@ sources (each optionally inverted), blend them, and output a grey or alpha mask.
 | `invert-mask` | 否 | 遮罩反相 |
 | `output-mode` | 灰蒙版 | 灰蒙版（贴图层蒙版）或 alpha 蒙版（直接当不透明度） |
 
+## 算法
+
+```mermaid
+flowchart TD
+  A["input"] --> C1["取 source1 通道<br/>（可反相）"]
+  B["aux（没接就用本图）"] --> C2["取 source2 通道<br/>（可反相）"]
+  C1 --> M["B = mode(A, B)"]
+  C2 --> M
+  M --> N["按 opacity 与 mask 合成"]
+  N --> O{"output-mode"}
+  O -- "灰蒙版" --> P["alpha = 1 的灰度层"]
+  O -- "alpha 蒙版" --> Q["alpha = 灰度的不透明度"]
+```
+
+混合后按不透明度与遮罩往底图回插：
+
+```math
+R = (1-\alpha)\,A + \alpha\,B_{\text{mode}}(A,B),\qquad
+\alpha = \frac{\text{opacity}}{100}\cdot m
+```
+
+加法 / 减法另外带缩放与补偿：
+
+```math
+R = \operatorname{clamp}\!\left(\frac{A \pm B}{\text{scale}} + \frac{\text{offset}}{255},\ 0,\ 1\right)
+```
+
+源 2 的 alpha 当覆盖率，透明处 $m=0$：$m \leftarrow m\cdot\alpha_2$（通道选 Alpha 时不再乘）。
+
 ## 与 经典图像编辑器的对应关系 / How it maps to 经典图像编辑器
 
 | 经典图像编辑器 | 这里 |

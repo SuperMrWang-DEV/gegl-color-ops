@@ -30,6 +30,16 @@ For a real prepress separation (SWOP/FOGRA profiles) you need an ICC workflow; t
 operator offers "device-independent babl separation + per-plate levels" and nothing
 more.
 
+```math
+u = \operatorname{clamp}\!\left(\frac{x-x_{\text{lo}}}{x_{\text{hi}}-x_{\text{lo}}},\,0,\,1\right),
+\qquad
+\text{out} = o_{\text{lo}} + u^{1/\gamma}\,\bigl(o_{\text{hi}}-o_{\text{lo}}\bigr)
+```
+
+An inverted output ($o_{\text{lo}} > o_{\text{hi}}$) gives a negative-style
+inverse; the result is clamped to
+$[\min(o_{\text{lo}},o_{\text{hi}}),\ \max(o_{\text{lo}},o_{\text{hi}})]$.
+
 ## Rules
 
 - All four components are **linear 0–100% ink channels**: clamp → normalise → gamma

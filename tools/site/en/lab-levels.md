@@ -20,6 +20,17 @@ Lab mode of Curves) and with `lb:match-color`. Doing levels in Lab is a perceptu
 mapping and does not rely on a "linear light" assumption (an older build carried its
 own D65 linear RGB→XYZ conversion; that is gone).
 
+```math
+x \leftarrow \operatorname{clamp}(x,\ i_{\text{lo}},\ i_{\text{hi}}),\qquad
+x' = \begin{cases}
+o_{\text{lo}} + u_{-}^{1/\gamma}\,\bigl(0 - o_{\text{lo}}\bigr), & x < 0,\quad u_{-} = \dfrac{x - i_{\text{lo}}}{0 - i_{\text{lo}}} \\[12pt]
+o_{\text{hi}}\,u_{+}^{1/\gamma}, & x \ge 0,\quad u_{+} = \dfrac{x}{i_{\text{hi}}}
+\end{cases}
+```
+
+Each half axis is normalised to $[0,1]$ before the gamma, so $x = 0$ (the neutral
+axis) stays put for any $\gamma$.
+
 ## Rules
 
 - **a/b gamma rotates around the neutral axis at 0**: the negative half

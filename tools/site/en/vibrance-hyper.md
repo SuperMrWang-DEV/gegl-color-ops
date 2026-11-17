@@ -10,7 +10,7 @@ automatically.
 
 **Mask structure** `M = M_chroma(C*) × M_skin(h) × M_gamut`
 
-- `M_chroma = 1/(1 + atten·(C*/50)^1.3)`: reads the **source** chroma C\*, so the
+- $M_{\text{chroma}} = \dfrac{1}{1+\alpha\,(C^*/50)^{1.3}}$: reads the **source** chroma C\*, so the
   higher the chroma the lower the gain; the exponent 1.3 makes C\*>60 fall off faster
   than a plain hyperbola. Independent of the Saturation slider.
 - `M_skin`: reduces the weight around LAB hue 55° (orange and skin tones) with chroma

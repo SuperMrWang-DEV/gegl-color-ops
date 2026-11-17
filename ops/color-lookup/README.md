@@ -12,6 +12,37 @@ Python 参考实现**，而不是 经典图像编辑器 输出。
 
 ## 算法
 
+```mermaid
+flowchart TD
+  A[".cube 文件"] --> B["解析 LUT_3D_SIZE / DOMAIN_MIN / MAX<br/>节点值按声明 domain 归一到 0..1"]
+  B --> C{"有 1D shaper?"}
+  C -- "有" --> D["1D 逐通道线性插值<br/>先把值压一段曲线"]
+  C -- "无" --> E["直接进 3D 表"]
+  D --> E
+  E --> F["3D 采样：三线性 或 四面体"]
+  F --> G["按 strength 与源值 lerp"]
+  G --> H["clamp 到 0..1，alpha 透传"]
+```
+
+三线性就是在立方体 8 个角点上按体积权重求和：
+
+```math
+C = \sum_{i,j,k\in\{0,1\}} w_i(r)\,w_j(g)\,w_k(b)\;L_{i,j,k},\qquad
+w_1(t)=t,\quad w_0(t)=1-t
+```
+
+四面体则按 $f_r/f_g/f_b$ 的大小关系把立方体切成 6 块，每块只用 3 条棱：
+
+```math
+C = L_{000} + \sum_{\text{3 条棱}} f_{\text{棱}}\cdot\bigl(L_{\text{棱}\to}-L_{\text{棱}\text{起}}\bigr)
+```
+
+强度插值在**编码值**上做：
+
+```math
+\text{out} = \text{src} + \bigl(\text{lookup}(\text{src})-\text{src}\bigr)\cdot s
+```
+
 1. **解析**：`LUT_1D_SIZE` / `LUT_3D_SIZE` / `DOMAIN_MIN` / `DOMAIN_MAX` /
    `LUT_1D_INPUT_RANGE` / `LUT_3D_INPUT_RANGE` / `TITLE` / `#` 注释。
    节点值按声明的 domain 归一化到 0..1（`DOMAIN_MAX 255` 的表因此与 0..1 表等价）。

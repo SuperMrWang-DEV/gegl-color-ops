@@ -13,11 +13,17 @@
 
 在 **sRGB 编码值**（`R~G~B~A float`，感知域而非线性光）上取 HSL 的 L，然后：
 
+```math
+t = \frac{\text{lightness}}{100},\qquad
+L' = \begin{cases}
+L + t\,(1-L), & t > 0 \\[4pt]
+L\,(1+t), & t < 0 \\[4pt]
+L, & t = 0
+\end{cases}
 ```
-t  = lightness / 100
-L' = L + t·(1−L)      (t > 0)
-L' = L·(1+t)          (t < 0)
-out = HSL2RGB(hue, saturation/100, L')
+
+```math
+\text{out} = \operatorname{HSL2RGB}\!\left(\text{hue},\ \frac{\text{saturation}}{100},\ L'\right)
 ```
 
 就这些。三条结论撑起整个模型：

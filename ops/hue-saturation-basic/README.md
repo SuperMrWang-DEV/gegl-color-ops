@@ -18,17 +18,23 @@
 
 在 **sRGB 编码值**（`R~G~B~A float`，感知域而非线性光）上，四步：
 
-```
-t = lightness / 100
-r,g,b ← c + t·(1−c)   (t > 0)      # 与中性灰做滤色
-        c·(1+t)       (t < 0)      # 与中性灰做正片叠底
-h,s,l ← RGB2HSL(r,g,b)
-h ← (h + hue) mod 360
-x = saturation / 100
-s ← s/(1−x)  (x > 0)                # 双曲放大
-    s·(1+x)  (x < 0)                # 线性收缩
-s ← clamp(s, 0, 1)
-out = HSL2RGB(h, s, l)
+```math
+\begin{aligned}
+t &= \frac{\text{lightness}}{100} \\[2pt]
+c' &= \begin{cases}
+c + t\,(1-c), & t > 0 \quad \text{（与中性灰做滤色）} \\[4pt]
+c\,(1+t), & t < 0 \quad \text{（与中性灰做正片叠底）}
+\end{cases}\quad c \in \{R,G,B\} \\[8pt]
+(h,s,l) &= \operatorname{RGB2HSL}(R',G',B') \\
+h' &= (h + \text{hue}) \bmod 360 \\[2pt]
+x &= \frac{\text{saturation}}{100} \\[2pt]
+s' &= \operatorname{clamp}\!\left(
+\begin{cases}
+\dfrac{s}{1-x}, & x > 0 \quad \text{（双曲放大）} \\[8pt]
+s\,(1+x), & x < 0 \quad \text{（线性收缩）}
+\end{cases},\ 0,\ 1\right) \\[8pt]
+\text{out} &= \operatorname{HSL2RGB}(h',s',l)
+\end{aligned}
 ```
 
 顺序有意义：明度先落进 RGB，再把结果转 HSL 做色相与饱和度 —— 所以饱和度作用在

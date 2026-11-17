@@ -16,12 +16,25 @@
 ### 算法（实测反推，不是猜的）
 
 1. sRGB 线性化，用**标准 Bradford**（锥响应矩阵，不是适配矩阵本身）转到 D50 XYZ；
-2. 逐通道乘 `k = (1-d) + d · (滤镜色XYZ / D50白点)`，`d` = 密度；
-3. 转回编码值；若开保留明度，再做 **W3C / PDF 的 SetLum + ClipColor**
-   （编码值上、Rec.601 权重 0.3/0.59/0.11）。
+2. 逐通道乘一个增益 $k$，$d$ = 密度：
 
-前两步在线性 sRGB 里等价于一个常数 3×3 矩阵
-`M = XYZ2sRGB · A⁻¹ · diag(k) · A · sRGB2XYZ`，每 process 只算一次。
+```math
+k_c = (1-d) + d\cdot\frac{\bigl[\text{XYZ}_{\text{滤镜}}\bigr]_c}{\bigl[\text{XYZ}_{D50}\bigr]_c}
+```
+
+3. 转回编码值；若开保留明度，再做 **W3C / PDF 的 SetLum + ClipColor**：
+
+```math
+L = 0.3R + 0.59G + 0.11B,\qquad \text{out}_{ch} \leftarrow \text{out}_{ch} + (L_{\text{in}}-L_{\text{out}})
+```
+
+（在编码值上算，Rec.601 权重；之后 ClipColor 把越界像素按比例收回色域。）
+
+前两步在线性 sRGB 里等价于一个常数 $3\times3$ 矩阵，每 process 只算一次：
+
+```math
+M = A_{\text{XYZ}}^{-1}\cdot\operatorname{diag}(k)\cdot A_{\text{sRGB}}
+```
 
 判据（都能在 `photo-filter-cal/` 里复现）：
 

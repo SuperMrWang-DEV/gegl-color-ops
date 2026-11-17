@@ -9,7 +9,45 @@
 <meta property="og:description" content="等价 经典 RAW 编辑器的「颜色分级」：阴影 / 中间调 / 高光 / 全局四个轮盘（色相 + 饱和度）加各自的明度滑杆，按亮度分带给画面上色。">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
 (function () {
   try {
     var q = new URLSearchParams(location.search).get("lang");
@@ -58,8 +96,18 @@
 <h2 id="算法模型">算法模型</h2>
 <p>按像素的 Rec.709 亮度（伽马域）分带：</p>
 <ul><li>分界默认：阴影/中间调 <strong>0.3</strong>，中间调/高光 <strong>0.7</strong>；</li><li>Blending 把两条硬边界铺成 smoothstep 过渡（100 → 各 ±0.25）， 中间调权重 = 1 − 阴影 − 高光；</li><li>Balance ±100 把两条分界一起平移 ±0.25。</li></ul>
+<div class="math-display">$$h = 0.25\cdot\frac{\text{Blending}}{100},\qquad
+e_{\text{sh}} = 0.3 + 0.25\cdot\frac{B}{100},\qquad
+e_{\text{hi}} = 0.7 + 0.25\cdot\frac{B}{100}$$</div>
+<div class="math-display">$$w_{\text{sh}} = 1-\operatorname{smooth}\!\left(\frac{Y-e_{\text{sh}}}{2h}+\frac{1}{2}\right),\qquad
+w_{\text{hi}} = \operatorname{smooth}\!\left(\frac{Y-e_{\text{hi}}}{2h}+\frac{1}{2}\right),\qquad
+w_{\text{mid}} = 1-w_{\text{sh}}-w_{\text{hi}}$$</div>
 <p>每个轮盘的一次染色（乘以带权重 w）：</p>
 <ul><li>明度：<code>V += Lw × 0.005 × w</code>（与 <code>lb:hsl-seven</code> 同系数）；</li><li>染色强度 <code>t = Sat/100 × w</code>：往<strong>同明度的轮盘纯色</strong>混合， <code>rgb = rgb·(1−t) + tint·t</code>，<code>tint = HSV(轮盘色相, 1, V)</code>。 灰像素自然吃到染色；与轮盘色接近互补的色相则被去饱和（掺灰）， <strong>不在色相上做插值</strong>，所以没有「旋转方向翻转」的接缝。</li></ul>
+<div class="math-display">$$V \leftarrow V + 0.005\,L_w\,w,\qquad
+t = \frac{\text{Sat}}{100}\,w,\qquad
+\text{rgb} \leftarrow \text{rgb}\,(1-t) + \text{tint}\,t,\qquad
+\text{tint} = \operatorname{HSV}(h_w,\,1,\,V)$$</div>
 <blockquote><p>2026-11-12 修正：初版用「色相向轮盘色相收敛」的模型，在互补色相 （色相差 ≈ 180°）处 <code>roundf</code> 的旋转方向会翻转，裁切高光上会爆出 竖条纹（在 night-blue 演示图里可见）。已改为向轮盘色混合， <code>check_color_grading.py</code> 新增「互补色相无接缝」检测（相邻列跳变 1.2 码，阈值 8）。</p></blockquote>
 <p>执行顺序：全局轮盘（权重 1）先做，三个带再做。</p>
 <h2 id="标定状态诚实声明">标定状态（诚实声明）</h2>
@@ -105,8 +153,18 @@ python tools/smoke.sh                  # 全算子冒烟</code></pre>
 <h2 id="model">Model</h2>
 <p>Bands are chosen from the pixel's own Rec.709 luminance (gamma domain):</p>
 <ul><li>default splits: shadow/midtone <strong>0.3</strong>, midtone/highlight <strong>0.7</strong>;</li><li>Blending spreads both hard boundaries into smoothstep transitions (100 → ±0.25 each), and the midtone weight is 1 − shadow − highlight;</li><li>Balance ±100 shifts both boundaries by ±0.25.</li></ul>
+<div class="math-display">$$h = 0.25\cdot\frac{\text{Blending}}{100},\qquad
+e_{\text{sh}} = 0.3 + 0.25\cdot\frac{B}{100},\qquad
+e_{\text{hi}} = 0.7 + 0.25\cdot\frac{B}{100}$$</div>
+<div class="math-display">$$w_{\text{sh}} = 1-\operatorname{smooth}\!\left(\frac{Y-e_{\text{sh}}}{2h}+\frac{1}{2}\right),\qquad
+w_{\text{hi}} = \operatorname{smooth}\!\left(\frac{Y-e_{\text{hi}}}{2h}+\frac{1}{2}\right),\qquad
+w_{\text{mid}} = 1-w_{\text{sh}}-w_{\text{hi}}$$</div>
 <p>One pass of a wheel (multiplied by the band weight w):</p>
 <ul><li>luminance: <code>V += Lw × 0.005 × w</code> (same coefficient as <code>lb:hsl-seven</code>);</li><li>tint strength <code>t = Sat/100 × w</code>: blend toward the <strong>wheel colour at the same luminance</strong>, <code>rgb = rgb·(1−t) + tint·t</code> with <code>tint = HSV(wheel hue, 1, V)</code>. Grey pixels pick up the tint naturally; a hue close to the wheel's complement is desaturated (mixed with grey). <strong>Hue is never interpolated</strong>, so there is no seam where the rotation direction flips.</li></ul>
+<div class="math-display">$$V \leftarrow V + 0.005\,L_w\,w,\qquad
+t = \frac{\text{Sat}}{100}\,w,\qquad
+\text{rgb} \leftarrow \text{rgb}\,(1-t) + \text{tint}\,t,\qquad
+\text{tint} = \operatorname{HSV}(h_w,\,1,\,V)$$</div>
 <blockquote><p>Fixed 2026-11-12: the first version used "converge the hue toward the wheel hue", which flipped <code>roundf</code>'s rotation direction at complementary hues (≈180° apart) and produced vertical banding on clipped highlights (visible in the night-blue demo image). It now blends toward the wheel colour, and <code>check_color_grading.py</code> gained a "no seam at complementary hues" test (jump of 1.2 code values between adjacent columns, threshold 8).</p></blockquote>
 <p>Order of execution: the global wheel (weight 1) first, then the three bands.</p>
 <h2 id="calibration-status-honest-disclosure">Calibration status (honest disclosure)</h2>
@@ -144,7 +202,7 @@ python tools/smoke.sh                  # smoke test for every operator</code></p
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">597e2cf</span>
+    <span class="muted">bc25d51</span>
   </div>
 </footer>
 <script>

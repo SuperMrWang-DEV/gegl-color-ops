@@ -13,10 +13,12 @@ Panel: `Colors → SuperMrWang → Tone → Levels`.
 
 Per channel:
 
-```
-t   = clamp((v - inLow) / (inHigh - inLow), 0, 1)
-t'  = t ^ (1 / gamma)
-out = outLow + t' * (outHigh - outLow)
+```math
+t = \operatorname{clamp}\!\left(\frac{v-\text{inLow}}{\text{inHigh}-\text{inLow}},\,0,\,1\right),
+\qquad
+t' = t^{1/\gamma},
+\qquad
+\text{out} = \text{outLow} + t'\,\bigl(\text{outHigh}-\text{outLow}\bigr)
 ```
 
 - `inLow` and below is crushed to `outLow`, `inHigh` and above to `outHigh`, and the

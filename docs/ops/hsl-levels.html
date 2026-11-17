@@ -9,7 +9,45 @@
 <meta property="og:description" content="HSL 三个分量各自设输入 / 输出黑白场与伽马">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
 (function () {
   try {
     var q = new URLSearchParams(location.search).get("lang");
@@ -56,6 +94,20 @@
 <h2 id="色彩空间">色彩空间</h2>
 <p>直接工作在 babl 的 <code>HSLA float</code> 上，RGB↔HSL 交给 babl——与 GIMP 的 「分解 → HSL」「提取分量 → HSL 饱和度/明度」用同一套转换，算子内部没有 自己写的色彩转换代码。</p>
 <ul><li>H：0–360°，内部是 babl 的 0–1 归一化值，界面按度数给</li><li>S：0–100%，定义是 <code>S = (max−min) / (1 − |2L−1|)</code>（HSL 的 S，不是 HSV 的）</li><li>L：0–100%，<code>L = (max+min)/2</code></li></ul>
+<div class="math-display">$$z = (h-\text{ia}) \bmod 360,\qquad
+S_{\text{in}} = (\text{ib}-\text{ia}) \bmod 360,\qquad
+S_{\text{out}} = (\text{ob}-\text{oa}) \bmod 360$$</div>
+<div class="math-display">$$h' = \bigl(\text{base} + \text{span}\cdot t^{1/\gamma}\bigr) \bmod 360,\qquad
+(t,\ \text{base},\ \text{span}) =
+\begin{cases}
+\left(\dfrac{z}{S_{\text{in}}},\ \text{oa},\ S_{\text{out}}\right), &amp; z \le S_{\text{in}} \\[10pt]
+\left(\dfrac{z-S_{\text{in}}}{360-S_{\text{in}}},\ \text{oa}+S_{\text{out}},\ 360-S_{\text{out}}\right), &amp; z &gt; S_{\text{in}}
+\end{cases}$$</div>
+<p><span class="math">$S_{\text{in}}$</span> 或 <span class="math">$S_{\text{out}}$</span> 为 0（黑白场重合）时按整圈 <span class="math">$360°$</span> 处理。</p>
+<div class="math-display">$$u = \operatorname{clamp}\!\left(\frac{x-x_{\text{lo}}}{x_{\text{hi}}-x_{\text{lo}}},\,0,\,1\right),
+\qquad
+\text{out} = o_{\text{lo}} + u^{1/\gamma}\,\bigl(o_{\text{hi}}-o_{\text{lo}}\bigr)$$</div>
+<p><span class="math">$o_{\text{lo}} &gt; o_{\text{hi}}$</span> 时输出反相；结果夹在 <span class="math">$[\min(o_{\text{lo}},o_{\text{hi}}),\ \max(o_{\text{lo}},o_{\text{hi}})]$</span> 内。</p>
 <h2 id="规则细则">规则细则</h2>
 <ul><li><strong>色相是环形的</strong>，不能像普通通道那样 clamp。做法是把圆在黑场处剪开： 主弧「黑场 → 白场（顺时针）」线性映到输出弧「输出下限 → 输出上限」， 剩下的弧按比例映到剩余的弧长，两段共用 gamma。整圈上连续， 默认参数（0/360 → 0/360，γ=1）逐位还原。</li><li><strong>黑白场重合 = 整圈</strong>：把输入黑白场拉到同一个角度，等于「纯色相旋转 + gamma 环绕」，而不是塌成单色。</li><li><strong>S/L 是普通线性通道</strong>：clamp 到输入范围 → 归一化 → gamma → 映射到输出 范围。输出反向（下限 &gt; 上限）会得到负片式的反相。</li><li><strong>黑白场交叉自动交换</strong>，滑杆拉过头不会算出负区间。</li><li><strong>alpha ≤ 0 的像素原样透传</strong>，色彩不再被映射。</li></ul>
 <h2 id="与-lblab-levels-的关系">与 lb:lab-levels 的关系</h2>
@@ -100,6 +152,20 @@
 <h2 id="colour-space">Colour space</h2>
 <p>The operator works directly on babl's <code>HSLA float</code>; RGB↔HSL is babl's job — the same conversion GIMP's "Decompose → HSL" and "Extract Component → HSL Saturation/Lightness" use. There is no hand-written colour conversion inside the operator.</p>
 <ul><li>H: 0–360°, stored as babl's 0–1 normalised value, shown in degrees</li><li>S: 0–100%, defined as <code>S = (max−min) / (1 − |2L−1|)</code> (HSL's S, not HSV's)</li><li>L: 0–100%, <code>L = (max+min)/2</code></li></ul>
+<div class="math-display">$$z = (h-\text{ia}) \bmod 360,\qquad
+S_{\text{in}} = (\text{ib}-\text{ia}) \bmod 360,\qquad
+S_{\text{out}} = (\text{ob}-\text{oa}) \bmod 360$$</div>
+<div class="math-display">$$h' = \bigl(\text{base} + \text{span}\cdot t^{1/\gamma}\bigr) \bmod 360,\qquad
+(t,\ \text{base},\ \text{span}) =
+\begin{cases}
+\left(\dfrac{z}{S_{\text{in}}},\ \text{oa},\ S_{\text{out}}\right), &amp; z \le S_{\text{in}} \\[10pt]
+\left(\dfrac{z-S_{\text{in}}}{360-S_{\text{in}}},\ \text{oa}+S_{\text{out}},\ 360-S_{\text{out}}\right), &amp; z &gt; S_{\text{in}}
+\end{cases}$$</div>
+<p>A zero <span class="math">$S_{\text{in}}$</span> or <span class="math">$S_{\text{out}}$</span> (coincident black / white points) is treated as the full <span class="math">$360°$</span> circle.</p>
+<div class="math-display">$$u = \operatorname{clamp}\!\left(\frac{x-x_{\text{lo}}}{x_{\text{hi}}-x_{\text{lo}}},\,0,\,1\right),
+\qquad
+\text{out} = o_{\text{lo}} + u^{1/\gamma}\,\bigl(o_{\text{hi}}-o_{\text{lo}}\bigr)$$</div>
+<p>An inverted output (<span class="math">$o_{\text{lo}} &gt; o_{\text{hi}}$</span>) gives a negative-style inverse; the result is clamped to <span class="math">$[\min(o_{\text{lo}},o_{\text{hi}}),\ \max(o_{\text{lo}},o_{\text{hi}})]$</span>.</p>
 <h2 id="rules">Rules</h2>
 <ul><li><strong>Hue is circular</strong> and cannot be clamped like an ordinary channel. The circle is cut at the black point: the main arc "black point → white point (clockwise)" maps linearly onto the output arc "output low → output high", the remaining arc maps proportionally onto the remaining arc length, and both share the gamma. It is continuous all the way round; the defaults (0/360 → 0/360, γ=1) restore the input bit for bit.</li><li><strong>Black and white point at the same angle means the whole circle</strong>: pulling both to one angle gives "pure hue rotation + wrap-around gamma" instead of collapsing to a single colour.</li><li><strong>S and L are ordinary linear channels</strong>: clamp to the input range → normalise → gamma → map onto the output range. An inverted output (low &gt; high) gives a negative-style inverse.</li><li><strong>Crossed black and white points swap automatically</strong>, so overshooting a slider never produces a negative range.</li><li><strong>Pixels with alpha ≤ 0 pass through untouched</strong>; their colour is not mapped.</li></ul>
 <h2 id="relation-to-lblab-levels">Relation to lb:lab-levels</h2>
@@ -137,7 +203,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">597e2cf</span>
+    <span class="muted">bc25d51</span>
   </div>
 </footer>
 <script>

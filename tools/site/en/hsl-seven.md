@@ -26,6 +26,26 @@ The seven original property names and their boundary behaviour are unchanged, an
 operator id stays `lb:hsl-seven` — that string is what GIMP stores in XCF files and
 cannot be renamed.
 
+## Algorithm
+
+Eight hue bands each carry their own H/S/L offset, summed with band weights; the
+boundaries cross-fade with smoothstep:
+
+```math
+w_k(h) = \sigma\!\left(h,\ s_k-f,\ s_k\right)\cdot\Bigl(1-\sigma\bigl(h,\ e_k,\ e_k+f\bigr)\Bigr),
+\qquad f = 0.01\cdot\text{feather}
+```
+
+```math
+H \mathrel{+}= \frac{\Delta H_k}{100}\cdot 60°\,w_k,\qquad
+S \mathrel{+}= \frac{\Delta S_k}{100}\,w_k,\qquad
+L \mathrel{+}= \frac{\Delta L_k}{100}\,w_k
+```
+
+The bands tile the circle (red 0–45°, orange 45–90°, … magenta 315–360°), so the
+weights sum to 1. Pixels below `min-saturation` can be skipped entirely.
+
+
 ## Relation to `lb:hue-saturation`
 
 `lb:hue-saturation` is the classic editor's dialog: a master control plus six hue ranges,

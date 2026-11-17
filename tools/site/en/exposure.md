@@ -15,10 +15,10 @@ branch one with 8-bit.
 
 ### Branch one: integer formats (sRGB gamma-encoded values)
 
-```
-v1 = min(c · 2^(EV/2.2), 1)
-v2 = clamp(v1^2.2 + offset, 0, 1)^(1/2.2)
-v3 = v2^(1/gamma)
+```math
+v_1 = \min\!\left(c\cdot 2^{EV/2.2},\ 1\right),\qquad
+v_2 = \operatorname{clamp}\!\left(v_1^{2.2} + o,\ 0,\ 1\right)^{1/2.2},\qquad
+v_3 = v_2^{\,1/\gamma}
 ```
 
 Multiplying by `2^(EV/2.2)` in the gamma domain is exactly equivalent to multiplying
@@ -32,9 +32,8 @@ white. The old implementation was missing this line.
 
 ### Branch two: float formats (linear light)
 
-```
-v1 = c · 2^EV + offset
-v2 = clamp(v1, 0, ∞)^(1/gamma)
+```math
+v_1 = c\cdot 2^{EV} + o,\qquad v_2 = \bigl(\max(v_1,\,0)\bigr)^{1/\gamma}
 ```
 
 The input is already linear, so there is no 2.2 round trip; exposure is one multiply

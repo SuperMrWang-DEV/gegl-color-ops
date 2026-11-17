@@ -39,6 +39,29 @@ the classic editor's mask may point at a *third* image — neither the target no
 A GEGL composer only exposes two inputs, so the mask is limited to "this layer" or
 "the source layer", which covers the overwhelming majority of real use.
 
+## Algorithm
+
+```mermaid
+flowchart TD
+  A["this layer (input)"] --> C1["target-channel"]
+  B["source (aux), optionally one channel"] --> C2["source-channel → composite or luminance"]
+  C2 --> M["B = mode(A, B)"]
+  C1 --> M
+  M --> N["blend back with opacity and mask<br/>alpha = opacity/100 × mask × source alpha"]
+  N --> O{"target-channel"}
+  O -- "Composite" --> P["replace the whole pixel"]
+  O -- "single channel" --> Q["write that channel only, keep the rest"]
+```
+
+```math
+\text{out} = (1-\alpha)\,A + \alpha\,B_{\text{mode}}(A,B),\qquad
+\alpha = \frac{\text{opacity}}{100}\cdot m\cdot\alpha_{\text{src}}
+```
+
+```math
+\text{add/sub:}\quad \text{out} = \operatorname{clamp}\!\left(\frac{A \pm B}{\text{scale}} + \frac{\text{offset}}{255},\ 0,\ 1\right)
+```
+
 ## Behaviour notes
 
 - **With no aux connected** the source falls back to the input itself, which is

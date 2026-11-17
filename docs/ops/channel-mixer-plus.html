@@ -9,7 +9,45 @@
 <meta property="og:description" content="经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移the classic editor Channel Mixer: every output channel is a weighted sum of">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
 (function () {
   try {
     var q = new URLSearchParams(location.search).get("lang");
@@ -52,9 +90,11 @@
   <article class="prose">
 <h2 id="算法">算法</h2>
 <p>每路输出通道都是 RGB 三源通道的加权和，再加该通道自己的常数项：</p>
-<pre><code>R' = rr·R + rg·G + rb·B + r_off
-G' = gr·R + gg·G + gb·B + g_off
-B' = br·R + bg·G + bb·B + b_off</code></pre>
+<div class="math-display">$$\begin{aligned}
+R' &amp;= r_r\,R + r_g\,G + r_b\,B + r_{\text{off}} \\
+G' &amp;= g_r\,R + g_g\,G + g_b\,B + g_{\text{off}} \\
+B' &amp;= b_r\,R + b_g\,G + b_b\,B + b_{\text{off}}
+\end{aligned}$$</div>
 <p>默认是单位矩阵（对角 1、其余 0）、常数全 0，所以什么都不动时算子等于直通。 结果裁到 0..1。增益允许 −2…2，既能加也能减某个通道。</p>
 <h2 id="单色">单色</h2>
 <p><code>monochrome</code> 打开后三路共用一组系数（<code>mono_r</code> / <code>mono_g</code> / <code>mono_b</code>，默认 0.33 / 0.33 / 0.34）加一个 <code>mono_offset</code>，输出灰图——就是 经典图像编辑器 那个单色勾选框。 此时逐通道矩阵被忽略，两套设置可以共存，来回切换不丢。</p>
@@ -106,9 +146,11 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
 <p><code>lb:channel-mixer-plus</code> · menu <strong>Colors → SuperMrWang → Blend → Channel Mixer Plus</strong> · <code>GeglOperationPointFilter</code> (per-pixel)</p>
 <h2 id="what-it-does">What it does</h2>
 <p>Each output channel is a weighted sum of the three input channels plus its own constant offset:</p>
-<pre><code>R' = rr·R + rg·G + rb·B + r_off
-G' = gr·R + gg·G + gb·B + g_off
-B' = br·R + bg·G + bb·B + b_off</code></pre>
+<div class="math-display">$$\begin{aligned}
+R' &amp;= r_r\,R + r_g\,G + r_b\,B + r_{\text{off}} \\
+G' &amp;= g_r\,R + g_g\,G + g_b\,B + g_{\text{off}} \\
+B' &amp;= b_r\,R + b_g\,G + b_b\,B + b_{\text{off}}
+\end{aligned}$$</div>
 <p>The defaults are the identity matrix (1 on the diagonal, 0 elsewhere) with every offset at 0, so the operator passes the image through untouched until you move something. Results are clipped to 0..1.</p>
 <h2 id="monochrome">Monochrome</h2>
 <p>With <code>monochrome</code> on, the three output channels share one set of coefficients (<code>mono_r</code> / <code>mono_g</code> / <code>mono_b</code>, plus <code>mono_offset</code>) and the image turns grey — the same thing the classic editor's monochrome checkbox does. The per-channel matrix is ignored in that mode, so you can keep both settings and flip between them.</p>
@@ -162,7 +204,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">597e2cf</span>
+    <span class="muted">bc25d51</span>
   </div>
 </footer>
 <script>

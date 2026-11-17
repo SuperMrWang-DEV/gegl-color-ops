@@ -26,6 +26,29 @@ into a single channel.
 | `preserve-transparency` | 否 | 全透明像素保持不动（经典图像编辑器的「保留透明区域」） |
 | `output-mode` | Composite | 输出合成结果 / 灰蒙版 / alpha 蒙版 |
 
+## 算法
+
+```mermaid
+flowchart TD
+  A["本层 input"] --> C1["目标通道 target-channel"]
+  B["源 aux（可只取一个通道）"] --> C2["source-channel → 合成或亮度"]
+  C2 --> M["B = mode(A, B)"]
+  C1 --> M
+  M --> N["按 opacity 与 mask 回插<br/>alpha = opacity/100 × mask × 源 alpha"]
+  N --> O{"target-channel"}
+  O -- "Composite" --> P["整像素替换"]
+  O -- "单通道" --> Q["只写回该通道，其余保留"]
+```
+
+```math
+\text{out} = (1-\alpha)\,A + \alpha\,B_{\text{mode}}(A,B),\qquad
+\alpha = \frac{\text{opacity}}{100}\cdot m\cdot\alpha_{\text{src}}
+```
+
+```math
+\text{add/sub:}\quad \text{out} = \operatorname{clamp}\!\left(\frac{A \pm B}{\text{scale}} + \frac{\text{offset}}{255},\ 0,\ 1\right)
+```
+
 ## 与 经典图像编辑器的对应关系 / How it maps to 经典图像编辑器
 
 | 经典图像编辑器 | 这里 |

@@ -82,6 +82,24 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/
 的灰像素可以选择跳过（灰没有有意义的色相）。参照物是 RAW 编辑器 的 HSL 面板：
 只想压掉某几个色相的饱和、或者只把某个色相提亮，就拖那一段。
 
+## 算法
+
+八段色相各有一套 H/S/L 偏移，按段权重叠加；段边界用 smoothstep 交叉淡化：
+
+```math
+w_k(h) = \sigma\!\left(h,\ s_k-f,\ s_k\right)\cdot\Bigl(1-\sigma\bigl(h,\ e_k,\ e_k+f\bigr)\Bigr),
+\qquad f = 0.01\cdot\text{feather}
+```
+
+```math
+H \mathrel{+}= \frac{\Delta H_k}{100}\cdot 60°\,w_k,\qquad
+S \mathrel{+}= \frac{\Delta S_k}{100}\,w_k,\qquad
+L \mathrel{+}= \frac{\Delta L_k}{100}\,w_k
+```
+
+八段首尾相接（红 0–45°、橙 45–90°……洋红 315–360°），权重和恒为 1；
+$S < \text{min-saturation}$ 的灰像素可以整段跳过。
+
 ## 2026-11-12：补上洋红段
 
 RAW 编辑器 的混色器是八段，本算子原来只有七段。原紫段（0.78–0.92）对半拆成

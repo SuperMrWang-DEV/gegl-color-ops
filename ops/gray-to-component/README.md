@@ -53,6 +53,21 @@ Value / LCh Hue / LCh Chroma / LCh Color / LCh Lightness / Luminance**。本算�
 - **`lch-color` ≡ `lch-hue`**：LCh Color 只读色相 + 色度，而 `lch-hue` 的色度
   本来就由 `lch-c` 固定住了。单列一条纯粹是让人按 GIMP 的模式名对号入座。
 
+把上表写成式子（$g$ 是输入的灰度，$c_s$、$L_0$、$C$、$h_0$ 是参数）：
+
+```math
+\begin{aligned}
+\text{hue}:\quad & \operatorname{HSL2RGB}(360°g,\ 1,\ \tfrac{1}{2}) \\
+\text{saturation}:\quad & \operatorname{HSV2RGB}(h_{\text{sat}},\ g,\ 1) \\
+\text{color}:\quad & \operatorname{HSL2RGB}(360°g,\ c_s,\ \tfrac{1}{2}) \\
+\text{value}:\quad & (g,\ g,\ g) \\
+\text{lightness} \equiv \text{luminance}:\quad & \operatorname{Lab}(100g,\ 0,\ 0) \\
+\text{lch-hue} \equiv \text{lch-color}:\quad & \operatorname{Lab}\bigl(L_0,\ C\cos 360°g,\ C\sin 360°g\bigr) \\
+\text{lch-chroma}:\quad & \operatorname{Lab}\bigl(L_0,\ C\cos h_0,\ C\sin h_0\bigr) \\
+\text{red/green/blue}:\quad & (g,0,0)\ /\ (0,g,0)\ /\ (0,0,g)
+\end{aligned}
+```
+
 **Color 的单通道困境**：Color 模式要同时读色相和饱和度，可一层灰度只有一个
 标量。本算子的取舍是「灰度携带色相，饱和度由 `color-sat` 给定」——想整幅换色
 同时压饱和度，就把 `color-sat` 调到 45%，比先 `hue` 再叠一层降饱和简单。

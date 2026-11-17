@@ -188,8 +188,7 @@ invert / colors(highlights|midtones|shadows|outOfGamut|skinTone)
 
 ## 自定颜色改用 CIELAB ΔE，色系预设改彩度门（2026-11-16）
 
-这次只动「匹配质量」，容差窗公式 `alpha = 1 − smoothstep(d, w·(1−feather), w)`
-和色调模式一概没改（768 点对 经典图像编辑器 回归仍是平均 2.12 码）。
+这次只动「匹配质量」，容差窗公式和色调模式一概没改（768 点对 经典图像编辑器 回归仍是平均 2.12 码）。
 
 ### 自定颜色：RGB 距离 → CIELAB ΔE（ΔE94 明度权重 kL=2）
 
@@ -205,7 +204,16 @@ invert / colors(highlights|midtones|shadows|outOfGamut|skinTone)
    暗红不该被明度差拆开。
 
 现在的模型：babl 整行转 CIELAB（与像素同一套源空间→Lab 通路），逐像素只算
-欧氏距离；**ΔL 折半（ΔE94 的 kL=2），d = ΔE/100 钳到 1**。实测色卡
+欧氏距离；**ΔL 折半（ΔE94 的 kL=2），d = ΔE/100 钳到 1**：
+
+```math
+\Delta E = \sqrt{\Bigl(\frac{\Delta L}{2}\Bigr)^2 + \Delta a^2 + \Delta b^2},\qquad
+d = \min\!\left(\frac{\Delta E}{100},\ 1\right)
+```
+
+```math
+\alpha = 1-\operatorname{smoothstep}\bigl(d,\ w\,(1-\text{feather}),\ w\bigr)
+```实测色卡
 （目标 = 纯红，羽化 0）：
 
 | 容差 | 入选 | 落选 |

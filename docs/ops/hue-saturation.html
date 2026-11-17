@@ -9,7 +9,45 @@
 <meta property="og:description" content="全局或按红/黄/绿/青/蓝/品红六个色相区间调整色相、饱和度、明度">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
 (function () {
   try {
     var q = new URLSearchParams(location.search).get("lang");
@@ -53,6 +91,15 @@
 <p>仿 GIMP「色相-饱和度」滤镜的 GEGL point filter，在 <strong>HSL</strong> 空间逐像素调整， 工作于感知（非线性）RGB 格式 <code>R~G~B~A float</code>，自动跟随源色彩空间。</p>
 <h2 id="功能">功能</h2>
 <ul><li><strong>主控</strong>：<code>hue</code>（度数 ±180）、<code>saturation</code>（±1，加法）、<code>lightness</code>（±1，加法）</li><li><strong>六个色相区间</strong>（红/黄/绿/青/蓝/品红，中心各相隔 60°）各自拥有独立的 <code>*-hue / *-saturation / *-lightness</code>，按三角形权重与主控叠加</li><li><strong><code>overlap</code></strong>（0–1）：区间宽度 = 60° × (1 + overlap)。默认 0 = 六个区间恰好铺满色环、 区间中心获得 100% 设定；调大则相邻区间互相渗透（柔和但峰值强度按权重比例稀释）</li><li>灰阶像素（S &lt; 1e-5）不染色：色相/饱和度调整被跳过，仅应用明度</li><li>全零参数时直接 memcpy 透传（含 alpha），HDR 超范围值按 [0,1] 截断后计算</li></ul>
+<h2 id="算法">算法</h2>
+<p>在 HSL 上逐像素：六个色相区间各有一套增量，按三角权重混合后与主控叠加。</p>
+<div class="math-display">$$w_k(h) = \max\!\left(0,\ 1-\frac{\lvert h-c_k\rvert_{\text{circ}}}{60°\,(1+o)}\right),
+\qquad c_k = 60°\,k,\quad k = 0..5$$</div>
+<div class="math-display">$$\hat w_k = \frac{w_k}{\sum_{j=0}^{5} w_j},\qquad
+H \mathrel{+}= \text{hue} + \sum_k \hat w_k\,\text{hue}_k,\quad
+S \mathrel{+}= \sum_k \hat w_k\,\text{sat}_k,\quad
+L \mathrel{+}= \sum_k \hat w_k\,\text{light}_k$$</div>
+<ul><li><span class="math">$o$</span> 是 <code>overlap</code>：区间半宽 <span class="math">$60°(1+o)$</span>，为 0 时六块刚好铺满色环、区间中心拿满权重；</li><li>灰阶（<span class="math">$S&lt;10^{-5}$</span>）跳过色相与饱和度，只加明度，避免灰被染色；</li><li>全零参数直接透传。</li></ul>
 <h2 id="构建msys2-mingw64-git-bash">构建（MSYS2 mingw64 / Git Bash）</h2>
 <pre><code class="language-bash">export PKG_CONFIG_PATH="/d/fastsoftware/GIMP 3/lib/pkgconfig"
 eval gcc -shared -I. -O2 -Wall wb-hue-saturation.c \
@@ -86,6 +133,7 @@ drawable.merge_filter(filter)             # 非破坏性；Gimp.displays_flush()
   <aside class="toc">
   <p class="toc-title">本页目录</p>
   <ul><li class="l2"><a href="#功能">功能</a></li>
+<li class="l2"><a href="#算法">算法</a></li>
 <li class="l2"><a href="#构建msys2-mingw64-git-bash">构建（MSYS2 mingw64 / Git Bash）</a></li>
 <li class="l2"><a href="#验证不进-gimp">验证（不进 GIMP）</a></li>
 <li class="l2"><a href="#安装到-gimp-3">安装到 GIMP 3</a></li>
@@ -108,6 +156,15 @@ drawable.merge_filter(filter)             # 非破坏性；Gimp.displays_flush()
 <p>A GEGL point filter modelled on GIMP's Hue-Saturation filter: per-pixel adjustments in <strong>HSL</strong>, working on the perceptual (non-linear) <code>R~G~B~A float</code> format and following the source colour space automatically.</p>
 <h2 id="features">Features</h2>
 <ul><li><strong>Master</strong>: <code>hue</code> (degrees, ±180), <code>saturation</code> (±1, additive), <code>lightness</code> (±1, additive)</li><li><strong>Six hue ranges</strong> (red / yellow / green / cyan / blue / magenta, centres 60° apart), each with its own <code>*-hue / *-saturation / *-lightness</code>, blended with the master by a triangular weight</li><li><strong><code>overlap</code></strong> (0–1): range width = 60° × (1 + overlap). The default of 0 makes the six ranges tile the wheel exactly, with each centre getting 100% of its setting; raising it lets neighbours bleed into each other (softer, but the peak strength is diluted in proportion)</li><li>Grey pixels (S &lt; 1e-5) are not tinted: the hue and saturation adjustments are skipped and only lightness is applied</li><li>All-zero parameters <code>memcpy</code> straight through (alpha included); HDR values outside the range are clipped to [0,1] before the maths</li></ul>
+<h2 id="algorithm">Algorithm</h2>
+<p>Per pixel in HSL: each of the six hue ranges carries its own offset, blended with triangular weights and added to the master values.</p>
+<div class="math-display">$$w_k(h) = \max\!\left(0,\ 1-\frac{\lvert h-c_k\rvert_{\text{circ}}}{60°\,(1+o)}\right),
+\qquad c_k = 60°\,k,\quad k = 0..5$$</div>
+<div class="math-display">$$\hat w_k = \frac{w_k}{\sum_{j=0}^{5} w_j},\qquad
+H \mathrel{+}= \text{hue} + \sum_k \hat w_k\,\text{hue}_k,\quad
+S \mathrel{+}= \sum_k \hat w_k\,\text{sat}_k,\quad
+L \mathrel{+}= \sum_k \hat w_k\,\text{light}_k$$</div>
+<ul><li><span class="math">$o$</span> is <code>overlap</code>: the half width is <span class="math">$60°(1+o)$</span>, so at 0 the six ranges tile the circle exactly and each centre gets full weight;</li><li>greys (<span class="math">$S&lt;10^{-5}$</span>) skip hue and saturation and only take lightness, so they are never tinted;</li><li>all-zero parameters memcpy straight through.</li></ul>
 <h2 id="usage-in-gimp-3-python">Usage in GIMP 3 Python</h2>
 <pre><code class="language-python">from gi.repository import Gimp, Gegl
 
@@ -129,6 +186,7 @@ drawable.merge_filter(filter)             # non-destructive; Gimp.displays_flush
   <aside class="toc">
   <p class="toc-title">On this page</p>
   <ul><li class="l2"><a href="#features">Features</a></li>
+<li class="l2"><a href="#algorithm">Algorithm</a></li>
 <li class="l2"><a href="#usage-in-gimp-3-python">Usage in GIMP 3 Python</a></li>
 <li class="l2"><a href="#verified-behaviour-gegl-cli">Verified behaviour (GEGL CLI)</a></li></ul>
 </aside>
@@ -143,7 +201,7 @@ drawable.merge_filter(filter)             # non-destructive; Gimp.displays_flush
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">597e2cf</span>
+    <span class="muted">bc25d51</span>
   </div>
 </footer>
 <script>

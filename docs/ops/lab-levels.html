@@ -9,7 +9,45 @@
 <meta property="og:description" content="LAB 三通道各自设输入 / 输出黑白场与伽马">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
 (function () {
   try {
     var q = new URLSearchParams(location.search).get("lang");
@@ -55,6 +93,12 @@
 <p>对 CIELAB 的 L/a/b 三个通道各自做独立的色阶调整：输入黑场/白场、gamma、 输出下限/上限。L 管明度，a（绿−洋红）与 b（蓝−黄）管色彩倾向—— 调整 a/b 时明度和中性色都不受影响，这是它与 RGB 色阶的本质差异。</p>
 <h2 id="色彩空间">色彩空间</h2>
 <p>算子直接工作在 babl 的 <code>CIE Lab alpha float</code>（<strong>D50 白点</strong>）上， RGB↔Lab 交给 babl——数值口径与 GIMP 原生 Lab 工具（指针、曲线的 Lab 模式） 及 <code>lb:match-color</code> 一致。在 Lab 域做 levels 等价于感知域映射， 不依赖"线性光"前提（历史版本自带 D65 线性 RGB→XYZ 转换，已废弃）。</p>
+<div class="math-display">$$x \leftarrow \operatorname{clamp}(x,\ i_{\text{lo}},\ i_{\text{hi}}),\qquad
+x' = \begin{cases}
+o_{\text{lo}} + u_{-}^{1/\gamma}\,\bigl(0 - o_{\text{lo}}\bigr), &amp; x &lt; 0,\quad u_{-} = \dfrac{x - i_{\text{lo}}}{0 - i_{\text{lo}}} \\[12pt]
+o_{\text{hi}}\,u_{+}^{1/\gamma}, &amp; x \ge 0,\quad u_{+} = \dfrac{x}{i_{\text{hi}}}
+\end{cases}$$</div>
+<p>两个半轴各自归一到 <span class="math">$[0,1]$</span> 再做 gamma，所以 <span class="math">$x = 0$</span>（中性轴）在任意 <span class="math">$\gamma$</span> 下都不动。</p>
 <h2 id="规则细则">规则细则</h2>
 <ul><li><strong>a/b 的 gamma 绕中性轴 0 转动</strong>：负半轴 <code>[in_black, 0]</code> 与正半轴 <code>[0, in_white]</code> 各自归一化后做 gamma。中性像素（a=b=0 的灰白）在任意 gamma 下保持不动；拖 a/b gamma 只改变彩色中间调的倾向强度。</li><li><strong>黑白场交叉自动交换</strong>：输入黑场拉过白场（或反之）时按交换后的范围映射， 不会塌成单色。</li><li><strong>输出反向（负片）可用</strong>：输出下限 &gt; 上限时做反向映射，clamp 到真实 上下界——L 反转即明度负片，a/b 反转即色度负片。</li><li><strong>alpha ≤ 0 像素原样透传</strong>，alpha 通道始终保留。</li><li>L 的削顶范围 <code>[0, 100]</code>，a/b 为 <code>[-128, 127]</code>，输出自动 clamp。</li><li>L 的 gamma 是标准色阶语义（绕输入范围中点），与 a/b 的绕中性轴不同。</li></ul>
 <h2 id="性能">性能</h2>
@@ -99,6 +143,12 @@
 <p>Independent levels for CIELAB's L/a/b channels: input black/white point, gamma, output range. L controls lightness, a (green–magenta) and b (blue–yellow) control colour cast — adjusting a/b leaves lightness and neutral colours untouched, which is what separates this from RGB levels.</p>
 <h2 id="colour-space">Colour space</h2>
 <p>The operator works on babl's <code>CIE Lab alpha float</code> (<strong>D50 white point</strong>); RGB↔Lab is babl's job, so the numbers agree with GIMP's own Lab tools (the pointer dialog, the Lab mode of Curves) and with <code>lb:match-color</code>. Doing levels in Lab is a perceptual mapping and does not rely on a "linear light" assumption (an older build carried its own D65 linear RGB→XYZ conversion; that is gone).</p>
+<div class="math-display">$$x \leftarrow \operatorname{clamp}(x,\ i_{\text{lo}},\ i_{\text{hi}}),\qquad
+x' = \begin{cases}
+o_{\text{lo}} + u_{-}^{1/\gamma}\,\bigl(0 - o_{\text{lo}}\bigr), &amp; x &lt; 0,\quad u_{-} = \dfrac{x - i_{\text{lo}}}{0 - i_{\text{lo}}} \\[12pt]
+o_{\text{hi}}\,u_{+}^{1/\gamma}, &amp; x \ge 0,\quad u_{+} = \dfrac{x}{i_{\text{hi}}}
+\end{cases}$$</div>
+<p>Each half axis is normalised to <span class="math">$[0,1]$</span> before the gamma, so <span class="math">$x = 0$</span> (the neutral axis) stays put for any <span class="math">$\gamma$</span>.</p>
 <h2 id="rules">Rules</h2>
 <ul><li><strong>a/b gamma rotates around the neutral axis at 0</strong>: the negative half <code>[in_black, 0]</code> and the positive half <code>[0, in_white]</code> are each normalised before the gamma. A neutral pixel (a=b=0, any grey) stays put at any gamma; dragging a/b gamma only changes how strong the coloured midtones lean.</li><li><strong>Crossed black and white points swap automatically</strong>: if the input black point is pulled past the white point (or the reverse), the swapped range is used and the image does not collapse to one colour.</li><li><strong>Inverted output (negative) works</strong>: with output low &gt; high the map is reversed and clamped to the real bounds — an inverted L is a lightness negative, inverted a/b are chroma negatives.</li><li><strong>Pixels with alpha ≤ 0 pass through</strong>; the alpha channel is always preserved.</li><li>L is clipped to <code>[0, 100]</code>, a/b to <code>[-128, 127]</code>; the output clamps automatically.</li><li>L's gamma is ordinary levels semantics (around the midpoint of the input range), unlike a/b's rotation around the neutral axis.</li></ul>
 <h2 id="performance">Performance</h2>
@@ -137,7 +187,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">597e2cf</span>
+    <span class="muted">bc25d51</span>
   </div>
 </footer>
 <script>

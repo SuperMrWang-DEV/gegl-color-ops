@@ -16,6 +16,38 @@ targets an **independently written Python reference** rather than the classic ed
 
 ## Algorithm
 
+```mermaid
+flowchart TD
+  A[".cube file"] --> B["parse LUT_3D_SIZE / DOMAIN_MIN / MAX<br/>normalise nodes by the declared domain"]
+  B --> C{"1D shaper?"}
+  C -- "yes" --> D["per-channel linear 1D interpolation"]
+  C -- "no" --> E["straight to the 3D table"]
+  D --> E
+  E --> F["3D sampling: trilinear or tetrahedral"]
+  F --> G["lerp with the source by strength"]
+  G --> H["clamp to 0..1, alpha passes through"]
+```
+
+Trilinear sums the eight corners with volume weights:
+
+```math
+C = \sum_{i,j,k\in\{0,1\}} w_i(r)\,w_j(g)\,w_k(b)\;L_{i,j,k},\qquad
+w_1(t)=t,\quad w_0(t)=1-t
+```
+
+Tetrahedral splits the cube into six tetrahedra by the ordering of $f_r/f_g/f_b$ and
+walks only three edges per tetrahedron:
+
+```math
+C = L_{000} + \sum_{\text{3 edges}} f_{\text{edge}}\cdot\bigl(L_{\text{edge}\to}-L_{\text{edge start}}\bigr)
+```
+
+Strength is applied on **encoded values**:
+
+```math
+\text{out} = \text{src} + \bigl(\text{lookup}(\text{src})-\text{src}\bigr)\cdot s
+```
+
 1. **Parse**: `LUT_1D_SIZE` / `LUT_3D_SIZE` / `DOMAIN_MIN` / `DOMAIN_MAX` /
    `LUT_1D_INPUT_RANGE` / `LUT_3D_INPUT_RANGE` / `TITLE` / `#` comments. Node
    values are normalised to 0..1 by the declared domain, so a table with

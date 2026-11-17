@@ -9,7 +9,45 @@
 <meta property="og:description" content="经典图像编辑器 匹配颜色：把另一张图（或另一层）的 Lab 统计量迁移到本层the classic editor Match Color: transfer the Lab statistics of another image(or la">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
 (function () {
   try {
     var q = new URLSearchParams(location.search).get("lang");
@@ -53,7 +91,12 @@
 <p>经典图像编辑器的「图像 → 调整 → 匹配颜色」的复刻：把<strong>另一张图 / 另一个图层</strong>的 颜色统计量迁移到本层。内核是 Reinhard 等 2001 年提出、经典图像编辑器 沿用至今的 L\<em>a\</em>b\* 均值-方差仿射迁移。</p>
 <h2 id="模型">模型</h2>
 <p>工作在 CIELAB（D50）里，对 L、a、b 各通道分别做：</p>
-<pre><code>out = (v − μ_target) · (σ_source / σ_target) + μ_source</code></pre>
+<div class="math-display">$$\text{out} = \bigl(v-\mu_t\bigr)\cdot\frac{\sigma_s}{\sigma_t} + \mu_s$$</div>
+<pre class="mermaid">flowchart TD
+  A["input 层 + aux 层（CIELAB D50）"] --&gt; B["整层扫描：累加 sum / sum²&lt;br/&gt;得 μ, σ（三通道）"]
+  B --&gt; C["缓存到 operation 实例&lt;br/&gt;键 = 缓冲指针 + extent + 层级"]
+  C --&gt; D["逐块 process&lt;br/&gt;out = (v − μ_t)·σ_s/σ_t + μ_s"]
+  D --&gt; E["输出"]</pre>
 <p>统计量对<strong>整层</strong>计算（经典图像编辑器 亦然），来源是 <code>aux</code> pad 接的图层；没接 aux 时 来源退化为本层自身，恒等映射。</p>
 <h2 id="与-经典图像编辑器的滑杆对应">与 经典图像编辑器的滑杆对应</h2>
 <div class="table-wrap"><table><thead><tr><th>经典图像编辑器</th><th>这里</th><th>语义（模型对齐，非逐码标定）</th></tr></thead><tbody><tr><td>亮度 Luminance（1–200，默认 100）</td><td><code>luminance</code></td><td>只缩放 L 的映射量：<code>k = 滑杆/100</code>，映射按 <code>lerp(1, ratio, k)</code> 收敛。100=精确匹配，200=双倍修正，1=几乎不动</td></tr><tr><td>颜色强度 Color Intensity（默认 100）</td><td><code>color-intensity</code></td><td>同上，只作用于 a/b</td></tr><tr><td>渐隐 Fade（0–100）</td><td><code>fade</code></td><td>整体映射量乘 <code>(1 − fade/100)</code>；等价 经典图像编辑器的「编辑 → 渐隐」</td></tr><tr><td>中和 Neutralize</td><td><code>neutralize</code></td><td>输出的 a/b 均值强制为 0（去色偏），L 照常；来源仍提供对比度</td></tr></tbody></table></div>
@@ -99,7 +142,12 @@
 <p>A reproduction of the classic editor's <strong>Image → Adjustments → Match Color</strong>: transfer the colour statistics of <strong>another image or layer</strong> onto this one. The core is the L\<em>a\</em>b\* mean–variance affine transfer proposed by Reinhard et al. in 2001, which the classic editor still uses.</p>
 <h2 id="model">Model</h2>
 <p>Working in CIELAB (D50), per channel, for L, a and b:</p>
-<pre><code>out = (v − μ_target) · (σ_source / σ_target) + μ_source</code></pre>
+<div class="math-display">$$\text{out} = \bigl(v-\mu_t\bigr)\cdot\frac{\sigma_s}{\sigma_t} + \mu_s$$</div>
+<pre class="mermaid">flowchart TD
+  A["input layer + aux layer (CIELAB D50)"] --&gt; B["whole-layer scan: accumulate sum / sum²&lt;br/&gt;→ μ, σ per channel"]
+  B --&gt; C["cache on the operation instance&lt;br/&gt;key = buffer pointer + extent + level"]
+  C --&gt; D["per-tile process&lt;br/&gt;out = (v − μ_t)·σ_s/σ_t + μ_s"]
+  D --&gt; E["out"]</pre>
 <p>Statistics are computed over the <strong>whole layer</strong> (the classic editor does the same), with the source coming from the layer wired to the <code>aux</code> pad. With no aux connected the source falls back to this layer itself, i.e. an identity map.</p>
 <h2 id="mapping-to-the-classic-editors-sliders">Mapping to the classic editor's sliders</h2>
 <div class="table-wrap"><table><thead><tr><th>the classic editor</th><th>Here</th><th>Semantics (model-aligned, not code-calibrated)</th></tr></thead><tbody><tr><td>Luminance (1–200, default 100)</td><td><code>luminance</code></td><td>Scales how much of the L map applies: <code>k = slider/100</code>, and the map converges as <code>lerp(1, ratio, k)</code>. 100 = exact match, 200 = double correction, 1 = almost nothing</td></tr><tr><td>Color Intensity (default 100)</td><td><code>color-intensity</code></td><td>Same, for a/b only</td></tr><tr><td>Fade (0–100)</td><td><code>fade</code></td><td>Multiplies the whole map by <code>(1 − fade/100)</code>; equivalent to the classic editor's Edit → Fade</td></tr><tr><td>Neutralize</td><td><code>neutralize</code></td><td>Forces the output a/b means to 0 (removes the cast) while L is untouched; the source still supplies contrast</td></tr></tbody></table></div>
@@ -141,7 +189,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">597e2cf</span>
+    <span class="muted">bc25d51</span>
   </div>
 </footer>
 <script>

@@ -87,5 +87,15 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/
 > 注：本机 GEGL 0.4.72 不支持 `property_group`，所以 36 个滑块在面板里是平铺的，
 > 靠名字前缀区分色域；等 GEGL 升级后可以改成折叠分组。
 
+九组的偏移先按色域权重求和，再按绝对 / 相对两种口径落到墨量上：
+
+```math
+\delta = \sum_{g=1}^{9} w_g\,\delta_g,\qquad
+c' = \begin{cases}
+c + \dfrac{\delta}{100}, & \text{绝对模式} \\[8pt]
+c\,\Bigl(1 + \dfrac{\delta}{100}\Bigr), & \text{相对模式}
+\end{cases}
+```
+
 回归验证脚本：`python tools/check_cmyk_sections.py`（校验单组结果与旧版逐像素一致、
 多组同时生效互不覆盖）。

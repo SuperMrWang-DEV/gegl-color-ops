@@ -11,10 +11,12 @@ blurb: the classic editor's Channel Mixer — a 3×3 matrix from R/G/B into each
 Each output channel is a weighted sum of the three input channels plus its own
 constant offset:
 
-```
-R' = rr·R + rg·G + rb·B + r_off
-G' = gr·R + gg·G + gb·B + g_off
-B' = br·R + bg·G + bb·B + b_off
+```math
+\begin{aligned}
+R' &= r_r\,R + r_g\,G + r_b\,B + r_{\text{off}} \\
+G' &= g_r\,R + g_g\,G + g_b\,B + g_{\text{off}} \\
+B' &= b_r\,R + b_g\,G + b_b\,B + b_{\text{off}}
+\end{aligned}
 ```
 
 The defaults are the identity matrix (1 on the diagonal, 0 elsewhere) with every

@@ -18,6 +18,33 @@
 - S：0–100%，定义是 `S = (max−min) / (1 − |2L−1|)`（HSL 的 S，不是 HSV 的）
 - L：0–100%，`L = (max+min)/2`
 
+```math
+z = (h-\text{ia}) \bmod 360,\qquad
+S_{\text{in}} = (\text{ib}-\text{ia}) \bmod 360,\qquad
+S_{\text{out}} = (\text{ob}-\text{oa}) \bmod 360
+```
+
+```math
+h' = \bigl(\text{base} + \text{span}\cdot t^{1/\gamma}\bigr) \bmod 360,\qquad
+(t,\ \text{base},\ \text{span}) =
+\begin{cases}
+\left(\dfrac{z}{S_{\text{in}}},\ \text{oa},\ S_{\text{out}}\right), & z \le S_{\text{in}} \\[10pt]
+\left(\dfrac{z-S_{\text{in}}}{360-S_{\text{in}}},\ \text{oa}+S_{\text{out}},\ 360-S_{\text{out}}\right), & z > S_{\text{in}}
+\end{cases}
+```
+
+$S_{\text{in}}$ 或 $S_{\text{out}}$ 为 0（黑白场重合）时按整圈 $360°$ 处理。
+
+
+```math
+u = \operatorname{clamp}\!\left(\frac{x-x_{\text{lo}}}{x_{\text{hi}}-x_{\text{lo}}},\,0,\,1\right),
+\qquad
+\text{out} = o_{\text{lo}} + u^{1/\gamma}\,\bigl(o_{\text{hi}}-o_{\text{lo}}\bigr)
+```
+
+$o_{\text{lo}} > o_{\text{hi}}$ 时输出反相；结果夹在
+$[\min(o_{\text{lo}},o_{\text{hi}}),\ \max(o_{\text{lo}},o_{\text{hi}})]$ 内。
+
 ## 规则细则
 
 - **色相是环形的**，不能像普通通道那样 clamp。做法是把圆在黑场处剪开：

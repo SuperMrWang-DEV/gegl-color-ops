@@ -30,13 +30,20 @@
 
 旧版闭式（实测精确到 0.13 码）：
 
+```math
+b' = \operatorname{clamp}(b,\,-100,\,100),\qquad
+\text{out} = \operatorname{clamp}\bigl(89 + K\,(x-89) + \beta,\ 0,\ 255\bigr)
 ```
-bb = clamp(b, -100, 100)
-c > 0 : out = clamp(89.00 + (x + bb - 89.00) / (1 - c/100))     ← b 也被 K 放大
-c < 0 : out = clamp(89.00 + (x - 89.00) * (1 + c/100) + bb)     ← b 不被缩小
-c = 0 : out = clamp(x + bb)
-K 的两种写法 = 1/(1-c/100) 与 1+c/100，实测吻合到 1e-4
+
+```math
+(K,\ \beta) = \begin{cases}
+\left(\dfrac{1}{1-c/100},\ \dfrac{b'}{1-c/100}\right), & c > 0 \quad \text{（$b$ 也被 $K$ 放大）} \\[12pt]
+\left(1+\dfrac{c}{100},\ b'\right), & c < 0 \quad \text{（$b$ 不被缩小）} \\[10pt]
+\bigl(1,\ b'\bigr), & c = 0
+\end{cases}
 ```
+
+$K$ 的两种写法 $1/(1-c/100)$ 与 $1+c/100$ 实测吻合到 $10^{-4}$。
 
 **对比度的支点不是 128 而是 89.00**（= 255 × 0.349），这是旧版最反直觉的一处：
 c=50、b=0 时 128 → 167，中灰会被推亮。这一点用 31 条曲线做公共不动点最小二乘得到，

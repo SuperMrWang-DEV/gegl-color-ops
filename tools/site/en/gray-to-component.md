@@ -64,6 +64,21 @@ read:
   chroma is already fixed by `lch-c`. The separate entry exists so you can match
   GIMP's mode names.
 
+The table as formulas ($g$ is the input grey; $c_s$, $L_0$, $C$, $h_0$ are parameters):
+
+```math
+\begin{aligned}
+\text{hue}:\quad & \operatorname{HSL2RGB}(360°g,\ 1,\ \tfrac{1}{2}) \\
+\text{saturation}:\quad & \operatorname{HSV2RGB}(h_{\text{sat}},\ g,\ 1) \\
+\text{color}:\quad & \operatorname{HSL2RGB}(360°g,\ c_s,\ \tfrac{1}{2}) \\
+\text{value}:\quad & (g,\ g,\ g) \\
+\text{lightness} \equiv \text{luminance}:\quad & \operatorname{Lab}(100g,\ 0,\ 0) \\
+\text{lch-hue} \equiv \text{lch-color}:\quad & \operatorname{Lab}\bigl(L_0,\ C\cos 360°g,\ C\sin 360°g\bigr) \\
+\text{lch-chroma}:\quad & \operatorname{Lab}\bigl(L_0,\ C\cos h_0,\ C\sin h_0\bigr) \\
+\text{red/green/blue}:\quad & (g,0,0)\ /\ (0,g,0)\ /\ (0,0,g)
+\end{aligned}
+```
+
 **The single-channel problem with Color**: Color mode reads hue and saturation
 together, but one grey layer holds a single scalar. The trade-off here is "grey carries
 hue, saturation comes from `color-sat`" — to recolour and desaturate at once, set

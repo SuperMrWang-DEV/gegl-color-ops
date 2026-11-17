@@ -9,7 +9,45 @@
 <meta property="og:description" content="经典图像编辑器 可选颜色：红/黄/绿/青/蓝/品红/白/中性/黑九组各自独立记忆">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
 (function () {
   try {
     var q = new URLSearchParams(location.search).get("lang");
@@ -55,6 +93,12 @@
 <p>与 经典图像编辑器的「可选颜色」一致，<strong>九个色域各存一份独立的 C/M/Y/K</strong>，切换查看不会 覆盖别组的数值，九组同时对整图生效（一个像素同时落在「红」和「白」时两组都起作用）。</p>
 <ul><li>滑块按「色域 – 墨量」命名：<code>Reds – Cyan</code>、<code>Yellows – Magenta</code>、… 共 9 × 4 = 36 个， 顺序与 经典图像编辑器 页签一致：红 → 黄 → 绿 → 青 → 蓝 → 品红 → 白 → 中性 → 黑</li><li><code>Absolute Mode</code>：对应 经典图像编辑器的「绝对」复选框</li><li>数值范围 -100 ~ +100，与 经典图像编辑器 滑块同刻度</li></ul>
 <blockquote><p>注：本机 GEGL 0.4.72 不支持 <code>property_group</code>，所以 36 个滑块在面板里是平铺的， 靠名字前缀区分色域；等 GEGL 升级后可以改成折叠分组。</p></blockquote>
+<p>九组的偏移先按色域权重求和，再按绝对 / 相对两种口径落到墨量上：</p>
+<div class="math-display">$$\delta = \sum_{g=1}^{9} w_g\,\delta_g,\qquad
+c' = \begin{cases}
+c + \dfrac{\delta}{100}, &amp; \text{绝对模式} \\[8pt]
+c\,\Bigl(1 + \dfrac{\delta}{100}\Bigr), &amp; \text{相对模式}
+\end{cases}$$</div>
 <p>回归验证脚本：<code>python tools/check_cmyk_sections.py</code>（校验单组结果与旧版逐像素一致、 多组同时生效互不覆盖）。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
@@ -132,7 +176,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">597e2cf</span>
+    <span class="muted">bc25d51</span>
   </div>
 </footer>
 <script>

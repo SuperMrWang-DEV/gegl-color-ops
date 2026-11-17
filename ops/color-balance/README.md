@@ -15,23 +15,24 @@
 一个通道（C-R 动 R、M-G 动 G、Y-B 动 B）只由自己那条滑杆决定，与其它两个通道无关。
 三个色调区间的参数先合并成**一条**曲线：
 
+```math
+G = g_{\text{阴影}}\cdot g_{\text{中间调}}\cdot g_{\text{高光}},\qquad
+b = \begin{cases} |s_{\text{阴}}|, & s_{\text{阴}} < 0 \\ 0, & \text{否则} \end{cases},
+\qquad
+W = \begin{cases} 255-s_{\text{高}}, & s_{\text{高}} > 0 \\ 255, & \text{否则} \end{cases}
 ```
-G = g_阴影 · g_中间调 · g_高光          三个指数相乘
-b = |s|        当阴影滑杆为负（黑场抬起来）
-W = 255 − s    当高光滑杆为正（白场压下来）
-其余情况 b = 0、W = 255
 
-u   = (v − b) / (W − b)
-out = 255 · u^G                       (u ≥ H)
+```math
+u = \frac{v-b}{W-b},\qquad \text{out} = 255\,u^{G}\quad (u \ge H)
 ```
 
 近黑端另有一段「趾部」：G < 1 时 u^G 在 0 处斜率无穷，经典图像编辑器 实际是有限斜率起步。
 把 [b, h0] 这一段换成三次 Hermite：
 
-```
-h0  = b + H · (W − b)
-y1  = 255 · H^G                      区间右端值
-out = Hermite( (v−b)/(h0−b), Su·H, y1, G·y1 )
+```math
+h_0 = b + H\,(W-b),\qquad
+y_1 = 255\,H^{G},\qquad
+\text{out} = \operatorname{Hermite}\!\left(\frac{v-b}{h_0-b},\ S_u H,\ y_1,\ G\,y_1\right)
 ```
 
 - 指数：中间调 `2^(∓s/100)`，阴影和高光各只有它的一半 `2^(∓s/200)`；

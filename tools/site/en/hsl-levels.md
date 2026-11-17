@@ -21,6 +21,35 @@ use. There is no hand-written colour conversion inside the operator.
 - S: 0–100%, defined as `S = (max−min) / (1 − |2L−1|)` (HSL's S, not HSV's)
 - L: 0–100%, `L = (max+min)/2`
 
+```math
+z = (h-\text{ia}) \bmod 360,\qquad
+S_{\text{in}} = (\text{ib}-\text{ia}) \bmod 360,\qquad
+S_{\text{out}} = (\text{ob}-\text{oa}) \bmod 360
+```
+
+```math
+h' = \bigl(\text{base} + \text{span}\cdot t^{1/\gamma}\bigr) \bmod 360,\qquad
+(t,\ \text{base},\ \text{span}) =
+\begin{cases}
+\left(\dfrac{z}{S_{\text{in}}},\ \text{oa},\ S_{\text{out}}\right), & z \le S_{\text{in}} \\[10pt]
+\left(\dfrac{z-S_{\text{in}}}{360-S_{\text{in}}},\ \text{oa}+S_{\text{out}},\ 360-S_{\text{out}}\right), & z > S_{\text{in}}
+\end{cases}
+```
+
+A zero $S_{\text{in}}$ or $S_{\text{out}}$ (coincident black / white points) is
+treated as the full $360°$ circle.
+
+
+```math
+u = \operatorname{clamp}\!\left(\frac{x-x_{\text{lo}}}{x_{\text{hi}}-x_{\text{lo}}},\,0,\,1\right),
+\qquad
+\text{out} = o_{\text{lo}} + u^{1/\gamma}\,\bigl(o_{\text{hi}}-o_{\text{lo}}\bigr)
+```
+
+An inverted output ($o_{\text{lo}} > o_{\text{hi}}$) gives a negative-style
+inverse; the result is clamped to
+$[\min(o_{\text{lo}},o_{\text{hi}}),\ \max(o_{\text{lo}},o_{\text{hi}})]$.
+
 ## Rules
 
 - **Hue is circular** and cannot be clamped like an ordinary channel. The circle is

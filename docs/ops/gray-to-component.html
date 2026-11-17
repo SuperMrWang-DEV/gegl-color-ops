@@ -9,7 +9,45 @@
 <meta property="og:description" content="通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue /">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
 (function () {
   try {
     var q = new URLSearchParams(location.search).get("lang");
@@ -68,6 +106,17 @@
 <div class="table-wrap"><table><thead><tr><th>模式</th><th>灰度 g 的语义</th><th>输出编码</th><th>配哪个混合模式还原</th></tr></thead><tbody><tr><td><code>hue</code></td><td>HSL 色相 h/360</td><td><code>hsl_to_rgb(g·360°, S=1, L=0.5)</code>，饱和度亮度拉满的色相轮</td><td><strong>Hue</strong>（HSV_HUE）</td></tr><tr><td><code>saturation</code></td><td>HSV 饱和度 s</td><td><code>hsv_to_rgb(sat_hue, s, V=1)</code>，默认红相</td><td><strong>Saturation</strong>（HSV_SATURATION）</td></tr><tr><td><code>color</code></td><td>HSL 色相 h/360</td><td><code>hsl_to_rgb(g·360°, color_sat, L=0.5)</code>，饱和度由参数固定</td><td><strong>Color</strong>（HSL_COLOR）</td></tr><tr><td><code>value</code></td><td>HSV 明度 V</td><td><code>(g,g,g)</code> 中性灰（V 就是最大通道）</td><td><strong>Value</strong>（HSV_VALUE）</td></tr><tr><td><code>lightness</code></td><td>CIE 明度 L/100</td><td><code>Lab(g·100, 0, 0)</code> 直写</td><td><strong>LCh Lightness</strong>（LCH_LIGHTNESS）</td></tr><tr><td><code>luminance</code></td><td>同上（CIE 亮度 Y）</td><td>与 <code>lightness</code> 逐字节相同</td><td><strong>Luminance</strong>（LUMINANCE）</td></tr><tr><td><code>red</code> / <code>green</code> / <code>blue</code></td><td>该通道值</td><td><code>(g,0,0)</code> / <code>(0,g,0)</code> / <code>(0,0,g)</code></td><td><strong>Lighten</strong> 三层叠合</td></tr><tr><td><code>lch-hue</code></td><td>CIE 色相 h/360</td><td><code>Lab(lch_l, C·cos h, C·sin h)</code>，C = <code>lch_c</code></td><td><strong>LCh Hue</strong>（LCH_HUE）</td></tr><tr><td><code>lch-color</code></td><td>同上（h，C 由参数固定）</td><td>与 <code>lch-hue</code> 逐字节相同</td><td><strong>LCh Color</strong>（LCH_COLOR）</td></tr><tr><td><code>lch-chroma</code></td><td>CIE 色度 C/chroma_scale</td><td><code>Lab(lch_l, C·cos h₀, C·sin h₀)</code>，h₀ = <code>lch_h</code></td><td><strong>LCh Chroma</strong>（LCH_CHROMA）</td></tr></tbody></table></div>
 <p>两组「同编码」不是偷懒，是混合模式的语义决定的：</p>
 <ul><li><strong><code>luminance</code> ≡ <code>lightness</code></strong>：Luminance 读 CIE 亮度 Y，中性灰的 Lab L 与 Y 单调对应，同一份 <code>Lab(L,0,0)</code> 同时给出正确的 L 和 Y。</li><li><strong><code>lch-color</code> ≡ <code>lch-hue</code></strong>：LCh Color 只读色相 + 色度，而 <code>lch-hue</code> 的色度 本来就由 <code>lch-c</code> 固定住了。单列一条纯粹是让人按 GIMP 的模式名对号入座。</li></ul>
+<p>把上表写成式子（<span class="math">$g$</span> 是输入的灰度，<span class="math">$c_s$</span>、<span class="math">$L_0$</span>、<span class="math">$C$</span>、<span class="math">$h_0$</span> 是参数）：</p>
+<div class="math-display">$$\begin{aligned}
+\text{hue}:\quad &amp; \operatorname{HSL2RGB}(360°g,\ 1,\ \tfrac{1}{2}) \\
+\text{saturation}:\quad &amp; \operatorname{HSV2RGB}(h_{\text{sat}},\ g,\ 1) \\
+\text{color}:\quad &amp; \operatorname{HSL2RGB}(360°g,\ c_s,\ \tfrac{1}{2}) \\
+\text{value}:\quad &amp; (g,\ g,\ g) \\
+\text{lightness} \equiv \text{luminance}:\quad &amp; \operatorname{Lab}(100g,\ 0,\ 0) \\
+\text{lch-hue} \equiv \text{lch-color}:\quad &amp; \operatorname{Lab}\bigl(L_0,\ C\cos 360°g,\ C\sin 360°g\bigr) \\
+\text{lch-chroma}:\quad &amp; \operatorname{Lab}\bigl(L_0,\ C\cos h_0,\ C\sin h_0\bigr) \\
+\text{red/green/blue}:\quad &amp; (g,0,0)\ /\ (0,g,0)\ /\ (0,0,g)
+\end{aligned}$$</div>
 <p><strong>Color 的单通道困境</strong>：Color 模式要同时读色相和饱和度，可一层灰度只有一个 标量。本算子的取舍是「灰度携带色相，饱和度由 <code>color-sat</code> 给定」——想整幅换色 同时压饱和度，就把 <code>color-sat</code> 调到 45%，比先 <code>hue</code> 再叠一层降饱和简单。</p>
 <p>三个校准出来的硬结论（hsl-cal 实测，误差按 0–255 计）：</p>
 <ol><li><strong>HSL 的 S ≠ HSV 的 S</strong>。GIMP 的 Saturation 模式读的是 HSV 语义，拿 HSL 分解 出的 S 层直接编码，误差高达 214/255。本算子的 <code>saturation</code> 模式按 HSV 语义 编码，恒等往返误差 &lt;2。</li><li><strong>HSL 色相与 CIE 色相不可线性互转</strong>。把 <code>h·360</code> 直接当 LCh 色相用，误差 139/255。两套色轮必须各自分解、各自编码——这就是 <code>hue</code> 和 <code>lch-hue</code> 两个 模式不能合并的原因。</li><li><strong>编码层要工作在 float32</strong>。8-bit 图像下 Lab/LCh 编码写入图层会被量化， 色相/色度被打碎（这也是普通 8-bit 图上这套流程精度有限的固有原因）； float32 下连超出 sRGB 色域的 LCh 值都能原样往返。</li></ol>
@@ -135,6 +184,17 @@
 <div class="table-wrap"><table><thead><tr><th>Mode</th><th>Meaning of grey g</th><th>Output encoding</th><th>Blend mode to restore</th></tr></thead><tbody><tr><td><code>hue</code></td><td>HSL hue h/360</td><td><code>hsl_to_rgb(g·360°, S=1, L=0.5)</code>, a hue wheel at full saturation and mid lightness</td><td><strong>Hue</strong> (HSV_HUE)</td></tr><tr><td><code>saturation</code></td><td>HSV saturation s</td><td><code>hsv_to_rgb(sat_hue, s, V=1)</code>, red hue by default</td><td><strong>Saturation</strong> (HSV_SATURATION)</td></tr><tr><td><code>color</code></td><td>HSL hue h/360</td><td><code>hsl_to_rgb(g·360°, color_sat, L=0.5)</code>, saturation fixed by a parameter</td><td><strong>Color</strong> (HSL_COLOR)</td></tr><tr><td><code>value</code></td><td>HSV value V</td><td><code>(g,g,g)</code> neutral grey (V <em>is</em> the max channel)</td><td><strong>Value</strong> (HSV_VALUE)</td></tr><tr><td><code>lightness</code></td><td>CIE lightness L/100</td><td><code>Lab(g·100, 0, 0)</code> written directly</td><td><strong>LCh Lightness</strong> (LCH_LIGHTNESS)</td></tr><tr><td><code>luminance</code></td><td>same (CIE luminance Y)</td><td>byte-identical to <code>lightness</code></td><td><strong>Luminance</strong> (LUMINANCE)</td></tr><tr><td><code>red</code> / <code>green</code> / <code>blue</code></td><td>that channel's value</td><td><code>(g,0,0)</code> / <code>(0,g,0)</code> / <code>(0,0,g)</code></td><td><strong>Lighten</strong>, three layers</td></tr><tr><td><code>lch-hue</code></td><td>CIE hue h/360</td><td><code>Lab(lch_l, C·cos h, C·sin h)</code>, C = <code>lch_c</code></td><td><strong>LCh Hue</strong> (LCH_HUE)</td></tr><tr><td><code>lch-color</code></td><td>same (h, C fixed by parameter)</td><td>byte-identical to <code>lch-hue</code></td><td><strong>LCh Color</strong> (LCH_COLOR)</td></tr><tr><td><code>lch-chroma</code></td><td>CIE chroma C/chroma_scale</td><td><code>Lab(lch_l, C·cos h₀, C·sin h₀)</code>, h₀ = <code>lch_h</code></td><td><strong>LCh Chroma</strong> (LCH_CHROMA)</td></tr></tbody></table></div>
 <p>The two "same encoding" pairs are not laziness, they follow from what the blend modes read:</p>
 <ul><li><strong><code>luminance</code> ≡ <code>lightness</code></strong>: Luminance reads CIE Y, and a neutral grey's Lab L maps monotonically to Y, so one <code>Lab(L,0,0)</code> gives both correctly.</li><li><strong><code>lch-color</code> ≡ <code>lch-hue</code></strong>: LCh Color reads hue and chroma only, and <code>lch-hue</code>'s chroma is already fixed by <code>lch-c</code>. The separate entry exists so you can match GIMP's mode names.</li></ul>
+<p>The table as formulas (<span class="math">$g$</span> is the input grey; <span class="math">$c_s$</span>, <span class="math">$L_0$</span>, <span class="math">$C$</span>, <span class="math">$h_0$</span> are parameters):</p>
+<div class="math-display">$$\begin{aligned}
+\text{hue}:\quad &amp; \operatorname{HSL2RGB}(360°g,\ 1,\ \tfrac{1}{2}) \\
+\text{saturation}:\quad &amp; \operatorname{HSV2RGB}(h_{\text{sat}},\ g,\ 1) \\
+\text{color}:\quad &amp; \operatorname{HSL2RGB}(360°g,\ c_s,\ \tfrac{1}{2}) \\
+\text{value}:\quad &amp; (g,\ g,\ g) \\
+\text{lightness} \equiv \text{luminance}:\quad &amp; \operatorname{Lab}(100g,\ 0,\ 0) \\
+\text{lch-hue} \equiv \text{lch-color}:\quad &amp; \operatorname{Lab}\bigl(L_0,\ C\cos 360°g,\ C\sin 360°g\bigr) \\
+\text{lch-chroma}:\quad &amp; \operatorname{Lab}\bigl(L_0,\ C\cos h_0,\ C\sin h_0\bigr) \\
+\text{red/green/blue}:\quad &amp; (g,0,0)\ /\ (0,g,0)\ /\ (0,0,g)
+\end{aligned}$$</div>
 <p><strong>The single-channel problem with Color</strong>: Color mode reads hue and saturation together, but one grey layer holds a single scalar. The trade-off here is "grey carries hue, saturation comes from <code>color-sat</code>" — to recolour and desaturate at once, set <code>color-sat</code> to 45%, simpler than hue first and a desaturating layer on top.</p>
 <p>Three hard, calibrated conclusions (measured in hsl-cal, error in 0–255):</p>
 <ol><li><strong>HSL's S ≠ HSV's S.</strong> GIMP's Saturation mode reads HSV semantics; encoding an HSL S layer directly is off by up to 214/255. This operator's <code>saturation</code> mode encodes with HSV semantics, and the identity round trip is &lt; 2.</li><li><strong>HSL hue and CIE hue do not convert linearly.</strong> Using <code>h·360</code> directly as an LCh hue is off by 139/255. The two wheels must be decomposed and encoded separately — which is why <code>hue</code> and <code>lch-hue</code> cannot be merged.</li><li><strong>The encoding layer must run at float32.</strong> In 8-bit, Lab/LCh encodings written into the layer get quantised and hue/chroma break up (an inherent precision limit of the whole workflow on 8-bit images); at float32 even LCh values outside sRGB round trip exactly.</li></ol>
@@ -184,7 +244,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">597e2cf</span>
+    <span class="muted">bc25d51</span>
   </div>
 </footer>
 <script>

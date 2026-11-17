@@ -12,9 +12,23 @@ vibrance），Action Manager 里还是老的 `vibrance` 类，只是多带 `temp
 
 ## 算法
 
+```mermaid
+flowchart TD
+  A["sRGB 编码值"] --> B["解码到线性光"]
+  B --> C["居中到 [−1,1]：c' = 2c − 1"]
+  C --> D["3 次多项式，20 项<br/>系数按 (色温, 色调) 在 17×17 网格上双线性插值"]
+  D --> E["clamp 到 [0,1]"]
+  E --> F["编码回 sRGB"]
+  F --> G["烘焙进 33³ LUT（每张图一次）"]
 ```
-编码值 → 解码到线性 → 3 次多项式(20 项) → clamp 到 [0,1] → 编码
+
+```math
+c' = 2c-1,\qquad
+\text{out} = \operatorname{clamp}\!\left(
+\sum_{d=0}^{3}\ \sum_{\substack{i+j+k=d\\ i,j,k\ge0}} a_{ijk}(T,t)\;r'^{i}g'^{j}b'^{k},\ 0,\ 1\right)
 ```
+
+$a_{ijk}(T,t)$ 是 17×17 参数网格上的双线性插值结果。
 
 三个动作，每个都有明确来源：
 

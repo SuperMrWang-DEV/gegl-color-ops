@@ -10,6 +10,15 @@
     html, toc = convert(text, image_prefix="../assets/ops/x/")
 
 `toc` 是 [(level, anchor, 标题文本)]，给右侧目录用。
+
+公式与流程图（页面靠 KaTeX / mermaid 渲染，转换器只负责把原文原样放进
+占位元素）：
+
+- `$...$` 行内公式、`$$...$$` 独立成段的显示公式 → `.math` / `.math-display`；
+- ` ```math ` 围栏 → `.math-display`（适合写多行的推导）；
+- ` ```mermaid ` 围栏 → `<pre class="mermaid">`，由 mermaid 渲染成图。
+  公式原文只做 HTML 转义，不进任何 markdown 行内规则 —— 否则 `*` `_` 会把
+  LaTeX 搅碎。
 """
 
 import html as _html
@@ -98,12 +107,25 @@ def _render_inline(raw, link_base, image_prefix=None):
         return "\x02%d\x02" % (len(codes) - 1)
     frag = re.sub(r"`([^`]+)`", hold, frag)
 
+    # LaTeX 公式也先护住：$..$ 与 $$..$$，内容不允许以空白开头/结尾，
+    # 避免把「价格 $5 和 $6」这类文本误判成公式。
+    maths = []
+    def hold_math(m):
+        maths.append(m.group(0))     # 连定界符一起留下，auto-render 要靠它认公式
+        return "\x03%d\x03" % (len(maths) - 1)
+    frag = re.sub(r"\$\$([^$\n]+?)\$\$", hold_math, frag)
+    frag = re.sub(r"\$(?![\s$])([^$\n]+?)(?<![\s$])\$", hold_math, frag)
+
     frag = _esc(frag)
     frag = _inline(frag, link_base, image_prefix)
 
     # 还原行内代码（内容单独转义）
     for i, code in enumerate(codes):
         frag = frag.replace("\x02%d\x02" % i, '<code>%s</code>' % _esc(code))
+    # 还原公式：只转义 HTML，不进任何 markdown 规则，KaTeX 拿到的就是原文
+    for i, tex in enumerate(maths):
+        frag = frag.replace("\x03%d\x03" % i,
+                            '<span class="math">%s</span>' % _esc(tex))
     return frag
 
 
@@ -243,6 +265,14 @@ def convert(text, image_prefix=None, link_base=None):
 
     def flush():
         if para:
+            # 整段就是一个 $$...$$ 显示公式 → 单独的块，别塞进 <p> 里
+            joined = " ".join(para)
+            m = re.match(r"^\$\$(.+?)\$\$$", joined, re.S)
+            if m:
+                out.append('<div class="math-display">$$%s$$</div>'
+                           % _esc(m.group(1).strip()))
+                para.clear()
+                return
             out.append("<p>%s</p>" % _render_inline(" ".join(para), link_base, image_prefix))
             para.clear()
 
@@ -265,6 +295,15 @@ def convert(text, image_prefix=None, link_base=None):
                 buf.append(lines[i])
                 i += 1
             i += 1
+            if lang == "mermaid":
+                # mermaid 读 textContent 渲染；转义即可，不要碰里面的任何字符
+                out.append('<pre class="mermaid">%s</pre>' % _esc("\n".join(buf)))
+                continue
+            if lang == "math":
+                # 内容不含定界符，包上 $$ 让 auto-render 按显示模式处理
+                out.append('<div class="math-display">$$%s$$</div>'
+                           % _esc("\n".join(buf).strip()))
+                continue
             cls = ' class="language-%s"' % lang if lang else ""
             out.append("<pre><code%s>%s</code></pre>" % (cls, _esc("\n".join(buf))))
             continue

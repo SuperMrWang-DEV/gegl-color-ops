@@ -37,13 +37,20 @@ So both versions reduce to a one-dimensional map `f(x; b, c)`.
 
 Legacy closed form (agrees with measurement to 0.13 code values):
 
+```math
+b' = \operatorname{clamp}(b,\,-100,\,100),\qquad
+\text{out} = \operatorname{clamp}\bigl(89 + K\,(x-89) + \beta,\ 0,\ 255\bigr)
 ```
-bb = clamp(b, -100, 100)
-c > 0 : out = clamp(89.00 + (x + bb - 89.00) / (1 - c/100))     <- b is scaled by K too
-c < 0 : out = clamp(89.00 + (x - 89.00) * (1 + c/100) + bb)     <- b is not scaled
-c = 0 : out = clamp(x + bb)
-K, two ways = 1/(1-c/100) and 1+c/100, agree to 1e-4
+
+```math
+(K,\ \beta) = \begin{cases}
+\left(\dfrac{1}{1-c/100},\ \dfrac{b'}{1-c/100}\right), & c > 0 \quad (b \text{ is scaled by } K) \\[12pt]
+\left(1+\dfrac{c}{100},\ b'\right), & c < 0 \quad (b \text{ is not scaled}) \\[10pt]
+\bigl(1,\ b'\bigr), & c = 0
+\end{cases}
 ```
+
+The two ways of writing $K$, $1/(1-c/100)$ and $1+c/100$, agree to $10^{-4}$.
 
 **The contrast pivot is not 128 but 89.00** (= 255 × 0.349). This is the most
 counter-intuitive part of the legacy version: at c=50, b=0 an input of 128 becomes

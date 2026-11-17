@@ -28,6 +28,18 @@
   中间调权重 = 1 − 阴影 − 高光；
 - Balance ±100 把两条分界一起平移 ±0.25。
 
+```math
+h = 0.25\cdot\frac{\text{Blending}}{100},\qquad
+e_{\text{sh}} = 0.3 + 0.25\cdot\frac{B}{100},\qquad
+e_{\text{hi}} = 0.7 + 0.25\cdot\frac{B}{100}
+```
+
+```math
+w_{\text{sh}} = 1-\operatorname{smooth}\!\left(\frac{Y-e_{\text{sh}}}{2h}+\frac{1}{2}\right),\qquad
+w_{\text{hi}} = \operatorname{smooth}\!\left(\frac{Y-e_{\text{hi}}}{2h}+\frac{1}{2}\right),\qquad
+w_{\text{mid}} = 1-w_{\text{sh}}-w_{\text{hi}}
+```
+
 每个轮盘的一次染色（乘以带权重 w）：
 
 - 明度：`V += Lw × 0.005 × w`（与 `lb:hsl-seven` 同系数）；
@@ -35,6 +47,13 @@
   `rgb = rgb·(1−t) + tint·t`，`tint = HSV(轮盘色相, 1, V)`。
   灰像素自然吃到染色；与轮盘色接近互补的色相则被去饱和（掺灰），
   **不在色相上做插值**，所以没有「旋转方向翻转」的接缝。
+
+```math
+V \leftarrow V + 0.005\,L_w\,w,\qquad
+t = \frac{\text{Sat}}{100}\,w,\qquad
+\text{rgb} \leftarrow \text{rgb}\,(1-t) + \text{tint}\,t,\qquad
+\text{tint} = \operatorname{HSV}(h_w,\,1,\,V)
+```
 
 > 2026-11-12 修正：初版用「色相向轮盘色相收敛」的模型，在互补色相
 > （色相差 ≈ 180°）处 `roundf` 的旋转方向会翻转，裁切高光上会爆出

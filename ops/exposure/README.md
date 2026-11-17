@@ -117,3 +117,30 @@ python tools/check_exposure.py
 - 整数 PNG 输入下 `auto` 与 `encoded` 逐像素完全相同（0 处不同）
 - 浮点 EXR 输入下 `auto` 与 `linear` 完全相同，与 `encoded` 在 2944 个像素上不同
   —— 说明 auto 真的切了分支，而不只是多了个开关
+
+## 算法
+
+同一套 EV 与 offset，按输入精度分两条路径。`precision=auto` 读输入 pad 的格式：
+整数格式（`u8` / `u16`）走编码域，浮点格式（`float` / `half` / `double`）走线性域；
+16 位图同样是伽马编码的，和 8 位同路。
+
+**整数格式（sRGB 编码值）**：先在编码域乘 $2^{EV/2.2}$（等价于线性域乘 $2^{EV}$，
+但省掉两次幂运算），再解码、加线性域的 offset、编码回去：
+
+```math
+v_1 = \min\!\left(c\cdot 2^{EV/2.2},\ 1\right),\qquad
+v_2 = \operatorname{clamp}\!\left(v_1^{2.2} + o,\ 0,\ 1\right)^{1/2.2},\qquad
+v_3 = v_2^{\,1/\gamma}
+```
+
+那个 $\min(\cdot,1)$ 不能省：先裁高光、再加 offset，负 offset 才能把过曝的高光拉回来；
+去掉它，$EV>0$ 配负 offset 会把整片亮部推成纯白。
+
+**浮点格式（线性光）**：输入已是线性，只需一次乘法与一次加法：
+
+```math
+v_1 = c\cdot 2^{EV} + o,\qquad v_2 = \bigl(\max(v_1,\,0)\bigr)^{1/\gamma}
+```
+
+只夹下界、不夹上界：32 位图允许 HDR，裁到 $0..1$ 会把高光压平；但负值必须夹，
+否则 `pow` 会返回 NaN。
