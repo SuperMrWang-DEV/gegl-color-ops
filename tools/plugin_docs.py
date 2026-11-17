@@ -119,38 +119,41 @@ PAGES = [
         menu='颜色 → SuperMrWang → Shortcut → HSV Split (Curves)',
         pdb='lb-plugin-hsv-split-curves(image, drawable, group)',
         lede="""GIMP 的曲线只能选 R / G / B / Alpha——想单独曲「色相」或
-       「饱和度」没有入口。这个插件把图层拆成三张分量层、每层给一条曲线，
-       再按 HSV 分量模式叠回去：恒等时逐位还原，所以改曲线就等于曲那个分量。""",
+       「饱和度」没有入口。这个插件把图层换成一张数据图（红=S、绿=V、蓝=色相），
+       三条曲线各管一个分量，再由一个算子解回颜色：恒等时逐像素还原原图，
+       改哪条曲线就只动那个分量。""",
         body="""<div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>生成的结构</h3><span class="pill">穿透组</span></div>
-      <pre><code>HSV split        组 · 穿透（带 alpha 时组上还有蒙版）
-  ├─ 3 · Value      模式 HSV 明度
-  ├─ 2 · Saturation 模式 HSV 饱和度
-  ├─ 1 · Hue        模式 HSV 色相   ← 垫底
+      <div class="dl-head"><h3>生成的结构</h3><span class="pill">一层</span></div>
+      <pre><code>HSV split          组 · 穿透（带 alpha 时组上还有蒙版）
+  └─ 1 · HSV S/V/H   模式 正常   ← 一条算子链算完整 HSV 色
   └─ 原图层（不动，可以隐藏）</code></pre>
-      <p>每层三条滤镜：<code>extract</code>（抽分量）→ <code>curve</code>
-         （<b>你调的那条</b>）→ <code>encode</code>（一个 <code>lb:gray-to-component</code>
-         滤镜，把灰度编码成携带该分量的彩色）。</p>
-      <p><b>层序不能反：</b>分量混合模式只替换一个分量，另外两个从下行读。最底层
-         必须自带真实色相（全饱和色环），所以 Hue 垫底、Value 在顶。反过来的话
-         最底是灰，上面两层读到 S=0，怎么换都是灰——<b>把原图层一隐藏就整幅崩掉</b>。</p>
+      <p>滤镜栈：<code>decompose</code>（lb:hsv-dual）→ <b>S 曲线（红）</b> →
+         <b>V 曲线（绿）</b> → <b>H 曲线（蓝）</b> → <code>compose</code>
+         （lb:hsv-compose）。三个分量各占一个通道，互不串门。</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>为什么是在做曲线</h3></div>
-      <p>恒等曲线时三层合成回来<b>逐位还原</b>原图，所以改一条曲线就等于
-         「在 HSV 空间里曲那一个分量」。GIMP 内置曲线只能选
-         R/G/B/Alpha——H、S、LCh 这些分量它读不到，这正是缺口。</p>
+      <div class="dl-head"><h3>为什么只有一层</h3></div>
+      <p>旧版是三张分量层，每层 <code>extract</code> → 曲线 → <code>encode</code>，
+         再靠 HSV 的三个分量混合模式叠回去。能用，但三层就是三次编码、三次量化，
+         8 位图上还得靠组内浮点缓冲才不偏色。现在 S、V、H 一起进
+         <code>lb:hsv-compose</code>：一层、五条滤镜，算完就是最终颜色。</p>
+      <p>三个分量本来就分不开——<code>V = max</code>、<code>S = (max−min)/V</code>、
+         色相由三者的比例决定。与其让混合模式逐层去猜，不如让一个算子同时读到
+         三者，一次算清。</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>实测精度</h3></div>
-      <p>32 位浮点与 8 位图的恒等往返都是 <b>0.5 码</b>；真实 512×512 图逐像素
-         比对最大 <b>1 码</b>，仅 0.335% 的通道值有差异。剩下的误差是 8 位量化，
-         编码本身没有查表误差——旧版三条曲线才有 256 点 LUT。</p>
-      <p>把<b>原图层隐藏掉</b>，三层自己叠出来还是 <b>0.5 码</b>；半透明区域的
-         透明度由组蒙版保住（三层必须不透明，否则混合模式会按 alpha 做 lerp）。</p>
+      <p>32 位浮点图恒等往返 <b>0.0002 码</b>；8 位图 <b>0.49 码</b>（就是量化本身）。
+         只改 S 曲线时，结果的 V 与色相偏差 <b>&lt; 0.001 码</b>——三个分量确实
+         互不干扰。</p>
+      <p>把原图层隐藏掉，这一层自己就能还原（半透明区域靠组蒙版）。</p>
     </div>
-  </div>""",
+  </div>
+  <p class="note">通道约定是硬的：<b>S 在红、V 在绿、色相在蓝</b>。改曲线时选错通道，
+     等于把另一个分量的数据当曲线输入。色相曲线必须连续（两端相等、中间不跳变），
+     整体旋转色相请用 <code>lb:hue-saturation</code>。依赖
+     <code>lb:hsv-dual</code> / <code>lb:hsv-compose</code> 两个算子，缺了会直接报错。</p>""",
     ),
     dict(
         key='lch',
@@ -160,35 +163,39 @@ PAGES = [
         count='L / C / h',
         menu='颜色 → SuperMrWang → Shortcut → LCh Split (Curves)',
         pdb='lb-plugin-lch-split-curves(image, drawable, group)',
-        lede="""同样的思路换到 CIE LCh：明度、彩度、色相三条曲线。
-       LCh 是「颜色」组里唯一完整、且没有 legacy 包袱的一组分量模式，
-       感知均匀，做明暗与彩度分级比 HSV 稳。""",
+        lede="""同样的思路换到 CIE LCh：明度、彩度、色相三条曲线。LCh 是 Lab 的
+       极坐标写法——a、b 是直角坐标，一条一维曲线改它会连带改彩度和色相；换成
+       (L, C, h) 之后，调彩度不动色相、调色相不动彩度。""",
         body="""<div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>量程是标定出来的</h3><span class="pill">D50</span></div>
-      <p><code>component-extract</code> 报的不是原始单位：<code>lab-l</code> = L/100、
-         <code>lch-h</code> = h/360，而 <code>lch-c</code> = <b>C/200</b>（sRGB 内只到
-         0.656）。编码时算子按 <code>chroma-scale = 200</code> 把灰度乘回真实 C*，
-         所以彩度层不用再插一条 scale 曲线——曲线的 0.656 处就是 sRGB 最大彩度
-         （纯蓝 131.21）。</p>
+      <div class="dl-head"><h3>生成的结构</h3><span class="pill">一层</span></div>
+      <pre><code>LCh split          组 · 穿透（带 alpha 时组上还有蒙版）
+  └─ 1 · LCh L/C/h   模式 正常   ← 一条算子链算完整 LCh 色
+  └─ 原图层（不动，可以隐藏）</code></pre>
+      <p>滤镜栈：<code>decompose</code>（lb:lch-dual）→ <b>L 曲线（红）</b> →
+         <b>C 曲线（绿）</b> → <b>h 曲线（蓝）</b> → <code>compose</code>
+         （lb:lch-compose）。</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>编码路径的坑</h3></div>
-      <p>色相模式对色相误差极其敏感：ΔH=0.5° 在 C*=90 时就是 9.6 个码值。
-         所以色相编码不用全饱和色轮，而用<b>等 L 等 C 的色相圆</b>
-         （L*=70、C*=39.8）——角度严格线性，插值误差从 0.22° 降到 0.002°。</p>
+      <div class="dl-head"><h3>量程</h3></div>
+      <p>转换由 babl 的 <code>CIE LCH(ab) alpha float</code>（D50）完成，与
+         <code>lb:lch-levels</code> 同一口径。数据图里：<code>L* 0…100 → L/100</code>、
+         <code>C* 0…140 → C/140</code>（sRGB 最饱和的纯蓝约 133.8，留了余量）、
+         <code>h 0…360° → h/360</code>。</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>实测精度</h3></div>
-      <p>浮点恒等往返 ≤ <b>0.02 码</b>，8 位 ≤ <b>0.5 码</b>，真实照片 512×512
-         最大 <b>0.03 码</b>（超过 1.5 码的像素 <b>0 个</b>）。8 位图会被自动收进组里：
-         不分组时逐层量化会让色相偏到 11 码级。</p>
+      <div class="dl-head"><h3>为什么只有一层</h3></div>
+      <p>旧版是三张分量层配三个 LCh 分量混合模式，每层还要把分量值「编码」成
+         混合模式读得出来的颜色——色相层得造一个等 L*、等 C* 的色相圆，彩度压到
+         39.8 才不牺牲灵敏度。现在三个分量一起进 compose，那套编码整个不需要了，
+         也不会因为逐层量化把色相带偏。</p>
     </div>
   </div>
-  <p class="note"><b>选 LCh 还是 HSV</b>：HSV 的 V/S 是相对量，调 S 会随 V 变；
-     LCh 的 L/C 是感知均匀的绝对量，做亮度、彩度分级更稳。论完整度也是 LCh 更高
-     ——GIMP 的 HSV 组里那个「HSL 颜色」其实混了模型，而 LCh 组 H/C/L/Color 四项
-     齐全，另有一个 Luminance。</p>""",
+  <p class="note"><b>实测</b>：浮点恒等往返 <b>0.0005 码</b>、8 位 <b>0.49 码</b>；
+     只改 C 曲线时 L* 与色相的偏差 <b>0.00001 码</b>级。彩度或色相推到极端会出
+     sRGB 色域，8 位图按 0/1 裁掉——LCh 的色域比 sRGB 大，这是它本身的性质。
+     近中性色（C*≈0）的色相是噪声，但合成不受影响。依赖
+     <code>lb:lch-dual</code> / <code>lb:lch-compose</code>。</p>""",
     ),
     dict(
         key='hsl',
@@ -198,42 +205,39 @@ PAGES = [
         count='H / S / L',
         menu='颜色 → SuperMrWang → Shortcut → HSL Split (Curves)',
         pdb='lb-plugin-hsl-split-curves(image, drawable, group)',
-        lede="""GIMP 给 HSV 和 LCh 都配了分量混合模式，唯独 HSL 没有。
-       这个插件不是拿 HSV 去近似 HSL，而是把两者<b>精确</b>换算：色相本来就是
-       同一个函数，S 与 L 则合进一张数据图，由算子联合还原。恒等时精确还原原图，
-       调哪条曲线就只动那个 HSL 分量。""",
+        lede="""GIMP 给 HSV 和 LCh 都配了分量混合模式，唯独 HSL 没有，也没有
+       HSL 的色相入口。这个插件不拿 HSV 近似 HSL，而是把三者精确换算后打包进
+       一张数据图，三条曲线各管一个分量。""",
         body="""<div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>生成的结构</h3><span class="pill">两层</span></div>
-      <pre><code>HSL split        组 · 穿透（带 alpha 时组上还有蒙版）
-  ├─ 2 · Hue        模式 HSV 色相   ← 只替换色相
-  ├─ 1 · S / L      模式 正常       ← 一条算子链算完整 HSL 色
+      <div class="dl-head"><h3>生成的结构</h3><span class="pill">一层</span></div>
+      <pre><code>HSL split          组 · 穿透（带 alpha 时组上还有蒙版）
+  └─ 1 · HSL S/L/H   模式 正常   ← 一条算子链算完整 HSL 色
   └─ 原图层（不动，可以隐藏）</code></pre>
-      <p><b>S 曲线挂红通道、L 曲线挂绿通道</b>，色相曲线在 Hue 层。把 Hue 层关掉、
-         只留 S/L 层，看到的就是「原色相 + 调过的 S/L」——很好用的中间状态。</p>
+      <p>滤镜栈：<code>decompose</code>（lb:hsl-dual）→ <b>S 曲线（红）</b> →
+         <b>L 曲线（绿）</b> → <b>H 曲线（蓝）</b> → <code>compose</code>
+         （lb:hsl-compose）。</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>为什么只有两层</h3></div>
-      <p>HSL 的 S 与 L 是<b>耦合</b>的：<code>C = (1−|2L−1|)·S</code>、
-         <code>V = L + C/2</code>、<code>S_hsv = C/V</code>。要精确换回 HSV 的
-         S/V，编码器必须同时读到两者，而每层的曲线只看得到自己那一个分量——
-         两个独立的 1D 曲线表达不了二元映射。所以 S 与 L 合进一张数据图
-         （R=S、G=L），由 <code>lb:hsl-compose</code> 联合还原；算出来的已经是
-         完整颜色，第三层就多余了。</p>
+      <div class="dl-head"><h3>为什么只有一层</h3></div>
+      <p>S 与 L 是耦合的：<code>C = (1−|2L−1|)·S</code>、<code>V = L + C/2</code>、
+         <code>S_hsv = C/V</code>。要精确算回 HSV 的 S/V，编码器必须同时读到两者
+         ——这正是它们要挤进同一张图的原因。旧版到这里是两层：S/L 一层，
+         色相另起一层借 HSV 的色相模式（HSL 与 HSV 的色相角完全相等）。现在色相
+         也进 compose，那层「抽灰度 → 曲线 → 编码成色环」的滤镜链就不需要了。</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>硬凑三层的代价</h3></div>
-      <p>把 HSL 的 L 直接当 V 用：S=0.25 偏 <b>25 码</b>、S=1 偏 <b>64 码</b>
-         （差的正好是 C/2）；再加一条按「典型 S」校准的曲线，实际 S 一变就偏到
-         <b>77 码</b>；S、L 一起调最坏 <b>102 码</b>。</p>
+      <div class="dl-head"><h3>不拿 L 当 V</h3></div>
+      <p>把 HSL 的 L 直接当 HSV 的 V 用会差很多：S=0.25 偏 <b>25 码</b>、S=1 偏
+         <b>64 码</b>（差的正好是 C/2）。本插件在 compose 内部按上式换算，
+         没有这个近似。</p>
     </div>
   </div>
-  <p class="note">适配算子内部用 babl 的 <code>HSLA float</code> 做转换，与 GIMP
-     自己的 HSL（<code>component-extract</code> 的 <code>hsl-s</code> /
-     <code>hsl-l</code>）同一口径，所以往返没有查表误差：浮点 <b>0.00001 码</b>、
-     8 位 <b>0.002 码</b>。改 S 曲线后结果的 HSL 饱和度 = f(原 S)，明度与色相
-     误差 <b>0.0001 码</b>。依赖 <code>lb:hsl-dual</code> /
-     <code>lb:hsl-compose</code> 两个算子，缺了没有一维回退，插件会直接报错。</p>""",
+  <p class="note"><b>实测</b>：浮点恒等往返 <b>0.0001 码</b>、8 位 <b>0.49 码</b>；
+     只改 S 曲线时 L 与色相的偏差 <b>&lt; 0.001 码</b>。转换由 babl 的
+     <code>HSLA float</code> 完成，与 <code>component-extract</code> 的
+     <code>hsl-s</code> / <code>hsl-l</code> 同一口径。依赖
+     <code>lb:hsl-dual</code> / <code>lb:hsl-compose</code>。</p>""",
     ),
     dict(
         key='lab',
@@ -243,41 +247,39 @@ PAGES = [
         count='L / a / b',
         menu='颜色 → SuperMrWang → Shortcut → Lab Split (Curves)',
         pdb='lb-plugin-lab-split-curves(image, drawable, group)',
-        lede="""Lab 的 <code>a</code>、<code>b</code> 是直角坐标，GIMP 一条
-       分量模式也对不上；<code>L*</code> 倒是能借 LCh 明度（同一个量）。所以这个
-       插件把 a 与 b 合进一张数据图联合还原，L* 单独一层——恒等时精确还原原图，
-       调 a 只动 a、调 b 只动 b。""",
+        lede="""在 CIELAB 里调曲线：L* 是感知明度，a 是绿–品红轴，b 是蓝–黄轴。
+       「黄了压 b、偏绿推 a」比在 RGB 里拉曲线直观得多。三个分量打包进一张数据图，
+       三条曲线各管一个通道。""",
         body="""<div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>生成的结构</h3><span class="pill">两层</span></div>
-      <pre><code>Lab split        组 · 穿透（带 alpha 时组上还有蒙版）
-  ├─ 2 · L          模式 LCh 明度   ← 只替换 L*
-  ├─ 1 · a / b      模式 正常       ← 一条算子链算完整 Lab 色
+      <div class="dl-head"><h3>生成的结构</h3><span class="pill">一层</span></div>
+      <pre><code>Lab split          组 · 穿透（带 alpha 时组上还有蒙版）
+  └─ 1 · Lab a/b/L   模式 正常   ← 一条算子链算完整 Lab 色
   └─ 原图层（不动，可以隐藏）</code></pre>
-      <p><b>a 曲线挂红通道、b 曲线挂绿通道</b>，L 曲线在 L 层（值通道）。数据图里
-         中性灰落在 0.502，所以 a 曲线在 0.5 附近往上抬就是往洋红推、往下压是往
-         绿推；b 曲线同理（上=黄、下=蓝）。</p>
+      <p>滤镜栈：<code>decompose</code>（lb:lab-dual）→ <b>a 曲线（红）</b> →
+         <b>b 曲线（绿）</b> → <b>L 曲线（蓝）</b> → <code>compose</code>
+         （lb:lab-compose）。</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>为什么 a/b 必须合一层</h3></div>
-      <p>a、b 是<b>直角坐标</b>，GIMP 没有「a」「b」分量模式。LCh 的 C/h 是它们的
-         极坐标形式，但每层的曲线只看得到自己那一个标量：<code>C</code> 那一层
-         不知道 b 变成了多少，所以两条独立的一维曲线拼不出 (a,b) 的二元映射。
-         合进一张数据图后由 <code>lb:lab-compose</code> 一起读，就精确了。</p>
+      <div class="dl-head"><h3>为什么只有一层</h3></div>
+      <p>a、b 是直角坐标，GIMP 没有「a」「b」分量模式；旧版把 a/b 合一层、L* 另起
+         一层借 LCh 明度（L* 在两个空间里是同一个量，逐位精确）。现在 L* 也进
+         compose，两层变一层——少的不只是一个图，还少了「这层用混合模式、那层用
+         正常模式」两套语义并存的地方。</p>
+      <p>数据图里中性灰落在 <b>0.502</b>：a 曲线在 0.5 附近往上抬是往洋红推、
+         往下压是往绿推；b 曲线同理（上=黄、下=蓝）。</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>L* 为什么可以借 LCh 明度</h3></div>
-      <p>Lab 的 L* 与 LCh 的 L* <b>是同一个量</b>（babl 里就是同一个通道），所以
-         「LCh 明度」模式换 L* 是逐位精确的，不是近似。整条链的误差只剩浮点
-         舍入：<b>0.010 码</b>（8 位 <b>0.499 码</b>）。</p>
+      <div class="dl-head"><h3>量程与实测</h3></div>
+      <p>按 babl 的 <code>CIE Lab float</code>（D50）：<code>a' = (a*+128)/255</code>、
+         <code>L' = L*/100</code>。浮点恒等往返 <b>0.0024 码</b>、8 位 <b>0.49 码</b>；
+         只改 a 曲线时结果的 b* 与 L* 偏差 <b>0.00001 码</b>级。</p>
     </div>
   </div>
-  <p class="note">量程按 babl 的 <code>CIE Lab float</code>（D50 白点，与 GIMP 的 Lab
-     空间同口径）：<code>a' = (a*+128)/255</code>、<code>L' = L*/100</code>。
-     改 a 曲线后结果落在「a* 换了、b* 与 L* 都没动」的 Lab 点上，误差
-     <b>0.0026 码</b>。超 sRGB 色域的 Lab 点会被裁——那是色域的事实。
-     依赖 <code>lb:lab-dual</code> / <code>lb:lab-compose</code> 两个算子，
-     缺了没有一维回退，插件会直接报错。</p>""",
+  <p class="note">a、b 是直角坐标：调 a 会连带改彩度与色相（这正是「整体偏绿」该有的
+     行为）。要彩度、色相各自单独动，用 LCh 那个插件。超 sRGB 色域的点在 8 位图上
+     会被裁——那是色域的事实。依赖 <code>lb:lab-dual</code> /
+     <code>lb:lab-compose</code>。</p>""",
     ),
     dict(
         key='hsi',
@@ -302,11 +304,12 @@ PAGES = [
     </div>
     <div class="dl">
       <div class="dl-head"><h3>为什么只有一层</h3></div>
-      <p>HSL 能拆两层、Lab 能拆两层，是因为各有一个分量借得到现成模式
-         （HSL 色相 ≡ HSV 色相；Lab 的 L* ≡ LCh 的 L*）。HSI 一个都没有：
-         <code>I=(R+G+B)/3</code> 不是 V 也不是 L。更麻烦的是色相——就算接到
-         「HSV 色相」模式，那一步保留的是 HSV 的 S/V，<b>HSI 的 I 会被带走
-         0.085（约 22 码）</b>。所以三个分量只能一起算。</p>
+      <p>HSI 一个分量模式都借不到：<code>I=(R+G+B)/3</code> 不是 V 也不是 L；
+         色相用余弦定义，接到「HSV 色相」模式上换角时保留的是 HSV 的 S/V，
+         <b>I 会被带走 0.085（约 22 码）</b>。所以三个分量只能一起算——这也正是
+         这一层写法最早出现的地方。</p>
+      <p>后来发现它比多层更省事：一层、五条滤镜、没有逐层编码，所以 HSV / HSL /
+         Lab / LCh 四个插件现在也都换成了这个骨架。</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>两种色相角不是一回事</h3></div>
@@ -508,10 +511,10 @@ BRIEF = {
 AREA = {"selection": "图层转换", "channel": "图层转换"}
 
 DEPS = {
-    "hsv": ["gegl:component-extract", "gimp:curves", "lb:gray-to-component"],
-    "lch": ["gegl:component-extract", "gimp:curves", "lb:gray-to-component"],
-    "hsl": ["lb:hsl-dual", "lb:hsl-compose", "lb:gray-to-component"],
-    "lab": ["lb:lab-dual", "lb:lab-compose", "lb:gray-to-component"],
+    "hsv": ["lb:hsv-dual", "lb:hsv-compose", "gimp:curves"],
+    "lch": ["lb:lch-dual", "lb:lch-compose", "gimp:curves"],
+    "hsl": ["lb:hsl-dual", "lb:hsl-compose", "gimp:curves"],
+    "lab": ["lb:lab-dual", "lb:lab-compose", "gimp:curves"],
     "hsi": ["lb:hsi-dual", "lb:hsi-compose"],
     "frequency": ["gegl:gaussian-blur", "gegl:high-pass"],
     "dodge": ["gimp:curves"],

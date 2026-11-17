@@ -5,7 +5,7 @@
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
 [![Operations](https://img.shields.io/badge/operations-37-brightgreen)](#算子清单)
 
-一组自研的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **37 个**，统一 `lb:` 命名空间，
+一组自研的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **41 个**，统一 `lb:` 命名空间，
 在 GIMP 里位于 **图像 → 颜色 → SuperMrWang**。算法按公开公式与可观察的行为实现，
 不含任何商业软件的代码或素材；文中出现的产品名仅用于说明某个算子参照了哪种行为，
 与各厂商无隶属关系（详见文末「版权与商标」）。
@@ -101,13 +101,17 @@ gegl-color-ops/
 | `lb:color-temperature-tint` | Color Temperature & Tint | Color Temperature & Tint | Color | Point | 经典图像编辑器 2026「色彩与自然饱和度」里的色温 / 色调：冷↔暖、绿↔洋红，中性灰跟着偏色、黑白不动 |
 | `lb:apply-image` | Apply Image | Apply Image | Blend | Composer | 经典图像编辑器 应用图像：aux 层按 26 种混合模式压到本层，可只作用单通道；加法/减法带 缩放(1..2)/补偿值(±255)；源层没盖到和透明的地方原样输出 |
 | `lb:calculations` | Calculations | Calculations | Blend | Composer | 经典图像编辑器 计算：两路通道混合出灰/alpha 蒙版，双源可各自反相；加法/减法带 缩放(1..2)/补偿值(±255)；源 2 透明处蒙版为 0 |
-| `lb:gray-to-component` | Gray To Component | Gray To Component | Blend | Point | 分量灰度 → 彩色编码：把 `component-extract` 出来的灰度层编成「携带该分量」的彩色，混合模式才读得出来。`HSV Split (Curves)` / `LCh Split (Curves)` 插件的最后一步，一个滤镜顶掉原来的三条曲线 |
-| `lb:hsl-dual` | HSL Dual Extract | HSL Dual Extract | Blend | Point | HSL 分量曲线的提取器：一张图同时携带三分量（R = 饱和度、G = 明度、B = 色相/360）。S 与 L 耦合，必须同时读到才能精确换回 HSV 的 S/V；`HSL Split (Curves)` 的第一道滤镜 |
-| `lb:hsl-compose` | HSL Compose | HSL Compose | Blend | Point | HSL 分量曲线的合成器：把（R = S、G = L、B = H/360）的数据图还原成真实 HSL 色。babl 做转换，与 GIMP 自己的 HSL 同口径，往返 0.00001 码 |
-| `lb:lab-dual` | Lab Dual Extract | Lab Dual Extract | Blend | Point | Lab 分量曲线的提取器：R = a、G = b、B = L*，一张图带齐三个分量（a/b 归一化到 0…1，中性灰落在 0.502）。a 与 b 是直角坐标，没有可借的分量混合模式，只能联合算出颜色；`Lab Split (Curves)` 的第一道滤镜 |
-| `lb:lab-compose` | Lab Compose | Lab Compose | Blend | Point | Lab 分量曲线的合成器：把（R = a、G = b、B = L*）的数据图还原成真实 Lab 色。babl 的 `CIE Lab float`（D50）做转换，与 GIMP 的 Lab 空间同口径，浮点往返 0.010 码 |
-| `lb:hsi-dual` | HSI Dual Extract | HSI Dual Extract | Blend | Point | HSI 分量曲线的提取器：R = 饱和度、G = 强度、B = 色相/360。色相用 HSI 自己的余弦角（与 HSV 的参数角最多差 1.117°）；`HSI Split (Curves)` 的唯一一道提取器 |
-| `lb:hsi-compose` | HSI Compose | HSI Compose | Blend | Point | HSI 分量曲线的合成器：把（R = S、G = I、B = H/360）的数据图按余弦式逆变换还原成真实色，与 `lb:hsi-levels` 共用 common/color-levels.h 里那份 HSI |
+| `lb:gray-to-component` | Gray To Component | Gray To Component | Component | Point | 分量灰度 → 彩色编码：把 `component-extract` 出来的灰度层编成「携带该分量」的彩色，分量混合模式才读得出来。分量曲线插件的旧版靠它做编码；现在五个插件都直接走 dual / compose，它更像一件独立工具（手工搭分层时仍有用） |
+| `lb:hsl-dual` | HSL Dual Extract | HSL Dual Extract | Component | Point | HSL 分量曲线的提取器：一张图同时携带三分量（R = 饱和度、G = 明度、B = 色相/360）。S 与 L 耦合，必须同时读到才能精确换回 HSV 的 S/V；`HSL Split (Curves)` 的第一道滤镜 |
+| `lb:hsl-compose` | HSL Compose | HSL Compose | Component | Point | HSL 分量曲线的合成器：把（R = S、G = L、B = H/360）的数据图还原成真实 HSL 色。babl 做转换，与 GIMP 自己的 HSL 同口径，往返 0.00001 码 |
+| `lb:lab-dual` | Lab Dual Extract | Lab Dual Extract | Component | Point | Lab 分量曲线的提取器：R = a、G = b、B = L*，一张图带齐三个分量（a/b 归一化到 0…1，中性灰落在 0.502）。a 与 b 是直角坐标，没有可借的分量混合模式，只能联合算出颜色；`Lab Split (Curves)` 的第一道滤镜 |
+| `lb:lab-compose` | Lab Compose | Lab Compose | Component | Point | Lab 分量曲线的合成器：把（R = a、G = b、B = L*）的数据图还原成真实 Lab 色。babl 的 `CIE Lab float`（D50）做转换，与 GIMP 的 Lab 空间同口径，浮点往返 0.010 码 |
+| `lb:hsv-dual` | HSV Dual Extract | HSV Dual Extract | Component | Point | HSV 分量曲线的提取器：R = 饱和度、G = 明度、B = 色相/360，一张图带齐三个分量（babl `HSVA float`，0…1 归一化）；`HSV Split (Curves)` 的第一道滤镜 |
+| `lb:hsv-compose` | HSV Compose | HSV Compose | Component | Point | HSV 分量曲线的合成器：把（R = S、G = V、B = H/360）的数据图按 HSV 定义算回真实色，浮点往返 0.0002 码 |
+| `lb:lch-dual` | LCh Dual Extract | LCh Dual Extract | Component | Point | LCh 分量曲线的提取器：R = L*/100、G = C*/140、B = 色相/360（babl `CIE LCH(ab) alpha float`，D50）。彩度量程取 140，sRGB 最饱和的纯蓝 133.8 也装得下；`LCh Split (Curves)` 的第一道滤镜 |
+| `lb:lch-compose` | LCh Compose | LCh Compose | Component | Point | LCh 分量曲线的合成器：把（R = L、G = C、B = h）的数据图乘回物理量再转 RGB，与 `lb:lch-levels` 同一套 Lab 口径，浮点往返 0.0005 码 |
+| `lb:hsi-dual` | HSI Dual Extract | HSI Dual Extract | Component | Point | HSI 分量曲线的提取器：R = 饱和度、G = 强度、B = 色相/360。色相用 HSI 自己的余弦角（与 HSV 的参数角最多差 1.117°）；`HSI Split (Curves)` 的唯一一道提取器 |
+| `lb:hsi-compose` | HSI Compose | HSI Compose | Component | Point | HSI 分量曲线的合成器：把（R = S、G = I、B = H/360）的数据图按余弦式逆变换还原成真实色，与 `lb:hsi-levels` 共用 common/color-levels.h 里那份 HSI |
 
 每个算子的算法说明、参数含义见 `ops/<算子名>/README.md`（原始文档）。
 
@@ -366,7 +370,7 @@ python tools/i18n_blocks.py check                    # 与 git HEAD 比对代码
 
 ```bash
 cd gegl-color-ops
-./build.sh                 # 产物在 build/ 下，37 个 .dll/.so/.dylib
+./build.sh                 # 产物在 build/ 下，41 个 .dll/.so/.dylib
 ```
 
 脚本会自动探测 `gegl-0.4.pc`（先试 `D:/fastsoftware/GIMP 3/lib/pkgconfig` 等常见位置），也可手动指定：
@@ -441,21 +445,21 @@ touch plugin/blend/.disabled        # 停用 Python 插件
 
 ## 在 GIMP 菜单位置
 
-37 个算子注册在同一个菜单目录下；色阶家族与分量家族各自单独收进一级目录，
+41 个算子注册在同一个菜单目录下；色阶家族与分量家族各自单独收进一级目录，
 避免一长串：
 
 ```
 图像 → 颜色 → SuperMrWang → Levels    → <算子>   （7 个色阶）
-图像 → 颜色 → SuperMrWang → Component → <算子>   （6 个 dual / compose + 灰度转分量）
+图像 → 颜色 → SuperMrWang → Component → <算子>   （10 个 dual / compose + 灰度转分量）
 图像 → 颜色 → SuperMrWang → Tone / Color / Blend / Mask → <算子>
 ```
 
-37 个算子按「找算子时的念头」分六组，避免一个子菜单里平铺二十多项：
+41 个算子按「找算子时的念头」分六组，避免一个子菜单里平铺二十多项：
 
 | 组 | 想干什么 | 放什么 |
 |---|---|---|
 | `Levels` | 拉黑白场 / 调中间调（gamma） | Levels、LAB / HSL / HSB / LCH / CMYK / HSI 色阶——一级目录 |
-| `Component` | 把分量拆开 / 拼回来 | HSL / Lab / HSI 的 `dual` + `compose` 成对，加灰度 → 分量编码——一级目录 |
+| `Component` | 把分量拆开 / 拼回来 | HSV / HSL / Lab / LCh / HSI 的 `dual` + `compose` 成对，加灰度 → 分量编码——一级目录 |
 | `Tone` | 太暗 / 太灰 / 反差不对 | 曝光、亮度/对比度、阴影/高光、黑白 |
 | `Color` | 颜色不对 / 想加味道 | 色相饱和度、HSL 8 Bands、色彩平衡、颜色分级、色温色调、自然饱和度、Vibrance、可选颜色、着色 |
 | `Blend` | 要把两样东西合起来 | 应用图像、计算、通道混合器、照片滤镜、颜色查找 |
@@ -468,7 +472,7 @@ touch plugin/blend/.disabled        # 停用 Python 插件
 "gimp:menu-label", _("界面里显示的名字"),
 ```
 
-**别手改 37 个文件**。分组表在 `tools/set_menu_group.py` 里，改完跑一遍即可
+**别手改 41 个文件**。分组表在 `tools/set_menu_group.py` 里，改完跑一遍即可
 （按字节替换，仓库里 LF / CRLF 混用也不会把行尾搞乱）：
 
 ```bash

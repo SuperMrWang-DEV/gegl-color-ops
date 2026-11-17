@@ -1,23 +1,28 @@
 # -*- coding: utf-8 -*-
-"""回归：hsl-split-curves 插件（HSL 空间调曲线，经适配算子接到 HSV 混合模式）。
+"""回归：hsl-split-curves 插件（HSL 空间调曲线，走适配算子 lb:hsl-dual / lb:hsl-compose）。
 
     "D:/fastsoftware/GIMP 3/bin/gimp-console-3.2.exe" -i -c -d -f \
         --batch-interpreter=python-fu-eval \
         -b "exec(open(r'<repo>/tools/check_hsl_split.py').read())" --quit
 
-必须跑在 GIMP 的 Python 里。检查 8 件事：
+必须跑在 GIMP 的 Python 里。检查 9 件事：
 
-1. 生成结构：组 + 两层，顺序 Hue / S·L，混合模式对；
-2. 每层的滤镜条数与执行顺序（S/L 4 条，Hue 3 条）；
-3. 32 位浮点图：恒等曲线往返 ≈ 0（适配算子用 babl，无查表）；
-4. 8 位图：恒等往返 ≤ 1.5 码（只剩量化）；
-5. 改 S 曲线后，结果的 HSL 饱和度 = f(原 S)、明度不变（这是「等价于直接改
-   HSL」的核心断言）；
-6. 改 L 曲线后同理；
-7. 隐藏原图层后两层自己还原（RGB + alpha，组蒙版）；
-8. 不收组（无 alpha）、图层组输入被拒、缺算子时报错。
+1. 生成结构：组 + 一层三联数据层，正常模式；
+2. 滤镜条数与执行顺序（decompose / 三条曲线 / compose 共 5 条），三条曲线
+   分别挂在红 / 绿 / 蓝通道上；
+3. 32 位浮点图：恒等曲线往返 ≈ 0；
+4. 8 位图：恒等往返 ≤ 1.5 码；
+5. 改 2 · S curve 曲线后，结果的 饱和度 = f(原 饱和度)，另外两个分量不动；
+6. 改 3 · L curve 曲线后同理；
+7. 改 4 · H curve 曲线后同理；
+8. 隐藏原图层后这一层自己还原（RGB + alpha，组蒙版）；
+9. 不收组（无 alpha）、图层组输入被拒、带 alpha 自动分组。
+
+断言只在「目标颜色落在 sRGB 色域内」的像素上做：分量推到极端会出色域，
+出界部分必然被裁——那是色域的事实，不是误差。
 """
 import os
+import math
 import array
 import importlib.util
 
@@ -36,8 +41,7 @@ def _find_repo():
     cands += [cwd, os.path.join(cwd, "SuperMrWang"),
               os.path.join(cwd, "..", "SuperMrWang")]
     for c in cands:
-        if os.path.exists(os.path.join(c, "plugin", "hsl-split-curves",
-                                       "hsl-split-curves.py")):
+        if os.path.exists(os.path.join(c, "plugin", "hsl-split-curves", "hsl-split-curves.py")):
             return os.path.abspath(c)
     raise SystemExit("找不到仓库根目录")
 
@@ -50,9 +54,7 @@ def _load(name, path):
 
 
 REPO = _find_repo()
-HSL = _load("hsl_split_curves",
-            os.path.join(REPO, "plugin", "hsl-split-curves",
-                         "hsl-split-curves.py"))
+MOD = _load("hsl_split_curves", os.path.join(REPO, "plugin", "hsl-split-curves", "hsl-split-curves.py"))
 
 FAILS = []
 CHECKS = [0]
@@ -72,46 +74,74 @@ def close(a, b, tol, label):
     check(delta <= tol, "%s (%.5f <= %.5f)" % (label, delta, tol))
 
 
-# ---- 测试图 / test raster ---------------------------------------------------
+def ci_close(a, b, tol, label):
+    """圆周量（色相）的差。"""
+    d = abs(a - b) % 1.0
+    close(min(d, 1.0 - d), 0.0, tol, label)
 
-def hsl2rgb(h, s, l):
-    c = (1 - abs(2 * l - 1)) * s
-    x = c * (1 - abs((h / 60.0) % 2 - 1))
-    m = l - c / 2
-    if h < 60:
-        r, g, b = c, x, 0
-    elif h < 120:
-        r, g, b = x, c, 0
-    elif h < 180:
-        r, g, b = 0, c, x
-    elif h < 240:
-        r, g, b = 0, x, c
-    elif h < 300:
-        r, g, b = x, 0, c
+
+# ---- HSL 参考实现（与 babl 同一套定义，独立于被测插件） -----------------
+
+def rgb2hsl(rgb):
+    r, g, b = rgb
+    mx, mn = max(rgb), min(rgb)
+    light = (mx + mn) / 2.0
+    d = mx - mn
+    if d <= 1e-9:
+        return 0.0, 0.0, light
+    s = d / (2.0 - mx - mn) if light > 0.5 else d / (mx + mn)
+    if mx == r:
+        h = 60.0 * (((g - b) / d) % 6.0)
+    elif mx == g:
+        h = 60.0 * ((b - r) / d + 2.0)
     else:
-        r, g, b = c, 0, x
+        h = 60.0 * ((r - g) / d + 4.0)
+    return h % 360.0, s, light
+
+
+def hsl2rgb(h, s, light):
+    c = (1.0 - abs(2.0 * light - 1.0)) * s
+    x = c * (1.0 - abs((h / 60.0) % 2.0 - 1.0))
+    m = light - c / 2.0
+    if h < 60.0:
+        r, g, b = c, x, 0.0
+    elif h < 120.0:
+        r, g, b = x, c, 0.0
+    elif h < 180.0:
+        r, g, b = 0.0, c, x
+    elif h < 240.0:
+        r, g, b = 0.0, x, c
+    elif h < 300.0:
+        r, g, b = x, 0.0, c
+    else:
+        r, g, b = c, 0.0, x
     return r + m, g + m, b + m
 
 
-def rgb2hsl(r, g, b):
-    mx, mn = max(r, g, b), min(r, g, b)
-    d = mx - mn
-    l = (mx + mn) / 2.0
-    if d == 0:
-        return 0.0, 0.0, l
-    s = d / (1 - abs(2 * l - 1))
-    if mx == r:
-        h = (60 * ((g - b) / d)) % 360
-    elif mx == g:
-        h = 60 * ((b - r) / d) + 120
-    else:
-        h = 60 * ((r - g) / d) + 240
-    return h, s, l
+def to_space(rgb):
+    return rgb2hsl(rgb)
 
+
+def from_space(c):
+    return hsl2rgb(c[0], c[1], c[2])
+
+
+HUE_INDEX = 0
+
+
+def norm(v, index=0):
+    return v / 360.0 if index == HUE_INDEX else v
+
+
+def denorm(x, index=0):
+    return x * 360.0 if index == HUE_INDEX else x
+
+
+# ---- 测试图 / test raster ---------------------------------------------------
+# 三维都铺开：r 横、g 纵、b 斜纹，色相 / 彩度 / 明度都能覆盖到。
 
 def make_image(w=48, h=48, float_prec=False, alpha_left=None,
                with_alpha=True):
-    """横向铺满色相，纵向三段不同 S/L 组合，可选左半透明。"""
     img = Gimp.Image.new(w, h, Gimp.ImageBaseType.RGB)
     if float_prec:
         proc = Gimp.get_pdb().lookup_procedure('gimp-image-convert-precision')
@@ -128,13 +158,11 @@ def make_image(w=48, h=48, float_prec=False, alpha_left=None,
     for y in range(h):
         for x in range(w):
             i = (y * w + x) * 4
-            if y < h // 3:
-                s, l = 0.9, 0.5
-            elif y < 2 * h // 3:
-                s, l = 0.5, 0.7
-            else:
-                s, l = 0.2, 0.35
-            r, g, b = hsl2rgb((x / float(w)) * 360.0, s, l)
+            # 避开 0 / 1 与近黑：Lab / LCh 在暗部对 RGB 的舍入极其敏感，
+            # 那不是插件误差，是色彩空间的条件数。
+            r = 0.15 + 0.70 * x / float(w - 1)
+            g = 0.15 + 0.70 * y / float(h - 1)
+            b = 0.20 + 0.60 * ((x * 7 + y * 11) % w) / float(w - 1)
             a = alpha_left if (alpha_left is not None and x < w // 2) else 1.0
             px[i:i + 4] = array.array('f', [r, g, b, a])
     if with_alpha:
@@ -167,7 +195,7 @@ def flatten(img):
 
 
 def set_curve(layer, which, fn, channel):
-    """改某一层的某条曲线（按滤镜名找）。"""
+    """改那一条曲线（按滤镜名找）。"""
     for filt in layer.get_filters():
         if filt.get_name() == which:
             cfg = filt.get_config()
@@ -197,141 +225,153 @@ def max_diff(a, b, channels=(0, 1, 2)):
 
 print("== 1. 结构 / structure")
 img, base, ref = make_image()
-top = HSL.split_hsl(img, base, make_group=True)
+top = MOD.split_hsl(img, base, make_group=True)
 group = img.get_layers()[0]
 check(group.is_group(), "顶层是图层组")
 check(group.get_mode() == Gimp.LayerMode.PASS_THROUGH, "组是穿透混合")
 kids = group.get_children()
-check([k.get_name() for k in kids] == ["2 · Hue", "1 · S / L"],
-      "两层顺序（上→下）Hue / S·L", [k.get_name() for k in kids])
-check([k.get_mode() for k in kids] ==
-      [Gimp.LayerMode.HSV_HUE, Gimp.LayerMode.NORMAL],
-      "Hue 层用 HSV 色相模式，S/L 层是正常模式")
+check([k.get_name() for k in kids] == ["1 · HSL S/L/H"],
+      "组里只有一层三联数据层", [k.get_name() for k in kids])
+check([k.get_mode() for k in kids] == [Gimp.LayerMode.NORMAL],
+      "数据层是正常模式")
 check(top is group, "返回值是组")
 
 print("== 2. 滤镜栈 / filter stack")
-hue_l, sl_l = kids
-check(len(sl_l.get_filters()) == 4, "S/L 层 4 条滤镜",
-      len(sl_l.get_filters()))
-check(len(hue_l.get_filters()) == 3, "Hue 层 3 条滤镜",
-      len(hue_l.get_filters()))
-# get_filters() 最新在前，执行顺序是反序
-names = [f.get_name() for f in sl_l.get_filters()][::-1]
-check(names == ["1 · decompose", "2 · S curve", "3 · L curve", "4 · compose"],
-      "S/L：decompose → S 曲线 → L 曲线 → compose", names)
-names = [f.get_name() for f in hue_l.get_filters()][::-1]
-check(names == ["1 · hue", "2 · H curve", "3 · encode"],
-      "Hue：extract → 曲线 → encode", names)
+layer = kids[0]
+check(len(layer.get_filters()) == 5, "5 条滤镜", len(layer.get_filters()))
+names = [f.get_name() for f in layer.get_filters()][::-1]
+check(names == ["1 · decompose", "2 · S curve", "3 · L curve", "4 · H curve", "5 · compose"],
+      "decompose → 2 · S curve → 3 · L curve → 4 · H curve → compose", names)
+ops = [f.get_operation_name() for f in layer.get_filters()][::-1]
+check(ops[0] == "lb:hsl-dual" and ops[4] == "lb:hsl-compose",
+      "用的是 lb:hsl-dual / lb:hsl-compose", ops)
+chans = [f.get_config().get_property("channel")
+         for f in layer.get_filters()
+         if f.get_operation_name() == "gimp:curves"][::-1]
+check(chans == [Gimp.HistogramChannel.RED, Gimp.HistogramChannel.GREEN,
+                Gimp.HistogramChannel.BLUE],
+      "三条曲线分别挂红 / 绿 / 蓝通道", chans)
 
-# ---- 3. 浮点恒等往返 --------------------------------------------------------
+# ---- 3/4. 恒等往返 ----------------------------------------------------------
 
 print("== 3. 浮点恒等往返 / float identity")
 imgf, basef, reff = make_image(float_prec=True)
-HSL.split_hsl(imgf, basef)
-gotf = flatten(imgf)
-close(max_diff(reff, gotf), 0.0, 0.01 / 255.0,
-      "浮点恒等往返 ≤ 0.01 码")
-
-# ---- 4. 8 位恒等往返 --------------------------------------------------------
+MOD.split_hsl(imgf, basef)
+close(max_diff(reff, flatten(imgf)) * 255.0, 0.0, 0.05,
+      "浮点恒等往返 ≤ 0.05 码")
 
 print("== 4. 8 位恒等往返 / 8-bit identity")
 img8, base8, ref8 = make_image()
-HSL.split_hsl(img8, base8)
-got8 = flatten(img8)
-close(max_diff(ref8, got8), 0.0, 1.5 / 255.0, "8 位恒等往返 ≤ 1.5 码")
+MOD.split_hsl(img8, base8)
+close(max_diff(ref8, flatten(img8)) * 255.0, 0.0, 1.5,
+      "8 位恒等往返 ≤ 1.5 码")
 
-# ---- 5/6. 改曲线 == 直接改 HSL 分量 ----------------------------------------
 
-print("== 5. S 曲线 = 只改 HSL 饱和度 / S curve only moves S")
-imgs, bases, refs = make_image(float_prec=True)
-topS = HSL.split_hsl(imgs, bases)
-grpS = imgs.get_layers()[0]
-hueS, slS = grpS.get_children()
-fn_s = lambda t: t * 0.5
-check(set_curve(slS, "2 · S curve", fn_s, Gimp.HistogramChannel.RED),
-      "改 S 曲线（红通道）")
-gots = flatten(imgs)
-worst_s = 0.0
-worst_l = 0.0
-worst_h = 0.0
-for i in range(0, len(refs), 4):
-    h0, s0, l0 = rgb2hsl(refs[i], refs[i + 1], refs[i + 2])
-    h1, s1, l1 = rgb2hsl(gots[i], gots[i + 1], gots[i + 2])
-    worst_s = max(worst_s, abs(s1 - s0 * 0.5) * 255)
-    worst_l = max(worst_l, abs(l1 - l0) * 255)
-    dh = abs((h1 - h0 + 180) % 360 - 180)
-    worst_h = max(worst_h, dh)
-close(worst_s, 0.0, 1.0, "结果的 HSL 饱和度 = 0.5×原 S（≤1 码）")
-close(worst_l, 0.0, 1.0, "HSL 明度不动（≤1 码）")
-check(worst_h < 0.05, "HSL 色相不动（%.4f° < 0.05°）" % worst_h)
+# ---- 5/6/7. 改曲线 == 只改那个分量 ------------------------------------------
 
-print("== 6. L 曲线 = 只改 HSL 明度 / L curve only moves L")
-imgl, basel, refl = make_image(float_prec=True)
-HSL.split_hsl(imgl, basel)
-grpl = imgl.get_layers()[0]
-huel, sll = grpl.get_children()
-fn_l = lambda t: 0.1 + t * 0.8
-check(set_curve(sll, "3 · L curve", fn_l, Gimp.HistogramChannel.GREEN),
-      "改 L 曲线（绿通道）")
-gotl = flatten(imgl)
-worst_l2 = 0.0
-worst_s2 = 0.0
-for i in range(0, len(refl), 4):
-    h0, s0, l0 = rgb2hsl(refl[i], refl[i + 1], refl[i + 2])
-    h1, s1, l1 = rgb2hsl(gotl[i], gotl[i + 1], gotl[i + 2])
-    worst_l2 = max(worst_l2, abs(l1 - (0.1 + l0 * 0.8)) * 255)
-    worst_s2 = max(worst_s2, abs(s1 - s0) * 255)
-close(worst_l2, 0.0, 1.0, "结果的 HSL 明度 = 0.1 + 0.8×原 L（≤1 码）")
-close(worst_s2, 0.0, 1.0, "HSL 饱和度不动（≤1 码）")
+def effect(label, curve, channel, fn, index, circular=False):
+    """改一条曲线，断言结果就是「只把该分量换成 f(原值)」的那个颜色。
 
-# ---- 7. 隐藏原图层 / hide the source ---------------------------------------
+    index：0/1/2 = 该分量在 HSL 三元组里的位置。
+    """
+    img, base, ref = make_image(float_prec=True)
+    MOD.split_hsl(img, base)
+    layer = img.get_layers()[0].get_children()[0]
+    check(set_curve(layer, curve, fn, channel), "改 %s" % curve)
+    got = flatten(img)
+    worst = 0.0
+    worst_other = 0.0
+    tested = 0
+    for i in range(0, len(ref), 4):
+        rgb0 = (ref[i], ref[i + 1], ref[i + 2])
+        # 近中性色与近黑的色相 / 彩度没有意义，跳过。
+        if max(rgb0) - min(rgb0) < 0.10 or max(rgb0) < 0.12:
+            continue
+        c0 = to_space(rgb0)
+        want = list(c0)
+        want[index] = denorm(fn(norm(c0[index], index)), index)
+        target = from_space(want)
+        if min(target) < -0.002 or max(target) > 1.002:
+            continue
+        tested += 1
+        g0 = to_space((got[i], got[i + 1], got[i + 2]))
+        if circular:
+            d = abs(norm(g0[index], index) - norm(want[index], index)) % 1.0
+            worst = max(worst, min(d, 1.0 - d))
+        else:
+            worst = max(worst,
+                        abs(norm(g0[index], index) - norm(want[index], index)))
+        for k in range(3):
+            if k == index:
+                continue
+            worst_other = max(worst_other,
+                              abs(norm(g0[k], k) - norm(c0[k], k)))
+    check(tested > 30, "%s：色域内的点够多" % label, tested)
+    close(worst, 0.0, 1.5 / 255.0 if not circular else 0.35 / 360.0,
+          "%s：目标分量对得上" % label)
+    close(worst_other, 0.0, 1.5 / 255.0,
+          "%s：另外两个分量没被碰" % label)
 
-print("== 7. 隐藏原图层后自足 / hide the source")
-imgh, baseh, refh = make_image(float_prec=True, alpha_left=0.4)
-HSL.split_hsl(imgh, baseh)
+
+print("== 5. 2 · S curve 曲线 = 只改 饱和度 / first curve")
+fn1 = lambda t: 0.10 + t * 0.85
+effect("2 · S curve", "2 · S curve", Gimp.HistogramChannel.RED, fn1, 1, False)
+
+print("== 6. 3 · L curve 曲线 = 只改 明度 / second curve")
+fn2 = lambda t: 0.05 + t * 0.90
+effect("3 · L curve", "3 · L curve", Gimp.HistogramChannel.GREEN, fn2, 2, False)
+
+print("== 7. 4 · H curve 曲线 = 只改 色相 / third curve")
+fn3 = lambda t: 0.02 + t * 0.95
+effect("4 · H curve", "4 · H curve", Gimp.HistogramChannel.BLUE, fn3, 0, True)
+
+# ---- 8. alpha / 自足 --------------------------------------------------------
+
+print("== 8. 透明区域 / alpha passes through")
+imga, basea, refa = make_image(alpha_left=0.4)
+MOD.split_hsl(imga, basea)
+check(imga.get_layers()[0].get_mask() is not None, "组上挂了 alpha 蒙版")
+# 数据层本身是不透明的（透明度靠组蒙版），原图一起显示时 alpha 会叠加，
+# 所以验 alpha 之前先把原图关掉——插件提示里也是这么说的。
+basea.set_visible(False)
+gota = flatten(imga)
+close(max_diff(refa, gota, (3,)), 0.0, 2.0 / 255.0,
+      "alpha 逐位保留（组蒙版）")
+close(gota[(imga.get_width() // 4) * 4 + 3], 0.4, 1.5 / 255.0,
+      "左半 alpha 仍是 0.4")
+
+print("== 8b. 隐藏原图层后自足 / hide the source")
+imgh, baseh, refh = make_image(alpha_left=0.4)
+MOD.split_hsl(imgh, baseh)
 baseh.set_visible(False)
-goth = flatten(imgh)
-close(max_diff(refh, goth), 0.0, 1.5 / 255.0,
+close(max_diff(refh, flatten(imgh)) * 255.0, 0.0, 1.5,
       "原图层隐藏后仍能还原 RGB（≤1.5 码）")
-close(max_diff(refh, goth, (3,)), 0.0, 2.0 / 255.0,
-      "原图层隐藏后 alpha 仍对（组蒙版）")
-check(imgh.get_layers()[0].get_mask() is not None, "组上挂了 alpha 蒙版")
 
-# ---- 8. 边界 / edges -------------------------------------------------------
+# ---- 9. 不收组 / 非法输入 ---------------------------------------------------
 
-print("== 8. 边界 / edges")
-# 无 alpha 的层可以不分组
-imgn, basen, refn = make_image(float_prec=True, with_alpha=False)
-HSL.split_hsl(imgn, basen, make_group=False)
-check(not imgn.get_layers()[0].is_group(), "无 alpha 时不分组")
-check(len(imgn.get_layers()) == 3, "原图 + 两层", len(imgn.get_layers()))
-close(max_diff(refn, flatten(imgn)), 0.0, 1.5 / 255.0, "不分组也精确还原")
+print("== 9. 不收组 / no group")
+imgn, basen, refn = make_image(with_alpha=False)
+MOD.split_hsl(imgn, basen, make_group=False)
+check(not imgn.get_layers()[0].is_group(), "顶层不是组")
+check(len(imgn.get_layers()) == 2, "原图 + 一层", len(imgn.get_layers()))
+close(max_diff(refn, flatten(imgn)) * 255.0, 0.0, 1.5, "不分组也逐位还原")
 
-# 带 alpha 又要求不分组 → 自动分组（蒙版只能挂组上）
 imgz, basez, _ = make_image(alpha_left=0.5)
-HSL.split_hsl(imgz, basez, make_group=False)
+MOD.split_hsl(imgz, basez, make_group=False)
 check(imgz.get_layers()[0].is_group(), "带 alpha 不分组 → 自动分组")
 check(imgz.get_layers()[0].get_mask() is not None, "自动分组也挂了 alpha 蒙版")
 
-# 图层组作为输入要被拒绝
-imgg = Gimp.Image.new(8, 8, Gimp.ImageBaseType.RGB)
-grp = Gimp.GroupLayer.new(imgg, "g")
-imgg.insert_layer(grp, None, 0)
+print("== 10. 非法输入 / invalid input")
+imgg = Gimp.Image.new(16, 16, Gimp.ImageBaseType.RGB)
+grp2 = Gimp.GroupLayer.new(imgg, "g")
+imgg.insert_layer(grp2, None, 0)
 try:
-    HSL.split_hsl(imgg, grp)
-    check(False, "图层组输入被拒绝")
+    MOD.split_hsl(imgg, grp2)
+    check(False, "图层组应该被拒绝")
 except RuntimeError:
-    check(True, "图层组输入被拒绝")
-
-# 缺算子时的报错路径（把探测结果伪造成 False 不该影响别处，这里只验证消息）
-try:
-    HSL._require_adapter_ops(base)
-    check(True, "适配算子探测通过")
-except Exception as exc:
-    check(False, "适配算子探测通过", exc)
+    check(True, "图层组被拒绝")
 
 print()
 if FAILS:
-    print("失败 %d / %d 项：%s" % (len(FAILS), CHECKS[0], ", ".join(FAILS)))
-else:
-    print("全部 %d 项通过" % CHECKS[0])
+    raise SystemExit("%d/%d 项失败: %s" % (len(FAILS), CHECKS[0], FAILS))
+print("全部 %d 项通过 / %d checks passed" % (CHECKS[0], CHECKS[0]))

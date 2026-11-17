@@ -39,29 +39,27 @@
     <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/lab-split-curves.html"/>
     <id>tag:github.com,2026:plugin-lab-split-curves</id>
     <updated>2026-11-17T00:00:00Z</updated>
-    <summary>Lab 的 a、b 是直角坐标，GIMP 一条
-       分量模式也对不上；L* 倒是能借 LCh 明度（同一个量）。所以这个
-       插件把 a 与 b 合进一张数据图联合还原，L* 单独一层——恒等时精确还原原图，
-       调 a 只动 a、调 b 只动 b。</summary>
+    <summary>在 CIELAB 里调曲线：L* 是感知明度，a 是绿–品红轴，b 是蓝–黄轴。
+       「黄了压 b、偏绿推 a」比在 RGB 里拉曲线直观得多。三个分量打包进一张数据图，
+       三条曲线各管一个通道。</summary>
   </entry>
   <entry>
     <title>插件 · HSL Split (Curves)</title>
     <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/hsl-split-curves.html"/>
     <id>tag:github.com,2026:plugin-hsl-split-curves</id>
     <updated>2026-11-17T00:00:00Z</updated>
-    <summary>GIMP 给 HSV 和 LCh 都配了分量混合模式，唯独 HSL 没有。
-       这个插件不是拿 HSV 去近似 HSL，而是把两者精确换算：色相本来就是
-       同一个函数，S 与 L 则合进一张数据图，由算子联合还原。恒等时精确还原原图，
-       调哪条曲线就只动那个 HSL 分量。</summary>
+    <summary>GIMP 给 HSV 和 LCh 都配了分量混合模式，唯独 HSL 没有，也没有
+       HSL 的色相入口。这个插件不拿 HSV 近似 HSL，而是把三者精确换算后打包进
+       一张数据图，三条曲线各管一个分量。</summary>
   </entry>
   <entry>
     <title>插件 · LCh Split (Curves)</title>
     <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/lch-split-curves.html"/>
     <id>tag:github.com,2026:plugin-lch-split-curves</id>
     <updated>2026-11-17T00:00:00Z</updated>
-    <summary>同样的思路换到 CIE LCh：明度、彩度、色相三条曲线。
-       LCh 是「颜色」组里唯一完整、且没有 legacy 包袱的一组分量模式，
-       感知均匀，做明暗与彩度分级比 HSV 稳。</summary>
+    <summary>同样的思路换到 CIE LCh：明度、彩度、色相三条曲线。LCh 是 Lab 的
+       极坐标写法——a、b 是直角坐标，一条一维曲线改它会连带改彩度和色相；换成
+       (L, C, h) 之后，调彩度不动色相、调色相不动彩度。</summary>
   </entry>
   <entry>
     <title>插件 · HSV Split (Curves)</title>
@@ -69,8 +67,9 @@
     <id>tag:github.com,2026:plugin-hsv-split-curves</id>
     <updated>2026-11-17T00:00:00Z</updated>
     <summary>GIMP 的曲线只能选 R / G / B / Alpha——想单独曲「色相」或
-       「饱和度」没有入口。这个插件把图层拆成三张分量层、每层给一条曲线，
-       再按 HSV 分量模式叠回去：恒等时逐位还原，所以改曲线就等于曲那个分量。</summary>
+       「饱和度」没有入口。这个插件把图层换成一张数据图（红=S、绿=V、蓝=色相），
+       三条曲线各管一个分量，再由一个算子解回颜色：恒等时逐像素还原原图，
+       改哪条曲线就只动那个分量。</summary>
   </entry>
   <entry>
     <title>插件 · Layer to Channel</title>
@@ -273,6 +272,20 @@
     <summary>HSI 分量曲线工作流的提取器：把一张图拆成「R = 饱和度、G = 强度、B = 色相/360」的数据图，一张图同时携带三个分量</summary>
   </entry>
   <entry>
+    <title>LCh Compose</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/lch-compose/README.md"/>
+    <id>tag:github.com,2026:lb:lch-compose</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>LCh 分量曲线工作流的合成器：把「R = L/100、G = C/140、B = 色相/360」的数据图还原成真实颜色</summary>
+  </entry>
+  <entry>
+    <title>LCh Dual Extract</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/lch-dual/README.md"/>
+    <id>tag:github.com,2026:lb:lch-dual</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L、G = 彩度 C、B = 色相/360」的数据图，一张图同时携带三个分量</summary>
+  </entry>
+  <entry>
     <title>Lab Compose</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/lab-compose/README.md"/>
     <id>tag:github.com,2026:lb:lab-compose</id>
@@ -285,6 +298,20 @@
     <id>tag:github.com,2026:lb:lab-dual</id>
     <updated>2026-11-15T00:00:00Z</updated>
     <summary>Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量</summary>
+  </entry>
+  <entry>
+    <title>HSV Compose</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/hsv-compose/README.md"/>
+    <id>tag:github.com,2026:lb:hsv-compose</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>HSV 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色</summary>
+  </entry>
+  <entry>
+    <title>HSV Dual Extract</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/hsv-dual/README.md"/>
+    <id>tag:github.com,2026:lb:hsv-dual</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>HSV 分量曲线工作流的提取器：把一张图拆成「R = HSV 饱和度、G = HSV 明度、B = 色相/360」的数据图，一张图同时携带三个分量</summary>
   </entry>
   <entry>
     <title>HSL Compose</title>

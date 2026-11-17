@@ -73,11 +73,12 @@
     </div>
     <div class="dl">
       <div class="dl-head"><h3>为什么只有一层</h3></div>
-      <p>HSL 能拆两层、Lab 能拆两层，是因为各有一个分量借得到现成模式
-         （HSL 色相 ≡ HSV 色相；Lab 的 L* ≡ LCh 的 L*）。HSI 一个都没有：
-         <code>I=(R+G+B)/3</code> 不是 V 也不是 L。更麻烦的是色相——就算接到
-         「HSV 色相」模式，那一步保留的是 HSV 的 S/V，<b>HSI 的 I 会被带走
-         0.085（约 22 码）</b>。所以三个分量只能一起算。</p>
+      <p>HSI 一个分量模式都借不到：<code>I=(R+G+B)/3</code> 不是 V 也不是 L；
+         色相用余弦定义，接到「HSV 色相」模式上换角时保留的是 HSV 的 S/V，
+         <b>I 会被带走 0.085（约 22 码）</b>。所以三个分量只能一起算——这也正是
+         这一层写法最早出现的地方。</p>
+      <p>后来发现它比多层更省事：一层、五条滤镜、没有逐层编码，所以 HSV / HSL /
+         Lab / LCh 四个插件现在也都换成了这个骨架。</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>两种色相角不是一回事</h3></div>
@@ -119,7 +120,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">ef7800a</span>
+    <span class="muted">9fc2d84</span>
   </div>
 </footer>
 </body>

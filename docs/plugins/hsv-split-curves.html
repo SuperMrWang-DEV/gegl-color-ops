@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HSV Split (Curves) · Python 插件 · gegl-color-ops</title>
 <meta name="description" content="GIMP 的曲线只能选 R / G / B / Alpha——想单独曲「色相」或
-       「饱和度」没有入口。这个插件把图层拆成三张分量层、每层给一条曲线，
-       再按 HSV 分量模式叠回去：恒等时逐位还原，所以改曲线就等于">
+       「饱和度」没有入口。这个插件把图层换成一张数据图（红=S、绿=V、蓝=色相），
+       三条曲线各管一个分量，再由一个算子解回颜色：恒等时">
 <meta property="og:title" content="HSV Split (Curves) · Python 插件 · gegl-color-ops">
 <meta property="og:description" content="GIMP 的曲线只能选 R / G / B / Alpha——想单独曲「色相」或
-       「饱和度」没有入口。这个插件把图层拆成三张分量层、每层给一条曲线，
-       再按 HSV 分量模式叠回去：恒等时逐位还原，所以改曲线就等于">
+       「饱和度」没有入口。这个插件把图层换成一张数据图（红=S、绿=V、蓝=色相），
+       三条曲线各管一个分量，再由一个算子解回颜色：恒等时">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
 </head>
@@ -37,8 +37,9 @@
     <span>Shortcut 快捷方式</span>
   </div>
   <p class="lede">GIMP 的曲线只能选 R / G / B / Alpha——想单独曲「色相」或
-       「饱和度」没有入口。这个插件把图层拆成三张分量层、每层给一条曲线，
-       再按 HSV 分量模式叠回去：恒等时逐位还原，所以改曲线就等于曲那个分量。</p>
+       「饱和度」没有入口。这个插件把图层换成一张数据图（红=S、绿=V、蓝=色相），
+       三条曲线各管一个分量，再由一个算子解回颜色：恒等时逐像素还原原图，
+       改哪条曲线就只动那个分量。</p>
 </section>
 
 <div class="prose wide">
@@ -57,40 +58,42 @@
     <div class="dl">
       <div class="dl-head"><h3>依赖</h3></div>
       <p>靠下面这些算子干活，装插件时它们必须已注册（<code>build.sh</code> 或 dll 包里都有）：</p>
-      <ul class="deps"><li><code>gegl:component-extract</code></li><li><code>gimp:curves</code></li><li><code>lb:gray-to-component</code></li></ul>
+      <ul class="deps"><li><code>lb:hsv-dual</code></li><li><code>lb:hsv-compose</code></li><li><code>gimp:curves</code></li></ul>
     </div>
   </div>
 
 <div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>生成的结构</h3><span class="pill">穿透组</span></div>
-      <pre><code>HSV split        组 · 穿透（带 alpha 时组上还有蒙版）
-  ├─ 3 · Value      模式 HSV 明度
-  ├─ 2 · Saturation 模式 HSV 饱和度
-  ├─ 1 · Hue        模式 HSV 色相   ← 垫底
+      <div class="dl-head"><h3>生成的结构</h3><span class="pill">一层</span></div>
+      <pre><code>HSV split          组 · 穿透（带 alpha 时组上还有蒙版）
+  └─ 1 · HSV S/V/H   模式 正常   ← 一条算子链算完整 HSV 色
   └─ 原图层（不动，可以隐藏）</code></pre>
-      <p>每层三条滤镜：<code>extract</code>（抽分量）→ <code>curve</code>
-         （<b>你调的那条</b>）→ <code>encode</code>（一个 <code>lb:gray-to-component</code>
-         滤镜，把灰度编码成携带该分量的彩色）。</p>
-      <p><b>层序不能反：</b>分量混合模式只替换一个分量，另外两个从下行读。最底层
-         必须自带真实色相（全饱和色环），所以 Hue 垫底、Value 在顶。反过来的话
-         最底是灰，上面两层读到 S=0，怎么换都是灰——<b>把原图层一隐藏就整幅崩掉</b>。</p>
+      <p>滤镜栈：<code>decompose</code>（lb:hsv-dual）→ <b>S 曲线（红）</b> →
+         <b>V 曲线（绿）</b> → <b>H 曲线（蓝）</b> → <code>compose</code>
+         （lb:hsv-compose）。三个分量各占一个通道，互不串门。</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>为什么是在做曲线</h3></div>
-      <p>恒等曲线时三层合成回来<b>逐位还原</b>原图，所以改一条曲线就等于
-         「在 HSV 空间里曲那一个分量」。GIMP 内置曲线只能选
-         R/G/B/Alpha——H、S、LCh 这些分量它读不到，这正是缺口。</p>
+      <div class="dl-head"><h3>为什么只有一层</h3></div>
+      <p>旧版是三张分量层，每层 <code>extract</code> → 曲线 → <code>encode</code>，
+         再靠 HSV 的三个分量混合模式叠回去。能用，但三层就是三次编码、三次量化，
+         8 位图上还得靠组内浮点缓冲才不偏色。现在 S、V、H 一起进
+         <code>lb:hsv-compose</code>：一层、五条滤镜，算完就是最终颜色。</p>
+      <p>三个分量本来就分不开——<code>V = max</code>、<code>S = (max−min)/V</code>、
+         色相由三者的比例决定。与其让混合模式逐层去猜，不如让一个算子同时读到
+         三者，一次算清。</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>实测精度</h3></div>
-      <p>32 位浮点与 8 位图的恒等往返都是 <b>0.5 码</b>；真实 512×512 图逐像素
-         比对最大 <b>1 码</b>，仅 0.335% 的通道值有差异。剩下的误差是 8 位量化，
-         编码本身没有查表误差——旧版三条曲线才有 256 点 LUT。</p>
-      <p>把<b>原图层隐藏掉</b>，三层自己叠出来还是 <b>0.5 码</b>；半透明区域的
-         透明度由组蒙版保住（三层必须不透明，否则混合模式会按 alpha 做 lerp）。</p>
+      <p>32 位浮点图恒等往返 <b>0.0002 码</b>；8 位图 <b>0.49 码</b>（就是量化本身）。
+         只改 S 曲线时，结果的 V 与色相偏差 <b>&lt; 0.001 码</b>——三个分量确实
+         互不干扰。</p>
+      <p>把原图层隐藏掉，这一层自己就能还原（半透明区域靠组蒙版）。</p>
     </div>
   </div>
+  <p class="note">通道约定是硬的：<b>S 在红、V 在绿、色相在蓝</b>。改曲线时选错通道，
+     等于把另一个分量的数据当曲线输入。色相曲线必须连续（两端相等、中间不跳变），
+     整体旋转色相请用 <code>lb:hue-saturation</code>。依赖
+     <code>lb:hsv-dual</code> / <code>lb:hsv-compose</code> 两个算子，缺了会直接报错。</p>
 
 <section class="download" id="download">
   <h2>下载这一个</h2>
@@ -100,7 +103,7 @@
        <code>plug-ins</code> 目录（Windows <code>%APPDATA%\GIMP\3.x\plug-ins</code>，
        Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-hsv-split-curves.zip">下载 gegl-color-ops-plugin-hsv-split-curves.zip</a>
-    <p class="muted small">7.5 KB · 校验：<code>SHA256 ad6ee2c61a01dfbf34e56c398334a54f…</code></p>
+    <p class="muted small">5.9 KB · 校验：<code>SHA256 0642dc7ae2245d5b6785e207ab07f08a…</code></p>
   </div>
 </section>
 
@@ -119,7 +122,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">ef7800a</span>
+    <span class="muted">9fc2d84</span>
   </div>
 </footer>
 </body>

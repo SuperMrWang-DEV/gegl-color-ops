@@ -20,6 +20,8 @@ windows-x64,hsl-compose.dll,lb:hsl-compose,HSL Compose,99019,c1853c2ab81649ea698
 windows-x64,hsl-dual.dll,lb:hsl-dual,HSL Dual Extract,99001,48dc00d002d7a0cbb7a968b789a80655eb80525c6f33de983f97a93969958487
 windows-x64,hsl-levels.dll,lb:hsl-levels,HSL Levels,130908,1bd1d035c858587d87aa9324ca6188b3a547676c333692ce527e4294fdbda9f0
 windows-x64,hsl-seven.dll,lb:hsl-seven,HSL 8 Bands,110704,b577872cb0e9b8df5dbf3bb2af2b3168e8143f578affefa00d08e06b26b02904
+windows-x64,hsv-compose.dll,lb:hsv-compose,HSV Compose,99019,63c841c1f8ca21db02df4b48493df66b0134994ea09bfee1ddb6b74c84858afd
+windows-x64,hsv-dual.dll,lb:hsv-dual,HSV Dual Extract,99001,c86ab6b543e8242a6576e76a01f032f693ce9dc8338b57b40b5293c3b672de99
 windows-x64,hue-range-basic.dll,lb:hue-range-basic,Hue/Saturation Range,109454,0cdb7d93d574836ef8abab208fded9caf0b1ce68c99ad658f4579747977a0873
 windows-x64,hue-saturation-basic.dll,lb:hue-saturation-basic,Hue/Saturation (Basic),104933,2a49e7b43e0e853676d2ca9b18894117d8c6dcfcd047a30047e4ccf508603954
 windows-x64,hue-saturation.dll,lb:hue-saturation,Hue/Saturation,109994,eb587f8cf6e5de1096b31ba53f3fe0c98544c759305da1bacb117dc615c22f35
@@ -28,6 +30,8 @@ windows-x64,lab-dual.dll,lb:lab-dual,Lab Dual Extract,99513,8193854f8f3556f80012
 windows-x64,lab-levels.dll,lb:lab-levels,LAB Levels,132426,a114ad2e732e493e9c28b479712e8699f6677e15f24ba29c6ec2742a697d223c
 windows-x64,lb-brightness-contrast.dll,lb:brightness-contrast,Brightness/Contrast,129619,037ed6bb39eec8860e695a9e43fbc245e1d6562dc9842f6dc8bb3100911ee2e1
 windows-x64,lb-exposure.dll,lb:exposure,Exposure EV,129201,3d580535eb00cc6dd1fac36ace7eaa723886917955d2961c4743ce1ab7be6f42
+windows-x64,lch-compose.dll,lb:lch-compose,LCh Compose,99531,f683b79f9168d1a47ab9b22c433eb30a59fca4910b9ec9575582682556277f9b
+windows-x64,lch-dual.dll,lb:lch-dual,LCh Dual Extract,99513,ec7b7c7da876206a28dbf1b5df16ecf8ccdebd070fb3abb173a8ca4f4a3084a7
 windows-x64,lch-levels.dll,lb:lch-levels,LCH Levels,130908,cb7634bbc0ae5aac92a118720cd51c68b5b44d856cb2b899b47527aad01d857e
 windows-x64,levels.dll,lb:levels,Levels,131495,0cf506160ebff1e4877b7fd04651ad9b41eaba0747ad92f2f150d4b0a93a4e61
 windows-x64,match-color.dll,lb:match-color,Match Color,107603,ac09d8ad4d9f7a0f1c6d4e2b6f254a71d8142e539b35bc722516c32f636d25e8

@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HSL Split (Curves) · Python 插件 · gegl-color-ops</title>
-<meta name="description" content="GIMP 给 HSV 和 LCh 都配了分量混合模式，唯独 HSL 没有。
-       这个插件不是拿 HSV 去近似 HSL，而是把两者精确换算：色相本来就是
-       同一个函数，S 与 L 则合进一张数据图，由算子联合还原。恒等">
+<meta name="description" content="GIMP 给 HSV 和 LCh 都配了分量混合模式，唯独 HSL 没有，也没有
+       HSL 的色相入口。这个插件不拿 HSV 近似 HSL，而是把三者精确换算后打包进
+       一张数据图，三条曲线各管一个分量。">
 <meta property="og:title" content="HSL Split (Curves) · Python 插件 · gegl-color-ops">
-<meta property="og:description" content="GIMP 给 HSV 和 LCh 都配了分量混合模式，唯独 HSL 没有。
-       这个插件不是拿 HSV 去近似 HSL，而是把两者精确换算：色相本来就是
-       同一个函数，S 与 L 则合进一张数据图，由算子联合还原。恒等">
+<meta property="og:description" content="GIMP 给 HSV 和 LCh 都配了分量混合模式，唯独 HSL 没有，也没有
+       HSL 的色相入口。这个插件不拿 HSV 近似 HSL，而是把三者精确换算后打包进
+       一张数据图，三条曲线各管一个分量。">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
 </head>
@@ -36,10 +36,9 @@
     <span class="tag t-color">曲线</span>
     <span>Shortcut 快捷方式</span>
   </div>
-  <p class="lede">GIMP 给 HSV 和 LCh 都配了分量混合模式，唯独 HSL 没有。
-       这个插件不是拿 HSV 去近似 HSL，而是把两者<b>精确</b>换算：色相本来就是
-       同一个函数，S 与 L 则合进一张数据图，由算子联合还原。恒等时精确还原原图，
-       调哪条曲线就只动那个 HSL 分量。</p>
+  <p class="lede">GIMP 给 HSV 和 LCh 都配了分量混合模式，唯独 HSL 没有，也没有
+       HSL 的色相入口。这个插件不拿 HSV 近似 HSL，而是把三者精确换算后打包进
+       一张数据图，三条曲线各管一个分量。</p>
 </section>
 
 <div class="prose wide">
@@ -58,42 +57,40 @@
     <div class="dl">
       <div class="dl-head"><h3>依赖</h3></div>
       <p>靠下面这些算子干活，装插件时它们必须已注册（<code>build.sh</code> 或 dll 包里都有）：</p>
-      <ul class="deps"><li><code>lb:hsl-dual</code></li><li><code>lb:hsl-compose</code></li><li><code>lb:gray-to-component</code></li></ul>
+      <ul class="deps"><li><code>lb:hsl-dual</code></li><li><code>lb:hsl-compose</code></li><li><code>gimp:curves</code></li></ul>
     </div>
   </div>
 
 <div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>生成的结构</h3><span class="pill">两层</span></div>
-      <pre><code>HSL split        组 · 穿透（带 alpha 时组上还有蒙版）
-  ├─ 2 · Hue        模式 HSV 色相   ← 只替换色相
-  ├─ 1 · S / L      模式 正常       ← 一条算子链算完整 HSL 色
+      <div class="dl-head"><h3>生成的结构</h3><span class="pill">一层</span></div>
+      <pre><code>HSL split          组 · 穿透（带 alpha 时组上还有蒙版）
+  └─ 1 · HSL S/L/H   模式 正常   ← 一条算子链算完整 HSL 色
   └─ 原图层（不动，可以隐藏）</code></pre>
-      <p><b>S 曲线挂红通道、L 曲线挂绿通道</b>，色相曲线在 Hue 层。把 Hue 层关掉、
-         只留 S/L 层，看到的就是「原色相 + 调过的 S/L」——很好用的中间状态。</p>
+      <p>滤镜栈：<code>decompose</code>（lb:hsl-dual）→ <b>S 曲线（红）</b> →
+         <b>L 曲线（绿）</b> → <b>H 曲线（蓝）</b> → <code>compose</code>
+         （lb:hsl-compose）。</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>为什么只有两层</h3></div>
-      <p>HSL 的 S 与 L 是<b>耦合</b>的：<code>C = (1−|2L−1|)·S</code>、
-         <code>V = L + C/2</code>、<code>S_hsv = C/V</code>。要精确换回 HSV 的
-         S/V，编码器必须同时读到两者，而每层的曲线只看得到自己那一个分量——
-         两个独立的 1D 曲线表达不了二元映射。所以 S 与 L 合进一张数据图
-         （R=S、G=L），由 <code>lb:hsl-compose</code> 联合还原；算出来的已经是
-         完整颜色，第三层就多余了。</p>
+      <div class="dl-head"><h3>为什么只有一层</h3></div>
+      <p>S 与 L 是耦合的：<code>C = (1−|2L−1|)·S</code>、<code>V = L + C/2</code>、
+         <code>S_hsv = C/V</code>。要精确算回 HSV 的 S/V，编码器必须同时读到两者
+         ——这正是它们要挤进同一张图的原因。旧版到这里是两层：S/L 一层，
+         色相另起一层借 HSV 的色相模式（HSL 与 HSV 的色相角完全相等）。现在色相
+         也进 compose，那层「抽灰度 → 曲线 → 编码成色环」的滤镜链就不需要了。</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>硬凑三层的代价</h3></div>
-      <p>把 HSL 的 L 直接当 V 用：S=0.25 偏 <b>25 码</b>、S=1 偏 <b>64 码</b>
-         （差的正好是 C/2）；再加一条按「典型 S」校准的曲线，实际 S 一变就偏到
-         <b>77 码</b>；S、L 一起调最坏 <b>102 码</b>。</p>
+      <div class="dl-head"><h3>不拿 L 当 V</h3></div>
+      <p>把 HSL 的 L 直接当 HSV 的 V 用会差很多：S=0.25 偏 <b>25 码</b>、S=1 偏
+         <b>64 码</b>（差的正好是 C/2）。本插件在 compose 内部按上式换算，
+         没有这个近似。</p>
     </div>
   </div>
-  <p class="note">适配算子内部用 babl 的 <code>HSLA float</code> 做转换，与 GIMP
-     自己的 HSL（<code>component-extract</code> 的 <code>hsl-s</code> /
-     <code>hsl-l</code>）同一口径，所以往返没有查表误差：浮点 <b>0.00001 码</b>、
-     8 位 <b>0.002 码</b>。改 S 曲线后结果的 HSL 饱和度 = f(原 S)，明度与色相
-     误差 <b>0.0001 码</b>。依赖 <code>lb:hsl-dual</code> /
-     <code>lb:hsl-compose</code> 两个算子，缺了没有一维回退，插件会直接报错。</p>
+  <p class="note"><b>实测</b>：浮点恒等往返 <b>0.0001 码</b>、8 位 <b>0.49 码</b>；
+     只改 S 曲线时 L 与色相的偏差 <b>&lt; 0.001 码</b>。转换由 babl 的
+     <code>HSLA float</code> 完成，与 <code>component-extract</code> 的
+     <code>hsl-s</code> / <code>hsl-l</code> 同一口径。依赖
+     <code>lb:hsl-dual</code> / <code>lb:hsl-compose</code>。</p>
 
 <section class="download" id="download">
   <h2>下载这一个</h2>
@@ -103,7 +100,7 @@
        <code>plug-ins</code> 目录（Windows <code>%APPDATA%\GIMP\3.x\plug-ins</code>，
        Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-hsl-split-curves.zip">下载 gegl-color-ops-plugin-hsl-split-curves.zip</a>
-    <p class="muted small">6.9 KB · 校验：<code>SHA256 40c323c73342902f46bb6efb38e96d24…</code></p>
+    <p class="muted small">5.8 KB · 校验：<code>SHA256 7b0a56acca743d787aa5a47bebcb26c4…</code></p>
   </div>
 </section>
 
@@ -122,7 +119,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">ef7800a</span>
+    <span class="muted">9fc2d84</span>
   </div>
 </footer>
 </body>

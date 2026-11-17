@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>gegl-color-ops · GIMP 3 色彩算子集</title>
-<meta name="description" content="37 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。">
+<meta name="description" content="41 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。">
 <meta property="og:title" content="gegl-color-ops · GIMP 3 色彩算子集">
-<meta property="og:description" content="37 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。">
+<meta property="og:description" content="41 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="feed.xml">
 <script>
@@ -42,29 +42,29 @@
 <section class="hero">
   <p class="eyebrow">GIMP 3.x · GEGL 0.4 · GPL-3.0</p>
   <h1><span class="l-zh">给 GIMP 3 的一整套<br><span class="grad">色彩算子</span></span><span class="l-en">A complete set of<br><span class="grad">colour operators</span> for GIMP 3</span></h1>
-  <p class="lede"><span class="l-zh">37 个 <code>lb:</code> 前缀的 GEGL 算子，覆盖色阶、色彩平衡、自然饱和度、
-     白平衡、通道混合、蒙版生成。每个都是单文件 C，装完即用，能当非破坏滤镜挂在图层上。</span><span class="l-en">37 GEGL operators with the <code>lb:</code> prefix, covering levels, colour
+  <p class="lede"><span class="l-zh">41 个 <code>lb:</code> 前缀的 GEGL 算子，覆盖色阶、色彩平衡、自然饱和度、
+     白平衡、通道混合、蒙版生成。每个都是单文件 C，装完即用，能当非破坏滤镜挂在图层上。</span><span class="l-en">41 GEGL operators with the <code>lb:</code> prefix, covering levels, colour
      balance, vibrance, white balance, channel mixing and mask building. Each one is a
      single C file, works out of the box, and mounts on a layer as a non-destructive
      fx filter.</span>
      </p>
   <div class="cta">
-    <a class="btn primary" href="#download"><span class="l-zh">下载 Windows 包</span><span class="l-en">Download the Windows bundle</span><span class="size">1.6 MB</span></a>
-    <a class="btn" href="#ops"><span class="l-zh">浏览 37 个算子</span><span class="l-en">Browse the 37 operators</span></a>
+    <a class="btn primary" href="#download"><span class="l-zh">下载 Windows 包</span><span class="l-en">Download the Windows bundle</span><span class="size">1.7 MB</span></a>
+    <a class="btn" href="#ops"><span class="l-zh">浏览 41 个算子</span><span class="l-en">Browse the 41 operators</span></a>
     <a class="btn ghost" href="guide.html"><span class="l-zh">怎么装</span><span class="l-en">How to install</span></a>
   </div>
   <ul class="facts">
-    <li><b>37</b> <span class="l-zh">个算子</span><span class="l-en">operators</span></li>
+    <li><b>41</b> <span class="l-zh">个算子</span><span class="l-en">operators</span></li>
     <li><b>5</b> <span class="l-zh">个分类</span><span class="l-en">categories</span></li>
     <li><b>0</b> <span class="l-zh">依赖 · 免编译包</span><span class="l-en">dependencies · prebuilt</span></li>
-    <li><b>37</b> <span class="l-zh">个 Windows 模块已随仓库发布</span><span class="l-en">Windows modules shipped with the repo</span></li>
+    <li><b>41</b> <span class="l-zh">个 Windows 模块已随仓库发布</span><span class="l-en">Windows modules shipped with the repo</span></li>
   </ul>
 </section><section class="steps" id="start">
   <h2><span class="l-zh">三分钟装上</span><span class="l-en">Set up in three minutes</span></h2>
   <ol class="step-list">
     <li>
       <h3><span class="l-zh">解开压缩包</span><span class="l-en">Unpack the archive</span></h3>
-      <p><span class="l-zh">把 37 个 <code>.dll</code> 放进 GEGL 的用户插件目录，目录不存在就自己建一个：</span><span class="l-en">Drop the 37 <code>.dll</code> files into GEGL's user plug-in directory — create it if it doesn't exist:</span></p>
+      <p><span class="l-zh">把 41 个 <code>.dll</code> 放进 GEGL 的用户插件目录，目录不存在就自己建一个：</span><span class="l-en">Drop the 41 <code>.dll</code> files into GEGL's user plug-in directory — create it if it doesn't exist:</span></p>
       <pre><code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code></pre>
     </li>
     <li>
@@ -87,7 +87,7 @@
   </ol>
 </section>
 <section class="ops" id="ops">
-  <h2><span class="l-zh">37 个算子</span><span class="l-en">37 operators</span></h2>
+  <h2><span class="l-zh">41 个算子</span><span class="l-en">41 operators</span></h2>
   <p class="section-lede"><span class="l-zh">按「找算子时的念头」分了六组，和 GIMP 菜单里的分组一致——
      七个色阶收在 Levels 一级目录里，分量家族收在 Component 一级目录里。
      点任一算子进去看算法、参数与实测误差。</span><span class="l-en">Six groups organised by the question you ask when hunting for an operator,
@@ -175,7 +175,7 @@
 
 <section class="group" id="g-Component">
   <h3 class="group-title"><span class="tag t-component"><span class="l-zh">分量</span><span class="l-en">Component</span></span>
-    <span class="group-en"><span class="l-zh">Component</span><span class="l-en"></span></span><span class="count"><span class="l-zh">7 个</span><span class="l-en">7</span></span></h3>
+    <span class="group-en"><span class="l-zh">Component</span><span class="l-en"></span></span><span class="count"><span class="l-zh">11 个</span><span class="l-en">11</span></span></h3>
   <p class="group-desc"><span class="l-zh">把分量打包成一张数据图、再解回来：HSL / Lab / HSI 各自成对的 dual + compose，加上灰度→分量的单通道编码。分量曲线插件就架在这组上。</span><span class="l-en">Pack components into one data image and unpack it again: paired dual + compose for HSL / Lab / HSI, plus the single-channel gray-to-component. The component-curve plug-ins sit on top.</span></p>
   <div class="cards">
     <a class="card" href="ops/hsl-dual.html">
@@ -198,6 +198,26 @@
   <p><span class="l-zh">HSL 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色</span><span class="l-en">Composer for the HSL component-curve workflow: turns the data image (R = S, G = L, B =…</span></p>
   <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
+    <a class="card" href="ops/hsv-dual.html">
+  <div class="card-top">
+    <span class="tag t-component"><span class="l-zh">分量</span><span class="l-en">Component</span></span>
+    <code>lb:hsv-dual</code>
+    
+  </div>
+  <h3><span class="l-zh">HSV Dual Extract</span><span class="l-en">HSV Dual Extract</span></h3>
+  <p><span class="l-zh">HSV 分量曲线工作流的提取器：把一张图拆成「R = HSV 饱和度、G = HSV 明度、B = 色相/360」的…</span><span class="l-en">Extractor for the HSV component-curve workflow: turns an image into a data image (R = S…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
+</a>
+    <a class="card" href="ops/hsv-compose.html">
+  <div class="card-top">
+    <span class="tag t-component"><span class="l-zh">分量</span><span class="l-en">Component</span></span>
+    <code>lb:hsv-compose</code>
+    
+  </div>
+  <h3><span class="l-zh">HSV Compose</span><span class="l-en">HSV Compose</span></h3>
+  <p><span class="l-zh">HSV 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色</span><span class="l-en">Composer for the HSV component-curve workflow: turns the data image (R = S, G = V, B =…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
+</a>
     <a class="card" href="ops/lab-dual.html">
   <div class="card-top">
     <span class="tag t-component"><span class="l-zh">分量</span><span class="l-en">Component</span></span>
@@ -216,6 +236,26 @@
   </div>
   <h3><span class="l-zh">Lab Compose</span><span class="l-en">Lab Compose</span></h3>
   <p><span class="l-zh">Lab 分量曲线工作流的合成器：把「R = a、G = b、B = L」的数据图还原成真实颜色</span><span class="l-en">Composer for the Lab component-curve workflow: turns the data image (R = a, G = b, B = L)…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
+</a>
+    <a class="card" href="ops/lch-dual.html">
+  <div class="card-top">
+    <span class="tag t-component"><span class="l-zh">分量</span><span class="l-en">Component</span></span>
+    <code>lb:lch-dual</code>
+    
+  </div>
+  <h3><span class="l-zh">LCh Dual Extract</span><span class="l-en">LCh Dual Extract</span></h3>
+  <p><span class="l-zh">LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L、G = 彩度 C、B = 色相/360」的数据图，一…</span><span class="l-en">Extractor for the LCh component-curve workflow: turns an image into a data image (R =…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
+</a>
+    <a class="card" href="ops/lch-compose.html">
+  <div class="card-top">
+    <span class="tag t-component"><span class="l-zh">分量</span><span class="l-en">Component</span></span>
+    <code>lb:lch-compose</code>
+    
+  </div>
+  <h3><span class="l-zh">LCh Compose</span><span class="l-en">LCh Compose</span></h3>
+  <p><span class="l-zh">LCh 分量曲线工作流的合成器：把「R = L/100、G = C/140、B = 色相/360」的数据图还原成真实…</span><span class="l-en">Composer for the LCh component-curve workflow: turns the data image (R=L/100, G=C/140…</span></p>
   <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/hsi-dual.html">
@@ -517,11 +557,11 @@
   <div class="dl-grid">
     <div class="dl primary-dl">
       <div class="dl-head"><h3>Windows x64</h3><span class="pill"><span class="l-zh">推荐</span><span class="l-en">Recommended</span></span></div>
-      <p><span class="l-zh">37 个 <code>.dll</code>（1.6 MB）。解到
-         <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，重启 GIMP 即可。</span><span class="l-en">37 <code>.dll</code> files (1.6 MB). Unpack into
+      <p><span class="l-zh">41 个 <code>.dll</code>（1.7 MB）。解到
+         <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，重启 GIMP 即可。</span><span class="l-en">41 <code>.dll</code> files (1.7 MB). Unpack into
          <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code> and restart GIMP.</span></p>
       <a class="btn primary" href="download/gegl-color-ops-windows-x64.zip">gegl-color-ops-windows-x64.zip</a>
-      <p class="muted small"><span class="l-zh">校验：</span><span class="l-en">Checksum: </span><code>SHA256 7e6550850619279ab627749430f4e5f4…</code></p>
+      <p class="muted small"><span class="l-zh">校验：</span><span class="l-en">Checksum: </span><code>SHA256 e0b31ec9e179f14bd8ca59ed02eb9da4…</code></p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>Linux x86_64</h3></div>
@@ -529,7 +569,7 @@
          <code>~/.local/share/gegl-0.4/plug-ins</code>，重启 GIMP 即可。</span><span class="l-en">30 <code>.so</code> files (0.3 MB). Unpack into
          <code>~/.local/share/gegl-0.4/plug-ins</code> and restart GIMP.</span></p>
       <a class="btn" href="download/gegl-color-ops-linux-x64.zip">gegl-color-ops-linux-x64.zip</a>
-      <p class="muted small"><span class="l-zh">校验：</span><span class="l-en">Checksum: </span><code>SHA256 fe2626d8e4b365f57f843130b474719a…</code></p>
+      <p class="muted small"><span class="l-zh">校验：</span><span class="l-en">Checksum: </span><code>SHA256 2712aef60d94ecacb61df79b78825ea6…</code></p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3><span class="l-zh">单个算子</span><span class="l-en">A single operator</span></h3></div>
@@ -602,7 +642,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">ef7800a</span>
+    <span class="muted">9fc2d84</span>
   </div>
 </footer>
 <script>

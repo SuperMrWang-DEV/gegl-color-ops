@@ -1173,9 +1173,9 @@ def build_plugin_zips(out_dir):
              py="hsv-split-curves.py", menu="HSV Split (Curves)",
              menus="    颜色 → SuperMrWang → Shortcut → HSV Split (Curves)\n"
                    "    图层右键 → SuperMrWang → Shortcut → HSV Split (Curves)",
-             desc="HSV Split (Curves)：把一个图层拆成 H / S / V 三张分量层，每层挂"
-                  "一条可编辑曲线，再用 HSV 色相/饱和度/明度三条混合模式叠回去。"
-                  "恒等曲线时逐位还原原图。",
+             desc="HSV Split (Curves)：在 HSV 空间里调曲线。一张数据图同时携带"
+                  "S、V、H（红=S、绿=V、蓝=H/360），三条曲线各管一个分量，再由"
+                  "lb:hsv-compose 一起算回颜色。恒等曲线时逐像素还原原图。",
              pdb="lb-plugin-hsv-split-curves(image, drawable, group)"),
         dict(key="lch",
              name="gegl-color-ops-plugin-lch-split-curves.zip",
@@ -1183,9 +1183,9 @@ def build_plugin_zips(out_dir):
              py="lch-split-curves.py", menu="LCh Split (Curves)",
              menus="    颜色 → SuperMrWang → Shortcut → LCh Split (Curves)\n"
                    "    图层右键 → SuperMrWang → Shortcut → LCh Split (Curves)",
-             desc="LCh Split (Curves)：把一个图层拆成 L / C / h 三张分量层，每层挂"
-                  "一条可编辑曲线，再用 LCh 明度/彩度/色相三条混合模式叠回去。"
-                  "恒等曲线时还原原图。",
+             desc="LCh Split (Curves)：在 CIE LCh 里调曲线。一张数据图同时携带"
+                  "L*、C*、h（红=L/100、绿=C/140、蓝=h/360），三条曲线各管一个"
+                  "分量。极坐标，所以调彩度不动色相、调色相不动彩度。",
              pdb="lb-plugin-lch-split-curves(image, drawable, group)"),
         dict(key="hsl",
              name="gegl-color-ops-plugin-hsl-split-curves.zip",
@@ -1194,9 +1194,9 @@ def build_plugin_zips(out_dir):
              menus="    颜色 → SuperMrWang → Shortcut → HSL Split (Curves)\n"
                    "    图层右键 → SuperMrWang → Shortcut → HSL Split (Curves)",
              desc="HSL Split (Curves)：在 HSL 空间里调曲线。GIMP 没有 HSL 分量混合"
-                  "模式，插件用 lb:hsl-dual / lb:hsl-compose 把 HSL 精确接到 HSV 上："
-                  "S 与 L 合进一张数据图（红=饱和度、绿=明度），色相单独一层。"
-                  "恒等曲线时精确还原，调哪条就只动哪个 HSL 分量。",
+                  "模式，插件用 lb:hsl-dual / lb:hsl-compose 把 S、L、H 打包进一张"
+                  "数据图（红=S、绿=L、蓝=H/360），三条曲线各管一个分量。"
+                  "恒等曲线时逐像素还原原图。",
              pdb="lb-plugin-hsl-split-curves(image, drawable, group)"),
         dict(key="lab",
              name="gegl-color-ops-plugin-lab-split-curves.zip",
@@ -1204,10 +1204,9 @@ def build_plugin_zips(out_dir):
              py="lab-split-curves.py", menu="Lab Split (Curves)",
              menus="    颜色 → SuperMrWang → Shortcut → Lab Split (Curves)\n"
                    "    图层右键 → SuperMrWang → Shortcut → Lab Split (Curves)",
-             desc="Lab Split (Curves)：在 CIE Lab 空间里调曲线。GIMP 没有 a/b 分量"
-                  "混合模式，插件用 lb:lab-dual / lb:lab-compose 把 a 与 b 合进一张"
-                  "数据图（红=a、绿=b）联合还原，L* 交给 LCh 明度模式（两者同一个"
-                  "量，逐位精确）。恒等曲线时精确还原，调哪条就只动哪个 Lab 分量。",
+             desc="Lab Split (Curves)：在 CIE Lab 空间里调曲线。一张数据图同时携带"
+                  "a、b、L*（红=a、绿=b、蓝=L*/100），三条曲线各管一个分量，再由"
+                  "lb:lab-compose 一起算回颜色。恒等曲线时逐像素还原原图。",
              pdb="lb-plugin-lab-split-curves(image, drawable, group)"),
         dict(key="hsi",
              name="gegl-color-ops-plugin-hsi-split-curves.zip",
@@ -1322,7 +1321,7 @@ def build_plugins(version, stats=None):
   <ul class="facts">
     <li><b>10</b> 个插件</li>
     <li><b>10</b> 个 PDB 过程</li>
-    <li><b>254</b> 条回归断言</li>
+    <li><b>222</b> 条回归断言</li>
     <li><b>0</b> 编译 · 纯 Python</li>
   </ul>
 </section>

@@ -25,7 +25,7 @@
 <main id="main">
 <section class="page-head">
   <p class="eyebrow"><a href="index.html">首页</a> / 算子清单</p>
-  <h1>37 个算子</h1>
+  <h1>41 个算子</h1>
   <p class="lede">按 GIMP 菜单里的分组排列。点名字进算法说明。</p>
 </section>
 <section class="prose wide">
@@ -45,8 +45,12 @@
 <thead><tr><th>菜单名</th><th>GEGL id</th><th>类型</th><th>做什么</th></tr></thead><tbody>
 <tr><td><a href="ops/hsl-dual.html"><b>HSL Dual Extract</b></a></td><td><code>lb:hsl-dual</code></td><td class="nowrap">整块区域</td><td>HSL 分量曲线工作流的提取器：把一张图拆成「R = HSL 饱和度、G = HSL 明度、B = 色相/360」的数据图，一张图同时携带三…</td></tr>
 <tr><td><a href="ops/hsl-compose.html"><b>HSL Compose</b></a></td><td><code>lb:hsl-compose</code></td><td class="nowrap">整块区域</td><td>HSL 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色</td></tr>
+<tr><td><a href="ops/hsv-dual.html"><b>HSV Dual Extract</b></a></td><td><code>lb:hsv-dual</code></td><td class="nowrap">整块区域</td><td>HSV 分量曲线工作流的提取器：把一张图拆成「R = HSV 饱和度、G = HSV 明度、B = 色相/360」的数据图，一张图同时携带三…</td></tr>
+<tr><td><a href="ops/hsv-compose.html"><b>HSV Compose</b></a></td><td><code>lb:hsv-compose</code></td><td class="nowrap">整块区域</td><td>HSV 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色</td></tr>
 <tr><td><a href="ops/lab-dual.html"><b>Lab Dual Extract</b></a></td><td><code>lb:lab-dual</code></td><td class="nowrap">整块区域</td><td>Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量</td></tr>
 <tr><td><a href="ops/lab-compose.html"><b>Lab Compose</b></a></td><td><code>lb:lab-compose</code></td><td class="nowrap">整块区域</td><td>Lab 分量曲线工作流的合成器：把「R = a、G = b、B = L」的数据图还原成真实颜色</td></tr>
+<tr><td><a href="ops/lch-dual.html"><b>LCh Dual Extract</b></a></td><td><code>lb:lch-dual</code></td><td class="nowrap">整块区域</td><td>LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L<em>、G = 彩度 C</em>、B = 色相/360」的数据图，一张图同时携带三个分量</td></tr>
+<tr><td><a href="ops/lch-compose.html"><b>LCh Compose</b></a></td><td><code>lb:lch-compose</code></td><td class="nowrap">整块区域</td><td>LCh 分量曲线工作流的合成器：把「R = L/100、G = C/140、B = 色相/360」的数据图还原成真实颜色</td></tr>
 <tr><td><a href="ops/hsi-dual.html"><b>HSI Dual Extract</b></a></td><td><code>lb:hsi-dual</code></td><td class="nowrap">整块区域</td><td>HSI 分量曲线工作流的提取器：把一张图拆成「R = 饱和度、G = 强度、B = 色相/360」的数据图，一张图同时携带三个分量</td></tr>
 <tr><td><a href="ops/hsi-compose.html"><b>HSI Compose</b></a></td><td><code>lb:hsi-compose</code></td><td class="nowrap">整块区域</td><td>HSI 分量曲线工作流的合成器：把「R = 饱和度、G = 强度、B = 色相/360」的数据图还原成真实颜色</td></tr>
 <tr><td><a href="ops/gray-to-component.html"><b>Gray To Component</b></a></td><td><code>lb:gray-to-component</code></td><td class="nowrap">整块区域</td><td>通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue /</td></tr>
@@ -101,7 +105,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">ef7800a</span>
+    <span class="muted">9fc2d84</span>
   </div>
 </footer>
 </body>

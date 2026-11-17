@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LCh Dual Extract · gegl-color-ops</title>
+<meta name="description" content="LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L、G = 彩度 C、B = 色相/360」的数据图，一张图同时携带三个分量">
+<meta property="og:title" content="LCh Dual Extract · gegl-color-ops">
+<meta property="og:description" content="LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L、G = 彩度 C、B = 色相/360」的数据图，一张图同时携带三个分量">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script></head>
+<body>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+</header>
+<main id="main">
+<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 分量</p>
+  <h1>LCh Dual Extract</h1>
+  <div class="meta">
+    <code>lb:lch-dual</code>
+    <span class="tag t-component">分量</span>
+    <span>整块区域</span>
+  </div>
+  <p class="lede">LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L<em>、G = 彩度 C</em>、B = 色相/360」的数据图，一张图同时携带三个分量</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>把一张图打包成<strong>一张数据图</strong>：<code>R = 明度 L*/100</code>、<code>G = 彩度 C*/140</code>、 <code>B = 色相/360</code>，全部 0…1。alpha 恒为 1。</p>
+<pre><code>原图 ──lb:lch-dual──&gt; (R=L/100, G=C/140, B=h/360)
+                          │
+                 ┌────────┼────────┐
+              L(红)     C(绿)    h(蓝)
+                 └────────┼────────┘
+                          ▼
+                    lb:lch-compose  ──&gt; 真实颜色</code></pre>
+<h2 id="为什么是极坐标">为什么是极坐标</h2>
+<p>Lab 的 <code>a</code>、<code>b</code> 是直角坐标：<code>C² = a² + b²</code>、<code>h = atan2(b, a)</code>。一条一维曲线改 a， 彩度和色相都跟着变——画面上看就是「整体偏色」。想「只加彩度」「只转色相」， 就得先在极坐标里表达，那正是本算子做的事。</p>
+<p>转成 (L, C, h) 之后，三条曲线各自独立，再由 <code>lb:lch-compose</code> 一起算回颜色。 <code>LCh Split (Curves)</code> 的旧版用三张分量层 + 三个 LCh 混合模式，还要把分量值编码成 「混合模式读得出来的颜色」（色相层得造等 L<em>、等 C</em> 的色相圆）；一层写法把这些 全部省掉。</p>
+<h2 id="量程实测标定babl-d50">量程（实测标定，babl D50）</h2>
+<div class="table-wrap"><table><thead><tr><th>分量</th><th>babl 单位</th><th>数据图</th></tr></thead><tbody><tr><td>L*</td><td>0…100</td><td><code>L/100</code></td></tr><tr><td>C*</td><td>0…约 133.8（sRGB 全色域）</td><td><code>C/140</code></td></tr><tr><td>h</td><td>0…360°</td><td><code>h/360</code></td></tr></tbody></table></div>
+<p>彩度取 140 而不是 135：sRGB 最饱和的点是纯蓝，<code>C*≈133.8</code>，留一点余量让整圈都 装得下。8 位图上 1 码 ≈ 0.55 个 C* 单位，往返量化误差仍在 0.5 码内。</p>
+<h2 id="实测">实测</h2>
+<p><code>tools/check_lch_split.py</code> 里 <code>dual → compose</code> 恒等往返：32 位浮点 <strong>0.0005 码</strong>， 8 位 <strong>0.49 码</strong>。中性灰（C=0）的色相在 babl 侧无定义，算子把非有限值折成 0。</p>
+<h2 id="注意">注意</h2>
+<ul><li>输出是数据图，<strong>不要直接看它当照片</strong>。</li><li>它和 <code>lb:lch-compose</code> 配对使用，量程必须一致（改一边就要改另一边）。</li></ul><div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>lch-dual.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lch-dual.dll">下载 lch-dual.dll<span class="size">Windows x64</span></a></div>
+</div><nav class="pager"><a class="prev" href="lab-compose.html"><span>上一个</span>Lab Compose</a><a class="next" href="lch-compose.html"><span>下一个</span>LCh Compose</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#为什么是极坐标">为什么是极坐标</a></li>
+<li class="l2"><a href="#量程实测标定babl-d50">量程（实测标定，babl D50）</a></li>
+<li class="l2"><a href="#实测">实测</a></li>
+<li class="l2"><a href="#注意">注意</a></li></ul>
+</aside>
+</div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">9fc2d84</span>
+  </div>
+</footer>
+</body>
+</html>

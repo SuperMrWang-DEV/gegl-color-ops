@@ -30,7 +30,8 @@ GROUPS = {
                "cmyk-levels", "hsi-levels"],
     # 分量：把几个分量打包成一张数据图、再解回来。dual 与 compose 成对使用，
     # gray-to-component 是单分量的编码器（HSV / LCh 的分量曲线插件用它）。
-    "Component": ["hsl-dual", "hsl-compose", "lab-dual", "lab-compose",
+    "Component": ["hsl-dual", "hsl-compose", "hsv-dual", "hsv-compose",
+                  "lab-dual", "lab-compose", "lch-dual", "lch-compose",
                   "hsi-dual", "hsi-compose", "gray-to-component"],
     "Tone":  ["exposure", "brightness-contrast",
               "shadows-highlights", "rgb-domain-grayscale"],

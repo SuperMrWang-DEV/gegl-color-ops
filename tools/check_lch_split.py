@@ -1,21 +1,25 @@
 # -*- coding: utf-8 -*-
-"""回归：lch-split-curves 插件（LCh 分量层 + 曲线 + 混合模式还原）。
+"""回归：lch-split-curves 插件（LCh 空间调曲线，走适配算子 lb:lch-dual / lb:lch-compose）。
 
     "D:/fastsoftware/GIMP 3/bin/gimp-console-3.2.exe" -i -c -d -f \
         --batch-interpreter=python-fu-eval \
         -b "exec(open(r'<repo>/tools/check_lch_split.py').read())" --quit
 
-必须跑在 GIMP 的 Python 里（要 Gimp / Gegl 的 GI 绑定）。检查 9 件事：
+必须跑在 GIMP 的 Python 里。检查 9 件事：
 
-1. 生成结构：组 + 三层，顺序 Hue / Chroma / Lightness，混合模式对；
-2. 每层的滤镜条数与执行顺序（Lightness 3 条，Hue 5 条，Chroma 6 条）；
-3. 32 位浮点图：恒等曲线往返 ≤ 1 码；
-4. 8 位图：恒等往返 ≤ 2 码；
-5. 改曲线 ≈ 直接改 LCh 分量（8 位 ≤ 6 码）；
-6. 透明区域 alpha 逐位保留；原图层隐藏后三层仍能自己还原（RGB + alpha）；
-7. 不收组（group=False）时同样还原；
-8. 图层组作为输入会被拒绝；
-9. 编码量程：曲线的 1.0 确实落在 sRGB 最大彩度上。
+1. 生成结构：组 + 一层三联数据层，正常模式；
+2. 滤镜条数与执行顺序（decompose / 三条曲线 / compose 共 5 条），三条曲线
+   分别挂在红 / 绿 / 蓝通道上；
+3. 32 位浮点图：恒等曲线往返 ≈ 0；
+4. 8 位图：恒等往返 ≤ 1.5 码；
+5. 改 2 · L curve 曲线后，结果的 明度 L* = f(原 明度 L*)，另外两个分量不动；
+6. 改 3 · C curve 曲线后同理；
+7. 改 4 · h curve 曲线后同理；
+8. 隐藏原图层后这一层自己还原（RGB + alpha，组蒙版）；
+9. 不收组（无 alpha）、图层组输入被拒、带 alpha 自动分组。
+
+断言只在「目标颜色落在 sRGB 色域内」的像素上做：分量推到极端会出色域，
+出界部分必然被裁——那是色域的事实，不是误差。
 """
 import os
 import math
@@ -37,8 +41,7 @@ def _find_repo():
     cands += [cwd, os.path.join(cwd, "SuperMrWang"),
               os.path.join(cwd, "..", "SuperMrWang")]
     for c in cands:
-        if os.path.exists(os.path.join(c, "plugin", "lch-split-curves",
-                                       "lch-split-curves.py")):
+        if os.path.exists(os.path.join(c, "plugin", "lch-split-curves", "lch-split-curves.py")):
             return os.path.abspath(c)
     raise SystemExit("找不到仓库根目录")
 
@@ -51,9 +54,7 @@ def _load(name, path):
 
 
 REPO = _find_repo()
-LCH = _load("lch_split_curves",
-            os.path.join(REPO, "plugin", "lch-split-curves",
-                         "lch-split-curves.py"))
+MOD = _load("lch_split_curves", os.path.join(REPO, "plugin", "lch-split-curves", "lch-split-curves.py"))
 
 FAILS = []
 CHECKS = [0]
@@ -73,30 +74,146 @@ def close(a, b, tol, label):
     check(delta <= tol, "%s (%.5f <= %.5f)" % (label, delta, tol))
 
 
+def ci_close(a, b, tol, label):
+    """圆周量（色相）的差。"""
+    d = abs(a - b) % 1.0
+    close(min(d, 1.0 - d), 0.0, tol, label)
+
+
+# ---- LCh 参考实现（与 babl 同一套定义，独立于被测插件） -----------------
+
+_DELTA = 6.0 / 29.0
+_DELTA3 = _DELTA ** 3
+_D50 = (0.96422, 1.0, 0.82521)
+
+_SRGB_TO_XYZ = ((0.4124564, 0.3575761, 0.1804375),
+                (0.2126729, 0.7151522, 0.0721750),
+                (0.0193339, 0.1191920, 0.9503041))
+_XYZ_TO_SRGB = ((3.2404542, -1.5371385, -0.4985314),
+                (-0.9692660, 1.8760108, 0.0415560),
+                (0.0556434, -0.2040259, 1.0572252))
+_D65_TO_D50 = ((1.0478112, 0.0228866, -0.0501270),
+               (0.0295424, 0.9904844, -0.0170491),
+               (-0.0092345, 0.0150436, 0.7521316))
+_D50_TO_D65 = ((0.9555766, -0.0230393, 0.0631636),
+               (-0.0282895, 1.0099416, 0.0210077),
+               (0.0122982, -0.0204830, 1.3299098))
+
+
+def _srgb_to_linear(c):
+    return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+
+
+def _linear_to_srgb(c):
+    return c * 12.92 if c <= 0.0031308 else 1.055 * c ** (1.0 / 2.4) - 0.055
+
+
+def _f(t):
+    if t > _DELTA3:
+        return t ** (1.0 / 3.0)
+    return t / (3.0 * _DELTA * _DELTA) + 4.0 / 29.0
+
+
+def _f_inv(t):
+    if t > _DELTA:
+        return t ** 3
+    return 3.0 * _DELTA * _DELTA * (t - 4.0 / 29.0)
+
+
+def _mul(m, v):
+    return (m[0][0] * v[0] + m[0][1] * v[1] + m[0][2] * v[2],
+            m[1][0] * v[0] + m[1][1] * v[1] + m[1][2] * v[2],
+            m[2][0] * v[0] + m[2][1] * v[1] + m[2][2] * v[2])
+
+
+def rgb_to_lab(rgb):
+    lin = tuple(_srgb_to_linear(c) for c in rgb)
+    xyz = _mul(_D65_TO_D50, _mul(_SRGB_TO_XYZ, lin))
+    fx, fy, fz = (_f(xyz[i] / _D50[i]) for i in range(3))
+    return (116.0 * fy - 16.0, 500.0 * (fx - fy), 200.0 * (fy - fz))
+
+
+def lab_to_rgb(light, a, b):
+    fy = (light + 16.0) / 116.0
+    fx, fz = fy + a / 500.0, fy - b / 200.0
+    xyz = (_D50[0] * _f_inv(fx), _D50[1] * _f_inv(fy), _D50[2] * _f_inv(fz))
+    xyz = _mul(_D50_TO_D65, xyz)
+    return tuple(_linear_to_srgb(c) for c in _mul(_XYZ_TO_SRGB, xyz))
+
+
+# 数据图的量程：a、b 是 (v+128)/255，L* 是 L/100。
+def to_space(rgb):
+    return rgb_to_lab(rgb)
+
+
+def from_space(c):
+    return lab_to_rgb(c[0], c[1], c[2])
+
+
+HUE_INDEX = None
+LIGHT_INDEX = 0
+
+
+def norm(v, index=0):
+    if index == LIGHT_INDEX:
+        return v / 100.0
+    return (v + 128.0) / 255.0
+
+
+def denorm(x, index=0):
+    if index == LIGHT_INDEX:
+        return x * 100.0
+    return x * 255.0 - 128.0
+
+
+# LCh = Lab 的极坐标；数据图量程 L/100、C/140、h/360。
+def _lab_to_lch(lab):
+    light, a, b = lab
+    return light, math.hypot(a, b), math.degrees(math.atan2(b, a)) % 360.0
+
+
+def _lch_to_lab(c):
+    light, chroma, hue = c
+    rad = math.radians(hue)
+    return light, chroma * math.cos(rad), chroma * math.sin(rad)
+
+
+_to_space_lab = to_space
+_from_space_lab = from_space
+
+
+def to_space(rgb):
+    return _lab_to_lch(_to_space_lab(rgb))
+
+
+def from_space(c):
+    return _from_space_lab(_lch_to_lab(c))
+
+
+HUE_INDEX = 2
+
+
+def norm(v, index=0):
+    if index == 0:
+        return v / 100.0
+    if index == 1:
+        return v / 140.0
+    return v / 360.0
+
+
+def denorm(x, index=0):
+    if index == 0:
+        return x * 100.0
+    if index == 1:
+        return x * 140.0
+    return x * 360.0
+
+
 # ---- 测试图 / test raster ---------------------------------------------------
-
-def hsv2rgb(h, s, v):
-    c = v * s
-    x = c * (1 - abs((h / 60.0) % 2 - 1))
-    m = v - c
-    if h < 60:
-        r, g, b = c, x, 0
-    elif h < 120:
-        r, g, b = x, c, 0
-    elif h < 180:
-        r, g, b = 0, c, x
-    elif h < 240:
-        r, g, b = 0, x, c
-    elif h < 300:
-        r, g, b = x, 0, c
-    else:
-        r, g, b = c, 0, x
-    return r + m, g + m, b + m
-
+# 三维都铺开：r 横、g 纵、b 斜纹，色相 / 彩度 / 明度都能覆盖到。
 
 def make_image(w=48, h=48, float_prec=False, alpha_left=None,
                with_alpha=True):
-    """横向铺满色相，纵向三段不同 S/V，可选左半透明 / 不要 alpha 通道。"""
     img = Gimp.Image.new(w, h, Gimp.ImageBaseType.RGB)
     if float_prec:
         proc = Gimp.get_pdb().lookup_procedure('gimp-image-convert-precision')
@@ -113,9 +230,11 @@ def make_image(w=48, h=48, float_prec=False, alpha_left=None,
     for y in range(h):
         for x in range(w):
             i = (y * w + x) * 4
-            s = 1.0 if y < h // 3 else (0.5 if y < 2 * h // 3 else 0.1)
-            v = 1.0 if y < h // 3 else (0.6 if y < 2 * h // 3 else 0.3)
-            r, g, b = hsv2rgb((x / float(w)) * 360.0, s, v)
+            # 避开 0 / 1 与近黑：Lab / LCh 在暗部对 RGB 的舍入极其敏感，
+            # 那不是插件误差，是色彩空间的条件数。
+            r = 0.15 + 0.70 * x / float(w - 1)
+            g = 0.15 + 0.70 * y / float(h - 1)
+            b = 0.20 + 0.60 * ((x * 7 + y * 11) % w) / float(w - 1)
             a = alpha_left if (alpha_left is not None and x < w // 2) else 1.0
             px[i:i + 4] = array.array('f', [r, g, b, a])
     if with_alpha:
@@ -147,8 +266,8 @@ def flatten(img):
     return got
 
 
-def set_curve(layer, fn, which):
-    """改某一层的那条「用户曲线」（按滤镜名找）。"""
+def set_curve(layer, which, fn, channel):
+    """改那一条曲线（按滤镜名找）。"""
     for filt in layer.get_filters():
         if filt.get_name() == which:
             cfg = filt.get_config()
@@ -159,7 +278,7 @@ def set_curve(layer, fn, which):
                 x = i / float(n - 1)
                 curve.set_sample(x, min(1.0, max(0.0, fn(x))))
             cfg.set_property("curve", curve)
-            cfg.set_property("channel", Gimp.HistogramChannel.VALUE)
+            cfg.set_property("channel", channel)
             cfg.set_property("trc", Gimp.TRCType.NON_LINEAR)
             filt.update()
             return True
@@ -177,174 +296,154 @@ def max_diff(a, b, channels=(0, 1, 2)):
 # ---- 1/2. 结构与滤镜栈 ------------------------------------------------------
 
 print("== 1. 结构 / structure")
-img, base, ref = make_image(float_prec=True)
-LCH.split_lch(img, base, make_group=True)
+img, base, ref = make_image()
+top = MOD.split_lch(img, base, make_group=True)
 group = img.get_layers()[0]
 check(group.is_group(), "顶层是图层组")
 check(group.get_mode() == Gimp.LayerMode.PASS_THROUGH, "组是穿透混合")
 kids = group.get_children()
-# 图层栈从上到下：Lightness 在最上。Hue（等 L 等 C 的色相圆）必须垫底——
-# 它下面什么都没有，只能靠自己带真实色相；若最底是灰（C=0），上面两层换 C、
-# 换 H 时读到的都是 0，怎么换都是灰。
-check([k.get_name() for k in kids] ==
-      ["3 · Lightness", "2 · Chroma", "1 · Hue"],
-      "三层顺序（上→下）Lightness / Chroma / Hue",
-      [k.get_name() for k in kids])
-check([k.get_mode() for k in kids] ==
-      [Gimp.LayerMode.LCH_LIGHTNESS, Gimp.LayerMode.LCH_CHROMA,
-       Gimp.LayerMode.LCH_HUE], "三条分量混合模式对")
-check(img.get_layers()[1] is base or img.get_layers()[1].get_name() == "base",
-      "原图层还在组下面且没被改动")
+check([k.get_name() for k in kids] == ["1 · LCh L/C/h"],
+      "组里只有一层三联数据层", [k.get_name() for k in kids])
+check([k.get_mode() for k in kids] == [Gimp.LayerMode.NORMAL],
+      "数据层是正常模式")
+check(top is group, "返回值是组")
 
 print("== 2. 滤镜栈 / filter stack")
-light_l, chroma_l, hue_l = kids
-check(len(hue_l.get_filters()) == 3, "Hue 层 3 条滤镜",
-      len(hue_l.get_filters()))
-check(len(chroma_l.get_filters()) == 3, "Chroma 层 3 条滤镜",
-      len(chroma_l.get_filters()))
-check(len(light_l.get_filters()) == 3, "Lightness 层 3 条滤镜",
-      len(light_l.get_filters()))
-# get_filters() 是「最新在前」，执行顺序是它的反序
-names = [f.get_name() for f in hue_l.get_filters()][::-1]
-check(names == ["1 · extract", "2 · curve", "3 · encode"],
-      "Hue：extract → curve → encode", names)
-names = [f.get_name() for f in chroma_l.get_filters()][::-1]
-check(names == ["1 · extract", "2 · curve", "3 · encode"],
-      "Chroma：extract → curve → encode（量程由算子参数给）", names)
-names = [f.get_name() for f in light_l.get_filters()][::-1]
-check(names == ["1 · extract", "2 · curve", "3 · encode"],
-      "Lightness：extract → curve → encode", names)
+layer = kids[0]
+check(len(layer.get_filters()) == 5, "5 条滤镜", len(layer.get_filters()))
+names = [f.get_name() for f in layer.get_filters()][::-1]
+check(names == ["1 · decompose", "2 · L curve", "3 · C curve", "4 · h curve", "5 · compose"],
+      "decompose → 2 · L curve → 3 · C curve → 4 · h curve → compose", names)
+ops = [f.get_operation_name() for f in layer.get_filters()][::-1]
+check(ops[0] == "lb:lch-dual" and ops[4] == "lb:lch-compose",
+      "用的是 lb:lch-dual / lb:lch-compose", ops)
+chans = [f.get_config().get_property("channel")
+         for f in layer.get_filters()
+         if f.get_operation_name() == "gimp:curves"][::-1]
+check(chans == [Gimp.HistogramChannel.RED, Gimp.HistogramChannel.GREEN,
+                Gimp.HistogramChannel.BLUE],
+      "三条曲线分别挂红 / 绿 / 蓝通道", chans)
 
-# 编码是一个算子：三个分量各取自己的模式
-encs = []
-for lay in (hue_l, chroma_l, light_l):
-    f = [x for x in lay.get_filters() if x.get_name() == "3 · encode"][0]
-    encs.append(f.get_config().get_property("mode"))
-check(encs == ["lch-hue", "lch-chroma", "lightness"], "编码算子模式对", encs)
+# ---- 3/4. 恒等往返 ----------------------------------------------------------
 
-print("== 3. 浮点图恒等往返 / float identity")
-got = flatten(img)
-close(max_diff(ref, got), 0.0, 1.0 / 255.0, "32 位浮点：恒等往返 ≤ 1 码")
+print("== 3. 浮点恒等往返 / float identity")
+imgf, basef, reff = make_image(float_prec=True)
+MOD.split_lch(imgf, basef)
+close(max_diff(reff, flatten(imgf)) * 255.0, 0.0, 0.05,
+      "浮点恒等往返 ≤ 0.05 码")
 
-print("== 4. 8 位图恒等往返 / 8-bit identity")
+print("== 4. 8 位恒等往返 / 8-bit identity")
 img8, base8, ref8 = make_image()
-LCH.split_lch(img8, base8)
-got8 = flatten(img8)
-close(max_diff(ref8, got8), 0.0, 2.0 / 255.0, "8 位：恒等曲线 ≤ 2 码")
+MOD.split_lch(img8, base8)
+close(max_diff(ref8, flatten(img8)) * 255.0, 0.0, 1.5,
+      "8 位恒等往返 ≤ 1.5 码")
 
-print("== 5. 曲线 ≈ 直接改 LCh / curves vs direct LCh maths")
-imgc, basec, refc = make_image()
-LCH.split_lch(imgc, basec)
-grp = imgc.get_layers()[0]
-light_l, chroma_l, hue_l = grp.get_children()
-# 三条曲线都是「分量归一化值 → 新值」
-fn_l = lambda t: min(1.0, t * 1.10 + 0.02)          # 提亮
-fn_c = lambda t: min(1.0, t * 1.35)                  # 加彩度
-fn_h = lambda t: t + 0.06 * math.sin(2.0 * math.pi * t)   # 连续偏移（两端相等）
-check(set_curve(light_l, fn_l, "2 · curve"), "改 Lightness 曲线")
-check(set_curve(chroma_l, fn_c, "2 · curve"), "改 Chroma 曲线")
-check(set_curve(hue_l, fn_h, "2 · curve"), "改 Hue 曲线")
-gotc = flatten(imgc)
 
-want = array.array('f', bytes(len(refc) * 4))
-w0 = imgc.get_width()
-h0 = imgc.get_height()
-for i in range(0, len(refc), 4):
-    p = i // 4
-    x, y = p % w0, p // w0
-    s = 1.0 if y < h0 // 3 else (0.5 if y < 2 * h0 // 3 else 0.1)
-    v = 1.0 if y < h0 // 3 else (0.6 if y < 2 * h0 // 3 else 0.3)
-    rgb = hsv2rgb((x / float(w0)) * 360.0, s, v)
-    L, C, H = LCH.rgb_to_lch(rgb)
-    L2 = 100.0 * fn_l(L / 100.0)
-    # 曲线输入是 extract 的原始归一化值 C/200（不再有 scale 那一步），
-    # 编码由算子按 chroma-scale=200 还原成 C*
-    C2 = 200.0 * fn_c(C / 200.0)
-    H2 = 360.0 * fn_h(H / 360.0)
-    r, g, b = LCH.lch_to_rgb(L2, C2, H2)
-    # 8 位图会把超出色域的结果裁到 [0,1]——这是 GIMP 写缓冲区时做的，不是插件
-    want[i:i + 4] = array.array('f', [min(1.0, max(0.0, r)),
-                                      min(1.0, max(0.0, g)),
-                                      min(1.0, max(0.0, b)), 1.0])
-close(max_diff(want, gotc), 0.0, 6.0 / 255.0, "改曲线 vs 直接改 LCh ≤ 6 码")
+# ---- 5/6/7. 改曲线 == 只改那个分量 ------------------------------------------
 
-print("== 6a. 隐藏原图层后自足 / hide the source")
-imgh, baseh, refh = make_image(float_prec=True, alpha_left=0.4)
-LCH.split_lch(imgh, baseh)
-baseh.set_visible(False)
-goth = flatten(imgh)
-close(max_diff(refh, goth), 0.0, 1.5 / 255.0,
-      "原图层隐藏后仍能还原 RGB（≤1 码）")
-close(max_diff(refh, goth, (3,)), 0.0, 2.0 / 255.0,
-      "原图层隐藏后 alpha 仍对（组蒙版）")
-check(imgh.get_layers()[0].get_mask() is not None, "组上挂了 alpha 蒙版")
+def effect(label, curve, channel, fn, index, circular=False):
+    """改一条曲线，断言结果就是「只把该分量换成 f(原值)」的那个颜色。
 
-print("== 6. 透明区域 / alpha passes through")
+    index：0/1/2 = 该分量在 LCh 三元组里的位置。
+    """
+    img, base, ref = make_image(float_prec=True)
+    MOD.split_lch(img, base)
+    layer = img.get_layers()[0].get_children()[0]
+    check(set_curve(layer, curve, fn, channel), "改 %s" % curve)
+    got = flatten(img)
+    worst = 0.0
+    worst_other = 0.0
+    tested = 0
+    for i in range(0, len(ref), 4):
+        rgb0 = (ref[i], ref[i + 1], ref[i + 2])
+        # 近中性色与近黑的色相 / 彩度没有意义，跳过。
+        if max(rgb0) - min(rgb0) < 0.10 or max(rgb0) < 0.12:
+            continue
+        c0 = to_space(rgb0)
+        want = list(c0)
+        want[index] = denorm(fn(norm(c0[index], index)), index)
+        target = from_space(want)
+        if min(target) < -0.002 or max(target) > 1.002:
+            continue
+        tested += 1
+        g0 = to_space((got[i], got[i + 1], got[i + 2]))
+        if circular:
+            d = abs(norm(g0[index], index) - norm(want[index], index)) % 1.0
+            worst = max(worst, min(d, 1.0 - d))
+        else:
+            worst = max(worst,
+                        abs(norm(g0[index], index) - norm(want[index], index)))
+        for k in range(3):
+            if k == index:
+                continue
+            worst_other = max(worst_other,
+                              abs(norm(g0[k], k) - norm(c0[k], k)))
+    check(tested > 30, "%s：色域内的点够多" % label, tested)
+    close(worst, 0.0, 1.5 / 255.0 if not circular else 0.35 / 360.0,
+          "%s：目标分量对得上" % label)
+    close(worst_other, 0.0, 1.5 / 255.0,
+          "%s：另外两个分量没被碰" % label)
+
+
+print("== 5. 2 · L curve 曲线 = 只改 明度 L* / first curve")
+fn1 = lambda t: 0.10 + t * 0.85
+effect("2 · L curve", "2 · L curve", Gimp.HistogramChannel.RED, fn1, 0, False)
+
+print("== 6. 3 · C curve 曲线 = 只改 彩度 C* / second curve")
+fn2 = lambda t: 0.05 + t * 0.90
+effect("3 · C curve", "3 · C curve", Gimp.HistogramChannel.GREEN, fn2, 1, False)
+
+print("== 7. 4 · h curve 曲线 = 只改 色相 h / third curve")
+fn3 = lambda t: 0.02 + t * 0.95
+effect("4 · h curve", "4 · h curve", Gimp.HistogramChannel.BLUE, fn3, 2, True)
+
+# ---- 8. alpha / 自足 --------------------------------------------------------
+
+print("== 8. 透明区域 / alpha passes through")
 imga, basea, refa = make_image(alpha_left=0.4)
-LCH.split_lch(imga, basea)
+MOD.split_lch(imga, basea)
+check(imga.get_layers()[0].get_mask() is not None, "组上挂了 alpha 蒙版")
+# 数据层本身是不透明的（透明度靠组蒙版），原图一起显示时 alpha 会叠加，
+# 所以验 alpha 之前先把原图关掉——插件提示里也是这么说的。
+basea.set_visible(False)
 gota = flatten(imga)
-close(max_diff(refa, gota, (3,)), 0.0, 1e-5, "alpha 逐位保留")
+close(max_diff(refa, gota, (3,)), 0.0, 2.0 / 255.0,
+      "alpha 逐位保留（组蒙版）")
 close(gota[(imga.get_width() // 4) * 4 + 3], 0.4, 1.5 / 255.0,
       "左半 alpha 仍是 0.4")
 
-print("== 7. 不收组 / no group")
-imgn, basen, refn = make_image(float_prec=True, with_alpha=False)
-LCH.split_lch(imgn, basen, make_group=False)
-check(not imgn.get_layers()[0].is_group(), "浮点图：顶层不是组")
-check(len(imgn.get_layers()) == 4, "原图 + 三层", len(imgn.get_layers()))
-close(max_diff(refn, flatten(imgn)), 0.0, 1.0 / 255.0, "不分组也还原")
+print("== 8b. 隐藏原图层后自足 / hide the source")
+imgh, baseh, refh = make_image(alpha_left=0.4)
+MOD.split_lch(imgh, baseh)
+baseh.set_visible(False)
+close(max_diff(refh, flatten(imgh)) * 255.0, 0.0, 1.5,
+      "原图层隐藏后仍能还原 RGB（≤1.5 码）")
 
-# 8 位图不分组会被自动改成组（否则逐层量化，色相偏到 11 码）；
-# 带 alpha 的图也一样，透明度要挂组蒙版
-img8n, base8n, ref8n = make_image(with_alpha=False)
-LCH.split_lch(img8n, base8n, make_group=False)
-check(img8n.get_layers()[0].is_group(), "8 位图：不分组被自动改成组")
-close(max_diff(ref8n, flatten(img8n)), 0.0, 2.0 / 255.0,
-      "8 位不分组（自动成组）也还原")
+# ---- 9. 不收组 / 非法输入 ---------------------------------------------------
 
-print("== 8. 非法输入 / invalid input")
+print("== 9. 不收组 / no group")
+imgn, basen, refn = make_image(with_alpha=False)
+MOD.split_lch(imgn, basen, make_group=False)
+check(not imgn.get_layers()[0].is_group(), "顶层不是组")
+check(len(imgn.get_layers()) == 2, "原图 + 一层", len(imgn.get_layers()))
+close(max_diff(refn, flatten(imgn)) * 255.0, 0.0, 1.5, "不分组也逐位还原")
+
+imgz, basez, _ = make_image(alpha_left=0.5)
+MOD.split_lch(imgz, basez, make_group=False)
+check(imgz.get_layers()[0].is_group(), "带 alpha 不分组 → 自动分组")
+check(imgz.get_layers()[0].get_mask() is not None, "自动分组也挂了 alpha 蒙版")
+
+print("== 10. 非法输入 / invalid input")
 imgg = Gimp.Image.new(16, 16, Gimp.ImageBaseType.RGB)
 grp2 = Gimp.GroupLayer.new(imgg, "g")
 imgg.insert_layer(grp2, None, 0)
 try:
-    LCH.split_lch(imgg, grp2)
+    MOD.split_lch(imgg, grp2)
     check(False, "图层组应该被拒绝")
 except RuntimeError:
     check(True, "图层组被拒绝")
 
-print("== 9. 编码量程 / encoding range")
-# 路径末端：彩度 1.0 应落在纯蓝（C*=131.21），明度 1.0 落在白，色相 1/3 附近≈绿
-c_end = LCH.rgb_to_lch(LCH._CHROMA_PATH[-1])[1]
-close(c_end, LCH.MAX_CHROMA, 0.2, "彩度路径末端 = sRGB 最大彩度")
-l_end = LCH.rgb_to_lch(LCH._LIGHT_PATH[-1])[0]
-close(l_end, 100.0, 0.05, "明度路径末端 L* = 100")
-l_start = LCH.rgb_to_lch(LCH._LIGHT_PATH[0])[0]
-close(l_start, 0.0, 0.05, "明度路径起点 L* = 0")
-# 色相路径：每个采样点的 LCh 色相必须等于 360·t，且全部落在色域内
-worst = 0.0
-for i in range(256):
-    t = i / 255.0
-    got_h = LCH.rgb_to_lch(LCH._HUE_PATH[i])[2]
-    worst = max(worst, abs((got_h - 360.0 * t + 180.0) % 360.0 - 180.0))
-close(worst, 0.0, 0.02, "色相路径：256 点全部落在目标色相上 ≤ 0.02°")
-in_gamut = all(-1e-9 <= c <= 1.0 + 1e-9
-               for p in LCH._HUE_PATH for c in p)
-check(in_gamut, "色相路径整圈都在 sRGB 色域内")
-
-# 曲线是 256 点线性插值，采样点之间的色相也要对——这才是实际生效的精度
-worst = 0.0
-for j in range(2560):
-    t = j / 2559.0
-    x = t * 255.0
-    i = min(254, int(x))
-    w = 1.0 if x >= 255.0 else x - i
-    rgb = tuple(LCH._HUE_PATH[i][k] * (1 - w) + LCH._HUE_PATH[i + 1][k] * w
-                for k in range(3))
-    got_h = LCH.rgb_to_lch(rgb)[2]
-    worst = max(worst, abs((got_h - 360.0 * t + 180.0) % 360.0 - 180.0))
-close(worst, 0.0, 0.05, "色相路径插值误差 ≤ 0.05°")
-
 print()
 if FAILS:
     raise SystemExit("%d/%d 项失败: %s" % (len(FAILS), CHECKS[0], FAILS))
-print("全部 %d 项通过" % CHECKS[0])
+print("全部 %d 项通过 / %d checks passed" % (CHECKS[0], CHECKS[0]))

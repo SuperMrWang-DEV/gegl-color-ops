@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>LCh Split (Curves) · Python 插件 · gegl-color-ops</title>
-<meta name="description" content="同样的思路换到 CIE LCh：明度、彩度、色相三条曲线。
-       LCh 是「颜色」组里唯一完整、且没有 legacy 包袱的一组分量模式，
-       感知均匀，做明暗与彩度分级比 HSV 稳。">
+<meta name="description" content="同样的思路换到 CIE LCh：明度、彩度、色相三条曲线。LCh 是 Lab 的
+       极坐标写法——a、b 是直角坐标，一条一维曲线改它会连带改彩度和色相；换成
+       (L, C, h) 之后，调彩度不动色相、调色相不动彩">
 <meta property="og:title" content="LCh Split (Curves) · Python 插件 · gegl-color-ops">
-<meta property="og:description" content="同样的思路换到 CIE LCh：明度、彩度、色相三条曲线。
-       LCh 是「颜色」组里唯一完整、且没有 legacy 包袱的一组分量模式，
-       感知均匀，做明暗与彩度分级比 HSV 稳。">
+<meta property="og:description" content="同样的思路换到 CIE LCh：明度、彩度、色相三条曲线。LCh 是 Lab 的
+       极坐标写法——a、b 是直角坐标，一条一维曲线改它会连带改彩度和色相；换成
+       (L, C, h) 之后，调彩度不动色相、调色相不动彩">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
 </head>
@@ -36,9 +36,9 @@
     <span class="tag t-blend">曲线</span>
     <span>Shortcut 快捷方式</span>
   </div>
-  <p class="lede">同样的思路换到 CIE LCh：明度、彩度、色相三条曲线。
-       LCh 是「颜色」组里唯一完整、且没有 legacy 包袱的一组分量模式，
-       感知均匀，做明暗与彩度分级比 HSV 稳。</p>
+  <p class="lede">同样的思路换到 CIE LCh：明度、彩度、色相三条曲线。LCh 是 Lab 的
+       极坐标写法——a、b 是直角坐标，一条一维曲线改它会连带改彩度和色相；换成
+       (L, C, h) 之后，调彩度不动色相、调色相不动彩度。</p>
 </section>
 
 <div class="prose wide">
@@ -57,36 +57,40 @@
     <div class="dl">
       <div class="dl-head"><h3>依赖</h3></div>
       <p>靠下面这些算子干活，装插件时它们必须已注册（<code>build.sh</code> 或 dll 包里都有）：</p>
-      <ul class="deps"><li><code>gegl:component-extract</code></li><li><code>gimp:curves</code></li><li><code>lb:gray-to-component</code></li></ul>
+      <ul class="deps"><li><code>lb:lch-dual</code></li><li><code>lb:lch-compose</code></li><li><code>gimp:curves</code></li></ul>
     </div>
   </div>
 
 <div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>量程是标定出来的</h3><span class="pill">D50</span></div>
-      <p><code>component-extract</code> 报的不是原始单位：<code>lab-l</code> = L/100、
-         <code>lch-h</code> = h/360，而 <code>lch-c</code> = <b>C/200</b>（sRGB 内只到
-         0.656）。编码时算子按 <code>chroma-scale = 200</code> 把灰度乘回真实 C*，
-         所以彩度层不用再插一条 scale 曲线——曲线的 0.656 处就是 sRGB 最大彩度
-         （纯蓝 131.21）。</p>
+      <div class="dl-head"><h3>生成的结构</h3><span class="pill">一层</span></div>
+      <pre><code>LCh split          组 · 穿透（带 alpha 时组上还有蒙版）
+  └─ 1 · LCh L/C/h   模式 正常   ← 一条算子链算完整 LCh 色
+  └─ 原图层（不动，可以隐藏）</code></pre>
+      <p>滤镜栈：<code>decompose</code>（lb:lch-dual）→ <b>L 曲线（红）</b> →
+         <b>C 曲线（绿）</b> → <b>h 曲线（蓝）</b> → <code>compose</code>
+         （lb:lch-compose）。</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>编码路径的坑</h3></div>
-      <p>色相模式对色相误差极其敏感：ΔH=0.5° 在 C*=90 时就是 9.6 个码值。
-         所以色相编码不用全饱和色轮，而用<b>等 L 等 C 的色相圆</b>
-         （L*=70、C*=39.8）——角度严格线性，插值误差从 0.22° 降到 0.002°。</p>
+      <div class="dl-head"><h3>量程</h3></div>
+      <p>转换由 babl 的 <code>CIE LCH(ab) alpha float</code>（D50）完成，与
+         <code>lb:lch-levels</code> 同一口径。数据图里：<code>L* 0…100 → L/100</code>、
+         <code>C* 0…140 → C/140</code>（sRGB 最饱和的纯蓝约 133.8，留了余量）、
+         <code>h 0…360° → h/360</code>。</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>实测精度</h3></div>
-      <p>浮点恒等往返 ≤ <b>0.02 码</b>，8 位 ≤ <b>0.5 码</b>，真实照片 512×512
-         最大 <b>0.03 码</b>（超过 1.5 码的像素 <b>0 个</b>）。8 位图会被自动收进组里：
-         不分组时逐层量化会让色相偏到 11 码级。</p>
+      <div class="dl-head"><h3>为什么只有一层</h3></div>
+      <p>旧版是三张分量层配三个 LCh 分量混合模式，每层还要把分量值「编码」成
+         混合模式读得出来的颜色——色相层得造一个等 L*、等 C* 的色相圆，彩度压到
+         39.8 才不牺牲灵敏度。现在三个分量一起进 compose，那套编码整个不需要了，
+         也不会因为逐层量化把色相带偏。</p>
     </div>
   </div>
-  <p class="note"><b>选 LCh 还是 HSV</b>：HSV 的 V/S 是相对量，调 S 会随 V 变；
-     LCh 的 L/C 是感知均匀的绝对量，做亮度、彩度分级更稳。论完整度也是 LCh 更高
-     ——GIMP 的 HSV 组里那个「HSL 颜色」其实混了模型，而 LCh 组 H/C/L/Color 四项
-     齐全，另有一个 Luminance。</p>
+  <p class="note"><b>实测</b>：浮点恒等往返 <b>0.0005 码</b>、8 位 <b>0.49 码</b>；
+     只改 C 曲线时 L* 与色相的偏差 <b>0.00001 码</b>级。彩度或色相推到极端会出
+     sRGB 色域，8 位图按 0/1 裁掉——LCh 的色域比 sRGB 大，这是它本身的性质。
+     近中性色（C*≈0）的色相是噪声，但合成不受影响。依赖
+     <code>lb:lch-dual</code> / <code>lb:lch-compose</code>。</p>
 
 <section class="download" id="download">
   <h2>下载这一个</h2>
@@ -96,7 +100,7 @@
        <code>plug-ins</code> 目录（Windows <code>%APPDATA%\GIMP\3.x\plug-ins</code>，
        Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-lch-split-curves.zip">下载 gegl-color-ops-plugin-lch-split-curves.zip</a>
-    <p class="muted small">9.9 KB · 校验：<code>SHA256 d0735d2b3d074a6e65f2c74e092292c4…</code></p>
+    <p class="muted small">5.9 KB · 校验：<code>SHA256 c0f25d155eb821b6fc2b76dfd7346261…</code></p>
   </div>
 </section>
 
@@ -115,7 +119,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">ef7800a</span>
+    <span class="muted">9fc2d84</span>
   </div>
 </footer>
 </body>
