@@ -610,63 +610,6 @@ def build_index(ops, stats, version):
                      pypill=t(".py · 免编译", ".py · no build"),
                      goplugins=t("去插件页下载", "Get them on the plug-ins page"))
 
-    # Shortcut 组：八个 Python 插件，每个一篇独立文章（docs/plugins/<slug>.html）
-    sc = [
-        ("hsv-split-curves", "HSV Split (Curves)", "t-color", "曲线", "H · S · V",
-         "三张分量层、每层一条原生曲线，用 HSV 分量模式叠回——等于在 HSV 里调曲线。",
-         "Three component layers, one native curve each, recombined with HSV modes."),
-        ("lch-split-curves", "LCh Split (Curves)", "t-blend", "曲线", "L · C · h",
-         "CIE LCh 的明度 / 彩度 / 色相，感知均匀，做影调与彩度分级比 HSV 稳。",
-         "L / C / h in CIE LCh: perceptual and absolute, steadier for grading."),
-        ("hsl-split-curves", "HSL Split (Curves)", "t-color", "曲线", "H · S · L",
-         "GIMP 没有 HSL 分量模式，这个插件精确换算，不拿 HSV 近似。",
-         "No HSL component mode in GIMP; this converts exactly instead of approximating."),
-        ("lab-split-curves", "Lab Split (Curves)", "t-blend", "曲线", "L · a · b",
-         "a 与 b 合进一张数据图，L* 走 LCh 明度——调 a 只动 a、调 b 只动 b。",
-         "a and b on one data layer, L* on LCh lightness: tweak a without touching b."),
-        ("hsi-split-curves", "HSI Split (Curves)", "t-color", "曲线", "H · S · I",
-         "I=(R+G+B)/3 借不到任何分量模式，三个分量合进一层、三条曲线各管一个。",
-         "I is (R+G+B)/3 with no mode to borrow, so all three share one layer."),
-        ("frequency-separation", "高低频磨皮", "t-tone", "磨皮", "低频 + 高频",
-         "一个管影调一个管细节，叠起来就是原图；半径决定分界。",
-         "Low frequency for tone, high frequency for detail; they recombine to the original."),
-        ("dodge-burn", "双曲线磨皮", "t-tone", "磨皮", "提亮 / 压暗",
-         "两条曲线压在黑蒙版下：涂到哪里动哪里，没涂的地方一位不改。",
-         "A lighten and a darken curve on black masks: paint to dodge or burn."),
-        ("neutral-grey", "中性灰磨皮", "t-tone", "磨皮", "50% 灰 · 柔光",
-         "一层 128 灰、柔光下恒等；白笔提亮、黑笔压暗，涂过头拿灰盖回去。",
-         "A 50% grey Soft Light layer: white dodges, black burns, grey resets."),
-    ]
-    sc_cards = "\n".join("""  <a class="card" href="plugins/%s.html">
-    <div class="card-top"><span class="tag %s">%s</span><code>%s</code></div>
-    <h3>%s</h3>
-    <p><span class="l-zh">%s</span><span class="l-en">%s</span></p>
-    <span class="more"><span class="l-zh">读全文 →</span><span class="l-en">Read the page →</span></span>
-  </a>""" % (slug, cls, tag, code, title, zh, en)
-                      for slug, title, cls, tag, code, zh, en in sc)
-
-    shortcut = """<section class="group" id="shortcut">
-  <h2><span class="l-zh">Shortcut：八个一键动作</span><span class="l-en">Shortcut: eight one-click moves</span></h2>
-  <p class="section-lede"><span class="l-zh">这八个不是 <code>lb:</code> 算子，是 GIMP 3 的 Python 插件：装进
-     <code>plug-ins</code> 目录后出现在 <code>颜色 → SuperMrWang → Shortcut</code> 和图层右键菜单里。
-     五个分量曲线把图层拆成能单独曲线的分量层，三个磨皮一次把整套修图结构摆好。
-     每个都有一篇独立文章：结构、原理、用法与实测误差。</span><span class="l-en">These eight are not <code>lb:</code> operators but GIMP 3 Python plug-ins: drop
-     them into <code>plug-ins</code> and they appear under
-     <code>Colors → SuperMrWang → Shortcut</code> and in the layer context menu.
-     Five split a layer into components you can curve on their own; three lay out a
-     whole retouching stack. Each has its own page: structure, maths, workflow and
-     measured error.</span></p>
-  <div class="cards cards-8">
-%s
-  </div>
-  <p class="note"><span class="l-zh">安装：<code>install-plugin.sh</code> 一次装齐，或从
-     <a href="plugins.html">插件页</a>里各自的文章页单独下某一个包。恒等是它们的共同点——
-     刚建好那一刻结果与原图逐像素相同，之后的每一笔都能删掉重来。</span><span class="l-en">Install them all with <code>install-plugin.sh</code>, or grab a single bundle
-     from each plug-in's own page on the <a href="plugins.html">plug-ins page</a>. Identity is what they
-     share: the moment they are created the result is pixel-identical to the original,
-     and every stroke after that can be thrown away.</span></p>
-</section>""" % sc_cards
-
     about = """<section class="about">
   <h2><span class="l-zh">这些算子是怎么来的</span><span class="l-en">Where these operators come from</span></h2>  <p><span class="l-zh">多数是按黑盒标定做的：拿目标实现（多为常见修图软件的调整图层）做对照，逐档采样、
      拟合公式，再在 16 位精度上把残差压到几码以内——只看输入输出，不读对方的代码。
@@ -720,7 +663,7 @@ def build_index(ops, stats, version):
      parameters and measured error.</span></p>
 {by_g}
 </section>""".format(n=t("%d 个算子" % n_live, "%d operators" % n_live), by_g=by_g) \
-        + shortcut + download + about + legal
+        + download + about + legal
 
     return page("gegl-color-ops · GIMP 3 色彩算子集", body,
                 desc="%d 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、"
@@ -1340,27 +1283,33 @@ GPL-3.0-or-later
 
 
 def build_plugins(version, stats=None):
-    """插件总览只有一个作用：十块方格，点进去才是文章页。
+    """插件总览：两块方格。Shortcut 八个别处不再重复，转换两个单独一块。
 
-    每个插件的结构、原理、实测误差、下载与安装都在 plugins/<slug>.html 里，
-    这里不再重复一遍——总览页写得再全也没人读完，反而把入口埋了。
+    结构、原理、实测误差、下载与安装都在 plugins/<slug>.html 里，这里只放入口。
     """
-    cards = "\n".join("""  <a class="card" href="plugins/{slug}.html">
-    <div class="card-top"><span class="tag {cls}">{tag}</span><code>{slug}</code></div>
+    def card(p):
+        # 四列窄卡里放不下 <code>frequency-separation</code> 这种长目录名，
+        # 目录名在文章页的信息条里就有，这里只留标签与名字。
+        return """  <a class="card" href="plugins/{slug}.html">
+    <div class="card-top"><span class="tag {cls}">{tag}</span></div>
     <h3>{title}</h3>
     <p>{brief}</p>
     <span class="more">打开 →</span>
   </a>""".format(slug=p["slug"], cls=p["tag"][1], tag=p["tag"][0],
                  title=html.escape(p["title"]), brief=p["brief"])
-                  for p in PD.PAGES)
+
+    shortcut = [p for p in PD.PAGES if p["area"].startswith("Shortcut")]
+    convert = [p for p in PD.PAGES if p["area"] == "图层转换"]
+
+    shortcut_cards = "\n".join(card(p) for p in shortcut)
+    convert_cards = "\n".join(card(p) for p in convert)
 
     body = """<section class="page-head">
   <p class="eyebrow"><a href="index.html">首页</a> / Python 插件</p>
   <h1>十个 Python 插件</h1>
   <p class="lede">免编译的 GIMP 3 插件，装进 <code>plug-ins</code> 目录、重启即用。
      两处入口：<b>图层右键 → SuperMrWang</b>（十个都在）与
-     <b>颜色 → SuperMrWang</b>；分量曲线与三个磨皮收在 <b>Shortcut</b> 子菜单里。
-     点方块进去看结构、原理、实测误差与下载。</p>
+     <b>颜色 → SuperMrWang</b>。点方块进去看结构、原理、实测误差与下载。</p>
   <ul class="facts">
     <li><b>10</b> 个插件</li>
     <li><b>10</b> 个 PDB 过程</li>
@@ -1368,14 +1317,35 @@ def build_plugins(version, stats=None):
     <li><b>0</b> 编译 · 纯 Python</li>
   </ul>
 </section>
-<section class="prose wide">
-<div class="cards cards-10">
-{cards}
-</div>
+
+<div class="prose wide">
+<section class="group" id="shortcut">
+  <h2>Shortcut：八个一键动作</h2>
+  <p class="section-lede">这八个不是 <code>lb:</code> 算子，是 GIMP 3 的 Python 插件：装进
+     <code>plug-ins</code> 目录后出现在 <code>颜色 → SuperMrWang → Shortcut</code> 和图层右键菜单里。
+     五个分量曲线把图层拆成能单独曲线的分量层，三个磨皮一次把整套修图结构摆好。
+     每个都有一篇独立文章：结构、原理、用法与实测误差。</p>
+  <div class="cards cards-8">
+{shortcut_cards}
+  </div>
+  <p class="note">安装：<code>install-plugin.sh</code> 一次装齐，或从各自的文章页单独下某一个包。
+     恒等是它们的共同点——刚建好那一刻结果与原图逐像素相同，之后的每一笔都能删掉重来。</p>
+</section>
+
+<section class="group" id="convert">
+  <h2>图层转换：转选区 / 转通道</h2>
+  <p class="section-lede">GEGL 算子跑完常留下灰度图，它往后的用途多半是当蒙版或留档。
+     这两个把「复制 → 建通道 → 粘贴 → 蒙版转选区」四步压成一次右键，也挂在
+     <code>选择 → SuperMrWang</code> 下，方便写脚本。</p>
+  <div class="cards">
+{convert_cards}
+  </div>
   <p class="note">每个插件页里各有一个 <code>.zip</code>（只有一个 <code>.py</code>
      和一份安装说明）；一次装全部就跑 <code>bash install-plugin.sh</code>，
      细节见 <a href="guide.html">安装指南</a>。</p>
-</section>""".format(cards=cards)
+</section>
+</div>""".format(shortcut_cards=shortcut_cards, convert_cards=convert_cards)
+
     return page("Python 插件 · gegl-color-ops", body,
                 desc="GIMP 3 Python 插件：图层转选区 / Alpha 通道，"
                      "HSV / LCh / HSL / Lab / HSI 分量分层曲线，"

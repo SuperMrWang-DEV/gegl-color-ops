@@ -512,73 +512,6 @@
 </a>
   </div>
 </section>
-</section><section class="group" id="shortcut">
-  <h2><span class="l-zh">Shortcut：八个一键动作</span><span class="l-en">Shortcut: eight one-click moves</span></h2>
-  <p class="section-lede"><span class="l-zh">这八个不是 <code>lb:</code> 算子，是 GIMP 3 的 Python 插件：装进
-     <code>plug-ins</code> 目录后出现在 <code>颜色 → SuperMrWang → Shortcut</code> 和图层右键菜单里。
-     五个分量曲线把图层拆成能单独曲线的分量层，三个磨皮一次把整套修图结构摆好。
-     每个都有一篇独立文章：结构、原理、用法与实测误差。</span><span class="l-en">These eight are not <code>lb:</code> operators but GIMP 3 Python plug-ins: drop
-     them into <code>plug-ins</code> and they appear under
-     <code>Colors → SuperMrWang → Shortcut</code> and in the layer context menu.
-     Five split a layer into components you can curve on their own; three lay out a
-     whole retouching stack. Each has its own page: structure, maths, workflow and
-     measured error.</span></p>
-  <div class="cards cards-8">
-  <a class="card" href="plugins/hsv-split-curves.html">
-    <div class="card-top"><span class="tag t-color">曲线</span><code>H · S · V</code></div>
-    <h3>HSV Split (Curves)</h3>
-    <p><span class="l-zh">三张分量层、每层一条原生曲线，用 HSV 分量模式叠回——等于在 HSV 里调曲线。</span><span class="l-en">Three component layers, one native curve each, recombined with HSV modes.</span></p>
-    <span class="more"><span class="l-zh">读全文 →</span><span class="l-en">Read the page →</span></span>
-  </a>
-  <a class="card" href="plugins/lch-split-curves.html">
-    <div class="card-top"><span class="tag t-blend">曲线</span><code>L · C · h</code></div>
-    <h3>LCh Split (Curves)</h3>
-    <p><span class="l-zh">CIE LCh 的明度 / 彩度 / 色相，感知均匀，做影调与彩度分级比 HSV 稳。</span><span class="l-en">L / C / h in CIE LCh: perceptual and absolute, steadier for grading.</span></p>
-    <span class="more"><span class="l-zh">读全文 →</span><span class="l-en">Read the page →</span></span>
-  </a>
-  <a class="card" href="plugins/hsl-split-curves.html">
-    <div class="card-top"><span class="tag t-color">曲线</span><code>H · S · L</code></div>
-    <h3>HSL Split (Curves)</h3>
-    <p><span class="l-zh">GIMP 没有 HSL 分量模式，这个插件精确换算，不拿 HSV 近似。</span><span class="l-en">No HSL component mode in GIMP; this converts exactly instead of approximating.</span></p>
-    <span class="more"><span class="l-zh">读全文 →</span><span class="l-en">Read the page →</span></span>
-  </a>
-  <a class="card" href="plugins/lab-split-curves.html">
-    <div class="card-top"><span class="tag t-blend">曲线</span><code>L · a · b</code></div>
-    <h3>Lab Split (Curves)</h3>
-    <p><span class="l-zh">a 与 b 合进一张数据图，L* 走 LCh 明度——调 a 只动 a、调 b 只动 b。</span><span class="l-en">a and b on one data layer, L* on LCh lightness: tweak a without touching b.</span></p>
-    <span class="more"><span class="l-zh">读全文 →</span><span class="l-en">Read the page →</span></span>
-  </a>
-  <a class="card" href="plugins/hsi-split-curves.html">
-    <div class="card-top"><span class="tag t-color">曲线</span><code>H · S · I</code></div>
-    <h3>HSI Split (Curves)</h3>
-    <p><span class="l-zh">I=(R+G+B)/3 借不到任何分量模式，三个分量合进一层、三条曲线各管一个。</span><span class="l-en">I is (R+G+B)/3 with no mode to borrow, so all three share one layer.</span></p>
-    <span class="more"><span class="l-zh">读全文 →</span><span class="l-en">Read the page →</span></span>
-  </a>
-  <a class="card" href="plugins/frequency-separation.html">
-    <div class="card-top"><span class="tag t-tone">磨皮</span><code>低频 + 高频</code></div>
-    <h3>高低频磨皮</h3>
-    <p><span class="l-zh">一个管影调一个管细节，叠起来就是原图；半径决定分界。</span><span class="l-en">Low frequency for tone, high frequency for detail; they recombine to the original.</span></p>
-    <span class="more"><span class="l-zh">读全文 →</span><span class="l-en">Read the page →</span></span>
-  </a>
-  <a class="card" href="plugins/dodge-burn.html">
-    <div class="card-top"><span class="tag t-tone">磨皮</span><code>提亮 / 压暗</code></div>
-    <h3>双曲线磨皮</h3>
-    <p><span class="l-zh">两条曲线压在黑蒙版下：涂到哪里动哪里，没涂的地方一位不改。</span><span class="l-en">A lighten and a darken curve on black masks: paint to dodge or burn.</span></p>
-    <span class="more"><span class="l-zh">读全文 →</span><span class="l-en">Read the page →</span></span>
-  </a>
-  <a class="card" href="plugins/neutral-grey.html">
-    <div class="card-top"><span class="tag t-tone">磨皮</span><code>50% 灰 · 柔光</code></div>
-    <h3>中性灰磨皮</h3>
-    <p><span class="l-zh">一层 128 灰、柔光下恒等；白笔提亮、黑笔压暗，涂过头拿灰盖回去。</span><span class="l-en">A 50% grey Soft Light layer: white dodges, black burns, grey resets.</span></p>
-    <span class="more"><span class="l-zh">读全文 →</span><span class="l-en">Read the page →</span></span>
-  </a>
-  </div>
-  <p class="note"><span class="l-zh">安装：<code>install-plugin.sh</code> 一次装齐，或从
-     <a href="plugins.html">插件页</a>里各自的文章页单独下某一个包。恒等是它们的共同点——
-     刚建好那一刻结果与原图逐像素相同，之后的每一笔都能删掉重来。</span><span class="l-en">Install them all with <code>install-plugin.sh</code>, or grab a single bundle
-     from each plug-in's own page on the <a href="plugins.html">plug-ins page</a>. Identity is what they
-     share: the moment they are created the result is pixel-identical to the original,
-     and every stroke after that can be thrown away.</span></p>
 </section><section class="download" id="download">
   <h2><span class="l-zh">下载</span><span class="l-en">Download</span></h2>
   <div class="dl-grid">
@@ -669,7 +602,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">c6052df</span>
+    <span class="muted">79c224b</span>
   </div>
 </footer>
 <script>

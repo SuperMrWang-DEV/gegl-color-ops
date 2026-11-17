@@ -28,8 +28,7 @@
   <h1>十个 Python 插件</h1>
   <p class="lede">免编译的 GIMP 3 插件，装进 <code>plug-ins</code> 目录、重启即用。
      两处入口：<b>图层右键 → SuperMrWang</b>（十个都在）与
-     <b>颜色 → SuperMrWang</b>；分量曲线与三个磨皮收在 <b>Shortcut</b> 子菜单里。
-     点方块进去看结构、原理、实测误差与下载。</p>
+     <b>颜色 → SuperMrWang</b>。点方块进去看结构、原理、实测误差与下载。</p>
   <ul class="facts">
     <li><b>10</b> 个插件</li>
     <li><b>10</b> 个 PDB 过程</li>
@@ -37,73 +36,92 @@
     <li><b>0</b> 编译 · 纯 Python</li>
   </ul>
 </section>
-<section class="prose wide">
-<div class="cards cards-10">
-  <a class="card" href="plugins/layer-to-selection.html">
-    <div class="card-top"><span class="tag t-mask">选区</span><code>layer-to-selection</code></div>
-    <h3>Layer to Selection</h3>
-    <p>右键任意图层，把它转成当前选区：Gray / R / G / B / Alpha，四种组合方式，可反相。</p>
-    <span class="more">打开 →</span>
-  </a>
-  <a class="card" href="plugins/layer-to-channel.html">
-    <div class="card-top"><span class="tag t-mask">通道</span><code>layer-to-channel</code></div>
-    <h3>Layer to Channel</h3>
-    <p>右键任意图层，把它变成一条灰度 Alpha 通道，可反相、可自定义名。</p>
-    <span class="more">打开 →</span>
-  </a>
+
+<div class="prose wide">
+<section class="group" id="shortcut">
+  <h2>Shortcut：八个一键动作</h2>
+  <p class="section-lede">这八个不是 <code>lb:</code> 算子，是 GIMP 3 的 Python 插件：装进
+     <code>plug-ins</code> 目录后出现在 <code>颜色 → SuperMrWang → Shortcut</code> 和图层右键菜单里。
+     五个分量曲线把图层拆成能单独曲线的分量层，三个磨皮一次把整套修图结构摆好。
+     每个都有一篇独立文章：结构、原理、用法与实测误差。</p>
+  <div class="cards cards-8">
   <a class="card" href="plugins/hsv-split-curves.html">
-    <div class="card-top"><span class="tag t-color">曲线</span><code>hsv-split-curves</code></div>
+    <div class="card-top"><span class="tag t-color">曲线</span></div>
     <h3>HSV Split (Curves)</h3>
     <p>拆成 H / S / V 三张分量层，每层一条原生曲线，恒等还原。</p>
     <span class="more">打开 →</span>
   </a>
   <a class="card" href="plugins/lch-split-curves.html">
-    <div class="card-top"><span class="tag t-blend">曲线</span><code>lch-split-curves</code></div>
+    <div class="card-top"><span class="tag t-blend">曲线</span></div>
     <h3>LCh Split (Curves)</h3>
     <p>同上，换成 CIE LCh 明度 / 彩度 / 色相，感知均匀。</p>
     <span class="more">打开 →</span>
   </a>
   <a class="card" href="plugins/hsl-split-curves.html">
-    <div class="card-top"><span class="tag t-color">曲线</span><code>hsl-split-curves</code></div>
+    <div class="card-top"><span class="tag t-color">曲线</span></div>
     <h3>HSL Split (Curves)</h3>
     <p>GIMP 没有 HSL 分量模式，这个插件精确换算，不拿 HSV 近似。</p>
     <span class="more">打开 →</span>
   </a>
   <a class="card" href="plugins/lab-split-curves.html">
-    <div class="card-top"><span class="tag t-blend">曲线</span><code>lab-split-curves</code></div>
+    <div class="card-top"><span class="tag t-blend">曲线</span></div>
     <h3>Lab Split (Curves)</h3>
     <p>a 与 b 合一层、L* 一层，调 a 只动 a、调 b 只动 b。</p>
     <span class="more">打开 →</span>
   </a>
   <a class="card" href="plugins/hsi-split-curves.html">
-    <div class="card-top"><span class="tag t-color">曲线</span><code>hsi-split-curves</code></div>
+    <div class="card-top"><span class="tag t-color">曲线</span></div>
     <h3>HSI Split (Curves)</h3>
     <p>I 借不到任何分量模式，三个分量合进一层、三条曲线各管一个。</p>
     <span class="more">打开 →</span>
   </a>
   <a class="card" href="plugins/frequency-separation.html">
-    <div class="card-top"><span class="tag t-tone">磨皮</span><code>frequency-separation</code></div>
+    <div class="card-top"><span class="tag t-tone">磨皮</span></div>
     <h3>高低频磨皮</h3>
     <p>低频管影调、高频管细节，叠起来就是原图；半径决定分界。</p>
     <span class="more">打开 →</span>
   </a>
   <a class="card" href="plugins/dodge-burn.html">
-    <div class="card-top"><span class="tag t-tone">磨皮</span><code>dodge-burn</code></div>
+    <div class="card-top"><span class="tag t-tone">磨皮</span></div>
     <h3>双曲线磨皮</h3>
     <p>提亮 / 压暗两条曲线压在黑蒙版下：涂到哪里动哪里。</p>
     <span class="more">打开 →</span>
   </a>
   <a class="card" href="plugins/neutral-grey.html">
-    <div class="card-top"><span class="tag t-tone">磨皮</span><code>neutral-grey</code></div>
+    <div class="card-top"><span class="tag t-tone">磨皮</span></div>
     <h3>中性灰磨皮</h3>
     <p>一层 50% 灰、柔光下恒等；白笔提亮、黑笔压暗、灰盖回去。</p>
     <span class="more">打开 →</span>
   </a>
-</div>
+  </div>
+  <p class="note">安装：<code>install-plugin.sh</code> 一次装齐，或从各自的文章页单独下某一个包。
+     恒等是它们的共同点——刚建好那一刻结果与原图逐像素相同，之后的每一笔都能删掉重来。</p>
+</section>
+
+<section class="group" id="convert">
+  <h2>图层转换：转选区 / 转通道</h2>
+  <p class="section-lede">GEGL 算子跑完常留下灰度图，它往后的用途多半是当蒙版或留档。
+     这两个把「复制 → 建通道 → 粘贴 → 蒙版转选区」四步压成一次右键，也挂在
+     <code>选择 → SuperMrWang</code> 下，方便写脚本。</p>
+  <div class="cards">
+  <a class="card" href="plugins/layer-to-selection.html">
+    <div class="card-top"><span class="tag t-mask">选区</span></div>
+    <h3>Layer to Selection</h3>
+    <p>右键任意图层，把它转成当前选区：Gray / R / G / B / Alpha，四种组合方式，可反相。</p>
+    <span class="more">打开 →</span>
+  </a>
+  <a class="card" href="plugins/layer-to-channel.html">
+    <div class="card-top"><span class="tag t-mask">通道</span></div>
+    <h3>Layer to Channel</h3>
+    <p>右键任意图层，把它变成一条灰度 Alpha 通道，可反相、可自定义名。</p>
+    <span class="more">打开 →</span>
+  </a>
+  </div>
   <p class="note">每个插件页里各有一个 <code>.zip</code>（只有一个 <code>.py</code>
      和一份安装说明）；一次装全部就跑 <code>bash install-plugin.sh</code>，
      细节见 <a href="guide.html">安装指南</a>。</p>
 </section>
+</div>
 </main>
 <footer class="site-foot">
   <div>
@@ -114,7 +132,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">c6052df</span>
+    <span class="muted">79c224b</span>
   </div>
 </footer>
 </body>
