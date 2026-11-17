@@ -566,26 +566,31 @@
     <div class="dl">
       <div class="dl-head"><h3>Linux x86_64</h3></div>
       <p><span class="l-zh">30 个 <code>.so</code>（0.3 MB）。解到
-         <code>~/.local/share/gegl-0.4/plug-ins</code>，重启 GIMP 即可。</span><span class="l-en">30 <code>.so</code> files (0.3 MB). Unpack into
-         <code>~/.local/share/gegl-0.4/plug-ins</code> and restart GIMP.</span></p>
+         <code>~/.local/share/gegl-0.4/plug-ins</code>，重启 GIMP 即可。　注意：component 家族那 11 个模块（各空间的 dual / compose 与 gray-to-component）还没出包，要用就 <code>./build.sh</code> 自编（Windows 端齐全）。</span><span class="l-en">30 <code>.so</code> files (0.3 MB). Unpack into
+         <code>~/.local/share/gegl-0.4/plug-ins</code> and restart GIMP. Note: the 11 component modules (dual / compose for each space, plus gray-to-component) are not in this bundle yet — build them with <code>./build.sh</code> (the Windows bundle has them all).</span></p>
       <a class="btn" href="download/gegl-color-ops-linux-x64.zip">gegl-color-ops-linux-x64.zip</a>
       <p class="muted small"><span class="l-zh">校验：</span><span class="l-en">Checksum: </span><code>SHA256 2712aef60d94ecacb61df79b78825ea6…</code></p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3><span class="l-zh">单个算子</span><span class="l-en">A single operator</span></h3></div>
-      <p><span class="l-zh">只想试一个？每个算子的文章页底部有它自己的模块直链，
-         或者从仓库里挑：<code>dist/windows-x64/&lt;名字&gt;.dll</code>、
-         <code>dist/linux-x64/&lt;名字&gt;.so</code>。</span><span class="l-en">Just one? Every operator page links its own module at the bottom,
-         or pick from the repo: <code>dist/windows-x64/&lt;name&gt;.dll</code>,
+      <p><span class="l-zh">只想试一个？每个算子的文章页底部有它自己的模块直链。模块之间
+         互不依赖（只链接 GIMP 自带的 GEGL 与 babl），下一个就是完整的。
+         也可以从仓库里挑：<code>dist/windows-x64/&lt;名字&gt;.dll</code>、
+         <code>dist/linux-x64/&lt;名字&gt;.so</code>。</span><span class="l-en">Just one? Every operator page links its own module at the bottom.
+         Modules never depend on each other here — only on the GEGL and babl that
+         ship with GIMP — so one file is complete. Or pick from the repo:
+         <code>dist/windows-x64/&lt;name&gt;.dll</code>,
          <code>dist/linux-x64/&lt;name&gt;.so</code>.</span></p>
       <a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/tree/main/dist/windows-x64"><span class="l-zh">浏览模块列表</span><span class="l-en">Browse the module list</span></a>
     </div>
     <div class="dl">
       <div class="dl-head"><h3><span class="l-zh">Python 插件</span><span class="l-en">Python plug-ins</span></h3><span class="pill"><span class="l-zh">.py · 免编译</span><span class="l-en">.py · no build</span></span></div>
-      <p><span class="l-zh">Layer to Selection / Layer to Channel：右键任意图层，一键转成选区
-         或 Alpha 通道。每个插件一个包，放进 GIMP 的 plug-ins 目录。</span><span class="l-en">Layer to Selection / Layer to Channel: right-click any layer to turn it
-         into a selection or an alpha channel in one click. One zip per plug-in,
-         drop it into GIMP's plug-ins directory.</span></p>
+      <p><span class="l-zh">Layer to Selection / Layer to Channel 以及 Shortcut 里那些一键效果，
+         每个插件一个包，<b>插件用到的算子模块已经打在包里</b>，下一次就齐。
+         <code>.py</code> 进 GIMP 的 plug-ins，附带的模块进 GEGL 的 plug-ins。</span><span class="l-en">Layer to Selection / Layer to Channel and the one-click effects under
+         Shortcut: one zip each, and <b>the operator modules a plug-in needs are
+         already inside</b>. The <code>.py</code> goes into GIMP's plug-ins, the
+         bundled modules into GEGL's plug-ins.</span></p>
       <a class="btn ghost" href="plugins.html"><span class="l-zh">去插件页下载</span><span class="l-en">Get them on the plug-ins page</span></a>
     </div>
   </div>
@@ -642,7 +647,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">702ee5d</span>
+    <span class="muted">07a4555</span>
   </div>
 </footer>
 <script>

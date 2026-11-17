@@ -551,13 +551,22 @@ def build_index(ops, stats, version):
 </section>""".format(files=stats["win_files"])
 
     if stats.get("zip_linux_name"):
+        _miss = stats.get("linux_missing") or []
+        _miss_zh = ("　注意：component 家族那 %d 个模块（各空间的 dual / compose 与 "
+                    "gray-to-component）还没出包，要用就 <code>./build.sh</code> 自编"
+                    "（Windows 端齐全）。" % len(_miss)) if _miss else ""
+        _miss_en = (" Note: the %d component modules (dual / compose for each "
+                    "space, plus gray-to-component) are not in this bundle yet — "
+                    "build them with <code>./build.sh</code> (the Windows bundle "
+                    "has them all)." % len(_miss)) if _miss else ""
         lin_body = """<p><span class="l-zh">{lin} 个 <code>.so</code>（{lsize} MB）。解到
-         <code>~/.local/share/gegl-0.4/plug-ins</code>，重启 GIMP 即可。</span><span class="l-en">{lin} <code>.so</code> files ({lsize} MB). Unpack into
-         <code>~/.local/share/gegl-0.4/plug-ins</code> and restart GIMP.</span></p>
+         <code>~/.local/share/gegl-0.4/plug-ins</code>，重启 GIMP 即可。{misszh}</span><span class="l-en">{lin} <code>.so</code> files ({lsize} MB). Unpack into
+         <code>~/.local/share/gegl-0.4/plug-ins</code> and restart GIMP.{missen}</span></p>
       <a class="btn" href="download/{lzip}">gegl-color-ops-linux-x64.zip</a>
       <p class="muted small">{chk}<code>SHA256 {lsha}</code></p>""".format(
             lin=stats["linux_files"], lsize=stats["zip_linux_mb"],
             lzip=stats["zip_linux_name"], lsha=stats["zip_linux_sha"][:32] + "…",
+            misszh=_miss_zh, missen=_miss_en,
             chk=t("校验：", "Checksum: "))
     else:
         lin_body = """<p><span class="l-zh">暂时没有预编译包，跑 <code>./build.sh</code> 自己编（需要 GEGL 开发头文件）。</span><span class="l-en">No prebuilt bundle yet — build your own with <code>./build.sh</code> (needs GEGL development headers).</span></p>
@@ -580,19 +589,24 @@ def build_index(ops, stats, version):
     </div>
     <div class="dl">
       <div class="dl-head"><h3>{single}</h3></div>
-      <p><span class="l-zh">只想试一个？每个算子的文章页底部有它自己的模块直链，
-         或者从仓库里挑：<code>dist/windows-x64/&lt;名字&gt;.dll</code>、
-         <code>dist/linux-x64/&lt;名字&gt;.so</code>。</span><span class="l-en">Just one? Every operator page links its own module at the bottom,
-         or pick from the repo: <code>dist/windows-x64/&lt;name&gt;.dll</code>,
+      <p><span class="l-zh">只想试一个？每个算子的文章页底部有它自己的模块直链。模块之间
+         互不依赖（只链接 GIMP 自带的 GEGL 与 babl），下一个就是完整的。
+         也可以从仓库里挑：<code>dist/windows-x64/&lt;名字&gt;.dll</code>、
+         <code>dist/linux-x64/&lt;名字&gt;.so</code>。</span><span class="l-en">Just one? Every operator page links its own module at the bottom.
+         Modules never depend on each other here — only on the GEGL and babl that
+         ship with GIMP — so one file is complete. Or pick from the repo:
+         <code>dist/windows-x64/&lt;name&gt;.dll</code>,
          <code>dist/linux-x64/&lt;name&gt;.so</code>.</span></p>
       <a class="btn ghost" href="{repo}/tree/main/dist/windows-x64">{browse}</a>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>{pyplug}</h3><span class="pill">{pypill}</span></div>
-      <p><span class="l-zh">Layer to Selection / Layer to Channel：右键任意图层，一键转成选区
-         或 Alpha 通道。每个插件一个包，放进 GIMP 的 plug-ins 目录。</span><span class="l-en">Layer to Selection / Layer to Channel: right-click any layer to turn it
-         into a selection or an alpha channel in one click. One zip per plug-in,
-         drop it into GIMP's plug-ins directory.</span></p>
+      <p><span class="l-zh">Layer to Selection / Layer to Channel 以及 Shortcut 里那些一键效果，
+         每个插件一个包，<b>插件用到的算子模块已经打在包里</b>，下一次就齐。
+         <code>.py</code> 进 GIMP 的 plug-ins，附带的模块进 GEGL 的 plug-ins。</span><span class="l-en">Layer to Selection / Layer to Channel and the one-click effects under
+         Shortcut: one zip each, and <b>the operator modules a plug-in needs are
+         already inside</b>. The <code>.py</code> goes into GIMP's plug-ins, the
+         bundled modules into GEGL's plug-ins.</span></p>
       <a class="btn ghost" href="plugins.html">{goplugins}</a>
     </div>
   </div>
@@ -879,12 +893,17 @@ def download_html(op, lang):
                      '这一版还没把这个模块打进预编译包，可以 <code>./build.sh</code> 自己编一个')
     if en:
         head = "Just this one"
-        tail = ('%s, then restart GIMP. The full bundle is on the '
+        tail = ('%s, then restart GIMP. Every module here is a standalone GEGL '
+                'module: it links only against the GEGL and babl that ship with '
+                'GIMP, never against another module of this project, so one '
+                'download is all it needs. The full bundle is on the '
                 '<a href="../index.html#download">download page</a>.') % "; ".join(lines)
     else:
         head = "只要这一个"
-        tail = ('%s，然后重启 GIMP。整包在 '
-                '<a href="../index.html#download">下载页</a>。') % "；".join(lines)
+        tail = ('%s，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP '
+                '自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，'
+                '不会缺东西。要一次装齐，用'
+                '<a href="../index.html#download">整包</a>。') % "；".join(lines)
     return """<div class="op-dl">
   <div>
     <h3>%s</h3>
@@ -1074,8 +1093,8 @@ def build_guide(version, stats):
   <h2 id="req">环境要求</h2>
   <ul>
     <li><b>GIMP 3.x</b>（3.0 / 3.2 实测），自带 GEGL 0.4。</li>
-    <li>Windows x64 用现成的 <code>.dll</code>，Linux x86_64 用 <code>.so</code>；
-        两端都有预编译包，{n} 个模块齐全。</li>
+    <li>Windows x64 用现成的 <code>.dll</code>，Linux x86_64 用 <code>.so</code>。
+        Windows 包 <b>{n} 个模块齐全</b>；Linux 包目前 {l} 个，{lm}。</li>
     <li>不需要 Python 运行时——算子是 C 编译的 GEGL 模块。</li>
   </ul>
 
@@ -1166,7 +1185,12 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
      所以这个工程里所有 id 和 GType 名都带前缀。</p>
   <h3>会进 GIMP 官方仓库吗？</h3>
   <p>不会。这是独立的第三方算子集，按 GPL-3.0 发布，自己装进用户插件目录即可。</p>
-</article>""".format(repo=REPO, n=stats["win_files"])
+</article>""".format(
+        repo=REPO, n=stats["win_files"], l=stats["linux_files"],
+        lm=("component 家族那 %d 个模块（hsv / hsl / lab / lch / hsi 各自的 dual 与 "
+            "compose，再加 gray-to-component）还没出包，可以 <code>./build.sh</code> "
+            "自己编" % len(stats["linux_missing"])
+            if stats["linux_missing"] else "与 Windows 一致"))
 
     return page("安装与排错 · gegl-color-ops", body,
                 desc="GIMP 3 GEGL 算子安装、验证与排错")
@@ -1176,7 +1200,7 @@ def build_plugin_zips(out_dir):
     """每个 Python 插件打一个包，与 dll/so 的免编译包同一套路。
     sky-replace 源码保留但带 .disabled，暂不发布。"""
     specs = [
-        dict(key="selection",
+        dict(key="selection", ops=[],
              name="gegl-color-ops-plugin-layer-to-selection.zip",
              src_dir=os.path.join(ROOT, "plugin", "layer-to-selection"),
              py="layer-to-selection.py", menu="Layer to Selection",
@@ -1185,7 +1209,7 @@ def build_plugin_zips(out_dir):
              desc="Layer to Selection：右键任意图层，把它转成当前选区"
                   "（Gray/R/G/B/Alpha、四种组合方式、可反相）。",
              pdb="lb-plugin-layer-to-selection(image, layer, channel, invert, operation)"),
-        dict(key="channel",
+        dict(key="channel", ops=[],
              name="gegl-color-ops-plugin-layer-to-channel.zip",
              src_dir=os.path.join(ROOT, "plugin", "layer-to-channel"),
              py="layer-to-channel.py", menu="Layer to Channel",
@@ -1194,7 +1218,7 @@ def build_plugin_zips(out_dir):
              desc="Layer to Channel：右键任意图层，把它变成一条新的 Alpha 通道"
                   "（恒为灰度：彩色图层先按亮度转灰度，再把灰度值写进通道）。",
              pdb="lb-plugin-layer-to-channel(image, layer, invert, name)"),
-        dict(key="hsv",
+        dict(key="hsv", ops=["hsv-dual", "hsv-compose"],
              name="gegl-color-ops-plugin-hsv-split-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "hsv-split-curves"),
              py="hsv-split-curves.py", menu="HSV Split (Curves)",
@@ -1203,8 +1227,8 @@ def build_plugin_zips(out_dir):
              desc="HSV Split (Curves)：在 HSV 空间里调曲线。一张数据图同时携带"
                   "S、V、H（红=S、绿=V、蓝=H/360），三条曲线各管一个分量，再由"
                   "lb:hsv-compose 一起算回颜色。恒等曲线时逐像素还原原图。",
-             pdb="lb-plugin-hsv-split-curves(image, drawable, group)"),
-        dict(key="lch",
+             pdb="lb-plugin-hsv-split-curves(image, drawables, mode, group)"),
+        dict(key="lch", ops=["lch-dual", "lch-compose"],
              name="gegl-color-ops-plugin-lch-split-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "lch-split-curves"),
              py="lch-split-curves.py", menu="LCh Split (Curves)",
@@ -1213,8 +1237,8 @@ def build_plugin_zips(out_dir):
              desc="LCh Split (Curves)：在 CIE LCh 里调曲线。一张数据图同时携带"
                   "L*、C*、h（红=L/100、绿=C/140、蓝=h/360），三条曲线各管一个"
                   "分量。极坐标，所以调彩度不动色相、调色相不动彩度。",
-             pdb="lb-plugin-lch-split-curves(image, drawable, group)"),
-        dict(key="hsl",
+             pdb="lb-plugin-lch-split-curves(image, drawables, mode, group)"),
+        dict(key="hsl", ops=["hsl-dual", "hsl-compose"],
              name="gegl-color-ops-plugin-hsl-split-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "hsl-split-curves"),
              py="hsl-split-curves.py", menu="HSL Split (Curves)",
@@ -1224,8 +1248,8 @@ def build_plugin_zips(out_dir):
                   "模式，插件用 lb:hsl-dual / lb:hsl-compose 把 S、L、H 打包进一张"
                   "数据图（红=S、绿=L、蓝=H/360），三条曲线各管一个分量。"
                   "恒等曲线时逐像素还原原图。",
-             pdb="lb-plugin-hsl-split-curves(image, drawable, group)"),
-        dict(key="lab",
+             pdb="lb-plugin-hsl-split-curves(image, drawables, mode, group)"),
+        dict(key="lab", ops=["lab-dual", "lab-compose"],
              name="gegl-color-ops-plugin-lab-split-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "lab-split-curves"),
              py="lab-split-curves.py", menu="Lab Split (Curves)",
@@ -1234,8 +1258,8 @@ def build_plugin_zips(out_dir):
              desc="Lab Split (Curves)：在 CIE Lab 空间里调曲线。一张数据图同时携带"
                   "a、b、L*（红=a、绿=b、蓝=L*/100），三条曲线各管一个分量，再由"
                   "lb:lab-compose 一起算回颜色。恒等曲线时逐像素还原原图。",
-             pdb="lb-plugin-lab-split-curves(image, drawable, group)"),
-        dict(key="hsi",
+             pdb="lb-plugin-lab-split-curves(image, drawables, mode, group)"),
+        dict(key="hsi", ops=["hsi-dual", "hsi-compose"],
              name="gegl-color-ops-plugin-hsi-split-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "hsi-split-curves"),
              py="hsi-split-curves.py", menu="HSI Split (Curves)",
@@ -1245,8 +1269,8 @@ def build_plugin_zips(out_dir):
                   "GIMP 的六条分量模式一条也对不上；插件用 lb:hsi-dual / "
                   "lb:hsi-compose 把 S、I、色相挤进一张数据图（红=S、绿=I、蓝=H/360），"
                   "三条曲线各管一个分量。恒等曲线时精确还原。",
-             pdb="lb-plugin-hsi-split-curves(image, drawable, group)"),
-        dict(key="frequency",
+             pdb="lb-plugin-hsi-split-curves(image, drawables, group)"),
+        dict(key="frequency", ops=[],
              name="gegl-color-ops-plugin-frequency-separation.zip",
              src_dir=os.path.join(ROOT, "plugin", "frequency-separation"),
              py="frequency-separation.py", menu="高低频磨皮 (Frequency Separation)",
@@ -1255,8 +1279,8 @@ def build_plugin_zips(out_dir):
              desc="高低频磨皮：一次生成低频（高斯模糊，管影调与颜色）与高频"
                   "（颗粒合并 + 高通，管细节与质感）两层，恒等时合成就是原图。"
                   "在低频层抹平色块、在高频层修细节，互不干扰。",
-             pdb="lb-plugin-frequency-separation(image, drawable, radius, group)"),
-        dict(key="dodge",
+             pdb="lb-plugin-frequency-separation(image, drawables, radius, group)"),
+        dict(key="dodge", ops=[],
              name="gegl-color-ops-plugin-dodge-burn.zip",
              src_dir=os.path.join(ROOT, "plugin", "dodge-burn"),
              py="dodge-burn.py", menu="双曲线磨皮 (Dodge & Burn)",
@@ -1265,8 +1289,8 @@ def build_plugin_zips(out_dir):
              desc="双曲线磨皮：生成提亮、压暗两条曲线层，蒙版全黑。用白色柔边"
                   "画笔在蒙版上涂抹，涂到哪里就提亮/压暗到哪里，没涂的地方与"
                   "原图逐像素相同。",
-             pdb="lb-plugin-dodge-burn(image, drawable, amount, group)"),
-        dict(key="grey",
+             pdb="lb-plugin-dodge-burn(image, drawables, amount, group)"),
+        dict(key="grey", ops=[],
              name="gegl-color-ops-plugin-neutral-grey.zip",
              src_dir=os.path.join(ROOT, "plugin", "neutral-grey"),
              py="neutral-grey.py", menu="中性灰磨皮 (Neutral Grey)",
@@ -1274,11 +1298,70 @@ def build_plugin_zips(out_dir):
                    "    图层右键 → SuperMrWang → Shortcut → 中性灰磨皮",
              desc="中性灰磨皮：加一张 50% 灰的柔光层，恒等时与原图逐像素相同。"
                   "白色画笔提亮、黑色画笔压暗，反复涂抹把皮肤推平。",
-             pdb="lb-plugin-neutral-grey(image, drawable, group)"),
+             pdb="lb-plugin-neutral-grey(image, drawables, group)"),
     ]
     zips = {}
+    win_src = os.path.join(ROOT, "dist", "windows-x64")
+    lin_src = os.path.join(ROOT, "dist", "linux-x64")
     for sp in specs:
-        readme = """gegl-color-ops · {py}（GIMP 3 Python 插件）
+        ops = sp.get("ops") or []
+        win_dll = [m + ".dll" for m in ops
+                   if os.path.exists(os.path.join(win_src, m + ".dll"))]
+        lin_so = [m + ".so" for m in ops
+                  if os.path.exists(os.path.join(lin_src, m + ".so"))]
+        absent = sorted({
+            m + ext for m in ops
+            for ext, got in ((".dll", m + ".dll" in win_dll),
+                             (".so", m + ".so" in lin_so))
+            if not got})
+
+        if ops:
+            listing = ["    modules-windows-x64/%s" % f for f in win_dll]
+            listing += ["    modules-linux-x64/%s" % f for f in lin_so]
+            extra = ""
+            if absent:
+                extra = ("\n注意：Linux 端的 %s 还没进预编译包，这个包里不含。\n"
+                         "要用 Linux 就 ./build.sh 自己编一份，Windows 端这里是齐的。\n"
+                         % "、".join(absent))
+            lin_hint = ("\uff08Linux \u7528 modules-linux-x64 \u91cc\u7684 .so\uff09"
+                        if lin_so else "")
+            readme = """gegl-color-ops · {py}（GIMP 3 Python 插件）
+=====================================================
+
+{desc}
+
+包里有两个东西，要分别放进两个不同的目录——少一个插件就跑不起来：
+
+  1) {py}  →  GIMP 的插件目录
+        Windows:  %APPDATA%\\GIMP\\3.x\\plug-ins\\
+        Linux:    ~/.config/GIMP/3.x/plug-ins/
+        macOS:    ~/Library/Application Support/GIMP/3.x/plug-ins/
+
+  2) modules-windows-x64 里的 .dll{lin_hint}
+     →  GEGL 的模块目录（注意不是上面那个）
+        Windows:  %LOCALAPPDATA%\\gegl-0.4\\plug-ins
+        Linux:    ~/.local/share/gegl-0.4/plug-ins
+        macOS:    ~/Library/Application Support/gegl-0.4/plug-ins
+
+  两处都放好之后，完全退出 GIMP 再打开（不是关窗口）。两个目录都只在启动时扫描。
+
+包里附带的模块（{py} 的内部依赖，不用另外去下载）：
+{listing}
+{extra}
+菜单位置：
+{menus}
+
+批处理 / 脚本调用（PDB 过程）：
+    {pdb}
+
+源码与算法说明：{repo}
+
+GPL-3.0-or-later
+""".format(py=sp["py"], desc=sp["desc"], menus=sp["menus"], pdb=sp["pdb"],
+           repo=REPO, listing="\n".join(listing), extra=extra,
+           lin_hint=lin_hint)
+        else:
+            readme = """gegl-color-ops · {py}（GIMP 3 Python 插件）
 =====================================================
 
 {desc}
@@ -1287,6 +1370,8 @@ def build_plugin_zips(out_dir):
     Windows:  %APPDATA%\\GIMP\\3.x\\plug-ins\\
     Linux:    ~/.config/GIMP/3.x/plug-ins/
     macOS:    ~/Library/Application Support/GIMP/3.x/plug-ins/
+
+这个插件不需要任何额外的算子模块，装这一个文件就够。
 
 然后完全退出 GIMP 再打开。菜单位置：
 {menus}
@@ -1302,9 +1387,17 @@ GPL-3.0-or-later
         path = os.path.join(out_dir, sp["name"])
         with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
             _zip_add_file(z, os.path.join(sp["src_dir"], sp["py"]), sp["py"])
+            for f in win_dll:
+                _zip_add_file(z, os.path.join(win_src, f),
+                              "modules-windows-x64/" + f)
+            for f in lin_so:
+                _zip_add_file(z, os.path.join(lin_src, f),
+                              "modules-linux-x64/" + f)
             _zip_add_text(z, "安装说明.txt", readme)
         zips[sp["key"]] = {"name": sp["name"], "sha": _sha256_file(path),
-                           "kb": round(os.path.getsize(path) / 1024, 1)}
+                           "kb": round(os.path.getsize(path) / 1024, 1),
+                           "win_mods": win_dll, "lin_mods": lin_so,
+                           "absent": absent}
     return zips
 
 
@@ -1389,17 +1482,34 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
 
     dl = ""
     if z:
+        mods = z.get("win_mods") or []
+        absent = z.get("absent") or []
+        if mods:
+            pill = "含 %d 个模块 · 免编译" % len(mods)
+            note = ("包里有一个 <code>.py</code>、%d 个算子模块和一份安装说明。"
+                    "<b>算子依赖已经附在里面，不用另外去下。</b>"
+                    "<code>.py</code> 进 GIMP 的 <code>plug-ins</code>，模块进 GEGL 的 "
+                    "<code>gegl-0.4/plug-ins</code>——两个目录不一样，包内说明分步写了。"
+                    % len(mods))
+        else:
+            pill = ".py · 免编译"
+            note = ("包里只有一个 <code>.py</code> 和一份安装说明。解压到 GIMP 的 "
+                    "<code>plug-ins</code> 目录（Windows "
+                    "<code>%%APPDATA%%\\GIMP\\3.x\\plug-ins</code>，Linux "
+                    "<code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。")
+        if absent:
+            note += (" Linux 端的 %s 还没进预编译包，要用 Linux 就 "
+                     "<code>./build.sh</code> 自己编一份（Windows 端齐全）。"
+                     % "、".join(absent))
         dl = """<section class="download" id="download">
   <h2>下载这一个</h2>
   <div class="dl primary-dl">
-    <div class="dl-head"><h3>%s</h3><span class="pill">.py · 免编译</span></div>
-    <p>包里只有一个 <code>.py</code> 和一份安装说明。解压到 GIMP 的
-       <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\\GIMP\\3.x\\plug-ins</code>，
-       Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。</p>
+    <div class="dl-head"><h3>%s</h3><span class="pill">%s</span></div>
+    <p>%s</p>
     <a class="btn primary" href="../download/%s">下载 %s</a>
     <p class="muted small">%s KB · 校验：<code>SHA256 %s…</code></p>
   </div>
-</section>""" % (name, z["name"], z["name"], z["kb"], z["sha"][:32])
+</section>""" % (name, pill, note, z["name"], name, z["kb"], z["sha"][:32])
 
     def pager_link(q, label, cls):
         if not q:
@@ -1513,28 +1623,10 @@ def collect_stats():
     dlls = sorted(f for f in os.listdir(win) if f.endswith(".dll")) if os.path.isdir(win) else []
     lin = os.path.join(DIST, "linux-x64")
     sos = sorted(f for f in os.listdir(lin) if f.endswith(".so")) if os.path.isdir(lin) else []
+    missing = sorted({d[:-4] for d in dlls} - {s[:-3] for s in sos})
     return {"win_files": len(dlls), "dlls": dlls, "win_dir": win,
-            "linux_files": len(sos), "sos": sos, "linux_dir": lin}
-
-
-# 打包用固定时间戳：同一批文件重复打包应当得到同一个 zip，
-# 否则每次重建 docs/ 都会因为 mtime 变化刷出一堆二进制改动。
-ZIP_EPOCH = (2020, 1, 1, 0, 0, 0)
-
-
-def _zip_add_file(z, path, arcname):
-    info = zipfile.ZipInfo(arcname, date_time=ZIP_EPOCH)
-    info.compress_type = zipfile.ZIP_DEFLATED
-    info.external_attr = 0o644 << 16
-    with open(path, "rb") as f:
-        z.writestr(info, f.read())
-
-
-def _zip_add_text(z, arcname, text):
-    info = zipfile.ZipInfo(arcname, date_time=ZIP_EPOCH)
-    info.compress_type = zipfile.ZIP_DEFLATED
-    info.external_attr = 0o644 << 16
-    z.writestr(info, text.encode("utf-8"))
+            "linux_files": len(sos), "sos": sos, "linux_dir": lin,
+            "linux_missing": missing}
 
 
 # 打包用固定时间戳：同一批文件重复打包应当得到同一个 zip，

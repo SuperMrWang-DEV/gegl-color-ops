@@ -15,7 +15,7 @@ PAGES = [
         menu='图层右键 → SuperMrWang → Layer to Selection',
         menus=['图层右键 → SuperMrWang → Layer to Selection',
                '选择 → SuperMrWang → Layer to Selection'],
-        pdb='lb-plugin-layer-to-selection(\n    image, drawable, channel, invert, operation)',
+        pdb='lb-plugin-layer-to-selection(\n    image, drawables, channel, invert, operation)',
         lede="""右键点一个图层，就把它转成当前选区。GEGL 算子跑完往往留下一张灰度图，
        它往后的用途多半是当蒙版——原生流程要点四步（复制 → 建通道 → 粘贴 →
        蒙版转选区），这里一步到位，而且彩色图层也能直接用。""",
@@ -66,7 +66,7 @@ PAGES = [
         menu='图层右键 → SuperMrWang → Layer to Channel',
         menus=['图层右键 → SuperMrWang → Layer to Channel',
                '选择 → SuperMrWang → Layer to Channel'],
-        pdb='lb-plugin-layer-to-channel(\n    image, drawable, invert, name)',
+        pdb='lb-plugin-layer-to-channel(\n    image, drawables, invert, name)',
         lede="""右键点一个图层，就把它变成一条新的 Alpha 通道，留档复用。恒为灰度：
        黑 = 不选中、白 = 完全选中、中间灰 = 部分选中。想拿它当蒙版，就在通道
        面板右键「通道到选区」（GIMP 原生）再回图层。""",
@@ -117,7 +117,7 @@ PAGES = [
         tag=('曲线', 't-color'),
         count='H / S / V',
         menu='颜色 → SuperMrWang → Shortcut → HSV Split (Curves)',
-        pdb='lb-plugin-hsv-split-curves(image, drawable, mode, group)',
+        pdb='lb-plugin-hsv-split-curves(image, drawables, mode, group)',
         lede="""GIMP 的曲线只能选 R / G / B / Alpha——想单独曲「色相」或
        「饱和度」没有入口。这个插件把图层换成一张数据图（红=S、绿=V、蓝=色相），
        三条曲线各管一个分量，再由一个算子解回颜色：恒等时逐像素还原原图，
@@ -171,7 +171,7 @@ multi    HSV split            组 · 穿透（带 alpha 时组上还有蒙版）
         tag=('曲线', 't-blend'),
         count='L / C / h',
         menu='颜色 → SuperMrWang → Shortcut → LCh Split (Curves)',
-        pdb='lb-plugin-lch-split-curves(image, drawable, mode, group)',
+        pdb='lb-plugin-lch-split-curves(image, drawables, mode, group)',
         lede="""同样的思路换到 CIE LCh：明度、彩度、色相三条曲线。LCh 是 Lab 的
        极坐标写法——a、b 是直角坐标，一条一维曲线改它会连带改彩度和色相；换成
        (L, C, h) 之后，调彩度不动色相、调色相不动彩度。""",
@@ -220,7 +220,7 @@ multi    LCh split            组 · 穿透（带 alpha 时组上还有蒙版）
         tag=('曲线', 't-color'),
         count='H / S / L',
         menu='颜色 → SuperMrWang → Shortcut → HSL Split (Curves)',
-        pdb='lb-plugin-hsl-split-curves(image, drawable, mode, group)',
+        pdb='lb-plugin-hsl-split-curves(image, drawables, mode, group)',
         lede="""GIMP 给 HSV 和 LCh 都配了分量混合模式，唯独 HSL 没有，也没有
        HSL 的色相入口。这个插件不拿 HSV 近似 HSL，而是把三者精确换算后打包进
        一张数据图，三条曲线各管一个分量。""",
@@ -269,7 +269,7 @@ multi    HSL split            组 · 穿透（带 alpha 时组上还有蒙版）
         tag=('曲线', 't-blend'),
         count='L / a / b',
         menu='颜色 → SuperMrWang → Shortcut → Lab Split (Curves)',
-        pdb='lb-plugin-lab-split-curves(image, drawable, mode, group)',
+        pdb='lb-plugin-lab-split-curves(image, drawables, mode, group)',
         lede="""在 CIELAB 里调曲线：L* 是感知明度，a 是绿–品红轴，b 是蓝–黄轴。
        「黄了压 b、偏绿推 a」比在 RGB 里拉曲线直观得多。三个分量打包进一张数据图，
        三条曲线各管一个通道。""",
@@ -318,7 +318,7 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
         tag=('曲线', 't-color'),
         count='H / S / I',
         menu='颜色 → SuperMrWang → Shortcut → HSI Split (Curves)',
-        pdb='lb-plugin-hsi-split-curves(image, drawable, group)',
+        pdb='lb-plugin-hsi-split-curves(image, drawables, group)',
         lede="""HSI 的 I 是 (R+G+B)/3，色相又用余弦定义——GIMP 的六条分量
        模式一条也对不上，连「借 HSV 色相换角」都会把 I 带走 22 码。于是三个分量
        合进同一层：红=S、绿=I、蓝=色相，三条曲线各管一个分量。""",
@@ -361,7 +361,7 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
         tag=('磨皮', 't-tone'),
         count='一键',
         menu='颜色 → SuperMrWang → Shortcut → 高低频磨皮',
-        pdb='lb-plugin-frequency-separation(image, drawable, radius, group)',
+        pdb='lb-plugin-frequency-separation(image, drawables, radius, group)',
         lede="""把一张脸拆成<b>影调</b>与<b>细节</b>两层：低频管大块明暗与肤色过渡，高频管毛孔、痘印、细纹。调低频等于重新铺光，调高频等于控制质感，两者互不干扰——这是影楼修图里最老也最稳的一套结构。""",
         body="""  <div class="dl-grid">
     <div class="dl primary-dl">
@@ -417,7 +417,7 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
         tag=('磨皮', 't-tone'),
         count='一键',
         menu='颜色 → SuperMrWang → Shortcut → 双曲线磨皮',
-        pdb='lb-plugin-dodge-burn(image, drawable, amount, group)',
+        pdb='lb-plugin-dodge-burn(image, drawables, amount, group)',
         lede="""提亮一条曲线、压暗一条曲线，各自压在一张全黑蒙版下。涂到哪里，哪里才变亮或变暗——没涂的地方与原图逐像素相同，所以可以反复叠加、随时反悔。""",
         body="""  <div class="dl-grid">
     <div class="dl primary-dl">
@@ -471,7 +471,7 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
         tag=('磨皮', 't-tone'),
         count='一键',
         menu='颜色 → SuperMrWang → Shortcut → 中性灰磨皮',
-        pdb='lb-plugin-neutral-grey(image, drawable, group)',
+        pdb='lb-plugin-neutral-grey(image, drawables, group)',
         lede="""一张 50% 灰的柔光层，柔光在 0.5 处是恒等映射——刚建好时与原图逐像素相同。之后白色画笔提亮、黑色画笔压暗，原图像素一个都没动，整层删掉就能回到起点。""",
         body="""  <div class="dl-grid">
     <div class="dl primary-dl">
@@ -568,6 +568,6 @@ for _p in PAGES:
         _p["menus"] = ["颜色 → SuperMrWang → Shortcut → " + _name,
                        "图层右键 → SuperMrWang → Shortcut → " + _name]
     _p["deps_note"] = DEPS_NOTE.get(
-        _p["key"], "靠下面这些算子干活，装插件时它们必须已注册"
-                   "（<code>build.sh</code> 或 dll 包里都有）：")
+        _p["key"], "靠下面这些算子干活。<b>它们已经打进这个插件的下载包</b>"
+                   "（<code>modules-windows-x64</code> / ""<code>modules-linux-x64</code>），不用另外去下：")
 del _p

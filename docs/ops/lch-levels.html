@@ -120,7 +120,7 @@ S_{\text{out}} = (\text{ob}-\text{oa}) \bmod 360$$</div>
 <ul><li>H 在 C≈0（近中性色）时无意义，算子按 H=0 处理；此时调 H 不影响画面。</li><li>H 的 360°/0° 是同一点，输出下限/上限给到 360 与 0 是等价的，界面不做 特殊提示。</li></ul><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>lch-levels.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>lch-levels.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
+    <p>Windows 模块 <code>lch-levels.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>lch-levels.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lch-levels.dll">下载 lch-levels.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/lch-levels.so">下载 lch-levels.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="hsb-levels.html"><span>上一个</span>HSB Levels</a><a class="next" href="cmyk-levels.html"><span>下一个</span>CMYK Levels</a></nav>
@@ -178,7 +178,7 @@ S_{\text{out}} = (\text{ob}-\text{oa}) \bmod 360$$</div>
 <ul><li>H is meaningless when C≈0 (near-neutral); the operator treats it as H=0, and moving H then changes nothing.</li><li>H's 360° and 0° are the same point, so output low/high of 360 and 0 are equivalent; the UI does not say so.</li></ul><div class="op-dl">
   <div>
     <h3>Just this one</h3>
-    <p>Windows module <code>lch-levels.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>lch-levels.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+    <p>Windows module <code>lch-levels.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>lch-levels.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lch-levels.dll">Download lch-levels.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/lch-levels.so">Download lch-levels.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="hsb-levels.html"><span>Previous</span>HSB Levels</a><a class="next" href="cmyk-levels.html"><span>Next</span>CMYK Levels</a></nav>
@@ -203,7 +203,7 @@ S_{\text{out}} = (\text{ob}-\text{oa}) \bmod 360$$</div>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">702ee5d</span>
+    <span class="muted">07a4555</span>
   </div>
 </footer>
 <script>

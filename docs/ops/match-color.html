@@ -114,7 +114,7 @@ window.addEventListener("DOMContentLoaded", function () {
 <p>17 项：恒等、均值迁移、方差缩放、亮度/颜色强度滑杆两端、渐隐 50/100、 中和（含输出均值 ≈0 断言）、aux 透明洞不进统计、目标透明像素 alpha 保留、 100 行跨块一致、无 aux 恒等、极端映射不越界。期望值由 Python 镜像模型算出， Lab 读数直接取自 babl（与算子同一转换路径，不循环论证）。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>match-color.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>match-color.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
+    <p>Windows 模块 <code>match-color.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>match-color.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/match-color.dll">下载 match-color.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/match-color.so">下载 match-color.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="hue-range-basic.html"><span>上一个</span>Hue/Saturation Range</a><a class="next" href="apply-image.html"><span>下一个</span>Apply Image</a></nav>
@@ -165,7 +165,7 @@ window.addEventListener("DOMContentLoaded", function () {
 <p>17 cases: identity, mean transfer, variance scaling, both ends of the Luminance and Color Intensity sliders, Fade 50/100, Neutralize (including an assertion that the output mean is ≈0), transparent aux holes excluded from the statistics, target alpha preserved, 100-row cross-tile consistency, identity without aux, and extreme maps staying in range. Expected values come from a Python mirror of the model, with Lab readings taken straight from babl (the same conversion path as the operator, so the test does not argue in a circle).</p><div class="op-dl">
   <div>
     <h3>Just this one</h3>
-    <p>Windows module <code>match-color.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>match-color.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+    <p>Windows module <code>match-color.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>match-color.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/match-color.dll">Download match-color.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/match-color.so">Download match-color.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="hue-range-basic.html"><span>Previous</span>Hue/Saturation Range</a><a class="next" href="apply-image.html"><span>Next</span>Apply Image</a></nav>
@@ -189,7 +189,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">702ee5d</span>
+    <span class="muted">07a4555</span>
   </div>
 </footer>
 <script>

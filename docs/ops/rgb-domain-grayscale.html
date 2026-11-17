@@ -140,7 +140,7 @@ g + t_{ch} - L, &amp; \text{其余} \quad \text{（中段）} \\[8pt]
 <ul><li>逐像素在 8 位 sRGB 伽马域计算，滑块手感与 经典图像编辑器 对话框一致。</li><li>alpha 保留，透明像素仍然透明。</li><li>与 GIMP 的「去色」不同：这里的灰度不是固定亮度公式，每种颜色变成什么由你决定， 这正是「黑白」的用处。</li></ul><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>rgb-domain-grayscale.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>rgb-domain-grayscale.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
+    <p>Windows 模块 <code>rgb-domain-grayscale.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>rgb-domain-grayscale.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/rgb-domain-grayscale.dll">下载 rgb-domain-grayscale.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/rgb-domain-grayscale.so">下载 rgb-domain-grayscale.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="shadows-highlights.html"><span>上一个</span>Shadows/Highlights</a><a class="next" href="hue-saturation.html"><span>下一个</span>Hue/Saturation</a></nav><details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
@@ -205,7 +205,7 @@ g + t_{ch} - L, &amp; \text{otherwise} \quad \text{(middle)} \\[8pt]
 <ul><li>The operator runs per pixel in the 8-bit sRGB gamma domain, so the weights behave like the ones in the classic editor's dialog.</li><li>Alpha is preserved; transparent pixels stay transparent.</li><li>Unlike GIMP's <code>Colors → Desaturate</code>, the conversion is not a fixed luma formula: you choose what each colour becomes, which is the whole point of Black &amp; White.</li></ul><div class="op-dl">
   <div>
     <h3>Just this one</h3>
-    <p>Windows module <code>rgb-domain-grayscale.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>rgb-domain-grayscale.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+    <p>Windows module <code>rgb-domain-grayscale.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>rgb-domain-grayscale.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/rgb-domain-grayscale.dll">Download rgb-domain-grayscale.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/rgb-domain-grayscale.so">Download rgb-domain-grayscale.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="shadows-highlights.html"><span>Previous</span>Shadows/Highlights</a><a class="next" href="hue-saturation.html"><span>Next</span>Hue/Saturation</a></nav><details class="legacy-intro"><summary>Original plugin docs<span class="muted"> — written when this was a standalone plug-in: the build commands assume the old directory layout and the menu paths have changed. The algorithm notes above supersede it.</span></summary><h1>GEGL_GIMP_PLUGIN_rgb-domain-grayscale</h1>
@@ -243,7 +243,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">702ee5d</span>
+    <span class="muted">07a4555</span>
   </div>
 </footer>
 <script>

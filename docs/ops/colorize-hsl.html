@@ -111,7 +111,7 @@ L, &amp; t = 0
 <p><code>lb:hue-saturation</code> 是<strong>增量</strong>模式（在像素自己的 H/S/L 上加偏移，六个色相区间可分别 调），对应 经典图像编辑器 未勾选「着色」时的行为。<code>lb:colorize-hsl</code> 是<strong>绝对</strong>模式：扔掉原有的 颜色，只保留明暗，整幅图变成一个单色调。两者互补，不能互相替代。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>colorize-hsl.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>colorize-hsl.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
+    <p>Windows 模块 <code>colorize-hsl.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>colorize-hsl.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/colorize-hsl.dll">下载 colorize-hsl.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/colorize-hsl.so">下载 colorize-hsl.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="cmyk-primary-correction.html"><span>上一个</span>CMYK Primary</a><a class="next" href="hue-range-basic.html"><span>下一个</span>Hue/Saturation Range</a></nav>
@@ -157,7 +157,7 @@ L, &amp; t = 0
 <p><code>lb:hue-saturation</code> is the <strong>relative</strong> mode (offset the pixel's own H/S/L, with six hue ranges adjustable separately), i.e. the classic editor with Colorize unchecked. <code>lb:colorize-hsl</code> is the <strong>absolute</strong> mode: it throws the existing colour away, keeps only the tonal structure, and turns the whole image into a monochrome tint. They are complementary, not interchangeable.</p><div class="op-dl">
   <div>
     <h3>Just this one</h3>
-    <p>Windows module <code>colorize-hsl.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>colorize-hsl.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+    <p>Windows module <code>colorize-hsl.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>colorize-hsl.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/colorize-hsl.dll">Download colorize-hsl.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/colorize-hsl.so">Download colorize-hsl.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="cmyk-primary-correction.html"><span>Previous</span>CMYK Primary</a><a class="next" href="hue-range-basic.html"><span>Next</span>Hue/Saturation Range</a></nav>
@@ -179,7 +179,7 @@ L, &amp; t = 0
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">702ee5d</span>
+    <span class="muted">07a4555</span>
   </div>
 </footer>
 <script>

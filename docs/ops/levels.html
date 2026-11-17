@@ -116,7 +116,7 @@ t' = t^{1/\gamma},
 <p>GIMP 的 <code>Colors → Levels</code> 是 app 层私有实现，GEGL 里的 <code>gegl:levels</code> 只有 <code>in-low / in-high / out-low / out-high</code> <strong>四个</strong>属性——没有 gamma，没有每通道， 也没有 0–255 的数字刻度（<code>gegl --info gegl:levels</code> 可查）。所以这个算子补的是 GEGL 算子层面的真空白：脚本、批处理、<code>gegl</code> 命令行里都能用 经典图像编辑器的色阶参数。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>levels.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>levels.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
+    <p>Windows 模块 <code>levels.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>levels.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/levels.dll">下载 levels.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/levels.so">下载 levels.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><span></span><a class="next" href="lab-levels.html"><span>下一个</span>LAB Levels</a></nav>
@@ -169,7 +169,7 @@ t' = t^{1/\gamma},
 <p>GIMP's <code>Colors → Levels</code> is a private app-level implementation, and GEGL's <code>gegl:levels</code> has only <strong>four</strong> properties — <code>in-low / in-high / out-low / out-high</code> — with no gamma, no per-channel groups and no 0–255 scale (check <code>gegl --info gegl:levels</code>). This operator fills a genuine hole at the GEGL level: the classic editor levels parameters now work from scripts, batch jobs and the <code>gegl</code> command line.</p><div class="op-dl">
   <div>
     <h3>Just this one</h3>
-    <p>Windows module <code>levels.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>levels.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+    <p>Windows module <code>levels.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>levels.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/levels.dll">Download levels.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/levels.so">Download levels.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><span></span><a class="next" href="lab-levels.html"><span>Next</span>LAB Levels</a></nav>
@@ -193,7 +193,7 @@ t' = t^{1/\gamma},
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">702ee5d</span>
+    <span class="muted">07a4555</span>
   </div>
 </footer>
 <script>

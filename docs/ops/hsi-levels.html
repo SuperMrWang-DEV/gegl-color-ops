@@ -123,7 +123,7 @@ S_{\text{out}} = (\text{ob}-\text{oa}) \bmod 360$$</div>
 <ul><li>HSI 与 HSV/HSL 的 S 不可互换：把 HSL 调好的「S=40%」搬到 HSI 上不是同一块 颜色。要跨模型对照，看取色器里的 RGB 值。</li><li>高饱和高亮区域往返会有裁切（见上），恒等 0 码是 8 位量化意义下的；浮点 精度下这些像素本身就是越出色域的。</li><li>计算量比另外四个大：每像素两次 <code>acosf</code>/<code>sqrtf</code> 级别的运算（另有 3 个分量 查表），4K 图上比 <code>lab-levels</code> 慢一些。</li></ul><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>hsi-levels.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>hsi-levels.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
+    <p>Windows 模块 <code>hsi-levels.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>hsi-levels.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hsi-levels.dll">下载 hsi-levels.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/hsi-levels.so">下载 hsi-levels.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="cmyk-levels.html"><span>上一个</span>CMYK Levels</a><a class="next" href="hsl-dual.html"><span>下一个</span>HSL Dual Extract</a></nav>
@@ -183,7 +183,7 @@ S_{\text{out}} = (\text{ob}-\text{oa}) \bmod 360$$</div>
 <ul><li>HSI's S is not interchangeable with HSV's or HSL's: an "S=40%" tuned in HSL is not the same colour in HSI. To compare across models, look at the RGB values.</li><li>Saturated bright regions clip on the round trip (see above); the 0-code identity holds at 8-bit quantisation, and at float precision those pixels are simply out of gamut.</li><li>It costs more than the other four: per pixel there is <code>acosf</code>/<code>sqrtf</code>-level work (plus three component lookups), so a 4K image is somewhat slower than <code>lab-levels</code>.</li></ul><div class="op-dl">
   <div>
     <h3>Just this one</h3>
-    <p>Windows module <code>hsi-levels.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>hsi-levels.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+    <p>Windows module <code>hsi-levels.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>hsi-levels.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hsi-levels.dll">Download hsi-levels.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/hsi-levels.so">Download hsi-levels.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="cmyk-levels.html"><span>Previous</span>CMYK Levels</a><a class="next" href="hsl-dual.html"><span>Next</span>HSL Dual Extract</a></nav>
@@ -207,7 +207,7 @@ S_{\text{out}} = (\text{ob}-\text{oa}) \bmod 360$$</div>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">702ee5d</span>
+    <span class="muted">07a4555</span>
   </div>
 </footer>
 <script>

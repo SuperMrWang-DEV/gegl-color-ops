@@ -51,12 +51,12 @@
     </div>
     <div class="dl">
       <div class="dl-head"><h3>脚本调用</h3></div>
-      <pre><code>lb-plugin-lab-split-curves(image, drawable, mode, group)</code></pre>
+      <pre><code>lb-plugin-lab-split-curves(image, drawables, mode, group)</code></pre>
       <p>标准 PDB 过程，参数留空走默认值。</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>依赖</h3></div>
-      <p>靠下面这些算子干活，装插件时它们必须已注册（<code>build.sh</code> 或 dll 包里都有）：</p>
+      <p>靠下面这些算子干活。<b>它们已经打进这个插件的下载包</b>（<code>modules-windows-x64</code> / <code>modules-linux-x64</code>），不用另外去下：</p>
       <ul class="deps"><li><code>lb:lab-dual</code></li><li><code>lb:lab-compose</code></li><li><code>gimp:curves</code></li></ul>
     </div>
   </div>
@@ -102,12 +102,10 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
 <section class="download" id="download">
   <h2>下载这一个</h2>
   <div class="dl primary-dl">
-    <div class="dl-head"><h3>Lab Split (Curves)</h3><span class="pill">.py · 免编译</span></div>
-    <p>包里只有一个 <code>.py</code> 和一份安装说明。解压到 GIMP 的
-       <code>plug-ins</code> 目录（Windows <code>%APPDATA%\GIMP\3.x\plug-ins</code>，
-       Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。</p>
-    <a class="btn primary" href="../download/gegl-color-ops-plugin-lab-split-curves.zip">下载 gegl-color-ops-plugin-lab-split-curves.zip</a>
-    <p class="muted small">8.9 KB · 校验：<code>SHA256 0b4e8a7fb3dcb05df4e8bc97e6eb504d…</code></p>
+    <div class="dl-head"><h3>Lab Split (Curves)</h3><span class="pill">含 2 个模块 · 免编译</span></div>
+    <p>包里有一个 <code>.py</code>、2 个算子模块和一份安装说明。<b>算子依赖已经附在里面，不用另外去下。</b><code>.py</code> 进 GIMP 的 <code>plug-ins</code>，模块进 GEGL 的 <code>gegl-0.4/plug-ins</code>——两个目录不一样，包内说明分步写了。 Linux 端的 lab-compose.so、lab-dual.so 还没进预编译包，要用 Linux 就 <code>./build.sh</code> 自己编一份（Windows 端齐全）。</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-lab-split-curves.zip">下载 Lab Split (Curves)</a>
+    <p class="muted small">76.1 KB · 校验：<code>SHA256 7a3e421d34fef4550ca5eee6f80b591f…</code></p>
   </div>
 </section>
 
@@ -131,7 +129,7 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">702ee5d</span>
+    <span class="muted">07a4555</span>
   </div>
 </footer>
 </body>

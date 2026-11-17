@@ -159,7 +159,7 @@ y'' = y_2 + k\,(y_2-0.5)\bigl(4y_2(1-y_2)\bigr)^p$$</div>
 <p>超大图或 margin 超预算（<code>SH_CACHE_MAXPX</code> 20MP / <code>SH_CACHE_BUDGET</code>）自动回落 到按条带就地计算；<code>SH_NO_CACHE=1</code> 环境变量可强制走回退路径（调试用）。 条带高度按 margin 自适应（<code>4×margin</code>，192–1024 行），亮度取数分块 （≈32MB/块）控峰值内存。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>shadows-highlights.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>shadows-highlights.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
+    <p>Windows 模块 <code>shadows-highlights.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>shadows-highlights.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/shadows-highlights.dll">下载 shadows-highlights.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/shadows-highlights.so">下载 shadows-highlights.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="brightness-contrast.html"><span>上一个</span>Brightness/Contrast</a><a class="next" href="rgb-domain-grayscale.html"><span>下一个</span>Black &amp; White</a></nav>
@@ -256,7 +256,7 @@ y'' = y_2 + k\,(y_2-0.5)\bigl(4y_2(1-y_2)\bigr)^p$$</div>
 <p>Very large images, or a margin over budget (<code>SH_CACHE_MAXPX</code> 20MP / <code>SH_CACHE_BUDGET</code>), fall back to in-place per-strip computation; <code>SH_NO_CACHE=1</code> forces the fallback (for debugging). Strip height adapts to the margin (<code>4×margin</code>, 192–1024 rows) and luminance is fetched in chunks (~32 MB each) to bound peak memory.</p><div class="op-dl">
   <div>
     <h3>Just this one</h3>
-    <p>Windows module <code>shadows-highlights.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>shadows-highlights.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+    <p>Windows module <code>shadows-highlights.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>shadows-highlights.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/shadows-highlights.dll">Download shadows-highlights.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/shadows-highlights.so">Download shadows-highlights.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="brightness-contrast.html"><span>Previous</span>Brightness/Contrast</a><a class="next" href="rgb-domain-grayscale.html"><span>Next</span>Black &amp; White</a></nav>
@@ -283,7 +283,7 @@ y'' = y_2 + k\,(y_2-0.5)\bigl(4y_2(1-y_2)\bigr)^p$$</div>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">702ee5d</span>
+    <span class="muted">07a4555</span>
   </div>
 </footer>
 <script>

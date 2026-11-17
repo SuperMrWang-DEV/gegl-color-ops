@@ -65,6 +65,15 @@ gegl-color-ops/
 见 [`dist/README.md`](dist/README.md) 与 `dist/manifest.csv`；重新打包用
 `python tools/make_dist.py`。
 
+Python 插件走另一条线：`docs/download/gegl-color-ops-plugin-<名字>.zip` 一个插件一个包，
+**它内部用到的算子模块（`lb:hsv-dual` 这类）已经打在包里的 `modules-windows-x64/`**，
+下一次就齐，不用再单独找算子。`.py` 放进 GIMP 的 `plug-ins`，附带的模块放进 GEGL 的
+`gegl-0.4/plug-ins`——两个目录不同，包内 `安装说明.txt` 分步写了。
+
+> Linux 端 component 家族的 11 个模块（各空间的 dual / compose 与 gray-to-component）
+> 还没出预编译包，插件包里的 `modules-linux-x64/` 因此暂时不存在；要用 Linux 就先
+> `./build.sh` 编一份放进 GEGL 目录。Windows 端是齐的。
+
 ## 算子清单
 
 菜单名（`gimp:menu-label`）只留主名，**不带括号**——括号会把 GIMP 的菜单/选项面板撑宽。

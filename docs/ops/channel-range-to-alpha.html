@@ -105,7 +105,7 @@ window.addEventListener("DOMContentLoaded", function () {
 <ul><li><strong>滑块重合只表示硬边。</strong> 早先版本会把重合的滑块强行拉开一个最小步长，结果 默认参数（0/0 与 255/255）凭空多出一段羽化带，通道值为 0 的像素不动任何滑块 就变透明。2026-11-12 已修。</li><li>每组滑块先排序再使用，<code>l1 &gt; l2</code> 不会把斜坡反过来。</li><li>alpha ≤ 0 的像素透传；其余情况 alpha 是<strong>乘</strong>进原有 alpha，而不是替换。</li><li>逐像素、无邻域，拖滑杆足够快。</li></ul><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>channel-range-to-alpha.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>channel-range-to-alpha.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
+    <p>Windows 模块 <code>channel-range-to-alpha.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>channel-range-to-alpha.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/channel-range-to-alpha.dll">下载 channel-range-to-alpha.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/channel-range-to-alpha.so">下载 channel-range-to-alpha.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="color-mask-select.html"><span>上一个</span>Mask by Color</a></nav><details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
@@ -157,7 +157,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
 <ul><li><strong>Equal sliders mean a hard edge.</strong> An earlier version forced overlapping sliders apart by a minimum step; at the defaults (0/0 and 255/255) that invented a phantom feather band, so pixels with a zero-valued channel became transparent without the user touching anything. Fixed on 2026-11-12.</li><li>Slider pairs are sorted before use, so <code>l1 &gt; l2</code> cannot invert the ramp.</li><li>Alpha ≤ 0 pixels are passed through; otherwise alpha is multiplied into the input alpha rather than replacing it.</li><li>Everything is per-pixel with no neighbourhood, so it is cheap enough to sit under a slider.</li></ul><div class="op-dl">
   <div>
     <h3>Just this one</h3>
-    <p>Windows module <code>channel-range-to-alpha.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>channel-range-to-alpha.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+    <p>Windows module <code>channel-range-to-alpha.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>channel-range-to-alpha.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/channel-range-to-alpha.dll">Download channel-range-to-alpha.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/channel-range-to-alpha.so">Download channel-range-to-alpha.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="color-mask-select.html"><span>Previous</span>Mask by Color</a></nav><details class="legacy-intro"><summary>Original plugin docs<span class="muted"> — written when this was a standalone plug-in: the build commands assume the old directory layout and the menu paths have changed. The algorithm notes above supersede it.</span></summary><h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
@@ -192,7 +192,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">702ee5d</span>
+    <span class="muted">07a4555</span>
   </div>
 </footer>
 <script>

@@ -87,7 +87,7 @@ window.addEventListener("DOMContentLoaded", function () {
 <ul><li>输出 alpha 恒 1，理由同 <code>lb:hsv-dual</code>。</li><li>输入超出 0…1 的值会被夹紧；NaN 折成 0。</li><li>色相为环形量：0 与 1 是同一个角度，数据图里不要指望「1.0 表示比 0.0 大」。</li></ul><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>hsv-compose.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
+    <p>Windows 模块 <code>hsv-compose.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hsv-compose.dll">下载 hsv-compose.dll<span class="size">Windows x64</span></a></div>
 </div><nav class="pager"><a class="prev" href="hsv-dual.html"><span>上一个</span>HSV Dual Extract</a><a class="next" href="lab-dual.html"><span>下一个</span>Lab Dual Extract</a></nav>
@@ -110,7 +110,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">702ee5d</span>
+    <span class="muted">07a4555</span>
   </div>
 </footer>
 </body>

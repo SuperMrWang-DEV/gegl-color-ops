@@ -87,7 +87,7 @@ b* = G · 255 − 128</code></pre>
 <ul><li>「R 是 a、G 是 b、B 是 L」是<strong>硬约定</strong>：算子分辨不出输入是数据图还是普通照片。 挂到照片上会把像素当 Lab 数据解释，结果是错的但不会报错。</li><li>它是 <code>Lab Split (Curves)</code> 那条链的第 4 道滤镜，单独用只有一个场景：把别人存的 Lab 数据图还原成可见颜色。</li></ul><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>lab-compose.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
+    <p>Windows 模块 <code>lab-compose.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lab-compose.dll">下载 lab-compose.dll<span class="size">Windows x64</span></a></div>
 </div><nav class="pager"><a class="prev" href="lab-dual.html"><span>上一个</span>Lab Dual Extract</a><a class="next" href="lch-dual.html"><span>下一个</span>LCh Dual Extract</a></nav>
@@ -109,7 +109,7 @@ b* = G · 255 − 128</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">702ee5d</span>
+    <span class="muted">07a4555</span>
   </div>
 </footer>
 </body>
