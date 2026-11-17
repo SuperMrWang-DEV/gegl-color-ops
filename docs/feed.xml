@@ -19,6 +19,20 @@
     <summary>经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览the classic editor Color Range: build a mask from a picked colour, a fuzzinessradius and feathering, with an optional red overlay preview.</summary>
   </entry>
   <entry>
+    <title>Lab Dual Extract</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/lab-dual/README.md"/>
+    <id>tag:github.com,2026:lb:lab-dual</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量</summary>
+  </entry>
+  <entry>
+    <title>Lab Compose</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/lab-compose/README.md"/>
+    <id>tag:github.com,2026:lb:lab-compose</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>Lab 分量曲线工作流的合成器：把「R = a、G = b、B = L」的数据图还原成真实颜色</summary>
+  </entry>
+  <entry>
     <title>Hue/Saturation Range</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/hue-range-basic/README.md"/>
     <id>tag:github.com,2026:lb:hue-range-basic</id>
@@ -38,6 +52,20 @@
     <id>tag:github.com,2026:lb:hsl-compose</id>
     <updated>2026-11-15T00:00:00Z</updated>
     <summary>HSL 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色</summary>
+  </entry>
+  <entry>
+    <title>HSI Dual Extract</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/hsi-dual/README.md"/>
+    <id>tag:github.com,2026:lb:hsi-dual</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>HSI 分量曲线工作流的提取器：把一张图拆成「R = 饱和度、G = 强度、B = 色相/360」的数据图，一张图同时携带三个分量</summary>
+  </entry>
+  <entry>
+    <title>HSI Compose</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/hsi-compose/README.md"/>
+    <id>tag:github.com,2026:lb:hsi-compose</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>HSI 分量曲线工作流的合成器：把「R = 饱和度、G = 强度、B = 色相/360」的数据图还原成真实颜色</summary>
   </entry>
   <entry>
     <title>Gray To Component</title>

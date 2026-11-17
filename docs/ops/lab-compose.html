@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab Compose · gegl-color-ops</title>
+<meta name="description" content="Lab 分量曲线工作流的合成器：把「R = a、G = b、B = L」的数据图还原成真实颜色">
+<meta property="og:title" content="Lab Compose · gegl-color-ops">
+<meta property="og:description" content="Lab 分量曲线工作流的合成器：把「R = a、G = b、B = L」的数据图还原成真实颜色">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script></head>
+<body>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+</header>
+<main id="main">
+<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 混合与通道</p>
+  <h1>Lab Compose</h1>
+  <div class="meta">
+    <code>lb:lab-compose</code>
+    <span class="tag t-blend">混合与通道</span>
+    <span>整块区域</span>
+  </div>
+  <p class="lede">Lab 分量曲线工作流的合成器：把「R = a、G = b、B = L」的数据图还原成真实颜色</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p><code>lb:lab-dual</code> 的逆运算：把「<code>R = a*</code>、<code>G = b*</code>、<code>B = L*</code>」的数据图还原成真实颜色。 alpha 被忽略，输出恒不透明。</p>
+<pre><code>(R=a, G=b, B=L) ──lb:lab-compose──&gt; sRGB</code></pre>
+<h2 id="它是怎么算的">它是怎么算的</h2>
+<p>先把 0…1 还原成 babl 的量程，再交给 babl：</p>
+<pre><code>L* = B · 100
+a* = R · 255 − 128
+b* = G · 255 − 128</code></pre>
+<p><code>babl_fish("CIE Lab float", "R'G'B'A float")</code> 一步转回 sRGB。白点 D50，与 GIMP 的 Lab 空间、<code>component-extract</code> 的 <code>lab-l</code>、LCh 三条分量混合模式都是同一套，所以 <code>dual → curves → compose</code> 的往返没有查表误差（浮点 0.010 码）。</p>
+<h2 id="输入输出">输入输出</h2>
+<div class="table-wrap"><table><thead><tr><th></th><th>格式</th><th>含义</th></tr></thead><tbody><tr><td>input</td><td><code>R'G'B'A float</code></td><td><strong>数值是数据</strong>：<code>lb:lab-dual</code> 的输出，或你自己拼的三通道数据图</td></tr><tr><td>output</td><td><code>R'G'B'A float</code></td><td>sRGB 编码值，已裁到 [0,1]</td></tr></tbody></table></div>
+<p>曲线可以把数据推到 0…1 之外（比如把 a 拉高到 1.4）。转换前先夹回 Lab 的合法量程 （a/b ∈ [−128,127]、L ∈ [0,100]），转换后再把 RGB 裁到 [0,1]，避免 NaN/无穷进缓冲。</p>
+<h2 id="注意">注意</h2>
+<ul><li>「R 是 a、G 是 b、B 是 L」是<strong>硬约定</strong>：算子分辨不出输入是数据图还是普通照片。 挂到照片上会把像素当 Lab 数据解释，结果是错的但不会报错。</li><li>它是 <code>Lab Split (Curves)</code> 那条链的第 4 道滤镜，单独用只有一个场景：把别人存的 Lab 数据图还原成可见颜色。</li></ul><div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>lab-compose.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lab-compose.dll">下载 lab-compose.dll<span class="size">Windows x64</span></a></div>
+</div><nav class="pager"><a class="prev" href="hue-range-basic.html"><span>上一个</span>Hue/Saturation Range</a><a class="next" href="lab-dual.html"><span>下一个</span>Lab Dual Extract</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#它是怎么算的">它是怎么算的</a></li>
+<li class="l2"><a href="#输入输出">输入输出</a></li>
+<li class="l2"><a href="#注意">注意</a></li></ul>
+</aside>
+</div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">20c74cd</span>
+  </div>
+</footer>
+</body>
+</html>

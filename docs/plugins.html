@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Python 插件 · gegl-color-ops</title>
-<meta name="description" content="GIMP 3 Python 插件下载：图层转选区 / Alpha 通道，HSV 与 LCh 分量分层 + 曲线——免编译，解压即用">
+<meta name="description" content="GIMP 3 Python 插件下载：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层 + 曲线——免编译，解压即用">
 <meta property="og:title" content="Python 插件 · gegl-color-ops">
-<meta property="og:description" content="GIMP 3 Python 插件下载：图层转选区 / Alpha 通道，HSV 与 LCh 分量分层 + 曲线——免编译，解压即用">
+<meta property="og:description" content="GIMP 3 Python 插件下载：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层 + 曲线——免编译，解压即用">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="feed.xml">
 </head>
@@ -25,27 +25,28 @@
 <main id="main">
 <section class="page-head">
   <p class="eyebrow"><a href="index.html">首页</a> / Python 插件</p>
-  <h1>五个 Python 插件</h1>
+  <h1>七个 Python 插件</h1>
   <p class="lede">两件事原生 GIMP 做不顺：<b>灰度图变不成能用的东西</b>（复制图层 →
      新建通道 → 粘贴 → 蒙版转选区，四步），以及<b>曲线选不到分量</b>（只有
-     R/G/B/Alpha，没有 H、S、LCh）。前两个插件把转换压成一次右键；后三个把图层
+     R/G/B/Alpha，没有 H、S、LCh）。前两个插件把转换压成一次右键；其余五个把图层
      拆成分量层各挂一条原生曲线，恒等时精确还原——所以调曲线就等于在那个色彩空间
-     里调那一维。HSV 与 LCh 各拆三层，HSL 因为 S 与 L 耦合拆成两层（见下文）。</p>
+     里调那一维。HSV 与 LCh 各拆三层，HSL 与 Lab 因为有一对分量耦合、拆成两层，
+     HSI 三个分量都借不到模式、干脆合成一层（见下文）。</p>
   <div class="cta">
     <a class="btn primary" href="#download">下载插件包</a>
     <a class="btn" href="#install">三步装上</a>
     <a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/tree/main/plugin">看插件源码</a>
   </div>
   <ul class="facts">
-    <li><b>5</b> 个插件</li>
-    <li><b>5</b> 个 PDB 过程</li>
-    <li><b>110</b> 条回归断言</li>
+    <li><b>7</b> 个插件</li>
+    <li><b>7</b> 个 PDB 过程</li>
+    <li><b>185</b> 条回归断言</li>
     <li><b>0</b> 编译 · 纯 Python</li>
   </ul>
 </section>
 <section class="prose wide">
 
-<div class="cards cards-5">
+<div class="cards cards-7">
   <a class="card" href="#layer-to-selection">
     <div class="card-top"><span class="tag t-mask">选区</span><code>layer-to-selection</code></div>
     <h3>Layer to Selection</h3>
@@ -79,6 +80,20 @@
     <h3>HSL Split (Curves)</h3>
     <p>GIMP 没有 HSL 分量模式，这个插件把 HSL 精确接到 HSV 上：
        S 与 L 合一层、色相一层，调哪条只动哪个分量。</p>
+    <span class="more">看细节与下载 →</span>
+  </a>
+  <a class="card" href="#lab-split">
+    <div class="card-top"><span class="tag t-blend">曲线</span><code>lab-split-curves</code></div>
+    <h3>Lab Split (Curves)</h3>
+    <p>a 与 b 合进一张数据图（红=a、绿=b），L* 用 LCh 明度模式——同一个量，
+       逐位精确。调 a 只动 a，调 b 只动 b。</p>
+    <span class="more">看细节与下载 →</span>
+  </a>
+  <a class="card" href="#hsi-split">
+    <div class="card-top"><span class="tag t-color">曲线</span><code>hsi-split-curves</code></div>
+    <h3>HSI Split (Curves)</h3>
+    <p>I 是 (R+G+B)/3，没有分量模式可借，三个分量合进一层：红=S、绿=I、蓝=色相。
+       一层三条曲线，互不串门。</p>
     <span class="more">看细节与下载 →</span>
   </a>
 </div>
@@ -248,6 +263,86 @@
      <code>lb:hsl-compose</code> 两个算子，缺了没有一维回退，插件会直接报错。</p>
   </section>
 
+  <section class="group" id="lab-split">
+    <h3 class="group-title"><span class="tag t-blend">曲线</span>
+      <span class="group-en">Lab Split</span><span class="count">L / a / b</span></h3>
+    <p class="group-desc">Lab 的 <code>a</code>、<code>b</code> 是直角坐标，GIMP 一条
+       分量模式也对不上；<code>L*</code> 倒是能借 LCh 明度（同一个量）。所以这个
+       插件把 a 与 b 合进一张数据图联合还原，L* 单独一层——恒等时精确还原原图，
+       调 a 只动 a、调 b 只动 b。</p>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>生成的结构</h3><span class="pill">两层</span></div>
+      <pre><code>Lab split        组 · 穿透（带 alpha 时组上还有蒙版）
+  ├─ 2 · L          模式 LCh 明度   ← 只替换 L*
+  ├─ 1 · a / b      模式 正常       ← 一条算子链算完整 Lab 色
+  └─ 原图层（不动，可以隐藏）</code></pre>
+      <p><b>a 曲线挂红通道、b 曲线挂绿通道</b>，L 曲线在 L 层（值通道）。数据图里
+         中性灰落在 0.502，所以 a 曲线在 0.5 附近往上抬就是往洋红推、往下压是往
+         绿推；b 曲线同理（上=黄、下=蓝）。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>为什么 a/b 必须合一层</h3></div>
+      <p>a、b 是<b>直角坐标</b>，GIMP 没有「a」「b」分量模式。LCh 的 C/h 是它们的
+         极坐标形式，但每层的曲线只看得到自己那一个标量：<code>C</code> 那一层
+         不知道 b 变成了多少，所以两条独立的一维曲线拼不出 (a,b) 的二元映射。
+         合进一张数据图后由 <code>lb:lab-compose</code> 一起读，就精确了。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>L* 为什么可以借 LCh 明度</h3></div>
+      <p>Lab 的 L* 与 LCh 的 L* <b>是同一个量</b>（babl 里就是同一个通道），所以
+         「LCh 明度」模式换 L* 是逐位精确的，不是近似。整条链的误差只剩浮点
+         舍入：<b>0.010 码</b>（8 位 <b>0.499 码</b>）。</p>
+    </div>
+  </div>
+  <p class="note">量程按 babl 的 <code>CIE Lab float</code>（D50 白点，与 GIMP 的 Lab
+     空间同口径）：<code>a' = (a*+128)/255</code>、<code>L' = L*/100</code>。
+     改 a 曲线后结果落在「a* 换了、b* 与 L* 都没动」的 Lab 点上，误差
+     <b>0.0026 码</b>。超 sRGB 色域的 Lab 点会被裁——那是色域的事实。
+     依赖 <code>lb:lab-dual</code> / <code>lb:lab-compose</code> 两个算子，
+     缺了没有一维回退，插件会直接报错。</p>
+  </section>
+
+  <section class="group" id="hsi-split">
+    <h3 class="group-title"><span class="tag t-color">曲线</span>
+      <span class="group-en">HSI Split</span><span class="count">H / S / I</span></h3>
+    <p class="group-desc">HSI 的 I 是 (R+G+B)/3，色相又用余弦定义——GIMP 的六条分量
+       模式一条也对不上，连「借 HSV 色相换角」都会把 I 带走 22 码。于是三个分量
+       合进同一层：红=S、绿=I、蓝=色相，三条曲线各管一个分量。</p>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>生成的结构</h3><span class="pill">一层</span></div>
+      <pre><code>HSI split          组 · 穿透（带 alpha 时组上还有蒙版）
+  └─ 1 · HSI S/I/H   模式 正常   ← 一条算子链算完整 HSI 色
+  └─ 原图层（不动，可以隐藏）</code></pre>
+      <p>滤镜栈：<code>decompose</code>（lb:hsi-dual）→ <b>S 曲线（红）</b> →
+         <b>I 曲线（绿）</b> → <b>H 曲线（蓝）</b> → <code>compose</code>
+         （lb:hsi-compose）。三层分量各占一个通道，互不串门。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>为什么只有一层</h3></div>
+      <p>HSL 能拆两层、Lab 能拆两层，是因为各有一个分量借得到现成模式
+         （HSL 色相 ≡ HSV 色相；Lab 的 L* ≡ LCh 的 L*）。HSI 一个都没有：
+         <code>I=(R+G+B)/3</code> 不是 V 也不是 L。更麻烦的是色相——就算接到
+         「HSV 色相」模式，那一步保留的是 HSV 的 S/V，<b>HSI 的 I 会被带走
+         0.085（约 22 码）</b>。所以三个分量只能一起算。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>两种色相角不是一回事</h3></div>
+      <p>HSI 的色相是余弦定义（等亮度平面里的真实夹角），HSV 的是六边形投影上的
+         参数角；两者只在 0°/30°/60° 重合，中间最多差 <b>1.117°</b>。数据图里存
+         的是 HSI 的角度，<code>lb:hsi-compose</code> 也按 HSI 的余弦式逆变换，
+         所以全程不需要换算，往返 <b>0.0001 码</b>。</p>
+    </div>
+  </div>
+  <p class="note">平均强度 I 比 HSV 的 max 更接近感知亮度，这也是 HSI 常见于图像
+     分析与曝光校正的原因。S、I 推到极端时逆变换会出 sRGB 色域（HSI 的色域是
+     六边形棱锥，不是立方体），出界部分按 0/1 裁掉。依赖 <code>lb:hsi-dual</code> /
+     <code>lb:hsi-compose</code> 两个算子，缺了没有回退，插件会直接报错。</p>
+  </section>
+
 <section class="download" id="download">
   <h2>下载</h2>
   <div class="dl-grid">
@@ -286,12 +381,26 @@
       <a class="btn primary" href="download/gegl-color-ops-plugin-hsl-split-curves.zip">下载 gegl-color-ops-plugin-hsl-split-curves.zip</a>
       <p class="muted small">6.8 KB · 校验：<code>SHA256 fef536ce12cc2b3f36b2aaf4fe1a7d06…</code></p>
     </div>
+
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Lab Split (Curves)</h3><span class="pill">.py · 免编译</span></div>
+      <p>在 CIE Lab 空间里调曲线：a 与 b 合一层（红=a、绿=b）、L* 一层走 LCh 明度；恒等曲线精确还原。</p>
+      <a class="btn primary" href="download/gegl-color-ops-plugin-lab-split-curves.zip">下载 gegl-color-ops-plugin-lab-split-curves.zip</a>
+      <p class="muted small">8.0 KB · 校验：<code>SHA256 cf99866d96ef41ebd67db060ddc8100f…</code></p>
+    </div>
+
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>HSI Split (Curves)</h3><span class="pill">.py · 免编译</span></div>
+      <p>在 HSI 空间里调曲线：红=饱和度、绿=强度、蓝=色相，三条曲线各管一个分量；恒等曲线精确还原。</p>
+      <a class="btn primary" href="download/gegl-color-ops-plugin-hsi-split-curves.zip">下载 gegl-color-ops-plugin-hsi-split-curves.zip</a>
+      <p class="muted small">6.2 KB · 校验：<code>SHA256 b7794dd330c9e7d153a0494ee0a8e9ad…</code></p>
+    </div>
   </div>
   <p class="note">和 <code>.dll</code> / <code>.so</code> 一个思路：免编译、解压即用。
      区别只是 Python 插件放进 <b>GIMP</b> 的用户插件目录
      （<code>%APPDATA%\GIMP\3.x\plug-ins</code> 或
      <code>~/.config/GIMP/3.x/plug-ins</code>），不是 GEGL 的；
-     包里的「安装说明.txt」写得很全。五个都装也行，菜单入口各自独立。</p>
+     包里的「安装说明.txt」写得很全。七个都装也行，菜单入口各自独立。</p>
 </section>
 
 <section class="steps" id="install">
@@ -308,13 +417,13 @@ cd gegl-color-ops</code></pre>
          plug-ins 目录（Windows / Linux 通用；带 <code>.disabled</code> 标记的
          插件会跳过）：</p>
       <pre><code>bash install-plugin.sh</code></pre>
-      <p>或者直接用上面下载区的五个 <code>.zip</code>，把 <code>.py</code>
+      <p>或者直接用上面下载区的七个 <code>.zip</code>，把 <code>.py</code>
          解进同一个目录（每个插件一个子目录也行，GIMP 会扫描下去）。</p>
     </li>
     <li>
       <h3>重启 GIMP，找菜单</h3>
-      <p><b>颜色 → SuperMrWang</b> 下是 HSV / HSL / LCh Split (Curves)；
-         <b>图层右键 → SuperMrWang</b> 下五个都在；
+      <p><b>颜色 → SuperMrWang</b> 下是 HSV / HSL / LCh / Lab / HSI Split (Curves)；
+         <b>图层右键 → SuperMrWang</b> 下七个都在；
          <b>选择 → SuperMrWang</b> 下是 Layer to Selection / Channel
          （不依赖右键、方便写脚本）。</p>
     </li>
@@ -322,7 +431,7 @@ cd gegl-color-ops</code></pre>
 </section>
 
   <h2 id="script">脚本调用</h2>
-  <p>五个动作都是标准 PDB 过程，脚本里直接调（参数留空走默认值）：</p>
+  <p>七个动作都是标准 PDB 过程，脚本里直接调（参数留空走默认值）：</p>
 <div class="table-wrap"><table>
   <thead><tr><th>PDB 过程</th><th>参数</th><th>用途</th></tr></thead>
   <tbody>
@@ -341,6 +450,12 @@ cd gegl-color-ops</code></pre>
     <tr><td><code>lb-plugin-hsl-split-curves</code></td>
         <td><code>group</code></td>
         <td>图层 → S/L 层 + Hue 层（HSL 精确适配）</td></tr>
+    <tr><td><code>lb-plugin-lab-split-curves</code></td>
+        <td><code>group</code></td>
+        <td>图层 → a/b 层 + L* 层（Lab 精确适配）</td></tr>
+    <tr><td><code>lb-plugin-hsi-split-curves</code></td>
+        <td><code>group</code></td>
+        <td>图层 → 一层三联曲线（S / I / H）</td></tr>
   </tbody>
 </table></div>
   <p class="note">实现：转换类直接读图层像素（array 的 C 级切片，100 万像素约 4 毫秒），
@@ -354,14 +469,17 @@ cd gegl-color-ops</code></pre>
      <code>lb:gray-to-component</code>——没装这个算子时自动退回三条曲线，
      所以只装 Python 插件也能跑。HSL 版例外：它靠 <code>lb:hsl-dual</code> +
      <code>lb:hsl-compose</code> 把 S/L 联合还原（二维映射没有一维替代），
-     缺这两个算子会直接报错，而不是给一个偏几十码的近似。</p>
+     缺这两个算子会直接报错，而不是给一个偏几十码的近似。Lab 版与 HSI 版同理：
+     前者靠 <code>lb:lab-dual</code> + <code>lb:lab-compose</code>，后者靠
+     <code>lb:hsi-dual</code> + <code>lb:hsi-compose</code>。</p>
   <h2 id="tests">回归</h2>
   <p><code>tools/check_layer_to_mask.py</code>，23 条断言跑在 gimp-console 的
      python-fu-eval 里：灰度值、反相、偏移图层、彩色亮度、四个单通道、
      通道值/名字/反相、彩色转通道=亮度、选区不被截断、四种组合方式。</p>
-  <p>分量曲线另有三个脚本：<code>check_hsv_split.py</code>（24 条）、
-     <code>check_lch_split.py</code>（35 条）与 <code>check_hsl_split.py</code>
-     （28 条）——结构、滤镜栈顺序、浮点与 8 位
+  <p>分量曲线另有五个脚本：<code>check_hsv_split.py</code>（24 条）、
+     <code>check_lch_split.py</code>（35 条）、<code>check_hsl_split.py</code>
+     （28 条）、<code>check_lab_split.py</code>（38 条）与
+     <code>check_hsi_split.py</code>（37 条）——结构、滤镜栈顺序、浮点与 8 位
      恒等往返、曲线与直接改分量的数学期望对照、alpha 穿透、不分组、非法输入、
      编码路径量程。全部跑在真实的 GIMP 3.2 里，不是 mock。
      编码算子自己还有 <code>check_gray_to_component.py</code>（39 条），
@@ -377,7 +495,7 @@ cd gegl-color-ops</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">82ad580</span>
+    <span class="muted">20c74cd</span>
   </div>
 </footer>
 </body>
