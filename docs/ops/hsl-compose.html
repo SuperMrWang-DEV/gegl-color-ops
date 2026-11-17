@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HSL Compose · gegl-color-ops</title>
+<meta name="description" content="HSL 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色">
+<meta property="og:title" content="HSL Compose · gegl-color-ops">
+<meta property="og:description" content="HSL 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script></head>
+<body>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+</header>
+<main id="main">
+<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 混合与通道</p>
+  <h1>HSL Compose</h1>
+  <div class="meta">
+    <code>lb:hsl-compose</code>
+    <span class="tag t-blend">混合与通道</span>
+    <span>整块区域</span>
+  </div>
+  <p class="lede">HSL 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>把数据图还原成真实颜色：<code>R = 饱和度</code>、<code>G = 明度</code>、<code>B = 色相/360</code>（都是 0…1）， 输出对应的 HSL 颜色，alpha 恒为 1。</p>
+<pre><code>(R=S, G=L, B=H/360) ──lb:hsl-compose──&gt; 真实颜色</code></pre>
+<h2 id="输入约定是硬的">输入约定是硬的</h2>
+<p>本算子<strong>无法分辨</strong>输入是一张数据图还是一张普通照片——它一律按「R 是饱和度、G 是 明度、B 是色相」解释。挂错地方会把照片当成数据算出一张乱七八糟的图。</p>
+<p>正常用法是紧跟在 <code>lb:hsl-dual</code> 之后（中间夹两条曲线）：</p>
+<pre><code>lb:hsl-dual → S 曲线(红) → L 曲线(绿) → lb:hsl-compose</code></pre>
+<p>两条曲线只改 R 和 G，B（色相）原样往后传，所以 compose 拿到的色相还是原图的。</p>
+<h2 id="为什么不是把-s-当-v">为什么不是「把 S 当 V」</h2>
+<p>HSL 与 HSV 的差别就卡在这一层：<code>V = L + C/2</code>，而 <code>C = (1−|2L−1|)·S</code> 里带着饱和度。 把 HSL 的 L 直接当 HSV 的 V 写进「HSV 明度」混合模式，中亮度饱和色实测偏 25～64 码（S=1、L=0.5 时正好差 C/2 = 64 码）。本算子内部按上式计算，不近似。</p>
+<p>转换由 babl 的 <code>HSLA float</code> 完成，与 GIMP 自己的 HSL 同一口径。</p>
+<h2 id="实测">实测</h2>
+<ul><li><code>dual → compose</code> 恒等往返：32 位浮点 <strong>0.0002 码</strong>，8 位 ≤ 1 码。</li><li>在完整插件里（含 Hue 层与混合模式），<code>tools/check_hsl_split.py</code> 28 项全过： 改 S 曲线后结果 HSL 的饱和度 = f(原 S)，明度与色相误差 0.0001 码。</li></ul>
+<h2 id="注意">注意</h2>
+<ul><li>输出 alpha 恒 1，理由同 <code>lb:hsl-dual</code>。</li><li>输入超出 0…1 的值会被夹紧；NaN 折成 0。</li></ul><div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>hsl-compose.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。整包在 <a href="../index.html#download">下载页</a>。</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hsl-compose.dll">下载 hsl-compose.dll<span class="size">Windows x64</span></a></div>
+</div><nav class="pager"><a class="prev" href="gray-to-component.html"><span>上一个</span>Gray To Component</a><a class="next" href="hsl-dual.html"><span>下一个</span>HSL Dual Extract</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#输入约定是硬的">输入约定是硬的</a></li>
+<li class="l2"><a href="#为什么不是把-s-当-v">为什么不是「把 S 当 V」</a></li>
+<li class="l2"><a href="#实测">实测</a></li>
+<li class="l2"><a href="#注意">注意</a></li></ul>
+</aside>
+</div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">82ad580</span>
+  </div>
+</footer>
+</body>
+</html>

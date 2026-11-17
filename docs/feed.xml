@@ -26,6 +26,20 @@
     <summary>色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，与 lb:hue-saturation-basic（全图）串联即接近某图像编辑器「色相/饱和度」对话框的「编辑」下拉 + 底部色条模型。</summary>
   </entry>
   <entry>
+    <title>HSL Dual Extract</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/hsl-dual/README.md"/>
+    <id>tag:github.com,2026:lb:hsl-dual</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>HSL 分量曲线工作流的提取器：把一张图拆成「R = HSL 饱和度、G = HSL 明度、B = 色相/360」的数据图，一张图同时携带三个分量</summary>
+  </entry>
+  <entry>
+    <title>HSL Compose</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/hsl-compose/README.md"/>
+    <id>tag:github.com,2026:lb:hsl-compose</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>HSL 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色</summary>
+  </entry>
+  <entry>
     <title>Gray To Component</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/gray-to-component/README.md"/>
     <id>tag:github.com,2026:lb:gray-to-component</id>

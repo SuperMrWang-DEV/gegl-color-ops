@@ -25,27 +25,27 @@
 <main id="main">
 <section class="page-head">
   <p class="eyebrow"><a href="index.html">首页</a> / Python 插件</p>
-  <h1>四个 Python 插件</h1>
+  <h1>五个 Python 插件</h1>
   <p class="lede">两件事原生 GIMP 做不顺：<b>灰度图变不成能用的东西</b>（复制图层 →
      新建通道 → 粘贴 → 蒙版转选区，四步），以及<b>曲线选不到分量</b>（只有
-     R/G/B/Alpha，没有 H、S、LCh）。前两个插件把转换压成一次右键，后两个把图层
-     拆成三张分量层各挂一条原生曲线，恒等时逐位还原——所以调曲线就等于在那个
-     色彩空间里调那一维。</p>
+     R/G/B/Alpha，没有 H、S、LCh）。前两个插件把转换压成一次右键；后三个把图层
+     拆成分量层各挂一条原生曲线，恒等时精确还原——所以调曲线就等于在那个色彩空间
+     里调那一维。HSV 与 LCh 各拆三层，HSL 因为 S 与 L 耦合拆成两层（见下文）。</p>
   <div class="cta">
     <a class="btn primary" href="#download">下载插件包</a>
     <a class="btn" href="#install">三步装上</a>
     <a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/tree/main/plugin">看插件源码</a>
   </div>
   <ul class="facts">
-    <li><b>4</b> 个插件</li>
-    <li><b>4</b> 个 PDB 过程</li>
-    <li><b>82</b> 条回归断言</li>
+    <li><b>5</b> 个插件</li>
+    <li><b>5</b> 个 PDB 过程</li>
+    <li><b>110</b> 条回归断言</li>
     <li><b>0</b> 编译 · 纯 Python</li>
   </ul>
 </section>
 <section class="prose wide">
 
-<div class="cards cards-4">
+<div class="cards cards-5">
   <a class="card" href="#layer-to-selection">
     <div class="card-top"><span class="tag t-mask">选区</span><code>layer-to-selection</code></div>
     <h3>Layer to Selection</h3>
@@ -72,6 +72,13 @@
     <h3>LCh Split (Curves)</h3>
     <p>同上，但换成 CIE LCh 三个分量（明度 / 彩度 / 色相）——感知均匀，
        做亮度与彩度分级比 HSV 稳。</p>
+    <span class="more">看细节与下载 →</span>
+  </a>
+  <a class="card" href="#hsl-split">
+    <div class="card-top"><span class="tag t-color">曲线</span><code>hsl-split-curves</code></div>
+    <h3>HSL Split (Curves)</h3>
+    <p>GIMP 没有 HSL 分量模式，这个插件把 HSL 精确接到 HSV 上：
+       S 与 L 合一层、色相一层，调哪条只动哪个分量。</p>
     <span class="more">看细节与下载 →</span>
   </a>
 </div>
@@ -160,8 +167,6 @@
          编码本身没有查表误差——旧版三条曲线才有 256 点 LUT。</p>
       <p>把<b>原图层隐藏掉</b>，三层自己叠出来还是 <b>0.5 码</b>；半透明区域的
          透明度由组蒙版保住（三层必须不透明，否则混合模式会按 alpha 做 lerp）。</p>
-      <p>把<b>原图层隐藏掉</b>，三层自己叠出来还是 <b>0.5 码</b>；半透明区域的
-         透明度由组蒙版保住（三层必须不透明，否则混合模式会按 alpha 做 lerp）。</p>
     </div>
   </div>
   </section>
@@ -201,6 +206,48 @@
      齐全，另有一个 Luminance。</p>
   </section>
 
+  <section class="group" id="hsl-split">
+    <h3 class="group-title"><span class="tag t-color">曲线</span>
+      <span class="group-en">HSL Split</span><span class="count">H / S / L</span></h3>
+    <p class="group-desc">GIMP 给 HSV 和 LCh 都配了分量混合模式，唯独 HSL 没有。
+       这个插件不是拿 HSV 去近似 HSL，而是把两者<b>精确</b>换算：色相本来就是
+       同一个函数，S 与 L 则合进一张数据图，由算子联合还原。恒等时精确还原原图，
+       调哪条曲线就只动那个 HSL 分量。</p>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>生成的结构</h3><span class="pill">两层</span></div>
+      <pre><code>HSL split        组 · 穿透（带 alpha 时组上还有蒙版）
+  ├─ 2 · Hue        模式 HSV 色相   ← 只替换色相
+  ├─ 1 · S / L      模式 正常       ← 一条算子链算完整 HSL 色
+  └─ 原图层（不动，可以隐藏）</code></pre>
+      <p><b>S 曲线挂红通道、L 曲线挂绿通道</b>，色相曲线在 Hue 层。把 Hue 层关掉、
+         只留 S/L 层，看到的就是「原色相 + 调过的 S/L」——很好用的中间状态。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>为什么只有两层</h3></div>
+      <p>HSL 的 S 与 L 是<b>耦合</b>的：<code>C = (1−|2L−1|)·S</code>、
+         <code>V = L + C/2</code>、<code>S_hsv = C/V</code>。要精确换回 HSV 的
+         S/V，编码器必须同时读到两者，而每层的曲线只看得到自己那一个分量——
+         两个独立的 1D 曲线表达不了二元映射。所以 S 与 L 合进一张数据图
+         （R=S、G=L），由 <code>lb:hsl-compose</code> 联合还原；算出来的已经是
+         完整颜色，第三层就多余了。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>硬凑三层的代价</h3></div>
+      <p>把 HSL 的 L 直接当 V 用：S=0.25 偏 <b>25 码</b>、S=1 偏 <b>64 码</b>
+         （差的正好是 C/2）；再加一条按「典型 S」校准的曲线，实际 S 一变就偏到
+         <b>77 码</b>；S、L 一起调最坏 <b>102 码</b>。</p>
+    </div>
+  </div>
+  <p class="note">适配算子内部用 babl 的 <code>HSLA float</code> 做转换，与 GIMP
+     自己的 HSL（<code>component-extract</code> 的 <code>hsl-s</code> /
+     <code>hsl-l</code>）同一口径，所以往返没有查表误差：浮点 <b>0.00001 码</b>、
+     8 位 <b>0.002 码</b>。改 S 曲线后结果的 HSL 饱和度 = f(原 S)，明度与色相
+     误差 <b>0.0001 码</b>。依赖 <code>lb:hsl-dual</code> /
+     <code>lb:hsl-compose</code> 两个算子，缺了没有一维回退，插件会直接报错。</p>
+  </section>
+
 <section class="download" id="download">
   <h2>下载</h2>
   <div class="dl-grid">
@@ -232,12 +279,19 @@
       <a class="btn primary" href="download/gegl-color-ops-plugin-lch-split-curves.zip">下载 gegl-color-ops-plugin-lch-split-curves.zip</a>
       <p class="muted small">9.9 KB · 校验：<code>SHA256 1d746980a01c6c7778c5428d4405bdbe…</code></p>
     </div>
+
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>HSL Split (Curves)</h3><span class="pill">.py · 免编译</span></div>
+      <p>在 HSL 空间里调曲线：S 与 L 合一层（红=饱和度、绿=明度）、色相一层；恒等曲线精确还原。</p>
+      <a class="btn primary" href="download/gegl-color-ops-plugin-hsl-split-curves.zip">下载 gegl-color-ops-plugin-hsl-split-curves.zip</a>
+      <p class="muted small">6.8 KB · 校验：<code>SHA256 fef536ce12cc2b3f36b2aaf4fe1a7d06…</code></p>
+    </div>
   </div>
   <p class="note">和 <code>.dll</code> / <code>.so</code> 一个思路：免编译、解压即用。
      区别只是 Python 插件放进 <b>GIMP</b> 的用户插件目录
      （<code>%APPDATA%\GIMP\3.x\plug-ins</code> 或
      <code>~/.config/GIMP/3.x/plug-ins</code>），不是 GEGL 的；
-     包里的「安装说明.txt」写得很全。四个都装也行，菜单入口各自独立。</p>
+     包里的「安装说明.txt」写得很全。五个都装也行，菜单入口各自独立。</p>
 </section>
 
 <section class="steps" id="install">
@@ -254,13 +308,13 @@ cd gegl-color-ops</code></pre>
          plug-ins 目录（Windows / Linux 通用；带 <code>.disabled</code> 标记的
          插件会跳过）：</p>
       <pre><code>bash install-plugin.sh</code></pre>
-      <p>或者直接用上面下载区的四个 <code>.zip</code>，把 <code>.py</code>
+      <p>或者直接用上面下载区的五个 <code>.zip</code>，把 <code>.py</code>
          解进同一个目录（每个插件一个子目录也行，GIMP 会扫描下去）。</p>
     </li>
     <li>
       <h3>重启 GIMP，找菜单</h3>
-      <p><b>颜色 → SuperMrWang</b> 下是 HSV / LCh Split (Curves)；
-         <b>图层右键 → SuperMrWang</b> 下四个都在；
+      <p><b>颜色 → SuperMrWang</b> 下是 HSV / HSL / LCh Split (Curves)；
+         <b>图层右键 → SuperMrWang</b> 下五个都在；
          <b>选择 → SuperMrWang</b> 下是 Layer to Selection / Channel
          （不依赖右键、方便写脚本）。</p>
     </li>
@@ -268,7 +322,7 @@ cd gegl-color-ops</code></pre>
 </section>
 
   <h2 id="script">脚本调用</h2>
-  <p>四个动作都是标准 PDB 过程，脚本里直接调（参数留空走默认值）：</p>
+  <p>五个动作都是标准 PDB 过程，脚本里直接调（参数留空走默认值）：</p>
 <div class="table-wrap"><table>
   <thead><tr><th>PDB 过程</th><th>参数</th><th>用途</th></tr></thead>
   <tbody>
@@ -284,6 +338,9 @@ cd gegl-color-ops</code></pre>
     <tr><td><code>lb-plugin-lch-split-curves</code></td>
         <td><code>group</code></td>
         <td>图层 → L/C/h 三层分量曲线</td></tr>
+    <tr><td><code>lb-plugin-hsl-split-curves</code></td>
+        <td><code>group</code></td>
+        <td>图层 → S/L 层 + Hue 层（HSL 精确适配）</td></tr>
   </tbody>
 </table></div>
   <p class="note">实现：转换类直接读图层像素（array 的 C 级切片，100 万像素约 4 毫秒），
@@ -295,13 +352,16 @@ cd gegl-color-ops</code></pre>
      分量曲线类用 <code>gegl:component-extract</code> 抽分量、
      <code>gimp:curves</code> 当可调曲线，编码交给本仓库的
      <code>lb:gray-to-component</code>——没装这个算子时自动退回三条曲线，
-     所以只装 Python 插件也能跑。</p>
+     所以只装 Python 插件也能跑。HSL 版例外：它靠 <code>lb:hsl-dual</code> +
+     <code>lb:hsl-compose</code> 把 S/L 联合还原（二维映射没有一维替代），
+     缺这两个算子会直接报错，而不是给一个偏几十码的近似。</p>
   <h2 id="tests">回归</h2>
   <p><code>tools/check_layer_to_mask.py</code>，23 条断言跑在 gimp-console 的
      python-fu-eval 里：灰度值、反相、偏移图层、彩色亮度、四个单通道、
      通道值/名字/反相、彩色转通道=亮度、选区不被截断、四种组合方式。</p>
-  <p>分量曲线另有两个脚本：<code>check_hsv_split.py</code>（19 条）与
-     <code>check_lch_split.py</code>（32 条）——结构、滤镜栈顺序、浮点与 8 位
+  <p>分量曲线另有三个脚本：<code>check_hsv_split.py</code>（24 条）、
+     <code>check_lch_split.py</code>（35 条）与 <code>check_hsl_split.py</code>
+     （28 条）——结构、滤镜栈顺序、浮点与 8 位
      恒等往返、曲线与直接改分量的数学期望对照、alpha 穿透、不分组、非法输入、
      编码路径量程。全部跑在真实的 GIMP 3.2 里，不是 mock。
      编码算子自己还有 <code>check_gray_to_component.py</code>（39 条），
@@ -317,7 +377,7 @@ cd gegl-color-ops</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">c0f9fd7</span>
+    <span class="muted">82ad580</span>
   </div>
 </footer>
 </body>
