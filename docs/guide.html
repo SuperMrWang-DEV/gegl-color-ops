@@ -88,6 +88,33 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
   <p>算子升级时偶尔会删掉合并过的参数，旧 XCF 里存的值会丢。加载只警告、不报错，
      但要重新调一次。升级前建议先另存一份。</p>
 
+  <h2 id="code">精度里的「码」是什么</h2>
+  <p>算子页和插件页里到处写着「恒等往返 0.0002 码」「残差 0.30 码」——<b>1 码就是 8 位
+     图上的一个台阶</b>：0–255 共 256 级，相邻两级之间的差就是 1 码，等于
+     <b>1/255 ≈ 0.392%</b>。所以「0.0002 码」的意思是：结果的编码值比原图最多差
+     0.0002 个台阶，也就是 RGB 128 变成 128.0002。</p>
+  <p>为什么用这把尺子：浮点误差本身没有直观意义（1e-7 是好是坏取决于位深和做过多少次
+     运算），换成「折算成 8 位输出会差几级」之后，所有空间、所有位深都可以横向比，
+     而且直接对上肉眼的分辨极限。</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>数值</th><th>意味着什么</th></tr></thead>
+    <tbody>
+      <tr><td><b>0.0002 码</b></td><td>1 码的 1/5000，浮点上的一次干净往返</td></tr>
+      <tr><td><b>0.0053 码</b></td><td>1 码的 1/190，多层编码累积后的量级，仍不可见</td></tr>
+      <tr><td><b>0.49 码</b></td><td>8 位量化本身的下限——任何一次输出 8 位图都躲不掉</td></tr>
+      <tr><td><b>1 码</b></td><td>肉眼几乎不可见，并排才勉强看出</td></tr>
+      <tr><td><b>3–4 码</b></td><td>开始能看出差异，渐变面上可能看到色带边界</td></tr>
+      <tr><td><b>8 码以上</b></td><td>明显偏色或偏亮</td></tr>
+    </tbody>
+  </table></div>
+  <p><b>它衡量的是「输出会不会变」，不是「人眼觉不觉得变」。</b>这里取的是 sRGB 编码值
+     （R′G′B′）的最大绝对差——最坏的那个像素、最坏的那个通道，不是平均值。编码空间
+     不是感知均匀的：暗部的 1 码比亮部的 1 码更扎眼，要讨论「看起来差多少」得换到
+     Lab 里算 ΔE。所以同一份结果，码数是工程判据，ΔE 才是观感判据。</p>
+  <p>顺带一提：小于 0.5 码的差异在 8 位图上落不到不同像素上去（四舍五入会抹平它），
+     只会在浮点工程图、或者连续叠加几十次同类运算时慢慢显形。这就是为什么插件页里
+     会同时给「32 位浮点」和「8 位」两组数字。</p>
+
   <h2 id="faq">常见问题</h2>
   <h3>和 经典图像编辑器 的调整图层结果一致吗？</h3>
   <p>多数算子的目标是「肉眼与 8 位输出一致」。实测残差写在每篇算法说明里，
@@ -108,7 +135,7 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">b3664ff</span>
+    <span class="muted">23ccc56</span>
   </div>
 </footer>
 </body>
