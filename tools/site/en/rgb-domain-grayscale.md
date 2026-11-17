@@ -17,6 +17,21 @@ The three RGB channels are combined with the six hue weights summed; the slider 
 −200…300 matches the the classic editor dialog, and the defaults (red 40, yellow 60, green 40,
 cyan 60, blue 20, magenta 80) are the classic editor's.
 
+## How the tint works
+
+The tint is calibrated black-box against the classic editor (18 tints, per-code
+agreement — see `bw-cal/RESULTS.md`). It is not a `grey × colour` multiply. With
+`tint = (tR,tG,tB)` and `L = 0.3·tR + 0.59·tG + 0.11·tB` (NTSC luma, encoding domain):
+
+| Region | Condition | Output |
+|---|---|---|
+| Middle | otherwise | `grey + tint − L` — a unit-slope shift, so black and white stay black and white |
+| Top | `grey ≥ 1 − (tmax − L)` | `1 − (tmax − tint)·(1 − grey)/(tmax − L)` |
+| Bottom | `grey ≤ L − tmin` | `(tint − tmin)·grey/(L − tmin)` |
+
+The pieces join continuously and the outer two pass exactly through white and black,
+so tinting never crushes the tonal range — highlights stay highlights.
+
 ## Parameters
 
 | Parameter | Default | Notes |

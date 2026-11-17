@@ -50,20 +50,28 @@
   <p class="lede">经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色the classic editor Black &amp; White: six hue sliders (red, yellow, green, cyan,blue, magenta) weight the grey conversion, with optionaltinting.</p>
 </section><div class="article-layout">
   <article class="prose">
+<h2 id="algorithm">Algorithm</h2>
+<p>Six hue sliders (red / yellow / green / cyan / blue / magenta) decide how much each colour contributes to the grey result, and the result can then be tinted — the classic editor's Black &amp; White dialog: pull blue down to darken a sky, push yellow up to brighten skin, everything else stays put.</p>
+<p>The three RGB channels are summed with the six hue weights; the −200…300 range matches the classic editor dialog and the defaults (red 40, yellow 60, green 40, cyan 60, blue 20, magenta 80) are taken from it.</p>
+<h3 id="tint">Tint</h3>
+<p>Tinting reproduces the classic editor's own maths, calibrated black-box against it (18 tints, per-code agreement — see <code>bw-cal/RESULTS.md</code>). It is <strong>not</strong> a <code>grey × colour</code> multiply. With <code>tint = (tR,tG,tB)</code>, <code>L = 0.3·tR + 0.59·tG + 0.11·tB</code> (NTSC luma, encoding domain):</p>
+<div class="table-wrap"><table><thead><tr><th>region</th><th>condition</th><th>output</th></tr></thead><tbody><tr><td>middle</td><td>otherwise</td><td><code>out = grey + tint − L</code> (unit-slope shift, black and white stay black and white)</td></tr><tr><td>top</td><td><code>grey ≥ 1 − (tmax − L)</code></td><td><code>out = 1 − (tmax − tint)·(1 − grey)/(tmax − L)</code></td></tr><tr><td>bottom</td><td><code>grey ≤ L − tmin</code></td><td><code>out = (tint − tmin)·grey/(L − tmin)</code></td></tr></tbody></table></div>
+<p>The pieces join continuously and the top/bottom ones pass exactly through white/black, so a tinted image keeps its full tonal range.</p>
+<h2 id="parameters">Parameters</h2>
+<div class="table-wrap"><table><thead><tr><th>parameter</th><th>default</th><th>meaning</th></tr></thead><tbody><tr><td><code>red</code> / <code>yellow</code> / <code>green</code></td><td>40 / 60 / 40</td><td>hue weights, −200…300</td></tr><tr><td><code>cyan</code> / <code>blue</code> / <code>magenta</code></td><td>60 / 20 / 80</td><td>hue weights, −200…300</td></tr><tr><td><code>tint_enabled</code></td><td>off</td><td>tint the grey result</td></tr><tr><td><code>tint_color</code></td><td><code>#E0D4B2</code></td><td>tint colour (warm brown by default)</td></tr><tr><td><code>tint_strength</code></td><td>1</td><td>tint strength, 0…1</td></tr></tbody></table></div>
+<h2 id="notes">Notes</h2>
+<ul><li>Per-pixel, in the 8-bit sRGB gamma domain, so the sliders feel like the classic editor dialog.</li><li>Alpha is preserved; transparent pixels stay transparent.</li><li>Unlike GIMP's Desaturate, the grey value is not a fixed luminance formula — what each colour turns into is up to you, which is the whole point of Black &amp; White.</li></ul>
+<hr>
 <h2 id="算法">算法</h2>
 <p>六个色相滑杆（红 / 黄 / 绿 / 青 / 蓝 / 品红）决定每种颜色对灰度的贡献， 结果还可以着色——就是 经典图像编辑器的「黑白」对话框：把蓝拉低压暗天空，把黄推高提亮肤色， 其余部分不受影响。</p>
 <p>RGB 三通道按六色权重加权求和；滑块量程 −200…300 与 经典图像编辑器 界面一致，默认值 （红 40、黄 60、绿 40、青 60、蓝 20、品红 80）取自 经典图像编辑器。</p>
+<h3 id="着色">着色</h3>
+<p>着色走的是 经典图像编辑器 自己的算法（18 组色相 × 饱和度黑盒标定，逐码吻合，见 <code>bw-cal/RESULTS.md</code>），<strong>不是</strong>「灰度 × 颜色」的乘法。记 <code>tint = (tR,tG,tB)</code>， <code>L = 0.3·tR + 0.59·tG + 0.11·tB</code>（NTSC 亮度，编码域），<code>tmax / tmin</code> 为三分量极值：</p>
+<div class="table-wrap"><table><thead><tr><th>区间</th><th>条件</th><th>输出</th></tr></thead><tbody><tr><td>中段</td><td>其余情况</td><td><code>out = 灰度 + tint − L</code>（斜率 1 平移，黑仍黑、白仍白）</td></tr><tr><td>顶部</td><td><code>灰度 ≥ 1 − (tmax − L)</code></td><td><code>out = 1 − (tmax − tint)·(1 − 灰度)/(tmax − L)</code></td></tr><tr><td>底部</td><td><code>灰度 ≤ L − tmin</code></td><td><code>out = (tint − tmin)·灰度/(L − tmin)</code></td></tr></tbody></table></div>
+<p>三段在断点处连续，顶/底两段精确过白/黑端点，所以着色后整幅图的明暗层次不会塌掉。</p>
 <h2 id="参数">参数</h2>
 <div class="table-wrap"><table><thead><tr><th>参数</th><th>默认</th><th>说明</th></tr></thead><tbody><tr><td><code>red</code> / <code>yellow</code> / <code>green</code></td><td>40 / 60 / 40</td><td>各色系的权重，−200…300</td></tr><tr><td><code>cyan</code> / <code>blue</code> / <code>magenta</code></td><td>60 / 20 / 80</td><td>各色系的权重，−200…300</td></tr><tr><td><code>tint_enabled</code></td><td>关</td><td>给灰度结果着色</td></tr><tr><td><code>tint_color</code></td><td><code>#E0D4B2</code></td><td>着色颜色（默认是暖棕）</td></tr><tr><td><code>tint_strength</code></td><td>1</td><td>着色强度，0…1</td></tr></tbody></table></div>
 <h2 id="说明">说明</h2>
-<ul><li>逐像素在 8 位 sRGB 伽马域计算，滑块手感与 经典图像编辑器 对话框一致。</li><li>alpha 保留，透明像素仍然透明。</li><li>与 GIMP 的「去色」不同：这里的灰度不是固定亮度公式，每种颜色变成什么由你决定， 这正是「黑白」的用处。</li></ul>
-<hr>
-<h2 id="算法-2">算法</h2>
-<p>六个色相滑杆（红 / 黄 / 绿 / 青 / 蓝 / 品红）决定每种颜色对灰度的贡献， 结果还可以着色——就是 经典图像编辑器的「黑白」对话框：把蓝拉低压暗天空，把黄推高提亮肤色， 其余部分不受影响。</p>
-<p>RGB 三通道按六色权重加权求和；滑块量程 −200…300 与 经典图像编辑器 界面一致，默认值 （红 40、黄 60、绿 40、青 60、蓝 20、品红 80）取自 经典图像编辑器。</p>
-<h2 id="参数-2">参数</h2>
-<div class="table-wrap"><table><thead><tr><th>参数</th><th>默认</th><th>说明</th></tr></thead><tbody><tr><td><code>red</code> / <code>yellow</code> / <code>green</code></td><td>40 / 60 / 40</td><td>各色系的权重，−200…300</td></tr><tr><td><code>cyan</code> / <code>blue</code> / <code>magenta</code></td><td>60 / 20 / 80</td><td>各色系的权重，−200…300</td></tr><tr><td><code>tint_enabled</code></td><td>关</td><td>给灰度结果着色</td></tr><tr><td><code>tint_color</code></td><td><code>#E0D4B2</code></td><td>着色颜色（默认是暖棕）</td></tr><tr><td><code>tint_strength</code></td><td>1</td><td>着色强度，0…1</td></tr></tbody></table></div>
-<h2 id="说明-2">说明</h2>
 <ul><li>逐像素在 8 位 sRGB 伽马域计算，滑块手感与 经典图像编辑器 对话框一致。</li><li>alpha 保留，透明像素仍然透明。</li><li>与 GIMP 的「去色」不同：这里的灰度不是固定亮度公式，每种颜色变成什么由你决定， 这正是「黑白」的用处。</li></ul><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
@@ -86,12 +94,14 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
   </article>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
-  <ul><li class="l2"><a href="#算法">算法</a></li>
+  <ul><li class="l2"><a href="#algorithm">Algorithm</a></li>
+<li class="l3"><a href="#tint">Tint</a></li>
+<li class="l2"><a href="#parameters">Parameters</a></li>
+<li class="l2"><a href="#notes">Notes</a></li>
+<li class="l2"><a href="#算法">算法</a></li>
+<li class="l3"><a href="#着色">着色</a></li>
 <li class="l2"><a href="#参数">参数</a></li>
-<li class="l2"><a href="#说明">说明</a></li>
-<li class="l2"><a href="#算法-2">算法</a></li>
-<li class="l2"><a href="#参数-2">参数</a></li>
-<li class="l2"><a href="#说明-2">说明</a></li></ul>
+<li class="l2"><a href="#说明">说明</a></li></ul>
 </aside>
 </div></div>
 <div class="l-en"><section class="page-head">
@@ -109,6 +119,10 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
 <h2 id="what-it-does">What it does</h2>
 <p>Six hue sliders — red, yellow, green, cyan, blue, magenta — decide how strongly each colour in the image contributes to the grey result, and the grey can then be tinted. This is the classic editor's Black &amp; White dialog: pull blue down and a blue sky goes dark, push yellow up and skin brightens, without any of it touching the rest of the frame.</p>
 <p>The three RGB channels are combined with the six hue weights summed; the slider range −200…300 matches the the classic editor dialog, and the defaults (red 40, yellow 60, green 40, cyan 60, blue 20, magenta 80) are the classic editor's.</p>
+<h2 id="how-the-tint-works">How the tint works</h2>
+<p>The tint is calibrated black-box against the classic editor (18 tints, per-code agreement — see <code>bw-cal/RESULTS.md</code>). It is not a <code>grey × colour</code> multiply. With <code>tint = (tR,tG,tB)</code> and <code>L = 0.3·tR + 0.59·tG + 0.11·tB</code> (NTSC luma, encoding domain):</p>
+<div class="table-wrap"><table><thead><tr><th>Region</th><th>Condition</th><th>Output</th></tr></thead><tbody><tr><td>Middle</td><td>otherwise</td><td><code>grey + tint − L</code> — a unit-slope shift, so black and white stay black and white</td></tr><tr><td>Top</td><td><code>grey ≥ 1 − (tmax − L)</code></td><td><code>1 − (tmax − tint)·(1 − grey)/(tmax − L)</code></td></tr><tr><td>Bottom</td><td><code>grey ≤ L − tmin</code></td><td><code>(tint − tmin)·grey/(L − tmin)</code></td></tr></tbody></table></div>
+<p>The pieces join continuously and the outer two pass exactly through white and black, so tinting never crushes the tonal range — highlights stay highlights.</p>
 <h2 id="parameters">Parameters</h2>
 <div class="table-wrap"><table><thead><tr><th>Parameter</th><th>Default</th><th>Notes</th></tr></thead><tbody><tr><td><code>red</code> / <code>yellow</code> / <code>green</code></td><td>40 / 60 / 40</td><td>Weight of each hue family, −200…300</td></tr><tr><td><code>cyan</code> / <code>blue</code> / <code>magenta</code></td><td>60 / 20 / 80</td><td>Weight of each hue family, −200…300</td></tr><tr><td><code>tint_enabled</code></td><td>off</td><td>Tint the grey result</td></tr><tr><td><code>tint_color</code></td><td><code>#E0D4B2</code></td><td>Tint colour (a warm sepia by default)</td></tr><tr><td><code>tint_strength</code></td><td>1</td><td>How strongly the tint is applied, 0…1</td></tr></tbody></table></div>
 <h2 id="notes">Notes</h2>
@@ -138,6 +152,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
   <aside class="toc">
   <p class="toc-title">On this page</p>
   <ul><li class="l2"><a href="#what-it-does">What it does</a></li>
+<li class="l2"><a href="#how-the-tint-works">How the tint works</a></li>
 <li class="l2"><a href="#parameters">Parameters</a></li>
 <li class="l2"><a href="#notes">Notes</a></li></ul>
 </aside>
@@ -152,7 +167,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">4a20bf9</span>
+    <span class="muted">e1c8255</span>
   </div>
 </footer>
 <script>

@@ -24,7 +24,7 @@ windows-x64,lb-exposure.dll,lb:exposure,Exposure EV,129201,3d580535eb00cc6dd1fac
 windows-x64,lch-levels.dll,lb:lch-levels,LCH Levels,130908,cb7634bbc0ae5aac92a118720cd51c68b5b44d856cb2b899b47527aad01d857e
 windows-x64,levels.dll,lb:levels,Levels,131495,0cf506160ebff1e4877b7fd04651ad9b41eaba0747ad92f2f150d4b0a93a4e61
 windows-x64,match-color.dll,lb:match-color,Match Color,107603,ac09d8ad4d9f7a0f1c6d4e2b6f254a71d8142e539b35bc722516c32f636d25e8
-windows-x64,rgb-domain-grayscale.dll,lb:rgb-domain-grayscale,Black & White,108038,8b42151b9cfb14a3dca85314ac8154dc5bd72c95fa45867125497c140b5aa6d3
+windows-x64,rgb-domain-grayscale.dll,lb:rgb-domain-grayscale,Black & White,108060,9b309b5dc51c02605dd9daaf03d057cbf48b6a76ed3d6c0715c961b039f70880
 windows-x64,shadows-highlights.dll,lb:shadows-highlights,Shadows/Highlights,167641,d501e15063fa9b88ad81f4abf50f819a78ee89e659f2ee6e6ec244edad829149
 windows-x64,vibrance-hyper.dll,lb:vibrance-hyper,Natural Saturation,136093,7ef3e4ae22a1c9d711ac226df9882afa4d83852d9fc4aba586ec0ee3c52e203b
 windows-x64,vibrance.dll,lb:vibrance,Vibrance,132296,5020958688819920c91c8da6aa015d6960fe4b5114e5549a85f68dc67003e1e7

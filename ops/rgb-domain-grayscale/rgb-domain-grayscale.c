@@ -7,9 +7,12 @@
  *            the classic editor Black & White: six hue sliders (red, yellow, green, cyan,
  *            blue, magenta) weight the grey conversion, with optional
  *            tinting.
- * algorithm  RGB 三通道按六色权重加权求和，-200~300 区间与 经典图像编辑器 界面对齐
+ * algorithm  RGB 三通道按六色权重加权求和，-200~300 区间与 经典图像编辑器 界面对齐；
+ *            着色走编码域 SetLum + 边界收缩（黑盒标定，见 bw-cal/RESULTS.md）
  *            The three RGB channels are summed with six hue weights; the
- *            -200..300 slider range matches the classic editor dialog.
+ *            -200..300 slider range matches the classic editor dialog. Tinting
+ *            is an encoding-domain SetLum plus a gamut collapse at the cube
+ *            faces (black-box calibration, see bw-cal/RESULTS.md).
  * type       GeglOperationPointFilter（逐像素 / per-pixel）
  * reference  经典图像编辑器「黑白」(Black & White)
  *            the classic editor Black & White
@@ -91,34 +94,65 @@ typedef enum {
   CH_B = 2
 } ChanIdx;
 
-/* ---- 线性 RGB 着色算法（经典图像编辑器的真实实现）/ linear-RGB tint (what 经典图像编辑器 does) */
+/* ---- 着色算法（黑盒标定自 经典图像编辑器，见 bw-cal/RESULTS.md）
+ *      the tint algorithm, black-box calibrated against the classic editor ------
+ *
+ * 着色不是「灰度×颜色」的乘法，而是编码域的 SetLum 平移再按边界收缩：
+ * The tint is not a plain grey×colour multiply: it is an encoding-domain SetLum
+ * shift followed by a gamut collapse at the cube faces.
+ *
+ *   记 tint=(tR,tG,tB)，L = 0.3·tR + 0.59·tG + 0.11·tB（NTSC 亮度，编码域），
+ *   tmax=max(tint)，tmin=min(tint)：
+ *   with L the NTSC luma in the encoding domain, tmax/tmin the tint extremes:
+ *
+ *   中段   out_ch = gray + tint_ch − L          （斜率 1 平移，白仍白、黑仍黑）
+ *   顶部   g ≥ 1−(tmax−L) 时（tint 比灰亮，先撞到 1）
+ *          out_ch = 1 − (tmax − tint_ch)·(1 − gray)/(tmax − L)
+ *          最亮通道被钉在 1，其余通道沿「tint → (tmax,tmax,tmax) 灰点」方向收敛
+ *   底部   g ≤ L−tmin 时（tint 比灰暗，先撞到 0）
+ *          out_ch = (tint_ch − tmin)·gray/(L − tmin)
+ *
+ *   三段在断点处连续，顶/底两段精确过 (1,1,1)/(0,0,0)。实测 18 组色相 × 饱和度
+ *   逐码吻合（最大 0.10/255，平均 0.01/255）；旧的乘法实现平均偏 58 码。
+ *   The three pieces join continuously and the top/bottom pieces pass exactly
+ *   through white/black. Measured over 18 tint cases: max 0.10 code, average
+ *   0.01 code; the previous multiplicative version was off by 58 codes on average. */
 static void
 tint_pixel (gfloat gray, const gfloat tint_rgb[3], gfloat strength, gfloat out[3])
 {
-  /* 经典图像编辑器的着色 = 把灰度当亮度，用线性光模式混合目标色
-   * the classic editor tint = treat the grey as luminance and blend the target colour in
-   * linear light */
-  gfloat r = tint_rgb[0];
-  gfloat g = tint_rgb[1];
-  gfloat b = tint_rgb[2];
+  const gfloat lum = 0.3f * tint_rgb[0] + 0.59f * tint_rgb[1] + 0.11f * tint_rgb[2];
 
-  /* 线性亮度混合（与 经典图像编辑器 完全一致）
-   * linear luminance blend, identical to the classic editor */
-  out[0] = gray * r;
-  out[1] = gray * g;
-  out[2] = gray * b;
+  gfloat tmax = tint_rgb[0], tmin = tint_rgb[0];
+  for (gint c = 1; c < 3; c++)
+    {
+      if (tint_rgb[c] > tmax) tmax = tint_rgb[c];
+      if (tint_rgb[c] < tmin) tmin = tint_rgb[c];
+    }
 
-  /* 按强度插值
-   * interpolate by strength */
-  out[0] = gray + (out[0] - gray) * strength;
-  out[1] = gray + (out[1] - gray) * strength;
-  out[2] = gray + (out[2] - gray) * strength;
+  const gfloat top = tmax - lum;   /* 顶部裁剪带宽 / width of the top collapse  */
+  const gfloat bot = lum - tmin;   /* 底部裁剪带宽 / width of the bottom one    */
 
-  /* 安全裁剪
-   * safe clamp */
-  out[0] = CLAMP(out[0], 0.0f, 1.0f);
-  out[1] = CLAMP(out[1], 0.0f, 1.0f);
-  out[2] = CLAMP(out[2], 0.0f, 1.0f);
+  for (gint c = 0; c < 3; c++)
+    {
+      gfloat y;
+
+      if (top > 1e-6f && gray >= 1.0f - top)
+        /* 撞到白端：最亮通道钉在 1，其余按 tint 的通道差收缩
+         * hit the white end: the brightest channel pins at 1, the others
+         * collapse proportionally to their distance from it */
+        y = 1.0f - (tmax - tint_rgb[c]) * (1.0f - gray) / top;
+      else if (bot > 1e-6f && gray <= bot)
+        /* 撞到黑端 / hit the black end */
+        y = (tint_rgb[c] - tmin) * gray / bot;
+      else
+        /* 中段：编码域斜率 1 的 SetLum / middle: unit-slope SetLum */
+        y = gray + tint_rgb[c] - lum;
+
+      y = CLAMP (y, 0.0f, 1.0f);
+
+      /* 按强度回插灰度 / blend back toward the neutral grey by strength */
+      out[c] = CLAMP (gray + (y - gray) * strength, 0.0f, 1.0f);
+    }
 }
 
 /* ---- GEGL 算子标准接口 / GEGL operation interface ---------------------- */
@@ -169,11 +203,16 @@ process (GeglOperation       *operation,
                 "tint_strength", &tint_strength,
                 NULL);
 
-  /* 修复：gegl_color_get_rgba 需要 gdouble（double）类型的存储
-   * fix: gegl_color_get_rgba needs gdouble (double) storage */
+  /* 着色公式在编码域（8bit 伽马）推导，tint 也必须换算到编码域。
+   * gegl_color_get_rgba 返回的是**线性光**，直接用会让着色整体偏暗（#80FF00 的
+   * 0.5 会变成 0.216），所以这里取 sRGB 空间下的存储值。
+   * The tint maths is derived in the encoding (8-bit gamma) domain, so the tint
+   * has to be encoded too. gegl_color_get_rgba gives **linear light** — using it
+   * directly darkens the tint (0.5 of #80FF00 would read 0.216) — hence the
+   * sRGB-space getter. */
   if (tint_enabled && tint_color_obj) {
     gdouble r, g, b, a;
-    gegl_color_get_rgba(tint_color_obj, &r, &g, &b, &a);
+    gegl_color_get_rgba_with_space(tint_color_obj, &r, &g, &b, &a, NULL);
     tint_rgb[0] = (gfloat)r;
     tint_rgb[1] = (gfloat)g;
     tint_rgb[2] = (gfloat)b;
