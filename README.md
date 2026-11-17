@@ -3,9 +3,9 @@
 [![GIMP 3](https://img.shields.io/badge/GIMP-3.x-5C5543?logo=gimp&logoColor=white)](https://www.gimp.org/)
 [![GEGL 0.4](https://img.shields.io/badge/GEGL-0.4-2C4C6B)](https://gegl.org/)
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
-[![Operations](https://img.shields.io/badge/operations-30-brightgreen)](#算子清单)
+[![Operations](https://img.shields.io/badge/operations-32-brightgreen)](#算子清单)
 
-一组自研的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **30 个**，统一 `lb:` 命名空间，
+一组自研的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **32 个**，统一 `lb:` 命名空间，
 在 GIMP 里位于 **图像 → 颜色 → SuperMrWang**。算法按公开公式与可观察的行为实现，
 不含任何商业软件的代码或素材；文中出现的产品名仅用于说明某个算子参照了哪种行为，
 与各厂商无隶属关系（详见文末「版权与商标」）。
@@ -95,6 +95,8 @@ gegl-color-ops/
 | `lb:apply-image` | Apply Image | Apply Image | Blend | Composer | 经典图像编辑器 应用图像：aux 层按 26 种混合模式压到本层，可只作用单通道；加法/减法带 缩放(1..2)/补偿值(±255)；源层没盖到和透明的地方原样输出 |
 | `lb:calculations` | Calculations | Calculations | Blend | Composer | 经典图像编辑器 计算：两路通道混合出灰/alpha 蒙版，双源可各自反相；加法/减法带 缩放(1..2)/补偿值(±255)；源 2 透明处蒙版为 0 |
 | `lb:gray-to-component` | Gray To Component | Gray To Component | Blend | Point | 分量灰度 → 彩色编码：把 `component-extract` 出来的灰度层编成「携带该分量」的彩色，混合模式才读得出来。`HSV Split (Curves)` / `LCh Split (Curves)` 插件的最后一步，一个滤镜顶掉原来的三条曲线 |
+| `lb:hsl-dual` | HSL Dual Extract | HSL Dual Extract | Blend | Point | HSL 分量曲线的提取器：一张图同时携带三分量（R = 饱和度、G = 明度、B = 色相/360）。S 与 L 耦合，必须同时读到才能精确换回 HSV 的 S/V；`HSL Split (Curves)` 的第一道滤镜 |
+| `lb:hsl-compose` | HSL Compose | HSL Compose | Blend | Point | HSL 分量曲线的合成器：把（R = S、G = L、B = H/360）的数据图还原成真实 HSL 色。babl 做转换，与 GIMP 自己的 HSL 同口径，往返 0.00001 码 |
 
 每个算子的算法说明、参数含义见 `ops/<算子名>/README.md`（原始文档）。
 

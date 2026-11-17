@@ -39,6 +39,10 @@ ops = [
   ['shadows-highlights',      'shadows-highlights',      'shadows-highlights.c'],
   # 分量层编码器：HSV/LCh Split 插件的最后一步
   ['gray-to-component',       'gray-to-component',       'gray-to-component.c'],
+  # HSL 适配器：把 S/L 挤进一张数据图（两者耦合，必须同时读到），再合成回
+  # 真实颜色。HSL Split 插件靠这两个算子做到与直接改 HSL 完全等价。
+  ['hsl-dual',                'hsl-dual',                'hsl-dual.c'],
+  ['hsl-compose',             'hsl-compose',             'hsl-compose.c'],
   # 双输入（aux）算子。本表是手工维护的，加算子时必须同步；带 .disabled 标记的
   # 算子不入表也不编译。CI 用集合比对核对本表与 ops/ 下的源码目录，漏列或多列
   # 都会点名。

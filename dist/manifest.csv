@@ -14,6 +14,8 @@ windows-x64,colorize-hsl.dll,lb:colorize-hsl,Colorize,103326,d253d6f8f603c575f41
 windows-x64,gray-to-component.dll,lb:gray-to-component,Gray To Component,111332,a9136a79d9c2bba3f0168ccb96146c97700bfe95e5944ca559153301e53ce966
 windows-x64,hsb-levels.dll,lb:hsb-levels,HSB Levels,130908,65dcc27ca90b5c3f7bde9271c5f35a2f9fcecf9c1ecd81f56f922b7fba2a738c
 windows-x64,hsi-levels.dll,lb:hsi-levels,HSI Levels,142894,d54723baab2c3aa49808900f335c8cdb3750790aea1dc5f388a0cce2e90a0ec9
+windows-x64,hsl-compose.dll,lb:hsl-compose,HSL Compose,99019,c1853c2ab81649ea6985198453999d964252cd9744989a8cea8b0e914a91c43e
+windows-x64,hsl-dual.dll,lb:hsl-dual,HSL Dual Extract,99001,48dc00d002d7a0cbb7a968b789a80655eb80525c6f33de983f97a93969958487
 windows-x64,hsl-levels.dll,lb:hsl-levels,HSL Levels,130908,1bd1d035c858587d87aa9324ca6188b3a547676c333692ce527e4294fdbda9f0
 windows-x64,hsl-seven.dll,lb:hsl-seven,HSL 8 Bands,110704,b577872cb0e9b8df5dbf3bb2af2b3168e8143f578affefa00d08e06b26b02904
 windows-x64,hue-range-basic.dll,lb:hue-range-basic,Hue/Saturation Range,109454,0cdb7d93d574836ef8abab208fded9caf0b1ce68c99ad658f4579747977a0873
