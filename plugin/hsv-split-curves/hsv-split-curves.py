@@ -15,11 +15,16 @@
 
  usage     选中一个栅格图层 → 菜单项。生成的结构（自上而下）：
 
-              HSV split            组，穿透混合
-                ├─ 1 Hue           分量层：hue 灰 → 曲线 → 编码   模式 = HSV 色相
-                ├─ 2 Saturation    分量层：hsv-s 灰 → 曲线 → 编码 模式 = HSV 饱和度
+              HSV split            组，穿透混合（带 alpha 时组上还有一张蒙版）
                 ├─ 3 Value         分量层：hsv-v 灰 → 曲线         模式 = HSV 明度
-                └─ 原图层（不动）
+                ├─ 2 Saturation    分量层：hsv-s 灰 → 曲线 → 编码 模式 = HSV 饱和度
+                ├─ 1 Hue           分量层：hue 灰 → 曲线 → 编码   模式 = HSV 色相
+                └─ 原图层（不动，可以隐藏）
+
+           合成顺序自下而上：色相层（全饱和色环）先定 H，饱和度层换 S，明度层
+           最后换 V。层序不能反——最底那张必须带真实色相，因为它下面没有东西
+           可读；若最底是灰（S=0），上面两层换 H、换 S 时读到的都是 0，怎么换
+           都还是灰，把原图层一藏就彻底还原不出来。
 
            每层的滤镜栈（图层面板里从上往下读是 3 → 2 → 1，实际执行顺序相反）：
 
@@ -218,6 +223,50 @@ def _component_layer(image, base, title, component, encode, mode, parent):
     return layer
 
 
+def _link_alpha_mask(image, base, host):
+    """把原图层的 alpha 变成整组的蒙版。
+
+    分量混合模式在源 alpha=1 时才是「纯替换」；若把 alpha 留在分量层上，GIMP
+    会按 alpha 把结果与下层 lerp（实测半透明区偏 28 码）。所以三层一律不透明，
+    alpha 交给组蒙版：颜色由三层算，透明度由原图给。
+    Mask the group with the source alpha: the three component layers must stay
+    opaque (a partly transparent blend layer lerps instead of replaces).
+    Returns True when a mask was attached."""
+    if host is None:
+        return False
+    try:
+        if not base.has_alpha():
+            return False
+    except Exception:
+        return False
+
+    saved = None
+    try:
+        if not Gimp.Selection.is_empty(image):
+            saved = Gimp.Selection.save(image)
+    except Exception:
+        saved = None
+
+    try:
+        image.select_item(Gimp.ChannelOps.REPLACE, base)
+        mask = host.create_mask(Gimp.AddMaskType.SELECTION)
+        if mask is None:
+            return False
+        host.add_mask(mask)
+        return True
+    except Exception:
+        return False
+    finally:
+        try:
+            if saved is not None:
+                image.select_item(Gimp.ChannelOps.REPLACE, saved)
+                image.remove_channel(saved)
+            else:
+                Gimp.Selection.none(image)
+        except Exception:
+            pass
+
+
 def _item_position(image, item, fallback=0):
     try:
         proc = Gimp.get_pdb().lookup_procedure('gimp-image-get-item-position')
@@ -234,10 +283,11 @@ def _item_position(image, item, fallback=0):
 def split_hsv(image, base, make_group=True):
     """把一个图层拆成 HSV 三张分量层 + 曲线，再用分量混合模式叠回去。
 
-    返回最上面那层（Hue）；make_group 时返回的是包住三层的组。原图层不动，
-    组挂在与原图层同一个父级、紧贴其上方。
-    Split one layer into H/S/V curve layers that recombine to the original.
-    Returns the Hue layer, or the group holding all three."""
+    返回最上面那层（Value）；make_group 时返回的是包住三层的组。原图层不动
+    ——把原图层隐藏掉，这三层自己就能叠回原图。
+    Split one layer into H/S/V curve layers that recombine to the original,
+    even with the source layer hidden. Returns the Value layer, or the group
+    holding all three."""
     if base is None:
         raise RuntimeError(_("没有可以拆分的图层 / no layer to split"))
     if base.is_group():
@@ -248,6 +298,16 @@ def split_hsv(image, base, make_group=True):
     parent = base.get_parent()
     position = _item_position(image, base)
 
+    # 带 alpha 的图层必须分组：透明度靠组蒙版保住，散层没有地方挂。
+    auto_group = False
+    if not make_group:
+        try:
+            if base.has_alpha():
+                make_group = True
+                auto_group = True
+        except Exception:
+            pass
+
     image.undo_group_start()
     try:
         host = None
@@ -256,18 +316,24 @@ def split_hsv(image, base, make_group=True):
             host.set_mode(Gimp.LayerMode.PASS_THROUGH)
             image.insert_layer(host, parent, position)
 
-        # 自下而上造：Value 最先插入（落到组的最底），Hue 最后插到最上。
-        value = _component_layer(image, base, _("3 · Value"), "hsv-v", None,
-                                 Gimp.LayerMode.HSV_VALUE, host)
-        sat = _component_layer(image, base, _("2 · Saturation"), "hsv-s",
-                               ("saturation", SAT_ENCODE),
-                               Gimp.LayerMode.HSV_SATURATION, host)
+        # 自下而上造：Hue 最先插入（落到组的最底），Value 最后插到最上。
+        # 顺序不能反：分量混合模式只替换一个分量，另外两个从下行读。最底那张
+        # 必须是「带真实色相的全饱和色」（hsl 色环），因为它下面什么都没有；
+        # 若最底是灰（V 层），它的 S=0，上面两层替换 H/S 时读到的都是 0，
+        # 怎么换都是灰——把原图层藏起来就彻底还原不出来。
         hue = _component_layer(image, base, _("1 · Hue"), "hue",
                                ("hue", HUE_ENCODE),
                                Gimp.LayerMode.HSV_HUE, host)
+        sat = _component_layer(image, base, _("2 · Saturation"), "hsv-s",
+                               ("saturation", SAT_ENCODE),
+                               Gimp.LayerMode.HSV_SATURATION, host)
+        value = _component_layer(image, base, _("3 · Value"), "hsv-v", None,
+                                 Gimp.LayerMode.HSV_VALUE, host)
+
+        _link_alpha_mask(image, base, host)
 
         try:
-            image.set_selected_layers([host or hue])
+            image.set_selected_layers([host or value])
         except Exception:
             pass
     finally:
@@ -275,12 +341,15 @@ def split_hsv(image, base, make_group=True):
 
     Gimp.displays_flush()
     try:
-        Gimp.message(_("HSV 分量层已建立：%s。改每层「2 · curve」就是调该分量的"
-                       "曲线；三条编码曲线别动。")
-                     % (host.get_name() if host else hue.get_name()))
+        msg = _("HSV 分量层已建立：%s。改每层「2 · curve」就是调该分量的曲线；"
+                "encode 那步别动。原图层可以隐藏，这三层自己就能叠回去。") \
+              % (host.get_name() if host else value.get_name())
+        if auto_group:
+            msg += _("\n（这张图带透明，已自动分组：透明度靠组蒙版保住。）")
+        Gimp.message(msg)
     except Exception:
         pass
-    return host or hue
+    return host or value
 
 
 # ---- 程序包装 / procedure wrapper ------------------------------------------

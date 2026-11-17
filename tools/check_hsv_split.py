@@ -12,7 +12,7 @@
 3. 32 位浮点图：恒等曲线往返误差 = 0（曲线编码是精确的）；
 4. 8 位图：恒等往返 ≤ 1 码（只剩量化误差）；
 5. 改曲线 ≈ 直接改 HSV 分量（8 位 ≤ 3 码）；
-6. 透明区域 alpha 逐位保留；
+6. 透明区域 alpha 逐位保留；原图层隐藏后三层仍能自己还原（RGB + alpha）；
 7. 不收组（group=False）时同样还原；
 8. 图层组作为输入会被拒绝。
 """
@@ -93,8 +93,9 @@ def hsv2rgb(h, s, v):
     return r + m, g + m, b + m
 
 
-def make_image(w=48, h=48, float_prec=False, alpha_left=None):
-    """横向铺满色相，纵向三段不同 S/V，可选左半透明。"""
+def make_image(w=48, h=48, float_prec=False, alpha_left=None,
+               with_alpha=True):
+    """横向铺满色相，纵向三段不同 S/V，可选左半透明 / 不要 alpha 通道。"""
     img = Gimp.Image.new(w, h, Gimp.ImageBaseType.RGB)
     if float_prec:
         proc = Gimp.get_pdb().lookup_procedure('gimp-image-convert-precision')
@@ -102,7 +103,9 @@ def make_image(w=48, h=48, float_prec=False, alpha_left=None):
         cfg.set_property('image', img)
         cfg.set_property('precision', Gimp.Precision.FLOAT_NON_LINEAR)
         proc.run(cfg)
-    base = Gimp.Layer.new(img, "base", w, h, Gimp.ImageType.RGBA_IMAGE, 100.0,
+    layer_type = (Gimp.ImageType.RGBA_IMAGE if with_alpha
+                  else Gimp.ImageType.RGB_IMAGE)
+    base = Gimp.Layer.new(img, "base", w, h, layer_type, 100.0,
                           Gimp.LayerMode.NORMAL)
     img.insert_layer(base, None, 0)
     px = array.array('f', bytes(w * h * 4))
@@ -114,8 +117,15 @@ def make_image(w=48, h=48, float_prec=False, alpha_left=None):
             r, g, b = hsv2rgb((x / float(w)) * 360.0, s, v)
             a = alpha_left if (alpha_left is not None and x < w // 2) else 1.0
             px[i:i + 4] = array.array('f', [r, g, b, a])
-    base.get_buffer().set(Gegl.Rectangle.new(0, 0, w, h), "R'G'B'A float",
-                          px.tobytes())
+    if with_alpha:
+        base.get_buffer().set(Gegl.Rectangle.new(0, 0, w, h), "R'G'B'A float",
+                              px.tobytes())
+    else:
+        rgb = array.array('f')
+        for i in range(0, len(px), 4):
+            rgb.extend(px[i:i + 3])
+        base.get_buffer().set(Gegl.Rectangle.new(0, 0, w, h), "R'G'B' float",
+                              rgb.tobytes())
     return img, base, px
 
 
@@ -172,17 +182,19 @@ group = img.get_layers()[0]
 check(group.is_group(), "顶层是图层组")
 check(group.get_mode() == Gimp.LayerMode.PASS_THROUGH, "组是穿透混合")
 kids = group.get_children()
+# 图层栈从上到下：Value 在最上。Hue 必须垫底（下面没有东西可读时，它自己
+# 就是带真实色相的全饱和层），否则上面两层读到 S=0 的灰，永远还原不出来。
 check([k.get_name() for k in kids] ==
-      ["1 · Hue", "2 · Saturation", "3 · Value"],
-      "三层顺序 Hue / Saturation / Value", [k.get_name() for k in kids])
+      ["3 · Value", "2 · Saturation", "1 · Hue"],
+      "三层顺序（上→下）Value / Saturation / Hue", [k.get_name() for k in kids])
 check([k.get_mode() for k in kids] ==
-      [Gimp.LayerMode.HSV_HUE, Gimp.LayerMode.HSV_SATURATION,
-       Gimp.LayerMode.HSV_VALUE], "三条分量混合模式对")
+      [Gimp.LayerMode.HSV_VALUE, Gimp.LayerMode.HSV_SATURATION,
+       Gimp.LayerMode.HSV_HUE], "三条分量混合模式对")
 check(img.get_layers()[1] is base or img.get_layers()[1].get_name() == "base",
       "原图层还在组下面且没被改动")
 
 print("== 2. 滤镜栈 / filter stack")
-hue_l, sat_l, val_l = kids
+val_l, sat_l, hue_l = kids
 check(len(val_l.get_filters()) == 2, "Value 层 2 条滤镜",
       len(val_l.get_filters()))
 check(len(sat_l.get_filters()) == 3, "Saturation 层 3 条滤镜",
@@ -220,7 +232,7 @@ print("== 5. 曲线 ≈ 直接改 HSV / curves vs direct HSV maths")
 imgc, basec, refc = make_image()
 HSV.split_hsv(imgc, basec)
 grp = imgc.get_layers()[0]
-hue_l, sat_l, val_l = grp.get_children()
+val_l, sat_l, hue_l = grp.get_children()
 set_curve(hue_l, lambda t: t ** 1.25)
 set_curve(sat_l, lambda t: t ** 0.8)
 set_curve(val_l, lambda t: min(1.0, t * 1.1 + 0.02))
@@ -248,12 +260,30 @@ close(max_diff(refa, gota, (3,)), 0.0, 1e-5, "alpha 逐位保留")
 close(gota[(imga.get_width() // 4) * 4 + 3], 0.4, 1.5 / 255.0,
       "左半 alpha 仍是 0.4")
 
+print("== 6b. 隐藏原图层后自足 / hide the source")
+imgh, baseh, refh = make_image(alpha_left=0.4)
+HSV.split_hsv(imgh, baseh)
+baseh.set_visible(False)
+goth = flatten(imgh)
+close(max_diff(refh, goth), 0.0, 1.5 / 255.0,
+      "原图层隐藏后仍能还原 RGB（≤1 码）")
+close(max_diff(refh, goth, (3,)), 0.0, 2.0 / 255.0,
+      "原图层隐藏后 alpha 仍对（组蒙版）")
+grph = imgh.get_layers()[0]
+check(grph.get_mask() is not None, "组上挂了 alpha 蒙版")
+
 print("== 7. 不收组 / no group")
-imgn, basen, refn = make_image()
+imgn, basen, refn = make_image(with_alpha=False)
 HSV.split_hsv(imgn, basen, make_group=False)
 check(not imgn.get_layers()[0].is_group(), "顶层不是组")
 check(len(imgn.get_layers()) == 4, "原图 + 三层", len(imgn.get_layers()))
 close(max_diff(refn, flatten(imgn)), 0.0, 1.5 / 255.0, "不分组也逐位还原")
+
+# 带 alpha 又要求不分组时，为了保住透明度会自动分组
+imgz, basez, _ = make_image(alpha_left=0.5)
+HSV.split_hsv(imgz, basez, make_group=False)
+check(imgz.get_layers()[0].is_group(), "带 alpha 不分组 → 自动分组")
+check(imgz.get_layers()[0].get_mask() is not None, "自动分组也挂了 alpha 蒙版")
 
 print("== 8. 非法输入 / invalid input")
 imgg = Gimp.Image.new(16, 16, Gimp.ImageBaseType.RGB)

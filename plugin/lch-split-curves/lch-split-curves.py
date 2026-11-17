@@ -15,13 +15,16 @@
 
  usage     选中一个栅格图层 → 菜单项。生成的结构（自上而下）：
 
-              LCh split           组，穿透混合
-                ├─ 1 Hue          分量层   模式 = LCh 色相
-                ├─ 2 Chroma       分量层   模式 = LCh 彩度
+              LCh split           组，穿透混合（带 alpha 时组上还有一张蒙版）
                 ├─ 3 Lightness    分量层   模式 = LCh 明度
-                └─ 原图层（不动）
+                ├─ 2 Chroma       分量层   模式 = LCh 彩度
+                ├─ 1 Hue          分量层   模式 = LCh 色相   ← 垫底
+                └─ 原图层（不动，可以隐藏）
 
-           执行顺序是自下而上：明度定 L，彩度换 C，色相换 H，三者互不干扰。
+           合成顺序是自下而上：色相层（等 L 等 C 的色相圆）先定 H，彩度层换 C
+           （L、H 取自下层），明度层最后换 L。层序不能反——最底那张必须是
+           「带真实色相的彩色」，因为它下面什么都没有；若最底是灰（C=0），
+           上面两层换 C、换 H 时读到的都是 0，怎么换都还是灰。
            每层的滤镜栈（图层面板里从上往下读，实际执行顺序与之相反）：
 
               Hue        1 · extract  lch-h  → 2 · curve → 3 · encode
@@ -44,7 +47,8 @@
              LCh 明度      → LCh(L_src,   C_base, H_base)
              LCh 颜色      → LCh(L_base,  C_src,   H_src)
 
-           所以本插件只要按「明度→彩度→色相」自下而上叠，三个分量就各归各位。
+           所以本插件只要按「色相→彩度→明度」自下而上叠，三个分量就各归各位
+           ——这也正是把原图层藏起来、三层自己还原的前提。
 
            编码路径（把「分量值」变成混合模式读得出来的颜色）：
              Lightness  Lab(100g, 0, 0)                    —— 直接就是 L*
@@ -368,6 +372,50 @@ def _append_encoder(layer, use_gtc, label, encode):
         _append_curve(layer, label, fn, channel)
 
 
+def _link_alpha_mask(image, base, host):
+    """把原图层的 alpha 变成整组的蒙版。
+
+    分量混合模式在源 alpha=1 时才是「纯替换」；若把 alpha 留在分量层上，GIMP
+    会按 alpha 把结果与下层 lerp（实测半透明区偏 28 码）。所以三层一律不透明，
+    alpha 交给组蒙版：颜色由三层算，透明度由原图给。
+    Mask the group with the source alpha: the three component layers must stay
+    opaque (a partly transparent blend layer lerps instead of replaces).
+    Returns True when a mask was attached."""
+    if host is None:
+        return False
+    try:
+        if not base.has_alpha():
+            return False
+    except Exception:
+        return False
+
+    saved = None
+    try:
+        if not Gimp.Selection.is_empty(image):
+            saved = Gimp.Selection.save(image)
+    except Exception:
+        saved = None
+
+    try:
+        image.select_item(Gimp.ChannelOps.REPLACE, base)
+        mask = host.create_mask(Gimp.AddMaskType.SELECTION)
+        if mask is None:
+            return False
+        host.add_mask(mask)
+        return True
+    except Exception:
+        return False
+    finally:
+        try:
+            if saved is not None:
+                image.select_item(Gimp.ChannelOps.REPLACE, saved)
+                image.remove_channel(saved)
+            else:
+                Gimp.Selection.none(image)
+        except Exception:
+            pass
+
+
 def _item_position(image, item, fallback=0):
     try:
         proc = Gimp.get_pdb().lookup_procedure('gimp-image-get-item-position')
@@ -384,10 +432,12 @@ def _item_position(image, item, fallback=0):
 def split_lch(image, base, make_group=True):
     """把一个图层拆成 LCh 三张分量层 + 曲线，再用分量混合模式叠回去。
 
-    自下而上是 明度 → 彩度 → 色相：明度先定 L，彩度换掉 C（L 取自下层），
-    色相最后换 H（C 取自下层，即刚换过的 C）。返回最上面那层（Hue）；
-    make_group 时返回包住三层的组。原图层不动。
-    Split one layer into L/C/H curve layers that recombine to the original."""
+    自下而上是 色相 → 彩度 → 明度：色相层（等 L 等 C 的色相圆）垫底定 H，
+    彩度层换掉 C（L、H 取自下层），明度层最后换 L。返回最上面那层
+    （Lightness）；make_group 时返回包住三层的组。原图层不动，也不依赖它
+    ——把原图层隐藏掉，这三层自己就能叠回原图。
+    Split one layer into L/C/H curve layers that recombine to the original,
+    even with the source layer hidden."""
     if base is None:
         raise RuntimeError(_("没有可以拆分的图层 / no layer to split"))
     if base.is_group():
@@ -398,13 +448,17 @@ def split_lch(image, base, make_group=True):
     parent = base.get_parent()
     position = _item_position(image, base)
 
-    # 8 位图不分组时，三层是直接合成到 8 位投影缓冲上的，中间的量化会把色相
-    # 吃掉（实测 32×32 色相图最大偏 11 码，分组时只有 0.5 码）。这里静默改成
-    # 分组——组内部的合成走浮点缓冲，结果是 0.5 码级。
+    # 两种情况下必须分组，静默改掉：
+    #  * 8 位图不分组时，三层是直接合成到 8 位投影缓冲上的，中间的量化会把色相
+    #    吃掉（实测 32×32 色相图最大偏 11 码，分组时只有 0.5 码）；
+    #  * 原图层带 alpha 时要靠组蒙版保住透明度，散层没有地方挂。
     auto_group = False
     if not make_group:
         try:
-            if image.get_precision() == Gimp.Precision.U8_NON_LINEAR:
+            needs = image.get_precision() == Gimp.Precision.U8_NON_LINEAR
+            if not needs and base.has_alpha():
+                needs = True
+            if needs:
                 make_group = True
                 auto_group = True
         except Exception:
@@ -418,26 +472,32 @@ def split_lch(image, base, make_group=True):
             host.set_mode(Gimp.LayerMode.PASS_THROUGH)
             image.insert_layer(host, parent, position)
 
-        # 自下而上造：Lightness 最先插入（落到组的最底），Hue 最后插到最上。
-        light = _component_layer(
-            image, base, _("3 · Lightness"), "lab-l",
-            Gimp.LayerMode.LCH_LIGHTNESS, host,
-            encode=dict(mode="lightness", value=LIGHT_ENCODE))
-        chroma = _component_layer(
-            image, base, _("2 · Chroma"), "lch-c",
-            Gimp.LayerMode.LCH_CHROMA, host,
-            encode=dict(mode="lch-chroma",
-                        props={"lch-l": _HUE_L, "chroma-scale": 200.0},
-                        rgb=CHROMA_ENCODE, scale=_chroma_scale))
+        # 自下而上造：Hue 最先插入（落到组的最底），Lightness 最后插到最上。
+        # 顺序不能反：分量混合模式只替换一个分量，其余从下行读。最底那张必须
+        # 是「等 L 等 C 的色相圆」（带真实色相），因为它下面什么都没有；若最底
+        # 是 Lightness 的灰（C=0），上面两层换 C、换 H 时读到的都是 0，怎么换
+        # 都是灰——把原图层藏起来就彻底还原不出来。
         hue = _component_layer(
             image, base, _("1 · Hue"), "lch-h",
             Gimp.LayerMode.LCH_HUE, host,
             encode=dict(mode="lch-hue",
                         props={"lch-l": _HUE_L, "lch-c": _HUE_C},
                         rgb=HUE_ENCODE))
+        chroma = _component_layer(
+            image, base, _("2 · Chroma"), "lch-c",
+            Gimp.LayerMode.LCH_CHROMA, host,
+            encode=dict(mode="lch-chroma",
+                        props={"lch-l": _HUE_L, "chroma-scale": 200.0},
+                        rgb=CHROMA_ENCODE, scale=_chroma_scale))
+        light = _component_layer(
+            image, base, _("3 · Lightness"), "lab-l",
+            Gimp.LayerMode.LCH_LIGHTNESS, host,
+            encode=dict(mode="lightness", value=LIGHT_ENCODE))
+
+        _link_alpha_mask(image, base, host)
 
         try:
-            image.set_selected_layers([host or hue])
+            image.set_selected_layers([host or light])
         except Exception:
             pass
     finally:
@@ -446,13 +506,13 @@ def split_lch(image, base, make_group=True):
     Gimp.displays_flush()
     try:
         msg = _("LCh 分量层已建立：%s。改每层的「curve」就是调该分量的曲线；"
-                "encode 别动。") % (host.get_name() if host else hue.get_name())
+                "encode 别动。") % (host.get_name() if host else light.get_name())
         if auto_group:
             msg += _("\n（8 位图像必须放在组里：不分组会逐层量化，色相会偏几码。）")
         Gimp.message(msg)
     except Exception:
         pass
-    return host or hue
+    return host or light
 
 
 # ---- 程序包装 / procedure wrapper ------------------------------------------

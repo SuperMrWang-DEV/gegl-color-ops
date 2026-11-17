@@ -12,7 +12,7 @@
 3. 32 位浮点图：恒等曲线往返 ≤ 1 码；
 4. 8 位图：恒等往返 ≤ 2 码；
 5. 改曲线 ≈ 直接改 LCh 分量（8 位 ≤ 6 码）；
-6. 透明区域 alpha 逐位保留；
+6. 透明区域 alpha 逐位保留；原图层隐藏后三层仍能自己还原（RGB + alpha）；
 7. 不收组（group=False）时同样还原；
 8. 图层组作为输入会被拒绝；
 9. 编码量程：曲线的 1.0 确实落在 sRGB 最大彩度上。
@@ -94,8 +94,9 @@ def hsv2rgb(h, s, v):
     return r + m, g + m, b + m
 
 
-def make_image(w=48, h=48, float_prec=False, alpha_left=None):
-    """横向铺满色相，纵向三段不同 S/V，可选左半透明。"""
+def make_image(w=48, h=48, float_prec=False, alpha_left=None,
+               with_alpha=True):
+    """横向铺满色相，纵向三段不同 S/V，可选左半透明 / 不要 alpha 通道。"""
     img = Gimp.Image.new(w, h, Gimp.ImageBaseType.RGB)
     if float_prec:
         proc = Gimp.get_pdb().lookup_procedure('gimp-image-convert-precision')
@@ -103,7 +104,9 @@ def make_image(w=48, h=48, float_prec=False, alpha_left=None):
         cfg.set_property('image', img)
         cfg.set_property('precision', Gimp.Precision.FLOAT_NON_LINEAR)
         proc.run(cfg)
-    base = Gimp.Layer.new(img, "base", w, h, Gimp.ImageType.RGBA_IMAGE, 100.0,
+    layer_type = (Gimp.ImageType.RGBA_IMAGE if with_alpha
+                  else Gimp.ImageType.RGB_IMAGE)
+    base = Gimp.Layer.new(img, "base", w, h, layer_type, 100.0,
                           Gimp.LayerMode.NORMAL)
     img.insert_layer(base, None, 0)
     px = array.array('f', bytes(w * h * 4))
@@ -115,8 +118,15 @@ def make_image(w=48, h=48, float_prec=False, alpha_left=None):
             r, g, b = hsv2rgb((x / float(w)) * 360.0, s, v)
             a = alpha_left if (alpha_left is not None and x < w // 2) else 1.0
             px[i:i + 4] = array.array('f', [r, g, b, a])
-    base.get_buffer().set(Gegl.Rectangle.new(0, 0, w, h), "R'G'B'A float",
-                          px.tobytes())
+    if with_alpha:
+        base.get_buffer().set(Gegl.Rectangle.new(0, 0, w, h), "R'G'B'A float",
+                              px.tobytes())
+    else:
+        rgb = array.array('f')
+        for i in range(0, len(px), 4):
+            rgb.extend(px[i:i + 3])
+        base.get_buffer().set(Gegl.Rectangle.new(0, 0, w, h), "R'G'B' float",
+                              rgb.tobytes())
     return img, base, px
 
 
@@ -173,17 +183,21 @@ group = img.get_layers()[0]
 check(group.is_group(), "顶层是图层组")
 check(group.get_mode() == Gimp.LayerMode.PASS_THROUGH, "组是穿透混合")
 kids = group.get_children()
+# 图层栈从上到下：Lightness 在最上。Hue（等 L 等 C 的色相圆）必须垫底——
+# 它下面什么都没有，只能靠自己带真实色相；若最底是灰（C=0），上面两层换 C、
+# 换 H 时读到的都是 0，怎么换都是灰。
 check([k.get_name() for k in kids] ==
-      ["1 · Hue", "2 · Chroma", "3 · Lightness"],
-      "三层顺序 Hue / Chroma / Lightness", [k.get_name() for k in kids])
+      ["3 · Lightness", "2 · Chroma", "1 · Hue"],
+      "三层顺序（上→下）Lightness / Chroma / Hue",
+      [k.get_name() for k in kids])
 check([k.get_mode() for k in kids] ==
-      [Gimp.LayerMode.LCH_HUE, Gimp.LayerMode.LCH_CHROMA,
-       Gimp.LayerMode.LCH_LIGHTNESS], "三条分量混合模式对")
+      [Gimp.LayerMode.LCH_LIGHTNESS, Gimp.LayerMode.LCH_CHROMA,
+       Gimp.LayerMode.LCH_HUE], "三条分量混合模式对")
 check(img.get_layers()[1] is base or img.get_layers()[1].get_name() == "base",
       "原图层还在组下面且没被改动")
 
 print("== 2. 滤镜栈 / filter stack")
-hue_l, chroma_l, light_l = kids
+light_l, chroma_l, hue_l = kids
 check(len(hue_l.get_filters()) == 3, "Hue 层 3 条滤镜",
       len(hue_l.get_filters()))
 check(len(chroma_l.get_filters()) == 3, "Chroma 层 3 条滤镜",
@@ -222,7 +236,7 @@ print("== 5. 曲线 ≈ 直接改 LCh / curves vs direct LCh maths")
 imgc, basec, refc = make_image()
 LCH.split_lch(imgc, basec)
 grp = imgc.get_layers()[0]
-hue_l, chroma_l, light_l = grp.get_children()
+light_l, chroma_l, hue_l = grp.get_children()
 # 三条曲线都是「分量归一化值 → 新值」
 fn_l = lambda t: min(1.0, t * 1.10 + 0.02)          # 提亮
 fn_c = lambda t: min(1.0, t * 1.35)                  # 加彩度
@@ -254,6 +268,17 @@ for i in range(0, len(refc), 4):
                                       min(1.0, max(0.0, b)), 1.0])
 close(max_diff(want, gotc), 0.0, 6.0 / 255.0, "改曲线 vs 直接改 LCh ≤ 6 码")
 
+print("== 6a. 隐藏原图层后自足 / hide the source")
+imgh, baseh, refh = make_image(float_prec=True, alpha_left=0.4)
+LCH.split_lch(imgh, baseh)
+baseh.set_visible(False)
+goth = flatten(imgh)
+close(max_diff(refh, goth), 0.0, 1.5 / 255.0,
+      "原图层隐藏后仍能还原 RGB（≤1 码）")
+close(max_diff(refh, goth, (3,)), 0.0, 2.0 / 255.0,
+      "原图层隐藏后 alpha 仍对（组蒙版）")
+check(imgh.get_layers()[0].get_mask() is not None, "组上挂了 alpha 蒙版")
+
 print("== 6. 透明区域 / alpha passes through")
 imga, basea, refa = make_image(alpha_left=0.4)
 LCH.split_lch(imga, basea)
@@ -263,14 +288,15 @@ close(gota[(imga.get_width() // 4) * 4 + 3], 0.4, 1.5 / 255.0,
       "左半 alpha 仍是 0.4")
 
 print("== 7. 不收组 / no group")
-imgn, basen, refn = make_image(float_prec=True)
+imgn, basen, refn = make_image(float_prec=True, with_alpha=False)
 LCH.split_lch(imgn, basen, make_group=False)
 check(not imgn.get_layers()[0].is_group(), "浮点图：顶层不是组")
 check(len(imgn.get_layers()) == 4, "原图 + 三层", len(imgn.get_layers()))
 close(max_diff(refn, flatten(imgn)), 0.0, 1.0 / 255.0, "不分组也还原")
 
-# 8 位图不分组会被自动改成组（否则逐层量化，色相偏到 11 码）
-img8n, base8n, ref8n = make_image()
+# 8 位图不分组会被自动改成组（否则逐层量化，色相偏到 11 码）；
+# 带 alpha 的图也一样，透明度要挂组蒙版
+img8n, base8n, ref8n = make_image(with_alpha=False)
 LCH.split_lch(img8n, base8n, make_group=False)
 check(img8n.get_layers()[0].is_group(), "8 位图：不分组被自动改成组")
 close(max_diff(ref8n, flatten(img8n)), 0.0, 2.0 / 255.0,
