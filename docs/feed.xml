@@ -5,6 +5,16 @@
   <updated>2026-11-17T00:00:00Z</updated>
   <id>tag:github.com,2026:gegl-color-ops</id>
   <entry>
+    <title>插件 · Alpha Curves（透明通道曲线）</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/alpha-curves.html"/>
+    <id>tag:github.com,2026:plugin-alpha-curves</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>GIMP 的曲线工具本来就有 Alpha 通道，但那条曲线只能调「已经存在的
+       透明度」——它不知道红通道是多少。要按颜色通道决定透明度，得先把通道搬进
+       alpha。这个插件把两步都做了：一条 通道 → Alpha，接一条
+       可以随便画的 alpha 曲线。两条都是非破坏滤镜。</summary>
+  </entry>
+  <entry>
     <title>插件 · 中性灰磨皮</title>
     <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/neutral-grey.html"/>
     <id>tag:github.com,2026:plugin-neutral-grey</id>

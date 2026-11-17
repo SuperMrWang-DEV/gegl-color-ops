@@ -1307,6 +1307,16 @@ def build_plugin_zips(out_dir):
              desc="中性灰磨皮：加一张 50% 灰的柔光层，恒等时与原图逐像素相同。"
                   "白色画笔提亮、黑色画笔压暗，反复涂抹把皮肤推平。",
              pdb="lb-plugin-neutral-grey(image, drawables, group)"),
+        dict(key="alpha-curves", ops=["channel-range-to-alpha"],
+             name="gegl-color-ops-plugin-alpha-curves.zip",
+             src_dir=os.path.join(ROOT, "plugin", "alpha-curves"),
+             py="alpha-curves.py", menu="Alpha Curves（透明通道曲线）",
+             menus="    颜色 → SuperMrWang → Mask → Alpha Curves\n"
+                   "    图层右键 → SuperMrWang → Shortcut → Alpha Curves",
+             desc="Alpha Curves：先把选定颜色通道写进 alpha，再接一条可以随便"
+                  "画的曲线（gimp:curves，通道 = Alpha）。两条都是非破坏滤镜，"
+                  "梯形、S 形、任意起伏都行。",
+             pdb="lb-plugin-alpha-curves(image, drawables, channel, shape)"),
     ]
     zips = {}
     win_src = os.path.join(ROOT, "dist", "windows-x64")
@@ -1439,17 +1449,18 @@ def build_plugins(version, stats=None):
 
     shortcut = [p for p in PD.PAGES if p["area"].startswith("Shortcut")]
     convert = [p for p in PD.PAGES if p["area"] == "图层转换"]
+    mask = [p for p in PD.PAGES if p["area"] == "Mask"]
 
     body = """<section class="page-head">
   <p class="eyebrow"><a href="index.html">首页</a> / Python 插件</p>
-  <h1>十个 Python 插件</h1>
+  <h1>11 个 Python 插件</h1>
   <p class="lede">免编译的 GIMP 3 插件，装进 <code>plug-ins</code> 目录、重启即用。
-     两处入口：<b>图层右键 → SuperMrWang</b>（十个都在）与
+     两处入口：<b>图层右键 → SuperMrWang</b>（十一个都在）与
      <b>颜色 → SuperMrWang</b>。</p>
   <ul class="facts">
-    <li><b>10</b> 个插件</li>
-    <li><b>10</b> 个 PDB 过程</li>
-    <li><b>258</b> 条回归断言</li>
+    <li><b>11</b> 个插件</li>
+    <li><b>11</b> 个 PDB 过程</li>
+    <li><b>290</b> 条回归断言</li>
     <li><b>0</b> 编译 · 纯 Python</li>
   </ul>
 </section>
@@ -1457,6 +1468,7 @@ def build_plugins(version, stats=None):
 <div class="prose wide">
 {shortcut}
 {convert}
+{mask}
   <p class="note">安装：<code>bash install-plugin.sh</code> 一次装齐，或从各自的页面
      单独下某一个 <code>.zip</code>；细节见 <a href="guide.html">安装指南</a>。</p>
 </div>""".format(
@@ -1464,7 +1476,10 @@ def build_plugins(version, stats=None):
                        "五个分量曲线、三个磨皮：把一串手工步骤压成一次点击。",
                        shortcut),
         convert=group("convert", "图层转换", "t-mask",
-                      "算子跑完留下的灰度图，一步变成蒙版或选区存档。", convert))
+                      "算子跑完留下的灰度图，一步变成蒙版或选区存档。", convert),
+        mask=group("mask", "Mask", "t-mask",
+                   "透明度本身当曲线来画：按通道生成 alpha，形状随便画。", mask)
+        if mask else "")
 
     return page("Python 插件 · gegl-color-ops", body,
                 desc="GIMP 3 Python 插件：图层转选区 / Alpha 通道，"
@@ -1475,7 +1490,7 @@ def build_plugins(version, stats=None):
 def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
     """每个插件一篇文章：页头 + 位置/PDB/依赖 + 正文 + 下载 + 翻页。
 
-    十个插件共用一套骨架，差异全在 plugin_docs.py 里。图层转换那两个不在
+    十一个插件共用一套骨架，差异全在 plugin_docs.py 里。图层转换那两个不在
     Shortcut 菜单下，所以菜单块直接读 p["menus"]，不写死。
     """
     z = ((stats or {}).get("plugin_zips") or {}).get(p["key"])

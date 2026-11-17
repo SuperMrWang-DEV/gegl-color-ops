@@ -41,13 +41,14 @@ gegl-color-ops/
 ├── plugin/frequency-separation/ # Python 插件：高低频磨皮（低频 + 高频两层，合成即原图）
 ├── plugin/dodge-burn/        # Python 插件：双曲线磨皮（提亮 / 压暗两层，黑蒙版）
 ├── plugin/neutral-grey/      # Python 插件：中性灰磨皮（50% 灰 + 柔光）
+├── plugin/alpha-curves/      # Python 插件：通道 → Alpha + 一条可编辑的 alpha 曲线（菜单 Mask）
 ├── plugin/sky-replace/       # Python 插件：一键换天（源码保留，.disabled 暂不安装）
 ├── dist/                 # 编好的模块，给不想编译的人直接下载（windows-x64 / linux-x64）
 ├── tools/                # 测试图生成、逐算子冒烟、对照表、文件头重排、注释双语化
 ├── tools/site/           # 站点样式源（生成时拷进 docs/assets/）
-├── tools/plugin_docs.py  # 十个插件页的正文与卡片文案（plugins/<slug> 文章页用）
+├── tools/plugin_docs.py  # 十一个插件页的正文与卡片文案（plugins/<slug> 文章页用）
 ├── docs/                 #  GitHub Pages 站点（tools/site_build.py 生成，别手改）
-│   └── plugins/          #  十个插件各一篇（菜单结构、原理、用法、实测）
+│   └── plugins/          #  十一个插件各一篇（菜单结构、原理、用法、实测）
 ├── build/                # 编译产物（build.sh 生成，可随时删）
 └── LICENSE               # GPL-3.0
 ```
@@ -228,6 +229,29 @@ python-fu-eval 里，不要求插件已安装）。
 回归：`tools/check_layer_to_mask.py`（23 条断言：灰度值、反相、偏移图层、
 彩色亮度、四个单通道、通道值/名字/反相、**彩色图层转通道得到的是亮度而不是
 R 通道**、**有选区时转通道不被截断**、四种组合方式）。
+
+### Python 插件：plugin/alpha-curves
+
+**把透明度本身当曲线来画。** GIMP 的曲线工具有 Alpha 通道，但它只能调「已经
+存在的透明度」——曲线看不到红通道是多少。这个插件把两步都挂在图层上，都是
+非破坏滤镜：
+
+1. `1 · 通道 → Alpha` —— `lb:channel-range-to-alpha`，四个滑块拉到
+   `l1=0 / l2=255 / r1=r2=255`，斜坡占满全程，退化成「alpha ← 通道值」；
+2. `2 · Alpha 曲线` —— `gimp:curves`，通道 = Alpha，**一条普通的曲线**。
+
+位置：**颜色 → SuperMrWang → Mask → Alpha Curves**，或图层右键 →
+SuperMrWang → Shortcut。参数两项：源通道（gray / R / G / B / LAB L·A·B /
+alpha）与初始形状（auto / band 梯形 / identity / soft）。
+
+曲线能画成任意一维映射，所以梯形只是其中一种形状；`lb:channel-range-to-alpha`
+的四滑块仍然有用——它一步就能把通道变成 alpha，而曲线必须先把通道搬进 alpha。
+
+两条滤镜是**乘**的关系：`alpha = 原 alpha × 曲线(通道值)`，与算子一致；
+原图不透明时就是 `曲线(通道值)`。选 `alpha` 作源通道时只挂第 2 条，纯调现有
+透明度。实测：恒等曲线与通道值差 ≤ 0.01 码、RGB 零改动；梯形曲线与
+`lb:channel-range-to-alpha` 逐像素一致（0.0005 码）。回归
+`tools/check_alpha_curves.py` 32 项。
 
 ### Python 插件：plugin/sky-replace（暂不发布）
 

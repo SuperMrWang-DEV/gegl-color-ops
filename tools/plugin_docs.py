@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""十个 Python 插件的页面数据。
+"""十一个 Python 插件的页面数据。
 
 plugins.html 的卡片与 plugins/<slug>.html 的文章正文都从这里来，改一处两边
 一起变；正文来源是各插件源码与回归实测，数字都在 tools/check_*.py 里可复现。
@@ -543,6 +543,60 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
     </div>
   </div>""",
     ),
+    dict(
+        key='alpha-curves',
+        slug='alpha-curves',
+        title='Alpha Curves（透明通道曲线）',
+        tag=('蒙版', 't-mask'),
+        count='α',
+        area='Mask',
+        menu='颜色 → SuperMrWang → Mask → Alpha Curves',
+        menus=['颜色 → SuperMrWang → Mask → Alpha Curves',
+               '图层右键 → SuperMrWang → Shortcut → Alpha Curves'],
+        pdb='lb-plugin-alpha-curves(image, drawables, channel, shape)',
+        lede="""GIMP 的曲线工具本来就有 Alpha 通道，但那条曲线只能调「已经存在的
+       透明度」——它不知道红通道是多少。要按颜色通道决定透明度，得先把通道搬进
+       alpha。这个插件把两步都做了：一条 <b>通道 → Alpha</b>，接一条
+       <b>可以随便画的 alpha 曲线</b>。两条都是非破坏滤镜。""",
+        body="""<div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>生成的结构</h3><span class="pill">两条滤镜</span></div>
+      <pre><code>Alpha Curves
+  ├─ 2 · Alpha 曲线        gimp:curves（通道 = Alpha）
+  └─ 1 · 通道 → Alpha      lb:channel-range-to-alpha</code></pre>
+      <p>第 1 条把选定通道线性写进 alpha：四个滑块拉到 <code>l1=0、l2=255、
+         r1=r2=255</code>，斜坡占满全程，映射退化成「alpha ← 通道值」。
+         第 2 条就是普通的曲线，输入正好是那个通道值。</p>
+      <p>点开「2 · Alpha 曲线」拖控制点，画成什么就是什么映射——S 形、
+         来回起伏、只压半透明，都行。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>和 Range → Alpha 的关系</h3></div>
+      <p><code>lb:channel-range-to-alpha</code> 一步做完两件事：选通道、按四滑块
+         的梯形把它乘进 alpha。曲线不能一步做——它看不到「通道是多少」，只能
+         作用于 alpha 自己。所以这里拆成两条：先把通道搬进 alpha，再画曲线。</p>
+      <p>反过来，算子的梯形只是曲线的一种形状。用曲线能做的更多：</p>
+      <ul class="deps">
+        <li>梯形（默认 band）＝ 混合颜色带</li>
+        <li>S 形（smoothstep）＝ 暗部更透、亮部更实</li>
+        <li>恒等（45°）＝ alpha 等于通道值，纯拷贝</li>
+        <li>任意起伏 ＝ 中间某一段透明、别处不透明</li>
+      </ul>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>实测</h3><span class="pill">check_alpha_curves.py</span></div>
+      <p>恒等曲线时 alpha 与所选通道值差 <b>≤ 0.01 码</b>，RGB 一个码都不动；
+         梯形曲线与 <code>lb:channel-range-to-alpha</code> 逐像素一致
+         （<b>0.0005 码</b>）；8 位图 ≤ <b>1 码</b>。</p>
+      <p>原图半透明时是<b>乘</b>不是替换：<code>alpha = 原 alpha × 曲线(通道值)</code>，
+         与算子一致。回归 32 项。</p>
+    </div>
+  </div>
+  <p class="note">两条滤镜都在图层上，图层面板里可以逐条关掉、随时改参数，不碰像素。
+     选 <b>alpha</b> 作源通道时只挂第 2 条——那是最纯粹的「给现有透明度画曲线」。
+     曲线的 trc 钉在编码值上，与 <code>channel-range-to-alpha</code> 的 0–255 滑块
+     同一刻度。依赖 <code>lb:channel-range-to-alpha</code>（除 alpha 模式外）。</p>""",
+    ),
 ]
 
 BY_KEY = {p["key"]: p for p in PAGES}
@@ -562,9 +616,11 @@ BRIEF = {
     "frequency": "低频管影调、高频管细节，叠起来就是原图；半径决定分界。",
     "dodge": "提亮 / 压暗两条曲线压在黑蒙版下：涂到哪里动哪里。",
     "grey": "一层 50% 灰、柔光下恒等；白笔提亮、黑笔压暗、灰盖回去。",
+    "alpha-curves": "把颜色通道写进 alpha，再接一条可以随便画的曲线；"
+                    "梯形、S 形、任意起伏都行。",
 }
 
-AREA = {"selection": "图层转换", "channel": "图层转换"}
+AREA = {"selection": "图层转换", "channel": "图层转换", "alpha-curves": "Mask"}
 
 DEPS = {
     "hsv": ["lb:hsv-dual", "lb:hsv-compose", "gimp:curves"],
@@ -575,6 +631,7 @@ DEPS = {
     "frequency": ["gegl:gaussian-blur", "gegl:high-pass"],
     "dodge": ["gimp:curves"],
     "grey": [],
+    "alpha-curves": ["lb:channel-range-to-alpha", "gimp:curves"],
 }
 
 DEPS_NOTE = {

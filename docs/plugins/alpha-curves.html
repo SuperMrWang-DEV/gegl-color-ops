@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alpha Curves（透明通道曲线） · Python 插件 · gegl-color-ops</title>
+<meta name="description" content="GIMP 的曲线工具本来就有 Alpha 通道，但那条曲线只能调「已经存在的
+       透明度」——它不知道红通道是多少。要按颜色通道决定透明度，得先把通道搬进
+       alpha。这个插件把两步都做了：一条 通道 → Alpha">
+<meta property="og:title" content="Alpha Curves（透明通道曲线） · Python 插件 · gegl-color-ops">
+<meta property="og:description" content="GIMP 的曲线工具本来就有 Alpha 通道，但那条曲线只能调「已经存在的
+       透明度」——它不知道红通道是多少。要按颜色通道决定透明度，得先把通道搬进
+       alpha。这个插件把两步都做了：一条 通道 → Alpha">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+</head>
+<body>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+</header>
+<main id="main">
+<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../plugins.html">插件</a>
+    / Mask</p>
+  <h1>Alpha Curves（透明通道曲线）</h1>
+  <div class="meta">
+    <code>plugin/alpha-curves</code>
+    <span class="tag t-mask">蒙版</span>
+    <span>Mask</span>
+  </div>
+  <p class="lede">GIMP 的曲线工具本来就有 Alpha 通道，但那条曲线只能调「已经存在的
+       透明度」——它不知道红通道是多少。要按颜色通道决定透明度，得先把通道搬进
+       alpha。这个插件把两步都做了：一条 <b>通道 → Alpha</b>，接一条
+       <b>可以随便画的 alpha 曲线</b>。两条都是非破坏滤镜。</p>
+</section>
+
+<div class="prose wide">
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>菜单位置</h3><span class="pill">多条</span></div>
+      <ul class="menu-list"><li>颜色 → SuperMrWang → Mask → Alpha Curves</li><li>图层右键 → SuperMrWang → Shortcut → Alpha Curves</li></ul>
+      <p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——
+         组没有自己的像素，会直接报错并提示先合并。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>脚本调用</h3></div>
+      <pre><code>lb-plugin-alpha-curves(image, drawables, channel, shape)</code></pre>
+      <p>标准 PDB 过程，参数留空走默认值。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>依赖</h3></div>
+      <p>靠下面这些算子干活。<b>它们已经打进这个插件的下载包</b>（<code>modules-windows-x64</code> / <code>modules-linux-x64</code>），不用另外去下：</p>
+      <ul class="deps"><li><code>lb:channel-range-to-alpha</code></li><li><code>gimp:curves</code></li></ul>
+    </div>
+  </div>
+
+<div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>生成的结构</h3><span class="pill">两条滤镜</span></div>
+      <pre><code>Alpha Curves
+  ├─ 2 · Alpha 曲线        gimp:curves（通道 = Alpha）
+  └─ 1 · 通道 → Alpha      lb:channel-range-to-alpha</code></pre>
+      <p>第 1 条把选定通道线性写进 alpha：四个滑块拉到 <code>l1=0、l2=255、
+         r1=r2=255</code>，斜坡占满全程，映射退化成「alpha ← 通道值」。
+         第 2 条就是普通的曲线，输入正好是那个通道值。</p>
+      <p>点开「2 · Alpha 曲线」拖控制点，画成什么就是什么映射——S 形、
+         来回起伏、只压半透明，都行。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>和 Range → Alpha 的关系</h3></div>
+      <p><code>lb:channel-range-to-alpha</code> 一步做完两件事：选通道、按四滑块
+         的梯形把它乘进 alpha。曲线不能一步做——它看不到「通道是多少」，只能
+         作用于 alpha 自己。所以这里拆成两条：先把通道搬进 alpha，再画曲线。</p>
+      <p>反过来，算子的梯形只是曲线的一种形状。用曲线能做的更多：</p>
+      <ul class="deps">
+        <li>梯形（默认 band）＝ 混合颜色带</li>
+        <li>S 形（smoothstep）＝ 暗部更透、亮部更实</li>
+        <li>恒等（45°）＝ alpha 等于通道值，纯拷贝</li>
+        <li>任意起伏 ＝ 中间某一段透明、别处不透明</li>
+      </ul>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>实测</h3><span class="pill">check_alpha_curves.py</span></div>
+      <p>恒等曲线时 alpha 与所选通道值差 <b>≤ 0.01 码</b>，RGB 一个码都不动；
+         梯形曲线与 <code>lb:channel-range-to-alpha</code> 逐像素一致
+         （<b>0.0005 码</b>）；8 位图 ≤ <b>1 码</b>。</p>
+      <p>原图半透明时是<b>乘</b>不是替换：<code>alpha = 原 alpha × 曲线(通道值)</code>，
+         与算子一致。回归 32 项。</p>
+    </div>
+  </div>
+  <p class="note">两条滤镜都在图层上，图层面板里可以逐条关掉、随时改参数，不碰像素。
+     选 <b>alpha</b> 作源通道时只挂第 2 条——那是最纯粹的「给现有透明度画曲线」。
+     曲线的 trc 钉在编码值上，与 <code>channel-range-to-alpha</code> 的 0–255 滑块
+     同一刻度。依赖 <code>lb:channel-range-to-alpha</code>（除 alpha 模式外）。</p>
+
+<section class="download" id="download">
+  <h2>下载这一个</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>Alpha Curves</h3><span class="pill">含 1 个模块 · 免编译</span></div>
+    <p>包里有一个 <code>.py</code>、1 个算子模块和一份安装说明。<b>算子依赖已经附在里面，不用另外去下。</b><code>.py</code> 进 GIMP 的 <code>plug-ins</code>，模块进 GEGL 的 <code>gegl-0.4/plug-ins</code>——两个目录不一样，包内说明分步写了。</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-alpha-curves.zip">下载 Alpha Curves</a>
+    <p class="muted small">58.9 KB · 校验：<code>SHA256 d25bee0e6deab14f5152a644bf0f3654…</code></p>
+  </div>
+</section>
+
+<p class="note">文中「码」指 8 位图上的一个台阶：0–255 共 256 级，相邻两级的差就是
+   1 码，等于 1/255 ≈ 0.392%（也就是 RGB 128 与 129 之间的差）。各数量级的含义与
+   「码为什么不是感知量」的说明见
+   <a href="../guide.html#code">安装指南 · 精度里的「码」</a>。</p>
+
+<nav class="pager">
+  <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
+  <a class="prev" href="neutral-grey.html"><span>上一篇</span>中性灰磨皮</a>
+</nav>
+</div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">3ff69b0</span>
+  </div>
+</footer>
+</body>
+</html>
