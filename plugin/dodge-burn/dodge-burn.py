@@ -107,14 +107,16 @@ def _link_alpha_mask(image, base, host):
 
 
 def _force_opaque(layer):
-    """把 alpha 拉满：显隐只由蒙版决定。"""
+    """把 alpha 拉满：显隐只由蒙版决定。
+
+    SMOOTH 三控制点全在顶，比铺 256 个采样点省事，界面上也只有三个抓手。
+    """
     filt = Gimp.DrawableFilter.new(layer, "gimp:curves", _("0 · alpha"))
     cfg = filt.get_config()
     curve = Gimp.Curve.new()
-    curve.set_curve_type(Gimp.CurveType.FREE)
-    n = curve.get_n_samples()
-    for i in range(n):
-        curve.set_sample(i / float(n - 1), 1.0)
+    curve.set_curve_type(Gimp.CurveType.SMOOTH)
+    for x in (0.0, 0.5, 1.0):
+        curve.add_point(x, 1.0)
     cfg.set_property("curve", curve)
     cfg.set_property("channel", Gimp.HistogramChannel.ALPHA)
     cfg.set_property("trc", Gimp.TRCType.LINEAR)
@@ -130,14 +132,19 @@ def _curve_fn(amount, sign):
     return fn
 
 
+# 五个控制点：三点的样条画这条抛物线会差 2.6 码，五点是 0.6 码，手柄也还在
+# 一只手数得过来的范围里。
+CURVE_STEPS = (0.0, 0.25, 0.5, 0.75, 1.0)
+
+
 def _append_curve(layer, label, fn):
+    """提亮 / 压暗曲线：SMOOTH 平滑样条，五个控制点。"""
     filt = Gimp.DrawableFilter.new(layer, "gimp:curves", label)
     cfg = filt.get_config()
     curve = Gimp.Curve.new()
-    curve.set_curve_type(Gimp.CurveType.FREE)
-    n = curve.get_n_samples()
-    for i in range(n):
-        curve.set_sample(i / float(n - 1), fn(i / float(n - 1)))
+    curve.set_curve_type(Gimp.CurveType.SMOOTH)
+    for x in CURVE_STEPS:
+        curve.add_point(x, fn(x))
     cfg.set_property("curve", curve)
     cfg.set_property("channel", Gimp.HistogramChannel.VALUE)
     cfg.set_property("trc", Gimp.TRCType.NON_LINEAR)

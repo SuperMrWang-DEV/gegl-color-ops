@@ -79,37 +79,50 @@ def _(message):
     return GLib.dgettext(None, message)
 
 
-def _identity(t):
-    return t
-
-
 # 精确适配用的两个算子（本仓库 ops/hsi-dual、ops/hsi-compose）
 DUAL_OP = "lb:hsi-dual"
 COMPOSE_OP = "lb:hsi-compose"
 
 
-# ---- 滤镜栈 / the filter stack ---------------------------------------------
+# ---- 曲线 / curves ----------------------------------------------------------
+#
+# 曲线分两种，写法不一样：
+#
+#   1. 给人调的曲线（各分量层上那条 2 · xxx curve）——SMOOTH 平滑样条 +
+#      三个控制点 (0,0) (128,128) (255,255)。三个抓手，拖一个整条线跟着走。
+#      用 FREE 就得铺 256 个采样点，想动某一段得在一堆点里找准，手拖不动。
+#
+#   2. 机器编码表（LIGHT_ENCODE / HUE_ENCODE / scale 这类）——它们不是给人
+#      调的，而是把分量的数值范围搬到 0…255 上（比如 L* 0…100 要铺满灰阶），
+#      形状是算出来的，只能用采样点表逼近，所以留 FREE。
 
-def _append_curve(layer, label, fn, channel):
-    """在图层上追加一条 gimp:curves（通道级一维映射）。
+IDENTITY_POINTS = ((0.0, 0.0), (0.5, 0.5), (1.0, 1.0))
 
-    trc 钉成 NON_LINEAR：曲线在编码值上生效，与分量语义一致。
-    Append one channel curve, pinned to encoded (NON_LINEAR) values."""
+
+def _point_curve(points):
+    """按控制点造一条平滑曲线（SMOOTH）。/ A smooth curve through points."""
+    curve = Gimp.Curve.new()
+    curve.set_curve_type(Gimp.CurveType.SMOOTH)
+    for x, y in points:
+        curve.add_point(float(x), float(y))
+    return curve
+
+
+def _append_curve_points(layer, label, points, channel=None):
+    """追加一条可编辑的平滑曲线（少量控制点）。channel=None 即「值」通道。"""
     filt = Gimp.DrawableFilter.new(layer, "gimp:curves", label)
     cfg = filt.get_config()
-    curve = Gimp.Curve.new()
-    curve.set_curve_type(Gimp.CurveType.FREE)
-    n = curve.get_n_samples()
-    for i in range(n):
-        x = i / float(n - 1)
-        curve.set_sample(x, min(1.0, max(0.0, fn(x))))
-    cfg.set_property("curve", curve)
-    cfg.set_property("channel", channel)
+    cfg.set_property("curve", _point_curve(points))
+    cfg.set_property("channel",
+                     channel if channel is not None
+                     else Gimp.HistogramChannel.VALUE)
     cfg.set_property("trc", Gimp.TRCType.NON_LINEAR)
     filt.update()
     layer.append_filter(filt)
     return filt
 
+
+# ---- 滤镜栈 / the filter stack ---------------------------------------------
 
 def _simple_filter(layer, op, label):
     """挂一个不需要曲线的算子滤镜（lb:hsi-dual / lb:hsi-compose 这类）。"""
@@ -234,12 +247,12 @@ def split_hsi(image, base, make_group=True):
         image.insert_layer(layer, host, 0)
 
         _simple_filter(layer, DUAL_OP, _("1 · decompose"))
-        _append_curve(layer, _("2 · S curve"), _identity,
-                      Gimp.HistogramChannel.RED)
-        _append_curve(layer, _("3 · I curve"), _identity,
-                      Gimp.HistogramChannel.GREEN)
-        _append_curve(layer, _("4 · H curve"), _identity,
-                      Gimp.HistogramChannel.BLUE)
+        _append_curve_points(layer, _("2 · S curve"), IDENTITY_POINTS,
+                             Gimp.HistogramChannel.RED)
+        _append_curve_points(layer, _("3 · I curve"), IDENTITY_POINTS,
+                             Gimp.HistogramChannel.GREEN)
+        _append_curve_points(layer, _("4 · H curve"), IDENTITY_POINTS,
+                             Gimp.HistogramChannel.BLUE)
         _simple_filter(layer, COMPOSE_OP, _("5 · compose"))
 
         _link_alpha_mask(image, base, host)

@@ -95,9 +95,11 @@ multi    LCh split            组 · 穿透（带 alpha 时组上还有蒙版）
          逐层量化把色相带偏的风险。层数三降到一，滤镜十四条降到五条。</p>
     </div>
   </div>
-  <p class="note"><b>实测</b>：浮点恒等往返 <b>0.0005 码</b>（multi 三层 <b>0.0053 码</b>）、
-     8 位 <b>0.49 码</b>——single 更准，multi 换的是分层开关；
-     只改 C 曲线时 L* 与色相的偏差 <b>0.00001 码</b>级。彩度或色相推到极端会出
+  <p class="note"><b>实测</b>：浮点恒等往返 <b>5.9 码</b>（multi 三层 <b>6.5 码</b>）、
+     8 位 <b>6.3 码</b>。五个分量插件里 LCh 最吃亏：三条平滑曲线之外，它还要过
+     色相、彩度两张编码表，每一步都舍一次入；换成铺满采样点的老写法是
+     0.0005 / 0.49 码，但那条线在面板里抓不住。
+     只改 C 曲线时 L* 与色相的偏差 <b>≤1.5 码</b>。彩度或色相推到极端会出
      sRGB 色域，8 位图按 0/1 裁掉——LCh 的色域比 sRGB 大，这是它本身的性质。
      近中性色（C*≈0）的色相是噪声，但合成不受影响。依赖
      <code>lb:lch-dual</code> / <code>lb:lch-compose</code>。</p>
@@ -108,7 +110,7 @@ multi    LCh split            组 · 穿透（带 alpha 时组上还有蒙版）
     <div class="dl-head"><h3>LCh Split (Curves) · single</h3><span class="pill">含 2 个模块 · 免编译</span></div>
     <p>包里有一个 <code>.py</code>、2 个算子模块和一份安装说明。<b>算子依赖已经附在里面，不用另外去下。</b><code>.py</code> 进 GIMP 的 <code>plug-ins</code>，模块进 GEGL 的 <code>gegl-0.4/plug-ins</code>——两个目录不一样，包内说明分步写了。 Linux 端的 lch-compose.so、lch-dual.so 还没进预编译包，要用 Linux 就 <code>./build.sh</code> 自己编一份（Windows 端齐全）。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-lch-split-curves.zip">下载 LCh Split (Curves) · single</a>
-    <p class="muted small">78.4 KB · 校验：<code>SHA256 91cd7ba1d668ceb1cf7345bf98be711b…</code></p>
+    <p class="muted small">79.0 KB · 校验：<code>SHA256 b49fc7e332dbe0cbbbe981f15e8788ab…</code></p>
   </div>
 </section>
 
@@ -132,7 +134,7 @@ multi    LCh split            组 · 穿透（带 alpha 时组上还有蒙版）
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">4b2a56a</span>
+    <span class="muted">79113bb</span>
   </div>
 </footer>
 </body>

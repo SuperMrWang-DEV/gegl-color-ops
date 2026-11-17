@@ -103,10 +103,6 @@ def _(message):
     return GLib.dgettext(None, message)
 
 
-def _identity(t):
-    return t
-
-
 # 精确适配用的两个算子（本仓库 ops/lch-dual、ops/lch-compose）
 DUAL_OP = "lb:lch-dual"
 COMPOSE_OP = "lb:lch-compose"
@@ -268,17 +264,53 @@ CHROMA_ENCODE = tuple(_channel(_CHROMA_PATH, k) for k in range(3))
 LIGHT_ENCODE = _channel(_LIGHT_PATH, 0)
 
 
-def _identity(t):
-    return t
-
-
 def _chroma_scale(t):
     """extract 的 lch-c（C/200）→ 0…1（1.0 = sRGB 最大彩度）。"""
     return min(1.0, t * CHROMA_SCALE)
 
 
+# ---- 曲线 / curves ----------------------------------------------------------
+#
+# 曲线分两种，写法不一样：
+#
+#   1. 给人调的曲线（各分量层上那条 2 · xxx curve）——SMOOTH 平滑样条 +
+#      三个控制点 (0,0) (128,128) (255,255)。三个抓手，拖一个整条线跟着走。
+#      用 FREE 就得铺 256 个采样点，想动某一段得在一堆点里找准，手拖不动。
+#
+#   2. 机器编码表（LIGHT_ENCODE / HUE_ENCODE / scale 这类）——它们不是给人
+#      调的，而是把分量的数值范围搬到 0…255 上（比如 L* 0…100 要铺满灰阶），
+#      形状是算出来的，只能用采样点表逼近，所以留 FREE。
+
+IDENTITY_POINTS = ((0.0, 0.0), (0.5, 0.5), (1.0, 1.0))
+
+
+def _point_curve(points):
+    """按控制点造一条平滑曲线（SMOOTH）。/ A smooth curve through points."""
+    curve = Gimp.Curve.new()
+    curve.set_curve_type(Gimp.CurveType.SMOOTH)
+    for x, y in points:
+        curve.add_point(float(x), float(y))
+    return curve
+
+
+def _append_curve_points(layer, label, points, channel=None):
+    """追加一条可编辑的平滑曲线（少量控制点）。channel=None 即「值」通道。"""
+    filt = Gimp.DrawableFilter.new(layer, "gimp:curves", label)
+    cfg = filt.get_config()
+    cfg.set_property("curve", _point_curve(points))
+    cfg.set_property("channel",
+                     channel if channel is not None
+                     else Gimp.HistogramChannel.VALUE)
+    cfg.set_property("trc", Gimp.TRCType.NON_LINEAR)
+    filt.update()
+    layer.append_filter(filt)
+    return filt
+
+
 # ---- 滤镜栈 / the filter stack ---------------------------------------------
 
+# 下面这个只给机器编码表用：形状是算出来的（分量范围 → 0…255），
+# 只能用采样点逼近，所以是 FREE。给人调的曲线走 _append_curve_points。
 def _append_curve(layer, label, fn, channel=None):
     """在图层上追加一条 gimp:curves（一维映射）。
 
@@ -333,8 +365,9 @@ def _component_layer(image, base, title, component, mode, parent,
     if has_scale:
         _append_curve(layer, _("2 · scale (×1.52)"), encode["scale"])
 
-    _append_curve(layer, _("3 · curve") if has_scale else _("2 · curve"),
-                  _identity)
+    _append_curve_points(layer,
+                         _("3 · curve") if has_scale else _("2 · curve"),
+                         IDENTITY_POINTS)
 
     if encode is not None:
         _append_encoder(layer, use_gtc,
@@ -600,9 +633,12 @@ def _split_single(image, base, make_group=True):
         image.insert_layer(layer, host, 0)
 
         _simple_filter(layer, DUAL_OP, _("1 · decompose"))
-        _append_curve(layer, _("2 · L curve"), _identity, Gimp.HistogramChannel.RED)
-        _append_curve(layer, _("3 · C curve"), _identity, Gimp.HistogramChannel.GREEN)
-        _append_curve(layer, _("4 · h curve"), _identity, Gimp.HistogramChannel.BLUE)
+        _append_curve_points(layer, _("2 · L curve"), IDENTITY_POINTS,
+                             Gimp.HistogramChannel.RED)
+        _append_curve_points(layer, _("3 · C curve"), IDENTITY_POINTS,
+                             Gimp.HistogramChannel.GREEN)
+        _append_curve_points(layer, _("4 · h curve"), IDENTITY_POINTS,
+                             Gimp.HistogramChannel.BLUE)
         _simple_filter(layer, COMPOSE_OP, _("5 · compose"))
 
         _link_alpha_mask(image, base, host)

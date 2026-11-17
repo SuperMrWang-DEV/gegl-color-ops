@@ -228,13 +228,19 @@ def filters_of(layer):
     return [f.get_operation_name() for f in layer.get_filters()][::-1]
 
 
-def curve_at(layer, label, x):
-    """读某条曲线在 x 处的采样值（曲线是 256 点查表，取最近点）。"""
+def curve_obj(layer, label):
+    """取某条 gimp:curves 的曲线对象（SMOOTH 曲线没有采样表，只能读控制点）。"""
     f = [f for f in layer.get_filters() if f.get_name() == label][0]
-    curve = f.get_config().get_property("curve")
-    n = curve.get_n_samples()
-    i = int(round(x * (n - 1)))
-    return curve.get_sample(i)
+    return f.get_config().get_property("curve")
+
+
+def is_smooth(curve):
+    return int(curve.get_curve_type()) == int(Gimp.CurveType.SMOOTH)
+
+
+def points_of(curve):
+    return [(round(curve.get_point(i).x, 4), round(curve.get_point(i).y, 4))
+            for i in range(curve.get_n_points())]
 
 
 print("================ A. 高低频 / frequency separation ================")
@@ -262,6 +268,16 @@ check(filters_of(kids[0])[-1] == "gegl:high-pass", "高频层挂高通",
 hp_cfg = kids[0].get_filters()[0].get_config()
 close(hp_cfg.get_property("std-dev"), 6.0, 1e-6, "高通半径 = 6")
 close(hp_cfg.get_property("contrast"), 2.0, 1e-6, "高通 contrast = 2")
+
+print("== A2b 曲线类型 / curve type")
+for k in kids:
+    cur = curve_obj(k, "0 · alpha")
+    check(is_smooth(cur), "%s：0 · alpha 是平滑曲线（SMOOTH）" % k.get_name(),
+          int(cur.get_curve_type()))
+    check(cur.get_n_points() == 3, "%s：三个控制点" % k.get_name(),
+          cur.get_n_points())
+    check(points_of(cur) == [(0.0, 1.0), (0.5, 1.0), (1.0, 1.0)],
+          "%s：三点全在顶（alpha 拉满）" % k.get_name(), points_of(cur))
 
 print("== A3 恒等 / identity")
 ref = read(base)
@@ -353,6 +369,23 @@ check(filters_of(kids[1])[-1] == "gimp:curves", "提亮层挂曲线", filters_of
 check(filters_of(kids[0])[-1] == "gimp:curves", "压暗层挂曲线", filters_of(kids[0]))
 chan = kids[1].get_filters()[0].get_config().get_property("channel")
 check(chan == Gimp.HistogramChannel.VALUE, "曲线挂在值通道", chan)
+
+print("== B2b 曲线类型 / curve type")
+for k, label in ((kids[1], "1 · 提亮曲线"), (kids[0], "2 · 压暗曲线")):
+    cur = curve_obj(k, label)
+    check(is_smooth(cur), "%s 是平滑曲线（SMOOTH）" % label,
+          int(cur.get_curve_type()))
+    check(cur.get_n_points() == 5, "%s：五个控制点" % label, cur.get_n_points())
+    pts = points_of(cur)
+    check(pts[0] == (0.0, 0.0) and pts[-1] == (1.0, 1.0),
+          "%s：两端不动（0,0）(1,1)" % label, pts)
+    if k is kids[1]:
+        check(pts[2][1] > 0.5, "提亮曲线中段高于 0.5", pts[2])
+    else:
+        check(pts[2][1] < 0.5, "压暗曲线中段低于 0.5", pts[2])
+    alpha = curve_obj(k, "0 · alpha")
+    check(is_smooth(alpha) and alpha.get_n_points() == 3,
+          "%s 的 0 · alpha 也是平滑三点" % k.get_name())
 
 print("== B3 恒等 / identity")
 ref = read(base)

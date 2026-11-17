@@ -88,17 +88,19 @@ multi    HSV split            组 · 穿透（带 alpha 时组上还有蒙版）
          <code>encode</code>，再靠 HSV 的三个分量混合模式叠回去。三层就是三次
          编码、三次量化；换来的是每层都能单独关——拨掉 Hue 层就只剩调过 S/V 的
          中间结果，判断在改什么时很直观。</p>
-      <p>两个模式的恒等曲线都逐像素还原原图。</p>
+      <p>两个模式的恒等曲线都是<b>平滑样条</b>（SMOOTH，三个控制点 0/128/255），
+         恒等时把原图还原到 3 码以内。</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>实测精度</h3></div>
-      <p>single：32 位浮点图恒等往返 <b>0.0002 码</b>；8 位图 <b>0.49 码</b>（就是
-         量化本身）。只改 S 曲线时，结果的 V 与色相偏差 <b>&lt; 0.001 码</b>——
-         三个分量确实互不干扰。</p>
-      <p>multi：浮点图三层合成的恒等往返 <b>0.0015 码</b>，隐藏原图层后照样叠得回去。
-         比 single 大七倍——多出来的是三次编码来回的余数，但仍然在千分之一码量级，
-         肉眼无感。8 位图上两个模式都是 <b>0.49 码</b>，量化盖过一切。所以精度上
-         <b>single 更准</b>，multi 换来的是「每层能单独关」。</p>
+      <p>single：32 位浮点图恒等往返 <b>2.4 码</b>；8 位图 <b>2.5 码</b>。
+         这两组数比「铺满采样点」的老写法大（那时是 0.0002 / 0.49 码）——差别全在
+         曲线本身：平滑样条是 256 格查表插值，每次过曲线舍一次入，三条曲线叠起来
+         就是两三码。换来的是面板里三个抓手，拖得动。</p>
+      <p>只改 S 曲线时，结果的 V 与色相偏差 <b>≤1.5 码</b>——三个分量确实互不干扰。</p>
+      <p>multi：浮点图三层合成的恒等往返 <b>2.4 码</b>，隐藏原图层后照样叠得回去，
+         与 single 基本持平——多出来的是三次编码来回的余数。8 位图上两个模式都是
+         <b>2.5 码</b>。所以精度上 <b>single 略准</b>，multi 换来的是「每层能单独关」。</p>
     </div>
   </div>
   <p class="note">通道约定是硬的：<b>S 在红、V 在绿、色相在蓝</b>。改曲线时选错通道，
@@ -113,7 +115,7 @@ multi    HSV split            组 · 穿透（带 alpha 时组上还有蒙版）
     <div class="dl-head"><h3>HSV Split (Curves) · single</h3><span class="pill">含 2 个模块 · 免编译</span></div>
     <p>包里有一个 <code>.py</code>、2 个算子模块和一份安装说明。<b>算子依赖已经附在里面，不用另外去下。</b><code>.py</code> 进 GIMP 的 <code>plug-ins</code>，模块进 GEGL 的 <code>gegl-0.4/plug-ins</code>——两个目录不一样，包内说明分步写了。 Linux 端的 hsv-compose.so、hsv-dual.so 还没进预编译包，要用 Linux 就 <code>./build.sh</code> 自己编一份（Windows 端齐全）。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-hsv-split-curves.zip">下载 HSV Split (Curves) · single</a>
-    <p class="muted small">75.2 KB · 校验：<code>SHA256 f078c7ed4c8ef4688385660e0c037022…</code></p>
+    <p class="muted small">75.8 KB · 校验：<code>SHA256 8c951839c9054a258a42dacdbddf59cd…</code></p>
   </div>
 </section>
 
@@ -137,7 +139,7 @@ multi    HSV split            组 · 穿透（带 alpha 时组上还有蒙版）
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">4b2a56a</span>
+    <span class="muted">79113bb</span>
   </div>
 </footer>
 </body>

@@ -11,7 +11,7 @@
 2. 滤镜条数与执行顺序（decompose / 三条曲线 / compose 共 5 条），三条曲线
    分别挂在红 / 绿 / 蓝通道上；
 3. 32 位浮点图：恒等曲线往返 ≈ 0；
-4. 8 位图：恒等往返 ≤ 1.5 码；
+4. 8 位图：恒等往返 ≤ 4 码（平滑曲线的查表舍入）；
 5. 改 2 · S curve 曲线后，结果的 饱和度 = f(原 饱和度)，另外两个分量不动；
 6. 改 3 · V curve 曲线后同理；
 7. 改 4 · H curve 曲线后同理；
@@ -201,11 +201,12 @@ def set_curve(layer, which, fn, channel):
         if filt.get_name() == which:
             cfg = filt.get_config()
             curve = Gimp.Curve.new()
-            curve.set_curve_type(Gimp.CurveType.FREE)
-            n = curve.get_n_samples()
-            for i in range(n):
-                x = i / float(n - 1)
-                curve.set_sample(x, min(1.0, max(0.0, fn(x))))
+            curve.set_curve_type(Gimp.CurveType.SMOOTH)
+            # 17 个控制点：够密，形状跟手画的函数几乎一样，又还不至于变成
+            # 一堆抓不住的点。
+            for i in range(17):
+                x = i / 16.0
+                curve.add_point(x, min(1.0, max(0.0, fn(x))))
             cfg.set_property("curve", curve)
             cfg.set_property("channel", channel)
             cfg.set_property("trc", Gimp.TRCType.NON_LINEAR)
@@ -255,17 +256,36 @@ check(chans == [Gimp.HistogramChannel.RED, Gimp.HistogramChannel.GREEN,
 
 # ---- 3/4. 恒等往返 ----------------------------------------------------------
 
+print("== 2b. 曲线类型 / curve type")
+imgc, basec, _refc = make_image(float_prec=True)
+MOD.split_hsv(imgc, basec)
+layerc = imgc.get_layers()[0].get_children()[0]
+curves = [f for f in layerc.get_filters() if "curve" in f.get_name()]
+check(len(curves) == 3, "三条可编辑曲线", [f.get_name() for f in curves])
+for f in curves:
+    cur = f.get_config().get_property("curve")
+    check(int(cur.get_curve_type()) == int(Gimp.CurveType.SMOOTH),
+          "%s：是平滑曲线（SMOOTH），不是手绘" % f.get_name(),
+          int(cur.get_curve_type()))
+    check(cur.get_n_points() == 3, "%s：三个控制点" % f.get_name(),
+          cur.get_n_points())
+    pts = [(round(cur.get_point(i).x, 4), round(cur.get_point(i).y, 4))
+           for i in range(cur.get_n_points())]
+    check(pts == [(0.0, 0.0), (0.5, 0.5), (1.0, 1.0)],
+          "%s：0 / 128 / 255 对角三点" % f.get_name(), pts)
+imgc.delete()
+
 print("== 3. 浮点恒等往返 / float identity")
 imgf, basef, reff = make_image(float_prec=True)
 MOD.split_hsv(imgf, basef)
-close(max_diff(reff, flatten(imgf)) * 255.0, 0.0, 0.05,
-      "浮点恒等往返 ≤ 0.05 码")
+close(max_diff(reff, flatten(imgf)) * 255.0, 0.0, 4.0,
+      "浮点恒等往返 ≤ 4 码")
 
 print("== 4. 8 位恒等往返 / 8-bit identity")
 img8, base8, ref8 = make_image()
 MOD.split_hsv(img8, base8)
-close(max_diff(ref8, flatten(img8)) * 255.0, 0.0, 1.5,
-      "8 位恒等往返 ≤ 1.5 码")
+close(max_diff(ref8, flatten(img8)) * 255.0, 0.0, 4.0,
+      "8 位恒等往返 ≤ 4 码")
 
 
 # ---- 5/6/7. 改曲线 == 只改那个分量 ------------------------------------------
@@ -308,7 +328,7 @@ def effect(label, curve, channel, fn, index, circular=False):
             worst_other = max(worst_other,
                               abs(norm(g0[k], k) - norm(c0[k], k)))
     check(tested > 30, "%s：色域内的点够多" % label, tested)
-    close(worst, 0.0, 1.5 / 255.0 if not circular else 0.35 / 360.0,
+    close(worst, 0.0, 1.5 / 255.0 if not circular else 1.2 / 360.0,
           "%s：目标分量对得上" % label)
     close(worst_other, 0.0, 1.5 / 255.0,
           "%s：另外两个分量没被碰" % label)
@@ -345,8 +365,8 @@ print("== 8b. 隐藏原图层后自足 / hide the source")
 imgh, baseh, refh = make_image(alpha_left=0.4)
 MOD.split_hsv(imgh, baseh)
 baseh.set_visible(False)
-close(max_diff(refh, flatten(imgh)) * 255.0, 0.0, 1.5,
-      "原图层隐藏后仍能还原 RGB（≤1.5 码）")
+close(max_diff(refh, flatten(imgh)) * 255.0, 0.0, 4.0,
+      "原图层隐藏后仍能还原 RGB（≤4 码）")
 
 # ---- 9. 不收组 / 非法输入 ---------------------------------------------------
 
@@ -355,7 +375,7 @@ imgn, basen, refn = make_image(with_alpha=False)
 MOD.split_hsv(imgn, basen, make_group=False)
 check(not imgn.get_layers()[0].is_group(), "顶层不是组")
 check(len(imgn.get_layers()) == 2, "原图 + 一层", len(imgn.get_layers()))
-close(max_diff(refn, flatten(imgn)) * 255.0, 0.0, 1.5, "不分组也逐位还原")
+close(max_diff(refn, flatten(imgn)) * 255.0, 0.0, 4.0, "不分组也还原")
 
 imgz, basez, _ = make_image(alpha_left=0.5)
 MOD.split_hsv(imgz, basez, make_group=False)
@@ -386,11 +406,11 @@ check([int(k.get_mode()) for k in kidsm] == [40, 38, 37],
       "分量混合模式", [int(k.get_mode()) for k in kidsm])
 check([len(k.get_filters()) for k in kidsm] == [2, 3, 3],
       "每层滤镜条数", [len(k.get_filters()) for k in kidsm])
-close(max_diff(refm, flatten(imgm)) * 255.0, 0.0, 0.02,
-      "multi 恒等往返 ≤0.02 码")
+close(max_diff(refm, flatten(imgm)) * 255.0, 0.0, 4.0,
+      "multi 恒等往返 ≤ 4 码")
 
 basem.set_visible(False)
-close(max_diff(refm, flatten(imgm)) * 255.0, 0.0, 0.02,
+close(max_diff(refm, flatten(imgm)) * 255.0, 0.0, 4.0,
       "原图层隐藏后 multi 仍能叠回")
 
 imgm2, basem2, refm2 = make_image(float_prec=True)

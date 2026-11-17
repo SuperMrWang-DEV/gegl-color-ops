@@ -122,10 +122,9 @@ def _force_opaque(layer):
     filt = Gimp.DrawableFilter.new(layer, "gimp:curves", _("0 · alpha"))
     cfg = filt.get_config()
     curve = Gimp.Curve.new()
-    curve.set_curve_type(Gimp.CurveType.FREE)
-    n = curve.get_n_samples()
-    for i in range(n):
-        curve.set_sample(i / float(n - 1), 1.0)
+    curve.set_curve_type(Gimp.CurveType.SMOOTH)
+    for x in (0.0, 0.5, 1.0):
+        curve.add_point(x, 1.0)
     cfg.set_property("curve", curve)
     cfg.set_property("channel", Gimp.HistogramChannel.ALPHA)
     cfg.set_property("trc", Gimp.TRCType.LINEAR)
