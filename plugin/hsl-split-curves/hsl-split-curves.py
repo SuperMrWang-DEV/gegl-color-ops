@@ -9,8 +9,8 @@
            饱和度，调 H 曲线就是只动色相。
            Curve HSL itself, by adapting it onto GIMP's HSV component modes.
 
- menu      颜色 → SuperMrWang → HSL Split (Curves)
-           图层右键 → SuperMrWang → HSL Split (Curves)
+ menu      颜色 → SuperMrWang → Shortcut → HSL Split (Curves)
+           图层右键 → SuperMrWang → Shortcut → HSL Split (Curves)
 
  usage     选中一个栅格图层 → 菜单项。生成的结构（自上而下）：
 
@@ -351,8 +351,8 @@ class HslSplitPlugin(Gimp.PlugIn):
         procedure.set_attribution("SuperMrWang", "SuperMrWang", "2026")
 
         procedure.set_menu_label(_("HSL Split (Curves)"))
-        procedure.add_menu_path("<Image>/Colors/SuperMrWang")
-        procedure.add_menu_path("<Layers>/SuperMrWang")
+        procedure.add_menu_path("<Image>/Colors/SuperMrWang/Shortcut")
+        procedure.add_menu_path("<Layers>/SuperMrWang/Shortcut")
 
         procedure.set_documentation(
             _("在 HSL 空间里调曲线：生成一个 S/L 联合层（红通道 = 饱和度、"

@@ -8,7 +8,7 @@
 > 包袱**的一组（H / C / L / Color 四项齐全，另有一个 Luminance）。HSV 组里那个
 > `HSL Color` 还混了模型，见 `plugin/hsv-split-curves/`。
 
-菜单：`颜色 → SuperMrWang → LCh Split (Curves)`，也挂在 `图层右键 → SuperMrWang` 下。
+菜单：`颜色 → SuperMrWang → Shortcut → LCh Split (Curves)`，也挂在 `图层右键 → SuperMrWang` 下。
 
 ## 生成的结构
 

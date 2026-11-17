@@ -32,6 +32,12 @@
      拆成分量层各挂一条原生曲线，恒等时精确还原——所以调曲线就等于在那个色彩空间
      里调那一维。HSV 与 LCh 各拆三层，HSL 与 Lab 因为有一对分量耦合、拆成两层，
      HSI 三个分量都借不到模式、干脆合成一层（见下文）。</p>
+  <p class="lede">分量曲线这五个都收在菜单的 <b>Shortcut</b> 子菜单里
+     （<code>颜色 → SuperMrWang → Shortcut</code>，图层右键同理）：它们本来就是
+     「一次点击替代一串手工步骤」的东西，以后这类一键操作也往这个子菜单里放。</p>
+  <p class="lede">分量曲线这五个都收在菜单的 <b>Shortcut</b> 子菜单里
+     （<code>颜色 → SuperMrWang → Shortcut</code>，图层右键同理）：它们本来就是
+     「一次点击替代一串手工步骤」的东西，以后这类一键操作也往这个子菜单里放。</p>
   <div class="cta">
     <a class="btn primary" href="#download">下载插件包</a>
     <a class="btn" href="#install">三步装上</a>
@@ -365,42 +371,43 @@
       <div class="dl-head"><h3>HSV Split (Curves)</h3><span class="pill">.py · 免编译</span></div>
       <p>拆成 H / S / V 三张分量层，每层一条原生曲线，用 HSV 三条分量模式叠回去；恒等曲线逐位还原。</p>
       <a class="btn primary" href="download/gegl-color-ops-plugin-hsv-split-curves.zip">下载 gegl-color-ops-plugin-hsv-split-curves.zip</a>
-      <p class="muted small">7.5 KB · 校验：<code>SHA256 9f5e0e5e5193f4658b925fdc9b3ea077…</code></p>
+      <p class="muted small">7.5 KB · 校验：<code>SHA256 ad6ee2c61a01dfbf34e56c398334a54f…</code></p>
     </div>
 
     <div class="dl primary-dl">
       <div class="dl-head"><h3>LCh Split (Curves)</h3><span class="pill">.py · 免编译</span></div>
       <p>拆成 L / C / h 三张分量层，每层一条原生曲线，用 LCh 三条分量模式叠回去；恒等曲线还原原图。</p>
       <a class="btn primary" href="download/gegl-color-ops-plugin-lch-split-curves.zip">下载 gegl-color-ops-plugin-lch-split-curves.zip</a>
-      <p class="muted small">9.9 KB · 校验：<code>SHA256 1d746980a01c6c7778c5428d4405bdbe…</code></p>
+      <p class="muted small">9.9 KB · 校验：<code>SHA256 d0735d2b3d074a6e65f2c74e092292c4…</code></p>
     </div>
 
     <div class="dl primary-dl">
       <div class="dl-head"><h3>HSL Split (Curves)</h3><span class="pill">.py · 免编译</span></div>
       <p>在 HSL 空间里调曲线：S 与 L 合一层（红=饱和度、绿=明度）、色相一层；恒等曲线精确还原。</p>
       <a class="btn primary" href="download/gegl-color-ops-plugin-hsl-split-curves.zip">下载 gegl-color-ops-plugin-hsl-split-curves.zip</a>
-      <p class="muted small">6.8 KB · 校验：<code>SHA256 fef536ce12cc2b3f36b2aaf4fe1a7d06…</code></p>
+      <p class="muted small">6.9 KB · 校验：<code>SHA256 40c323c73342902f46bb6efb38e96d24…</code></p>
     </div>
 
     <div class="dl primary-dl">
       <div class="dl-head"><h3>Lab Split (Curves)</h3><span class="pill">.py · 免编译</span></div>
       <p>在 CIE Lab 空间里调曲线：a 与 b 合一层（红=a、绿=b）、L* 一层走 LCh 明度；恒等曲线精确还原。</p>
       <a class="btn primary" href="download/gegl-color-ops-plugin-lab-split-curves.zip">下载 gegl-color-ops-plugin-lab-split-curves.zip</a>
-      <p class="muted small">8.0 KB · 校验：<code>SHA256 cf99866d96ef41ebd67db060ddc8100f…</code></p>
+      <p class="muted small">8.1 KB · 校验：<code>SHA256 4f68e88e080158ac06770b5d362b2848…</code></p>
     </div>
 
     <div class="dl primary-dl">
       <div class="dl-head"><h3>HSI Split (Curves)</h3><span class="pill">.py · 免编译</span></div>
       <p>在 HSI 空间里调曲线：红=饱和度、绿=强度、蓝=色相，三条曲线各管一个分量；恒等曲线精确还原。</p>
       <a class="btn primary" href="download/gegl-color-ops-plugin-hsi-split-curves.zip">下载 gegl-color-ops-plugin-hsi-split-curves.zip</a>
-      <p class="muted small">6.2 KB · 校验：<code>SHA256 b7794dd330c9e7d153a0494ee0a8e9ad…</code></p>
+      <p class="muted small">6.2 KB · 校验：<code>SHA256 3bee2e530eae40d799ae16e71d4a6c6b…</code></p>
     </div>
   </div>
   <p class="note">和 <code>.dll</code> / <code>.so</code> 一个思路：免编译、解压即用。
      区别只是 Python 插件放进 <b>GIMP</b> 的用户插件目录
      （<code>%APPDATA%\GIMP\3.x\plug-ins</code> 或
      <code>~/.config/GIMP/3.x/plug-ins</code>），不是 GEGL 的；
-     包里的「安装说明.txt」写得很全。七个都装也行，菜单入口各自独立。</p>
+     包里的「安装说明.txt」写得很全。七个都装也行，分量曲线那几个都在同一个
+     <b>Shortcut</b> 子菜单里。</p>
 </section>
 
 <section class="steps" id="install">
@@ -422,10 +429,11 @@ cd gegl-color-ops</code></pre>
     </li>
     <li>
       <h3>重启 GIMP，找菜单</h3>
-      <p><b>颜色 → SuperMrWang</b> 下是 HSV / HSL / LCh / Lab / HSI Split (Curves)；
-         <b>图层右键 → SuperMrWang</b> 下七个都在；
-         <b>选择 → SuperMrWang</b> 下是 Layer to Selection / Channel
-         （不依赖右键、方便写脚本）。</p>
+      <p><b>颜色 → SuperMrWang</b> 下是 Apply Image / Calculations，分量曲线
+         收在 <b>Shortcut</b> 子菜单里（HSV / LCh / HSL / Lab / HSI Split
+         (Curves)）；<b>图层右键 → SuperMrWang</b> 下七个都在，分量曲线同样在
+         <b>Shortcut</b> 里；<b>选择 → SuperMrWang</b> 下是 Layer to Selection /
+         Channel（不依赖右键、方便写脚本）。</p>
     </li>
   </ol>
 </section>
@@ -495,7 +503,7 @@ cd gegl-color-ops</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">20c74cd</span>
+    <span class="muted">82ffe8c</span>
   </div>
 </footer>
 </body>

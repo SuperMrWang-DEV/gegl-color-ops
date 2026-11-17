@@ -1078,7 +1078,8 @@ def build_guide(version, stats):
 
   <h2 id="use">怎么用</h2>
   <p>菜单在 <code>图像 → 颜色 → SuperMrWang</code>：色阶家族（Levels / LAB / HSL /
-     HSB / LCH / CMYK / HSI Levels）收在一级目录 <b>Levels</b> 子菜单里，其余分
+     HSB / LCH / CMYK / HSI Levels）收在 <b>Levels</b> 子菜单里，分量曲线那几个
+     一键插件收在 <b>Shortcut</b> 子菜单里，其余分
      Tone / Color / Blend / Mask 四组。也可以在 <code>/</code>（搜索动作）里直接输算子名。</p>
   <p>绝大多数算子是 <b>Point</b> 或 <b>Filter</b> 类型，GIMP 会把它们当非破坏性 fx
      挂在图层上——参数随时能改，原像素不动。双输入算子（应用图像 / 计算）目前只能合并应用。</p>
@@ -1149,8 +1150,8 @@ def build_plugin_zips(out_dir):
              name="gegl-color-ops-plugin-hsv-split-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "hsv-split-curves"),
              py="hsv-split-curves.py", menu="HSV Split (Curves)",
-             menus="    颜色 → SuperMrWang → HSV Split (Curves)\n"
-                   "    图层右键 → SuperMrWang → HSV Split (Curves)",
+             menus="    颜色 → SuperMrWang → Shortcut → HSV Split (Curves)\n"
+                   "    图层右键 → SuperMrWang → Shortcut → HSV Split (Curves)",
              desc="HSV Split (Curves)：把一个图层拆成 H / S / V 三张分量层，每层挂"
                   "一条可编辑曲线，再用 HSV 色相/饱和度/明度三条混合模式叠回去。"
                   "恒等曲线时逐位还原原图。",
@@ -1159,8 +1160,8 @@ def build_plugin_zips(out_dir):
              name="gegl-color-ops-plugin-lch-split-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "lch-split-curves"),
              py="lch-split-curves.py", menu="LCh Split (Curves)",
-             menus="    颜色 → SuperMrWang → LCh Split (Curves)\n"
-                   "    图层右键 → SuperMrWang → LCh Split (Curves)",
+             menus="    颜色 → SuperMrWang → Shortcut → LCh Split (Curves)\n"
+                   "    图层右键 → SuperMrWang → Shortcut → LCh Split (Curves)",
              desc="LCh Split (Curves)：把一个图层拆成 L / C / h 三张分量层，每层挂"
                   "一条可编辑曲线，再用 LCh 明度/彩度/色相三条混合模式叠回去。"
                   "恒等曲线时还原原图。",
@@ -1169,8 +1170,8 @@ def build_plugin_zips(out_dir):
              name="gegl-color-ops-plugin-hsl-split-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "hsl-split-curves"),
              py="hsl-split-curves.py", menu="HSL Split (Curves)",
-             menus="    颜色 → SuperMrWang → HSL Split (Curves)\n"
-                   "    图层右键 → SuperMrWang → HSL Split (Curves)",
+             menus="    颜色 → SuperMrWang → Shortcut → HSL Split (Curves)\n"
+                   "    图层右键 → SuperMrWang → Shortcut → HSL Split (Curves)",
              desc="HSL Split (Curves)：在 HSL 空间里调曲线。GIMP 没有 HSL 分量混合"
                   "模式，插件用 lb:hsl-dual / lb:hsl-compose 把 HSL 精确接到 HSV 上："
                   "S 与 L 合进一张数据图（红=饱和度、绿=明度），色相单独一层。"
@@ -1180,8 +1181,8 @@ def build_plugin_zips(out_dir):
              name="gegl-color-ops-plugin-lab-split-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "lab-split-curves"),
              py="lab-split-curves.py", menu="Lab Split (Curves)",
-             menus="    颜色 → SuperMrWang → Lab Split (Curves)\n"
-                   "    图层右键 → SuperMrWang → Lab Split (Curves)",
+             menus="    颜色 → SuperMrWang → Shortcut → Lab Split (Curves)\n"
+                   "    图层右键 → SuperMrWang → Shortcut → Lab Split (Curves)",
              desc="Lab Split (Curves)：在 CIE Lab 空间里调曲线。GIMP 没有 a/b 分量"
                   "混合模式，插件用 lb:lab-dual / lb:lab-compose 把 a 与 b 合进一张"
                   "数据图（红=a、绿=b）联合还原，L* 交给 LCh 明度模式（两者同一个"
@@ -1191,8 +1192,8 @@ def build_plugin_zips(out_dir):
              name="gegl-color-ops-plugin-hsi-split-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "hsi-split-curves"),
              py="hsi-split-curves.py", menu="HSI Split (Curves)",
-             menus="    颜色 → SuperMrWang → HSI Split (Curves)\n"
-                   "    图层右键 → SuperMrWang → HSI Split (Curves)",
+             menus="    颜色 → SuperMrWang → Shortcut → HSI Split (Curves)\n"
+                   "    图层右键 → SuperMrWang → Shortcut → HSI Split (Curves)",
              desc="HSI Split (Curves)：在 HSI 空间里调曲线。HSI 的 I 是 (R+G+B)/3，"
                   "GIMP 的六条分量模式一条也对不上；插件用 lb:hsi-dual / "
                   "lb:hsi-compose 把 S、I、色相挤进一张数据图（红=S、绿=I、蓝=H/360），"
@@ -1512,7 +1513,8 @@ def build_plugins(version, stats=None):
      区别只是 Python 插件放进 <b>GIMP</b> 的用户插件目录
      （<code>%APPDATA%\\GIMP\\3.x\\plug-ins</code> 或
      <code>~/.config/GIMP/3.x/plug-ins</code>），不是 GEGL 的；
-     包里的「安装说明.txt」写得很全。七个都装也行，菜单入口各自独立。</p>
+     包里的「安装说明.txt」写得很全。七个都装也行，分量曲线那几个都在同一个
+     <b>Shortcut</b> 子菜单里。</p>
 </section>""".format(sel_box=dl_box("selection", "Layer to Selection",
                                     "右键任意图层，把它转成当前选区"
                                     "（Gray/R/G/B/Alpha、四种组合方式、可反相）。"),
@@ -1554,10 +1556,11 @@ cd gegl-color-ops</code></pre>
     </li>
     <li>
       <h3>重启 GIMP，找菜单</h3>
-      <p><b>颜色 → SuperMrWang</b> 下是 HSV / HSL / LCh / Lab / HSI Split (Curves)；
-         <b>图层右键 → SuperMrWang</b> 下七个都在；
-         <b>选择 → SuperMrWang</b> 下是 Layer to Selection / Channel
-         （不依赖右键、方便写脚本）。</p>
+      <p><b>颜色 → SuperMrWang</b> 下是 Apply Image / Calculations，分量曲线
+         收在 <b>Shortcut</b> 子菜单里（HSV / LCh / HSL / Lab / HSI Split
+         (Curves)）；<b>图层右键 → SuperMrWang</b> 下七个都在，分量曲线同样在
+         <b>Shortcut</b> 里；<b>选择 → SuperMrWang</b> 下是 Layer to Selection /
+         Channel（不依赖右键、方便写脚本）。</p>
     </li>
   </ol>
 </section>""".format(repo=REPO)
@@ -1598,6 +1601,12 @@ cd gegl-color-ops</code></pre>
      拆成分量层各挂一条原生曲线，恒等时精确还原——所以调曲线就等于在那个色彩空间
      里调那一维。HSV 与 LCh 各拆三层，HSL 与 Lab 因为有一对分量耦合、拆成两层，
      HSI 三个分量都借不到模式、干脆合成一层（见下文）。</p>
+  <p class="lede">分量曲线这五个都收在菜单的 <b>Shortcut</b> 子菜单里
+     （<code>颜色 → SuperMrWang → Shortcut</code>，图层右键同理）：它们本来就是
+     「一次点击替代一串手工步骤」的东西，以后这类一键操作也往这个子菜单里放。</p>
+  <p class="lede">分量曲线这五个都收在菜单的 <b>Shortcut</b> 子菜单里
+     （<code>颜色 → SuperMrWang → Shortcut</code>，图层右键同理）：它们本来就是
+     「一次点击替代一串手工步骤」的东西，以后这类一键操作也往这个子菜单里放。</p>
   <div class="cta">
     <a class="btn primary" href="#download">下载插件包</a>
     <a class="btn" href="#install">三步装上</a>

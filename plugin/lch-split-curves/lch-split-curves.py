@@ -10,8 +10,8 @@
            Split a layer into LCh component layers with per-component curves,
            stacked back through the LCh blend modes.
 
- menu      颜色 → SuperMrWang → LCh Split (Curves)
-           图层右键 → SuperMrWang → LCh Split (Curves)
+ menu      颜色 → SuperMrWang → Shortcut → LCh Split (Curves)
+           图层右键 → SuperMrWang → Shortcut → LCh Split (Curves)
 
  usage     选中一个栅格图层 → 菜单项。生成的结构（自上而下）：
 
@@ -534,8 +534,8 @@ class LchSplitPlugin(Gimp.PlugIn):
         procedure.set_attribution("SuperMrWang", "SuperMrWang", "2026")
 
         procedure.set_menu_label(_("LCh Split (Curves)"))
-        procedure.add_menu_path("<Image>/Colors/SuperMrWang")
-        procedure.add_menu_path("<Layers>/SuperMrWang")
+        procedure.add_menu_path("<Image>/Colors/SuperMrWang/Shortcut")
+        procedure.add_menu_path("<Layers>/SuperMrWang/Shortcut")
 
         procedure.set_documentation(
             _("把图层拆成 L / C / h 三张分量层，每层挂一条可编辑的曲线，再用"

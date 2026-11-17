@@ -32,7 +32,9 @@ for SRC in "$SRC_ROOT"/*/; do
   echo "· 已安装到 $DST/plug-ins/$NAME"
 done
 echo "· 重启 GIMP 后生效："
-echo "    颜色 → SuperMrWang       应用图像 / 计算 / HSV·HSL·LCh·Lab·HSI Split (Curves)"
+echo "    颜色 → SuperMrWang       应用图像 / 计算"
+echo "    颜色 → SuperMrWang → Shortcut   HSV·LCh·HSL·Lab·HSI Split (Curves)"
 echo "    选择 → SuperMrWang       图层 → 选区 / 通道（含 gray-mask）"
-echo "    图层右键 → SuperMrWang   Layer to Selection / Layer to Channel / HSV·HSL·LCh·Lab·HSI Split"
+echo "    图层右键 → SuperMrWang   Layer to Selection / Layer to Channel"
+echo "    图层右键 → SuperMrWang → Shortcut   五个分量曲线插件"
 echo "  （sky-replace 已标 .disabled 暂不安装；恢复：rm plugin/sky-replace/.disabled）"

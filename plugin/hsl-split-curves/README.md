@@ -5,8 +5,8 @@ GIMP 3 给 HSV 和 LCh 都配了分量混合模式，唯独 **HSL 没有**。本
 S 曲线就只动 HSL 的饱和度，明度和色相一动不动。
 
 ```
-颜色 → SuperMrWang → HSL Split (Curves)
-图层右键 → SuperMrWang → HSL Split (Curves)
+颜色 → SuperMrWang → Shortcut → HSL Split (Curves)
+图层右键 → SuperMrWang → Shortcut → HSL Split (Curves)
 ```
 
 ## 生成的结构

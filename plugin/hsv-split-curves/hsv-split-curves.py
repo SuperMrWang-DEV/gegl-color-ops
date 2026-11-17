@@ -10,8 +10,8 @@
            Split a layer into H / S / V component layers, give each one its own
            editable curve, and stack them back with the HSV blend modes.
 
- menu      颜色 → SuperMrWang → HSV Split (Curves)
-           图层右键 → SuperMrWang → HSV Split (Curves)
+ menu      颜色 → SuperMrWang → Shortcut → HSV Split (Curves)
+           图层右键 → SuperMrWang → Shortcut → HSV Split (Curves)
 
  usage     选中一个栅格图层 → 菜单项。生成的结构（自上而下）：
 
@@ -371,8 +371,8 @@ class HsvSplitPlugin(Gimp.PlugIn):
         procedure.set_attribution("SuperMrWang", "SuperMrWang", "2026")
 
         procedure.set_menu_label(_("HSV Split (Curves)"))
-        procedure.add_menu_path("<Image>/Colors/SuperMrWang")
-        procedure.add_menu_path("<Layers>/SuperMrWang")
+        procedure.add_menu_path("<Image>/Colors/SuperMrWang/Shortcut")
+        procedure.add_menu_path("<Layers>/SuperMrWang/Shortcut")
 
         procedure.set_documentation(
             _("把图层拆成 H / S / V 三张分量层，每层挂一条可编辑的曲线，再用"

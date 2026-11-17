@@ -5,7 +5,7 @@
 > 恒等曲线时逐位还原原图 —— 所以「调曲线」就等于「在 HSV 空间里调那一个分量」，
 > 顺带补上了 GIMP 一直没有的 HSL/HSV 分量曲线。
 
-菜单：`颜色 → SuperMrWang → HSV Split (Curves)`，也挂在 `图层右键 → SuperMrWang` 下。
+菜单：`颜色 → SuperMrWang → Shortcut → HSV Split (Curves)`，也挂在 `图层右键 → SuperMrWang` 下。
 
 ## 生成的结构
 

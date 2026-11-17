@@ -10,8 +10,8 @@
            还原原图，调 a 曲线就只动 a，调 L 曲线就只动 L。
            Curve Lab itself, adapting it onto GIMP's LCh lightness mode.
 
- menu      颜色 → SuperMrWang → Lab Split (Curves)
-           图层右键 → SuperMrWang → Lab Split (Curves)
+ menu      颜色 → SuperMrWang → Shortcut → Lab Split (Curves)
+           图层右键 → SuperMrWang → Shortcut → Lab Split (Curves)
 
  usage     选中一个栅格图层 → 菜单项。生成的结构（自上而下）：
 
@@ -422,8 +422,8 @@ class LabSplitPlugin(Gimp.PlugIn):
         procedure.set_attribution("SuperMrWang", "SuperMrWang", "2026")
 
         procedure.set_menu_label(_("Lab Split (Curves)"))
-        procedure.add_menu_path("<Image>/Colors/SuperMrWang")
-        procedure.add_menu_path("<Layers>/SuperMrWang")
+        procedure.add_menu_path("<Image>/Colors/SuperMrWang/Shortcut")
+        procedure.add_menu_path("<Layers>/SuperMrWang/Shortcut")
 
         procedure.set_documentation(
             _("在 CIE Lab 空间里调曲线：生成一个 a/b 联合层（红通道 = a、"
