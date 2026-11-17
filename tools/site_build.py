@@ -10,6 +10,10 @@ HTML，靠 <html data-lang> 决定显示哪一套，页头的 中文/EN 按钮�
 （localStorage + ?lang=en）。首页也是双语的；清单页、插件页、安装页只有中文，
 不显示切换按钮。
 
+Shortcut 下八个 Python 插件除了在 plugins.html 各占一节，还各自生成一篇
+shortcut/<slug>.html：正文与那一节共用 tools/plugin_docs.py 里的 body，改一处
+两边一起变；首页有八张入口卡，feed.xml 里也有八条。
+
     python tools/site_build.py           # 生成 docs/
     python tools/site_build.py --serve   # 生成后起本地服务看效果
 
@@ -28,6 +32,8 @@ import sys
 import zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import plugin_docs as PD  # Shortcut 八节的正文，插件页与文章页共用
 ROOT = os.path.dirname(HERE)
 OPS = os.path.join(ROOT, "ops")
 DIST = os.path.join(ROOT, "dist")
@@ -39,6 +45,7 @@ from md2html import convert, inline, plain     # noqa: E402
 import set_menu_group as SMG                   # noqa: E402  分组只有这一处数据源
 
 REPO = "https://github.com/SuperMrWang-DEV/gegl-color-ops"
+SITE = "https://superMrwang-dev.github.io/gegl-color-ops"  # GitHub Pages
 RAW = REPO + "/raw/main/dist/windows-x64"
 LIN_RAW = REPO + "/raw/main/dist/linux-x64"
 
@@ -594,9 +601,65 @@ def build_index(ops, stats, version):
                      pypill=t(".py · 免编译", ".py · no build"),
                      goplugins=t("去插件页下载", "Get them on the plug-ins page"))
 
+    # Shortcut 组：八个 Python 插件，每个一篇独立文章（docs/shortcut/<slug>.html）
+    sc = [
+        ("hsv-split-curves", "HSV Split (Curves)", "t-color", "曲线", "H · S · V",
+         "三张分量层、每层一条原生曲线，用 HSV 分量模式叠回——等于在 HSV 里调曲线。",
+         "Three component layers, one native curve each, recombined with HSV modes."),
+        ("lch-split-curves", "LCh Split (Curves)", "t-blend", "曲线", "L · C · h",
+         "CIE LCh 的明度 / 彩度 / 色相，感知均匀，做影调与彩度分级比 HSV 稳。",
+         "L / C / h in CIE LCh: perceptual and absolute, steadier for grading."),
+        ("hsl-split-curves", "HSL Split (Curves)", "t-color", "曲线", "H · S · L",
+         "GIMP 没有 HSL 分量模式，这个插件精确换算，不拿 HSV 近似。",
+         "No HSL component mode in GIMP; this converts exactly instead of approximating."),
+        ("lab-split-curves", "Lab Split (Curves)", "t-blend", "曲线", "L · a · b",
+         "a 与 b 合进一张数据图，L* 走 LCh 明度——调 a 只动 a、调 b 只动 b。",
+         "a and b on one data layer, L* on LCh lightness: tweak a without touching b."),
+        ("hsi-split-curves", "HSI Split (Curves)", "t-color", "曲线", "H · S · I",
+         "I=(R+G+B)/3 借不到任何分量模式，三个分量合进一层、三条曲线各管一个。",
+         "I is (R+G+B)/3 with no mode to borrow, so all three share one layer."),
+        ("frequency-separation", "高低频磨皮", "t-tone", "磨皮", "低频 + 高频",
+         "一个管影调一个管细节，叠起来就是原图；半径决定分界。",
+         "Low frequency for tone, high frequency for detail; they recombine to the original."),
+        ("dodge-burn", "双曲线磨皮", "t-tone", "磨皮", "提亮 / 压暗",
+         "两条曲线压在黑蒙版下：涂到哪里动哪里，没涂的地方一位不改。",
+         "A lighten and a darken curve on black masks: paint to dodge or burn."),
+        ("neutral-grey", "中性灰磨皮", "t-tone", "磨皮", "50% 灰 · 柔光",
+         "一层 128 灰、柔光下恒等；白笔提亮、黑笔压暗，涂过头拿灰盖回去。",
+         "A 50% grey Soft Light layer: white dodges, black burns, grey resets."),
+    ]
+    sc_cards = "\n".join("""  <a class="card" href="shortcut/%s.html">
+    <div class="card-top"><span class="tag %s">%s</span><code>%s</code></div>
+    <h3>%s</h3>
+    <p><span class="l-zh">%s</span><span class="l-en">%s</span></p>
+    <span class="more"><span class="l-zh">读全文 →</span><span class="l-en">Read the page →</span></span>
+  </a>""" % (slug, cls, tag, code, title, zh, en)
+                      for slug, title, cls, tag, code, zh, en in sc)
+
+    shortcut = """<section class="group" id="shortcut">
+  <h2><span class="l-zh">Shortcut：八个一键动作</span><span class="l-en">Shortcut: eight one-click moves</span></h2>
+  <p class="section-lede"><span class="l-zh">这八个不是 <code>lb:</code> 算子，是 GIMP 3 的 Python 插件：装进
+     <code>plug-ins</code> 目录后出现在 <code>颜色 → SuperMrWang → Shortcut</code> 和图层右键菜单里。
+     五个分量曲线把图层拆成能单独曲线的分量层，三个磨皮一次把整套修图结构摆好。
+     每个都有一篇独立文章：结构、原理、用法与实测误差。</span><span class="l-en">These eight are not <code>lb:</code> operators but GIMP 3 Python plug-ins: drop
+     them into <code>plug-ins</code> and they appear under
+     <code>Colors → SuperMrWang → Shortcut</code> and in the layer context menu.
+     Five split a layer into components you can curve on their own; three lay out a
+     whole retouching stack. Each has its own page: structure, maths, workflow and
+     measured error.</span></p>
+  <div class="cards cards-8">
+%s
+  </div>
+  <p class="note"><span class="l-zh">安装：<code>install-plugin.sh</code> 一次装齐，或从
+     <a href="plugins.html#download">插件页</a>单独下某一个包。恒等是它们的共同点——
+     刚建好那一刻结果与原图逐像素相同，之后的每一笔都能删掉重来。</span><span class="l-en">Install them all with <code>install-plugin.sh</code>, or grab a single bundle
+     from the <a href="plugins.html#download">plug-ins page</a>. Identity is what they
+     share: the moment they are created the result is pixel-identical to the original,
+     and every stroke after that can be thrown away.</span></p>
+</section>""" % sc_cards
+
     about = """<section class="about">
-  <h2><span class="l-zh">这些算子是怎么来的</span><span class="l-en">Where these operators come from</span></h2>
-  <p><span class="l-zh">多数是按黑盒标定做的：拿目标实现（多为常见修图软件的调整图层）做对照，逐档采样、
+  <h2><span class="l-zh">这些算子是怎么来的</span><span class="l-en">Where these operators come from</span></h2>  <p><span class="l-zh">多数是按黑盒标定做的：拿目标实现（多为常见修图软件的调整图层）做对照，逐档采样、
      拟合公式，再在 16 位精度上把残差压到几码以内——只看输入输出，不读对方的代码。
      少数是直接实现公开的数学定义（Lab / LCh / HSL 色阶就是换了个色彩空间做同一件事）。</span><span class="l-en">Most were built by black-box calibration: sample a reference implementation
      (usually a well-known photo editor's adjustment layers) step by step, fit the
@@ -646,7 +709,7 @@ def build_index(ops, stats, version):
      submenu. Open any operator for its algorithm, parameters and measured error.</span></p>
 {by_g}
 </section>""".format(n=t("%d 个算子" % n_live, "%d operators" % n_live), by_g=by_g) \
-        + download + about + legal
+        + shortcut + download + about + legal
 
     return page("gegl-color-ops · GIMP 3 色彩算子集", body,
                 desc="%d 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、"
@@ -1297,56 +1360,56 @@ def build_plugins(version, stats=None):
        黑 = 不选中、白 = 完全选中。</p>
     <span class="more">看细节与下载 →</span>
   </a>
-  <a class="card" href="#hsv-split">
+  <a class="card" href="shortcut/hsv-split-curves.html">
     <div class="card-top"><span class="tag t-color">曲线</span><code>hsv-split-curves</code></div>
     <h3>HSV Split (Curves)</h3>
     <p>拆成 H / S / V 三张分量层，每层一条原生曲线，用 HSV 三条分量模式叠回去。
        恒等曲线逐位还原——等于在 HSV 里调曲线。</p>
     <span class="more">看细节与下载 →</span>
   </a>
-  <a class="card" href="#lch-split">
+  <a class="card" href="shortcut/lch-split-curves.html">
     <div class="card-top"><span class="tag t-color">曲线</span><code>lch-split-curves</code></div>
     <h3>LCh Split (Curves)</h3>
     <p>同上，但换成 CIE LCh 三个分量（明度 / 彩度 / 色相）——感知均匀，
        做亮度与彩度分级比 HSV 稳。</p>
     <span class="more">看细节与下载 →</span>
   </a>
-  <a class="card" href="#hsl-split">
+  <a class="card" href="shortcut/hsl-split-curves.html">
     <div class="card-top"><span class="tag t-color">曲线</span><code>hsl-split-curves</code></div>
     <h3>HSL Split (Curves)</h3>
     <p>GIMP 没有 HSL 分量模式，这个插件把 HSL 精确接到 HSV 上：
        S 与 L 合一层、色相一层，调哪条只动哪个分量。</p>
     <span class="more">看细节与下载 →</span>
   </a>
-  <a class="card" href="#lab-split">
+  <a class="card" href="shortcut/lab-split-curves.html">
     <div class="card-top"><span class="tag t-blend">曲线</span><code>lab-split-curves</code></div>
     <h3>Lab Split (Curves)</h3>
     <p>a 与 b 合进一张数据图（红=a、绿=b），L* 用 LCh 明度模式——同一个量，
        逐位精确。调 a 只动 a，调 b 只动 b。</p>
     <span class="more">看细节与下载 →</span>
   </a>
-  <a class="card" href="#hsi-split">
+  <a class="card" href="shortcut/hsi-split-curves.html">
     <div class="card-top"><span class="tag t-color">曲线</span><code>hsi-split-curves</code></div>
     <h3>HSI Split (Curves)</h3>
     <p>I 是 (R+G+B)/3，没有分量模式可借，三个分量合进一层：红=S、绿=I、蓝=色相。
        一层三条曲线，互不串门。</p>
     <span class="more">看细节与下载 →</span>
   </a>
-  <a class="card" href="#retouch">
+  <a class="card" href="shortcut/frequency-separation.html">
     <div class="card-top"><span class="tag t-tone">磨皮</span><code>frequency-separation</code></div>
     <h3>高低频磨皮</h3>
     <p>一次建好低频（模糊，管影调）与高频（颗粒合并，管细节）两层，
        叠起来就是原图。半径决定分界。</p>
     <span class="more">看细节与下载 →</span>
   </a>
-  <a class="card" href="#retouch">
+  <a class="card" href="shortcut/dodge-burn.html">
     <div class="card-top"><span class="tag t-tone">磨皮</span><code>dodge-burn</code></div>
     <h3>双曲线磨皮</h3>
     <p>提亮 / 压暗两条曲线层，蒙版全黑。白色画笔涂哪儿，哪儿就亮或暗，
        没涂的地方一码不动。</p>
     <span class="more">看细节与下载 →</span>
   </a>
-  <a class="card" href="#retouch">
+  <a class="card" href="shortcut/neutral-grey.html">
     <div class="card-top"><span class="tag t-tone">磨皮</span><code>neutral-grey</code></div>
     <h3>中性灰磨皮</h3>
     <p>一张 50% 灰的柔光层，柔光在 0.5 处是恒等映射：白笔提亮、黑笔压暗，
@@ -1392,203 +1455,19 @@ def build_plugins(version, stats=None):
      而不是 HSL 明度的 130——和你在 PS 里按亮度去色的结果一致。
      实现上走临时副本去色（GIMP 3.2 的 LUMA 模式），用完即删，活动图层还原。</p>"""
 
-    split_boxes = """
-  <div class="dl-grid">
-    <div class="dl primary-dl">
-      <div class="dl-head"><h3>生成的结构</h3><span class="pill">穿透组</span></div>
-      <pre><code>HSV split        组 · 穿透（带 alpha 时组上还有蒙版）
-  ├─ 3 · Value      模式 HSV 明度
-  ├─ 2 · Saturation 模式 HSV 饱和度
-  ├─ 1 · Hue        模式 HSV 色相   ← 垫底
-  └─ 原图层（不动，可以隐藏）</code></pre>
-      <p>每层三条滤镜：<code>extract</code>（抽分量）→ <code>curve</code>
-         （<b>你调的那条</b>）→ <code>encode</code>（一个 <code>lb:gray-to-component</code>
-         滤镜，把灰度编码成携带该分量的彩色）。</p>
-      <p><b>层序不能反：</b>分量混合模式只替换一个分量，另外两个从下行读。最底层
-         必须自带真实色相（全饱和色环），所以 Hue 垫底、Value 在顶。反过来的话
-         最底是灰，上面两层读到 S=0，怎么换都是灰——<b>把原图层一隐藏就整幅崩掉</b>。</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>为什么是在做曲线</h3></div>
-      <p>恒等曲线时三层合成回来<b>逐位还原</b>原图，所以改一条曲线就等于
-         「在 HSV 空间里曲那一个分量」。GIMP 内置曲线只能选
-         R/G/B/Alpha——H、S、LCh 这些分量它读不到，这正是缺口。</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>实测精度</h3></div>
-      <p>32 位浮点与 8 位图的恒等往返都是 <b>0.5 码</b>；真实 512×512 图逐像素
-         比对最大 <b>1 码</b>，仅 0.335% 的通道值有差异。剩下的误差是 8 位量化，
-         编码本身没有查表误差——旧版三条曲线才有 256 点 LUT。</p>
-      <p>把<b>原图层隐藏掉</b>，三层自己叠出来还是 <b>0.5 码</b>；半透明区域的
-         透明度由组蒙版保住（三层必须不透明，否则混合模式会按 alpha 做 lerp）。</p>
-    </div>
-  </div>"""
+    def _shortcut_section(p):
+        head = """  <section class="group" id="{slug}">
+    <h3 class="group-title"><span class="tag {cls}">{tag}</span>
+      <span class="group-en">{title}</span><span class="count">{count}</span></h3>
+    <p class="group-desc">{lede}</p>""".format(
+            slug=p["slug"], cls=p["tag"][1], tag=p["tag"][0],
+            title=p["title"], count=p["count"], lede=p["lede"])
+        tail = """    <p class="more-line"><a class="btn ghost" href="shortcut/%s.html">读全文 ·
+      结构、原理与实测 →</a></p>
+  </section>""" % p["slug"]
+        return head + "\n" + p["body"] + "\n" + tail
 
-    lch_boxes = """
-  <div class="dl-grid">
-    <div class="dl primary-dl">
-      <div class="dl-head"><h3>量程是标定出来的</h3><span class="pill">D50</span></div>
-      <p><code>component-extract</code> 报的不是原始单位：<code>lab-l</code> = L/100、
-         <code>lch-h</code> = h/360，而 <code>lch-c</code> = <b>C/200</b>（sRGB 内只到
-         0.656）。编码时算子按 <code>chroma-scale = 200</code> 把灰度乘回真实 C*，
-         所以彩度层不用再插一条 scale 曲线——曲线的 0.656 处就是 sRGB 最大彩度
-         （纯蓝 131.21）。</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>编码路径的坑</h3></div>
-      <p>色相模式对色相误差极其敏感：ΔH=0.5° 在 C*=90 时就是 9.6 个码值。
-         所以色相编码不用全饱和色轮，而用<b>等 L 等 C 的色相圆</b>
-         （L*=70、C*=39.8）——角度严格线性，插值误差从 0.22° 降到 0.002°。</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>实测精度</h3></div>
-      <p>浮点恒等往返 ≤ <b>0.02 码</b>，8 位 ≤ <b>0.5 码</b>，真实照片 512×512
-         最大 <b>0.03 码</b>（超过 1.5 码的像素 <b>0 个</b>）。8 位图会被自动收进组里：
-         不分组时逐层量化会让色相偏到 11 码级。</p>
-    </div>
-  </div>
-  <p class="note"><b>选 LCh 还是 HSV</b>：HSV 的 V/S 是相对量，调 S 会随 V 变；
-     LCh 的 L/C 是感知均匀的绝对量，做亮度、彩度分级更稳。论完整度也是 LCh 更高
-     ——GIMP 的 HSV 组里那个「HSL 颜色」其实混了模型，而 LCh 组 H/C/L/Color 四项
-     齐全，另有一个 Luminance。</p>"""
-
-    hsl_boxes = """
-  <div class="dl-grid">
-    <div class="dl primary-dl">
-      <div class="dl-head"><h3>生成的结构</h3><span class="pill">两层</span></div>
-      <pre><code>HSL split        组 · 穿透（带 alpha 时组上还有蒙版）
-  ├─ 2 · Hue        模式 HSV 色相   ← 只替换色相
-  ├─ 1 · S / L      模式 正常       ← 一条算子链算完整 HSL 色
-  └─ 原图层（不动，可以隐藏）</code></pre>
-      <p><b>S 曲线挂红通道、L 曲线挂绿通道</b>，色相曲线在 Hue 层。把 Hue 层关掉、
-         只留 S/L 层，看到的就是「原色相 + 调过的 S/L」——很好用的中间状态。</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>为什么只有两层</h3></div>
-      <p>HSL 的 S 与 L 是<b>耦合</b>的：<code>C = (1−|2L−1|)·S</code>、
-         <code>V = L + C/2</code>、<code>S_hsv = C/V</code>。要精确换回 HSV 的
-         S/V，编码器必须同时读到两者，而每层的曲线只看得到自己那一个分量——
-         两个独立的 1D 曲线表达不了二元映射。所以 S 与 L 合进一张数据图
-         （R=S、G=L），由 <code>lb:hsl-compose</code> 联合还原；算出来的已经是
-         完整颜色，第三层就多余了。</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>硬凑三层的代价</h3></div>
-      <p>把 HSL 的 L 直接当 V 用：S=0.25 偏 <b>25 码</b>、S=1 偏 <b>64 码</b>
-         （差的正好是 C/2）；再加一条按「典型 S」校准的曲线，实际 S 一变就偏到
-         <b>77 码</b>；S、L 一起调最坏 <b>102 码</b>。</p>
-    </div>
-  </div>
-  <p class="note">适配算子内部用 babl 的 <code>HSLA float</code> 做转换，与 GIMP
-     自己的 HSL（<code>component-extract</code> 的 <code>hsl-s</code> /
-     <code>hsl-l</code>）同一口径，所以往返没有查表误差：浮点 <b>0.00001 码</b>、
-     8 位 <b>0.002 码</b>。改 S 曲线后结果的 HSL 饱和度 = f(原 S)，明度与色相
-     误差 <b>0.0001 码</b>。依赖 <code>lb:hsl-dual</code> /
-     <code>lb:hsl-compose</code> 两个算子，缺了没有一维回退，插件会直接报错。</p>"""
-
-    lab_boxes = """
-  <div class="dl-grid">
-    <div class="dl primary-dl">
-      <div class="dl-head"><h3>生成的结构</h3><span class="pill">两层</span></div>
-      <pre><code>Lab split        组 · 穿透（带 alpha 时组上还有蒙版）
-  ├─ 2 · L          模式 LCh 明度   ← 只替换 L*
-  ├─ 1 · a / b      模式 正常       ← 一条算子链算完整 Lab 色
-  └─ 原图层（不动，可以隐藏）</code></pre>
-      <p><b>a 曲线挂红通道、b 曲线挂绿通道</b>，L 曲线在 L 层（值通道）。数据图里
-         中性灰落在 0.502，所以 a 曲线在 0.5 附近往上抬就是往洋红推、往下压是往
-         绿推；b 曲线同理（上=黄、下=蓝）。</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>为什么 a/b 必须合一层</h3></div>
-      <p>a、b 是<b>直角坐标</b>，GIMP 没有「a」「b」分量模式。LCh 的 C/h 是它们的
-         极坐标形式，但每层的曲线只看得到自己那一个标量：<code>C</code> 那一层
-         不知道 b 变成了多少，所以两条独立的一维曲线拼不出 (a,b) 的二元映射。
-         合进一张数据图后由 <code>lb:lab-compose</code> 一起读，就精确了。</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>L* 为什么可以借 LCh 明度</h3></div>
-      <p>Lab 的 L* 与 LCh 的 L* <b>是同一个量</b>（babl 里就是同一个通道），所以
-         「LCh 明度」模式换 L* 是逐位精确的，不是近似。整条链的误差只剩浮点
-         舍入：<b>0.010 码</b>（8 位 <b>0.499 码</b>）。</p>
-    </div>
-  </div>
-  <p class="note">量程按 babl 的 <code>CIE Lab float</code>（D50 白点，与 GIMP 的 Lab
-     空间同口径）：<code>a' = (a*+128)/255</code>、<code>L' = L*/100</code>。
-     改 a 曲线后结果落在「a* 换了、b* 与 L* 都没动」的 Lab 点上，误差
-     <b>0.0026 码</b>。超 sRGB 色域的 Lab 点会被裁——那是色域的事实。
-     依赖 <code>lb:lab-dual</code> / <code>lb:lab-compose</code> 两个算子，
-     缺了没有一维回退，插件会直接报错。</p>"""
-
-    hsi_boxes = """
-  <div class="dl-grid">
-    <div class="dl primary-dl">
-      <div class="dl-head"><h3>生成的结构</h3><span class="pill">一层</span></div>
-      <pre><code>HSI split          组 · 穿透（带 alpha 时组上还有蒙版）
-  └─ 1 · HSI S/I/H   模式 正常   ← 一条算子链算完整 HSI 色
-  └─ 原图层（不动，可以隐藏）</code></pre>
-      <p>滤镜栈：<code>decompose</code>（lb:hsi-dual）→ <b>S 曲线（红）</b> →
-         <b>I 曲线（绿）</b> → <b>H 曲线（蓝）</b> → <code>compose</code>
-         （lb:hsi-compose）。三层分量各占一个通道，互不串门。</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>为什么只有一层</h3></div>
-      <p>HSL 能拆两层、Lab 能拆两层，是因为各有一个分量借得到现成模式
-         （HSL 色相 ≡ HSV 色相；Lab 的 L* ≡ LCh 的 L*）。HSI 一个都没有：
-         <code>I=(R+G+B)/3</code> 不是 V 也不是 L。更麻烦的是色相——就算接到
-         「HSV 色相」模式，那一步保留的是 HSV 的 S/V，<b>HSI 的 I 会被带走
-         0.085（约 22 码）</b>。所以三个分量只能一起算。</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>两种色相角不是一回事</h3></div>
-      <p>HSI 的色相是余弦定义（等亮度平面里的真实夹角），HSV 的是六边形投影上的
-         参数角；两者只在 0°/30°/60° 重合，中间最多差 <b>1.117°</b>。数据图里存
-         的是 HSI 的角度，<code>lb:hsi-compose</code> 也按 HSI 的余弦式逆变换，
-         所以全程不需要换算，往返 <b>0.0001 码</b>。</p>
-    </div>
-  </div>
-  <p class="note">平均强度 I 比 HSV 的 max 更接近感知亮度，这也是 HSI 常见于图像
-     分析与曝光校正的原因。S、I 推到极端时逆变换会出 sRGB 色域（HSI 的色域是
-     六边形棱锥，不是立方体），出界部分按 0/1 裁掉。依赖 <code>lb:hsi-dual</code> /
-     <code>lb:hsi-compose</code> 两个算子，缺了没有回退，插件会直接报错。</p>"""
-
-    retouch_boxes = """
-  <div class="dl-grid">
-    <div class="dl primary-dl">
-      <div class="dl-head"><h3>三个磨皮各自建什么</h3><span class="pill">一键</span></div>
-      <pre><code>高低频磨皮               组 · 穿透
-  ├─ 2 · 高频（细节）     颗粒合并 + 高通
-  ├─ 1 · 低频（影调）     正常 + 高斯模糊
-  └─ 原图层
-
-双曲线磨皮
-  ├─ 2 · 压暗（黑蒙版）   曲线下压
-  ├─ 1 · 提亮（黑蒙版）   曲线上提
-  └─ 原图层
-
-中性灰磨皮
-  └─ 1 · 中性灰           柔光 · 整层 128 灰</code></pre>
-      <p>三个都是「先摆好、再涂」：刚建出来时结果与原图一致，之后靠改模糊半径、
-         涂蒙版、涂灰层来修，原图层一直不动。</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>恒等是怎么保证的</h3></div>
-      <p>高低频：高频层是 <code>H = 0.5 + (原图 − 低频)</code>，颗粒合并算的是
-         <code>H + L − 0.5</code>，偏移正好抵消。双曲线：两张蒙版全黑，两层
-         在合成里根本不参与，误差 0。中性灰：柔光在 0.5 处是恒等映射，实测
-         8 位图也是 0 码。</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>怎么用</h3></div>
-      <p><b>高低频</b>：低频层抹平色块、高频层修毛孔与痘印，半径决定分界。
-         <b>双曲线</b>：点中蒙版，白色柔边画笔 10–20%，涂提亮层变亮、涂压暗层
-         变暗。<b>中性灰</b>：直接在这层上涂，白色提亮、黑色压暗，涂过头用
-         <code>#808080</code> 盖回去。</p>
-    </div>
-  </div>
-  <p class="note">实测（GIMP 3.2.8，<code>tools/check_retouch.py</code>，52 项）：
-     高低频合成与原图差 ≤1.5 码——<code>gegl:high-pass</code> 内部有约 1 码的
-     定点偏移，与半径无关；双曲线与中性灰都是 0 码。带 alpha 的图自动分组，
-     透明度交给组蒙版，隐藏原图层后 alpha 零误差。</p>"""
+    shortcut_sections = "\n\n".join(_shortcut_section(p) for p in PD.PAGES)
 
     download = """<section class="download" id="download">
   <h2>下载</h2>
@@ -1717,7 +1596,8 @@ cd gegl-color-ops</code></pre>
      那一整套图层结构（低频/高频、提亮/压暗、中性灰）一次建好。</p>
   <p class="lede">分量曲线五个和磨皮三个都收在菜单的 <b>Shortcut</b> 子菜单里
      （<code>颜色 → SuperMrWang → Shortcut</code>，图层右键同理）：它们本来就是
-     「一次点击替代一串手工步骤」的东西，以后这类一键操作也往这个子菜单里放。</p>
+     「一次点击替代一串手工步骤」的东西，以后这类一键操作也往这个子菜单里放。
+     这八个各有一篇独立文章——点卡片或每节末尾的「读全文」进去看结构、原理与实测。</p>
   <div class="cta">
     <a class="btn primary" href="#download">下载插件包</a>
     <a class="btn" href="#install">三步装上</a>
@@ -1749,61 +1629,7 @@ cd gegl-color-ops</code></pre>
 {chn_boxes}
   </section>
 
-  <section class="group" id="hsv-split">
-    <h3 class="group-title"><span class="tag t-color">曲线</span>
-      <span class="group-en">HSV Split</span><span class="count">H / S / V</span></h3>
-    <p class="group-desc">GIMP 的曲线只能选 R / G / B / Alpha——想单独曲「色相」或
-       「饱和度」没有入口。这个插件把图层拆成三张分量层、每层给一条曲线，
-       再按 HSV 分量模式叠回去：恒等时逐位还原，所以改曲线就等于曲那个分量。</p>
-{split_boxes}
-  </section>
-
-  <section class="group" id="lch-split">
-    <h3 class="group-title"><span class="tag t-blend">曲线</span>
-      <span class="group-en">LCh Split</span><span class="count">L / C / h</span></h3>
-    <p class="group-desc">同样的思路换到 CIE LCh：明度、彩度、色相三条曲线。
-       LCh 是「颜色」组里唯一完整、且没有 legacy 包袱的一组分量模式，
-       感知均匀，做明暗与彩度分级比 HSV 稳。</p>
-{lch_boxes}
-  </section>
-
-  <section class="group" id="hsl-split">
-    <h3 class="group-title"><span class="tag t-color">曲线</span>
-      <span class="group-en">HSL Split</span><span class="count">H / S / L</span></h3>
-    <p class="group-desc">GIMP 给 HSV 和 LCh 都配了分量混合模式，唯独 HSL 没有。
-       这个插件不是拿 HSV 去近似 HSL，而是把两者<b>精确</b>换算：色相本来就是
-       同一个函数，S 与 L 则合进一张数据图，由算子联合还原。恒等时精确还原原图，
-       调哪条曲线就只动那个 HSL 分量。</p>
-{hsl_boxes}
-  </section>
-
-  <section class="group" id="lab-split">
-    <h3 class="group-title"><span class="tag t-blend">曲线</span>
-      <span class="group-en">Lab Split</span><span class="count">L / a / b</span></h3>
-    <p class="group-desc">Lab 的 <code>a</code>、<code>b</code> 是直角坐标，GIMP 一条
-       分量模式也对不上；<code>L*</code> 倒是能借 LCh 明度（同一个量）。所以这个
-       插件把 a 与 b 合进一张数据图联合还原，L* 单独一层——恒等时精确还原原图，
-       调 a 只动 a、调 b 只动 b。</p>
-{lab_boxes}
-  </section>
-
-  <section class="group" id="hsi-split">
-    <h3 class="group-title"><span class="tag t-color">曲线</span>
-      <span class="group-en">HSI Split</span><span class="count">H / S / I</span></h3>
-    <p class="group-desc">HSI 的 I 是 (R+G+B)/3，色相又用余弦定义——GIMP 的六条分量
-       模式一条也对不上，连「借 HSV 色相换角」都会把 I 带走 22 码。于是三个分量
-       合进同一层：红=S、绿=I、蓝=色相，三条曲线各管一个分量。</p>
-{hsi_boxes}
-  </section>
-
-  <section class="group" id="retouch">
-    <h3 class="group-title"><span class="tag t-tone">磨皮</span>
-      <span class="group-en">Retouch Shortcuts</span><span class="count">3 个</span></h3>
-    <p class="group-desc">磨皮本来要手动建层、挂滤镜、加蒙版、填灰，一套下来七八步。
-       这三个把整套结构一次摆好，且摆好那一刻结果与原图完全一致——修不修、修多少
-       都由你后面的笔画决定，原图层始终不动。</p>
-{retouch_boxes}
-  </section>
+{shortcut_sections}
 
 {download}
 
@@ -1842,9 +1668,7 @@ cd gegl-color-ops</code></pre>
      低频真变糊、高频真在中轴、改半径仍恒等、隐藏原图层自足、半透明图的
      alpha、以及「涂白/涂黑确实生效」。</p>
 </section>""".format(cards=cards, sel_boxes=sel_boxes, chn_boxes=chn_boxes,
-                   split_boxes=split_boxes, lch_boxes=lch_boxes,
-                   hsl_boxes=hsl_boxes, lab_boxes=lab_boxes,
-                   hsi_boxes=hsi_boxes, retouch_boxes=retouch_boxes,
+                   shortcut_sections=shortcut_sections,
                    download=download, install=install, pdb_table=pdb_table)
     return page("Python 插件 · gegl-color-ops", body,
                 desc="GIMP 3 Python 插件下载：图层转选区 / Alpha 通道，"
@@ -1852,9 +1676,119 @@ cd gegl-color-ops</code></pre>
                      "高低频 / 双曲线 / 中性灰磨皮——免编译，解压即用")
 
 
+SHORTCUT_DEPS = {
+    "hsv": ["gegl:component-extract", "gimp:curves", "lb:gray-to-component"],
+    "lch": ["gegl:component-extract", "gimp:curves", "lb:gray-to-component"],
+    "hsl": ["lb:hsl-dual", "lb:hsl-compose", "lb:gray-to-component"],
+    "lab": ["lb:lab-dual", "lb:lab-compose", "lb:gray-to-component"],
+    "hsi": ["lb:hsi-dual", "lb:hsi-compose"],
+    "frequency": ["gegl:gaussian-blur", "gegl:high-pass"],
+    "dodge": ["gimp:curves"],
+    "grey": [],
+}
+
+
+def build_shortcut_article(p, version, stats=None, prev=None, nxt=None):
+    """Shortcut 组里每个组件一篇文章：页头 + 位置/PDB/依赖 + 正文 + 下载 + 翻页。"""
+    z = ((stats or {}).get("plugin_zips") or {}).get(p["key"])
+    name = p["menu"].split("→")[-1].strip()
+
+    deps = SHORTCUT_DEPS.get(p["key"], [])
+    if deps:
+        dep_html = ('<p>这一层靠下面这些算子/滤镜干活，装插件时它们必须已经在 GEGL '
+                    '里注册（<code>build.sh</code> 或仓库发的 dll 包里都有）：</p>\n'
+                    '      <ul class="deps">%s</ul>'
+                    % "".join("<li><code>%s</code></li>" % d for d in deps))
+    else:
+        dep_html = ('<p>不依赖任何自研算子：只往缓冲区里写像素，用 GIMP 自己的柔光'
+                    '混合模式。装了插件就能用。</p>')
+
+    dl = ""
+    if z:
+        dl = """<section class="download" id="download">
+  <h2>下载这一个</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>%s</h3><span class="pill">.py · 免编译</span></div>
+    <p>包里只有一个 <code>.py</code> 和一份安装说明。解压到 GIMP 的
+       <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\\GIMP\\3.x\\plug-ins</code>，
+       Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。</p>
+    <a class="btn primary" href="../download/%s">下载 %s</a>
+    <p class="muted small">%s KB · 校验：<code>SHA256 %s…</code></p>
+  </div>
+</section>""" % (name, z["name"], z["name"], z["kb"], z["sha"][:32])
+
+    def pager_link(q, label, cls):
+        if not q:
+            return ""
+        return ('<a class="%s" href="%s.html"><span>%s</span>%s</a>'
+                % (cls, q["slug"], label, q["title"]))
+
+    pager = """<nav class="pager">
+  <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
+  %s%s
+</nav>""" % (pager_link(prev, "上一篇", "prev"), pager_link(nxt, "下一篇", "next"))
+
+    body = """<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../plugins.html">插件</a>
+    / Shortcut / %s</p>
+  <h1>%s</h1>
+  <div class="meta">
+    <code>plugin/%s</code>
+    <span class="tag %s">%s</span>
+    <span>Shortcut 快捷方式</span>
+  </div>
+  <p class="lede">%s</p>
+</section>
+
+<div class="prose wide">
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>菜单位置</h3><span class="pill">两级</span></div>
+      <pre><code>颜色 → SuperMrWang → Shortcut → %s
+图层右键 → SuperMrWang → Shortcut → %s</code></pre>
+      <p>两处是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——
+         组没有自己的像素，会直接报错并提示先合并。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>脚本调用</h3></div>
+      <pre><code>%s</code></pre>
+      <p>标准 PDB 过程，参数留空走默认值。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>依赖</h3></div>
+      %s
+    </div>
+  </div>
+
+%s
+
+%s
+
+%s
+</div>""" % (p["title"], p["title"], p["slug"], p["tag"][1], p["tag"][0],
+             p["lede"], name, name, p["pdb"], dep_html, p["body"], dl, pager)
+
+    return page("%s · Shortcut · gegl-color-ops" % p["title"], body, root="../",
+                desc=re.sub(r"<[^>]+>", "", p["lede"])[:120])
+
+
 def build_feed(ops, version):
-    """一个极简 Atom，方便订阅「最近加了什么算子」。GitHub Pages 不需要后端。"""
+    """一个极简 Atom，方便订阅「最近加了什么」：算子 + Shortcut 八个插件。
+
+    Shortcut 那八条链到站点里的文章页（插件没有 README 可链），日期用加进来的
+    那天，排在新加算子之后。
+    """
     entries = []
+    for sp in reversed(PD.PAGES):
+        entries.append("""  <entry>
+    <title>{title}</title>
+    <link href="{site}/shortcut/{slug}.html"/>
+    <id>tag:github.com,2026:plugin-{slug}</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>{sum}</summary>
+  </entry>""".format(title=html.escape("Shortcut · " + sp["title"]),
+                     site=SITE, slug=sp["slug"],
+                     sum=html.escape(re.sub(r"<[^>]+>", "", sp["lede"])[:200])))
     for op in reversed(ops):
         entries.append("""  <entry>
     <title>{menu}</title>
@@ -1867,12 +1801,12 @@ def build_feed(ops, version):
                      sum=html.escape(op["purpose_text"][:200])))
     return """<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <title>gegl-color-ops · 算子</title>
-  <link href="{site}"/>
-  <updated>2026-11-15T00:00:00Z</updated>
+  <title>gegl-color-ops · 算子与插件</title>
+  <link href="{site}/"/>
+  <updated>2026-11-17T00:00:00Z</updated>
   <id>tag:github.com,2026:gegl-color-ops</id>
 {entries}
-</feed>""".format(site=REPO, entries="\n".join(entries))
+</feed>""".format(site=SITE, entries="\n".join(entries))
 
 
 # --------------------------------------------------------------------------
@@ -2051,6 +1985,13 @@ def main():
     }
     for op in ops:
         pages["ops/%s.html" % op["dir"]] = build_article(op, version)
+
+    # Shortcut 里每个组件一篇独立文章；翻页在八篇里循环。
+    for i, sp in enumerate(PD.PAGES):
+        pages["shortcut/%s.html" % sp["slug"]] = build_shortcut_article(
+            sp, version, stats,
+            PD.PAGES[i - 1] if i else None,
+            PD.PAGES[i + 1] if i + 1 < len(PD.PAGES) else None)
 
     for name, text in pages.items():
         path = os.path.join(DOCS, name)

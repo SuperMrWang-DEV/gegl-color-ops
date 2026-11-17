@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>双曲线磨皮 (Dodge &amp; Burn) · Shortcut · gegl-color-ops</title>
+<meta name="description" content="提亮一条曲线、压暗一条曲线，各自压在一张全黑蒙版下。涂到哪里，哪里才变亮或变暗——没涂的地方与原图逐像素相同，所以可以反复叠加、随时反悔。">
+<meta property="og:title" content="双曲线磨皮 (Dodge &amp; Burn) · Shortcut · gegl-color-ops">
+<meta property="og:description" content="提亮一条曲线、压暗一条曲线，各自压在一张全黑蒙版下。涂到哪里，哪里才变亮或变暗——没涂的地方与原图逐像素相同，所以可以反复叠加、随时反悔。">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+</head>
+<body>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+</header>
+<main id="main">
+<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../plugins.html">插件</a>
+    / Shortcut / 双曲线磨皮 (Dodge & Burn)</p>
+  <h1>双曲线磨皮 (Dodge & Burn)</h1>
+  <div class="meta">
+    <code>plugin/dodge-burn</code>
+    <span class="tag t-tone">磨皮</span>
+    <span>Shortcut 快捷方式</span>
+  </div>
+  <p class="lede">提亮一条曲线、压暗一条曲线，各自压在一张全黑蒙版下。涂到哪里，哪里才变亮或变暗——没涂的地方与原图逐像素相同，所以可以反复叠加、随时反悔。</p>
+</section>
+
+<div class="prose wide">
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>菜单位置</h3><span class="pill">两级</span></div>
+      <pre><code>颜色 → SuperMrWang → Shortcut → 双曲线磨皮
+图层右键 → SuperMrWang → Shortcut → 双曲线磨皮</code></pre>
+      <p>两处是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——
+         组没有自己的像素，会直接报错并提示先合并。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>脚本调用</h3></div>
+      <pre><code>lb-plugin-dodge-burn(image, drawable, amount, group)</code></pre>
+      <p>标准 PDB 过程，参数留空走默认值。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>依赖</h3></div>
+      <p>这一层靠下面这些算子/滤镜干活，装插件时它们必须已经在 GEGL 里注册（<code>build.sh</code> 或仓库发的 dll 包里都有）：</p>
+      <ul class="deps"><li><code>gimp:curves</code></li></ul>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>生成的结构</h3><span class="pill">两层 · 黑蒙版</span></div>
+      <pre><code>双曲线磨皮              组 · 穿透（带 alpha 时组上还有蒙版）
+  ├─ 2 · 压暗（黑蒙版）  正常 · 曲线下压
+  ├─ 1 · 提亮（黑蒙版）  正常 · 曲线上提
+  └─ 原图层（不动，可以隐藏）</code></pre>
+      <p>两层都是「正常」模式，各挂一条 <code>gimp:curves</code>（值通道）；
+         蒙版全黑，所以刚建好时两层根本不参与合成——结果与原图<b>逐像素相同</b>。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>涂的是蒙版，不是图层</h3></div>
+      <p>点中图层的<b>蒙版缩略图</b>（白框套住的那张小图，不是图层缩略图），
+         选柔边画笔、白色，不透明度 10–20%。涂到的地方蒙版变白，那一层才显形：
+         涂提亮层变亮、涂压暗层变暗。涂过头就把前景色换成黑，盖回去。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>曲线有多强</h3><span class="pill">12%</span></div>
+      <p>「强度」参数是曲线在中间调偏离对角线的幅度：12 表示 0.5 处抬 0.12，
+         约 <b>30 码</b>。默认 12，范围 1–40。宁少勿多——一层不够就再涂一遍，
+         比一次涂死好收。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>怎么修</h3></div>
+      <ol class="steps">
+        <li><b>提亮</b>：额头、鼻梁、颧骨高点、眼下三角区——把该亮的地方推上去，
+            脸就立起来了。</li>
+        <li><b>压暗</b>：脸颊两侧、下颌线、鼻翼阴影、眼窝——把该退的地方收回去。</li>
+        <li>每涂一遍就切到下一个图层顺序（提亮 → 压暗 → 再看），避免一路加亮
+            把皮肤涂成塑料。</li>
+        <li>想检查涂了多少：按住 <kbd>Alt</kbd> 点蒙版缩略图，只看蒙版；黑白分布
+            一目了然。</li>
+      </ol>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>实测</h3><span class="pill">check_retouch.py</span></div>
+      <p>恒等往返浮点 <b>0 码</b>、8 位 <b>0 码</b>（蒙版全黑，两层不参与）；
+         蒙版涂白处严格等于曲线在该点的值；没涂的地方一位不动；带 alpha 的图
+         透明度交给组蒙版，零误差。</p>
+    </div>
+  </div>
+
+<section class="download" id="download">
+  <h2>下载这一个</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>双曲线磨皮</h3><span class="pill">.py · 免编译</span></div>
+    <p>包里只有一个 <code>.py</code> 和一份安装说明。解压到 GIMP 的
+       <code>plug-ins</code> 目录（Windows <code>%APPDATA%\GIMP\3.x\plug-ins</code>，
+       Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-dodge-burn.zip">下载 gegl-color-ops-plugin-dodge-burn.zip</a>
+    <p class="muted small">5.1 KB · 校验：<code>SHA256 5f7bcfa749154de670be5630523b2d5f…</code></p>
+  </div>
+</section>
+
+<nav class="pager">
+  <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
+  <a class="prev" href="frequency-separation.html"><span>上一篇</span>高低频磨皮 (Frequency Separation)</a><a class="next" href="neutral-grey.html"><span>下一篇</span>中性灰磨皮 (Neutral Grey)</a>
+</nav>
+</div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">f7c1b81</span>
+  </div>
+</footer>
+</body>
+</html>

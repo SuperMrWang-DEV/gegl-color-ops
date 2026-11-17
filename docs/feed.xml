@@ -1,9 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <title>gegl-color-ops · 算子</title>
-  <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops"/>
-  <updated>2026-11-15T00:00:00Z</updated>
+  <title>gegl-color-ops · 算子与插件</title>
+  <link href="https://superMrwang-dev.github.io/gegl-color-ops/"/>
+  <updated>2026-11-17T00:00:00Z</updated>
   <id>tag:github.com,2026:gegl-color-ops</id>
+  <entry>
+    <title>Shortcut · 中性灰磨皮 (Neutral Grey)</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/shortcut/neutral-grey.html"/>
+    <id>tag:github.com,2026:plugin-neutral-grey</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>一张 50% 灰的柔光层，柔光在 0.5 处是恒等映射——刚建好时与原图逐像素相同。之后白色画笔提亮、黑色画笔压暗，原图像素一个都没动，整层删掉就能回到起点。</summary>
+  </entry>
+  <entry>
+    <title>Shortcut · 双曲线磨皮 (Dodge &amp; Burn)</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/shortcut/dodge-burn.html"/>
+    <id>tag:github.com,2026:plugin-dodge-burn</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>提亮一条曲线、压暗一条曲线，各自压在一张全黑蒙版下。涂到哪里，哪里才变亮或变暗——没涂的地方与原图逐像素相同，所以可以反复叠加、随时反悔。</summary>
+  </entry>
+  <entry>
+    <title>Shortcut · 高低频磨皮 (Frequency Separation)</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/shortcut/frequency-separation.html"/>
+    <id>tag:github.com,2026:plugin-frequency-separation</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>把一张脸拆成影调与细节两层：低频管大块明暗与肤色过渡，高频管毛孔、痘印、细纹。调低频等于重新铺光，调高频等于控制质感，两者互不干扰——这是影楼修图里最老也最稳的一套结构。</summary>
+  </entry>
+  <entry>
+    <title>Shortcut · HSI Split (Curves)</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/shortcut/hsi-split-curves.html"/>
+    <id>tag:github.com,2026:plugin-hsi-split-curves</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>HSI 的 I 是 (R+G+B)/3，色相又用余弦定义——GIMP 的六条分量
+       模式一条也对不上，连「借 HSV 色相换角」都会把 I 带走 22 码。于是三个分量
+       合进同一层：红=S、绿=I、蓝=色相，三条曲线各管一个分量。</summary>
+  </entry>
+  <entry>
+    <title>Shortcut · Lab Split (Curves)</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/shortcut/lab-split-curves.html"/>
+    <id>tag:github.com,2026:plugin-lab-split-curves</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>Lab 的 a、b 是直角坐标，GIMP 一条
+       分量模式也对不上；L* 倒是能借 LCh 明度（同一个量）。所以这个
+       插件把 a 与 b 合进一张数据图联合还原，L* 单独一层——恒等时精确还原原图，
+       调 a 只动 a、调 b 只动 b。</summary>
+  </entry>
+  <entry>
+    <title>Shortcut · HSL Split (Curves)</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/shortcut/hsl-split-curves.html"/>
+    <id>tag:github.com,2026:plugin-hsl-split-curves</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>GIMP 给 HSV 和 LCh 都配了分量混合模式，唯独 HSL 没有。
+       这个插件不是拿 HSV 去近似 HSL，而是把两者精确换算：色相本来就是
+       同一个函数，S 与 L 则合进一张数据图，由算子联合还原。恒等时精确还原原图，
+       调哪条曲线就只动那个 HSL 分量。</summary>
+  </entry>
+  <entry>
+    <title>Shortcut · LCh Split (Curves)</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/shortcut/lch-split-curves.html"/>
+    <id>tag:github.com,2026:plugin-lch-split-curves</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>同样的思路换到 CIE LCh：明度、彩度、色相三条曲线。
+       LCh 是「颜色」组里唯一完整、且没有 legacy 包袱的一组分量模式，
+       感知均匀，做明暗与彩度分级比 HSV 稳。</summary>
+  </entry>
+  <entry>
+    <title>Shortcut · HSV Split (Curves)</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/shortcut/hsv-split-curves.html"/>
+    <id>tag:github.com,2026:plugin-hsv-split-curves</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>GIMP 的曲线只能选 R / G / B / Alpha——想单独曲「色相」或
+       「饱和度」没有入口。这个插件把图层拆成三张分量层、每层给一条曲线，
+       再按 HSV 分量模式叠回去：恒等时逐位还原，所以改曲线就等于曲那个分量。</summary>
+  </entry>
   <entry>
     <title>Range → Alpha</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/channel-range-to-alpha/README.md"/>

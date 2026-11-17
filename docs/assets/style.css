@@ -869,3 +869,37 @@ pre.mermaid svg { max-width: 100%; height: auto; }
 .mermaid .node rect, .mermaid .node polygon, .mermaid .node circle {
   rx: 8; ry: 8;
 }
+/* 八张卡：4 + 4 两行，宽屏不落单 */
+.cards.cards-8 {
+  grid-template-columns: repeat(4, 1fr);
+}
+@media (max-width: 900px) {
+  .cards.cards-8 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .cards.cards-8 { grid-template-columns: 1fr; }
+}
+/* 插件页每节末尾的「读全文」一行 */
+.more-line { margin: 14px 0 0; }
+/* 插件文章页的依赖清单 */
+ul.deps { display: flex; flex-wrap: wrap; gap: 6px; list-style: none;
+  margin: 10px 0 0; padding: 0; }
+ul.deps li { background: var(--chip, rgba(127,127,127,.12)); border-radius: 6px;
+  padding: 2px 8px; font-size: 12.5px; }
+/* 八张卡：4 + 4 两行，宽屏不落单 */
+.cards.cards-8 {
+  grid-template-columns: repeat(4, 1fr);
+}
+@media (max-width: 900px) {
+  .cards.cards-8 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .cards.cards-8 { grid-template-columns: 1fr; }
+}
+/* 插件页每节末尾的「读全文」一行 */
+.more-line { margin: 14px 0 0; }
+/* 插件文章页的依赖清单 */
+ul.deps { display: flex; flex-wrap: wrap; gap: 6px; list-style: none;
+  margin: 10px 0 0; padding: 0; }
+ul.deps li { background: var(--chip, rgba(127,127,127,.12)); border-radius: 6px;
+  padding: 2px 8px; font-size: 12.5px; }

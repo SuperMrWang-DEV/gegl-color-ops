@@ -11,8 +11,9 @@
 与各厂商无隶属关系（详见文末「版权与商标」）。
 
 > **在线版**：<https://superMrwang-dev.github.io/gegl-color-ops/> —— 每个算子一篇
-> 算法说明（含参数、实测误差、示例图），首页直接下载免编译包。站点由
-> `python tools/site_build.py` 从 `ops/*/README.md` 生成到 `docs/`，不用手写。
+> 算法说明（含参数、实测误差、示例图），Shortcut 下的八个插件也各有一篇，首页直接
+> 下载免编译包。站点由 `python tools/site_build.py` 从 `ops/*/README.md` 与
+> `tools/plugin_docs.py` 生成到 `docs/`，不用手写。
 
 每个算子都是单文件 C（含 `#ifdef GEGL_PROPERTIES` 段），直接编译成 GEGL 插件模块，
 可作为非破坏性 fx 挂在图层上。本仓库是唯一源码工程：一次编译出全部算子。
@@ -42,7 +43,9 @@ gegl-color-ops/
 ├── dist/                 # 编好的模块，给不想编译的人直接下载（windows-x64 / linux-x64）
 ├── tools/                # 测试图生成、逐算子冒烟、对照表、文件头重排、注释双语化
 ├── tools/site/           # 站点样式源（生成时拷进 docs/assets/）
+├── tools/plugin_docs.py  # Shortcut 八节的正文数据（插件页与 shortcut/ 文章页共用）
 ├── docs/                 #  GitHub Pages 站点（tools/site_build.py 生成，别手改）
+│   └── shortcut/         #  Shortcut 八个插件各一篇（菜单结构、原理、用法、实测）
 ├── build/                # 编译产物（build.sh 生成，可随时删）
 └── LICENSE               # GPL-3.0
 ```

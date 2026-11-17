@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HSI Split (Curves) · Shortcut · gegl-color-ops</title>
+<meta name="description" content="HSI 的 I 是 (R+G+B)/3，色相又用余弦定义——GIMP 的六条分量
+       模式一条也对不上，连「借 HSV 色相换角」都会把 I 带走 22 码。于是三个分量
+       合进同一层：红=S、绿=I、蓝=色相，三条曲">
+<meta property="og:title" content="HSI Split (Curves) · Shortcut · gegl-color-ops">
+<meta property="og:description" content="HSI 的 I 是 (R+G+B)/3，色相又用余弦定义——GIMP 的六条分量
+       模式一条也对不上，连「借 HSV 色相换角」都会把 I 带走 22 码。于是三个分量
+       合进同一层：红=S、绿=I、蓝=色相，三条曲">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+</head>
+<body>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../index.html#ops"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+</header>
+<main id="main">
+<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../plugins.html">插件</a>
+    / Shortcut / HSI Split (Curves)</p>
+  <h1>HSI Split (Curves)</h1>
+  <div class="meta">
+    <code>plugin/hsi-split-curves</code>
+    <span class="tag t-color">曲线</span>
+    <span>Shortcut 快捷方式</span>
+  </div>
+  <p class="lede">HSI 的 I 是 (R+G+B)/3，色相又用余弦定义——GIMP 的六条分量
+       模式一条也对不上，连「借 HSV 色相换角」都会把 I 带走 22 码。于是三个分量
+       合进同一层：红=S、绿=I、蓝=色相，三条曲线各管一个分量。</p>
+</section>
+
+<div class="prose wide">
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>菜单位置</h3><span class="pill">两级</span></div>
+      <pre><code>颜色 → SuperMrWang → Shortcut → HSI Split (Curves)
+图层右键 → SuperMrWang → Shortcut → HSI Split (Curves)</code></pre>
+      <p>两处是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——
+         组没有自己的像素，会直接报错并提示先合并。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>脚本调用</h3></div>
+      <pre><code>lb-plugin-hsi-split-curves(image, drawable, group)</code></pre>
+      <p>标准 PDB 过程，参数留空走默认值。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>依赖</h3></div>
+      <p>这一层靠下面这些算子/滤镜干活，装插件时它们必须已经在 GEGL 里注册（<code>build.sh</code> 或仓库发的 dll 包里都有）：</p>
+      <ul class="deps"><li><code>lb:hsi-dual</code></li><li><code>lb:hsi-compose</code></li></ul>
+    </div>
+  </div>
+
+<div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>生成的结构</h3><span class="pill">一层</span></div>
+      <pre><code>HSI split          组 · 穿透（带 alpha 时组上还有蒙版）
+  └─ 1 · HSI S/I/H   模式 正常   ← 一条算子链算完整 HSI 色
+  └─ 原图层（不动，可以隐藏）</code></pre>
+      <p>滤镜栈：<code>decompose</code>（lb:hsi-dual）→ <b>S 曲线（红）</b> →
+         <b>I 曲线（绿）</b> → <b>H 曲线（蓝）</b> → <code>compose</code>
+         （lb:hsi-compose）。三层分量各占一个通道，互不串门。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>为什么只有一层</h3></div>
+      <p>HSL 能拆两层、Lab 能拆两层，是因为各有一个分量借得到现成模式
+         （HSL 色相 ≡ HSV 色相；Lab 的 L* ≡ LCh 的 L*）。HSI 一个都没有：
+         <code>I=(R+G+B)/3</code> 不是 V 也不是 L。更麻烦的是色相——就算接到
+         「HSV 色相」模式，那一步保留的是 HSV 的 S/V，<b>HSI 的 I 会被带走
+         0.085（约 22 码）</b>。所以三个分量只能一起算。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>两种色相角不是一回事</h3></div>
+      <p>HSI 的色相是余弦定义（等亮度平面里的真实夹角），HSV 的是六边形投影上的
+         参数角；两者只在 0°/30°/60° 重合，中间最多差 <b>1.117°</b>。数据图里存
+         的是 HSI 的角度，<code>lb:hsi-compose</code> 也按 HSI 的余弦式逆变换，
+         所以全程不需要换算，往返 <b>0.0001 码</b>。</p>
+    </div>
+  </div>
+  <p class="note">平均强度 I 比 HSV 的 max 更接近感知亮度，这也是 HSI 常见于图像
+     分析与曝光校正的原因。S、I 推到极端时逆变换会出 sRGB 色域（HSI 的色域是
+     六边形棱锥，不是立方体），出界部分按 0/1 裁掉。依赖 <code>lb:hsi-dual</code> /
+     <code>lb:hsi-compose</code> 两个算子，缺了没有回退，插件会直接报错。</p>
+
+<section class="download" id="download">
+  <h2>下载这一个</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>HSI Split (Curves)</h3><span class="pill">.py · 免编译</span></div>
+    <p>包里只有一个 <code>.py</code> 和一份安装说明。解压到 GIMP 的
+       <code>plug-ins</code> 目录（Windows <code>%APPDATA%\GIMP\3.x\plug-ins</code>，
+       Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-hsi-split-curves.zip">下载 gegl-color-ops-plugin-hsi-split-curves.zip</a>
+    <p class="muted small">6.2 KB · 校验：<code>SHA256 3bee2e530eae40d799ae16e71d4a6c6b…</code></p>
+  </div>
+</section>
+
+<nav class="pager">
+  <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
+  <a class="prev" href="lab-split-curves.html"><span>上一篇</span>Lab Split (Curves)</a><a class="next" href="frequency-separation.html"><span>下一篇</span>高低频磨皮 (Frequency Separation)</a>
+</nav>
+</div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <span class="muted">f7c1b81</span>
+  </div>
+</footer>
+</body>
+</html>
