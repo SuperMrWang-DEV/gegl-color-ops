@@ -29,6 +29,8 @@ B. 双曲线
 C. 中性灰
    C1 结构：一层，柔光模式，尺寸与偏移跟原图层一致；
    C2 填充值 = 0.5（8 位图 128）；
+   C2b 写完之后调过 update(0,0,W,H)——漏掉这一步，投影不失效，界面上
+      这张灰层会显示成一块黑（导出却是对的）；
    C3 恒等：浮点 0、8 位 0；
    C4 涂白 → 变亮，涂黑 → 变暗；
    C5 带 alpha 的图：组蒙版，恒等；
@@ -417,6 +419,28 @@ check((grey.get_width(), grey.get_height()) == (W, H), "尺寸跟原图层一致
 check(grey.get_offsets()[1:] == base.get_offsets()[1:], "偏移跟原图层一致")
 gv = read(grey)
 close(gv[0], 0.5, 0.6 / 255.0, "填充值 = 0.5 编码灰（8 位图 128）")
+img.delete()
+
+print("== C2b 写完通知核心重绘 / invalidate the projection")
+img, base = make_image()
+calls = []
+_orig_update = Gimp.Drawable.update
+
+
+def _spy_update(self, x, y, w, h):
+    calls.append((x, y, w, h))
+    return _orig_update(self, x, y, w, h)
+
+
+Gimp.Drawable.update = _spy_update
+try:
+    GREY.neutral_grey(img, base, True)
+finally:
+    Gimp.Drawable.update = _orig_update
+# 只写私有 buffer 不 update，投影不失效：界面上这张灰层是黑的，导出却是
+# 对的。必须看到一次覆盖整层的 update。
+check((0, 0, W, H) in calls,
+      "写灰层后 update(0, 0, W, H)（漏了界面上是黑块）", calls)
 
 print("== C3 恒等 / identity")
 ref = read(base)

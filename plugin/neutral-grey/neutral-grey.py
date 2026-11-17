@@ -108,15 +108,25 @@ def _link_alpha_mask(image, base, host):
 
 
 def _fill_grey(layer):
-    """把整层写成 0.5 编码灰（8 位图即 128），不走上下文的前景色。"""
+    """把整层写成 0.5 编码灰（8 位图即 128），不走上下文的前景色。
+
+    写完必须 flush 再 update：只改私有 buffer 而不通知核心，投影和图层
+    缩略图还停在「新建图层的空内容」上，界面上这张「中性灰」会显示成
+    一块黑（无 alpha 的图尤其明显）。导出能拿到正确像素，肉眼却是黑的
+    ——GIMP 3 的坑，和 blend 那边一样。
+    Without the flush + update the private buffer holds 0.5 but the
+    projection is never invalidated, so the layer shows up black."""
     w, h = layer.get_width(), layer.get_height()
     rect = Gegl.Rectangle.new(0, 0, w, h)
+    buf = layer.get_buffer()
     if layer.has_alpha():
         px = array.array('f', [MID_GREY, MID_GREY, MID_GREY, 1.0] * (w * h))
-        layer.get_buffer().set(rect, "R'G'B'A float", px.tobytes())
+        buf.set(rect, "R'G'B'A float", px.tobytes())
     else:
         px = array.array('f', [MID_GREY, MID_GREY, MID_GREY] * (w * h))
-        layer.get_buffer().set(rect, "R'G'B' float", px.tobytes())
+        buf.set(rect, "R'G'B' float", px.tobytes())
+    buf.flush()
+    layer.update(0, 0, w, h)
 
 
 # ---- 动作 / the action ------------------------------------------------------
