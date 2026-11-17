@@ -35,7 +35,8 @@ gegl-color-ops/
 ├── plugin/gray-mask/  # Python 插件：灰度图层一键 → 选区 / Alpha 通道
 ├── plugin/layer-to-selection/ # Python 插件：右键任意图层 → 选区
 ├── plugin/layer-to-channel/  # Python 插件：右键任意图层 → Alpha 通道（恒为灰度）
-├── plugin/*-split-curves/    # Python 插件：HSV / LCh / HSL / Lab / HSI 分量分层 + 曲线（菜单 Shortcut）
+├── plugin/*-split-curves/    # Python 插件：HSV / LCh / HSL / Lab / HSI 分量分层 + 曲线（菜单 Shortcut）；
+│                             #   single = 一层数据图三条曲线，multi = 两三张分量层走原生分量混合模式
 ├── plugin/frequency-separation/ # Python 插件：高低频磨皮（低频 + 高频两层，合成即原图）
 ├── plugin/dodge-burn/        # Python 插件：双曲线磨皮（提亮 / 压暗两层，黑蒙版）
 ├── plugin/neutral-grey/      # Python 插件：中性灰磨皮（50% 灰 + 柔光）

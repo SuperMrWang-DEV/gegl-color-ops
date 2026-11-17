@@ -371,6 +371,45 @@ try:
 except RuntimeError:
     check(True, "图层组被拒绝")
 
+# ---- 11. multi 模式 ---------------------------------------------------------
+
+print("== 11. multi 模式 / component layers")
+imgm, basem, refm = make_image(float_prec=True)
+MOD.split_hsl(imgm, basem, mode='multi')
+rootm = imgm.get_layers()[0]
+kidsm = rootm.get_children()
+check(rootm.is_group(), "multi 建出组")
+check([k.get_name() for k in kidsm] == ['2 · Hue', '1 · S / L'],
+      "层名与顺序", [k.get_name() for k in kidsm])
+check([int(k.get_mode()) for k in kidsm] == [37, 28],
+      "分量混合模式", [int(k.get_mode()) for k in kidsm])
+check([len(k.get_filters()) for k in kidsm] == [3, 4],
+      "每层滤镜条数", [len(k.get_filters()) for k in kidsm])
+close(max_diff(refm, flatten(imgm)) * 255.0, 0.0, 1.5,
+      "multi 恒等往返 ≤1.5 码")
+
+basem.set_visible(False)
+close(max_diff(refm, flatten(imgm)) * 255.0, 0.0, 1.5,
+      "原图层隐藏后 multi 仍能叠回")
+
+imgm2, basem2, refm2 = make_image(float_prec=True)
+MOD.split_hsl(imgm2, basem2, mode='multi')
+klay = [x for x in imgm2.get_layers()[0].get_children()
+        if x.get_name() == '2 · Hue'][0]
+check(set_curve(klay, '2 · H curve', lambda t: min(1.0, t * 1.25),
+                Gimp.HistogramChannel.VALUE), "改 2 · H curve 的曲线")
+check(max_diff(refm2, flatten(imgm2)) > 0.02, "曲线确实生效（画面有变化）")
+
+imgm3, basem3, _ = make_image(alpha_left=0.4)
+MOD.split_hsl(imgm3, basem3, mode='multi')
+groupm = imgm3.get_layers()[0]
+check(groupm.get_mask() is not None, "multi 组上挂了 alpha 蒙版")
+basem3.set_visible(False)
+gota3 = flatten(imgm3)
+close(gota3[(imgm3.get_width() // 4) * 4 + 3], 0.4, 1.5 / 255.0,
+      "multi 左半 alpha 仍是 0.4")
+
+
 print()
 if FAILS:
     raise SystemExit("%d/%d 项失败: %s" % (len(FAILS), CHECKS[0], FAILS))

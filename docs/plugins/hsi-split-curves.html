@@ -63,7 +63,7 @@
 
 <div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>生成的结构</h3><span class="pill">一层</span></div>
+      <div class="dl-head"><h3>只有一个模式</h3><span class="pill">single</span></div>
       <pre><code>HSI split          组 · 穿透（带 alpha 时组上还有蒙版）
   └─ 1 · HSI S/I/H   模式 正常   ← 一条算子链算完整 HSI 色
   └─ 原图层（不动，可以隐藏）</code></pre>
@@ -72,13 +72,13 @@
          （lb:hsi-compose）。三层分量各占一个通道，互不串门。</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>为什么只有一层</h3></div>
+      <div class="dl-head"><h3>为什么没有 multi</h3></div>
       <p>HSI 一个分量模式都借不到：<code>I=(R+G+B)/3</code> 不是 V 也不是 L；
          色相用余弦定义，接到「HSV 色相」模式上换角时保留的是 HSV 的 S/V，
-         <b>I 会被带走 0.085（约 22 码）</b>。所以三个分量只能一起算——这也正是
-         这一层写法最早出现的地方。</p>
-      <p>后来发现它比多层更省事：一层、五条滤镜、没有逐层编码，所以 HSV / HSL /
-         Lab / LCh 四个插件现在也都换成了这个骨架。</p>
+         <b>I 会被带走 0.085（约 22 码）</b>。所以三个分量只能一起算。</p>
+      <p>别的四个插件有 multi（拆成两张或三张分量层）：那几家至少有一个分量能借到
+         现成的分量混合模式——HSV、LCh 三个都有，HSL 借色相，Lab 借明度。HSI 一个
+         都没有，硬拆就是不准，所以这里只有 single。</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>两种色相角不是一回事</h3></div>
@@ -101,7 +101,7 @@
        <code>plug-ins</code> 目录（Windows <code>%APPDATA%\GIMP\3.x\plug-ins</code>，
        Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-hsi-split-curves.zip">下载 gegl-color-ops-plugin-hsi-split-curves.zip</a>
-    <p class="muted small">6.2 KB · 校验：<code>SHA256 3bee2e530eae40d799ae16e71d4a6c6b…</code></p>
+    <p class="muted small">6.3 KB · 校验：<code>SHA256 4cd8b686ef42a9ab4ed7e605694f45b0…</code></p>
   </div>
 </section>
 
@@ -120,7 +120,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">29580bd</span>
+    <span class="muted">5576e66</span>
   </div>
 </footer>
 </body>

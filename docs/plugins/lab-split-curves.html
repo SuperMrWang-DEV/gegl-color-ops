@@ -51,7 +51,7 @@
     </div>
     <div class="dl">
       <div class="dl-head"><h3>脚本调用</h3></div>
-      <pre><code>lb-plugin-lab-split-curves(image, drawable, group)</code></pre>
+      <pre><code>lb-plugin-lab-split-curves(image, drawable, mode, group)</code></pre>
       <p>标准 PDB 过程，参数留空走默认值。</p>
     </div>
     <div class="dl">
@@ -63,20 +63,26 @@
 
 <div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>生成的结构</h3><span class="pill">一层</span></div>
-      <pre><code>Lab split          组 · 穿透（带 alpha 时组上还有蒙版）
-  └─ 1 · Lab a/b/L   模式 正常   ← 一条算子链算完整 Lab 色
-  └─ 原图层（不动，可以隐藏）</code></pre>
-      <p>滤镜栈：<code>decompose</code>（lb:lab-dual）→ <b>a 曲线（红）</b> →
-         <b>b 曲线（绿）</b> → <b>L 曲线（蓝）</b> → <code>compose</code>
-         （lb:lab-compose）。</p>
+      <div class="dl-head"><h3>两种模式</h3><span class="pill">mode 参数</span></div>
+      <pre><code>single   Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
+           └─ 1 · Lab a/b/L     模式 正常        ← 一条算子链算完整 Lab 色
+
+multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
+           ├─ 2 · L             模式 LCh 明度   ← 只替换 L*
+           └─ 1 · a / b         模式 正常        ← 算出 a、b 与明度</code></pre>
+      <p>single 的滤镜栈：<code>decompose</code>（lb:lab-dual）→
+         <b>a 曲线（红）</b> → <b>b 曲线（绿）</b> → <b>L 曲线（蓝）</b> →
+         <code>compose</code>（lb:lab-compose）。</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>为什么只有一层</h3></div>
-      <p>a、b 是直角坐标，GIMP 没有「a」「b」分量模式；旧版把 a/b 合一层、L* 另起
-         一层借 LCh 明度（L* 在两个空间里是同一个量，逐位精确）。现在 L* 也进
-         compose，两层变一层——少的不只是一个图，还少了「这层用混合模式、那层用
-         正常模式」两套语义并存的地方。</p>
+      <div class="dl-head"><h3>single 还是 multi</h3></div>
+      <p>GIMP 只有 LCh 的三个分量混合模式，Lab 的 a、b 没有对应项。好在 L* 在
+         Lab 与 LCh 里是同一个量（逐位精确），所以明度能单独一层借过来；a、b
+         必须成对还原——它们共同决定彩度与色相，拆开就不是线性映射了。</p>
+      <p><b>multi</b> 因此是两层：a/b 数据图层在下面算完整颜色，L 层用 LCh 明度
+         模式盖上去只换明度。关掉 L 层就能看「原明度 + 调过 a/b」的中间结果。</p>
+      <p><b>single</b> 把 L* 也收进 compose，两层变一层。少的不只是一个图，还少了
+         「这层用混合模式、那层用正常模式」两套语义并存的地方。</p>
       <p>数据图里中性灰落在 <b>0.502</b>：a 曲线在 0.5 附近往上抬是往洋红推、
          往下压是往绿推；b 曲线同理（上=黄、下=蓝）。</p>
     </div>
@@ -100,7 +106,7 @@
        <code>plug-ins</code> 目录（Windows <code>%APPDATA%\GIMP\3.x\plug-ins</code>，
        Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-lab-split-curves.zip">下载 gegl-color-ops-plugin-lab-split-curves.zip</a>
-    <p class="muted small">5.8 KB · 校验：<code>SHA256 56790575e2976878e5bf39127e1f89bd…</code></p>
+    <p class="muted small">8.9 KB · 校验：<code>SHA256 0b4e8a7fb3dcb05df4e8bc97e6eb504d…</code></p>
   </div>
 </section>
 
@@ -119,7 +125,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">29580bd</span>
+    <span class="muted">5576e66</span>
   </div>
 </footer>
 </body>

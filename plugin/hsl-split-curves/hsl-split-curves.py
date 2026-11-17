@@ -3,34 +3,67 @@
 """===========================================================================
  SuperMrWang · HSL 分量分解 + 曲线 —— GIMP 3 Python 插件
  ---------------------------------------------------------------------------
- purpose   在 HSL 空间里调曲线。GIMP 没有 HSL 分量模式，也没有 HSL 的色相入口；
-           本插件用两个适配算子把 S、L、H 打包进一张数据图，三条曲线各管一个
-           分量，再一起解回真实颜色——恒等曲线逐像素还原原图。
-           Curve HSL itself: one data layer (R = S, G = L, B = H/360) with
-           three curves, since GIMP has no HSL component modes.
+ purpose   在 HSL 空间里调曲线。两种模式（菜单里的「模式 / Mode」参数）：
+
+             single   一张数据图（R=S、G=L、B=H/360）三条曲线，compose 一次
+                      算完。一层、五条滤镜。
+             multi    两张分量层：Hue 层借 HSV 的色相混合模式（HSL 与 HSV 的
+                      色相角完全相等），S/L 层用数据图 + 两条曲线算出颜色和
+                      色相，正常模式盖上去。
+
+           两者恒等曲线都逐像素还原原图；调哪条曲线就只动那个分量。
+           Curve HSL itself in two modes: one packed data layer, or the
+           Hue + S/L stack that borrows GIMP's HSV hue mode.
 
  menu      颜色 → SuperMrWang → Shortcut → HSL Split (Curves)
            图层右键 → SuperMrWang → Shortcut → HSL Split (Curves)
 
  usage     选中一个栅格图层 → 菜单项。生成的结构（自上而下）：
 
+            single 模式
+
               HSL split       组，穿透混合（带 alpha 时组上还有一张蒙版）
                 ├─ 1 · HSL S/L/H   正常模式   ← 一条算子链算出完整 HSL 色
                 └─ 原图层（不动，可以隐藏）
 
- note      和 HSI 那个插件同一个骨架：三个分量挤进一张数据图，一次算完再还原。
-           旧版是「S/L 联合层 + Hue 层」两层：色相那层借了 HSV 的色相混合模式
-           （HSL 与 HSV 的色相角完全相等），所以能单独换色相。现在色相也进
-           compose，一层就够——不再需要那层「抽出灰度 → 曲线 → 编码成色环」的
-           滤镜链，少了一层图、也少了每层 8 位量化的风险。
+            multi 模式
 
-           滤镜栈（图层面板里从上往下读，执行顺序相反）：
+              HSL split       组，穿透混合（带 alpha 时组上还有一张蒙版）
+                ├─ 2 · Hue            模式 = HSV 色相   ← 只替换 H
+                ├─ 1 · S / L          正常模式          ← 算出 S、L 与色相
+                └─ 原图层（不动，可以隐藏）
+
+ note      为什么 multi 是两层、不是三层：HSL 的 S 与 L 是耦合的——
+
+             C = (1 − |2L−1|)·S      V = L + C/2      S_hsv = C/V
+
+           想精确得到 HSL 的 (S, L)，编码器必须同时读到 S 和 L 两个值，而每层
+           的曲线只看得到自己那一个分量。所以 S 与 L 放进同一张数据图联合还原；
+           这一层算出来的本来就是完整颜色，第三层就不需要了——上面的 Hue 层用
+           「HSV 色相」模式只替换色相，S 与 L 原样保留。
+
+           single 把色相也收进 compose，一层就够：少一层图、少一次编码量化。
+           代价是少了一个可以单独关掉的开关——multi 里把 Hue 层眼睛一关，就能
+           看到「原色相 + 调过 S/L」的中间结果。
+
+           single 的滤镜栈（图层面板里从上往下读，执行顺序相反）：
 
              1 · decompose   lb:hsl-dual   原图 → (R=S, G=L, B=H/360)
              2 · S curve     gimp:curves     通道 = R（红）
              3 · L curve     gimp:curves     通道 = G（绿）
              4 · H curve     gimp:curves     通道 = B（蓝）
              5 · compose     lb:hsl-compose   (S,L,H) → 真实颜色
+
+           multi 每层的滤镜栈：
+
+             Hue      1 · hue     gegl:component-extract  component=hue
+                      2 · H curve gimp:curves   通道 = 值
+                      3 · encode  lb:gray-to-component  mode=hue
+
+             S / L    1 · decompose lb:hsl-dual     原图 → (R=S, G=L, B=H)
+                      2 · S curve   gimp:curves     通道 = R
+                      3 · L curve   gimp:curves     通道 = G
+                      4 · compose   lb:hsl-compose  (S,L,H) → 真实颜色
 
            量程：
              S  0…1
@@ -49,10 +82,11 @@
              一起改掉。
            - 色相曲线必须是连续的（两端相等、中间不跳变）。整体旋转色相请用
              lb:hue-saturation；这条曲线适合「压缩 / 拉伸某段色相」。
-- 色相角在 L = 0 或 L = 1（纯黑、纯白）上没有意义，曲线改了也看不见。
+           - 色相角在 L = 0 或 L = 1（纯黑、纯白）上没有意义，曲线改了也看不见。
            - 曲线推到头会把结果推出 sRGB 色域，8 位图按 0/1 裁切。
-           - 这套精确适配依赖 lb:hsl-dual 与 lb:hsl-compose 两个算子；缺了它们就没有
-             等价回退，插件会直接报错。
+           - 两种模式都依赖 lb:hsl-dual 与 lb:hsl-compose：GIMP 没有 HSL 分量
+             模式，S/L 只能靠数据图联合还原，没有等价回退。编码那步的
+             lb:gray-to-component 缺失时自动退回三条曲线。
            - 图层自带的非破坏滤镜不会被复制（new_from_drawable 只取像素）。
 
  license   GPL-3.0-or-later，见工程根目录 LICENSE
@@ -76,6 +110,47 @@ def _identity(t):
 # 精确适配用的两个算子（本仓库 ops/hsl-dual、ops/hsl-compose）
 DUAL_OP = "lb:hsl-dual"
 COMPOSE_OP = "lb:hsl-compose"
+
+# ---- multi 模式：分量层 / the component layers ----------------------------
+# 每层一条曲线，曲线的灰度结果再编码成「携带该分量」的颜色，混合模式才
+# 读得到；下面这些 helper 只服务 multi。
+# One curve per layer; the grey output is encoded into a colour that
+# carries that component before the blend mode reads it.
+
+# 精确适配用的两个算子（本仓库 ops/hsl-dual、ops/hsl-compose）
+DUAL_OP = "lb:hsl-dual"
+COMPOSE_OP = "lb:hsl-compose"
+GTC_OP = "lb:gray-to-component"
+
+# 色相编码：hsl(g·360°, 1, 0.5) 逐通道。没装 gray-to-component 时退回三条曲线。
+def _hsl_to_rgb(h, s, l):
+    c = (1.0 - abs(2.0 * l - 1.0)) * s
+    x = c * (1.0 - abs((h / 60.0) % 2.0 - 1.0))
+    m = l - c / 2.0
+    if h < 60.0:
+        r, g, b = c, x, 0.0
+    elif h < 120.0:
+        r, g, b = x, c, 0.0
+    elif h < 180.0:
+        r, g, b = 0.0, c, x
+    elif h < 240.0:
+        r, g, b = 0.0, x, c
+    elif h < 300.0:
+        r, g, b = x, 0.0, c
+    else:
+        r, g, b = c, 0.0, x
+    return r + m, g + m, b + m
+
+
+def _hue_channel(k):
+    def fn(t):
+        return _hsl_to_rgb(t * 360.0, 1.0, 0.5)[k]
+    return fn
+
+
+HUE_ENCODE = tuple(_hue_channel(k) for k in range(3))
+
+_GTC_OK = None
 
 
 # ---- 滤镜栈 / the filter stack ---------------------------------------------
@@ -101,16 +176,45 @@ def _append_curve(layer, label, fn, channel):
     return filt
 
 
-def _simple_filter(layer, op, label):
+def _simple_filter(layer, op, label, props=None):
     """挂一个不需要曲线的算子滤镜（lb:hsl-dual / lb:hsl-compose 这类）。"""
     filt = Gimp.DrawableFilter.new(layer, op, label)
+    if props:
+        cfg = filt.get_config()
+        for key, value in props.items():
+            cfg.set_property(key, value)
     filt.update()
     layer.append_filter(filt)
     return filt
 
 
+def _append_encoder(layer, label, encode):
+    """给灰度层挂色相编码：优先 lb:gray-to-component，缺算子时退回三条曲线。"""
+    global _GTC_OK
+    if _GTC_OK is not False:
+        try:
+            filt = Gimp.DrawableFilter.new(layer, GTC_OP, label)
+            filt.get_config().set_property("mode", "hue")
+            filt.update()
+            layer.append_filter(filt)
+            _GTC_OK = True
+            return [filt]
+        except Exception:
+            _GTC_OK = False
+
+    added = []
+    for channel, fn in zip((Gimp.HistogramChannel.RED,
+                            Gimp.HistogramChannel.GREEN,
+                            Gimp.HistogramChannel.BLUE), encode):
+        added.append(_append_curve(layer, label, fn, channel))
+    return added
+
+
 def _require_adapter_ops(layer):
-    """确认两个适配算子可用。"""
+    """确认两个适配算子可用。
+
+    没有它们就没有等价回退：S 与 L 的耦合是二元映射，一维曲线表达不了。
+    The adapter pair is mandatory; there is no curve-only fallback."""
     missing = []
     for op in (DUAL_OP, COMPOSE_OP):
         try:
@@ -119,16 +223,18 @@ def _require_adapter_ops(layer):
             missing.append(op)
     if missing:
         raise RuntimeError(
-            _("缺少适配算子：%s。它们是 HSL 精确适配的必需组件（三个分量必须"
-              "在同一张数据图里一起算）。请先安装本仓库的 GEGL 算子 hsl-dual / "
-              "hsl-compose（./install.sh），重启 GIMP 再试。") % ", ".join(missing))
+            _("缺少适配算子：%s。它们是 HSL 精确适配的必需组件（S 与 L 必须联合"
+              "计算，无法用一维曲线代替）。请先安装本仓库的 GEGL 算子的 "
+              "hsl-dual / hsl-compose（./install.sh），重启 GIMP 再试。")
+            % ", ".join(missing))
 
 
 def _link_alpha_mask(image, base, host):
     """把原图层的 alpha 变成整组的蒙版。
 
-    分量层必须不透明（半透明层的混合会按 alpha 做 lerp），透明度交给组蒙版。
-    Mask the group with the source alpha; the data layer stays opaque."""
+    分量层必须不透明（半透明层的混合会按 alpha 做 lerp，实测偏 28 码），
+    透明度交给组蒙版：颜色由图层算，透明度由原图给。
+    Mask the group with the source alpha; component layers stay opaque."""
     if host is None:
         return False
     try:
@@ -177,7 +283,91 @@ def _item_position(image, item, fallback=0):
 
 # ---- 动作 / the action ------------------------------------------------------
 
-def split_hsl(image, base, make_group=True):
+def _split_multi(image, base, make_group=True):
+    """把图层拆成「S/L 联合层 + Hue 层」，在 HSL 空间里调曲线。
+
+    返回最上面那层（Hue）；make_group 时返回包住两层的组。原图层不动，把
+    它隐藏掉这两层自己就能还原。
+    Split into an S/L layer and a Hue layer that recombine exactly to the
+    original, even with the source hidden."""
+    if base is None:
+        raise RuntimeError(_("没有可以拆分的图层 / no layer to split"))
+    if base.is_group():
+        raise RuntimeError(
+            _("图层组不能拆分：请先选一个栅格图层（右键 → 合并组）"
+              " / a layer group has no pixels of its own"))
+
+    _require_adapter_ops(base)
+
+    parent = base.get_parent()
+    position = _item_position(image, base)
+
+    # 带 alpha 的图层必须分组：透明度靠组蒙版保住，散层没有地方挂。
+    auto_group = False
+    if not make_group:
+        try:
+            if base.has_alpha():
+                make_group = True
+                auto_group = True
+        except Exception:
+            pass
+
+    image.undo_group_start()
+    try:
+        host = None
+        if make_group:
+            host = Gimp.GroupLayer.new(image, _("HSL split"))
+            host.set_mode(Gimp.LayerMode.PASS_THROUGH)
+            image.insert_layer(host, parent, position)
+
+        # 自下而上：S/L 层先插入（落最底，正常模式），Hue 层最后插到最上。
+        sl = Gimp.Layer.new_from_drawable(base, image)
+        sl.set_name(_("1 · S / L"))
+        sl.set_mode(Gimp.LayerMode.NORMAL)
+        image.insert_layer(sl, host, 0)
+
+        _simple_filter(sl, DUAL_OP, _("1 · decompose"))
+        _append_curve(sl, _("2 · S curve"), _identity,
+                      Gimp.HistogramChannel.RED)
+        _append_curve(sl, _("3 · L curve"), _identity,
+                      Gimp.HistogramChannel.GREEN)
+        _simple_filter(sl, COMPOSE_OP, _("4 · compose"))
+
+        # Hue 层：只替换色相，S 和 L 保留下面那层的。
+        hue = Gimp.Layer.new_from_drawable(base, image)
+        hue.set_name(_("2 · Hue"))
+        hue.set_mode(Gimp.LayerMode.HSV_HUE)
+        image.insert_layer(hue, host, 0)
+
+        _simple_filter(hue, "gegl:component-extract", _("1 · hue"),
+                       {"component": "hue"})
+        _append_curve(hue, _("2 · H curve"), _identity,
+                      Gimp.HistogramChannel.VALUE)
+        _append_encoder(hue, _("3 · encode"), HUE_ENCODE)
+
+        _link_alpha_mask(image, base, host)
+
+        try:
+            image.set_selected_layers([host or hue])
+        except Exception:
+            pass
+    finally:
+        image.undo_group_end()
+
+    Gimp.displays_flush()
+    try:
+        msg = _("HSL 分量层已建立：%s。S 曲线在「2 · S curve」（红通道）、"
+                "L 曲线在「3 · L curve」（绿通道）、色相曲线在 Hue 层的"
+                "「2 · H curve」。原图层可以隐藏，这两层自己就能还原。") \
+              % (host.get_name() if host else hue.get_name())
+        if auto_group:
+            msg += _("\n（这张图带透明，已自动分组：透明度靠组蒙版保住。）")
+        Gimp.message(msg)
+    except Exception:
+        pass
+    return host or hue
+
+def _split_single(image, base, make_group=True):
     """把图层换成一张「S / L / H 三联曲线」的 HSL 层。
 
     返回那张层；make_group 时返回包住它的组。原图层不动，把它隐藏掉这一层
@@ -245,6 +435,22 @@ def split_hsl(image, base, make_group=True):
         pass
     return host or layer
 
+def split_hsl(image, base, mode='single', make_group=True):
+    """按 mode 生成 single（一层数据图）或 multi（分量层）。
+
+    mode='single'：一张数据图，三条曲线，compose 一次算完。
+    mode='multi' ：每层一个分量，用分量混合模式叠回去，可单独开关。
+    返回建好的组（或最上面那层）。
+    Build the single packed data layer, or the multi component layers."""
+    if base is None:
+        raise RuntimeError(_("没有可以拆分的图层 / no layer to split"))
+    if base.is_group():
+        raise RuntimeError(
+            _("图层组不能拆分：请先选一个栅格图层（右键 → 合并组）"
+              " / a layer group has no pixels of its own"))
+    if mode == 'multi':
+        return _split_multi(image, base, make_group)
+    return _split_single(image, base, make_group)
 
 # ---- 程序包装 / procedure wrapper ------------------------------------------
 
@@ -271,6 +477,15 @@ class HslSplitPlugin(Gimp.PlugIn):
         procedure.set_documentation(
             _("在 HSL 空间里调曲线：生成一张三联数据图（红通道 = 饱和度、绿通道 = 明度、蓝通道 = 色相），三条曲线各管一个分量。恒等曲线时精确还原原图。"),
             _("Curve HSL itself. One data layer (R = saturation, G = lightness, B = hue/360) with three curves; identity curves reproduce the image exactly. Needs lb:hsl-dual and lb:hsl-compose."), name)
+        mode = Gimp.Choice.new()
+        mode.add('single', 0, _("single（单层）"),
+                 _("一张数据图，三条曲线各管一个通道，compose 一次算完。"
+                   "层数最少、误差最小。"))
+        mode.add('multi', 1, _("multi（两张分量层）"),
+                 _("拆成 Hue 一层（HSV 色相模式）+ S/L 数据图一层，各自挂曲线，再用分量混合模式叠回去。色相层可以单独关掉。"))
+        procedure.add_choice_argument(
+            "mode", _("模式"), _("single 一层算完；multi 拆成可以单独开关的多层"),
+            mode, 'single', GObject.ParamFlags.READWRITE)
         procedure.add_boolean_argument(
             "group", _("收进图层组"),
             _("把这一层放进一个「HSL split」穿透组里；关掉就直接叠在原图层上方"),
@@ -283,7 +498,9 @@ class HslSplitPlugin(Gimp.PlugIn):
                 Gimp.PDBStatusType.CALLING_ERROR,
                 GLib.Error(_("No image or no layer selected")))
         try:
-            split_hsl(image, drawables[0], config.get_property('group'))
+            split_hsl(image, drawables[0],
+                       config.get_property('mode') or 'single',
+                       config.get_property('group'))
             return procedure.new_return_values(
                 Gimp.PDBStatusType.SUCCESS, GLib.Error())
         except Exception as exc:

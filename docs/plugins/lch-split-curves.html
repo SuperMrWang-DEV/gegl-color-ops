@@ -51,7 +51,7 @@
     </div>
     <div class="dl">
       <div class="dl-head"><h3>脚本调用</h3></div>
-      <pre><code>lb-plugin-lch-split-curves(image, drawable, group)</code></pre>
+      <pre><code>lb-plugin-lch-split-curves(image, drawable, mode, group)</code></pre>
       <p>标准 PDB 过程，参数留空走默认值。</p>
     </div>
     <div class="dl">
@@ -63,13 +63,17 @@
 
 <div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>生成的结构</h3><span class="pill">一层</span></div>
-      <pre><code>LCh split          组 · 穿透（带 alpha 时组上还有蒙版）
-  └─ 1 · LCh L/C/h   模式 正常   ← 一条算子链算完整 LCh 色
-  └─ 原图层（不动，可以隐藏）</code></pre>
-      <p>滤镜栈：<code>decompose</code>（lb:lch-dual）→ <b>L 曲线（红）</b> →
-         <b>C 曲线（绿）</b> → <b>h 曲线（蓝）</b> → <code>compose</code>
-         （lb:lch-compose）。</p>
+      <div class="dl-head"><h3>两种模式</h3><span class="pill">mode 参数</span></div>
+      <pre><code>single   LCh split            组 · 穿透（带 alpha 时组上还有蒙版）
+           └─ 1 · LCh L/C/h     模式 正常      ← 一条算子链算完整 LCh 色
+
+multi    LCh split            组 · 穿透（带 alpha 时组上还有蒙版）
+           ├─ 3 · Lightness     模式 LCh 明度
+           ├─ 2 · Chroma        模式 LCh 彩度
+           └─ 1 · Hue           模式 LCh 色相</code></pre>
+      <p>single 的滤镜栈：<code>decompose</code>（lb:lch-dual）→
+         <b>L 曲线（红）</b> → <b>C 曲线（绿）</b> → <b>h 曲线（蓝）</b> →
+         <code>compose</code>（lb:lch-compose）。</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>量程</h3></div>
@@ -79,11 +83,13 @@
          <code>h 0…360° → h/360</code>。</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>为什么只有一层</h3></div>
-      <p>旧版是三张分量层配三个 LCh 分量混合模式，每层还要把分量值「编码」成
-         混合模式读得出来的颜色——色相层得造一个等 L*、等 C* 的色相圆，彩度压到
-         39.8 才不牺牲灵敏度。现在三个分量一起进 compose，那套编码整个不需要了，
-         也不会因为逐层量化把色相带偏。</p>
+      <div class="dl-head"><h3>single 还是 multi</h3></div>
+      <p><b>multi</b> 用 GIMP 原生的三个 LCh 分量混合模式，每层要把分量值「编码」
+         成混合模式读得出来的颜色——色相层得造一个等 L*、等 C* 的色相圆（L*=70、
+         C*=39.8，整圈在 sRGB 内），彩度层走黑→蓝直线。三层就是三次编码、三次
+         量化，但每层能单独关掉。</p>
+      <p><b>single</b> 把三个分量一起送进 compose，那套编码整个不需要，也没了
+         逐层量化把色相带偏的风险。层数三降到一，滤镜十四条降到五条。</p>
     </div>
   </div>
   <p class="note"><b>实测</b>：浮点恒等往返 <b>0.0005 码</b>、8 位 <b>0.49 码</b>；
@@ -100,7 +106,7 @@
        <code>plug-ins</code> 目录（Windows <code>%APPDATA%\GIMP\3.x\plug-ins</code>，
        Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-lch-split-curves.zip">下载 gegl-color-ops-plugin-lch-split-curves.zip</a>
-    <p class="muted small">5.9 KB · 校验：<code>SHA256 c0f25d155eb821b6fc2b76dfd7346261…</code></p>
+    <p class="muted small">11.3 KB · 校验：<code>SHA256 6e2e949df06169ab099c32f0456dfff1…</code></p>
   </div>
 </section>
 
@@ -119,7 +125,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">29580bd</span>
+    <span class="muted">5576e66</span>
   </div>
 </footer>
 </body>

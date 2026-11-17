@@ -3,37 +3,65 @@
 """===========================================================================
  SuperMrWang · HSV 分量分解 + 曲线 —— GIMP 3 Python 插件
  ---------------------------------------------------------------------------
- purpose   在 HSV 空间里调曲线。GIMP 自己有 HSV 的三个分量混合模式，但要用它们
-           就得把图层拆成三层、每层 extract → 曲线 → 编码三四个滤镜，8 位图上
-           还要靠组内浮点缓冲才不偏色。这里换成和 HSI 插件一样的做法：两个适配
-           算子把 S、V、H 打包进一张数据图，三条曲线各管一个，再一起解回来。
-           Curve HSV itself: one data layer (R = S, G = V, B = H/360) with three
-           curves, instead of three encoded component layers.
+ purpose   在 HSV 空间里调曲线。两种模式（菜单里的「模式 / Mode」参数）：
+
+             single   一张数据图（R=S、G=V、B=H/360）三条曲线，compose 一次
+                      算完。一层、五条滤镜。
+             multi    三张分量层（Hue / Saturation / Value），每层 extract →
+                      曲线 → 编码，再用 GIMP 原生的 HSV 分量混合模式叠回去。
+                      三层、十条滤镜。
+
+           两者恒等曲线都逐像素还原原图；调哪条曲线就只动那个分量。
+           Curve HSV itself, in one of two modes: a single packed data layer
+           (single) or three component layers on the native HSV blend modes
+           (multi).
 
  menu      颜色 → SuperMrWang → Shortcut → HSV Split (Curves)
            图层右键 → SuperMrWang → Shortcut → HSV Split (Curves)
 
  usage     选中一个栅格图层 → 菜单项。生成的结构（自上而下）：
 
+            single 模式
+
               HSV split       组，穿透混合（带 alpha 时组上还有一张蒙版）
                 ├─ 1 · HSV S/V/H   正常模式   ← 一条算子链算出完整 HSV 色
                 └─ 原图层（不动，可以隐藏）
 
- note      和 HSI 那个插件同一个骨架：三个分量挤进一张数据图，一次算完再还原。
-           旧版是三张分量层（色相 / 饱和度 / 明度）各自挂一个分量混合模式，
-           每层都要先抽出灰度、曲完再编码成「携带该分量」的颜色，最后靠混合模式
-           叠回去；三层意味着三次编码、三次量化。现在 S、V、H 一起进 compose，
-           一次算完——层数从三降到一，滤镜条数从十条降到五条。
+            multi 模式
 
-           代价和 HSI 那里一样：少了一层可以单独关掉的开关。
+              HSV split       组，穿透混合（带 alpha 时组上还有一张蒙版）
+                ├─ 3 · Value       模式 = HSV 明度   ← 只替换 V
+                ├─ 2 · Saturation  模式 = HSV 饱和度 ← 只替换 S
+                ├─ 1 · Hue         模式 = HSV 色相   ← 只替换 H
+                └─ 原图层（不动，可以隐藏）
 
-           滤镜栈（图层面板里从上往下读，执行顺序相反）：
+ note      single 的骨架和 HSI 插件一样：三个分量挤进一张数据图，一次算完再还原，
+          层数一、滤镜五条、只编码一次，误差最小。
+
+          multi 是旧版结构：每层先抽出灰度、曲完再编码成「携带该分量」的颜色，
+          靠混合模式叠回去。代价是三层、十四个滤镜、三次编码三次量化；换来的
+          是每层都能单独关掉——把 Hue 层开关一拨，就能只看调过 S/V 的中间结果。
+          分量混合模式只在源 alpha=1 时是纯替换，所以三层一律不透明，透明度
+          交给组蒙版。
+
+          single 的滤镜栈（图层面板里从上往下读，执行顺序相反）：
 
              1 · decompose   lb:hsv-dual   原图 → (R=S, G=V, B=H/360)
              2 · S curve     gimp:curves     通道 = R（红）
              3 · V curve     gimp:curves     通道 = G（绿）
              4 · H curve     gimp:curves     通道 = B（蓝）
              5 · compose     lb:hsv-compose   (S,V,H) → 真实颜色
+
+          multi 每层的滤镜栈：
+
+             Hue        1 · extract  gegl:component-extract  component=hue
+                        2 · curve    gimp:curves   通道 = 值
+                        3 · encode   lb:gray-to-component  mode=hue
+
+             Saturation 同上，extract hsv-s / encode saturation（编码是一条
+                        直线 (1, 1−g, 1−g)，曲线采样不引入误差）
+
+             Value      只有 extract hsv-v + curve，不需要编码
 
            量程：
              S  HSV 饱和度           0…1
@@ -52,10 +80,12 @@
              一起改掉。
            - 色相曲线必须是连续的（两端相等、中间不跳变）。整体旋转色相请用
              lb:hue-saturation；这条曲线适合「压缩 / 拉伸某段色相」。
-- V = 0 的像素（纯黑）没有色相与饱和度，曲线改了也看不出来。
+           - V = 0 的像素（纯黑）没有色相与饱和度，曲线改了也看不出来。
            - 曲线推到头会把结果推出 sRGB 色域，8 位图按 0/1 裁切。
-           - 这套精确适配依赖 lb:hsv-dual 与 lb:hsv-compose 两个算子；缺了它们就没有
-             等价回退，插件会直接报错。
+           - single 模式依赖 lb:hsv-dual 与 lb:hsv-compose 两个算子；缺了它们
+             就没有等价回退，插件会报错。multi 模式只用 GIMP 自带的
+             gegl:component-extract + 分量混合模式，不需要这两个算子（编码那步
+             的 lb:gray-to-component 缺失时自动退回三条曲线）。
            - 图层自带的非破坏滤镜不会被复制（new_from_drawable 只取像素）。
 
  license   GPL-3.0-or-later，见工程根目录 LICENSE
@@ -178,21 +208,200 @@ def _item_position(image, item, fallback=0):
         return fallback
 
 
+# ---- multi 模式：分量层 / the component layers ------------------------------
+# 每层一条曲线，但曲线的结果必须先「编码」成一张携带该分量的彩色图，混合模式
+# 才读得到。下面三组函数就是三种分量的编码器。
+# One curve per layer, but the curve's grey output has to be encoded into a
+# colour that carries that component before the blend mode can read it.
+
+def _hsl_to_rgb(h, s, l):
+    """h∈[0,360) s,l∈[0,1] → (r,g,b)；与 GEGL 的 hsl 编码同口径。"""
+    c = (1.0 - abs(2.0 * l - 1.0)) * s
+    x = c * (1.0 - abs((h / 60.0) % 2.0 - 1.0))
+    m = l - c / 2.0
+    if h < 60.0:
+        r, g, b = c, x, 0.0
+    elif h < 120.0:
+        r, g, b = x, c, 0.0
+    elif h < 180.0:
+        r, g, b = 0.0, c, x
+    elif h < 240.0:
+        r, g, b = 0.0, x, c
+    elif h < 300.0:
+        r, g, b = x, 0.0, c
+    else:
+        r, g, b = c, 0.0, x
+    return r + m, g + m, b + m
+
+
+def _hue_channel(k):
+    """Hue 层第 k 通道：hsl(g·360°, 1, 0.5)——饱和度/亮度拉满的色相轮。
+
+    Hue 混合模式只读色相，所以饱和度、明度取什么都无所谓；取满饱和是为了
+    让编码值离中灰足够远，8 位下也不容易被量化吃掉。"""
+    def fn(t):
+        return _hsl_to_rgb(t * 360.0, 1.0, 0.5)[k]
+    return fn
+
+
+def _sat_channel(k):
+    """Saturation 层第 k 通道：hsv(0°, g, 1) = (1, 1−g, 1−g)。
+
+    Saturation 混合模式只读饱和度，所以色相固定成红、明度固定在 1 都无所谓；
+    这样编码恰好是一条直线，曲线采样不引入误差。"""
+    if k == 0:
+        return lambda t: 1.0
+    return lambda t: 1.0 - t
+
+
+HUE_ENCODE = tuple(_hue_channel(k) for k in range(3))
+SAT_ENCODE = tuple(_sat_channel(k) for k in range(3))
+
+# 一个滤镜顶三条曲线的编码算子（本仓库 ops/gray-to-component）
+GTC_OP = "lb:gray-to-component"
+
+_GTC_OK = None
+
+
+def _append_encoder(layer, mode, label, encode):
+    """给灰度层挂编码：优先 lb:gray-to-component，缺算子时退回三条曲线。
+
+    mode 是算子的分量名（hue / saturation / …）；encode 是等价的曲线三元组。
+    Attach the encoder. Falls back to three curve filters when the GEGL op is
+    not installed, so the plugin still works on a bare GIMP."""
+    global _GTC_OK
+    if _GTC_OK is not False:
+        try:
+            filt = Gimp.DrawableFilter.new(layer, GTC_OP, label)
+            cfg = filt.get_config()
+            cfg.set_property("mode", mode)
+            filt.update()
+            layer.append_filter(filt)
+            _GTC_OK = True
+            return [filt]
+        except Exception:
+            _GTC_OK = False
+
+    added = []
+    for channel, fn in zip((Gimp.HistogramChannel.RED,
+                            Gimp.HistogramChannel.GREEN,
+                            Gimp.HistogramChannel.BLUE), encode):
+        added.append(_append_curve(layer, label, fn, channel))
+    return added
+
+
+def _component_layer(image, base, title, component, encode, mode, parent):
+    """造一张分量层：extract → curve → encode，并挂好混合模式。
+
+    extract 输出的是灰度，alpha 会被写成不透明；不用补蒙版——分量混合模式
+    在合成时沿用下层的 alpha，透明区域照样透出去（实测 alpha 逐位一致）。
+    Build one component layer: extract -> curve -> encode, with its blend mode."""
+    layer = Gimp.Layer.new_from_drawable(base, image)
+    layer.set_name(title)
+    layer.set_mode(mode)
+    image.insert_layer(layer, parent, 0)
+
+    filt = Gimp.DrawableFilter.new(
+        layer, "gegl:component-extract", _("1 · extract"))
+    cfg = filt.get_config()
+    cfg.set_property("component", component)
+    filt.update()
+    layer.append_filter(filt)
+
+    _append_curve(layer, _("2 · curve"), _identity, Gimp.HistogramChannel.VALUE)
+
+    if encode:
+        _append_encoder(layer, encode[0], _("3 · encode"), encode[1])
+    return layer
+
+
 # ---- 动作 / the action ------------------------------------------------------
 
-def split_hsv(image, base, make_group=True):
-    """把图层换成一张「S / V / H 三联曲线」的 HSV 层。
-
-    返回那张层；make_group 时返回包住它的组。原图层不动，把它隐藏掉这一层
-    自己就能还原。
-    Replace the layer with one HSV data layer carrying three curves; it
-    reproduces the original on its own, with the source hidden."""
+def _check_base(base):
     if base is None:
         raise RuntimeError(_("没有可以拆分的图层 / no layer to split"))
     if base.is_group():
         raise RuntimeError(
             _("图层组不能拆分：请先选一个栅格图层（右键 → 合并组）"
               " / a layer group has no pixels of its own"))
+
+
+def _split_multi(image, base, make_group=True):
+    """multi：拆成三张分量层，用 HSV 的三个分量混合模式叠回去。
+
+    返回最上面那层（Value）；make_group 时返回包住三层的组。
+    Split into H / S / V component layers that recombine through the native
+    HSV blend modes. Returns the Value layer, or the group holding all three."""
+    _check_base(base)
+
+    parent = base.get_parent()
+    position = _item_position(image, base)
+
+    # 带 alpha 的图层必须分组：透明度靠组蒙版保住，散层没有地方挂。
+    auto_group = False
+    if not make_group:
+        try:
+            if base.has_alpha():
+                make_group = True
+                auto_group = True
+        except Exception:
+            pass
+
+    image.undo_group_start()
+    try:
+        host = None
+        if make_group:
+            host = Gimp.GroupLayer.new(image, _("HSV split"))
+            host.set_mode(Gimp.LayerMode.PASS_THROUGH)
+            image.insert_layer(host, parent, position)
+
+        # 自下而上造：Hue 最先插入（落到组的最底），Value 最后插到最上。
+        # 顺序不能反：分量混合模式只替换一个分量，另外两个从下行读。最底那张
+        # 必须是「带真实色相的全饱和色」（hsl 色环），因为它下面什么都没有；
+        # 若最底是灰（V 层），它的 S=0，上面两层替换 H/S 时读到的都是 0，
+        # 怎么换都是灰——把原图层藏起来就彻底还原不出来。
+        _component_layer(image, base, _("1 · Hue"), "hue",
+                         ("hue", HUE_ENCODE),
+                         Gimp.LayerMode.HSV_HUE, host)
+        _component_layer(image, base, _("2 · Saturation"), "hsv-s",
+                         ("saturation", SAT_ENCODE),
+                         Gimp.LayerMode.HSV_SATURATION, host)
+        value = _component_layer(image, base, _("3 · Value"), "hsv-v", None,
+                                 Gimp.LayerMode.HSV_VALUE, host)
+
+        _link_alpha_mask(image, base, host)
+
+        try:
+            image.set_selected_layers([host or value])
+        except Exception:
+            pass
+    finally:
+        image.undo_group_end()
+
+    Gimp.displays_flush()
+    try:
+        msg = _("HSV 分量层已建立（multi 模式）：%s。改每层「2 · curve」就是调该"
+                "分量的曲线；encode 那步别动。每层都能单独关掉。原图层可以隐藏，"
+                "这三层自己就能叠回去。") \
+              % (host.get_name() if host else value.get_name())
+        if auto_group:
+            msg += _("\n（这张图带透明，已自动分组：透明度靠组蒙版保住。）")
+        Gimp.message(msg)
+    except Exception:
+        pass
+    return host or value
+
+
+def split_hsv(image, base, mode='single', make_group=True):
+    """按 mode 生成 single（一层数据图）或 multi（三张分量层）。
+
+    mode='single'：一层，五条滤镜，恒等曲线时逐像素还原原图。
+    mode='multi' ：三层，走 GIMP 原生的 HSV 分量混合模式，每层可单独关掉。
+    返回建好的组（或最上面那层）。
+    Build the single packed data layer, or the three component layers."""
+    _check_base(base)
+    if mode == 'multi':
+        return _split_multi(image, base, make_group)
 
     _require_adapter_ops(base)
 
@@ -272,11 +481,29 @@ class HsvSplitPlugin(Gimp.PlugIn):
         procedure.add_menu_path("<Layers>/SuperMrWang/Shortcut")
 
         procedure.set_documentation(
-            _("在 HSV 空间里调曲线：生成一张三联数据图（红通道 = 饱和度、绿通道 = 明度、蓝通道 = 色相），三条曲线各管一个分量。恒等曲线时精确还原原图，调哪条曲线就只动那个 HSV 分量。"),
-            _("Curve HSV itself. One data layer (R = saturation, G = value, B = hue/360) with three curves; identity curves reproduce the image exactly. Needs lb:hsv-dual and lb:hsv-compose."), name)
+            _("在 HSV 空间里调曲线：single 模式生成一张三联数据图（红通道 = "
+              "饱和度、绿通道 = 明度、蓝通道 = 色相），三条曲线各管一个分量；"
+              "multi 模式拆成 Hue / Saturation / Value 三张分量层，用 HSV 的"
+              "分量混合模式叠回去。两种模式恒等曲线都精确还原原图。"),
+            _("Curve HSV itself. Mode single: one data layer (R = S, G = V, "
+              "B = hue/360) with three curves. Mode multi: three component "
+              "layers on the native HSV blend modes. Identity curves reproduce "
+              "the image exactly in both."), name)
+
+        mode = Gimp.Choice.new()
+        mode.add('single', 0, _("single（单层）"),
+                 _("一张数据图：S / V / H 挤进 RGB，三条曲线各管一个通道，"
+                   "compose 一次算完。一层、五条滤镜、误差最小。"))
+        mode.add('multi', 1, _("multi（三张分量层）"),
+                 _("拆成 Hue / Saturation / Value 三层，每层 extract → 曲线 → "
+                   "编码，再用 GIMP 原生的 HSV 分量混合模式叠回去。每层可以"
+                   "单独关掉。"))
+        procedure.add_choice_argument(
+            "mode", _("模式"), _("single 一层算完；multi 拆成可以单独开关的三层"),
+            mode, 'single', GObject.ParamFlags.READWRITE)
         procedure.add_boolean_argument(
             "group", _("收进图层组"),
-            _("把这一层放进一个「HSV split」穿透组里；关掉就直接叠在原图层上方"),
+            _("把结果放进一个「HSV split」穿透组里；关掉就直接叠在原图层上方"),
             True, GObject.ParamFlags.READWRITE)
         return procedure
 
@@ -286,7 +513,9 @@ class HsvSplitPlugin(Gimp.PlugIn):
                 Gimp.PDBStatusType.CALLING_ERROR,
                 GLib.Error(_("No image or no layer selected")))
         try:
-            split_hsv(image, drawables[0], config.get_property('group'))
+            split_hsv(image, drawables[0],
+                      config.get_property('mode') or 'single',
+                      config.get_property('group'))
             return procedure.new_return_values(
                 Gimp.PDBStatusType.SUCCESS, GLib.Error())
         except Exception as exc:

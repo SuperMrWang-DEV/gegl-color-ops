@@ -51,7 +51,7 @@
     </div>
     <div class="dl">
       <div class="dl-head"><h3>脚本调用</h3></div>
-      <pre><code>lb-plugin-hsl-split-curves(image, drawable, group)</code></pre>
+      <pre><code>lb-plugin-hsl-split-curves(image, drawable, mode, group)</code></pre>
       <p>标准 PDB 过程，参数留空走默认值。</p>
     </div>
     <div class="dl">
@@ -63,21 +63,27 @@
 
 <div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>生成的结构</h3><span class="pill">一层</span></div>
-      <pre><code>HSL split          组 · 穿透（带 alpha 时组上还有蒙版）
-  └─ 1 · HSL S/L/H   模式 正常   ← 一条算子链算完整 HSL 色
-  └─ 原图层（不动，可以隐藏）</code></pre>
-      <p>滤镜栈：<code>decompose</code>（lb:hsl-dual）→ <b>S 曲线（红）</b> →
-         <b>L 曲线（绿）</b> → <b>H 曲线（蓝）</b> → <code>compose</code>
-         （lb:hsl-compose）。</p>
+      <div class="dl-head"><h3>两种模式</h3><span class="pill">mode 参数</span></div>
+      <pre><code>single   HSL split            组 · 穿透（带 alpha 时组上还有蒙版）
+           └─ 1 · HSL S/L/H     模式 正常      ← 一条算子链算完整 HSL 色
+
+multi    HSL split            组 · 穿透（带 alpha 时组上还有蒙版）
+           ├─ 2 · Hue           模式 HSV 色相   ← 只替换 H
+           └─ 1 · S / L         模式 正常        ← 算出 S、L 与色相</code></pre>
+      <p>single 的滤镜栈：<code>decompose</code>（lb:hsl-dual）→
+         <b>S 曲线（红）</b> → <b>L 曲线（绿）</b> → <b>H 曲线（蓝）</b> →
+         <code>compose</code>（lb:hsl-compose）。</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>为什么只有一层</h3></div>
+      <div class="dl-head"><h3>single 还是 multi</h3></div>
       <p>S 与 L 是耦合的：<code>C = (1−|2L−1|)·S</code>、<code>V = L + C/2</code>、
          <code>S_hsv = C/V</code>。要精确算回 HSV 的 S/V，编码器必须同时读到两者
-         ——这正是它们要挤进同一张图的原因。旧版到这里是两层：S/L 一层，
-         色相另起一层借 HSV 的色相模式（HSL 与 HSV 的色相角完全相等）。现在色相
-         也进 compose，那层「抽灰度 → 曲线 → 编码成色环」的滤镜链就不需要了。</p>
+         ——这正是它们要挤进同一张图的原因，两种模式都一样。</p>
+      <p><b>multi</b> 在上面再加一层 Hue：借 HSV 的色相模式（HSL 与 HSV 的色相角
+         完全相等），S、L 原样保留。把 Hue 层的眼睛一关，就能看到「原色相 +
+         调过 S/L」的中间结果。</p>
+      <p><b>single</b> 把色相也收进 compose，一层就够：少一层图、少一次编码量化，
+         代价是少了那个可以单独关掉的开关。</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>不拿 L 当 V</h3></div>
@@ -100,7 +106,7 @@
        <code>plug-ins</code> 目录（Windows <code>%APPDATA%\GIMP\3.x\plug-ins</code>，
        Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-hsl-split-curves.zip">下载 gegl-color-ops-plugin-hsl-split-curves.zip</a>
-    <p class="muted small">5.8 KB · 校验：<code>SHA256 7b0a56acca743d787aa5a47bebcb26c4…</code></p>
+    <p class="muted small">7.8 KB · 校验：<code>SHA256 3c0c4f4f80d124ac7dae6f96db67a400…</code></p>
   </div>
 </section>
 
@@ -119,7 +125,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">29580bd</span>
+    <span class="muted">5576e66</span>
   </div>
 </footer>
 </body>

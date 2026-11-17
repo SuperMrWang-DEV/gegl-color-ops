@@ -4,33 +4,61 @@
  SuperMrWang · Lab 分量分解 + 曲线 —— GIMP 3 Python 插件
  ---------------------------------------------------------------------------
  purpose   在 CIELAB 空间里调曲线。L* 是感知明度，a 是绿–品红轴，b 是蓝–黄轴；
-           「黄了压 b、偏绿推 a」比在 RGB 里拉曲线直观得多。本插件把三个分量
-           打包进一张数据图，三条曲线各管一个，再一起解回真实颜色。
-           Curve CIELAB itself: one data layer (R = a, G = b, B = L*) with
-           three curves. Identity curves reproduce the image exactly.
+           「黄了压 b、偏绿推 a」比在 RGB 里拉曲线直观得多。两种模式：
+
+             single   一张数据图（R=a、G=b、B=L*/100）三条曲线，compose 一次算完
+             multi    两张分量层：L 层借 LCh 的明度混合模式（L* 在两种空间里
+                      是同一个量），a/b 层用数据图 + 两条曲线算出完整颜色
+
+           两者恒等曲线都逐像素还原原图。
+           Curve CIELAB itself in two modes: one packed data layer, or the
+           L + a/b stack that borrows GIMP's LCh lightness mode.
 
  menu      颜色 → SuperMrWang → Shortcut → Lab Split (Curves)
            图层右键 → SuperMrWang → Shortcut → Lab Split (Curves)
 
  usage     选中一个栅格图层 → 菜单项。生成的结构（自上而下）：
 
+            single 模式
+
               Lab split       组，穿透混合（带 alpha 时组上还有一张蒙版）
                 ├─ 1 · Lab a/b/L   正常模式   ← 一条算子链算出完整 Lab 色
                 └─ 原图层（不动，可以隐藏）
 
- note      和 HSI 那个插件同一个骨架：三个分量挤进一张数据图，一次算完再还原。
-           旧版是两层：a/b 联合层用正常模式，L* 单独一层借 LCh 明度模式（L* 那个
-           通道在两种空间里是同一个量）。现在 L* 也进 compose，一层就够——
-           少一层的意义不只是省一个图，还少了「L 层用混合模式、ab 层用普通模式」
-           这种两套语义并存的地方。
+            multi 模式
 
-           滤镜栈（图层面板里从上往下读，执行顺序相反）：
+              Lab split       组，穿透混合（带 alpha 时组上还有一张蒙版）
+                ├─ 2 · L           模式 = LCh 明度   ← 只替换 L*
+                ├─ 1 · a / b       正常模式          ← 算出 a、b 与明度
+                └─ 原图层（不动，可以隐藏）
+
+ note      为什么 multi 是两层：GIMP 只有 LCh 的三个分量混合模式（色相 / 彩度 /
+           明度），Lab 的 a、b 没有对应项。好在 L* 在 Lab 与 LCh 里是同一个量，
+           所以明度能单独一层借过来；a、b 必须成对还原（它们共同决定彩度与色相，
+           拆开就不是线性映射了），于是放在同一张数据图里。
+
+           single 把 L* 也收进 compose，一层就够：少一层图、少一次编码量化。
+           代价是少了一个可以单独关掉的开关——multi 里把 L 层眼睛一关，就能看到
+           「原明度 + 调过 a/b」的中间结果，判断色偏时很顺手。
+
+           single 的滤镜栈（图层面板里从上往下读，执行顺序相反）：
 
              1 · decompose   lb:lab-dual   原图 → (R=a, G=b, B=L*/100)
              2 · a curve     gimp:curves     通道 = R（红）
              3 · b curve     gimp:curves     通道 = G（绿）
              4 · L curve     gimp:curves     通道 = B（蓝）
              5 · compose     lb:lab-compose   (a,b,L*) → 真实颜色
+
+           multi 每层的滤镜栈：
+
+             L        1 · lightness gegl:component-extract  component=lightness
+                      2 · L curve   gimp:curves   通道 = 值
+                      3 · encode    lb:gray-to-component  mode=lightness
+
+             a / b    1 · decompose lb:lab-dual     原图 → (R=a, G=b, B=L*)
+                      2 · a curve   gimp:curves     通道 = R
+                      3 · b curve   gimp:curves     通道 = G
+                      4 · compose   lb:lab-compose  (a,b,L*) → 真实颜色
 
            量程：
              a, b  -128…+127  → (a+128)/255
@@ -76,15 +104,126 @@ def _identity(t):
 # 精确适配用的两个算子（本仓库 ops/lab-dual、ops/lab-compose）
 DUAL_OP = "lb:lab-dual"
 COMPOSE_OP = "lb:lab-compose"
+GTC_OP = "lb:gray-to-component"
+
+# ---- multi 模式：分量层 / the component layers ----------------------------
+# 每层一条曲线，曲线的灰度结果再编码成「携带该分量」的颜色，混合模式才
+# 读得到；下面这些 helper 只服务 multi。
+# One curve per layer; the grey output is encoded into a colour that
+# carries that component before the blend mode reads it.
+
+# ---- 颜色数学 / colour maths ------------------------------------------------
+# 与 babl 同口径：sRGB 编码值 ↔ 线性 → XYZ(D65) → Bradford D50 → CIE Lab(D50)。
+# component-extract 的 lab-l 与 LCh 明度混合模式用的就是这一套。
+# Same pipeline as babl: encoded sRGB -> linear -> XYZ(D65) -> Bradford D50.
+
+_DELTA = 6.0 / 29.0
+_DELTA3 = _DELTA ** 3
+_D50 = (0.96422, 1.0, 0.82521)
+
+_SRGB_TO_XYZ = ((0.4124564, 0.3575761, 0.1804375),
+                (0.2126729, 0.7151522, 0.0721750),
+                (0.0193339, 0.1191920, 0.9503041))
+_XYZ_TO_SRGB = ((3.2404542, -1.5371385, -0.4985314),
+                (-0.9692660, 1.8760108, 0.0415560),
+                (0.0556434, -0.2040259, 1.0572252))
+_D65_TO_D50 = ((1.0478112, 0.0228866, -0.0501270),
+               (0.0295424, 0.9904844, -0.0170491),
+               (-0.0092345, 0.0150436, 0.7521316))
+_D50_TO_D65 = ((0.9555766, -0.0230393, 0.0631636),
+               (-0.0282895, 1.0099416, 0.0210077),
+               (0.0122982, -0.0204830, 1.3299098))
+
+
+def _srgb_to_linear(c):
+    if c <= 0.04045:
+        return c / 12.92
+    return ((c + 0.055) / 1.055) ** 2.4
+
+
+def _linear_to_srgb(c):
+    if c <= 0.0031308:
+        return c * 12.92
+    return 1.055 * c ** (1.0 / 2.4) - 0.055
+
+
+def _f(t):
+    if t > _DELTA3:
+        return t ** (1.0 / 3.0)
+    return t / (3.0 * _DELTA * _DELTA) + 4.0 / 29.0
+
+
+def _f_inv(t):
+    if t > _DELTA:
+        return t ** 3
+    return 3.0 * _DELTA * _DELTA * (t - 4.0 / 29.0)
+
+
+def _mul(m, v):
+    return (m[0][0] * v[0] + m[0][1] * v[1] + m[0][2] * v[2],
+            m[1][0] * v[0] + m[1][1] * v[1] + m[1][2] * v[2],
+            m[2][0] * v[0] + m[2][1] * v[1] + m[2][2] * v[2])
+
+
+def rgb_to_lab(rgb):
+    """编码 sRGB → (L*, a*, b*)，白点 D50。"""
+    lin = tuple(_srgb_to_linear(c) for c in rgb)
+    xyz = _mul(_D65_TO_D50, _mul(_SRGB_TO_XYZ, lin))
+    fx, fy, fz = (_f(xyz[i] / _D50[i]) for i in range(3))
+    return (116.0 * fy - 16.0, 500.0 * (fx - fy), 200.0 * (fy - fz))
+
+
+def lab_to_rgb(light, a, b):
+    """(L*, a*, b*) → 编码 sRGB；不裁色域（可能出负值/超 1）。"""
+    fy = (light + 16.0) / 116.0
+    fx, fz = fy + a / 500.0, fy - b / 200.0
+    xyz = (_D50[0] * _f_inv(fx), _D50[1] * _f_inv(fy), _D50[2] * _f_inv(fz))
+    xyz = _mul(_D50_TO_D65, xyz)
+    return tuple(_linear_to_srgb(c) for c in _mul(_XYZ_TO_SRGB, xyz))
+
+
+# ---- 明度编码（没有 gray-to-component 时的回退） ---------------------------
+# L* → 编码值灰（三通道相同）。a=b=0 时 XYZ = (Xn, Y, Zn)，线性 sRGB 三分量
+# 都等于 Y，所以一条一维映射就够。
+# L* -> encoded grey; with a=b=0 all three linear channels equal Y.
+
+_N = 256
+
+
+def _gray_for_l(light):
+    if light > 8.0:
+        y = ((light + 16.0) / 116.0) ** 3
+    else:
+        y = light / (3.0 * _DELTA * _DELTA * 116.0)
+    return min(1.0, max(0.0, _linear_to_srgb(y)))
+
+
+_LIGHT_PATH = [_gray_for_l(100.0 * i / float(_N - 1)) for i in range(_N)]
+
+
+def _channel(path, k):
+    """把预计算路径的某个通道包成 gimp:curves 能用的 f(t)。"""
+    def fn(t):
+        x = min(1.0, max(0.0, t)) * (_N - 1)
+        i = int(x)
+        if i >= _N - 1:
+            return path[-1][k]
+        w = x - i
+        return path[i][k] * (1.0 - w) + path[i + 1][k] * w
+    return fn
+
+
+LIGHT_ENCODE = _channel(_LIGHT_PATH, 0)
 
 
 # ---- 滤镜栈 / the filter stack ---------------------------------------------
 
-def _append_curve(layer, label, fn, channel):
-    """在图层上追加一条 gimp:curves（通道级一维映射）。
+def _append_curve(layer, label, fn, channel=None):
+    """在图层上追加一条 gimp:curves（一维映射）。
 
+    channel=None 表示「值」通道（三通道同一映射，给灰度层用）。
     trc 钉成 NON_LINEAR：曲线在编码值上生效，与分量语义一致。
-    Append one channel curve, pinned to encoded (NON_LINEAR) values."""
+    Append one curve; channel=None means the VALUE channel."""
     filt = Gimp.DrawableFilter.new(layer, "gimp:curves", label)
     cfg = filt.get_config()
     curve = Gimp.Curve.new()
@@ -94,23 +233,44 @@ def _append_curve(layer, label, fn, channel):
         x = i / float(n - 1)
         curve.set_sample(x, min(1.0, max(0.0, fn(x))))
     cfg.set_property("curve", curve)
-    cfg.set_property("channel", channel)
+    cfg.set_property("channel",
+                     channel if channel is not None
+                     else Gimp.HistogramChannel.VALUE)
     cfg.set_property("trc", Gimp.TRCType.NON_LINEAR)
     filt.update()
     layer.append_filter(filt)
     return filt
 
 
-def _simple_filter(layer, op, label):
+def _simple_filter(layer, op, label, props=None):
     """挂一个不需要曲线的算子滤镜（lb:lab-dual / lb:lab-compose 这类）。"""
     filt = Gimp.DrawableFilter.new(layer, op, label)
+    if props:
+        cfg = filt.get_config()
+        for key, value in props.items():
+            cfg.set_property(key, value)
     filt.update()
     layer.append_filter(filt)
     return filt
 
 
+def _append_encoder(layer, label):
+    """给明度灰度层挂编码：优先 lb:gray-to-component，缺算子时退回一条曲线。"""
+    try:
+        filt = Gimp.DrawableFilter.new(layer, GTC_OP, label)
+        filt.get_config().set_property("mode", "lightness")
+        filt.update()
+        layer.append_filter(filt)
+        return [filt]
+    except Exception:
+        return [_append_curve(layer, label, LIGHT_ENCODE)]
+
+
 def _require_adapter_ops(layer):
-    """确认两个适配算子可用。"""
+    """确认两个适配算子可用。
+
+    没有它们就没有等价回退：a/b 是二元映射，一维曲线表达不了。
+    The adapter pair is mandatory; there is no curve-only fallback."""
     missing = []
     for op in (DUAL_OP, COMPOSE_OP):
         try:
@@ -119,16 +279,18 @@ def _require_adapter_ops(layer):
             missing.append(op)
     if missing:
         raise RuntimeError(
-            _("缺少适配算子：%s。它们是 Lab 精确适配的必需组件（三个分量必须"
-              "在同一张数据图里一起算）。请先安装本仓库的 GEGL 算子 lab-dual / "
-              "lab-compose（./install.sh），重启 GIMP 再试。") % ", ".join(missing))
+            _("缺少适配算子：%s。它们是 Lab 精确适配的必需组件（a 与 b 必须联合"
+              "计算，无法用一维曲线代替）。请先安装本仓库的 GEGL 算子的 "
+              "lab-dual / lab-compose（./install.sh），重启 GIMP 再试。")
+            % ", ".join(missing))
 
 
 def _link_alpha_mask(image, base, host):
     """把原图层的 alpha 变成整组的蒙版。
 
-    分量层必须不透明（半透明层的混合会按 alpha 做 lerp），透明度交给组蒙版。
-    Mask the group with the source alpha; the data layer stays opaque."""
+    分量层必须不透明（半透明层的混合会按 alpha 做 lerp，实测偏 28 码），
+    透明度交给组蒙版：颜色由图层算，透明度由原图给。
+    Mask the group with the source alpha; component layers stay opaque."""
     if host is None:
         return False
     try:
@@ -177,7 +339,92 @@ def _item_position(image, item, fallback=0):
 
 # ---- 动作 / the action ------------------------------------------------------
 
-def split_lab(image, base, make_group=True):
+def _split_multi(image, base, make_group=True):
+    """把图层拆成「a/b 联合层 + L 层」，在 Lab 空间里调曲线。
+
+    返回最上面那层（L）；make_group 时返回包住两层的组。原图层不动，把它
+    隐藏掉这两层自己就能还原。
+    Split into an a/b layer and an L layer that recombine exactly to the
+    original, even with the source hidden."""
+    if base is None:
+        raise RuntimeError(_("没有可以拆分的图层 / no layer to split"))
+    if base.is_group():
+        raise RuntimeError(
+            _("图层组不能拆分：请先选一个栅格图层（右键 → 合并组）"
+              " / a layer group has no pixels of its own"))
+
+    _require_adapter_ops(base)
+
+    parent = base.get_parent()
+    position = _item_position(image, base)
+
+    # 带 alpha 的图层必须分组：透明度靠组蒙版保住，散层没有地方挂。
+    auto_group = False
+    if not make_group:
+        try:
+            if base.has_alpha():
+                make_group = True
+                auto_group = True
+        except Exception:
+            pass
+
+    image.undo_group_start()
+    try:
+        host = None
+        if make_group:
+            host = Gimp.GroupLayer.new(image, _("Lab split"))
+            host.set_mode(Gimp.LayerMode.PASS_THROUGH)
+            image.insert_layer(host, parent, position)
+
+        # 自下而上：a/b 层先插入（落最底，正常模式），L 层最后插到最上。
+        ab = Gimp.Layer.new_from_drawable(base, image)
+        ab.set_name(_("1 · a / b"))
+        ab.set_mode(Gimp.LayerMode.NORMAL)
+        image.insert_layer(ab, host, 0)
+
+        _simple_filter(ab, DUAL_OP, _("1 · decompose"))
+        _append_curve(ab, _("2 · a curve"), _identity,
+                      Gimp.HistogramChannel.RED)
+        _append_curve(ab, _("3 · b curve"), _identity,
+                      Gimp.HistogramChannel.GREEN)
+        _simple_filter(ab, COMPOSE_OP, _("4 · compose"))
+
+        # L 层：只替换 L*，a 和 b 保留下面那层的。Lab 的 L* 就是 LCh 的 L*，
+        # 所以 LCh 明度模式在这里是逐位精确的。
+        light = Gimp.Layer.new_from_drawable(base, image)
+        light.set_name(_("2 · L"))
+        light.set_mode(Gimp.LayerMode.LCH_LIGHTNESS)
+        image.insert_layer(light, host, 0)
+
+        _simple_filter(light, "gegl:component-extract", _("1 · lightness"),
+                       {"component": "lab-l"})
+        _append_curve(light, _("2 · L curve"), _identity,
+                      Gimp.HistogramChannel.VALUE)
+        _append_encoder(light, _("3 · encode"))
+
+        _link_alpha_mask(image, base, host)
+
+        try:
+            image.set_selected_layers([host or light])
+        except Exception:
+            pass
+    finally:
+        image.undo_group_end()
+
+    Gimp.displays_flush()
+    try:
+        msg = _("Lab 分量层已建立：%s。a 曲线在「2 · a curve」（红通道）、"
+                "b 曲线在「3 · b curve」（绿通道）、明度曲线在 L 层的"
+                "「2 · L curve」。原图层可以隐藏，这两层自己就能还原。") \
+              % (host.get_name() if host else light.get_name())
+        if auto_group:
+            msg += _("\n（这张图带透明，已自动分组：透明度靠组蒙版保住。）")
+        Gimp.message(msg)
+    except Exception:
+        pass
+    return host or light
+
+def _split_single(image, base, make_group=True):
     """把图层换成一张「a / b / L* 三联曲线」的 Lab 层。
 
     返回那张层；make_group 时返回包住它的组。原图层不动，把它隐藏掉这一层
@@ -245,6 +492,22 @@ def split_lab(image, base, make_group=True):
         pass
     return host or layer
 
+def split_lab(image, base, mode='single', make_group=True):
+    """按 mode 生成 single（一层数据图）或 multi（分量层）。
+
+    mode='single'：一张数据图，三条曲线，compose 一次算完。
+    mode='multi' ：每层一个分量，用分量混合模式叠回去，可单独开关。
+    返回建好的组（或最上面那层）。
+    Build the single packed data layer, or the multi component layers."""
+    if base is None:
+        raise RuntimeError(_("没有可以拆分的图层 / no layer to split"))
+    if base.is_group():
+        raise RuntimeError(
+            _("图层组不能拆分：请先选一个栅格图层（右键 → 合并组）"
+              " / a layer group has no pixels of its own"))
+    if mode == 'multi':
+        return _split_multi(image, base, make_group)
+    return _split_single(image, base, make_group)
 
 # ---- 程序包装 / procedure wrapper ------------------------------------------
 
@@ -271,6 +534,15 @@ class LabSplitPlugin(Gimp.PlugIn):
         procedure.set_documentation(
             _("在 CIELAB 里调曲线：生成一张三联数据图（红通道 = a、绿通道 = b、蓝通道 = L*），三条曲线各管一个分量。恒等曲线时精确还原原图。"),
             _("Curve CIELAB itself. One data layer (R = a, G = b, B = L*) with three curves; identity curves reproduce the image exactly. Needs lb:lab-dual and lb:lab-compose."), name)
+        mode = Gimp.Choice.new()
+        mode.add('single', 0, _("single（单层）"),
+                 _("一张数据图，三条曲线各管一个通道，compose 一次算完。"
+                   "层数最少、误差最小。"))
+        mode.add('multi', 1, _("multi（两张分量层）"),
+                 _("拆成 L 一层（LCh 明度模式）+ a/b 数据图一层，各自挂曲线，再用分量混合模式叠回去。两层的开关可以单独关掉。"))
+        procedure.add_choice_argument(
+            "mode", _("模式"), _("single 一层算完；multi 拆成可以单独开关的多层"),
+            mode, 'single', GObject.ParamFlags.READWRITE)
         procedure.add_boolean_argument(
             "group", _("收进图层组"),
             _("把这一层放进一个「Lab split」穿透组里；关掉就直接叠在原图层上方"),
@@ -283,7 +555,9 @@ class LabSplitPlugin(Gimp.PlugIn):
                 Gimp.PDBStatusType.CALLING_ERROR,
                 GLib.Error(_("No image or no layer selected")))
         try:
-            split_lab(image, drawables[0], config.get_property('group'))
+            split_lab(image, drawables[0],
+                       config.get_property('mode') or 'single',
+                       config.get_property('group'))
             return procedure.new_return_values(
                 Gimp.PDBStatusType.SUCCESS, GLib.Error())
         except Exception as exc:

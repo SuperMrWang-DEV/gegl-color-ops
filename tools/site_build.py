@@ -1321,7 +1321,7 @@ def build_plugins(version, stats=None):
   <ul class="facts">
     <li><b>10</b> 个插件</li>
     <li><b>10</b> 个 PDB 过程</li>
-    <li><b>222</b> 条回归断言</li>
+    <li><b>258</b> 条回归断言</li>
     <li><b>0</b> 编译 · 纯 Python</li>
   </ul>
 </section>
