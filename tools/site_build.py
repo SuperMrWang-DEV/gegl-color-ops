@@ -1222,48 +1222,56 @@ def build_plugin_zips(out_dir):
              name="gegl-color-ops-plugin-hsv-split-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "hsv-split-curves"),
              py="hsv-split-curves.py", menu="HSV Split (Curves)",
-             menus="    颜色 → SuperMrWang → Shortcut → HSV Split (Curves)\n"
-                   "    图层右键 → SuperMrWang → Shortcut → HSV Split (Curves)",
+             menus="    颜色 → SuperMrWang → Shortcut → HSV Split (Curves) · single\n"
+                   "    颜色 → SuperMrWang → Shortcut → HSV Split (Curves) · multi\n"
+                   "    图层右键 → SuperMrWang → Shortcut → 同上两条",
              desc="HSV Split (Curves)：在 HSV 空间里调曲线。一张数据图同时携带"
                   "S、V、H（红=S、绿=V、蓝=H/360），三条曲线各管一个分量，再由"
                   "lb:hsv-compose 一起算回颜色。恒等曲线时逐像素还原原图。",
-             pdb="lb-plugin-hsv-split-curves(image, drawables, mode, group)"),
+             pdb="lb-plugin-hsv-split-curves(image, drawables, group)\n"
+                 "lb-plugin-hsv-split-curves-multi(image, drawables, group)"),
         dict(key="lch", ops=["lch-dual", "lch-compose"],
              name="gegl-color-ops-plugin-lch-split-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "lch-split-curves"),
              py="lch-split-curves.py", menu="LCh Split (Curves)",
-             menus="    颜色 → SuperMrWang → Shortcut → LCh Split (Curves)\n"
-                   "    图层右键 → SuperMrWang → Shortcut → LCh Split (Curves)",
+             menus="    颜色 → SuperMrWang → Shortcut → LCh Split (Curves) · single\n"
+                   "    颜色 → SuperMrWang → Shortcut → LCh Split (Curves) · multi\n"
+                   "    图层右键 → SuperMrWang → Shortcut → 同上两条",
              desc="LCh Split (Curves)：在 CIE LCh 里调曲线。一张数据图同时携带"
                   "L*、C*、h（红=L/100、绿=C/140、蓝=h/360），三条曲线各管一个"
                   "分量。极坐标，所以调彩度不动色相、调色相不动彩度。",
-             pdb="lb-plugin-lch-split-curves(image, drawables, mode, group)"),
+             pdb="lb-plugin-lch-split-curves(image, drawables, group)\n"
+                 "lb-plugin-lch-split-curves-multi(image, drawables, group)"),
         dict(key="hsl", ops=["hsl-dual", "hsl-compose"],
              name="gegl-color-ops-plugin-hsl-split-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "hsl-split-curves"),
              py="hsl-split-curves.py", menu="HSL Split (Curves)",
-             menus="    颜色 → SuperMrWang → Shortcut → HSL Split (Curves)\n"
-                   "    图层右键 → SuperMrWang → Shortcut → HSL Split (Curves)",
+             menus="    颜色 → SuperMrWang → Shortcut → HSL Split (Curves) · single\n"
+                   "    颜色 → SuperMrWang → Shortcut → HSL Split (Curves) · multi\n"
+                   "    图层右键 → SuperMrWang → Shortcut → 同上两条",
              desc="HSL Split (Curves)：在 HSL 空间里调曲线。GIMP 没有 HSL 分量混合"
                   "模式，插件用 lb:hsl-dual / lb:hsl-compose 把 S、L、H 打包进一张"
                   "数据图（红=S、绿=L、蓝=H/360），三条曲线各管一个分量。"
                   "恒等曲线时逐像素还原原图。",
-             pdb="lb-plugin-hsl-split-curves(image, drawables, mode, group)"),
+             pdb="lb-plugin-hsl-split-curves(image, drawables, group)\n"
+                 "lb-plugin-hsl-split-curves-multi(image, drawables, group)"),
         dict(key="lab", ops=["lab-dual", "lab-compose"],
              name="gegl-color-ops-plugin-lab-split-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "lab-split-curves"),
              py="lab-split-curves.py", menu="Lab Split (Curves)",
-             menus="    颜色 → SuperMrWang → Shortcut → Lab Split (Curves)\n"
-                   "    图层右键 → SuperMrWang → Shortcut → Lab Split (Curves)",
+             menus="    颜色 → SuperMrWang → Shortcut → Lab Split (Curves) · single\n"
+                   "    颜色 → SuperMrWang → Shortcut → Lab Split (Curves) · multi\n"
+                   "    图层右键 → SuperMrWang → Shortcut → 同上两条",
              desc="Lab Split (Curves)：在 CIE Lab 空间里调曲线。一张数据图同时携带"
                   "a、b、L*（红=a、绿=b、蓝=L*/100），三条曲线各管一个分量，再由"
                   "lb:lab-compose 一起算回颜色。恒等曲线时逐像素还原原图。",
-             pdb="lb-plugin-lab-split-curves(image, drawables, mode, group)"),
+             pdb="lb-plugin-lab-split-curves(image, drawables, group)\n"
+                 "lb-plugin-lab-split-curves-multi(image, drawables, group)"),
         dict(key="hsi", ops=["hsi-dual", "hsi-compose"],
              name="gegl-color-ops-plugin-hsi-split-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "hsi-split-curves"),
              py="hsi-split-curves.py", menu="HSI Split (Curves)",
-             menus="    颜色 → SuperMrWang → Shortcut → HSI Split (Curves)\n"
+             menus="    颜色 → SuperMrWang → Shortcut → HSI Split (Curves) · single\n"
                    "    图层右键 → SuperMrWang → Shortcut → HSI Split (Curves)",
              desc="HSI Split (Curves)：在 HSI 空间里调曲线。HSI 的 I 是 (R+G+B)/3，"
                   "GIMP 的六条分量模式一条也对不上；插件用 lb:hsi-dual / "
@@ -1538,9 +1546,9 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
 <div class="prose wide">
   <div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>菜单位置</h3><span class="pill">两处</span></div>
+      <div class="dl-head"><h3>菜单位置</h3><span class="pill">多条</span></div>
       <ul class="menu-list">%s</ul>
-      <p>两处是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——
+      <p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——
          组没有自己的像素，会直接报错并提示先合并。</p>
     </div>
     <div class="dl">

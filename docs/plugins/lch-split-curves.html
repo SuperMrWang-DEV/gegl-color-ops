@@ -44,14 +44,15 @@
 <div class="prose wide">
   <div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>菜单位置</h3><span class="pill">两处</span></div>
-      <ul class="menu-list"><li>颜色 → SuperMrWang → Shortcut → LCh Split (Curves)</li><li>图层右键 → SuperMrWang → Shortcut → LCh Split (Curves)</li></ul>
-      <p>两处是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——
+      <div class="dl-head"><h3>菜单位置</h3><span class="pill">多条</span></div>
+      <ul class="menu-list"><li>颜色 → SuperMrWang → Shortcut → LCh Split (Curves) · single</li><li>颜色 → SuperMrWang → Shortcut → LCh Split (Curves) · multi</li><li>图层右键 → SuperMrWang → Shortcut → 同上两条</li></ul>
+      <p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——
          组没有自己的像素，会直接报错并提示先合并。</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>脚本调用</h3></div>
-      <pre><code>lb-plugin-lch-split-curves(image, drawables, mode, group)</code></pre>
+      <pre><code>lb-plugin-lch-split-curves(image, drawables, group)
+lb-plugin-lch-split-curves-multi(image, drawables, group)</code></pre>
       <p>标准 PDB 过程，参数留空走默认值。</p>
     </div>
     <div class="dl">
@@ -63,7 +64,9 @@
 
 <div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>两种模式</h3><span class="pill">mode 参数</span></div>
+      <div class="dl-head"><h3>两种模式</h3><span class="pill">两条菜单</span></div>
+      <p>菜单里是两条独立的过程——<b>… · single</b> 与 <b>… · multi</b>，
+         点哪条就是哪个模式。对话框里只剩「收进图层组」一个开关。</p>
       <pre><code>single   LCh split            组 · 穿透（带 alpha 时组上还有蒙版）
            └─ 1 · LCh L/C/h     模式 正常      ← 一条算子链算完整 LCh 色
 
@@ -102,10 +105,10 @@ multi    LCh split            组 · 穿透（带 alpha 时组上还有蒙版）
 <section class="download" id="download">
   <h2>下载这一个</h2>
   <div class="dl primary-dl">
-    <div class="dl-head"><h3>LCh Split (Curves)</h3><span class="pill">含 2 个模块 · 免编译</span></div>
+    <div class="dl-head"><h3>LCh Split (Curves) · single</h3><span class="pill">含 2 个模块 · 免编译</span></div>
     <p>包里有一个 <code>.py</code>、2 个算子模块和一份安装说明。<b>算子依赖已经附在里面，不用另外去下。</b><code>.py</code> 进 GIMP 的 <code>plug-ins</code>，模块进 GEGL 的 <code>gegl-0.4/plug-ins</code>——两个目录不一样，包内说明分步写了。 Linux 端的 lch-compose.so、lch-dual.so 还没进预编译包，要用 Linux 就 <code>./build.sh</code> 自己编一份（Windows 端齐全）。</p>
-    <a class="btn primary" href="../download/gegl-color-ops-plugin-lch-split-curves.zip">下载 LCh Split (Curves)</a>
-    <p class="muted small">78.3 KB · 校验：<code>SHA256 d944a8c2038cd6d329cf60d85654febb…</code></p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-lch-split-curves.zip">下载 LCh Split (Curves) · single</a>
+    <p class="muted small">78.4 KB · 校验：<code>SHA256 9c3f219127fb9c93da8ed98b9c01598c…</code></p>
   </div>
 </section>
 
@@ -129,7 +132,7 @@ multi    LCh split            组 · 穿透（带 alpha 时组上还有蒙版）
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">dbebfd7</span>
+    <span class="muted">0205c49</span>
   </div>
 </footer>
 </body>

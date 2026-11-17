@@ -3,7 +3,7 @@
 """===========================================================================
  SuperMrWang · HSL 分量分解 + 曲线 —— GIMP 3 Python 插件
  ---------------------------------------------------------------------------
- purpose   在 HSL 空间里调曲线。两种模式（菜单里的「模式 / Mode」参数）：
+ purpose   在 HSL 空间里调曲线。菜单里是两条，各对应一种模式：
 
              single   一张数据图（R=S、G=L、B=H/360）三条曲线，compose 一次
                       算完。一层、五条滤镜。
@@ -15,10 +15,12 @@
            Curve HSL itself in two modes: one packed data layer, or the
            Hue + S/L stack that borrows GIMP's HSV hue mode.
 
- menu      颜色 → SuperMrWang → Shortcut → HSL Split (Curves)
-           图层右键 → SuperMrWang → Shortcut → HSL Split (Curves)
+ menu      颜色 → SuperMrWang → Shortcut → HSL Split (Curves) · single
+           颜色 → SuperMrWang → Shortcut → HSL Split (Curves) · multi
+          图层右键 → SuperMrWang → Shortcut → 同上两条
+          （single 与 multi 是两个独立的过程，不再是对话框里的下拉）
 
- usage     选中一个栅格图层 → 菜单项。生成的结构（自上而下）：
+ usage     选中一个栅格图层 → 取 single 或 multi 那条。生成的结构（自上而下）：
 
             single 模式
 
@@ -460,7 +462,8 @@ class HslSplitPlugin(Gimp.PlugIn):
         return True, 'gimp30-python', None
 
     def do_query_procedures(self):
-        return ['lb-plugin-hsl-split-curves']
+        return ['lb-plugin-hsl-split-curves',
+                'lb-plugin-hsl-split-curves-multi']
 
     def do_create_procedure(self, name):
         procedure = Gimp.ImageProcedure.new(
@@ -470,22 +473,25 @@ class HslSplitPlugin(Gimp.PlugIn):
                                        Gimp.ProcedureSensitivityMask.DRAWABLES)
         procedure.set_attribution("SuperMrWang", "SuperMrWang", "2026")
 
-        procedure.set_menu_label(_("HSL Split (Curves)"))
+        multi = name.endswith('-multi')
+        procedure.set_menu_label(
+            _("HSL Split (Curves) · %s") % ('multi' if multi else 'single'))
         procedure.add_menu_path("<Image>/Colors/SuperMrWang/Shortcut")
         procedure.add_menu_path("<Layers>/SuperMrWang/Shortcut")
 
-        procedure.set_documentation(
-            _("在 HSL 空间里调曲线：生成一张三联数据图（红通道 = 饱和度、绿通道 = 明度、蓝通道 = 色相），三条曲线各管一个分量。恒等曲线时精确还原原图。"),
-            _("Curve HSL itself. One data layer (R = saturation, G = lightness, B = hue/360) with three curves; identity curves reproduce the image exactly. Needs lb:hsl-dual and lb:hsl-compose."), name)
-        mode = Gimp.Choice.new()
-        mode.add('single', 0, _("single（单层）"),
-                 _("一张数据图，三条曲线各管一个通道，compose 一次算完。"
-                   "层数最少、误差最小。"))
-        mode.add('multi', 1, _("multi（两张分量层）"),
-                 _("拆成 Hue 一层（HSV 色相模式）+ S/L 数据图一层，各自挂曲线，再用分量混合模式叠回去。色相层可以单独关掉。"))
-        procedure.add_choice_argument(
-            "mode", _("模式"), _("single 一层算完；multi 拆成可以单独开关的多层"),
-            mode, 'single', GObject.ParamFlags.READWRITE)
+        if multi:
+            doc_zh = _("在 HSL 空间里调曲线：multi 模式把图层拆成分量层，各挂一条"
+                       "曲线，用 GIMP 原生的分量混合模式叠回去，每层可以单独关掉。"
+                       "恒等曲线时精确还原原图。")
+            doc_en = _("Curve HSL itself, multi mode: the old component-layer stack "
+                       "on GIMP's native blend modes, one switch per layer.")
+        else:
+            doc_zh = _("在 HSL 空间里调曲线：single 模式把三个分量打包进一张数据图，"
+                       "三条曲线各管一个通道，再由一个算子解回颜色。恒等曲线时"
+                       "精确还原原图，一层五条滤镜。")
+            doc_en = _("Curve HSL itself, single mode: one packed data layer with "
+                       "three curves; identity reproduces the image exactly.")
+        procedure.set_documentation(doc_zh, doc_en, name)
         procedure.add_boolean_argument(
             "group", _("收进图层组"),
             _("把这一层放进一个「HSL split」穿透组里；关掉就直接叠在原图层上方"),
@@ -499,7 +505,7 @@ class HslSplitPlugin(Gimp.PlugIn):
                 GLib.Error(_("No image or no layer selected")))
         try:
             split_hsl(image, drawables[0],
-                       config.get_property('mode') or 'single',
+                       'multi' if procedure.get_name().endswith('-multi') else 'single',
                        config.get_property('group'))
             return procedure.new_return_values(
                 Gimp.PDBStatusType.SUCCESS, GLib.Error())

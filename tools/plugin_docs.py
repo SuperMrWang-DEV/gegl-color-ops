@@ -116,16 +116,22 @@ PAGES = [
         title='HSV Split (Curves)',
         tag=('曲线', 't-color'),
         count='H / S / V',
-        menu='颜色 → SuperMrWang → Shortcut → HSV Split (Curves)',
-        pdb='lb-plugin-hsv-split-curves(image, drawables, mode, group)',
+        menu='颜色 → SuperMrWang → Shortcut → HSV Split (Curves) · single',
+        menus=['颜色 → SuperMrWang → Shortcut → HSV Split (Curves) · single',
+               '颜色 → SuperMrWang → Shortcut → HSV Split (Curves) · multi',
+               '图层右键 → SuperMrWang → Shortcut → 同上两条'],
+        pdb='lb-plugin-hsv-split-curves(image, drawables, group)\n'
+            'lb-plugin-hsv-split-curves-multi(image, drawables, group)',
         lede="""GIMP 的曲线只能选 R / G / B / Alpha——想单独曲「色相」或
        「饱和度」没有入口。这个插件把图层换成一张数据图（红=S、绿=V、蓝=色相），
        三条曲线各管一个分量，再由一个算子解回颜色：恒等时逐像素还原原图，
-       改哪条曲线就只动那个分量。想要「每层能单独关掉」的老做法，把「模式」
-       切到 <b>multi</b> 就行。""",
+       改哪条曲线就只动那个分量。想要「每层能单独关掉」的老做法，菜单里选
+       <b>· multi</b> 那条就行。""",
         body="""<div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>两种模式</h3><span class="pill">mode 参数</span></div>
+      <div class="dl-head"><h3>两种模式</h3><span class="pill">两条菜单</span></div>
+      <p>菜单里是两条独立的过程——<b>… · single</b> 与 <b>… · multi</b>，
+         点哪条就是哪个模式。对话框里只剩「收进图层组」一个开关。</p>
       <pre><code>single   HSV split            组 · 穿透（带 alpha 时组上还有蒙版）
            └─ 1 · HSV S/V/H     模式 正常      ← 一条算子链算完整 HSV 色
 
@@ -170,14 +176,20 @@ multi    HSV split            组 · 穿透（带 alpha 时组上还有蒙版）
         title='LCh Split (Curves)',
         tag=('曲线', 't-blend'),
         count='L / C / h',
-        menu='颜色 → SuperMrWang → Shortcut → LCh Split (Curves)',
-        pdb='lb-plugin-lch-split-curves(image, drawables, mode, group)',
+        menu='颜色 → SuperMrWang → Shortcut → LCh Split (Curves) · single',
+        menus=['颜色 → SuperMrWang → Shortcut → LCh Split (Curves) · single',
+               '颜色 → SuperMrWang → Shortcut → LCh Split (Curves) · multi',
+               '图层右键 → SuperMrWang → Shortcut → 同上两条'],
+        pdb='lb-plugin-lch-split-curves(image, drawables, group)\n'
+            'lb-plugin-lch-split-curves-multi(image, drawables, group)',
         lede="""同样的思路换到 CIE LCh：明度、彩度、色相三条曲线。LCh 是 Lab 的
        极坐标写法——a、b 是直角坐标，一条一维曲线改它会连带改彩度和色相；换成
        (L, C, h) 之后，调彩度不动色相、调色相不动彩度。""",
         body="""<div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>两种模式</h3><span class="pill">mode 参数</span></div>
+      <div class="dl-head"><h3>两种模式</h3><span class="pill">两条菜单</span></div>
+      <p>菜单里是两条独立的过程——<b>… · single</b> 与 <b>… · multi</b>，
+         点哪条就是哪个模式。对话框里只剩「收进图层组」一个开关。</p>
       <pre><code>single   LCh split            组 · 穿透（带 alpha 时组上还有蒙版）
            └─ 1 · LCh L/C/h     模式 正常      ← 一条算子链算完整 LCh 色
 
@@ -219,14 +231,20 @@ multi    LCh split            组 · 穿透（带 alpha 时组上还有蒙版）
         title='HSL Split (Curves)',
         tag=('曲线', 't-color'),
         count='H / S / L',
-        menu='颜色 → SuperMrWang → Shortcut → HSL Split (Curves)',
-        pdb='lb-plugin-hsl-split-curves(image, drawables, mode, group)',
+        menu='颜色 → SuperMrWang → Shortcut → HSL Split (Curves) · single',
+        menus=['颜色 → SuperMrWang → Shortcut → HSL Split (Curves) · single',
+               '颜色 → SuperMrWang → Shortcut → HSL Split (Curves) · multi',
+               '图层右键 → SuperMrWang → Shortcut → 同上两条'],
+        pdb='lb-plugin-hsl-split-curves(image, drawables, group)\n'
+            'lb-plugin-hsl-split-curves-multi(image, drawables, group)',
         lede="""GIMP 给 HSV 和 LCh 都配了分量混合模式，唯独 HSL 没有，也没有
        HSL 的色相入口。这个插件不拿 HSV 近似 HSL，而是把三者精确换算后打包进
        一张数据图，三条曲线各管一个分量。""",
         body="""<div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>两种模式</h3><span class="pill">mode 参数</span></div>
+      <div class="dl-head"><h3>两种模式</h3><span class="pill">两条菜单</span></div>
+      <p>菜单里是两条独立的过程——<b>… · single</b> 与 <b>… · multi</b>，
+         点哪条就是哪个模式。对话框里只剩「收进图层组」一个开关。</p>
       <pre><code>single   HSL split            组 · 穿透（带 alpha 时组上还有蒙版）
            └─ 1 · HSL S/L/H     模式 正常      ← 一条算子链算完整 HSL 色
 
@@ -268,14 +286,20 @@ multi    HSL split            组 · 穿透（带 alpha 时组上还有蒙版）
         title='Lab Split (Curves)',
         tag=('曲线', 't-blend'),
         count='L / a / b',
-        menu='颜色 → SuperMrWang → Shortcut → Lab Split (Curves)',
-        pdb='lb-plugin-lab-split-curves(image, drawables, mode, group)',
+        menu='颜色 → SuperMrWang → Shortcut → Lab Split (Curves) · single',
+        menus=['颜色 → SuperMrWang → Shortcut → Lab Split (Curves) · single',
+               '颜色 → SuperMrWang → Shortcut → Lab Split (Curves) · multi',
+               '图层右键 → SuperMrWang → Shortcut → 同上两条'],
+        pdb='lb-plugin-lab-split-curves(image, drawables, group)\n'
+            'lb-plugin-lab-split-curves-multi(image, drawables, group)',
         lede="""在 CIELAB 里调曲线：L* 是感知明度，a 是绿–品红轴，b 是蓝–黄轴。
        「黄了压 b、偏绿推 a」比在 RGB 里拉曲线直观得多。三个分量打包进一张数据图，
        三条曲线各管一个通道。""",
         body="""<div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>两种模式</h3><span class="pill">mode 参数</span></div>
+      <div class="dl-head"><h3>两种模式</h3><span class="pill">两条菜单</span></div>
+      <p>菜单里是两条独立的过程——<b>… · single</b> 与 <b>… · multi</b>，
+         点哪条就是哪个模式。对话框里只剩「收进图层组」一个开关。</p>
       <pre><code>single   Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
            └─ 1 · Lab a/b/L     模式 正常        ← 一条算子链算完整 Lab 色
 
@@ -317,7 +341,9 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
         title='HSI Split (Curves)',
         tag=('曲线', 't-color'),
         count='H / S / I',
-        menu='颜色 → SuperMrWang → Shortcut → HSI Split (Curves)',
+        menu='颜色 → SuperMrWang → Shortcut → HSI Split (Curves) · single',
+        menus=['颜色 → SuperMrWang → Shortcut → HSI Split (Curves) · single',
+               '图层右键 → SuperMrWang → Shortcut → HSI Split (Curves) · single'],
         pdb='lb-plugin-hsi-split-curves(image, drawables, group)',
         lede="""HSI 的 I 是 (R+G+B)/3，色相又用余弦定义——GIMP 的六条分量
        模式一条也对不上，连「借 HSV 色相换角」都会把 I 带走 22 码。于是三个分量
