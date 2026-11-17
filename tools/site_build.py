@@ -939,6 +939,9 @@ def build_article(op, version):
         src = legacy_zh if lang == "zh" else legacy_en
         if not src:
             return ""
+        # 旧文档里的图片也写 `assets/xxx.png`，和正文一样先剥前缀，否则
+        # image_prefix 会拼成 assets/ops/<dir>/assets/xxx.png（死链）。
+        src = re.sub(r"\]\(assets/", "](", src)
         h, _ = convert(src, image_prefix=img_prefix,
                        link_base=REPO + "/blob/main/")
         h = h.replace('src="assets/', 'src="%s' % img_prefix)
@@ -2068,10 +2071,34 @@ def main():
     if stats.get("zip_linux_name"):
         print("           docs/download/%s（%d 个模块）"
               % (stats["zip_linux_name"], stats["linux_files"]))
-    for key in ("selection", "channel"):
-        d = stats.get("plugin_zips", {}).get(key)
-        if d:
-            print("           docs/download/%s（Python 插件）" % d["name"])
+    for d in (stats.get("plugin_zips") or {}).values():
+        print("           docs/download/%s（GIMP 3 Python 插件）" % d["name"])
+
+    # 构建后自检：站内相对链接必须都能落到文件上。缺图这类死链在浏览器里
+    # 只是不显示，肉眼极容易漏过，所以构建时就报出来。
+    link = re.compile(r'(?:href|src)="([^"#?]+)"')
+    missing = []
+    n_pages = 0
+    for dp, _, fs in os.walk(DOCS):
+        for f in fs:
+            if not f.endswith(".html"):
+                continue
+            n_pages += 1
+            page = os.path.join(dp, f)
+            with open(page, encoding="utf-8") as fh:
+                txt = fh.read()
+            for url in link.findall(txt):
+                if url.startswith(("http://", "https://", "mailto:", "data:", "//")):
+                    continue
+                if not os.path.exists(os.path.normpath(os.path.join(dp, url))):
+                    missing.append("%s -> %s" % (os.path.relpath(page, DOCS), url))
+    if missing:
+        print("· 站内死链 %d 条 / %d broken local links：" % (len(missing), len(missing)))
+        for m in missing[:20]:
+            print("    " + m)
+    else:
+        print("· 站内链接自检通过：%d 个页面无死链 / %d pages, 0 broken links"
+              % (n_pages, n_pages))
 
     if serve:
         import http.server
