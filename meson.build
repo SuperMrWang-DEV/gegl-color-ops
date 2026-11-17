@@ -43,6 +43,12 @@ ops = [
   # 真实颜色。HSL Split 插件靠这两个算子做到与直接改 HSL 完全等价。
   ['hsl-dual',                'hsl-dual',                'hsl-dual.c'],
   ['hsl-compose',             'hsl-compose',             'hsl-compose.c'],
+  # Lab / HSI 适配器：a 与 b 是直角坐标、HSI 的色相角又与 HSV 差 1°，都没有
+  # 现成的分量混合模式可借，只能把分量挤进一张数据图联合算出完整颜色。
+  ['lab-dual',                'lab-dual',                'lab-dual.c'],
+  ['lab-compose',             'lab-compose',             'lab-compose.c'],
+  ['hsi-dual',                'hsi-dual',                'hsi-dual.c'],
+  ['hsi-compose',             'hsi-compose',             'hsi-compose.c'],
   # 双输入（aux）算子。本表是手工维护的，加算子时必须同步；带 .disabled 标记的
   # 算子不入表也不编译。CI 用集合比对核对本表与 ops/ 下的源码目录，漏列或多列
   # 都会点名。

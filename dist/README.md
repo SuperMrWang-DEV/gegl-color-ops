@@ -3,7 +3,7 @@
 这里放的是**已经编译好的 GEGL 模块**，下载后扔进 GEGL 插件目录就能用，不需要装
 GCC、MSYS2、meson 那一套。内容与当前分支的源码同步（`tools/make_dist.py` 生成）。
 
-想要一次性拿齐（33 个 `.dll` 打成一个包、附安装说明）：
+想要一次性拿齐（37 个 `.dll` 打成一个包、附安装说明）：
 [`docs/download/gegl-color-ops-windows-x64.zip`](../docs/download/)（约 1.3 MB，
 由 `python tools/site_build.py` 顺带打包）。在线说明页：
 <https://superMrwang-dev.github.io/gegl-color-ops/>。
@@ -12,17 +12,18 @@ GCC、MSYS2、meson 那一套。内容与当前分支的源码同步（`tools/ma
 
 | 系统 | 下载 | 放到 |
 |---|---|---|
-| Windows x64 | [`windows-x64/`](windows-x64) 里的 33 个 `.dll` | `%LOCALAPPDATA%\gegl-0.4\plug-ins` |
+| Windows x64 | [`windows-x64/`](windows-x64) 里的 37 个 `.dll` | `%LOCALAPPDATA%\gegl-0.4\plug-ins` |
 | Linux x86_64 | [`linux-x64/`](linux-x64) 里的 32 个 `.so` | `~/.local/share/gegl-0.4/plug-ins` |
 | macOS (Apple Silicon) | 本目录暂无，见下方「macOS 怎么拿」 | `~/Library/Application Support/gegl-0.4/plug-ins` |
 
 > **两端产物同源**：Windows 由本机 MSYS2 交叉编译，Linux 由 GitHub Actions 的
 > `ubuntu-latest` 编出后取回，模块名与 `manifest.csv` 一一对应。
 >
-> `gray-to-component` / `hsl-dual` / `hsl-compose` 目前只有 Windows 版（Linux 那几个
-> `.so` 等下一次 CI 出）。`gray-to-component` 只给分量曲线插件当编码器，缺它时自动
-> 退回三条曲线；`hsl-dual` / `hsl-compose` 是 HSL 精确适配的必需组件，缺它们时
-> `HSL Split` 会直接报错（二维映射没有一维回退）。
+> `gray-to-component` / `hsl-dual` / `hsl-compose` / `lab-dual` / `lab-compose` /
+> `hsi-dual` / `hsi-compose` 目前只有 Windows 版（Linux 那几个 `.so` 等下一次 CI 出）。
+> `gray-to-component` 只给分量曲线插件当编码器，缺它时自动退回三条曲线；
+> `hsl-dual` / `lab-dual` / `hsi-dual` 那三对是精确适配的必需组件，缺了插件会直接
+> 报错（二维映射没有一维回退）。
 > `lb:gray-to-component` 2026-11-15 曾停编，2026-11-17 起恢复（HSV/LCh 分量曲线
 > 插件要用它当编码器，一个滤镜顶三条曲线），所以模块数从 28 变成 30/31。
 

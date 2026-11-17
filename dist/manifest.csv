@@ -13,6 +13,8 @@ windows-x64,color-temperature-tint.dll,lb:color-temperature-tint,Color Temperatu
 windows-x64,colorize-hsl.dll,lb:colorize-hsl,Colorize,103326,d253d6f8f603c575f41093a56a9d80483d54f0435639640d2f6f4b6c5d8a6b12
 windows-x64,gray-to-component.dll,lb:gray-to-component,Gray To Component,111332,a9136a79d9c2bba3f0168ccb96146c97700bfe95e5944ca559153301e53ce966
 windows-x64,hsb-levels.dll,lb:hsb-levels,HSB Levels,130908,65dcc27ca90b5c3f7bde9271c5f35a2f9fcecf9c1ecd81f56f922b7fba2a738c
+windows-x64,hsi-compose.dll,lb:hsi-compose,HSI Compose,106136,6311031c319fe329c112e5647e648c4c71bca3ec88c77ad74f3b1e8d2b1d3d7c
+windows-x64,hsi-dual.dll,lb:hsi-dual,HSI Dual Extract,105194,6651bb900ce94966828c1adf25d84165367b264ef3044b7d455a7ffe0f4b3d40
 windows-x64,hsi-levels.dll,lb:hsi-levels,HSI Levels,142894,d54723baab2c3aa49808900f335c8cdb3750790aea1dc5f388a0cce2e90a0ec9
 windows-x64,hsl-compose.dll,lb:hsl-compose,HSL Compose,99019,c1853c2ab81649ea6985198453999d964252cd9744989a8cea8b0e914a91c43e
 windows-x64,hsl-dual.dll,lb:hsl-dual,HSL Dual Extract,99001,48dc00d002d7a0cbb7a968b789a80655eb80525c6f33de983f97a93969958487
@@ -21,6 +23,8 @@ windows-x64,hsl-seven.dll,lb:hsl-seven,HSL 8 Bands,110704,b577872cb0e9b8df5dbf3b
 windows-x64,hue-range-basic.dll,lb:hue-range-basic,Hue/Saturation Range,109454,0cdb7d93d574836ef8abab208fded9caf0b1ce68c99ad658f4579747977a0873
 windows-x64,hue-saturation-basic.dll,lb:hue-saturation-basic,Hue/Saturation (Basic),104933,2a49e7b43e0e853676d2ca9b18894117d8c6dcfcd047a30047e4ccf508603954
 windows-x64,hue-saturation.dll,lb:hue-saturation,Hue/Saturation,109994,eb587f8cf6e5de1096b31ba53f3fe0c98544c759305da1bacb117dc615c22f35
+windows-x64,lab-compose.dll,lb:lab-compose,Lab Compose,99531,a40d86fa8a84ffeb01c7a491a7277e7568b4aea943855182e207da7b3b632632
+windows-x64,lab-dual.dll,lb:lab-dual,Lab Dual Extract,99513,8193854f8f3556f80012db543e5b0ffd0558b442d336550dbad62d6c1c5e46d3
 windows-x64,lab-levels.dll,lb:lab-levels,LAB Levels,132426,a114ad2e732e493e9c28b479712e8699f6677e15f24ba29c6ec2742a697d223c
 windows-x64,lb-brightness-contrast.dll,lb:brightness-contrast,Brightness/Contrast,129619,037ed6bb39eec8860e695a9e43fbc245e1d6562dc9842f6dc8bb3100911ee2e1
 windows-x64,lb-exposure.dll,lb:exposure,Exposure EV,129201,3d580535eb00cc6dd1fac36ace7eaa723886917955d2961c4743ce1ab7be6f42
