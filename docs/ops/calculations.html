@@ -88,7 +88,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <p class="lede">经典图像编辑器 计算：两路通道按混合模式合成，输出灰度图或 alpha 蒙版</p>
 </section><div class="article-layout">
   <article class="prose">
-<blockquote><p><code>lb:calculations</code> · 菜单 <strong>颜色 → SuperMrWang → Blend → Calculations</strong> · 双输入（input + aux）</p></blockquote>
+<blockquote><p><code>lb:calculations</code> · 菜单 <strong>SuperMrWang → Blend → Calculations</strong> · 双输入（input + aux）</p></blockquote>
 <p>对应 经典图像编辑器 的 <strong>图像 → 计算</strong>：从两路各取一个通道（可以各自反相），按混合模式 算出灰度结果，输出成灰蒙版或 alpha 蒙版。</p>
 <p>Replicates the classic editor's <strong>Image → Calculations</strong>: take one channel from each of two sources (each optionally inverted), blend them, and output a grey or alpha mask.</p>
 <h2 id="参数-parameters">参数 / Parameters</h2>
@@ -128,7 +128,7 @@ window.addEventListener("DOMContentLoaded", function () {
 python tools/check_blend.py     # 含 9 个计算用例：叠底出灰、反相源 2、alpha 模式、四种通道取值、
                                # 源层透明与半透明覆盖率</code></pre>
 <h2 id="选区范围与结果-selection-range-and-result">选区：范围与结果 / Selection: range and result</h2>
-<p>GEGL 算子跑在像素上、拿不到选区，所以这两项只存在于 Python 插件版 （<code>lb-plugin-calculations</code>，<strong>颜色 → SuperMrWang → Calculations</strong>）：</p>
+<p>GEGL 算子跑在像素上、拿不到选区，所以这两项只存在于 Python 插件版 （<code>lb-plugin-calculations</code>，<strong>SuperMrWang → Calculations</strong>）：</p>
 <div class="table-wrap"><table><thead><tr><th>插件选项</th><th>PDB 参数</th><th>行为</th></tr></thead><tbody><tr><td>Range: Whole layer</td><td><code>scope</code> = 0</td><td>整幅图层参与计算（默认，与算子一致）</td></tr><tr><td>Range: Selection only</td><td><code>scope</code> = 1</td><td>只算当前选区，选区外结果归零（=不选中），灰度图层在选区外透明；没有选区时退回整幅</td></tr><tr><td>Load result as selection</td><td><code>load-selection</code> = true</td><td>结果写成通道/灰度图层/图层 alpha 的同时，把同一份灰度也载入为活动选区</td></tr></tbody></table></div>
 <p>实现上有两个要注意的地方：选区用 <code>Gimp.Selection</code> 的 buffer 按 <code>"Y float"</code> 读 （<code>Gegl.Buffer.get</code> 的签名是 <code>get(rect, scale, format, abyss)</code>，不是 <code>get(rect, format)</code>）； 写通道/灰度图层前必须<strong>临时挂起选区</strong>，因为 shadow buffer 的合并会遵守选区，否则新通道 在选区外是一片黑。</p><div class="op-dl">
   <div>
@@ -225,7 +225,7 @@ python tools/check_blend.py     # includes 9 Calculations cases: multiply to gre
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">25823d8</span>
+    <span class="muted">4c56e93</span>
   </div>
 </footer>
 <script>

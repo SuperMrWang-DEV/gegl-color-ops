@@ -88,7 +88,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <p class="lede">HSI 三个分量各自设输入 / 输出黑白场与伽马</p>
 </section><div class="article-layout">
   <article class="prose">
-<p>菜单：<code>颜色 → SuperMrWang → Levels → HSI Levels</code>（Filter 类）</p>
+<p>菜单：<code>SuperMrWang → Levels → HSI Levels</code>（Filter 类）</p>
 <h2 id="概述">概述</h2>
 <p>对 HSI 的 H / S / I 做独立色阶。HSI 是图像分析里常用的模型：<strong>I 是三通道 均值</strong>，比 HSV 的 max 更接近「这一块有多亮」，S 用 <code>1 − min/I</code> 度量「掺了 多少白」，色相则用余弦定义（与 HSV 的六边形角不是同一个角）。</p>
 <p>这不是 GIMP/babl 自带的模型，转换在本工程的 <code>common/color-levels.h</code> 里。</p>
@@ -207,7 +207,7 @@ S_{\text{out}} = (\text{ob}-\text{oa}) \bmod 360$$</div>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">25823d8</span>
+    <span class="muted">4c56e93</span>
   </div>
 </footer>
 <script>
