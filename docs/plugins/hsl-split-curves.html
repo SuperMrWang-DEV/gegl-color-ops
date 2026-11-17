@@ -92,7 +92,8 @@ multi    HSL split            组 · 穿透（带 alpha 时组上还有蒙版）
          没有这个近似。</p>
     </div>
   </div>
-  <p class="note"><b>实测</b>：浮点恒等往返 <b>0.0001 码</b>、8 位 <b>0.49 码</b>；
+  <p class="note"><b>实测</b>：浮点恒等往返 <b>0.0001 码</b>（multi 两层 <b>0.0014 码</b>）、
+     8 位 <b>0.49 码</b>——single 更准，multi 换的是分层开关；
      只改 S 曲线时 L 与色相的偏差 <b>&lt; 0.001 码</b>。转换由 babl 的
      <code>HSLA float</code> 完成，与 <code>component-extract</code> 的
      <code>hsl-s</code> / <code>hsl-l</code> 同一口径。依赖
@@ -125,7 +126,7 @@ multi    HSL split            组 · 穿透（带 alpha 时组上还有蒙版）
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">720a487</span>
+    <span class="muted">ae79f9b</span>
   </div>
 </footer>
 </body>

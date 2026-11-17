@@ -92,7 +92,10 @@ multi    HSV split            组 · 穿透（带 alpha 时组上还有蒙版）
       <p>single：32 位浮点图恒等往返 <b>0.0002 码</b>；8 位图 <b>0.49 码</b>（就是
          量化本身）。只改 S 曲线时，结果的 V 与色相偏差 <b>&lt; 0.001 码</b>——
          三个分量确实互不干扰。</p>
-      <p>multi：浮点图三层合成的恒等往返 <b>0 码</b>，隐藏原图层后照样叠得回去。</p>
+      <p>multi：浮点图三层合成的恒等往返 <b>0.0015 码</b>，隐藏原图层后照样叠得回去。
+         比 single 大七倍——多出来的是三次编码来回的余数，但仍然在千分之一码量级，
+         肉眼无感。8 位图上两个模式都是 <b>0.49 码</b>，量化盖过一切。所以精度上
+         <b>single 更准</b>，multi 换来的是「每层能单独关」。</p>
     </div>
   </div>
   <p class="note">通道约定是硬的：<b>S 在红、V 在绿、色相在蓝</b>。改曲线时选错通道，
@@ -128,7 +131,7 @@ multi    HSV split            组 · 穿透（带 alpha 时组上还有蒙版）
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
-    <span class="muted">720a487</span>
+    <span class="muted">ae79f9b</span>
   </div>
 </footer>
 </body>

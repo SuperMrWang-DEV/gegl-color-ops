@@ -385,11 +385,11 @@ check([int(k.get_mode()) for k in kidsm] == [37, 28],
       "分量混合模式", [int(k.get_mode()) for k in kidsm])
 check([len(k.get_filters()) for k in kidsm] == [3, 4],
       "每层滤镜条数", [len(k.get_filters()) for k in kidsm])
-close(max_diff(refm, flatten(imgm)) * 255.0, 0.0, 1.5,
-      "multi 恒等往返 ≤1.5 码")
+close(max_diff(refm, flatten(imgm)) * 255.0, 0.0, 0.02,
+      "multi 恒等往返 ≤0.02 码")
 
 basem.set_visible(False)
-close(max_diff(refm, flatten(imgm)) * 255.0, 0.0, 1.5,
+close(max_diff(refm, flatten(imgm)) * 255.0, 0.0, 0.02,
       "原图层隐藏后 multi 仍能叠回")
 
 imgm2, basem2, refm2 = make_image(float_prec=True)
