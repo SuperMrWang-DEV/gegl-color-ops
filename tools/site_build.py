@@ -1604,9 +1604,6 @@ cd gegl-color-ops</code></pre>
   <p class="lede">分量曲线这五个都收在菜单的 <b>Shortcut</b> 子菜单里
      （<code>颜色 → SuperMrWang → Shortcut</code>，图层右键同理）：它们本来就是
      「一次点击替代一串手工步骤」的东西，以后这类一键操作也往这个子菜单里放。</p>
-  <p class="lede">分量曲线这五个都收在菜单的 <b>Shortcut</b> 子菜单里
-     （<code>颜色 → SuperMrWang → Shortcut</code>，图层右键同理）：它们本来就是
-     「一次点击替代一串手工步骤」的东西，以后这类一键操作也往这个子菜单里放。</p>
   <div class="cta">
     <a class="btn primary" href="#download">下载插件包</a>
     <a class="btn" href="#install">三步装上</a>
