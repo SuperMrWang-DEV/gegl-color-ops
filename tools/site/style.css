@@ -460,25 +460,26 @@ h2 { font-size: clamp(22px, 2.5vw, 28px); font-weight: 650; margin-top: 84px; }
 }
 /* 五张卡：再收窄一点，宽屏刚好排成一行 5 列 */
 .cards.cards-5 {
-  grid-template-columns: repeat(auto-fit, minmax(196px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 .cards.cards-5 .card { padding: 16px 15px 12px; }
 .cards.cards-5 .card p { font-size: 13.5px; }
 @media (max-width: 720px) {
   .cards.cards-5 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
 }
-/* 七张卡：排成 4 + 3 两行（宽屏一行 7 列会把卡压得太窄、名字被截断） */
-.cards.cards-7 {
-  grid-template-columns: repeat(auto-fit, minmax(244px, 1fr));
+/* 十张卡：5 + 5 两行（一行十列会把名字压成省略号） */
+.cards.cards-10 {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
-.cards.cards-7 .card { padding: 15px 14px 11px; }
-.cards.cards-7 .card p { font-size: 13px; }
-.cards.cards-7 .card h3 { font-size: 15.5px; }
-.cards.cards-7 .card-top code { font-size: 11px; }
+.cards.cards-10 .card { padding: 15px 14px 11px; }
+.cards.cards-10 .card p { font-size: 13px; }
+.cards.cards-10 .card h3 { font-size: 15.5px; }
+.cards.cards-10 .card-top code { font-size: 9px; letter-spacing: -.01em; }
+.cards.cards-10 .card-top { gap: 6px; }
 @media (max-width: 720px) {
-  .cards.cards-7 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-  .cards.cards-7 .card { padding: 16px 15px 12px; }
-  .cards.cards-7 .card p { font-size: 13.5px; }
+  .cards.cards-10 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .cards.cards-10 .card { padding: 16px 15px 12px; }
+  .cards.cards-10 .card p { font-size: 13.5px; }
 }
 .card {
   position: relative; overflow: hidden;

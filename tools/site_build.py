@@ -1199,6 +1199,35 @@ def build_plugin_zips(out_dir):
                   "lb:hsi-compose 把 S、I、色相挤进一张数据图（红=S、绿=I、蓝=H/360），"
                   "三条曲线各管一个分量。恒等曲线时精确还原。",
              pdb="lb-plugin-hsi-split-curves(image, drawable, group)"),
+        dict(key="frequency",
+             name="gegl-color-ops-plugin-frequency-separation.zip",
+             src_dir=os.path.join(ROOT, "plugin", "frequency-separation"),
+             py="frequency-separation.py", menu="高低频磨皮 (Frequency Separation)",
+             menus="    颜色 → SuperMrWang → Shortcut → 高低频磨皮\n"
+                   "    图层右键 → SuperMrWang → Shortcut → 高低频磨皮",
+             desc="高低频磨皮：一次生成低频（高斯模糊，管影调与颜色）与高频"
+                  "（颗粒合并 + 高通，管细节与质感）两层，恒等时合成就是原图。"
+                  "在低频层抹平色块、在高频层修细节，互不干扰。",
+             pdb="lb-plugin-frequency-separation(image, drawable, radius, group)"),
+        dict(key="dodge",
+             name="gegl-color-ops-plugin-dodge-burn.zip",
+             src_dir=os.path.join(ROOT, "plugin", "dodge-burn"),
+             py="dodge-burn.py", menu="双曲线磨皮 (Dodge & Burn)",
+             menus="    颜色 → SuperMrWang → Shortcut → 双曲线磨皮\n"
+                   "    图层右键 → SuperMrWang → Shortcut → 双曲线磨皮",
+             desc="双曲线磨皮：生成提亮、压暗两条曲线层，蒙版全黑。用白色柔边"
+                  "画笔在蒙版上涂抹，涂到哪里就提亮/压暗到哪里，没涂的地方与"
+                  "原图逐像素相同。",
+             pdb="lb-plugin-dodge-burn(image, drawable, amount, group)"),
+        dict(key="grey",
+             name="gegl-color-ops-plugin-neutral-grey.zip",
+             src_dir=os.path.join(ROOT, "plugin", "neutral-grey"),
+             py="neutral-grey.py", menu="中性灰磨皮 (Neutral Grey)",
+             menus="    颜色 → SuperMrWang → Shortcut → 中性灰磨皮\n"
+                   "    图层右键 → SuperMrWang → Shortcut → 中性灰磨皮",
+             desc="中性灰磨皮：加一张 50% 灰的柔光层，恒等时与原图逐像素相同。"
+                  "白色画笔提亮、黑色画笔压暗，反复涂抹把皮肤推平。",
+             pdb="lb-plugin-neutral-grey(image, drawable, group)"),
     ]
     zips = {}
     for sp in specs:
@@ -1250,7 +1279,7 @@ def build_plugins(version, stats=None):
                     sha=d["sha"][:32] + "…")
 
     cards = """
-<div class="cards cards-7">
+<div class="cards cards-10">
   <a class="card" href="#layer-to-selection">
     <div class="card-top"><span class="tag t-mask">选区</span><code>layer-to-selection</code></div>
     <h3>Layer to Selection</h3>
@@ -1298,6 +1327,27 @@ def build_plugins(version, stats=None):
     <h3>HSI Split (Curves)</h3>
     <p>I 是 (R+G+B)/3，没有分量模式可借，三个分量合进一层：红=S、绿=I、蓝=色相。
        一层三条曲线，互不串门。</p>
+    <span class="more">看细节与下载 →</span>
+  </a>
+  <a class="card" href="#retouch">
+    <div class="card-top"><span class="tag t-tone">磨皮</span><code>frequency-separation</code></div>
+    <h3>高低频磨皮</h3>
+    <p>一次建好低频（模糊，管影调）与高频（颗粒合并，管细节）两层，
+       叠起来就是原图。半径决定分界。</p>
+    <span class="more">看细节与下载 →</span>
+  </a>
+  <a class="card" href="#retouch">
+    <div class="card-top"><span class="tag t-tone">磨皮</span><code>dodge-burn</code></div>
+    <h3>双曲线磨皮</h3>
+    <p>提亮 / 压暗两条曲线层，蒙版全黑。白色画笔涂哪儿，哪儿就亮或暗，
+       没涂的地方一码不动。</p>
+    <span class="more">看细节与下载 →</span>
+  </a>
+  <a class="card" href="#retouch">
+    <div class="card-top"><span class="tag t-tone">磨皮</span><code>neutral-grey</code></div>
+    <h3>中性灰磨皮</h3>
+    <p>一张 50% 灰的柔光层，柔光在 0.5 处是恒等映射：白笔提亮、黑笔压暗，
+       原图像素一个没动。</p>
     <span class="more">看细节与下载 →</span>
   </a>
 </div>"""
@@ -1498,6 +1548,45 @@ def build_plugins(version, stats=None):
      六边形棱锥，不是立方体），出界部分按 0/1 裁掉。依赖 <code>lb:hsi-dual</code> /
      <code>lb:hsi-compose</code> 两个算子，缺了没有回退，插件会直接报错。</p>"""
 
+    retouch_boxes = """
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>三个磨皮各自建什么</h3><span class="pill">一键</span></div>
+      <pre><code>高低频磨皮               组 · 穿透
+  ├─ 2 · 高频（细节）     颗粒合并 + 高通
+  ├─ 1 · 低频（影调）     正常 + 高斯模糊
+  └─ 原图层
+
+双曲线磨皮
+  ├─ 2 · 压暗（黑蒙版）   曲线下压
+  ├─ 1 · 提亮（黑蒙版）   曲线上提
+  └─ 原图层
+
+中性灰磨皮
+  └─ 1 · 中性灰           柔光 · 整层 128 灰</code></pre>
+      <p>三个都是「先摆好、再涂」：刚建出来时结果与原图一致，之后靠改模糊半径、
+         涂蒙版、涂灰层来修，原图层一直不动。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>恒等是怎么保证的</h3></div>
+      <p>高低频：高频层是 <code>H = 0.5 + (原图 − 低频)</code>，颗粒合并算的是
+         <code>H + L − 0.5</code>，偏移正好抵消。双曲线：两张蒙版全黑，两层
+         在合成里根本不参与，误差 0。中性灰：柔光在 0.5 处是恒等映射，实测
+         8 位图也是 0 码。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>怎么用</h3></div>
+      <p><b>高低频</b>：低频层抹平色块、高频层修毛孔与痘印，半径决定分界。
+         <b>双曲线</b>：点中蒙版，白色柔边画笔 10–20%，涂提亮层变亮、涂压暗层
+         变暗。<b>中性灰</b>：直接在这层上涂，白色提亮、黑色压暗，涂过头用
+         <code>#808080</code> 盖回去。</p>
+    </div>
+  </div>
+  <p class="note">实测（GIMP 3.2.8，<code>tools/check_retouch.py</code>，52 项）：
+     高低频合成与原图差 ≤1.5 码——<code>gegl:high-pass</code> 内部有约 1 码的
+     定点偏移，与半径无关；双曲线与中性灰都是 0 码。带 alpha 的图自动分组，
+     透明度交给组蒙版，隐藏原图层后 alpha 零误差。</p>"""
+
     download = """<section class="download" id="download">
   <h2>下载</h2>
   <div class="dl-grid">
@@ -1508,12 +1597,15 @@ def build_plugins(version, stats=None):
 {hsl_box}
 {lab_box}
 {hsi_box}
+{freq_box}
+{dodge_box}
+{grey_box}
   </div>
   <p class="note">和 <code>.dll</code> / <code>.so</code> 一个思路：免编译、解压即用。
      区别只是 Python 插件放进 <b>GIMP</b> 的用户插件目录
      （<code>%APPDATA%\\GIMP\\3.x\\plug-ins</code> 或
      <code>~/.config/GIMP/3.x/plug-ins</code>），不是 GEGL 的；
-     包里的「安装说明.txt」写得很全。七个都装也行，分量曲线那几个都在同一个
+     包里的「安装说明.txt」写得很全。十个都装也行，分量曲线与磨皮都在同一个
      <b>Shortcut</b> 子菜单里。</p>
 </section>""".format(sel_box=dl_box("selection", "Layer to Selection",
                                     "右键任意图层，把它转成当前选区"
@@ -1535,7 +1627,16 @@ def build_plugins(version, stats=None):
                                     "绿=b）、L* 一层走 LCh 明度；恒等曲线精确还原。"),
                      hsi_box=dl_box("hsi", "HSI Split (Curves)",
                                     "在 HSI 空间里调曲线：红=饱和度、绿=强度、"
-                                    "蓝=色相，三条曲线各管一个分量；恒等曲线精确还原。"))
+                                    "蓝=色相，三条曲线各管一个分量；恒等曲线精确还原。"),
+                     freq_box=dl_box("frequency", "高低频磨皮",
+                                     "一次建好低频（模糊）与高频（颗粒合并）两层，"
+                                     "叠起来就是原图；半径决定频率分界。"),
+                     dodge_box=dl_box("dodge", "双曲线磨皮",
+                                      "提亮 / 压暗两条曲线层，蒙版全黑；白色画笔"
+                                      "涂到哪里就亮/暗到哪里，没涂的地方不动。"),
+                     grey_box=dl_box("grey", "中性灰磨皮",
+                                     "一张 50% 灰的柔光层，恒等时与原图逐像素相同；"
+                                     "白笔提亮、黑笔压暗。"))
 
     install = """<section class="steps" id="install">
   <h2>三步装上</h2>
@@ -1551,15 +1652,15 @@ cd gegl-color-ops</code></pre>
          plug-ins 目录（Windows / Linux 通用；带 <code>.disabled</code> 标记的
          插件会跳过）：</p>
       <pre><code>bash install-plugin.sh</code></pre>
-      <p>或者直接用上面下载区的七个 <code>.zip</code>，把 <code>.py</code>
+      <p>或者直接用上面下载区的十个 <code>.zip</code>，把 <code>.py</code>
          解进同一个目录（每个插件一个子目录也行，GIMP 会扫描下去）。</p>
     </li>
     <li>
       <h3>重启 GIMP，找菜单</h3>
       <p><b>颜色 → SuperMrWang</b> 下是 Apply Image / Calculations，分量曲线
          收在 <b>Shortcut</b> 子菜单里（HSV / LCh / HSL / Lab / HSI Split
-         (Curves)）；<b>图层右键 → SuperMrWang</b> 下七个都在，分量曲线同样在
-         <b>Shortcut</b> 里；<b>选择 → SuperMrWang</b> 下是 Layer to Selection /
+         (Curves)）与三个磨皮；<b>图层右键 → SuperMrWang</b> 下十个都在，分量曲线
+         与磨皮同样在 <b>Shortcut</b> 里；<b>选择 → SuperMrWang</b> 下是 Layer to Selection /
          Channel（不依赖右键、方便写脚本）。</p>
     </li>
   </ol>
@@ -1589,19 +1690,29 @@ cd gegl-color-ops</code></pre>
     <tr><td><code>lb-plugin-hsi-split-curves</code></td>
         <td><code>group</code></td>
         <td>图层 → 一层三联曲线（S / I / H）</td></tr>
+    <tr><td><code>lb-plugin-frequency-separation</code></td>
+        <td><code>radius</code> / <code>group</code></td>
+        <td>图层 → 低频 + 高频两层（磨皮）</td></tr>
+    <tr><td><code>lb-plugin-dodge-burn</code></td>
+        <td><code>amount</code> / <code>group</code></td>
+        <td>图层 → 提亮 / 压暗两层（黑蒙版）</td></tr>
+    <tr><td><code>lb-plugin-neutral-grey</code></td>
+        <td><code>group</code></td>
+        <td>图层 → 50% 灰柔光层（磨皮）</td></tr>
   </tbody>
 </table></div>"""
 
     body = """<section class="page-head">
   <p class="eyebrow"><a href="index.html">首页</a> / Python 插件</p>
-  <h1>七个 Python 插件</h1>
+  <h1>十个 Python 插件</h1>
   <p class="lede">两件事原生 GIMP 做不顺：<b>灰度图变不成能用的东西</b>（复制图层 →
      新建通道 → 粘贴 → 蒙版转选区，四步），以及<b>曲线选不到分量</b>（只有
      R/G/B/Alpha，没有 H、S、LCh）。前两个插件把转换压成一次右键；其余五个把图层
      拆成分量层各挂一条原生曲线，恒等时精确还原——所以调曲线就等于在那个色彩空间
      里调那一维。HSV 与 LCh 各拆三层，HSL 与 Lab 因为有一对分量耦合、拆成两层，
-     HSI 三个分量都借不到模式、干脆合成一层（见下文）。</p>
-  <p class="lede">分量曲线这五个都收在菜单的 <b>Shortcut</b> 子菜单里
+     HSI 三个分量都借不到模式、干脆合成一层（见下文）。另外三个把磨皮要手动摆的
+     那一整套图层结构（低频/高频、提亮/压暗、中性灰）一次建好。</p>
+  <p class="lede">分量曲线五个和磨皮三个都收在菜单的 <b>Shortcut</b> 子菜单里
      （<code>颜色 → SuperMrWang → Shortcut</code>，图层右键同理）：它们本来就是
      「一次点击替代一串手工步骤」的东西，以后这类一键操作也往这个子菜单里放。</p>
   <div class="cta">
@@ -1610,9 +1721,9 @@ cd gegl-color-ops</code></pre>
     <a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/tree/main/plugin">看插件源码</a>
   </div>
   <ul class="facts">
-    <li><b>7</b> 个插件</li>
-    <li><b>7</b> 个 PDB 过程</li>
-    <li><b>185</b> 条回归断言</li>
+    <li><b>10</b> 个插件</li>
+    <li><b>10</b> 个 PDB 过程</li>
+    <li><b>253</b> 条回归断言</li>
     <li><b>0</b> 编译 · 纯 Python</li>
   </ul>
 </section>
@@ -1682,12 +1793,21 @@ cd gegl-color-ops</code></pre>
 {hsi_boxes}
   </section>
 
+  <section class="group" id="retouch">
+    <h3 class="group-title"><span class="tag t-tone">磨皮</span>
+      <span class="group-en">Retouch Shortcuts</span><span class="count">3 个</span></h3>
+    <p class="group-desc">磨皮本来要手动建层、挂滤镜、加蒙版、填灰，一套下来七八步。
+       这三个把整套结构一次摆好，且摆好那一刻结果与原图完全一致——修不修、修多少
+       都由你后面的笔画决定，原图层始终不动。</p>
+{retouch_boxes}
+  </section>
+
 {download}
 
 {install}
 
   <h2 id="script">脚本调用</h2>
-  <p>七个动作都是标准 PDB 过程，脚本里直接调（参数留空走默认值）：</p>
+  <p>十个动作都是标准 PDB 过程，脚本里直接调（参数留空走默认值）：</p>
 {pdb_table}
   <p class="note">实现：转换类直接读图层像素（array 的 C 级切片，100 万像素约 4 毫秒），
      不走复制粘贴；灰度内容走零拷贝快路径，彩色图层才临时复制一份做去色。
@@ -1714,16 +1834,19 @@ cd gegl-color-ops</code></pre>
      恒等往返、曲线与直接改分量的数学期望对照、alpha 穿透、不分组、非法输入、
      编码路径量程。全部跑在真实的 GIMP 3.2 里，不是 mock。
      编码算子自己还有 <code>check_gray_to_component.py</code>（39 条），
-     九个混合模式的恒等往返全在 2 码以内。</p>
+     九个混合模式的恒等往返全在 2 码以内。三个磨皮在
+     <code>check_retouch.py</code>（52 条）里：结构、滤镜参数、浮点与 8 位恒等、
+     低频真变糊、高频真在中轴、改半径仍恒等、隐藏原图层自足、半透明图的
+     alpha、以及「涂白/涂黑确实生效」。</p>
 </section>""".format(cards=cards, sel_boxes=sel_boxes, chn_boxes=chn_boxes,
                    split_boxes=split_boxes, lch_boxes=lch_boxes,
                    hsl_boxes=hsl_boxes, lab_boxes=lab_boxes,
-                   hsi_boxes=hsi_boxes,
+                   hsi_boxes=hsi_boxes, retouch_boxes=retouch_boxes,
                    download=download, install=install, pdb_table=pdb_table)
     return page("Python 插件 · gegl-color-ops", body,
                 desc="GIMP 3 Python 插件下载：图层转选区 / Alpha 通道，"
-                     "HSV / LCh / HSL / Lab / HSI 分量分层 + 曲线"
-                     "——免编译，解压即用")
+                     "HSV / LCh / HSL / Lab / HSI 分量分层 + 曲线，"
+                     "高低频 / 双曲线 / 中性灰磨皮——免编译，解压即用")
 
 
 def build_feed(ops, version):
