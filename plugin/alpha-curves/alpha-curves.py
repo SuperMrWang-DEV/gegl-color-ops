@@ -18,7 +18,7 @@
            non-destructive drawable filters.
 
  menu      SuperMrWang → Mask → Alpha Curves
-           图层右键 → SuperMrWang → Shortcut → Alpha Curves
+           图层右键 → SuperMrWang → Mask → Alpha Curves
 
  usage     选中一个栅格图层 → 菜单项。图层上多出两条滤镜（图层面板可见）：
 
@@ -225,7 +225,7 @@ class AlphaCurvesPlugin(Gimp.PlugIn):
 
         procedure.set_menu_label(_("Alpha Curves（透明通道曲线）"))
         procedure.add_menu_path("<Image>/SuperMrWang/Mask")
-        procedure.add_menu_path("<Layers>/SuperMrWang/Shortcut")
+        procedure.add_menu_path("<Layers>/SuperMrWang/Mask")
 
         procedure.set_documentation(
             _("给 alpha 挂一条可编辑曲线：先把选定颜色通道写进 alpha，"

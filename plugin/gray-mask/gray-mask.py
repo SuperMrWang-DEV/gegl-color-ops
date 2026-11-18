@@ -9,7 +9,13 @@
            （lb:color-mask-select 等）输出的黑白层可以直接接管后续流程。
            Turn a grayscale layer into a selection or a new alpha channel in
            one click; natively this takes mask + mask-to-selection + save.
- menu      SuperMrWang → Convert → Grayscale Layer to Selection / to Channel
+ menu      已下线（retired 2026-11-18）：原本挂在
+           SuperMrWang → Convert → Grayscale Layer to Selection / to Channel，
+           与 plugin/layer-to-selection、plugin/layer-to-channel 功能重叠，
+           且更弱（不按亮度处理彩色层、不挂起选区），菜单已撤。
+           源码保留只为 tools/check_gray_mask.py 的回归；日常请用那两个插件。
+           Retired: overlaps with layer-to-selection / layer-to-channel and is
+           weaker; the source stays for the regression only.
  usage     选中黑白图层后点击菜单；批处理用注册参数（operation 0..3、
            invert、name）。核心逻辑在模块级函数里，tools/check_gray_mask.py
            直接调用它们做回归。

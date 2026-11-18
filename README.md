@@ -11,7 +11,7 @@
 与各厂商无隶属关系（详见文末「版权与商标」）。
 
 > **在线版**：<https://superMrwang-dev.github.io/gegl-color-ops/> —— 每个算子一篇
-> 算法说明（含参数、实测误差、示例图），Shortcut 下的八个插件也各有一篇，首页直接
+> 算法说明（含参数、实测误差、示例图），Retouch 下的八个插件也各有一篇，首页直接
 > 下载免编译包。站点由 `python tools/site_build.py` 从 `ops/*/README.md` 与
 > `tools/plugin_docs.py` 生成到 `docs/`，不用手写。
 
@@ -32,10 +32,11 @@ gegl-color-ops/
 ├── common/config.h       # 所有算子共用的版本宏 / GETTEXT_PACKAGE
 ├── ops/<算子名>/          # 每个算子一个目录：<算子名>.c + 原始说明 + 截图
 ├── plugin/blend/      # Python 插件：应用图像/计算的完整复刻版（四种落地：选区/通道/灰度层/图层 alpha）
-├── plugin/gray-mask/  # Python 插件：灰度图层一键 → 选区 / Alpha 通道
+├── plugin/gray-mask/  # Python 插件：灰度图层 → 选区 / Alpha 通道（已下线，仅留回归）
 ├── plugin/layer-to-selection/ # Python 插件：右键任意图层 → 选区
 ├── plugin/layer-to-channel/  # Python 插件：右键任意图层 → Alpha 通道（恒为灰度）
-├── plugin/*-split-curves/    # Python 插件：HSV / LCh / HSL / Lab / HSI 分量分层 + 曲线（菜单 Shortcut）；
+├── plugin/split-channels/    # Python 插件：右键任意图层 → 一次拆出 R/G/B/Alpha 四条通道
+├── plugin/*-split-curves/    # Python 插件：HSV / LCh / HSL / Lab / HSI 分量分层 + 曲线（菜单 Retouch）；
 │                             #   菜单里两条：· single = 一层数据图三条曲线，
 │                             #   · multi = 两三张分量层走原生分量混合模式（HSI 只有 single）
 ├── plugin/frequency-separation/ # Python 插件：高低频磨皮（低频 + 高频两层，合成即原图）
@@ -179,8 +180,8 @@ GEGL 算子只接住了像素计算那一半；**输入选择**（任意打开�
     整幅。批处理参数 `scope`（0/1）
   - **Load result as selection（同时载入为选区）**：结果写成通道/灰度图层/
     图层 alpha 的同时，把同一份灰度也载入为活动选区，一步到位。批处理参数
-    `load-selection`。已经存在的灰度图层可以用 gray-mask 插件的
-    **SuperMrWang → Convert → Grayscale Layer to Selection** 事后转
+    `load-selection`。已经存在的灰度图层可以用 layer-to-selection 插件的
+    **SuperMrWang → Convert → Layer to Selection** 事后转
 - 写入通道/灰度图层时会**临时挂起当前选区**（shadow buffer 的合并会遵守选区，
   否则新通道在选区外是黑的），写完后按需恢复旧选区或换成新结果
 - 像素内核 `tools/blend_core.c` 编成 `blend_core.dll` 由 ctypes 调用，公式
@@ -194,22 +195,17 @@ GEGL 算子只接住了像素计算那一半；**输入选择**（任意打开�
 交互模式弹自定义对话框；批处理可用注册参数（`blend` 0..25 按经典图像编辑器顺序、
 `source-image`/`source-layer` 等，见 `do_create_procedure`）。
 
-### Python 插件版：plugin/gray-mask
+### Python 插件版：plugin/gray-mask（已下线）
 
-**灰度图层 → 选区 / Alpha 通道** 的一键化。原生做法要绕三步
-（加图层蒙版「灰度副本」→ 蒙版至选区 → 存储到通道）；插件把这条链压成
-两个菜单项，位于 **SuperMrWang → Convert**：
+曾经把「灰度图层 → 选区 / Alpha 通道」压成两个菜单项（`Grayscale Layer to
+Selection` / `to Channel`），但实现是复制/粘贴，比 `plugin/layer-to-selection`、
+`plugin/layer-to-channel` 弱：彩色图层不按亮度转、不挂起选区、偏移图层也处理不
+干净。2026-11-18 起菜单项撤掉，功能由那两个插件接管（它们同样吃灰度层，而且
+更快），`SuperMrWang → Convert` 下不再出现名字相近的两套条目。
 
-- `Grayscale Layer to Selection`：活动图层灰度内容 → 当前选区，
-  可选组合方式（替换/加/减/交）与反相
-- `Grayscale Layer to Channel`：活动图层灰度内容 → 新建 Alpha 通道，
-  默认沿用图层名，可反相
-- `lb:color-mask-select` 等蒙版算子输出的黑白层可以直接接管后续流程；
-  复制前自动全选（`edit_copy` 会被当前选区裁剪），粘贴后挪回源图层
-  画布位置再锚定，偏移图层不会错位
-
-回归：`tools/check_gray_mask.py`（8 条行为断言，跑在 gimp-console 的
-python-fu-eval 里，不要求插件已安装）。
+源码和 `tools/check_gray_mask.py`（8 条行为断言，跑在 gimp-console 的
+python-fu-eval 里，不要求插件已安装）保留着，作为那条复制/粘贴链的回归；
+要恢复菜单就删 `plugin/gray-mask/.disabled` 再跑 `./install-plugin.sh`。
 
 ### Python 插件：plugin/layer-to-selection 与 plugin/layer-to-channel
 
@@ -232,12 +228,34 @@ python-fu-eval 里，不要求插件已安装）。
   临时图层用完就删，并把活动图层还给原来选中的那个
 - 图层组没有自己的像素，会明确报错提示先合并组
 
-与 `plugin/gray-mask` 的分工：gray-mask 走复制/粘贴，会带上图层蒙版等显示
-效果；这两个插件读原始像素、更快，日常「灰度图 → 蒙版」优先用它们。
+`plugin/gray-mask`（已下线）当年走复制/粘贴、会带上图层蒙版等显示效果；这两个
+插件读原始像素、更快，现在「灰度图 → 蒙版」只剩这一条路。
 
 回归：`tools/check_layer_to_mask.py`（23 条断言：灰度值、反相、偏移图层、
 彩色亮度、四个单通道、通道值/名字/反相、**彩色图层转通道得到的是亮度而不是
 R 通道**、**有选区时转通道不被截断**、四种组合方式）。
+
+### Python 插件：plugin/split-channels
+
+**一个图层拆成多条通道。** 和 `layer-to-channel` 是一对：那个把整层压成**一条**
+灰度通道，这个保留**分量本身**、一次出多条。
+
+- 入口：**SuperMrWang → Convert → Split Channels**，也挂在图层右键同一个位置
+- 默认拆 **R / G / B / Alpha** 四路，命名「图层名 R」「图层名 G」「图层名 B」
+  「图层名 Alpha」；同名通道已存在自动加序号，不覆盖已有内容
+- 灰度图 R = G = B，拆三路是三条一样的通道，没有意义——这种图只出 **Gray**，
+  带透明才多一条 Alpha；彩色图关掉「含 Alpha」就只出三路
+- 拆完把**源图层隐藏**（不删除），画布上直接看到结果，想对照点回眼睛即可；
+  「隐藏源图层」关掉则原图与通道并存
+- 通道恒为**画布大小**：比画布小、带偏移的图层，没盖到的区域补黑，不会出现
+  「通道跟着图层尺寸走、贴上去错位」
+- 一次读完整层数据再按分量切片，不是每路读一遍 buffer；600 万像素拆四路约 0.9 秒
+- 写通道前先挂起选区，否则 shadow buffer 的 merge 会被选区截断，通道只有
+  选区内有内容
+
+两个插件都在通道面板里产出，可以并存。回归：`tools/check_split_channels.py`
+（31 条断言：四路内容与源图层同名通道逐项相等、灰度图只出 Gray、无 alpha
+图层不出 Alpha、偏移图层外部补零、有选区时通道不被截断、前缀与重名序号）。
 
 ### Python 插件：plugin/alpha-curves
 
@@ -250,7 +268,7 @@ R 通道**、**有选区时转通道不被截断**、四种组合方式）。
 2. `2 · Alpha 曲线` —— `gimp:curves`，通道 = Alpha，**一条普通的曲线**。
 
 位置：**SuperMrWang → Mask → Alpha Curves**，或图层右键 →
-SuperMrWang → Shortcut。参数两项：源通道（gray / R / G / B / LAB L·A·B /
+SuperMrWang → Retouch。参数两项：源通道（gray / R / G / B / LAB L·A·B /
 alpha）与初始形状（auto / band 梯形 / identity / soft）。
 
 曲线能画成任意一维映射，所以梯形只是其中一种形状；`lb:channel-range-to-alpha`
@@ -311,7 +329,7 @@ alpha 都有回滚。与算子版本的区别是**一次性应用**——想随�
    天空一致，可在对话框关掉；
 5. 选区转成天空图层的图层蒙版，前景自然露出；
 6. 可选存为 `Sky Mask` 通道：对分割不满意时，用 lb:color-mask-select
-   等蒙版算子手工精修，再用 gray-mask 插件重新生成选区合成。
+   等蒙版算子手工精修，再用 Layer to Selection 重新生成选区合成。
 
 菜单位置 **SuperMrWang → Blend → Sky Replace**；批处理参数
 `sky-file`/`threshold`(0..0.5)/`edge`/`feather`/`match-brightness`/

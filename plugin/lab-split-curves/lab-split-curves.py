@@ -14,9 +14,9 @@
            Curve CIELAB itself in two modes: one packed data layer, or the
            L + a/b stack that borrows GIMP's LCh lightness mode.
 
- menu      SuperMrWang → Shortcut → Lab Split (Curves) · single
-           SuperMrWang → Shortcut → Lab Split (Curves) · multi
-          图层右键 → SuperMrWang → Shortcut → 同上两条
+ menu      SuperMrWang → Retouch → Lab Split (Curves) · single
+           SuperMrWang → Retouch → Lab Split (Curves) · multi
+          图层右键 → SuperMrWang → Retouch → 同上两条
           （single 与 multi 是两个独立的过程，不再是对话框里的下拉）
 
  usage     选中一个栅格图层 → 取 single 或 multi 那条。生成的结构（自上而下）：
@@ -579,8 +579,8 @@ class LabSplitPlugin(Gimp.PlugIn):
         multi = name.endswith('-multi')
         procedure.set_menu_label(
             _("Lab Split (Curves) · %s") % ('multi' if multi else 'single'))
-        procedure.add_menu_path("<Image>/SuperMrWang/Shortcut")
-        procedure.add_menu_path("<Layers>/SuperMrWang/Shortcut")
+        procedure.add_menu_path("<Image>/SuperMrWang/Retouch")
+        procedure.add_menu_path("<Layers>/SuperMrWang/Retouch")
 
         if multi:
             doc_zh = _("在 Lab 空间里调曲线：multi 模式把图层拆成分量层，各挂一条"

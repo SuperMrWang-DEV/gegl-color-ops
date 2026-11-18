@@ -1,0 +1,13 @@
+retired 2026-11-18
+
+    这里的两个过程（灰度层 → 选区 / → 通道）与 plugin/layer-to-selection、
+    plugin/layer-to-channel 重叠，且实现更弱：走复制/粘贴，彩色图层不会按
+    亮度转，也不挂起选区。保留源码只为 tools/check_gray_mask.py 的回归，
+    菜单不再注册。
+
+    The two procedures here overlap with plugin/layer-to-selection and
+    plugin/layer-to-channel and are weaker (copy/paste path, no luma
+    conversion for colour layers, no selection suspension). The source stays
+    for tools/check_gray_mask.py; the menu entries are retired.
+
+    恢复：rm plugin/gray-mask/.disabled && ./install-plugin.sh

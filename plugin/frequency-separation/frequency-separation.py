@@ -11,8 +11,8 @@
            on the low layer, pores and blemishes on the high layer, and the
            two recombine to the original pixel for pixel.
 
- menu      SuperMrWang → Shortcut → 高低频磨皮 (Frequency Separation)
-           图层右键 → SuperMrWang → Shortcut → 高低频磨皮
+ menu      SuperMrWang → Retouch → 高低频磨皮 (Frequency Separation)
+           图层右键 → SuperMrWang → Retouch → 高低频磨皮
 
  usage     选中一个栅格图层 → 菜单项。生成的结构（自上而下）：
 
@@ -243,8 +243,8 @@ class FrequencySeparationPlugin(Gimp.PlugIn):
         procedure.set_attribution("SuperMrWang", "SuperMrWang", "2026")
 
         procedure.set_menu_label(_("高低频磨皮 (Frequency Separation)"))
-        procedure.add_menu_path("<Image>/SuperMrWang/Shortcut")
-        procedure.add_menu_path("<Layers>/SuperMrWang/Shortcut")
+        procedure.add_menu_path("<Image>/SuperMrWang/Retouch")
+        procedure.add_menu_path("<Layers>/SuperMrWang/Retouch")
 
         procedure.set_documentation(
             _("高低频磨皮：一次生成低频（高斯模糊，管影调与颜色）与高频"

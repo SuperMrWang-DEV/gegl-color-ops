@@ -11,8 +11,8 @@
            one darken curve, each on a black mask. Paint white to dodge or
            burn; untouched areas stay pixel-identical to the original.
 
- menu      SuperMrWang → Shortcut → 双曲线磨皮 (Dodge & Burn)
-           图层右键 → SuperMrWang → Shortcut → 双曲线磨皮
+ menu      SuperMrWang → Retouch → 双曲线磨皮 (Dodge & Burn)
+           图层右键 → SuperMrWang → Retouch → 双曲线磨皮
 
  usage     选中一个栅格图层 → 菜单项。生成的结构（自上而下）：
 
@@ -245,8 +245,8 @@ class DodgeBurnPlugin(Gimp.PlugIn):
         procedure.set_attribution("SuperMrWang", "SuperMrWang", "2026")
 
         procedure.set_menu_label(_("双曲线磨皮 (Dodge & Burn)"))
-        procedure.add_menu_path("<Image>/SuperMrWang/Shortcut")
-        procedure.add_menu_path("<Layers>/SuperMrWang/Shortcut")
+        procedure.add_menu_path("<Image>/SuperMrWang/Retouch")
+        procedure.add_menu_path("<Layers>/SuperMrWang/Retouch")
 
         procedure.set_documentation(
             _("双曲线磨皮：生成提亮、压暗两条曲线层，蒙版全黑。用白色柔边画笔"

@@ -16,9 +16,9 @@
            (single) or three component layers on the native HSV blend modes
            (multi).
 
- menu      SuperMrWang → Shortcut → HSV Split (Curves) · single
-           SuperMrWang → Shortcut → HSV Split (Curves) · multi
-          图层右键 → SuperMrWang → Shortcut → 同上两条
+ menu      SuperMrWang → Retouch → HSV Split (Curves) · single
+           SuperMrWang → Retouch → HSV Split (Curves) · multi
+          图层右键 → SuperMrWang → Retouch → 同上两条
           （single 与 multi 是两个独立的过程，不再是对话框里的下拉）
 
  usage     选中一个栅格图层 → 取 single 或 multi 那条。生成的结构（自上而下）：
@@ -529,8 +529,8 @@ class HsvSplitPlugin(Gimp.PlugIn):
         multi = name.endswith('-multi')
         procedure.set_menu_label(
             _("HSV Split (Curves) · %s") % ('multi' if multi else 'single'))
-        procedure.add_menu_path("<Image>/SuperMrWang/Shortcut")
-        procedure.add_menu_path("<Layers>/SuperMrWang/Shortcut")
+        procedure.add_menu_path("<Image>/SuperMrWang/Retouch")
+        procedure.add_menu_path("<Layers>/SuperMrWang/Retouch")
 
         if multi:
             doc_zh = _("在 HSV 空间里调曲线：multi 模式把图层拆成分量层，各挂一条"

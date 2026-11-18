@@ -10,7 +10,7 @@
            Turn any layer into a new alpha channel in one click, straight
            from the layer context menu.
 
- menu      图层右键 → SuperMrWang → Layer to Channel
+ menu      图层右键 → SuperMrWang → Convert → Layer to Channel
            也挂在 SuperMrWang → Convert 下，方便不用鼠标右键的场合。
 
  usage     **恒为灰度**：彩色图层先按亮度（LUMA）转灰度，灰度图层原样，
@@ -257,7 +257,7 @@ class LayerToChannelPlugin(Gimp.PlugIn):
 
         procedure.set_menu_label(_("Layer to Channel"))
         # 两个入口：图层右键菜单（点哪个转哪个）+ 选择菜单
-        procedure.add_menu_path("<Layers>/SuperMrWang")
+        procedure.add_menu_path("<Layers>/SuperMrWang/Convert")
         procedure.add_menu_path("<Image>/SuperMrWang/Convert")
 
         procedure.set_documentation(

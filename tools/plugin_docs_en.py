@@ -100,10 +100,65 @@ white 255  → fully selected</code></pre>
          before the write and restored after).</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>Versus gray-mask</h3></div>
-      <p><code>plugin/gray-mask</code> goes through copy-paste and therefore carries display
-         effects (masks, layer modes). These two read raw pixels, ignore display effects and
-         are faster. Want what you see? Use gray-mask. Want the data itself? Use these.</p>
+      <div class="dl-head"><h3>It replaces gray-mask</h3></div>
+      <p>The old <code>plugin/gray-mask</code> went through copy-paste and carried masks and
+         layer modes, but it skipped luma conversion for colour layers and ignored offsets.
+         Retired on 2026-11-18. These two read raw pixels — faster, and now the only way
+         to convert.</p>
+    </div>
+  </div>""")
+
+PLUGIN_EN["split"] = dict(
+    lede="""One layer becomes several channels in a single step: R, G, B and Alpha each get
+   their own channel, lined up in the Channels dock, with the source layer hidden so you
+   can still compare. The native route is channel-by-channel "new channel → copy → paste →
+   merge" — sixteen steps for four channels.""",
+    body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>All four at once</h3><span class="pill">R · G · B · Alpha</span></div>
+      <p>Each component becomes its own channel named "layer + suffix", so the Channels
+         dock stays readable. A name that is already taken gets a number instead of
+         overwriting what you stored earlier.</p>
+      <pre><code>layer "photo"
+  ├ photo R       red
+  ├ photo G       green
+  ├ photo B       blue
+  └ photo Alpha   transparency</code></pre>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Grayscale images do not fake three</h3></div>
+      <p>On a greyscale image R = G = B, so three channels would be three identical
+         copies — it produces a single <b>Gray</b> channel instead, plus Alpha when the
+         layer actually has transparency. Colour layers give four by default; turn
+         "Include Alpha" off for three.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>The source layer hides itself</h3></div>
+      <p>It is hidden, never deleted: the canvas shows you the split result and one click
+         brings the original back. Turn "Hide source layer" off if you want both.</p>
+      <p>Small offset layers work too: channels are always <b>canvas-sized</b> and the area
+         the layer does not cover stays black, so nothing lands at the wrong place.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Versus Layer to Channel</h3><span class="pill">one vs many</span></div>
+      <p><b>Layer to Channel</b> flattens the whole layer into <b>one</b> greyscale channel
+         (always luminance) — for "keep this greyscale image as a mask". <b>Split
+         Channels</b> keeps the <b>components themselves</b> and produces several — for
+         "look at the R/G/B distributions separately" or "retouch one channel only". Both
+         leave their results in the Channels dock and can coexist.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Measured</h3></div>
+      <p><code>tools/check_split_channels.py</code> runs 31 assertions inside a real GIMP
+         3.2: each channel equals the same component of the source layer (an off-by-one
+         index shows up immediately), greyscale yields Gray only, no-alpha layers yield
+         three, offset layers are padded with black, the channel is not clipped by an
+         active selection, and prefix plus duplicate numbering behave.</p>
+      <p>Speed: four channels from six megapixels take about 0.9 s — the layer is read once
+         and then sliced, not read once per channel.</p>
     </div>
   </div>""")
 

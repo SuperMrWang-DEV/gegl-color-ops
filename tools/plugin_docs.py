@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""十一个 Python 插件的页面数据。
+"""十三个 Python 插件的页面数据。
 
 plugins.html 的卡片与 plugins/<slug>.html 的文章正文都从这里来，改一处两边
 一起变；正文来源是各插件源码与回归实测，数字都在 tools/check_*.py 里可复现。
@@ -12,8 +12,8 @@ PAGES = [
         title='Layer to Selection',
         tag=('选区', 't-mask'),
         count='图层 → 选区',
-        menu='图层右键 → SuperMrWang → Layer to Selection',
-        menus=['图层右键 → SuperMrWang → Layer to Selection',
+        menu='图层右键 → SuperMrWang → Convert → Layer to Selection',
+        menus=['图层右键 → SuperMrWang → Convert → Layer to Selection',
                'SuperMrWang → Convert → Layer to Selection'],
         pdb='lb-plugin-layer-to-selection(\n    image, drawables, channel, invert, operation)',
         lede="""右键点一个图层，就把它转成当前选区。GEGL 算子跑完往往留下一张灰度图，
@@ -63,8 +63,8 @@ PAGES = [
         title='Layer to Channel',
         tag=('通道', 't-mask'),
         count='图层 → 通道',
-        menu='图层右键 → SuperMrWang → Layer to Channel',
-        menus=['图层右键 → SuperMrWang → Layer to Channel',
+        menu='图层右键 → SuperMrWang → Convert → Layer to Channel',
+        menus=['图层右键 → SuperMrWang → Convert → Layer to Channel',
                'SuperMrWang → Convert → Layer to Channel'],
         pdb='lb-plugin-layer-to-channel(\n    image, drawables, invert, name)',
         lede="""右键点一个图层，就把它变成一条新的 Alpha 通道，留档复用。恒为灰度：
@@ -103,10 +103,67 @@ PAGES = [
          （写通道前先挂起选区，写完恢复）。</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>和 gray-mask 的分工</h3></div>
-      <p><code>plugin/gray-mask</code> 走复制粘贴，会带上<b>显示效果</b>（蒙版、
-         图层模式）；这两个插件读<b>原始像素</b>、不认显示效果，也更快。
-         要「所见即所得」用 gray-mask，要「数据本身」用这两个。</p>
+      <div class="dl-head"><h3>它取代了 gray-mask</h3></div>
+      <p>原来的 <code>plugin/gray-mask</code> 走复制粘贴、会带上蒙版和图层模式，
+         但彩色层不按亮度转、也不管偏移，2026-11-18 已下线。这两个插件读
+         <b>原始像素</b>，更快也更准，转换就只剩这一条路。</p>
+    </div>
+  </div>""",
+    ),
+    dict(
+        key='split',
+        slug='split-channels',
+        title='Split Channels',
+        tag=('通道', 't-mask'),
+        count='图层 → R/G/B/A',
+        menu='SuperMrWang → Convert → Split Channels',
+        menus=['SuperMrWang → Convert → Split Channels',
+               '图层右键 → SuperMrWang → Convert → Split Channels'],
+        pdb='lb-plugin-split-channels(\n    image, drawables, include-alpha, hide-source, prefix)',
+        lede="""一个图层一次拆成多条通道：R、G、B、Alpha 各存一条，通道面板里排好，
+       原图层自动隐藏留作对照。原生做法是逐条「新建通道 → 复制 → 粘贴 → 合并」，
+       四条就是十六步。""",
+        body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>一次拆完四路</h3><span class="pill">R · G · B · Alpha</span></div>
+      <p>默认按分量拆四条，命名是「图层名 + 后缀」，通道面板里一眼能认出来。同名
+         通道已存在时自动加序号，不会覆盖你之前存的东西。</p>
+      <pre><code>图层「photo」
+  ├ photo R       红分量
+  ├ photo G       绿分量
+  ├ photo B       蓝分量
+  └ photo Alpha   透明分量</code></pre>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>灰度图不硬凑三份</h3></div>
+      <p>灰度图里 R = G = B，拆三路等于三条全黑一样的通道，没有意义——这种图只拆
+         一条 <b>Gray</b>；只有带透明时才多一条 Alpha。彩色图默认四路，把
+         「含 Alpha」关掉就是三路。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>源图层默认隐藏</h3></div>
+      <p>拆完把原图层眼睛关掉、不删除：画布上看到的就是拆分结果，想对照随时点回来。
+         不需要这个行为就把「隐藏源图层」关掉，原图和通道并存。</p>
+      <p>偏移的小图层也照样处理：通道恒为<b>画布大小</b>，图层没盖到的地方补黑，
+         不会出现「通道尺寸跟着图层走、贴上去错位」的老问题。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>和 Layer to Channel 的分工</h3><span class="pill">一条 vs 多条</span></div>
+      <p><b>Layer to Channel</b> 把整层压成<b>一条</b>灰度通道（恒按亮度），适合
+         「这张灰度图当蒙版存档」。<b>Split Channels</b> 保留<b>分量本身</b>、一次
+         出多条，适合「分开看 R/G/B 各自的分布」「单独修某一路」。两者产物都在通道
+         面板里，可以并存。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>实测</h3></div>
+      <p><code>tools/check_split_channels.py</code> 31 条断言跑在真实 GIMP 3.2 里：
+         四路内容与源图层同名通道逐项相等（索引错位一位就会露馅）、灰度图只出
+         Gray、无 alpha 图层不出 Alpha、偏移图层外部补零、有选区时通道不被截断、
+         前缀与重名序号。</p>
+      <p>速度：600 万像素拆四路约 0.9 秒（一次读完整层再切片，不是每路读一遍）。</p>
     </div>
   </div>""",
     ),
@@ -116,10 +173,10 @@ PAGES = [
         title='HSV Split (Curves)',
         tag=('曲线', 't-color'),
         count='H / S / V',
-        menu='SuperMrWang → Shortcut → HSV Split (Curves) · single',
-        menus=['SuperMrWang → Shortcut → HSV Split (Curves) · single',
-               'SuperMrWang → Shortcut → HSV Split (Curves) · multi',
-               '图层右键 → SuperMrWang → Shortcut → 同上两条'],
+        menu='SuperMrWang → Retouch → HSV Split (Curves) · single',
+        menus=['SuperMrWang → Retouch → HSV Split (Curves) · single',
+               'SuperMrWang → Retouch → HSV Split (Curves) · multi',
+               '图层右键 → SuperMrWang → Retouch → 同上两条'],
         pdb='lb-plugin-hsv-split-curves(image, drawables, group)\n'
             'lb-plugin-hsv-split-curves-multi(image, drawables, group)',
         lede="""GIMP 的曲线只能选 R / G / B / Alpha——想单独曲「色相」或
@@ -179,10 +236,10 @@ multi    HSV split            组 · 穿透（带 alpha 时组上还有蒙版）
         title='LCh Split (Curves)',
         tag=('曲线', 't-blend'),
         count='L / C / h',
-        menu='SuperMrWang → Shortcut → LCh Split (Curves) · single',
-        menus=['SuperMrWang → Shortcut → LCh Split (Curves) · single',
-               'SuperMrWang → Shortcut → LCh Split (Curves) · multi',
-               '图层右键 → SuperMrWang → Shortcut → 同上两条'],
+        menu='SuperMrWang → Retouch → LCh Split (Curves) · single',
+        menus=['SuperMrWang → Retouch → LCh Split (Curves) · single',
+               'SuperMrWang → Retouch → LCh Split (Curves) · multi',
+               '图层右键 → SuperMrWang → Retouch → 同上两条'],
         pdb='lb-plugin-lch-split-curves(image, drawables, group)\n'
             'lb-plugin-lch-split-curves-multi(image, drawables, group)',
         lede="""同样的思路换到 CIE LCh：明度、彩度、色相三条曲线。LCh 是 Lab 的
@@ -235,10 +292,10 @@ multi    LCh split            组 · 穿透（带 alpha 时组上还有蒙版）
         title='HSL Split (Curves)',
         tag=('曲线', 't-color'),
         count='H / S / L',
-        menu='SuperMrWang → Shortcut → HSL Split (Curves) · single',
-        menus=['SuperMrWang → Shortcut → HSL Split (Curves) · single',
-               'SuperMrWang → Shortcut → HSL Split (Curves) · multi',
-               '图层右键 → SuperMrWang → Shortcut → 同上两条'],
+        menu='SuperMrWang → Retouch → HSL Split (Curves) · single',
+        menus=['SuperMrWang → Retouch → HSL Split (Curves) · single',
+               'SuperMrWang → Retouch → HSL Split (Curves) · multi',
+               '图层右键 → SuperMrWang → Retouch → 同上两条'],
         pdb='lb-plugin-hsl-split-curves(image, drawables, group)\n'
             'lb-plugin-hsl-split-curves-multi(image, drawables, group)',
         lede="""GIMP 给 HSV 和 LCh 都配了分量混合模式，唯独 HSL 没有，也没有
@@ -290,10 +347,10 @@ multi    HSL split            组 · 穿透（带 alpha 时组上还有蒙版）
         title='Lab Split (Curves)',
         tag=('曲线', 't-blend'),
         count='L / a / b',
-        menu='SuperMrWang → Shortcut → Lab Split (Curves) · single',
-        menus=['SuperMrWang → Shortcut → Lab Split (Curves) · single',
-               'SuperMrWang → Shortcut → Lab Split (Curves) · multi',
-               '图层右键 → SuperMrWang → Shortcut → 同上两条'],
+        menu='SuperMrWang → Retouch → Lab Split (Curves) · single',
+        menus=['SuperMrWang → Retouch → Lab Split (Curves) · single',
+               'SuperMrWang → Retouch → Lab Split (Curves) · multi',
+               '图层右键 → SuperMrWang → Retouch → 同上两条'],
         pdb='lb-plugin-lab-split-curves(image, drawables, group)\n'
             'lb-plugin-lab-split-curves-multi(image, drawables, group)',
         lede="""在 CIELAB 里调曲线：L* 是感知明度，a 是绿–品红轴，b 是蓝–黄轴。
@@ -345,9 +402,9 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
         title='HSI Split (Curves)',
         tag=('曲线', 't-color'),
         count='H / S / I',
-        menu='SuperMrWang → Shortcut → HSI Split (Curves) · single',
-        menus=['SuperMrWang → Shortcut → HSI Split (Curves) · single',
-               '图层右键 → SuperMrWang → Shortcut → HSI Split (Curves) · single'],
+        menu='SuperMrWang → Retouch → HSI Split (Curves) · single',
+        menus=['SuperMrWang → Retouch → HSI Split (Curves) · single',
+               '图层右键 → SuperMrWang → Retouch → HSI Split (Curves) · single'],
         pdb='lb-plugin-hsi-split-curves(image, drawables, group)',
         lede="""HSI 的 I 是 (R+G+B)/3，色相又用余弦定义——GIMP 的六条分量
        模式一条也对不上，连「借 HSV 色相换角」都会把 I 带走 22 码。于是三个分量
@@ -390,7 +447,7 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
         title='高低频磨皮',
         tag=('磨皮', 't-tone'),
         count='一键',
-        menu='SuperMrWang → Shortcut → 高低频磨皮',
+        menu='SuperMrWang → Retouch → 高低频磨皮',
         pdb='lb-plugin-frequency-separation(image, drawables, radius, group)',
         lede="""把一张脸拆成<b>影调</b>与<b>细节</b>两层：低频管大块明暗与肤色过渡，高频管毛孔、痘印、细纹。调低频等于重新铺光，调高频等于控制质感，两者互不干扰——这是影楼修图里最老也最稳的一套结构。""",
         body="""  <div class="dl-grid">
@@ -446,7 +503,7 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
         title='双曲线磨皮',
         tag=('磨皮', 't-tone'),
         count='一键',
-        menu='SuperMrWang → Shortcut → 双曲线磨皮',
+        menu='SuperMrWang → Retouch → 双曲线磨皮',
         pdb='lb-plugin-dodge-burn(image, drawables, amount, group)',
         lede="""提亮一条曲线、压暗一条曲线，各自压在一张全黑蒙版下。涂到哪里，哪里才变亮或变暗——没涂的地方与原图逐像素相同，所以可以反复叠加、随时反悔。""",
         body="""  <div class="dl-grid">
@@ -500,7 +557,7 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
         title='中性灰磨皮',
         tag=('磨皮', 't-tone'),
         count='一键',
-        menu='SuperMrWang → Shortcut → 中性灰磨皮',
+        menu='SuperMrWang → Retouch → 中性灰磨皮',
         pdb='lb-plugin-neutral-grey(image, drawables, group)',
         lede="""一张 50% 灰的柔光层，柔光在 0.5 处是恒等映射——刚建好时与原图逐像素相同。之后白色画笔提亮、黑色画笔压暗，原图像素一个都没动，整层删掉就能回到起点。""",
         body="""  <div class="dl-grid">
@@ -556,7 +613,7 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
         area='Mask',
         menu='SuperMrWang → Mask → Alpha Curves',
         menus=['SuperMrWang → Mask → Alpha Curves',
-               '图层右键 → SuperMrWang → Shortcut → Alpha Curves'],
+               '图层右键 → SuperMrWang → Mask → Alpha Curves'],
         pdb='lb-plugin-alpha-curves(image, drawables, channel, shape)',
         lede="""GIMP 的曲线工具本来就有 Alpha 通道，但那条曲线只能调「已经存在的
        透明度」——它不知道红通道是多少。要按颜色通道决定透明度，得先把通道搬进
@@ -618,7 +675,7 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
         area='Mask',
         menu='SuperMrWang → Mask → Color Range',
         menus=['SuperMrWang → Mask → Color Range',
-               '图层右键 → SuperMrWang → Color Range'],
+               '图层右键 → SuperMrWang → Mask → Color Range'],
         pdb='lb-plugin-color-range(image, drawables)',
         lede="""GEGL 的算子参数是静态的：<code>lb:color-mask-select</code> 里高光、
        阴影、中间调各有一组限值，GIMP 的通用对话框会把四根 0–255 的滑杆
@@ -680,6 +737,7 @@ BRIEF = {
     "selection": "右键任意图层，把它转成当前选区：Gray / R / G / B / Alpha，"
                  "四种组合方式，可反相。",
     "channel": "右键任意图层，把它变成一条灰度 Alpha 通道，可反相、可自定义名。",
+    "split": "右键任意图层，一次拆出 R / G / B / Alpha 四条通道，原图层自动隐藏作对照。",
     "hsv": "拆成 H / S / V 三张分量层，每层一条原生曲线，恒等还原。",
     "lch": "同上，换成 CIE LCh 明度 / 彩度 / 色相，感知均匀。",
     "hsl": "GIMP 没有 HSL 分量模式，这个插件精确换算，不拿 HSV 近似。",
@@ -710,6 +768,8 @@ BRIEF_EN = {
                  "Gray / R / G / B / Alpha, four combine modes, optional invert.",
     "channel": "Right-click any layer and turn it into a grayscale alpha channel — "
                "invertible, with a custom name.",
+    "split": "Right-click any layer and get R / G / B / Alpha as four channels at "
+             "once; the source layer hides itself for reference.",
     "hsv": "Splits into H / S / V component layers, one native curve each, restored "
            "bit-exactly.",
     "lch": "The same idea in CIE LCh: perceptual lightness, chroma and hue.",
@@ -730,7 +790,7 @@ BRIEF_EN = {
                    "target's parameters appear.",
 }
 
-AREA_EN = {"图层转换": "Convert", "Mask": "Mask", "Shortcut 快捷方式": "Shortcut"}
+AREA_EN = {"图层转换": "Convert", "Mask": "Mask", "Retouch 修饰": "Retouch"}
 
 DEPS_NOTE_EN = {
     "grey": "No dependency on this project's operators: it only writes pixels into "
@@ -741,10 +801,13 @@ DEPS_NOTE_EN = {
                  "only calls GIMP's own selection PDB.",
     "channel": "No dependency on this project's operators: it reads layer bytes "
                "directly and only calls GIMP's own channel PDB.",
+    "split": "No dependency on this project's operators: the layer is read "
+             "once and sliced per component; only GIMP's own channel PDB is "
+             "used.",
 }
 
-AREA = {"selection": "图层转换", "channel": "图层转换", "alpha-curves": "Mask",
-        "color-range": "Mask"}
+AREA = {"selection": "图层转换", "channel": "图层转换", "split": "图层转换",
+        "alpha-curves": "Mask", "color-range": "Mask"}
 
 DEPS = {
     "hsv": ["lb:hsv-dual", "lb:hsv-compose", "gimp:curves"],
@@ -757,6 +820,7 @@ DEPS = {
     "grey": [],
     "alpha-curves": ["lb:channel-range-to-alpha", "gimp:curves"],
     "color-range": ["lb:color-mask-select"],
+    "split": [],
 }
 
 DEPS_NOTE = {
@@ -765,6 +829,7 @@ DEPS_NOTE = {
     "selection": "不依赖任何自研算子：直接读图层字节（array 的 C 级切片，"
                  "100 万像素约 4 毫秒），只调 GIMP 自己的选区 PDB。",
     "channel": "不依赖任何自研算子：直接读图层字节，只调 GIMP 自己的通道 PDB。",
+    "split": "不依赖任何自研算子：读一次图层数据后按分量切片，只调 GIMP 自己的通道 PDB。",
 }
 
 for _p in PAGES:
@@ -775,13 +840,13 @@ for _p in PAGES:
     _p["body_en"] = _en.get("body", "")
     _p["tag_en"] = TAG_EN.get(_p["tag"][0], _p["tag"][0])
     _p["title_en"] = TITLE_EN.get(_p["key"], _p["title"])
-    _p["area_en"] = AREA_EN.get(AREA.get(_p["key"], "Shortcut 快捷方式"), "Shortcut")
-    _p["area"] = AREA.get(_p["key"], "Shortcut 快捷方式")
+    _p["area_en"] = AREA_EN.get(AREA.get(_p["key"], "Retouch 修饰"), "Retouch")
+    _p["area"] = AREA.get(_p["key"], "Retouch 修饰")
     _p["deps"] = DEPS.get(_p["key"], [])
     if "menus" not in _p:
         _name = _p["menu"].split("→")[-1].strip()
-        _p["menus"] = ["SuperMrWang → Shortcut → " + _name,
-                       "图层右键 → SuperMrWang → Shortcut → " + _name]
+        _p["menus"] = ["SuperMrWang → Retouch → " + _name,
+                       "图层右键 → SuperMrWang → Retouch → " + _name]
     _p["deps_note_en"] = DEPS_NOTE_EN.get(
         _p["key"], "The operators below do the work. <b>They are already inside this "
                    "plug-in's download</b> (<code>modules-windows-x64</code> / "

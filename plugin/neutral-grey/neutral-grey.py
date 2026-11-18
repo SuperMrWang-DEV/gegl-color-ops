@@ -11,8 +11,8 @@
            strokes dodge and black strokes burn without touching the pixels
            underneath.
 
- menu      SuperMrWang → Shortcut → 中性灰磨皮 (Neutral Grey)
-           图层右键 → SuperMrWang → Shortcut → 中性灰磨皮
+ menu      SuperMrWang → Retouch → 中性灰磨皮 (Neutral Grey)
+           图层右键 → SuperMrWang → Retouch → 中性灰磨皮
 
  usage     选中一个栅格图层 → 菜单项。生成的结构（自上而下）：
 
@@ -216,8 +216,8 @@ class NeutralGreyPlugin(Gimp.PlugIn):
         procedure.set_attribution("SuperMrWang", "SuperMrWang", "2026")
 
         procedure.set_menu_label(_("中性灰磨皮 (Neutral Grey)"))
-        procedure.add_menu_path("<Image>/SuperMrWang/Shortcut")
-        procedure.add_menu_path("<Layers>/SuperMrWang/Shortcut")
+        procedure.add_menu_path("<Image>/SuperMrWang/Retouch")
+        procedure.add_menu_path("<Layers>/SuperMrWang/Retouch")
 
         procedure.set_documentation(
             _("中性灰磨皮：加一张 50% 灰的柔光层，恒等时与原图逐像素相同。"

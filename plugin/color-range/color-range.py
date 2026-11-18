@@ -18,7 +18,7 @@
            pixels are still computed by lb:color-mask-select.
 
  menu      SuperMrWang → Mask → Color Range（色彩范围）
-           图层右键 → SuperMrWang → Color Range
+           图层右键 → SuperMrWang → Mask → Color Range
 
  usage     选中栅格图层 → 菜单项 → 选模式 → 拖参数（画面上红色叠加实时预览）
            → 确定。确定时把蒙版写进图层 alpha（预览叠加不会烤进去）。
@@ -472,7 +472,7 @@ class ColorRangePlugin(Gimp.PlugIn):
 
         procedure.set_menu_label(_("Color Range（色彩范围）"))
         procedure.add_menu_path("<Image>/SuperMrWang/Mask")
-        procedure.add_menu_path("<Layers>/SuperMrWang")
+        procedure.add_menu_path("<Layers>/SuperMrWang/Mask")
 
         procedure.set_documentation(
             _("色彩范围的定制对话框：选哪种颜色，下面就只显示那种颜色的参数，"
