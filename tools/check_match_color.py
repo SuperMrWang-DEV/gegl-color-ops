@@ -327,6 +327,109 @@ def _case12(li, la):
 check("亮度 200 恒等图不越界", big_white, big_white, W, H,
       {"luminance": 200.0, "color_intensity": 200.0}, _case12)
 
+
+# ---- 方法枚举 / method enum ---------------------------------------------
+#
+# 三个方法共用同一套统计量，区别只在映射：
+#   0 stats   逐通道均值/标准差（经典图像编辑器的行为）
+#   1 mkl     3×3 协方差线性最优传输
+#   2 mklhist MKL + 逐通道直方图匹配
+# 这里不重抄 C 的矩阵运算，而是验「映射该有的性质」：MKL 之后均值与协方差
+# 必须等于来源；mklhist 之后每个通道的分位数必须贴着来源走。
+
+def moments(px):
+    m, s, n = stats(px)
+    if n == 0:
+        return m, s, [[0.0] * 3 for _ in range(3)]
+    c = [[0.0] * 3 for _ in range(3)]
+    for p in px:
+        if p[3] <= 0.0:
+            continue
+        for i in range(3):
+            for j in range(3):
+                c[i][j] += (p[i] - m[i]) * (p[j] - m[j])
+    return m, s, [[c[i][j] / n for j in range(3)] for i in range(3)]
+
+
+def corr_of(mean, std, cov):
+    out = [[0.0] * 3 for _ in range(3)]
+    for i in range(3):
+        for j in range(3):
+            d = std[i] * std[j]
+            out[i][j] = cov[i][j] / d if d > 1e-9 else 0.0
+    return out
+
+
+def quantiles(px, q):
+    out = []
+    for c in range(3):
+        v = sorted(p[c] for p in px if p[3] > 0.0)
+        if not v:
+            out.append(0.0)
+            continue
+        pos = q * (len(v) - 1)
+        i = int(pos)
+        f = pos - i
+        out.append(v[i] * (1 - f) + v[min(i + 1, len(v) - 1)] * f)
+    return out
+
+
+# 16×16 渐变：三个通道各自变化 + 一个交叉项，保证协方差非对角
+WF, HF = 16, 16
+grad_in = [((x * 16) % 256, (y * 16) % 256, ((x + y) * 8) % 256, 255)
+           for y in range(HF) for x in range(WF)]
+grad_ref = [((255 - x * 12) % 256, (120 + y * 6) % 256, (60 + x * 9) % 256, 255)
+            for y in range(HF) for x in range(WF)]
+
+inb_f = make_rgb_buf(grad_in, WF, HF)
+auxb_f = make_rgb_buf(grad_ref, WF, HF)
+lab_in_f = read_lab(inb_f, WF, HF)
+lab_aux_f = read_lab(auxb_f, WF, HF)
+
+# 13. mkl：均值、协方差（相关系数 + 标准差）与来源一致
+out_mkl = run_op(make_rgb_buf(grad_in, WF, HF),
+                 make_rgb_buf(grad_ref, WF, HF), WF, HF, method=1)
+lab_mkl = read_lab(out_mkl, WF, HF)
+
+m_t, s_t, c_t = moments(lab_aux_f)
+m_o, s_o, c_o = moments(lab_mkl)
+report("mkl → 输出均值 = 来源均值", m_o, m_t, 0.6)
+report("mkl → 输出标准差 = 来源标准差", s_o, s_t, 0.6)
+report("mkl → 输出相关系数 = 来源相关系数",
+       [v for row in corr_of(m_o, s_o, c_o) for v in row],
+       [v for row in corr_of(m_t, s_t, c_t) for v in row], 0.03)
+
+# 14. mkl：aux = 自身 → 恒等（协方差不变，映射就是单位阵）
+check("mkl（aux=自身）→ 恒等", grad_in, grad_in, WF, HF, {"method": 1},
+      lambda li, la: li)
+
+# 15. mkl：fade=100 → 恒等
+check("mkl + 渐隐 100 → 恒等", grad_in, grad_ref, WF, HF,
+      {"method": 1, "fade": 100.0}, lambda li, la: li)
+
+# 16. mklhist：每个通道的分位数贴着来源（直方图匹配该有的效果）
+out_hist = run_op(make_rgb_buf(grad_in, WF, HF),
+                  make_rgb_buf(grad_ref, WF, HF), WF, HF, method=2)
+lab_hist = read_lab(out_hist, WF, HF)
+for q in (0.1, 0.25, 0.5, 0.75, 0.9):
+    report("mklhist → 分位 %.0f%% = 来源" % (q * 100),
+           quantiles(lab_hist, q), quantiles(lab_aux_f, q), 4.0)
+
+# 17. mklhist：fade=100 → 恒等
+check("mklhist + 渐隐 100 → 恒等", grad_in, grad_ref, WF, HF,
+      {"method": 2, "fade": 100.0}, lambda li, la: li)
+
+# 18. 纯色层（协方差奇异）→ 退回逐通道，不出 NaN
+flat_in = [(90, 90, 90, 255)] * (W * H)
+flat_ref = [RED] * (W * H)
+got_flat = check("mkl 协方差奇异时退回逐通道", flat_in, flat_ref, W, H,
+                 {"method": 1},
+                 lambda li, la: mapped_pixels(li, stats(li), stats(la),
+                                              100.0, 100.0, 0.0, False))
+report("奇异协方差不出 NaN",
+       [1.0 if all(math.isfinite(v) for v in p) else 0.0 for p in got_flat],
+       [1.0] * (W * H), 0.0)
+
 print("\n结果: %d/%d 通过%s" % (PASS, PASS + FAIL,
                               "" if FAIL == 0 else "（%d 项失败）" % FAIL),
       flush=True)
