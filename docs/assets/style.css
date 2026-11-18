@@ -283,10 +283,11 @@ h1, h2, h3, h4 {
 h2 { font-size: clamp(22px, 2.5vw, 28px); font-weight: 650; margin-top: 84px; }
 
 /* 章节标题右侧拖一条发丝线，代替「大色块分割」 */
-.steps > h2, .ops > h2, .download > h2, .about > h2 {
+.steps > h2, .ops > h2, .download > h2, .about > h2, .quick > h2 {
   display: flex; align-items: center; gap: 20px;
 }
-.steps > h2::after, .ops > h2::after, .download > h2::after, .about > h2::after {
+.steps > h2::after, .ops > h2::after, .download > h2::after, .about > h2::after,
+.quick > h2::after {
   content: ""; flex: 1 1 auto; height: 1px; min-width: 40px;
   background: linear-gradient(to right, var(--line), transparent);
 }
@@ -871,4 +872,316 @@ ul.menu-list li { font-family: var(--mono, ui-monospace, monospace); font-size: 
 .t-component { background: color-mix(in srgb, #06b6d4 9%, transparent); color: #0e7490; border-color: color-mix(in srgb, #06b6d4 26%, transparent); }
 @media (prefers-color-scheme: dark) {
   .t-component { color: #67e8f9; }
+}
+
+/* ==========================================================================
+   主页：两个方框 —— 算子一个、插件一个
+   --------------------------------------------------------------------------
+   背景光斑用 isolation 把负 z-index 关在本节里，免得跑到 body 底色下面；
+   方框的渐变描边用 padding + mask-composite 做，不加额外 DOM。
+   ========================================================================== */
+
+.home-hero {
+  position: relative;
+  isolation: isolate;
+  max-width: 860px;
+  padding: 92px 0 40px;
+}
+.home-glow {
+  /* 只在本节宽度里铺开：负 inset 往外扩会把页面撑出横向滚动条（移动端
+   * 整页往右溢出，正文被裁掉一截），main::before 那层已经在铺全幅光晕了。 */
+  position: absolute;
+  top: -90px;
+  left: 0;
+  right: 0;
+  height: 540px;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(40% 52% at 20% 42%,
+      color-mix(in srgb, var(--accent) 26%, transparent), transparent 72%),
+    radial-gradient(36% 46% at 74% 18%,
+      color-mix(in srgb, var(--accent-2) 24%, transparent), transparent 74%);
+  filter: blur(6px);
+  /* 上沿压到 header 底下会被不透明的顶栏切出一条硬边，用 mask 两头淡出 */
+  -webkit-mask-image: linear-gradient(to bottom,
+    transparent 0%, #000 17%, #000 72%, transparent 100%);
+          mask-image: linear-gradient(to bottom,
+    transparent 0%, #000 17%, #000 72%, transparent 100%);
+}
+@media (prefers-color-scheme: dark) {
+  /* 深色底上同样的百分比会糊成一片灰，提一点浓度 */
+  .home-glow {
+    background:
+      radial-gradient(42% 54% at 20% 42%,
+        color-mix(in srgb, var(--accent) 36%, transparent), transparent 72%),
+      radial-gradient(38% 48% at 72% 16%,
+        color-mix(in srgb, var(--accent-2) 32%, transparent), transparent 74%);
+  }
+}
+.home-hero h1 {
+  font-size: clamp(38px, 6.4vw, 68px);
+  line-height: 1.03;
+  letter-spacing: -.045em;
+  font-weight: 700;
+  margin: 10px 0 0;
+}
+.home-hero .lede { font-size: 17.5px; max-width: 62ch; }
+.home-hero .facts { margin-top: 42px; }
+
+/* ---- 两个方框 ---- */
+.doors {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  margin: 54px 0 0;
+}
+.door {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 30px 30px 22px;
+  border-radius: 20px;
+  background:
+    radial-gradient(130% 80% at 100% 0%,
+      color-mix(in srgb, var(--accent) 10%, transparent), transparent 62%),
+    var(--panel);
+  box-shadow: var(--shadow), var(--inset-hi);
+  transition: transform .24s cubic-bezier(.2,.7,.3,1), box-shadow .24s ease;
+}
+/* 渐变描边：1px 的线性渐变，中间两段透明 */
+.door::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: linear-gradient(152deg,
+    color-mix(in srgb, var(--accent) 62%, transparent) 0%,
+    transparent 34%, transparent 64%,
+    color-mix(in srgb, var(--accent-2) 58%, transparent) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+}
+/* 顶沿一条细光，hover 时亮起来 */
+.door::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 10%; right: 10%;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--accent),
+    var(--accent-2), transparent);
+  opacity: .45;
+  transition: opacity .24s ease;
+  pointer-events: none;
+}
+/* 两张卡各带一侧的色光：算子偏紫、插件偏青，对称而不重复 */
+.door-plug {
+  background:
+    radial-gradient(130% 80% at 0% 0%,
+      color-mix(in srgb, var(--accent-2) 12%, transparent), transparent 62%),
+    var(--panel);
+}
+.door-plug::before {
+  background: linear-gradient(208deg,
+    color-mix(in srgb, var(--accent-2) 62%, transparent) 0%,
+    transparent 34%, transparent 64%,
+    color-mix(in srgb, var(--accent) 58%, transparent) 100%);
+}
+.door:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg), var(--inset-hi);
+}
+.door:hover::after { opacity: .9; }
+
+.door-kicker {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: .2em;
+  color: var(--muted);
+}
+.door > h2 {
+  margin: 2px 0 0;
+  font-size: clamp(26px, 3vw, 34px);
+  letter-spacing: -.032em;
+}
+.door-lead {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.72;
+  color: var(--muted);
+}
+.door-lead b { color: var(--text-2); font-weight: 600; }
+.door-lead code {
+  background: var(--chip);
+  padding: 1px 5px;
+  border-radius: 5px;
+  font-size: .88em;
+  color: var(--text-2);
+  border: 1px solid var(--line-soft);
+}
+
+.door-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  margin: 0;
+  padding: 14px 0 0;
+  border-top: 1px solid var(--line-soft);
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.door-meta b {
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  margin-right: 5px;
+}
+
+/* ---- 整包下载按钮 ---- */
+.door-dl {
+  display: grid;
+  gap: 9px;
+  margin-top: auto;
+}
+.dl-link {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 1px 12px;
+  padding: 12px 15px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color .16s ease, background .16s ease,
+              box-shadow .16s ease, transform .16s ease;
+}
+.dl-link .os { font-size: 14.5px; font-weight: 620; letter-spacing: -.008em; }
+.dl-link .meta {
+  grid-column: 1;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .01em;
+  color: var(--muted);
+}
+.dl-link .arrow {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--muted);
+  transition: transform .16s ease, color .16s ease;
+}
+.dl-link:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+  background: color-mix(in srgb, var(--accent) 7%, var(--panel));
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+}
+.dl-link:hover .arrow { transform: translateY(2px); color: var(--accent); }
+/* 打包还不齐的平台：虚线框，不假装是完整的 */
+.dl-link.is-missing { border-style: dashed; }
+
+.door-note {
+  margin: 0;
+  padding: 2px 0 2px 11px;
+  border-left: 2px solid color-mix(in srgb, var(--accent-2) 48%, transparent);
+  font-size: 12.5px;
+  line-height: 1.66;
+  color: var(--muted);
+}
+.door-note code {
+  background: var(--chip);
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-size: .92em;
+}
+
+.door-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line-soft);
+  font-size: 13.5px;
+}
+.door-foot a { font-weight: 620; color: var(--accent-ink); text-decoration: none; }
+.door-foot a:hover { text-decoration: underline; }
+.door-foot a.sub { font-weight: 400; color: var(--muted); }
+
+/* ---- 三步 ---- */
+.quick { margin-top: 76px; }
+.quick-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  list-style: none;
+  margin: 30px 0 0;
+  padding: 0;
+  counter-reset: q;
+}
+.quick-list li {
+  position: relative;
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  box-shadow: var(--shadow-sm);
+}
+.quick-list h3 {
+  margin: 0 0 8px;
+  font-size: 14.5px;
+  font-weight: 640;
+}
+.quick-list h3::before {
+  counter-increment: q;
+  content: counter(q, decimal-leading-zero);
+  margin-right: 9px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--accent);
+  letter-spacing: .06em;
+}
+.quick-list p {
+  margin: 0 0 12px;
+  font-size: 13px;
+  line-height: 1.66;
+  color: var(--muted);
+}
+.quick-list pre { margin: 0; }
+.quick-list pre code {
+  display: block;
+  font-size: 11px;
+  line-height: 1.6;
+  white-space: pre;
+  overflow-x: auto;
+  padding: 10px 12px;
+}
+
+@media (max-width: 900px) {
+  .home-hero { padding-top: 60px; }
+  .home-glow { top: -60px; height: 400px; }
+  .doors { grid-template-columns: 1fr; margin-top: 38px; }
+  .quick-list { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  /* 小屏上 GitHub 的 ↗ 会掉到下一行、只剩一个孤零零的点，直接收掉，
+   * 页脚里有同一个入口 */
+  .site-head nav a.ext { display: none; }
+  .site-head nav { gap: 14px; }
+  .home-hero h1 { font-size: clamp(32px, 10vw, 42px); }
+  .door { padding: 24px 20px 18px; border-radius: 16px; }
+  .door-foot { font-size: 13px; }
 }
