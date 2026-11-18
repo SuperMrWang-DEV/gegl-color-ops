@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-title-zh="Channel to Mask（通道转图层蒙版） · Python 插件 · gegl-color-ops" data-title-en="Channel to Mask（通道转图层蒙版） · Python plug-ins · gegl-color-ops">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Channel to Mask（通道转图层蒙版） · Python 插件 · gegl-color-ops</title>
+<meta name="description" content="原生路线是「图层 → 蒙版 → 添加图层蒙版 → 通道」，弹窗里再挑一条通道，
+       而且一次只能伺候一个图层。这个插件把顺序倒过来：先在通道面板选一条，
+       再在图层面板选中要挂蒙版的图层，右键一次就好——多选几个就一次" data-desc-zh="原生路线是「图层 → 蒙版 → 添加图层蒙版 → 通道」，弹窗里再挑一条通道，
+       而且一次只能伺候一个图层。这个插件把顺序倒过来：先在通道面板选一条，
+       再在图层面板选中要挂蒙版的图层，右键一次就好——多选几个就一次" data-desc-en="The native route is Layer → Mask → Add Layer Mask → Channel, then picking a
+   channel in the dialog — one layer at a ti">
+<meta property="og:title" content="Channel to Mask（通道转图层蒙版） · Python 插件 · gegl-color-ops" data-title-zh="Channel to Mask（通道转图层蒙版） · Python 插件 · gegl-color-ops" data-title-en="Channel to Mask（通道转图层蒙版） · Python plug-ins · gegl-color-ops">
+<meta property="og:description" content="原生路线是「图层 → 蒙版 → 添加图层蒙版 → 通道」，弹窗里再挑一条通道，
+       而且一次只能伺候一个图层。这个插件把顺序倒过来：先在通道面板选一条，
+       再在图层面板选中要挂蒙版的图层，右键一次就好——多选几个就一次" data-desc-zh="原生路线是「图层 → 蒙版 → 添加图层蒙版 → 通道」，弹窗里再挑一条通道，
+       而且一次只能伺候一个图层。这个插件把顺序倒过来：先在通道面板选一条，
+       再在图层面板选中要挂蒙版的图层，右键一次就好——多选几个就一次" data-desc-en="The native route is Layer → Mask → Add Layer Mask → Channel, then picking a
+   channel in the dialog — one layer at a ti">
+<link rel="stylesheet" href="../assets/style.css?v=7be715334e">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+<main id="main">
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> /
+    <a href="../plugins.html">插件</a> / Mask</p>
+  <h1>Channel to Mask（通道转图层蒙版）</h1>
+  <div class="meta">
+    <code>plugin/channel-to-mask</code>
+    <span class="tag t-mask">蒙版</span>
+    <span>Mask</span>
+  </div>
+  <p class="lede">原生路线是「图层 → 蒙版 → 添加图层蒙版 → 通道」，弹窗里再挑一条通道，
+       而且一次只能伺候一个图层。这个插件把顺序倒过来：先在通道面板选一条，
+       再在图层面板选中要挂蒙版的图层，右键一次就好——多选几个就一次挂几个，
+       还能顺手反相。和 <code>Layer to Channel</code> 正好是一对反向操作。</p>
+</section>
+<p class="native-note"><b>只是原生方式的便捷实现</b>　这里没有新算法：
+   像素结果全部出自 GIMP 自带的 PDB 过程，插件只负责把散在三处菜单、要跨三四步的动作
+   收成一次点击，并保证与手点原生菜单得到的结果逐位相同。</p>
+<div class="prose wide">
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>菜单位置</h3><span class="pill">多条</span></div>
+      <ul class="menu-list"><li>SuperMrWang → Mask → Channel to Mask</li><li>图层右键 → SuperMrWang → Mask → Channel to Mask</li><li>通道右键 → SuperMrWang → Mask → Channel to Mask</li></ul>
+      <p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>脚本调用</h3></div>
+      <pre><code>lb-plugin-channel-to-mask(image, drawables, channel-name, invert)</code></pre>
+      <p>标准 PDB 过程，参数留空走默认值。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>依赖</h3></div>
+      <p>不依赖任何自研算子：只读通道像素、只调 GIMP 自己的蒙版 PDB。</p>
+    </div>
+  </div>
+
+<div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>原生也能做，差在哪</h3><span class="pill">四步 → 一步</span></div>
+      <p>GIMP 自带「从通道取蒙版」，但路径是固定的：先选中图层，菜单进
+         <b>图层 → 蒙版 → 添加图层蒙版</b>，类型选「通道」，弹窗里再挑一条通道。
+         三个图层就要走三遍。</p>
+      <p>这个插件只补三件事：<b>从右键进来</b>（点哪个图层就给哪个挂）、
+         <b>一次多个</b>（图层面板多选，逐个挂上同一份内容）、<b>可反相</b>
+         （按通道的补集遮罩，省一次反相操作）。像素结果与原生逐位相同，
+         包括中间灰那点漂移。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>灰度值就是遮罩强度</h3></div>
+      <ul class="deps">
+        <li><b>黑</b> = 完全遮住，<b>白</b> = 完全露出，<b>中间灰</b> = 半透明</li>
+        <li>通道取<b>通道面板里右键点中的那条</b>；没点过就用面板里选中的那条，
+            图里只有一条通道时直接用它；也可以填名字指定</li>
+        <li>图层<b>还没有蒙版</b> → 按原生方式新建</li>
+        <li>图层<b>已有蒙版</b> → 先丢掉旧的再新建，结果与原生新建一致，<b>再跑一次就是刷新</b></li>
+      </ul>
+      <p>偏移的小图层不用管：蒙版跟图层同尺寸，取的是画布上同位置的通道值，
+         不会整块错位。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>数值和原生一模一样</h3><span class="pill">128 → 188</span></div>
+      <p>GIMP 3 没有「通道直接建蒙版」的入口，原生用户只能走两步：<b>通道 → 选区 →
+         选区建蒙版</b>。这个插件走的就是同一条路，调的是同一个
+         <code>create_mask(SELECTION)</code>，所以结果逐位相同——包括中间灰那点漂移：
+         默认 8 位图上，通道 128 建出来的蒙版是 <b>188</b>，不是 128。</p>
+      <p>32 位线性精度的图像上，通道本身就存线性值，直搬恰好正确，这条链路不漂。
+         插件不做任何补偿，原生怎样就怎样。</p>
+    </div>
+  </div>
+  <p class="note">不依赖任何自研算子：只调 GIMP 自己的 <code>gimp-image-select-item</code>
+     与蒙版 PDB，不自己写像素缓冲。
+     从通道面板右键进来时，点的哪条就用哪条，不必再在别处选中一次；
+     真找不到源时会明确报错并列出可用的通道名，不会静默什么都不做。
+     图层组没有像素，会拒绝并提示先合并。</p>
+
+<section class="download" id="download">
+  <h2>下载这一个</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>Channel to Mask</h3><span class="pill">.py · 免编译</span></div>
+    <p>包里只有一个 <code>.py</code> 和一份安装说明。解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-channel-to-mask.zip">下载 Channel to Mask</a>
+    <p class="muted small">5.1 KB · 校验：<code>SHA256 0fd359df349d8914f946fd21d8d3826d…</code></p>
+  </div>
+</section>
+
+<p class="note">文中「码」指 8 位图上的一个台阶：0–255 共 256 级，
+   相邻两级的差就是 1 码，等于 1/255 ≈ 0.392%%（也就是 RGB 128 与 129 之间的差）。
+   各数量级的含义与「码为什么不是感知量」的说明见
+   <a href="../guide.html#code">安装指南 · 精度里的「码」</a>。</p>
+</div>
+<nav class="pager">
+  <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
+  <a class="prev" href="color-range.html"><span>上一篇</span>Color Range（色彩范围）</a><a class="next" href="convert.html"><span>下一篇</span>Convert（通道 / 选区 / 蒙版 六向转换）</a>
+</nav></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> /
+    <a href="../plugins.html">Plug-ins</a> / Mask</p>
+  <h1>Channel to Mask</h1>
+  <div class="meta">
+    <code>plugin/channel-to-mask</code>
+    <span class="tag t-mask">Mask</span>
+    <span>Mask</span>
+  </div>
+  <p class="lede">The native route is <b>Layer → Mask → Add Layer Mask → Channel</b>, then picking a
+   channel in the dialog — one layer at a time. This plug-in reverses the order: pick a channel
+   in the Channels dock, select the layers you want masked, right-click once. Several layers at
+   a time, and an invert switch. It is the exact inverse of <code>Layer to Channel</code>.</p>
+</section>
+<p class="native-note"><b>Only a convenience wrapper over native behaviour</b> —
+   no new algorithms here: every pixel comes out of GIMP's own PDB procedures. The plug-in just
+   folds a detour that lives in three different menus and takes three or four steps into a
+   single click, and keeps the result bit-for-bit identical to doing it by hand.</p>
+<div class="prose wide">
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Menu location</h3><span class="pill">Several</span></div>
+      <ul class="menu-list"><li>SuperMrWang → Mask → Channel to Mask</li><li>Layer right-click → SuperMrWang → Mask → Channel to Mask</li><li>通道右键 → SuperMrWang → Mask → Channel to Mask</li></ul>
+      <p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Scripting</h3></div>
+      <pre><code>lb-plugin-channel-to-mask(image, drawables, channel-name, invert)</code></pre>
+      <p>A standard PDB procedure; leave an argument empty to take its default.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Dependencies</h3></div>
+      <p>The operators below do the work. <b>They are already inside this plug-in's download</b> (<code>modules-windows-x64</code> / <code>modules-linux-x64</code>) — nothing else to fetch:</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>GIMP can do it — here is the difference</h3><span class="pill">four steps → one</span></div>
+      <p>GIMP does have "mask from a channel", but the path is fixed: select the layer, menu to
+         <b>Layer → Mask → Add Layer Mask</b>, choose the Channel type, then pick one in the
+         dialog. Three layers means walking it three times.</p>
+      <p>This plug-in adds three things only: <b>it lives in the right-click menu</b> (mask the
+         layer you clicked), <b>it takes several layers at once</b> (multi-select in the Layers
+         dock, all get the same content), and <b>it can invert</b> (mask by the channel's
+         complement). Pixel results are bit-for-bit identical to the native route, mid-grey
+         drift included.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Grey level is mask strength</h3></div>
+      <ul class="deps">
+        <li><b>Black</b> hides, <b>white</b> shows, <b>mid grey</b> is partial</li>
+        <li>The channel is the one you <b>right-clicked in the Channels dock</b>; with no
+            click it falls back to the dock selection, then to the only channel in the image.
+            A name overrides all of that</li>
+        <li>No mask yet → a new one is built the native way</li>
+        <li>Mask already there → dropped and rebuilt, identical to a fresh native one, so <b>re-running refreshes it</b></li>
+      </ul>
+      <p>Offset layers need no attention: the mask matches the layer's size and samples the
+         channel at the same canvas position, so nothing lands shifted.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Numbers identical to native</h3><span class="pill">128 → 188</span></div>
+      <p>GIMP 3 has no direct "channel to mask" entry, so the native route is two steps:
+         <b>channel → selection → mask from selection</b>. This plug-in takes the same road and
+         calls the same <code>create_mask(SELECTION)</code>, so results match bit for bit —
+         including the mid-grey drift: on a default 8-bit image a channel value of 128 produces
+         a mask value of <b>188</b>, not 128.</p>
+      <p>On 32-bit linear precision the channel itself holds linear values, the straight copy
+         happens to be correct, and nothing drifts. The plug-in adds no compensation: whatever
+         native does is what you get.</p>
+    </div>
+  </div>
+  <p class="note">No dependency on this project's operators: it calls GIMP's own
+     <code>gimp-image-select-item</code> and mask PDB, and never writes pixel buffers itself.
+     Entering from a channel's right-click menu uses that very channel, so there is nothing to
+     select first; when no source can be found it fails with an explicit message listing the
+     available channels. Layer groups have no pixels, so it refuses and asks you
+     to merge first.</p>
+
+<section class="download" id="download">
+  <h2>Download this one</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>Channel to Mask</h3><span class="pill">.py · no compile</span></div>
+    <p>The archive holds a single <code>.py</code> and an install note. Unpack it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register.</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-channel-to-mask.zip">Download Channel to Mask</a>
+    <p class="muted small">5.1 KB · checksum: <code>SHA256 0fd359df349d8914f946fd21d8d3826d…</code></p>
+  </div>
+</section>
+
+<p class="note">In this article a "code" means one step on an 8-bit
+   image: 0–255 is 256 levels, so the gap between neighbours is 1 code, or
+   1/255 ≈ 0.392%% (the difference between RGB 128 and 129). For the order of magnitude
+   of each figure, and why a code is not a perceptual quantity, see
+   <a href="../guide.html#code">Install guide · what a code is</a>.</p>
+</div>
+<nav class="pager">
+  <a href="../plugins.html"><span>Back to</span>All plug-ins</a>
+  <a class="prev" href="color-range.html"><span>Previous</span>Color Range</a><a class="next" href="convert.html"><span>Next</span>Convert</a>
+</nav></div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
+    <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
+    <span class="muted">1847510</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
+</body>
+</html>

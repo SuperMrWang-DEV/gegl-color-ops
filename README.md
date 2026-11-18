@@ -35,6 +35,8 @@ gegl-color-ops/
 ├── plugin/gray-mask/  # Python 插件：灰度图层 → 选区 / Alpha 通道（已下线，仅留回归）
 ├── plugin/layer-to-selection/ # Python 插件：右键任意图层 → 选区
 ├── plugin/layer-to-channel/  # Python 插件：右键任意图层 → Alpha 通道（恒为灰度）
+├── plugin/channel-to-mask/   # Python 插件：右键任意图层 → 把选中的通道挂成图层蒙版
+├── plugin/convert/           # Python 插件：通道/选区/蒙版 六向互转，一键直达（零参数）
 ├── plugin/split-channels/    # Python 插件：右键任意图层 → 一次拆出 R/G/B/Alpha 四条通道
 ├── plugin/*-split-curves/    # Python 插件：HSV / LCh / HSL / Lab / HSI 分量分层 + 曲线（菜单 Retouch）；
 │                             #   菜单里两条：· single = 一层数据图三条曲线，
@@ -47,9 +49,9 @@ gegl-color-ops/
 ├── dist/                 # 编好的模块，给不想编译的人直接下载（windows-x64 / linux-x64）
 ├── tools/                # 测试图生成、逐算子冒烟、对照表、文件头重排、注释双语化
 ├── tools/site/           # 站点样式源（生成时拷进 docs/assets/）
-├── tools/plugin_docs.py  # 十一个插件页的正文与卡片文案（plugins/<slug> 文章页用）
+├── tools/plugin_docs.py  # 十五个插件页的正文与卡片文案（plugins/<slug> 文章页用）
 ├── docs/                 #  GitHub Pages 站点（tools/site_build.py 生成，别手改）
-│   └── plugins/          #  十一个插件各一篇（菜单结构、原理、用法、实测）
+│   └── plugins/          #  十五个插件各一篇（菜单结构、原理、用法、实测）
 ├── build/                # 编译产物（build.sh 生成，可随时删）
 └── LICENSE               # GPL-3.0
 ```
@@ -234,6 +236,82 @@ python-fu-eval 里，不要求插件已安装）保留着，作为那条复制/�
 回归：`tools/check_layer_to_mask.py`（23 条断言：灰度值、反相、偏移图层、
 彩色亮度、四个单通道、通道值/名字/反相、**彩色图层转通道得到的是亮度而不是
 R 通道**、**有选区时转通道不被截断**、四种组合方式）。
+
+### Python 插件：plugin/convert（六向转换）
+
+```
+SuperMrWang → Convert → Channel to Selection / Selection to Channel
+                      → Channel to Mask / Mask to Channel
+                      → Selection to Mask / Mask to Selection
+图层右键 → SuperMrWang → Convert（同样六项）
+通道右键 → SuperMrWang → Convert（以通道为源的两项）
+```
+
+**只是原生方式的便捷实现**：不新增任何算法，六个方向全部转调 GIMP 自带的 PDB 过程，
+所以结果与手点原生菜单逐位相同；插件的作用只是把散在三处菜单、要跨三四步的动作收成一次点击。
+
+**一个插件，六个过程，全部零参数。** 通道、选区、蒙版三者两两互转，每条路一个菜单项，
+点下去直接执行，不弹参数框——源都从上下文取：
+
+| 方向 | 源 | 落点 |
+| --- | --- | --- |
+| 通道 → 选区 | 通道面板里右键点中的那条（否则取面板选中的、或图里唯一的） | 像素选区 |
+| 选区 → 通道 | 当前选区（**没有选区 = 全选**） | 新建通道 `Selection` |
+| 通道 → 蒙版 | 同上 | 选中图层的蒙版（多选则每个都挂） |
+| 蒙版 → 通道 | 选中图层的蒙版 | 新建通道 `<图层名> Mask` |
+| 选区 → 蒙版 | 当前选区 | 选中图层的蒙版 |
+| 蒙版 → 选区 | 选中图层的蒙版 | 像素选区 |
+
+原生那六条路散在三个地方（选择菜单、通道右键、图层面板右键），其中**「蒙版 → 通道」
+根本不存在**，只能先蒙版到选区再选区存通道。这里把它做成一步。
+
+**六个方向都转调原生过程，结果逐位一致。** 不碰像素缓冲：通道转选区走
+`gimp-image-select-item`，选区存通道走 `gimp-selection-save`，选区建蒙版走
+`create_mask(SELECTION)`；「通道 ↔ 蒙版」原生没有直连，就按原生的两步走。
+
+因此中间灰带着原生那点漂移：默认 8 位图上，通道 128 进选区读回 **188**，选区 128
+存通道读回 **55**；而选区 ↔ 蒙版原生自己会换算，那一对不漂。32 位线性精度的图像上
+通道本身就存线性值，六个方向都不漂。这是刻意的——要的就是「原生怎样就怎样」。
+
+两个注意点：
+
+1. **没有选区时先按全选处理**（原生过程没有选区会拒绝执行），通道名 `Selection`；
+2. **已有蒙版先丢掉再新建**，结果与原生新建逐位一致，重跑即刷新。
+
+回归：`tools/check_convert.py`（34 条断言，每个方向都拿原生 PDB 的结果当基准逐位
+比较；另覆盖 32 位线性精度、偏移图层、多图层、已有蒙版重建、无选区、三种错误分支）。
+
+### Python 插件：plugin/channel-to-mask
+
+```
+图层右键 → SuperMrWang → Mask → Channel to Mask...
+通道右键 → SuperMrWang → Mask → Channel to Mask...（点的哪条就用哪条）
+```
+
+**只是原生方式的便捷实现**：像素仍由 GIMP 自己的 `gimp-image-select-item` 与
+`create_mask(SELECTION)` 产生，插件只负责把它们串起来、再加一个反相。
+
+**它是 `layer-to-channel` 的反向。** 那个把图层压成通道，这个把通道挂回图层当蒙版。
+GIMP 自带的「从通道取蒙版」藏在 **图层 → 蒙版 → 添加图层蒙版 → 通道**，弹窗里
+还得再挑一次通道，而且一次只管一个图层。这里只补三件事：
+
+- **从右键进来**：点哪个图层就给哪个挂蒙版；图层面板多选时逐个挂上同一份内容
+- **可反相**：按通道的补集遮罩，省掉「先反相再挂」那一步
+- **可刷新**：图层已有蒙版时先丢掉旧的再新建，结果与原生新建逐位一致
+
+通道取「通道面板里右键点中的那条」，没有的话依次退到面板里选中的、图里唯一的，
+也可以填名字指定。灰度值就是遮罩强度：
+黑遮住、白露出、中间灰半透明。偏移的小图层不用管——蒙版跟图层同尺寸，取的是
+画布上同位置的通道值。
+
+**数值与原生逐位一致**（`tools/check_channel_to_mask.py` 拿原生结果当基准比对）。
+GIMP 3 没有「通道直接建蒙版」的入口，原生用户只能走「通道 → 选区 → 选区建蒙版」，
+本插件走同一条路、调同一个 `create_mask(SELECTION)`。所以中间灰也照样带原生的漂移：
+8 位图上通道 128 建出来的蒙版是 **188**，32 位线性精度则不漂。反相在原生里没有对应
+动作，做法是清掉选区再整块反相。
+
+回归：`tools/check_channel_to_mask.py`（21 条断言，跑在 gimp-console 的
+python-fu-eval 里，不要求插件已安装）。
 
 ### Python 插件：plugin/split-channels
 
@@ -596,6 +674,7 @@ python tools/check_lab_levels.py            # 数值回归：LAB 色阶（gimp-c
 python tools/check_match_color.py           # 数值回归：匹配颜色（gimp-console 跑，17 项）
 python tools/check_gray_to_component.py     # 灰度转分量：九个混合模式的恒等往返，39 条
 python tools/check_xyz_multiply.py --all    # 数值回归：XYZ 正片叠底（36 组白点×叠加色×不透明度）
+python tools/compare_native.py              # 诊断：六向转换 vs GIMP 原生，两列数值应完全相同
 python tools/normalize_headers.py           # 预览文件头/命名重排，加 --write 落盘
 python tools/set_menu_group.py --check      # 核对菜分组映射表与 ops 目录是否一一对应
 python tools/make_dist.py                   # 把 build/ 整理成 dist/（含 manifest + 校验和）

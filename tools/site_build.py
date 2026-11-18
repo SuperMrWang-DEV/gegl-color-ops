@@ -340,6 +340,7 @@ def foot_html(version, root=""):
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">{issue}</a>
     <a href="{r}guide.html">{guide}</a>
     <a href="{r}overview.html">{overview}</a>
+    <a href="{r}overview.html#legal">{legal}</a>
     <span class="muted">{v}</span>
   </div>
 </footer>""".format(
@@ -353,7 +354,8 @@ def foot_html(version, root=""):
         repo=t("仓库", "Repository"),
         issue=t("问题反馈", "Issues"),
         guide=t("安装指南", "Install guide"),
-        overview=t("总览", "Overview"))
+        overview=t("总览", "Overview"),
+        legal=t("来源与版权", "Provenance"))
 
 
 # 切换语言的脚本：head 里那段先跑，避免「先画中文再跳成英文」的闪烁；
@@ -461,6 +463,20 @@ window.addEventListener("DOMContentLoaded", function () {
 </script>"""
 
 
+def _css_version():
+    """样式表加 ?v= 指纹：改了 CSS 之后浏览器不至于还拿缓存里的旧版。"""
+    try:
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            "site", "style.css")
+        with open(path, "rb") as fh:
+            return hashlib.sha1(fh.read()).hexdigest()[:10]
+    except Exception:
+        return "1"
+
+
+CSS_VER = _css_version()
+
+
 def page(title, body, root="", desc="", titles=None, math=False, desc_en="",
          body_class=""):
     """titles=(中文标题, English title)。给了就说明这页是双语的，带上切换按钮。
@@ -487,7 +503,7 @@ def page(title, body, root="", desc="", titles=None, math=False, desc_en="",
 <meta name="description" content="{desc}" data-desc-zh="{desc}" data-desc-en="{desc_en}">
 <meta property="og:title" content="{title}" data-title-zh="{title_zh}" data-title-en="{title_en}">
 <meta property="og:description" content="{desc}" data-desc-zh="{desc}" data-desc-en="{desc_en}">
-<link rel="stylesheet" href="{root}assets/style.css">
+<link rel="stylesheet" href="{root}assets/style.css?v={cssver}">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="{root}feed.xml">
 {math_head}{lang_head}</head>
 <body{body_attr}>
@@ -503,7 +519,8 @@ def page(title, body, root="", desc="", titles=None, math=False, desc_en="",
            desc_en=html.escape(desc_en),
            title_zh=html.escape(titles[0] if bilingual else title),
            title_en=html.escape(titles[1] if bilingual else title),
-           root=root, head=head_html(root, bilingual), foot=foot_html(VERSION, root),
+           root=root, cssver=CSS_VER, head=head_html(root, bilingual),
+           foot=foot_html(VERSION, root),
            attrs=lang_attrs, lang_head=lang_head, lang_foot=lang_foot,
            math_head=MATH_HEAD if math else "",
            skip=t("跳到正文", "Skip to content"),
@@ -695,11 +712,11 @@ def build_home(ops, stats, version):
   <p class="eyebrow">GIMP 3.x · GEGL 0.4 · GPL-3.0</p>
   <h1><span class="l-zh">GIMP 3 的 <span class="grad">GEGL 插件</span><br>两个包，一整套调色链</span><span class="l-en">The <span class="grad">GEGL plug-in set</span><br>for GIMP 3</span></h1>
   <p class="lede"><span class="l-zh">{n} 个 <code>lb:</code> 算子管算法，{p} 个 Python 插件管流程：
-     把分量拆成层、把 alpha 画成曲线、把磨皮拆成高低频。装完即用，全部能当非破坏滤镜
-     挂在图层上，改参数不落像素。</span><span class="l-en">Two archives, the whole colour chain: {n} <code>lb:</code>
+     把分量拆成层、把 alpha 画成曲线、把磨皮拆成高低频、把通道与蒙版互相倒。装完即用，
+     全部能当非破坏滤镜挂在图层上，改参数不落像素。</span><span class="l-en">Two archives, the whole colour chain: {n} <code>lb:</code>
      GEGL operators for the maths, {p} Python plug-ins for the workflow: split a component into layers,
-     draw alpha as a curve, separate skin into high and low frequency. Ready to use, all
-     of it mounts as non-destructive filters.</span></p>
+     draw alpha as a curve, separate skin into high and low frequency, flip channels and masks
+     back and forth. Ready to use, all of it mounts as non-destructive filters.</span></p>
   <ul class="facts">
     <li><b>{n}</b> <span class="l-zh">个算子</span><span class="l-en">operators</span></li>
     <li><b>{p}</b> <span class="l-zh">个插件</span><span class="l-en">plug-ins</span></li>
@@ -734,11 +751,12 @@ def build_home(ops, stats, version):
     <p class="door-kicker">02 · PLUG-INS</p>
     <h2><span class="l-zh">Python 插件</span><span class="l-en">Python plug-ins</span></h2>
     <p class="door-lead"><span class="l-zh">{p} 个 Python 插件，负责把算子串成流程：五个色彩空间的分量
-     拆层加三条曲线、Alpha 曲线、高低频 / 双曲线 / 中性灰磨皮、图层转选区与转通道。
-     每个插件内部要用的算子模块已经打在包里。</span><span class="l-en">{p} Python plug-ins that string the operators into a workflow: component
+     拆层加三条曲线、Alpha 曲线、高低频 / 双曲线 / 中性灰磨皮、图层转选区与转通道，
+     还有通道 / 选区 / 蒙版六个方向的互转。每个插件内部要用的算子模块已经打在包里。</span><span class="l-en">{p} Python plug-ins that string the operators into a workflow: component
      split-and-curve in five colour spaces, alpha curves, frequency-separation / dodge &amp;
-     burn / neutral-grey retouching, layer-to-selection and layer-to-channel. The operator
-     modules each one needs are already inside.</span></p>
+     burn / neutral-grey retouching, layer-to-selection and layer-to-channel, plus the six-way
+     channel / selection / mask conversion. The operator modules each one needs are already
+     inside.</span></p>
     <div class="door-meta">
       <span><b>{p}</b> <span class="l-zh">个 .py</span><span class="l-en">scripts</span></span>
       <span><b>3</b> <span class="l-zh">组磨皮</span><span class="l-en">retouching sets</span></span>
@@ -783,15 +801,43 @@ Linux    ~/.config/GIMP/3.x/plug-ins</code></pre>
      long version live in the <a href="overview.html">full overview</a>.</span></p>
 </section>"""
 
-    # 宽屏上首屏是左右两张：左边标题块、右边两张卡片。窄屏退回上下，
-    # 900 以下连卡片也并入单列。
-    split = """<div class="home-split">
+    prov_short = """<section class="provenance home-prov" id="provenance">
+  <div class="prov-head">
+    <p class="eyebrow"><span class="l-zh">来源 · 版权 · 商标</span><span class="l-en">Provenance · copyright · trademarks</span></p>
+    <h2><span class="l-zh">这些算子是怎么来的</span><span class="l-en">Where these operators come from</span></h2>
+  </div>
+  <div class="prov-grid">
+    <article class="prov-card">
+      <h3><span class="l-zh">黑盒标定 + 公开数学</span><span class="l-en">Black-box calibration, plus published maths</span></h3>
+      <p><span class="l-zh">多数按目标实现逐档采样、拟合公式，在 16 位精度上把残差压到几码以内——只看输入输出，
+         不读对方代码；少数直接实现公开的数学定义。每篇算法说明都带误差表，以及「哪一段没能对上、
+         偏差多大」，没说成「完全一致」的地方都是实测确实对不上。</span><span class="l-en">Most are fitted against a reference implementation sample by sample, residual
+         pressed to a few code values at 16-bit — inputs and outputs only, no source reading;
+         a few implement published definitions directly. Every algorithm note carries an error
+         table and says which part does not match, and by how much.</span></p>
+    </article>
+    <article class="prov-card">
+      <h3><span class="l-zh">全部原创，无厂商代码</span><span class="l-en">Original code, no vendor material</span></h3>
+      <p><span class="l-zh">没有复制任何商业软件的源代码或二进制，没有反编译产物，也不调用任何厂商的专有接口或 SDK；
+         菜单名与文案为本项目自定表述（<code>lb:</code>），不使用任何厂商 logo、图标或界面截图。
+         <code>.cube</code>、Adobe RGB 这类标准名称仅作指示性引用，不表示隶属关系。</span><span class="l-en">No vendor source code or binaries were copied, nothing was decompiled, and no
+         proprietary interface or SDK is called; names and copy are this project's own
+         (<code>lb:</code>). No vendor logo, icon or UI screenshot is used — standard names such
+         as <code>.cube</code> or Adobe RGB are nominative references only.</span></p>
+    </article>
+  </div>
+  <p class="prov-more"><a href="overview.html#legal"><span class="l-zh">完整说明（含商标声明与处理方式）</span><span class="l-en">The full statement, trademarks included</span> <span aria-hidden="true">→</span></a></p>
+</section>"""
+
+    # 首屏：文字通栏在上，两个方块（算子 / 插件）左右并排；1000 以下两张卡
+    # 自动叠成上下。
+    top = """<div class="home-top">
 %s
 %s
 </div>""" % (hero, doors)
 
     return page("gegl-color-ops · GIMP 3 的 GEGL 算子与插件",
-                split + quick, body_class="home",
+                top + quick + prov_short, body_class="home",
                 desc="GIMP 3 的 %d 个 GEGL 色彩算子 + %d 个 Python 插件，"
                      "Windows 与 Linux 整包直接下载。" % (n_live, n_plug),
                 titles=("gegl-color-ops · GIMP 3 的 GEGL 算子与插件",
@@ -930,8 +976,20 @@ def build_overview(ops, stats, version):
                      pypill=t(".py · 免编译", ".py · no build"),
                      goplugins=t("去插件页下载", "Get them on the plug-ins page"))
 
-    about = """<section class="about">
-  <h2><span class="l-zh">这些算子是怎么来的</span><span class="l-en">Where these operators come from</span></h2>  <p><span class="l-zh">多数是按黑盒标定做的：拿目标实现（多为常见修图软件的调整图层）做对照，逐档采样、
+    provenance = """<section class="provenance" id="legal">
+  <div class="prov-head">
+    <p class="eyebrow"><span class="l-zh">来源 · 版权 · 商标</span><span class="l-en">Provenance · copyright · trademarks</span></p>
+    <h2><span class="l-zh">这些算子是怎么来的</span><span class="l-en">Where these operators come from</span></h2>
+    <p class="section-lede"><span class="l-zh">每个算子都写清楚是标定来的还是按公开定义实现的，误差有多大；
+       全部代码原创，不复制、不反编译、不调用厂商 SDK。</span><span class="l-en">Every operator says whether it was calibrated or implemented from a
+       published definition, and how large the residual is; all code is original — nothing
+       copied, nothing decompiled, no vendor SDK.</span></p>
+  </div>
+
+  <div class="prov-grid">
+    <article class="prov-card" id="provenance">
+      <h3><span class="l-zh">来源与标定方式</span><span class="l-en">Where the numbers come from</span></h3>
+      <p><span class="l-zh">多数是按黑盒标定做的：拿目标实现（多为常见修图软件的调整图层）做对照，逐档采样、
      拟合公式，再在 16 位精度上把残差压到几码以内——只看输入输出，不读对方的代码。
      少数是直接实现公开的数学定义（Lab / LCh / HSL 色阶就是换了个色彩空间做同一件事）。</span><span class="l-en">Most were built by black-box calibration: sample a reference implementation
      (usually a well-known photo editor's adjustment layers) step by step, fit the
@@ -939,22 +997,22 @@ def build_overview(ops, stats, version):
      inputs and outputs only, no source reading. A few implement published mathematical
      definitions directly (the Lab / LCh / HSL levels are the same model in a different
      colour space).</span></p>
-  <p><span class="l-zh">所以每篇算法说明里都有误差表、以及「哪一段没能对上、偏差多大」。没有说成
+      <p><span class="l-zh">所以每篇算法说明里都有误差表、以及「哪一段没能对上、偏差多大」。没有说成
      「完全一致」的地方，都是实测过确实对不上——例如色温 / 色调对角线上的硬裁切。</span><span class="l-en">That's why every algorithm note carries an error table plus a note on which
      part didn't match and by how much. Anything not described as identical was measured
      and genuinely doesn't match — the hard clipping along the colour temperature / tint
      diagonals, for example.</span></p>
-  <p class="muted"><span class="l-zh">算法来源在文件头 <code>reference</code> 字段里逐条标注，源码与文档在同一个仓库。</span><span class="l-en">Sources are listed per operator in the <code>reference</code> field of each file
+      <p><span class="l-zh">算法来源在文件头 <code>reference</code> 字段里逐条标注，源码与文档在同一个仓库。</span><span class="l-en">Sources are listed per operator in the <code>reference</code> field of each file
      header; source and docs share one repository.</span></p>
-</section>"""
+    </article>
 
-    legal = """<section class="about" id="legal">
-  <h2><span class="l-zh">版权与商标</span><span class="l-en">Copyright &amp; trademarks</span></h2>
-  <p><span class="l-zh">这里的算子都是自己写的：按公开的数学公式与可观察的行为实现，没有复制任何商业软件的
+    <article class="prov-card" id="trademarks">
+      <h3><span class="l-zh">版权与商标</span><span class="l-en">Copyright &amp; trademarks</span></h3>
+      <p><span class="l-zh">这里的算子都是自己写的：按公开的数学公式与可观察的行为实现，没有复制任何商业软件的
      源代码或二进制，没有反编译产物，也不调用任何厂商的专有接口或 SDK。</span><span class="l-en">Every operator here was written from scratch: implemented from published
      mathematics and observable behaviour, with no vendor source code or binaries
      copied, no decompilation, and no calls to proprietary interfaces or SDKs.</span></p>
-  <p><span class="l-zh">菜单名、对话框标题、算子显示名与页面正文都是本项目自定表述（<code>lb:</code>
+      <p><span class="l-zh">菜单名、对话框标题、算子显示名与页面正文都是本项目自定表述（<code>lb:</code>
      命名空间），不使用任何厂商的 logo、图标或界面截图。仅对业界公开的格式与色空间规范
      沿用标准名称（如 <code>.cube</code> LUT、Adobe RGB），属于指示性引用，不表示与
      本项目存在隶属关系。站点截图是在 GIMP 里运行本项目算子的界面。</span><span class="l-en">Menu names, dialog titles, operator labels and page copy are this project's own
@@ -962,7 +1020,7 @@ def build_overview(ops, stats, version):
      used. Standard names of industry-published formats and colour spaces (such as
      <code>.cube</code> LUTs or Adobe RGB) are cited nominatively only and imply no
      affiliation. Site screenshots show this project's own operators running in GIMP.</span></p>
-  <p class="muted"><span class="l-zh">所有代码均为原创，依据公开数学与可观察行为自行实现，不使用任何厂商专有接口或
+      <p class="prov-final"><span class="l-zh">所有代码均为原创，依据公开数学与可观察行为自行实现，不使用任何厂商专有接口或
      SDK；名称与文案为本项目自定表述，标准格式与色空间名称仅作指示性引用，不构成隶属关系。
      如认为此处有不当使用，请开 issue，核实后会调整措辞或移除相关内容。</span><span class="l-en">All code here is original, written from published mathematics and observable
      behaviour, with no vendor-specific interfaces or SDKs. Names and copy are this
@@ -970,6 +1028,8 @@ def build_overview(ops, stats, version):
      This project is not affiliated with, endorsed by, or authorised by any vendor.
      If you believe something here is misused, open an issue and it will be reworded
      or removed once verified.</span></p>
+    </article>
+  </div>
 </section>"""
 
     body = hero + steps + """
@@ -983,7 +1043,7 @@ def build_overview(ops, stats, version):
      parameters and measured error.</span></p>
 {by_g}
 </section>""".format(n=t("%d 个算子" % n_live, "%d operators" % n_live), by_g=by_g) \
-        + download + about + legal
+        + download + provenance
 
     return page("gegl-color-ops · GIMP 3 色彩算子集", body,
                 desc="%d 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、"
@@ -1900,6 +1960,26 @@ PLUGIN_SPECS = [
                   "的参数，高光 192 / 阴影 64 / 中间调 64–192 各自归位；"
                   "红色叠加实时预览，确定后蒙版写进 alpha。",
              pdb="lb-plugin-color-range(image, drawables)"),
+        dict(key="channel-to-mask", ops=[],
+             name="gegl-color-ops-plugin-channel-to-mask.zip",
+             src_dir=os.path.join(ROOT, "plugin", "channel-to-mask"),
+             py="channel-to-mask.py", menu="Channel to Mask（通道转图层蒙版）",
+             menus="    SuperMrWang → Mask → Channel to Mask...\n"
+                   "    图层右键 → SuperMrWang → Mask → Channel to Mask...",
+             desc="Channel to Mask：把通道面板里选中的那条通道，挂成所选图层的"
+                  "图层蒙版。多选图层一次挂齐，可反相；已有蒙版则覆盖内容，"
+                  "再跑一次就是刷新。与 Layer to Channel 互为反向操作。",
+             pdb="lb-plugin-channel-to-mask(image, drawables, channel-name, invert)"),
+        dict(key="convert", ops=[],
+             name="gegl-color-ops-plugin-convert.zip",
+             src_dir=os.path.join(ROOT, "plugin", "convert"),
+             py="convert.py", menu="Convert（通道 / 选区 / 蒙版 六向转换）",
+             menus="    SuperMrWang → Convert → 六项，通道 / 选区 / 蒙版两两互转\n"
+                   "    图层右键 → SuperMrWang → Convert（同样六项）",
+             desc="Convert：通道、选区、蒙版三者两两互转，六个方向各一个菜单项，"
+                  "零参数、点一下直接执行。源全从上下文取：通道面板选中那条、当前选区、"
+                  "当前图层的蒙版。原生缺的「蒙版 → 通道」也补成一步。",
+             pdb="lb-plugin-conv-* 六个过程，全部零参数"),
 ]
 
 
@@ -2160,7 +2240,7 @@ def build_plugins(version, stats=None):
                "menu (all of them) and <b>layer right-click → SuperMrWang</b>."),
         f1=t("<b>%d</b> 个插件" % n_plug, "<b>%d</b> plug-ins" % n_plug),
         f2=t("<b>%d</b> 个 PDB 过程" % n_plug, "<b>%d</b> PDB procedures" % n_plug),
-        f3=t("<b>369</b> 条回归断言", "<b>369</b> regression assertions"),
+        f3=t("<b>419</b> 条回归断言", "<b>419</b> regression assertions"),
         f4=t("<b>0</b> 编译 · 纯 Python", "<b>0</b> to compile · pure Python"),
         note=t("安装：<code>bash install-plugin.sh</code> 一次装齐，或从各自的页面"
                "单独下某一个 <code>.zip</code>；细节见 "
@@ -2193,6 +2273,17 @@ def build_plugins(version, stats=None):
                 desc_en="%d compile-free GIMP 3 plug-ins: layer to selection or "
                         "channel, HSV / LCh / HSL / Lab / HSI component curves, "
                         "frequency separation, dodge & burn, neutral grey." % n_plug)
+
+
+# 有几个插件的全部价值在于「把原生操作收成一次点击」，不新增任何像素算法。
+# 这些页面顶上要明说，免得读者以为里面藏着别的东西。
+NATIVE_NOTE_ZH = """<p class="native-note"><b>只是原生方式的便捷实现</b>　这里没有新算法：
+   像素结果全部出自 GIMP 自带的 PDB 过程，插件只负责把散在三处菜单、要跨三四步的动作
+   收成一次点击，并保证与手点原生菜单得到的结果逐位相同。</p>"""
+NATIVE_NOTE_EN = """<p class="native-note"><b>Only a convenience wrapper over native behaviour</b> —
+   no new algorithms here: every pixel comes out of GIMP's own PDB procedures. The plug-in just
+   folds a detour that lives in three different menus and takes three or four steps into a
+   single click, and keeps the result bit-for-bit identical to doing it by hand.</p>"""
 
 
 def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
@@ -2305,6 +2396,10 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
    各数量级的含义与「码为什么不是感知量」的说明见
    <a href="../guide.html#code">安装指南 · 精度里的「码」</a>。</p>""")
 
+        native = NATIVE_NOTE_EN + "\n" if en_ else NATIVE_NOTE_ZH + "\n"
+        if not p.get("native_only"):
+            native = ""
+
         return """<section class="page-head">
   <p class="eyebrow"><a href="../index.html">%s</a> /
     <a href="../plugins.html">%s</a> / %s</p>
@@ -2316,8 +2411,7 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
   </div>
   <p class="lede">%s</p>
 </section>
-
-<div class="prose wide">
+%s<div class="prose wide">
   <div class="dl-grid">
     <div class="dl primary-dl">
       <div class="dl-head"><h3>%s</h3><span class="pill">%s</span></div>
@@ -2348,6 +2442,7 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
              p.get("tag_en") if en_ else p["tag"][0],
              p.get("area_en") if en_ else p["area"],
              (p.get("lede_en") or p["lede"]) if en_ else p["lede"],
+             native,
              "Menu location" if en_ else "菜单位置",
              "Several" if en_ else "多条",
              menu_html,

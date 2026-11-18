@@ -721,3 +721,137 @@ PLUGIN_EN["color-range"] = dict(
          nothing. Layer groups have no pixels, so it refuses and asks you to merge first.</p>
     </div>
   </div>""")
+
+
+PLUGIN_EN["channel-to-mask"] = dict(
+    lede="""The native route is <b>Layer → Mask → Add Layer Mask → Channel</b>, then picking a
+   channel in the dialog — one layer at a time. This plug-in reverses the order: pick a channel
+   in the Channels dock, select the layers you want masked, right-click once. Several layers at
+   a time, and an invert switch. It is the exact inverse of <code>Layer to Channel</code>.""",
+    body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>GIMP can do it — here is the difference</h3><span class="pill">four steps → one</span></div>
+      <p>GIMP does have "mask from a channel", but the path is fixed: select the layer, menu to
+         <b>Layer → Mask → Add Layer Mask</b>, choose the Channel type, then pick one in the
+         dialog. Three layers means walking it three times.</p>
+      <p>This plug-in adds three things only: <b>it lives in the right-click menu</b> (mask the
+         layer you clicked), <b>it takes several layers at once</b> (multi-select in the Layers
+         dock, all get the same content), and <b>it can invert</b> (mask by the channel's
+         complement). Pixel results are bit-for-bit identical to the native route, mid-grey
+         drift included.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Grey level is mask strength</h3></div>
+      <ul class="deps">
+        <li><b>Black</b> hides, <b>white</b> shows, <b>mid grey</b> is partial</li>
+        <li>The channel is the one you <b>right-clicked in the Channels dock</b>; with no
+            click it falls back to the dock selection, then to the only channel in the image.
+            A name overrides all of that</li>
+        <li>No mask yet → a new one is built the native way</li>
+        <li>Mask already there → dropped and rebuilt, identical to a fresh native one, so <b>re-running refreshes it</b></li>
+      </ul>
+      <p>Offset layers need no attention: the mask matches the layer's size and samples the
+         channel at the same canvas position, so nothing lands shifted.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Numbers identical to native</h3><span class="pill">128 → 188</span></div>
+      <p>GIMP 3 has no direct "channel to mask" entry, so the native route is two steps:
+         <b>channel → selection → mask from selection</b>. This plug-in takes the same road and
+         calls the same <code>create_mask(SELECTION)</code>, so results match bit for bit —
+         including the mid-grey drift: on a default 8-bit image a channel value of 128 produces
+         a mask value of <b>188</b>, not 128.</p>
+      <p>On 32-bit linear precision the channel itself holds linear values, the straight copy
+         happens to be correct, and nothing drifts. The plug-in adds no compensation: whatever
+         native does is what you get.</p>
+    </div>
+  </div>
+  <p class="note">No dependency on this project's operators: it calls GIMP's own
+     <code>gimp-image-select-item</code> and mask PDB, and never writes pixel buffers itself.
+     Entering from a channel's right-click menu uses that very channel, so there is nothing to
+     select first; when no source can be found it fails with an explicit message listing the
+     available channels. Layer groups have no pixels, so it refuses and asks you
+     to merge first.</p>""")
+
+
+PLUGIN_EN["convert"] = dict(
+    lede="""Channels, selections and layer masks, converted in every direction: six menu
+   items, each one click and done — no parameter dialog. Natively these six paths are spread
+   across three places, and <b>mask → channel does not exist at all</b>; it takes a detour
+   through the selection in two steps.""",
+    body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Why it needs its own entry</h3><span class="pill">three places</span></div>
+      <p>Doing the same thing natively means remembering three routes: <b>Select</b> menu to
+         save a channel, the <b>channel context menu</b> to make a selection, and
+         <b>Layers → Mask → Add Layer Mask</b> with a type picked in the dialog. Same family
+         of operations, three locations, and the directions reverse halfway through.</p>
+      <p>Worse, <b>mask → channel simply is not there</b>: GIMP has no such procedure, so it
+         is "mask to selection" and then "selection to channel" — two steps, two menus. This
+         plug-in makes it one.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Six directions</h3><span class="pill">zero arguments</span></div>
+      <ul class="deps">
+        <li><b>Channel to Selection</b></li>
+        <li><b>Selection to Channel</b></li>
+        <li><b>Channel to Mask</b></li>
+        <li><b>Mask to Channel</b></li>
+        <li><b>Selection to Mask</b></li>
+        <li><b>Mask to Selection</b></li>
+      </ul>
+      <p>A menu item without an ellipsis <b>runs immediately</b>: the source is read from the
+         context, so there is nothing to pick in a dialog.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>The source is always "current"</h3></div>
+      <ul class="deps">
+        <li><b>Channel</b> = the one right-clicked in the Channels dock, else the dock
+            selection, else the only channel in the image</li>
+        <li><b>Selection</b> = the active pixel selection; <b>none means select-all</b></li>
+        <li><b>Mask</b> = the selected layer's layer mask</li>
+        <li>Sinks: a new channel, or masks on every selected layer</li>
+      </ul>
+      <p>An existing mask is <b>dropped and rebuilt</b>, bit-for-bit identical to a fresh
+         native one — change the source and re-run to refresh.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Bit-for-bit with native</h3><span class="pill">the hard requirement</span></div>
+      <p>None of the six directions touches a pixel buffer. Each one calls GIMP's own
+         procedure: <code>gimp-image-select-item</code> for a channel to a selection,
+         <code>gimp-selection-save</code> for a selection to a channel,
+         <code>create_mask(SELECTION)</code> for a selection to a mask. Channel ↔ mask has no
+         native entry, so it runs the native two steps.</p>
+      <p>That means mid greys carry the native drift: on a default 8-bit image a channel value
+         of 128 reads back as <b>188</b> in the selection, and a selection value of 128 reads
+         back as <b>55</b> in a channel. Selection ↔ mask converts properly in GIMP, so that
+         pair does not drift. On 32-bit linear precision nothing drifts at all.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Why single steps look wrong</h3></div>
+      <p><b>It is not the plug-in's arithmetic.</b> Channels and masks store <code>Y'</code>
+         (sRGB encoded); the selection stores linear alpha. Native copies the <code>Y'</code>
+         value straight in as linear coverage, so 128 becomes 188, and the reverse direction
+         squashes it to 55.</p>
+      <p><b>Round trips cancel out.</b> 188 stored back into a channel becomes 128 again, so two
+         steps in a row look fine; only a single step shows it. That is native behaviour and the
+         plug-in does not compensate.</p>
+      <p><b>Masks are 8-bit.</b> Expect ±1 quantisation in the deep shadows, exactly as native;
+         offset layers align by canvas, also as native.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Relation to Channel to Mask</h3></div>
+      <p><b>Channel to Mask...</b> (in the Mask group, with an ellipsis) is the
+         <b>configurable</b> version of the same action: channel by name, invert, several
+         layers at once.</p>
+      <p><b>Convert → Channel to Mask</b> (no ellipsis) is the one-click version: it takes the
+         channel you clicked in the dock and does not invert. Use the quick one day to day, the
+         parameterised one when you need to adjust.</p>
+    </div>
+  </div>
+  <p class="note">None of the six directions depends on this project's operators — they only
+     call GIMP's own channel, selection and mask PDB. A missing source produces an explicit
+     message (no channel found / no mask / layer group has no pixels) instead of silently
+     doing nothing.</p>""")

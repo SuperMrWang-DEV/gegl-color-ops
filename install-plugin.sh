@@ -46,8 +46,11 @@ for SRC in "$SRC_ROOT"/*/; do
 done
 echo "· 重启 GIMP 后生效（菜单栏顶层多一个 SuperMrWang，与「颜色」「图层」平级）："
 echo "    SuperMrWang → Convert    图层 → 选区 / 通道 / 一次拆出 R·G·B·Alpha（原始像素，彩色按亮度）"
+echo "                             Channel ↔ Selection ↔ Mask 六向互转（零参数，点一下直接跑）"
 echo "    SuperMrWang → Mask       Alpha Curves（通道 → Alpha + alpha 曲线）/ Color Range（色彩范围）"
+echo "                             Channel to Mask（通道 → 图层蒙版）"
 echo "    SuperMrWang → Blend      应用图像 / 计算"
 echo "    SuperMrWang → Retouch    HSV·HSL·Lab·LCh·HSI Split + 高低频/双曲线/中性灰磨皮"
 echo "    图层右键 → SuperMrWang → Convert / Mask / Retouch   与上面同样的分组，只留单层能用的"
+echo "    通道右键 → SuperMrWang → Convert / Mask             以通道为源的那几项，点的哪条就用哪条"
 echo "  （gray-mask 已被 layer-to-* 取代，标记停用；sky-replace 同样停用）"

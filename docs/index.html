@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>gegl-color-ops · GIMP 3 的 GEGL 算子与插件</title>
-<meta name="description" content="GIMP 3 的 41 个 GEGL 色彩算子 + 13 个 Python 插件，Windows 与 Linux 整包直接下载。" data-desc-zh="GIMP 3 的 41 个 GEGL 色彩算子 + 13 个 Python 插件，Windows 与 Linux 整包直接下载。" data-desc-en="GIMP 3 的 41 个 GEGL 色彩算子 + 13 个 Python 插件，Windows 与 Linux 整包直接下载。">
+<meta name="description" content="GIMP 3 的 41 个 GEGL 色彩算子 + 15 个 Python 插件，Windows 与 Linux 整包直接下载。" data-desc-zh="GIMP 3 的 41 个 GEGL 色彩算子 + 15 个 Python 插件，Windows 与 Linux 整包直接下载。" data-desc-en="GIMP 3 的 41 个 GEGL 色彩算子 + 15 个 Python 插件，Windows 与 Linux 整包直接下载。">
 <meta property="og:title" content="gegl-color-ops · GIMP 3 的 GEGL 算子与插件" data-title-zh="gegl-color-ops · GIMP 3 的 GEGL 算子与插件" data-title-en="gegl-color-ops · GEGL operators and plug-ins for GIMP 3">
-<meta property="og:description" content="GIMP 3 的 41 个 GEGL 色彩算子 + 13 个 Python 插件，Windows 与 Linux 整包直接下载。" data-desc-zh="GIMP 3 的 41 个 GEGL 色彩算子 + 13 个 Python 插件，Windows 与 Linux 整包直接下载。" data-desc-en="GIMP 3 的 41 个 GEGL 色彩算子 + 13 个 Python 插件，Windows 与 Linux 整包直接下载。">
-<link rel="stylesheet" href="assets/style.css">
+<meta property="og:description" content="GIMP 3 的 41 个 GEGL 色彩算子 + 15 个 Python 插件，Windows 与 Linux 整包直接下载。" data-desc-zh="GIMP 3 的 41 个 GEGL 色彩算子 + 15 个 Python 插件，Windows 与 Linux 整包直接下载。" data-desc-en="GIMP 3 的 41 个 GEGL 色彩算子 + 15 个 Python 插件，Windows 与 Linux 整包直接下载。">
+<link rel="stylesheet" href="assets/style.css?v=7be715334e">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="feed.xml">
 <script>
 (function () {
@@ -39,20 +39,20 @@
   </div>
 </header>
 <main id="main">
-<div class="home-split">
+<div class="home-top">
 <section class="home-hero">
   <div class="home-glow" aria-hidden="true"></div>
   <p class="eyebrow">GIMP 3.x · GEGL 0.4 · GPL-3.0</p>
   <h1><span class="l-zh">GIMP 3 的 <span class="grad">GEGL 插件</span><br>两个包，一整套调色链</span><span class="l-en">The <span class="grad">GEGL plug-in set</span><br>for GIMP 3</span></h1>
-  <p class="lede"><span class="l-zh">41 个 <code>lb:</code> 算子管算法，13 个 Python 插件管流程：
-     把分量拆成层、把 alpha 画成曲线、把磨皮拆成高低频。装完即用，全部能当非破坏滤镜
-     挂在图层上，改参数不落像素。</span><span class="l-en">Two archives, the whole colour chain: 41 <code>lb:</code>
-     GEGL operators for the maths, 13 Python plug-ins for the workflow: split a component into layers,
-     draw alpha as a curve, separate skin into high and low frequency. Ready to use, all
-     of it mounts as non-destructive filters.</span></p>
+  <p class="lede"><span class="l-zh">41 个 <code>lb:</code> 算子管算法，15 个 Python 插件管流程：
+     把分量拆成层、把 alpha 画成曲线、把磨皮拆成高低频、把通道与蒙版互相倒。装完即用，
+     全部能当非破坏滤镜挂在图层上，改参数不落像素。</span><span class="l-en">Two archives, the whole colour chain: 41 <code>lb:</code>
+     GEGL operators for the maths, 15 Python plug-ins for the workflow: split a component into layers,
+     draw alpha as a curve, separate skin into high and low frequency, flip channels and masks
+     back and forth. Ready to use, all of it mounts as non-destructive filters.</span></p>
   <ul class="facts">
     <li><b>41</b> <span class="l-zh">个算子</span><span class="l-en">operators</span></li>
-    <li><b>13</b> <span class="l-zh">个插件</span><span class="l-en">plug-ins</span></li>
+    <li><b>15</b> <span class="l-zh">个插件</span><span class="l-en">plug-ins</span></li>
     <li><b>6</b> <span class="l-zh">个分组</span><span class="l-en">groups</span></li>
     <li><b>0</b> <span class="l-zh">依赖 · 免编译</span><span class="l-en">deps · prebuilt</span></li>
   </ul>
@@ -94,24 +94,25 @@
   <article class="door door-plug" id="plugins">
     <p class="door-kicker">02 · PLUG-INS</p>
     <h2><span class="l-zh">Python 插件</span><span class="l-en">Python plug-ins</span></h2>
-    <p class="door-lead"><span class="l-zh">13 个 Python 插件，负责把算子串成流程：五个色彩空间的分量
-     拆层加三条曲线、Alpha 曲线、高低频 / 双曲线 / 中性灰磨皮、图层转选区与转通道。
-     每个插件内部要用的算子模块已经打在包里。</span><span class="l-en">13 Python plug-ins that string the operators into a workflow: component
+    <p class="door-lead"><span class="l-zh">15 个 Python 插件，负责把算子串成流程：五个色彩空间的分量
+     拆层加三条曲线、Alpha 曲线、高低频 / 双曲线 / 中性灰磨皮、图层转选区与转通道，
+     还有通道 / 选区 / 蒙版六个方向的互转。每个插件内部要用的算子模块已经打在包里。</span><span class="l-en">15 Python plug-ins that string the operators into a workflow: component
      split-and-curve in five colour spaces, alpha curves, frequency-separation / dodge &amp;
-     burn / neutral-grey retouching, layer-to-selection and layer-to-channel. The operator
-     modules each one needs are already inside.</span></p>
+     burn / neutral-grey retouching, layer-to-selection and layer-to-channel, plus the six-way
+     channel / selection / mask conversion. The operator modules each one needs are already
+     inside.</span></p>
     <div class="door-meta">
-      <span><b>13</b> <span class="l-zh">个 .py</span><span class="l-en">scripts</span></span>
+      <span><b>15</b> <span class="l-zh">个 .py</span><span class="l-en">scripts</span></span>
       <span><b>3</b> <span class="l-zh">组磨皮</span><span class="l-en">retouching sets</span></span>
       <span><b>2</b> <span class="l-zh">处入口</span><span class="l-en">menu entries</span></span>
     </div>
     <div class="door-dl"><a class="dl-link" href="download/gegl-color-ops-plugins-windows-x64.zip">
         <span class="os"><span class="l-zh">Windows x64</span><span class="l-en">Windows x64</span></span>
-        <span class="meta"><span class="l-zh">13 个 .py · 12 个模块 · 0.5 MB</span><span class="l-en">13 .py · 12 modules · 0.5 MB</span></span>
+        <span class="meta"><span class="l-zh">15 个 .py · 12 个模块 · 0.5 MB</span><span class="l-en">15 .py · 12 modules · 0.5 MB</span></span>
         <span class="arrow" aria-hidden="true">↓</span>
       </a><a class="dl-link is-missing" href="download/gegl-color-ops-plugins-linux-x64.zip">
         <span class="os"><span class="l-zh">Linux x86_64</span><span class="l-en">Linux x86_64</span></span>
-        <span class="meta"><span class="l-zh">13 个 .py · 2 个模块 · 0.1 MB</span><span class="l-en">13 .py · 2 modules · 0.1 MB</span></span>
+        <span class="meta"><span class="l-zh">15 个 .py · 2 个模块 · 0.1 MB</span><span class="l-en">15 .py · 2 modules · 0.1 MB</span></span>
         <span class="arrow" aria-hidden="true">↓</span>
       </a></div>
     <p class="door-note"><span class="l-zh">Linux 整包里没有那 10 个分量模块，
@@ -119,7 +120,7 @@
       modules, so the five <b>Split (Curves)</b> plug-ins need a local build first; every
       other plug-in works out of the box on Linux.</span></p>
     <div class="door-foot">
-      <a href="plugins.html"><span class="l-zh">看全部 13 个插件</span><span class="l-en">Browse all 13</span> <span aria-hidden="true">→</span></a>
+      <a href="plugins.html"><span class="l-zh">看全部 15 个插件</span><span class="l-en">Browse all 15</span> <span aria-hidden="true">→</span></a>
       <a class="sub" href="guide.html"><span class="l-zh">怎么装</span><span class="l-en">How to install</span></a>
     </div>
   </article>
@@ -149,6 +150,32 @@ Linux    ~/.config/GIMP/3.x/plug-ins</code></pre>
      <a href="overview.html">完整总览</a>。</span><span class="l-en">Won't install, missing from the menu, name clashes — see the
      <a href="guide.html">install guide</a>. Algorithm provenance, error tables and the
      long version live in the <a href="overview.html">full overview</a>.</span></p>
+</section><section class="provenance home-prov" id="provenance">
+  <div class="prov-head">
+    <p class="eyebrow"><span class="l-zh">来源 · 版权 · 商标</span><span class="l-en">Provenance · copyright · trademarks</span></p>
+    <h2><span class="l-zh">这些算子是怎么来的</span><span class="l-en">Where these operators come from</span></h2>
+  </div>
+  <div class="prov-grid">
+    <article class="prov-card">
+      <h3><span class="l-zh">黑盒标定 + 公开数学</span><span class="l-en">Black-box calibration, plus published maths</span></h3>
+      <p><span class="l-zh">多数按目标实现逐档采样、拟合公式，在 16 位精度上把残差压到几码以内——只看输入输出，
+         不读对方代码；少数直接实现公开的数学定义。每篇算法说明都带误差表，以及「哪一段没能对上、
+         偏差多大」，没说成「完全一致」的地方都是实测确实对不上。</span><span class="l-en">Most are fitted against a reference implementation sample by sample, residual
+         pressed to a few code values at 16-bit — inputs and outputs only, no source reading;
+         a few implement published definitions directly. Every algorithm note carries an error
+         table and says which part does not match, and by how much.</span></p>
+    </article>
+    <article class="prov-card">
+      <h3><span class="l-zh">全部原创，无厂商代码</span><span class="l-en">Original code, no vendor material</span></h3>
+      <p><span class="l-zh">没有复制任何商业软件的源代码或二进制，没有反编译产物，也不调用任何厂商的专有接口或 SDK；
+         菜单名与文案为本项目自定表述（<code>lb:</code>），不使用任何厂商 logo、图标或界面截图。
+         <code>.cube</code>、Adobe RGB 这类标准名称仅作指示性引用，不表示隶属关系。</span><span class="l-en">No vendor source code or binaries were copied, nothing was decompiled, and no
+         proprietary interface or SDK is called; names and copy are this project's own
+         (<code>lb:</code>). No vendor logo, icon or UI screenshot is used — standard names such
+         as <code>.cube</code> or Adobe RGB are nominative references only.</span></p>
+    </article>
+  </div>
+  <p class="prov-more"><a href="overview.html#legal"><span class="l-zh">完整说明（含商标声明与处理方式）</span><span class="l-en">The full statement, trademarks included</span> <span aria-hidden="true">→</span></a></p>
 </section>
 </main>
 <footer class="site-foot">
@@ -161,7 +188,8 @@ Linux    ~/.config/GIMP/3.x/plug-ins</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">edeb398</span>
+    <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
+    <span class="muted">1847510</span>
   </div>
 </footer>
 <script>

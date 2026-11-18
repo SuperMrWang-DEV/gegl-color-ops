@@ -7,7 +7,7 @@
 <meta name="description" content="41 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。" data-desc-zh="41 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。" data-desc-en="41 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。">
 <meta property="og:title" content="gegl-color-ops · GIMP 3 色彩算子集" data-title-zh="gegl-color-ops · GIMP 3 色彩算子集" data-title-en="gegl-color-ops · colour operators for GIMP 3">
 <meta property="og:description" content="41 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。" data-desc-zh="41 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。" data-desc-en="41 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=7be715334e">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="feed.xml">
 <script>
 (function () {
@@ -598,8 +598,20 @@
      <a href="guide.html">安装指南</a> 的排错一节。源码编译走 <code>./build.sh</code> 或 meson，同样在那一页。</span><span class="l-en">Won't install, missing from the menu, name clashes with a built-in — the
      troubleshooting section of the <a href="guide.html">install guide</a> covers all of it.
      Building from source via <code>./build.sh</code> or meson is on the same page.</span></p>
-</section><section class="about">
-  <h2><span class="l-zh">这些算子是怎么来的</span><span class="l-en">Where these operators come from</span></h2>  <p><span class="l-zh">多数是按黑盒标定做的：拿目标实现（多为常见修图软件的调整图层）做对照，逐档采样、
+</section><section class="provenance" id="legal">
+  <div class="prov-head">
+    <p class="eyebrow"><span class="l-zh">来源 · 版权 · 商标</span><span class="l-en">Provenance · copyright · trademarks</span></p>
+    <h2><span class="l-zh">这些算子是怎么来的</span><span class="l-en">Where these operators come from</span></h2>
+    <p class="section-lede"><span class="l-zh">每个算子都写清楚是标定来的还是按公开定义实现的，误差有多大；
+       全部代码原创，不复制、不反编译、不调用厂商 SDK。</span><span class="l-en">Every operator says whether it was calibrated or implemented from a
+       published definition, and how large the residual is; all code is original — nothing
+       copied, nothing decompiled, no vendor SDK.</span></p>
+  </div>
+
+  <div class="prov-grid">
+    <article class="prov-card" id="provenance">
+      <h3><span class="l-zh">来源与标定方式</span><span class="l-en">Where the numbers come from</span></h3>
+      <p><span class="l-zh">多数是按黑盒标定做的：拿目标实现（多为常见修图软件的调整图层）做对照，逐档采样、
      拟合公式，再在 16 位精度上把残差压到几码以内——只看输入输出，不读对方的代码。
      少数是直接实现公开的数学定义（Lab / LCh / HSL 色阶就是换了个色彩空间做同一件事）。</span><span class="l-en">Most were built by black-box calibration: sample a reference implementation
      (usually a well-known photo editor's adjustment layers) step by step, fit the
@@ -607,20 +619,22 @@
      inputs and outputs only, no source reading. A few implement published mathematical
      definitions directly (the Lab / LCh / HSL levels are the same model in a different
      colour space).</span></p>
-  <p><span class="l-zh">所以每篇算法说明里都有误差表、以及「哪一段没能对上、偏差多大」。没有说成
+      <p><span class="l-zh">所以每篇算法说明里都有误差表、以及「哪一段没能对上、偏差多大」。没有说成
      「完全一致」的地方，都是实测过确实对不上——例如色温 / 色调对角线上的硬裁切。</span><span class="l-en">That's why every algorithm note carries an error table plus a note on which
      part didn't match and by how much. Anything not described as identical was measured
      and genuinely doesn't match — the hard clipping along the colour temperature / tint
      diagonals, for example.</span></p>
-  <p class="muted"><span class="l-zh">算法来源在文件头 <code>reference</code> 字段里逐条标注，源码与文档在同一个仓库。</span><span class="l-en">Sources are listed per operator in the <code>reference</code> field of each file
+      <p><span class="l-zh">算法来源在文件头 <code>reference</code> 字段里逐条标注，源码与文档在同一个仓库。</span><span class="l-en">Sources are listed per operator in the <code>reference</code> field of each file
      header; source and docs share one repository.</span></p>
-</section><section class="about" id="legal">
-  <h2><span class="l-zh">版权与商标</span><span class="l-en">Copyright &amp; trademarks</span></h2>
-  <p><span class="l-zh">这里的算子都是自己写的：按公开的数学公式与可观察的行为实现，没有复制任何商业软件的
+    </article>
+
+    <article class="prov-card" id="trademarks">
+      <h3><span class="l-zh">版权与商标</span><span class="l-en">Copyright &amp; trademarks</span></h3>
+      <p><span class="l-zh">这里的算子都是自己写的：按公开的数学公式与可观察的行为实现，没有复制任何商业软件的
      源代码或二进制，没有反编译产物，也不调用任何厂商的专有接口或 SDK。</span><span class="l-en">Every operator here was written from scratch: implemented from published
      mathematics and observable behaviour, with no vendor source code or binaries
      copied, no decompilation, and no calls to proprietary interfaces or SDKs.</span></p>
-  <p><span class="l-zh">菜单名、对话框标题、算子显示名与页面正文都是本项目自定表述（<code>lb:</code>
+      <p><span class="l-zh">菜单名、对话框标题、算子显示名与页面正文都是本项目自定表述（<code>lb:</code>
      命名空间），不使用任何厂商的 logo、图标或界面截图。仅对业界公开的格式与色空间规范
      沿用标准名称（如 <code>.cube</code> LUT、Adobe RGB），属于指示性引用，不表示与
      本项目存在隶属关系。站点截图是在 GIMP 里运行本项目算子的界面。</span><span class="l-en">Menu names, dialog titles, operator labels and page copy are this project's own
@@ -628,7 +642,7 @@
      used. Standard names of industry-published formats and colour spaces (such as
      <code>.cube</code> LUTs or Adobe RGB) are cited nominatively only and imply no
      affiliation. Site screenshots show this project's own operators running in GIMP.</span></p>
-  <p class="muted"><span class="l-zh">所有代码均为原创，依据公开数学与可观察行为自行实现，不使用任何厂商专有接口或
+      <p class="prov-final"><span class="l-zh">所有代码均为原创，依据公开数学与可观察行为自行实现，不使用任何厂商专有接口或
      SDK；名称与文案为本项目自定表述，标准格式与色空间名称仅作指示性引用，不构成隶属关系。
      如认为此处有不当使用，请开 issue，核实后会调整措辞或移除相关内容。</span><span class="l-en">All code here is original, written from published mathematics and observable
      behaviour, with no vendor-specific interfaces or SDKs. Names and copy are this
@@ -636,6 +650,8 @@
      This project is not affiliated with, endorsed by, or authorised by any vendor.
      If you believe something here is misused, open an issue and it will be reworded
      or removed once verified.</span></p>
+    </article>
+  </div>
 </section>
 </main>
 <footer class="site-foot">
@@ -648,7 +664,8 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">edeb398</span>
+    <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
+    <span class="muted">1847510</span>
   </div>
 </footer>
 <script>

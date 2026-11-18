@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""十三个 Python 插件的页面数据。
+"""十五个 Python 插件的页面数据。
 
 plugins.html 的卡片与 plugins/<slug>.html 的文章正文都从这里来，改一处两边
 一起变；正文来源是各插件源码与回归实测，数字都在 tools/check_*.py 里可复现。
@@ -718,6 +718,151 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
   <p class="note">依赖 <code>lb:color-mask-select</code>；缺算子会明确报错并给出装包提示，
      不会静默什么都不做。图层组没有像素，会拒绝并提示先合并。</p>""",
     ),
+    dict(
+        key='channel-to-mask',
+        slug='channel-to-mask',
+        native_only=True,   # 只做原生路径的顺手封装，不含新算法
+        title='Channel to Mask（通道转图层蒙版）',
+        tag=('蒙版', 't-mask'),
+        count='通道 → 蒙版',
+        area='Mask',
+        menu='SuperMrWang → Mask → Channel to Mask',
+        menus=['SuperMrWang → Mask → Channel to Mask',
+               '图层右键 → SuperMrWang → Mask → Channel to Mask',
+               '通道右键 → SuperMrWang → Mask → Channel to Mask'],
+        pdb='lb-plugin-channel-to-mask(image, drawables, channel-name, invert)',
+        lede="""原生路线是「图层 → 蒙版 → 添加图层蒙版 → 通道」，弹窗里再挑一条通道，
+       而且一次只能伺候一个图层。这个插件把顺序倒过来：先在通道面板选一条，
+       再在图层面板选中要挂蒙版的图层，右键一次就好——多选几个就一次挂几个，
+       还能顺手反相。和 <code>Layer to Channel</code> 正好是一对反向操作。""",
+        body="""<div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>原生也能做，差在哪</h3><span class="pill">四步 → 一步</span></div>
+      <p>GIMP 自带「从通道取蒙版」，但路径是固定的：先选中图层，菜单进
+         <b>图层 → 蒙版 → 添加图层蒙版</b>，类型选「通道」，弹窗里再挑一条通道。
+         三个图层就要走三遍。</p>
+      <p>这个插件只补三件事：<b>从右键进来</b>（点哪个图层就给哪个挂）、
+         <b>一次多个</b>（图层面板多选，逐个挂上同一份内容）、<b>可反相</b>
+         （按通道的补集遮罩，省一次反相操作）。像素结果与原生逐位相同，
+         包括中间灰那点漂移。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>灰度值就是遮罩强度</h3></div>
+      <ul class="deps">
+        <li><b>黑</b> = 完全遮住，<b>白</b> = 完全露出，<b>中间灰</b> = 半透明</li>
+        <li>通道取<b>通道面板里右键点中的那条</b>；没点过就用面板里选中的那条，
+            图里只有一条通道时直接用它；也可以填名字指定</li>
+        <li>图层<b>还没有蒙版</b> → 按原生方式新建</li>
+        <li>图层<b>已有蒙版</b> → 先丢掉旧的再新建，结果与原生新建一致，<b>再跑一次就是刷新</b></li>
+      </ul>
+      <p>偏移的小图层不用管：蒙版跟图层同尺寸，取的是画布上同位置的通道值，
+         不会整块错位。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>数值和原生一模一样</h3><span class="pill">128 → 188</span></div>
+      <p>GIMP 3 没有「通道直接建蒙版」的入口，原生用户只能走两步：<b>通道 → 选区 →
+         选区建蒙版</b>。这个插件走的就是同一条路，调的是同一个
+         <code>create_mask(SELECTION)</code>，所以结果逐位相同——包括中间灰那点漂移：
+         默认 8 位图上，通道 128 建出来的蒙版是 <b>188</b>，不是 128。</p>
+      <p>32 位线性精度的图像上，通道本身就存线性值，直搬恰好正确，这条链路不漂。
+         插件不做任何补偿，原生怎样就怎样。</p>
+    </div>
+  </div>
+  <p class="note">不依赖任何自研算子：只调 GIMP 自己的 <code>gimp-image-select-item</code>
+     与蒙版 PDB，不自己写像素缓冲。
+     从通道面板右键进来时，点的哪条就用哪条，不必再在别处选中一次；
+     真找不到源时会明确报错并列出可用的通道名，不会静默什么都不做。
+     图层组没有像素，会拒绝并提示先合并。</p>""",
+    ),
+    dict(
+        key='convert',
+        slug='convert',
+        native_only=True,   # 只做原生路径的顺手封装，不含新算法
+        title='Convert（通道 / 选区 / 蒙版 六向转换）',
+        tag=('转换', 't-mask'),
+        count='六个方向',
+        area='图层转换',
+        menu='SuperMrWang → Convert → 六项',
+        menus=['SuperMrWang → Convert → Channel to Selection',
+               'SuperMrWang → Convert → Selection to Channel',
+               'SuperMrWang → Convert → Channel to Mask',
+               'SuperMrWang → Convert → Mask to Channel',
+               'SuperMrWang → Convert → Selection to Mask',
+               'SuperMrWang → Convert → Mask to Selection',
+               '图层右键 → SuperMrWang → Convert（同样六项）',
+               '通道右键 → SuperMrWang → Convert（以通道为源的两项）'],
+        pdb='lb-plugin-conv-* 六个过程，全部零参数',
+        lede="""通道、选区、蒙版三者两两互转，六个方向各占一个菜单项，点下去直接执行、
+       不弹参数框。原生菜单里这六条路分散在三处，而且「蒙版 → 通道」根本没有直连，
+       只能绕选区两步走。""",
+        body="""<div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>为什么值得单独做</h3><span class="pill">六条路散在三处</span></div>
+      <p>原生要办同一件事，得记住三套路径：<b>选择</b>菜单里存通道、<b>通道右键</b>转选区、
+         <b>图层面板右键 → 添加图层蒙版</b>再在弹窗里挑类型。同一类操作放在三个地方，
+         方向还是反的。</p>
+      <p>更关键的是<b>蒙版 → 通道根本没有</b>：GIMP 没有这个过程，只能先「蒙版到选区」
+         再「选区存通道」，两步、两处菜单。这个插件把它做成一步。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>六个方向</h3><span class="pill">全零参数</span></div>
+      <ul class="deps">
+        <li><b>Channel to Selection</b> · 通道 → 选区</li>
+        <li><b>Selection to Channel</b> · 选区 → 通道</li>
+        <li><b>Channel to Mask</b> · 通道 → 图层蒙版</li>
+        <li><b>Mask to Channel</b> · 图层蒙版 → 通道</li>
+        <li><b>Selection to Mask</b> · 选区 → 图层蒙版</li>
+        <li><b>Mask to Selection</b> · 图层蒙版 → 选区</li>
+      </ul>
+      <p>没有省略号的菜单项就是<b>点一下直接跑</b>：源全从上下文取，不需要在对话框里
+         再选一遍。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>源永远是「当前」</h3></div>
+      <ul class="deps">
+        <li><b>通道</b> = 通道面板里右键点中的那条 → 面板里选中的那条 →
+            图里唯一的那条，依次兜底</li>
+        <li><b>选区</b> = 当前像素选区；<b>没有选区就当全选</b></li>
+        <li><b>蒙版</b> = 选中图层的图层蒙版</li>
+        <li>目标：通道新建一条、蒙版挂到选中图层（多选则每个都挂）</li>
+      </ul>
+      <p>已有蒙版时<b>先丢掉旧的再新建</b>，结果与原生新建逐位一致——改完源再跑
+         一次就是刷新。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>结果与原生逐位一致</h3><span class="pill">硬指标</span></div>
+      <p>六个方向都不碰像素缓冲，一律转调 GIMP 自己的过程：通道转选区用
+         <code>gimp-image-select-item</code>，选区存通道用 <code>gimp-selection-save</code>，
+         选区建蒙版用 <code>create_mask(SELECTION)</code>。「通道 ↔ 蒙版」原生没有
+         直连，就按原生的两步走。</p>
+      <p>所以中间灰带着原生那点漂移：默认 8 位图上，通道 128 进选区读回 <b>188</b>，
+         选区 128 存通道读回 <b>55</b>；而选区与蒙版之间原生会换算，那一对不漂。
+         32 位线性精度的图像上通道本身就存线性值，六个方向都不漂。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>为什么单步看着不对</h3></div>
+      <p><b>不是插件算错。</b>通道和蒙版存的是 <code>Y'</code>（sRGB 编码），选区存的是
+         线性 alpha。原生在通道与选区交界处把 <code>Y'</code> 当线性覆盖率直搬，
+         128 就变成了 188，反方向压成 55。</p>
+      <p><b>往返会互相抵消。</b>188 存回通道又变回 128，所以连着跑两步看不出问题，
+         单步才明显。这是原生的行为，插件不做补偿。</p>
+      <p><b>蒙版是 8bit。</b>极暗处有 ±1 的量化误差，原生也一样；偏移图层按画布
+         坐标对齐，原生建蒙版时同样如此。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>和 Channel to Mask 的关系</h3></div>
+      <p><b>Channel to Mask...</b>（Mask 组，带省略号）是同一个动作的<b>可配置版</b>：
+         能指定通道名、能反相、能一次挂多个图层。</p>
+      <p><b>Convert → Channel to Mask</b>（无省略号）是一键版：取通道面板里点中的
+         那条、不反相。日常右键直接跑一键版，需要细调时走带参数的那个。</p>
+    </div>
+  </div>
+  <p class="note">六个方向都不依赖自研算子，只调 GIMP 自己的通道、选区、蒙版 PDB。
+     缺源时会明确说缺什么（没选通道 / 没蒙版 / 图层组没有像素），不会静默什么都不做。</p>""",
+    ),
 ]
 
 BY_KEY = {p["key"]: p for p in PAGES}
@@ -750,6 +895,10 @@ BRIEF = {
                     "挂上去先拉满，往下拖即成形状。",
     "color-range": "色彩范围的定制对话框：选什么颜色，下面就只显示那种颜色的参数，"
                    "高光 192 / 阴影 64 / 中间调 64–192 各自归位。",
+    "channel-to-mask": "选中通道面板里的一条通道，右键图层就把它挂成图层蒙版："
+                       "多选图层一次挂齐，可反相。",
+    "convert": "通道、选区、蒙版三者两两互转，六个方向各一个菜单项，点一下就完事，"
+               "不弹参数框。",
 }
 
 TAG_EN = {"曲线": "Curves", "磨皮": "Retouching", "选区": "Selection",
@@ -761,6 +910,8 @@ TITLE_EN = {
     "grey": "Neutral Grey",
     "alpha-curves": "Alpha Curves",
     "color-range": "Color Range",
+    "channel-to-mask": "Channel to Mask",
+    "convert": "Convert",
 }
 
 BRIEF_EN = {
@@ -788,6 +939,11 @@ BRIEF_EN = {
                     "curve — pull it up to fill, drag down to shape.",
     "color-range": "A custom Colour Range dialog: pick what to target and only that "
                    "target's parameters appear.",
+    "channel-to-mask": "Pick a channel in the Channels dock, right-click a layer and "
+                       "it becomes that layer's mask — several layers at once, "
+                       "invertible.",
+    "convert": "Channels, selections and layer masks, all six directions as one-click "
+                "menu items with no dialog.",
 }
 
 AREA_EN = {"图层转换": "Convert", "Mask": "Mask", "Retouch 修饰": "Retouch"}
@@ -807,7 +963,9 @@ DEPS_NOTE_EN = {
 }
 
 AREA = {"selection": "图层转换", "channel": "图层转换", "split": "图层转换",
-        "alpha-curves": "Mask", "color-range": "Mask"}
+        "convert": "图层转换",
+        "alpha-curves": "Mask", "color-range": "Mask",
+        "channel-to-mask": "Mask"}
 
 DEPS = {
     "hsv": ["lb:hsv-dual", "lb:hsv-compose", "gimp:curves"],
@@ -820,6 +978,8 @@ DEPS = {
     "grey": [],
     "alpha-curves": ["lb:channel-range-to-alpha", "gimp:curves"],
     "color-range": ["lb:color-mask-select"],
+    "channel-to-mask": [],
+    "convert": [],
     "split": [],
 }
 
@@ -830,6 +990,8 @@ DEPS_NOTE = {
                  "100 万像素约 4 毫秒），只调 GIMP 自己的选区 PDB。",
     "channel": "不依赖任何自研算子：直接读图层字节，只调 GIMP 自己的通道 PDB。",
     "split": "不依赖任何自研算子：读一次图层数据后按分量切片，只调 GIMP 自己的通道 PDB。",
+    "channel-to-mask": "不依赖任何自研算子：只读通道像素、只调 GIMP 自己的蒙版 PDB。",
+    "convert": "不依赖任何自研算子：六个方向都只调 GIMP 自己的通道、选区、蒙版 PDB。",
 }
 
 for _p in PAGES:

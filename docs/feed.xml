@@ -5,6 +5,25 @@
   <updated>2026-11-17T00:00:00Z</updated>
   <id>tag:github.com,2026:gegl-color-ops</id>
   <entry>
+    <title>插件 · Convert（通道 / 选区 / 蒙版 六向转换）</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/convert.html"/>
+    <id>tag:github.com,2026:plugin-convert</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>通道、选区、蒙版三者两两互转，六个方向各占一个菜单项，点下去直接执行、
+       不弹参数框。原生菜单里这六条路分散在三处，而且「蒙版 → 通道」根本没有直连，
+       只能绕选区两步走。</summary>
+  </entry>
+  <entry>
+    <title>插件 · Channel to Mask（通道转图层蒙版）</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/channel-to-mask.html"/>
+    <id>tag:github.com,2026:plugin-channel-to-mask</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>原生路线是「图层 → 蒙版 → 添加图层蒙版 → 通道」，弹窗里再挑一条通道，
+       而且一次只能伺候一个图层。这个插件把顺序倒过来：先在通道面板选一条，
+       再在图层面板选中要挂蒙版的图层，右键一次就好——多选几个就一次挂几个，
+       还能顺手反相。和 Layer to Channel 正好是一对反向操作。</summary>
+  </entry>
+  <entry>
     <title>插件 · Color Range（色彩范围）</title>
     <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/color-range.html"/>
     <id>tag:github.com,2026:plugin-color-range</id>
