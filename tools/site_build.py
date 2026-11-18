@@ -7,12 +7,13 @@
 算子页是**中英双语**的：中文正文来自 ops/<dir>/README.md，英文正文来自
 tools/site/en/<dir>.md（front matter 给 name / blurb）。两套内容同时写进同一个
 HTML，靠 <html data-lang> 决定显示哪一套，页头的 中文/EN 按钮切换并记住偏好
-（localStorage + ?lang=en）。首页也是双语的；清单页、插件页、安装页只有中文，
-不显示切换按钮。
+（localStorage + ?lang=en）。**index.html 是主页**：两个方框，算子一个、插件一个，
+各自挂 Windows / Linux 整包；长版（三步安装、算法来源、版权）在 overview.html，
+页脚有入口。清单页、插件页、安装页只有中文，不显示切换按钮。
 
-plugins.html 只是十块方格（每个插件一块，链到 plugins/<slug>.html），
+plugins.html 只是十一块方格（每个插件一块，链到 plugins/<slug>.html），
 正文全在文章页里；数据与文案集中在 tools/plugin_docs.py，两边不会漂。
-首页有八张 Shortcut 入口卡，feed.xml 里也有十条。
+feed.xml 里收了十一篇插件文章。
 
     python tools/site_build.py           # 生成 docs/
     python tools/site_build.py --serve   # 生成后起本地服务看效果
@@ -239,7 +240,7 @@ def head_html(root="", bilingual=False):
     return """<header class="site-head">
   <a class="brand" href="{r}index.html"><span class="dot"></span>gegl-color-ops</a>
   <nav>
-    <a href="{r}index.html#ops">{ops}</a>
+    <a href="{r}ops.html">{ops}</a>
     <a href="{r}plugins.html">{plug}</a>
     <a href="{r}guide.html">{install}</a>
     <a href="{r}index.html#download">{download}</a>
@@ -262,6 +263,7 @@ def foot_html(version, root=""):
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops">{repo}</a>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues">{issue}</a>
     <a href="{r}guide.html">{guide}</a>
+    <a href="{r}overview.html">{overview}</a>
     <span class="muted">{v}</span>
   </div>
 </footer>""".format(
@@ -274,7 +276,8 @@ def foot_html(version, root=""):
                "from source; this project is not affiliated with any vendor or the GIMP team."),
         repo=t("仓库", "Repository"),
         issue=t("问题反馈", "Issues"),
-        guide=t("安装指南", "Install guide"))
+        guide=t("安装指南", "Install guide"),
+        overview=t("总览", "Overview"))
 
 
 # 切换语言的脚本：head 里那段先跑，避免「先画中文再跳成英文」的闪烁；
@@ -492,7 +495,166 @@ def group_section(g, ops):
 # 页面
 # --------------------------------------------------------------------------
 
-def build_index(ops, stats, version):
+def build_home(ops, stats, version):
+    """主页：两个方框 —— 算子一个、插件一个，各自带 Windows / Linux 整包。"""
+    n_live = sum(1 for o in ops if not o.get("deprecated"))
+    n_groups = len(SMG.GROUPS)
+    n_plug = len(PLUGIN_SPECS)
+    pb = stats.get("plugin_bundle") or {}
+    pw, pl = pb.get("windows-x64") or {}, pb.get("linux-x64") or {}
+    miss = stats.get("linux_missing") or []
+
+    def dl(href, os_zh, os_en, meta_zh, meta_en, missing=False):
+        return """<a class="dl-link{miss}" href="{href}">
+        <span class="os">{os}</span>
+        <span class="meta">{meta}</span>
+        <span class="arrow" aria-hidden="true">↓</span>
+      </a>""".format(href=href, miss=" is-missing" if missing else "",
+                     os=t(os_zh, os_en), meta=t(meta_zh, meta_en))
+
+    win_dl = dl("download/" + stats["zip_name"], "Windows x64", "Windows x64",
+                "%d 个 .dll · %s MB" % (stats["win_files"], stats["zip_mb"]),
+                "%d .dll · %s MB" % (stats["win_files"], stats["zip_mb"]))
+    if stats.get("zip_linux_name"):
+        lin_dl = dl("download/" + stats["zip_linux_name"], "Linux x86_64", "Linux x86_64",
+                    "%d 个 .so · %s MB" % (stats["linux_files"], stats["zip_linux_mb"]),
+                    "%d .so · %s MB" % (stats["linux_files"], stats["zip_linux_mb"]),
+                    missing=bool(miss))
+    else:
+        lin_dl = dl("%s/tree/main/dist/linux-x64" % REPO, "Linux x86_64", "Linux x86_64",
+                    "暂无预编译包，用 build.sh 自编", "no prebuilt yet — use build.sh")
+
+    pwin_dl = dl("download/" + pw["name"], "Windows x64", "Windows x64",
+                 "%d 个 .py · %d 个模块 · %s MB" % (pw.get("py", n_plug), pw.get("mods", 0),
+                                                 pw.get("mb", 0)),
+                 "%d .py · %d modules · %s MB" % (pw.get("py", n_plug), pw.get("mods", 0),
+                                                  pw.get("mb", 0))) if pw else ""
+    plin_dl = dl("download/" + pl["name"], "Linux x86_64", "Linux x86_64",
+                 "%d 个 .py · %d 个模块 · %s MB" % (pl.get("py", n_plug), pl.get("mods", 0),
+                                                 pl.get("mb", 0)),
+                 "%d .py · %d modules · %s MB" % (pl.get("py", n_plug), pl.get("mods", 0),
+                                                  pl.get("mb", 0)),
+                 missing=True) if pl else ""
+
+    ops_miss = ""
+    if miss:
+        ops_miss = """<p class="door-note"><span class="l-zh">Linux 端少 %d 个分量模块（各空间的
+      dual / compose 与 gray-to-component），要用就 <code>./build.sh</code> 自编；
+      Windows 端 %d 个齐全。</span><span class="l-en">The Linux bundle is missing %d
+      component modules (dual / compose for each space, plus gray-to-component) — build
+      them with <code>./build.sh</code>. The Windows bundle has all %d.</span></p>""" % (
+            len(miss), stats["win_files"], len(miss), stats["win_files"])
+
+    plug_miss = ""
+    if pl and pl.get("absent"):
+        plug_miss = """<p class="door-note"><span class="l-zh">Linux 整包里没有那 %d 个分量模块，
+      所以五个 <b>Split (Curves)</b> 插件要先自编再用；其余插件在 Linux 上装完即用。</span><span class="l-en">The Linux bundle leaves out those %d component
+      modules, so the five <b>Split (Curves)</b> plug-ins need a local build first; every
+      other plug-in works out of the box on Linux.</span></p>""" % (
+            len(pl["absent"]), len(pl["absent"]))
+
+    hero = """<section class="home-hero">
+  <div class="home-glow" aria-hidden="true"></div>
+  <p class="eyebrow">GIMP 3.x · GEGL 0.4 · GPL-3.0</p>
+  <h1><span class="l-zh">两个压缩包，<br><span class="grad">一整套调色链</span></span><span class="l-en">Two archives,<br><span class="grad">the whole colour chain</span></span></h1>
+  <p class="lede"><span class="l-zh">{n} 个 <code>lb:</code> 算子管算法，{p} 个 Python 插件管流程：
+     把分量拆成层、把 alpha 画成曲线、把磨皮拆成高低频。装完即用，全部能当非破坏滤镜
+     挂在图层上，改参数不落像素。</span><span class="l-en">{n} <code>lb:</code> operators
+     for the maths, {p} Python plug-ins for the workflow: split a component into layers,
+     draw alpha as a curve, separate skin into high and low frequency. Ready to use, all
+     of it mounts as non-destructive filters.</span></p>
+  <ul class="facts">
+    <li><b>{n}</b> <span class="l-zh">个算子</span><span class="l-en">operators</span></li>
+    <li><b>{p}</b> <span class="l-zh">个插件</span><span class="l-en">plug-ins</span></li>
+    <li><b>{g}</b> <span class="l-zh">个分组</span><span class="l-en">groups</span></li>
+    <li><b>0</b> <span class="l-zh">依赖 · 免编译</span><span class="l-en">deps · prebuilt</span></li>
+  </ul>
+</section>""".format(n=n_live, p=n_plug, g=n_groups)
+
+    doors = """<section class="doors" id="download">
+  <article class="door door-ops" id="ops">
+    <p class="door-kicker">01 · OPERATORS</p>
+    <h2><span class="l-zh">算子</span><span class="l-en">Operators</span></h2>
+    <p class="door-lead"><span class="l-zh">{n} 个单文件 C 模块，一个模块一个滤镜。
+     色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版生成都在里面，按
+     <b>Levels / Component / Tone / Color / Blend / Mask</b> 六组排在顶层菜单下。</span><span class="l-en">{n} single-file C modules, one filter each. Levels, colour balance,
+     vibrance, white balance, channel mixing and mask building, arranged in six groups —
+     <b>Levels / Component / Tone / Color / Blend / Mask</b> — under one top-level menu.</span></p>
+    <div class="door-meta">
+      <span><b>{win}</b> <span class="l-zh">个 Windows 模块</span><span class="l-en">Windows modules</span></span>
+      <span><b>{lin}</b> <span class="l-zh">个 Linux 模块</span><span class="l-en">Linux modules</span></span>
+      <span><b>{g}</b> <span class="l-zh">个分组</span><span class="l-en">groups</span></span>
+    </div>
+    <div class="door-dl">{win_dl}{lin_dl}</div>
+    {miss}
+    <div class="door-foot">
+      <a href="ops.html"><span class="l-zh">看全部 {n} 个算子</span><span class="l-en">Browse all {n}</span> <span aria-hidden="true">→</span></a>
+      <a class="sub" href="overview.html#download"><span class="l-zh">单个模块</span><span class="l-en">One module at a time</span></a>
+    </div>
+  </article>
+
+  <article class="door door-plug" id="plugins">
+    <p class="door-kicker">02 · PLUG-INS</p>
+    <h2><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></h2>
+    <p class="door-lead"><span class="l-zh">{p} 个 Python 插件，负责把算子串成流程：五个色彩空间的分量
+     拆层加三条曲线、Alpha 曲线、高低频 / 双曲线 / 中性灰磨皮、图层转选区与转通道。
+     每个插件内部要用的算子模块已经打在包里。</span><span class="l-en">{p} Python plug-ins that string the operators into a workflow: component
+     split-and-curve in five colour spaces, alpha curves, frequency-separation / dodge &amp;
+     burn / neutral-grey retouching, layer-to-selection and layer-to-channel. The operator
+     modules each one needs are already inside.</span></p>
+    <div class="door-meta">
+      <span><b>{p}</b> <span class="l-zh">个 .py</span><span class="l-en">scripts</span></span>
+      <span><b>3</b> <span class="l-zh">组磨皮</span><span class="l-en">retouching sets</span></span>
+      <span><b>2</b> <span class="l-zh">处入口</span><span class="l-en">menu entries</span></span>
+    </div>
+    <div class="door-dl">{pwin_dl}{plin_dl}</div>
+    {pmiss}
+    <div class="door-foot">
+      <a href="plugins.html"><span class="l-zh">看全部 {p} 个插件</span><span class="l-en">Browse all {p}</span> <span aria-hidden="true">→</span></a>
+      <a class="sub" href="guide.html"><span class="l-zh">怎么装</span><span class="l-en">How to install</span></a>
+    </div>
+  </article>
+</section>""".format(n=n_live, p=n_plug, g=n_groups,
+                     win=stats["win_files"], lin=stats["linux_files"],
+                     win_dl=win_dl, lin_dl=lin_dl, miss=ops_miss,
+                     pwin_dl=pwin_dl, plin_dl=plin_dl, pmiss=plug_miss)
+
+    quick = """<section class="quick">
+  <h2><span class="l-zh">两个目录，三个动作</span><span class="l-en">Two directories, three moves</span></h2>
+  <ol class="quick-list">
+    <li>
+      <h3><span class="l-zh">模块进 GEGL</span><span class="l-en">Modules into GEGL</span></h3>
+      <p><span class="l-zh">解压后把 <code>.dll</code> / <code>.so</code> 整个扔进 GEGL 的模块目录。</span><span class="l-en">Unpack and drop every <code>.dll</code> / <code>.so</code> into GEGL's module directory.</span></p>
+      <pre><code>Windows  %LOCALAPPDATA%\\gegl-0.4\\plug-ins
+Linux    ~/.local/share/gegl-0.4/plug-ins</code></pre>
+    </li>
+    <li>
+      <h3><span class="l-zh">.py 进 GIMP</span><span class="l-en">Scripts into GIMP</span></h3>
+      <p><span class="l-zh">插件包里的 <code>.py</code> 放进 GIMP 的插件目录，两处都要放，缺一个就报「找不到过程」。</span><span class="l-en">The plug-in bundle's <code>.py</code> files go into GIMP's plug-in directory. Both places — miss one and the procedure won't be found.</span></p>
+      <pre><code>Windows  %APPDATA%\\GIMP\\3.x\\plug-ins
+Linux    ~/.config/GIMP/3.x/plug-ins</code></pre>
+    </li>
+    <li>
+      <h3><span class="l-zh">重启 GIMP</span><span class="l-en">Restart GIMP</span></h3>
+      <p><span class="l-zh">完全退出再打开，菜单栏顶层就有 <b>SuperMrWang</b>（和「颜色」「图层」平级）。</span><span class="l-en">Quit completely and reopen: <b>SuperMrWang</b> is now a top-level menu, a sibling of Colors and Layer.</span></p>
+    </li>
+  </ol>
+  <p class="note"><span class="l-zh">装不上、菜单里看不到、和 GIMP 自带算子重名——排错写在
+     <a href="guide.html">安装指南</a>；算法来源、误差表与三轮安装说明在
+     <a href="overview.html">完整总览</a>。</span><span class="l-en">Won't install, missing from the menu, name clashes — see the
+     <a href="guide.html">install guide</a>. Algorithm provenance, error tables and the
+     long version live in the <a href="overview.html">full overview</a>.</span></p>
+</section>"""
+
+    return page("gegl-color-ops · GIMP 3 色彩算子与插件",
+                hero + doors + quick,
+                desc="GIMP 3 的 %d 个 GEGL 色彩算子 + %d 个 Python 插件，"
+                     "Windows 与 Linux 整包直接下载。" % (n_live, n_plug),
+                titles=("gegl-color-ops · GIMP 3 色彩算子与插件",
+                        "gegl-color-ops · operators and plug-ins for GIMP 3"))
+
+
+def build_overview(ops, stats, version):
     n_live = sum(1 for o in ops if not o.get("deprecated"))
     n_dep = len(ops) - n_live
     dep_note = ('<span class="muted">%s</span>' %
@@ -516,7 +678,7 @@ def build_index(ops, stats, version):
   </div>
   <ul class="facts">
     <li><b>{n}</b> <span class="l-zh">个算子</span><span class="l-en">operators</span></li>
-    <li><b>5</b> <span class="l-zh">个分类</span><span class="l-en">categories</span></li>
+    <li><b>6</b> <span class="l-zh">个分类</span><span class="l-en">categories</span></li>
     <li><b>0</b> <span class="l-zh">依赖 · 免编译包</span><span class="l-en">dependencies · prebuilt</span></li>
     <li><b>{files}</b> <span class="l-zh">个 Windows 模块已随仓库发布</span><span class="l-en">Windows modules shipped with the repo</span></li>
   </ul>
@@ -540,13 +702,12 @@ def build_index(ops, stats, version):
      <b>Levels</b> 子菜单里（Levels / LAB / HSL / HSB / LCH / CMYK / HSI），
      分量家族的 dual / compose 与 gray-to-component 收在一级目录 <b>Component</b> 里，
      其余按 Tone / Color / Blend / Mask 四组排开；
-     也可以按 <code>/</code> 搜算子名直接调。</span><span class="l-en">The filters live under <code>Colors → SuperMrWang</code>: the levels family is
+     也可以按 <code>/</code> 搜算子名直接调。</span><span class="l-en">The filters live in a top-level <code>SuperMrWang</code> menu: the levels family is
      grouped in a top-level <b>Levels</b> submenu (Levels / LAB / HSL / HSB / LCH /
      CMYK / HSI), the component family (dual / compose pairs and gray-to-component)
      in a top-level <b>Component</b> submenu, and the rest in four groups —
      Tone / Color / Blend / Mask. You can also press <code>/</code> and search by
-     operator name.</span><span class="l-en"> It is a top-level menu of its
-     own in the menu bar, a sibling of <b>Colors</b> and <b>Layer</b>.</span></p>
+     operator name.</span></p>
     </li>
   </ol>
 </section>""".format(files=stats["win_files"])
@@ -1231,10 +1392,10 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
                 desc="GIMP 3 GEGL 算子安装、验证与排错")
 
 
-def build_plugin_zips(out_dir):
-    """每个 Python 插件打一个包，与 dll/so 的免编译包同一套路。
-    sky-replace 源码保留但带 .disabled，暂不发布。"""
-    specs = [
+# 每个 Python 插件：一个 .py 加上它内部依赖的算子模块。清单放在模块级，
+# 是因为主页的「插件整包」也要用它，不能再抄一遍。
+# sky-replace 源码保留但带 .disabled，暂不发布。
+PLUGIN_SPECS = [
         dict(key="selection", ops=[],
              name="gegl-color-ops-plugin-layer-to-selection.zip",
              src_dir=os.path.join(ROOT, "plugin", "layer-to-selection"),
@@ -1352,7 +1513,12 @@ def build_plugin_zips(out_dir):
                   "画的曲线（gimp:curves，通道 = Alpha）。两条都是非破坏滤镜，"
                   "梯形、S 形、任意起伏都行。",
              pdb="lb-plugin-alpha-curves(image, drawables, channel, shape)"),
-    ]
+]
+
+
+def build_plugin_zips(out_dir):
+    """每个 Python 插件打一个包，与 dll/so 的免编译包同一套路。"""
+    specs = PLUGIN_SPECS
     zips = {}
     win_src = os.path.join(ROOT, "dist", "windows-x64")
     lin_src = os.path.join(ROOT, "dist", "linux-x64")
@@ -1452,6 +1618,88 @@ GPL-3.0-or-later
                            "win_mods": win_dll, "lin_mods": lin_so,
                            "absent": absent}
     return zips
+
+
+def build_plugin_bundle(out_dir):
+    """插件整包：全部 .py 一次装齐，外加它们内部依赖的模块，两个平台各一个。
+    .py 是纯 Python、跨平台通用，所以两个包里的 plugins/ 完全一样，只有
+    modules-* 目录不同。"""
+    win_src = os.path.join(ROOT, "dist", "windows-x64")
+    lin_src = os.path.join(ROOT, "dist", "linux-x64")
+    need = sorted({m for sp in PLUGIN_SPECS for m in (sp.get("ops") or [])})
+    mods_of = {
+        "windows-x64": [m + ".dll" for m in need
+                        if os.path.exists(os.path.join(win_src, m + ".dll"))],
+        "linux-x64": [m + ".so" for m in need
+                      if os.path.exists(os.path.join(lin_src, m + ".so"))],
+    }
+    src_of = {"windows-x64": win_src, "linux-x64": lin_src}
+    lin_absent = [m for m in need
+                  if not os.path.exists(os.path.join(lin_src, m + ".so"))]
+
+    out = {}
+    for plat, mods in mods_of.items():
+        miss = lin_absent if plat == "linux-x64" else []
+        miss_note = ""
+        if miss:
+            miss_note = (
+                "\n注意：%d 个分量模块（各色空间的 dual / compose）还没进预编译包，\n"
+                "这个包里不含：\n    %s\n"
+                "受影响的是五个 * Split (Curves) 插件；其余插件在 Linux 上开箱可用。\n"
+                "要用它们，在源码目录跑 ./build.sh 自己编一份（Windows 端是齐的）。\n"
+                % (len(miss), "、".join(miss)))
+        gimp_dir = ("%APPDATA%\\GIMP\\3.x\\plug-ins\\" if plat == "windows-x64"
+                    else "~/.config/GIMP/3.x/plug-ins/")
+        gegl_dir = ("%LOCALAPPDATA%\\gegl-0.4\\plug-ins" if plat == "windows-x64"
+                    else "~/.local/share/gegl-0.4/plug-ins")
+        readme = """gegl-color-ops · Python 插件整包（{plat}）
+=================================================
+
+{py_n} 个 GIMP 3 Python 插件，加上它们内部依赖的 {mod_n} 个算子模块，
+一次装齐，不用一个一个下。
+
+两条路、两个目录——少放一边，插件会报「找不到过程」：
+
+  1) plugins/ 里的 .py  →  GIMP 的用户插件目录
+        {gimp_dir}
+
+  2) modules-{plat}/ 里的模块  →  GEGL 的模块目录（注意不是上面那个）
+        {gegl_dir}
+
+放好之后完全退出 GIMP 再打开（关窗口不算）。两个目录都只在启动时扫描。
+
+菜单位置：菜单栏顶层的 SuperMrWang（和「颜色」「图层」平级）
+    SuperMrWang → Shortcut   五个分量曲线 + 高低频 / 双曲线 / 中性灰磨皮
+    SuperMrWang → Mask       Alpha Curves
+    SuperMrWang → Convert    Layer to Selection / Layer to Channel
+    图层右键 → SuperMrWang   同上全部
+{miss_note}
+插件清单：
+{listing}
+
+源码与算法说明：{repo}
+
+GPL-3.0-or-later
+""".format(plat=plat, py_n=len(PLUGIN_SPECS), mod_n=len(mods),
+           gimp_dir=gimp_dir, gegl_dir=gegl_dir, miss_note=miss_note,
+           listing="\n".join("    %-28s %s" % (sp["py"], sp["menu"])
+                             for sp in PLUGIN_SPECS),
+           repo=REPO)
+        name = "gegl-color-ops-plugins-%s.zip" % plat
+        path = os.path.join(out_dir, name)
+        with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
+            for sp in PLUGIN_SPECS:
+                _zip_add_file(z, os.path.join(sp["src_dir"], sp["py"]),
+                              "plugins/" + sp["py"])
+            for f in mods:
+                _zip_add_file(z, os.path.join(src_of[plat], f),
+                              "modules-%s/%s" % (plat, f))
+            _zip_add_text(z, "安装说明.txt", readme)
+        out[plat] = {"name": name, "sha": _sha256_file(path),
+                     "mb": round(os.path.getsize(path) / (1024 * 1024), 1),
+                     "mods": len(mods), "py": len(PLUGIN_SPECS),
+                     "absent": miss}
+    return out
 
 
 def build_plugins(version, stats=None):
@@ -1799,6 +2047,7 @@ def main():
 
     build_zip(stats, os.path.join(DOCS, "download"))
     stats["plugin_zips"] = build_plugin_zips(os.path.join(DOCS, "download"))
+    stats["plugin_bundle"] = build_plugin_bundle(os.path.join(DOCS, "download"))
 
     # 样式与静态资源（tools/site/en 是英文正文的源文件目录，不是要拷的资源）
     for f in os.listdir(SRC):
@@ -1817,7 +2066,8 @@ def main():
     globals()["VERSION"] = version
 
     pages = {
-        "index.html": build_index(ops, stats, version),
+        "index.html": build_home(ops, stats, version),
+        "overview.html": build_overview(ops, stats, version),
         "ops.html": build_ops_index(ops, version),
         "plugins.html": build_plugins(version, stats),
         "guide.html": build_guide(version, stats),
@@ -1842,7 +2092,7 @@ def main():
     total = sum(os.path.getsize(os.path.join(dp, f))
                 for dp, _, fs in os.walk(DOCS) for f in fs)
     print("· docs/ 已生成：%d 个总览页、%d 篇算子文章、%d 个资源文件，共 %.1f MB（含下载包 %.1f MB）"
-          % (5, len(ops),
+          % (6, len(ops),
              sum(len(fs) for _, _, fs in os.walk(os.path.join(DOCS, "assets"))),
              total / 1048576, stats["zip_mb"]))
     print("· 分类：" + " / ".join("%s %d" % (GROUP_ZH[g][1],
@@ -1854,6 +2104,9 @@ def main():
               % (stats["zip_linux_name"], stats["linux_files"]))
     for d in (stats.get("plugin_zips") or {}).values():
         print("           docs/download/%s（GIMP 3 Python 插件）" % d["name"])
+    for plat, d in (stats.get("plugin_bundle") or {}).items():
+        print("           docs/download/%s（插件整包 %d 个 .py + %d 个模块）"
+              % (d["name"], d["py"], d["mods"]))
 
     # 构建后自检：站内相对链接必须都能落到文件上。缺图这类死链在浏览器里
     # 只是不显示，肉眼极容易漏过，所以构建时就报出来。

@@ -60,21 +60,29 @@ gegl-color-ops/
 | 系统 | 取这个 | 放到 |
 |---|---|---|
 | Windows x64（整包） | [`docs/download/gegl-color-ops-windows-x64.zip`](docs/download/) | `%LOCALAPPDATA%\gegl-0.4\plug-ins` |
+| Linux x86_64（整包） | [`docs/download/gegl-color-ops-linux-x64.zip`](docs/download/) | `~/.local/share/gegl-0.4/plug-ins` |
 | Windows x64（单个） | `dist/windows-x64/*.dll` | 同上 |
-| Linux x86_64 | `dist/linux-x64/*.so` | `~/.local/share/gegl-0.4/plug-ins` |
+| Linux x86_64（单个） | `dist/linux-x64/*.so` | 同上 |
 
 放完重启 GIMP。平台要求（glibc 版本之类）、每个文件对应哪个滤镜、怎么校验，
 见 [`dist/README.md`](dist/README.md) 与 `dist/manifest.csv`；重新打包用
 `python tools/make_dist.py`。
 
-Python 插件走另一条线：`docs/download/gegl-color-ops-plugin-<名字>.zip` 一个插件一个包，
-**它内部用到的算子模块（`lb:hsv-dual` 这类）已经打在包里的 `modules-windows-x64/`**，
-下一次就齐，不用再单独找算子。`.py` 放进 GIMP 的 `plug-ins`，附带的模块放进 GEGL 的
+Python 插件走另一条线，两种取法都行：
+
+- **整包（推荐）**：[`gegl-color-ops-plugins-windows-x64.zip`](docs/download/) /
+  [`gegl-color-ops-plugins-linux-x64.zip`](docs/download/)——11 个 `.py` 全在里面，
+  连同它们依赖的模块。
+- **单装**：`docs/download/gegl-color-ops-plugin-<名字>.zip`，一个插件一个包。
+
+两种包都**自带插件内部用到的算子模块**（`lb:hsv-dual` 这类，放在 `modules-<平台>/`），
+不用再单独找算子。`.py` 放进 GIMP 的 `plug-ins`，附带的模块放进 GEGL 的
 `gegl-0.4/plug-ins`——两个目录不同，包内 `安装说明.txt` 分步写了。
 
 > Linux 端 component 家族的 11 个模块（各空间的 dual / compose 与 gray-to-component）
-> 还没出预编译包，插件包里的 `modules-linux-x64/` 因此暂时不存在；要用 Linux 就先
-> `./build.sh` 编一份放进 GEGL 目录。Windows 端是齐的。
+> 还没出预编译包，所以 Linux 插件整包里只有 `channel-range-to-alpha`；五个
+> **Split (Curves)** 插件要在 Linux 上用，先 `./build.sh` 编一份放进 GEGL 目录。
+> Windows 端是齐的。
 
 ## 算子清单
 
