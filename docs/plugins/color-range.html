@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Color Range（色彩范围） · Python 插件 · gegl-color-ops</title>
+<meta name="description" content="GEGL 的算子参数是静态的：lb:color-mask-select 里高光、
+       阴影、中间调各有一组限值，GIMP 的通用对话框会把四根 0–255 的滑杆
+       一起摆出来，切换「选择颜色」时一根都不动。这个插件换">
+<meta property="og:title" content="Color Range（色彩范围） · Python 插件 · gegl-color-ops">
+<meta property="og:description" content="GEGL 的算子参数是静态的：lb:color-mask-select 里高光、
+       阴影、中间调各有一组限值，GIMP 的通用对话框会把四根 0–255 的滑杆
+       一起摆出来，切换「选择颜色」时一根都不动。这个插件换">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+</head>
+<body>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+</header>
+<main id="main">
+<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../plugins.html">插件</a>
+    / Mask</p>
+  <h1>Color Range（色彩范围）</h1>
+  <div class="meta">
+    <code>plugin/color-range</code>
+    <span class="tag t-mask">蒙版</span>
+    <span>Mask</span>
+  </div>
+  <p class="lede">GEGL 的算子参数是静态的：<code>lb:color-mask-select</code> 里高光、
+       阴影、中间调各有一组限值，GIMP 的通用对话框会把四根 0–255 的滑杆
+       <b>一起摆出来</b>，切换「选择颜色」时一根都不动。这个插件换成自己搭的
+       对话框：选颜色系只给容差，选高光只给一根「范围」且默认 192，
+       选阴影是 64，选中间调是上下限 64 / 192。</p>
+</section>
+
+<div class="prose wide">
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>菜单位置</h3><span class="pill">多条</span></div>
+      <ul class="menu-list"><li>SuperMrWang → Mask → Color Range</li><li>图层右键 → SuperMrWang → Color Range</li></ul>
+      <p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——
+         组没有自己的像素，会直接报错并提示先合并。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>脚本调用</h3></div>
+      <pre><code>lb-plugin-color-range(image, drawables)</code></pre>
+      <p>标准 PDB 过程，参数留空走默认值。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>依赖</h3></div>
+      <p>靠下面这些算子干活。<b>它们已经打进这个插件的下载包</b>（<code>modules-windows-x64</code> / <code>modules-linux-x64</code>），不用另外去下：</p>
+      <ul class="deps"><li><code>lb:color-mask-select</code></li></ul>
+    </div>
+  </div>
+
+<div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>为什么需要一层壳</h3><span class="pill">静态 vs 联动</span></div>
+      <p>GEGL 的属性声明是<b>编译期固定</b>的：<code>property_enum</code> 和四个
+         <code>property_int</code> 之间没有任何联动机制，对话框也没法因为枚举变了
+         就换掉别的控件。所以算子那边只能四根杆常驻，选「红色」时那四根依旧
+         占着界面、全程无效。</p>
+      <p>能真正联动的是<b>程序自己的 GTK 对话框</b>。像素运算仍然交给
+         <code>lb:color-mask-select</code>——壳只负责「哪个模式该显示哪几根杆、
+         各自从多少起步」，所以两条入口算出来的像素完全一致。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>每个模式各自的起点</h3></div>
+      <ul class="deps">
+        <li><b>红 / 黄 / 绿 / 青 / 蓝 / 洋红</b>：颜色容差 50、最低彩度 0（范围是色相环，没有阈值杆）</li>
+        <li><b>高光</b>：范围 <b>192</b>（亮度 ≥ 192 算高光）</li>
+        <li><b>阴影</b>：范围 <b>64</b>（亮度 ≤ 64 算阴影）</li>
+        <li><b>中间调</b>：下限 <b>64</b> / 上限 <b>192</b></li>
+        <li><b>自定颜色</b>：取色按钮（默认纯红）+ 容差 + 最低彩度</li>
+      </ul>
+      <p>切模式只换页，各页自己记住自己的值：改过高光的 192 再切到阴影、切回来，
+         还是改过之后的数。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>预览与落地</h3><span class="pill">红色叠加</span></div>
+      <p>拖参数时画面上是<b>红色叠加</b>实时预览（60 ms 内连续改动合并成一次重算）。
+         按「确定」时先把叠加关掉再合并，<b>红色不会被烤进图层</b>；蒙版写进
+         图层 alpha。按「取消」把预览滤镜整个撤掉，连中途补上的 alpha 通道也回滚。</p>
+      <p>与非破坏的区别：这里是<b>一次性应用</b>，合并后不能回改。想随时改参数，
+         用菜单里的 <code>lb:color-mask-select</code> 算子版本挂成滤镜——同一份
+         参数、同一份像素，只是界面朴素。</p>
+    </div>
+  </div>
+  <p class="note">依赖 <code>lb:color-mask-select</code>；缺算子会明确报错并给出装包提示，
+     不会静默什么都不做。图层组没有像素，会拒绝并提示先合并。</p>
+
+<section class="download" id="download">
+  <h2>下载这一个</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>Color Range</h3><span class="pill">含 1 个模块 · 免编译</span></div>
+    <p>包里有一个 <code>.py</code>、1 个算子模块和一份安装说明。<b>算子依赖已经附在里面，不用另外去下。</b><code>.py</code> 进 GIMP 的 <code>plug-ins</code>，模块进 GEGL 的 <code>gegl-0.4/plug-ins</code>——两个目录不一样，包内说明分步写了。</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-color-range.zip">下载 Color Range</a>
+    <p class="muted small">66.0 KB · 校验：<code>SHA256 22cb2e97c142828be371023b8f476565…</code></p>
+  </div>
+</section>
+
+<p class="note">文中「码」指 8 位图上的一个台阶：0–255 共 256 级，相邻两级的差就是
+   1 码，等于 1/255 ≈ 0.392%（也就是 RGB 128 与 129 之间的差）。各数量级的含义与
+   「码为什么不是感知量」的说明见
+   <a href="../guide.html#code">安装指南 · 精度里的「码」</a>。</p>
+
+<nav class="pager">
+  <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
+  <a class="prev" href="alpha-curves.html"><span>上一篇</span>Alpha Curves（透明通道曲线）</a>
+</nav>
+</div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
+    <span class="muted">4a2d23c</span>
+  </div>
+</footer>
+</body>
+</html>

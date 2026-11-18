@@ -5,6 +5,17 @@
   <updated>2026-11-17T00:00:00Z</updated>
   <id>tag:github.com,2026:gegl-color-ops</id>
   <entry>
+    <title>插件 · Color Range（色彩范围）</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/color-range.html"/>
+    <id>tag:github.com,2026:plugin-color-range</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>GEGL 的算子参数是静态的：lb:color-mask-select 里高光、
+       阴影、中间调各有一组限值，GIMP 的通用对话框会把四根 0–255 的滑杆
+       一起摆出来，切换「选择颜色」时一根都不动。这个插件换成自己搭的
+       对话框：选颜色系只给容差，选高光只给一根「范围」且默认 192，
+       选阴影是 64，选中间调是上下限 64 / 192。</summary>
+  </entry>
+  <entry>
     <title>插件 · Alpha Curves（透明通道曲线）</title>
     <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/alpha-curves.html"/>
     <id>tag:github.com,2026:plugin-alpha-curves</id>
