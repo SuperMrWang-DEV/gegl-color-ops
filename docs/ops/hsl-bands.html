@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-title-zh="HSL 7 Bands · gegl-color-ops" data-title-en="HSL 8 Bands · gegl-color-ops">
+<html lang="zh-CN" data-title-zh="HSL 8 Bands · gegl-color-ops" data-title-en="HSL 8 Bands · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HSL 7 Bands · gegl-color-ops</title>
+<title>HSL 8 Bands · gegl-color-ops</title>
 <meta name="description" content="红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，经典 RAW 编辑器风格">
-<meta property="og:title" content="HSL 7 Bands · gegl-color-ops">
+<meta property="og:title" content="HSL 8 Bands · gegl-color-ops">
 <meta property="og:description" content="红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，经典 RAW 编辑器风格">
 <link rel="stylesheet" href="../assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
@@ -79,16 +79,17 @@ window.addEventListener("DOMContentLoaded", function () {
 <main id="main">
 <div class="l-zh"><section class="page-head">
   <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 色彩</p>
-  <h1>HSL 7 Bands</h1>
+  <h1>HSL 8 Bands</h1>
   <div class="meta">
-    <code>lb:hsl-seven</code>
+    <code>lb:hsl-bands</code>
     <span class="tag t-color">色彩</span>
     <span>逐像素</span>
   </div>
   <p class="lede">红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，经典 RAW 编辑器风格</p>
 </section><div class="article-layout">
   <article class="prose">
-<blockquote><p>2026-11-12：按 RAW 编辑器 8 段混色器补齐洋红段——原紫段 0.78~0.92 对半拆为 紫 0.78~0.85 与洋红 0.85~0.92。旧 7 段属性名与边界行为不变，算子 id 仍为 <code>lb:hsl-seven</code>（GIMP 存进 XCF 的字符串，不能改）。</p></blockquote>
+<blockquote><p>2026-11-12：按 RAW 编辑器 8 段混色器补齐洋红段——原紫段 0.78~0.92 对半拆为 紫 0.78~0.85 与洋红 0.85~0.92。旧 7 段属性名与边界行为不变。</p></blockquote>
+<blockquote><p>2026-11-18：算子 id 由 <code>lb:hsl-seven</code> 改为 <code>lb:hsl-bands</code>。补洋红段之后 「seven」已经名不副实，新名字也不再承诺段数。旧 XCF 里的 <code>lb:hsl-seven</code> 滤镜会失效；暂时保留旧的 <code>hsl-seven.dll</code> 可以让老工程照常打开，两个 id 互不冲突。</p></blockquote>
 <h2 id="这个算子做什么">这个算子做什么</h2>
 <p>八段色相（红 / 橙 / 黄 / 绿 / 青 / 蓝 / 紫 / 洋红）各带一组 H/S/L 偏移，共 24 个 滑块，按色相段加权叠加，段间由 <code>feather</code> 交叉淡化；饱和度低于 <code>min-saturation</code> 的灰像素可以选择跳过（灰没有有意义的色相）。参照物是 RAW 编辑器 的 HSL 面板： 只想压掉某几个色相的饱和、或者只把某个色相提亮，就拖那一段。</p>
 <h2 id="算法">算法</h2>
@@ -101,14 +102,16 @@ L \mathrel{+}= \frac{\Delta L_k}{100}\,w_k$$</div>
 <p>八段首尾相接（红 0–45°、橙 45–90°……洋红 315–360°），权重和恒为 1； <span class="math">$S &lt; \text{min-saturation}$</span> 的灰像素可以整段跳过。</p>
 <h2 id="2026-11-12补上洋红段">2026-11-12：补上洋红段</h2>
 <p>RAW 编辑器 的混色器是八段，本算子原来只有七段。原紫段（0.78–0.92）对半拆成 紫 0.78–0.85 与洋红 0.85–0.92。</p>
-<p>原来七段的属性名与边界行为不变，算子 id 仍是 <code>lb:hsl-seven</code>——这个字符串是 GIMP 存进 XCF 的东西，不能改。</p>
+<p>原来七段的属性名与边界行为不变。</p>
+<h2 id="2026-11-18算子-id-改名">2026-11-18：算子 id 改名</h2>
+<p>补上洋红段之后 id 里的 <code>seven</code> 已经说错了对象。现在叫 <code>lb:hsl-bands</code>，不再承诺段数。 旧 XCF 里以旧 id 保存的滤镜会显示为不可用；把旧的 <code>hsl-seven.dll</code> 留在插件目录里 可以让老工程重新打开——两个 id 不冲突。</p>
 <h2 id="与-lbhue-saturation-的分工">与 lb:hue-saturation 的分工</h2>
 <p><code>lb:hue-saturation</code> 是 经典图像编辑器的对话框：一个主控加六个色相区间，做的是相对偏移、在 HSL 上加减。本算子对应 RAW 编辑器 的混色器：八段、每段三个分量。思路相同，面板与数值 都不同，看惯哪个用哪个。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>hsl-seven.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>hsl-seven.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
+    <p>Windows 模块 <code>hsl-bands.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hsl-seven.dll">下载 hsl-seven.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/hsl-seven.so">下载 hsl-seven.so<span class="size">Linux x86_64</span></a></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hsl-bands.dll">下载 hsl-bands.dll<span class="size">Windows x64</span></a></div>
 </div><nav class="pager"><a class="prev" href="hue-saturation-basic.html"><span>上一个</span>Hue/Saturation (Basic)</a><a class="next" href="color-balance.html"><span>下一个</span>Color Balance</a></nav><details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
 <h4 id="linux-原生版系统包安装的gimp">Linux 原生版（系统包安装的GIMP）</h4>
 <pre><code class="language-bash">sh build_linux.sh
@@ -121,13 +124,14 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
 <h4 id="方法一菜单打开推荐">方法一：菜单打开（推荐）</h4>
 <p>菜单路径：<code>SuperMrWang → Color → HSL 8 Bands</code></p>
 <h4 id="方法二gegl-操作打开">方法二：GEGL 操作打开</h4>
-<ol><li>顶部菜单点击：<code>滤镜 → 通用 → GEGL 操作</code></li><li>在弹出窗口的搜索框输入：<code>lb:hsl-seven</code></li><li>选中后点击「确定」即可使用插件</li></ol></details>
+<ol><li>顶部菜单点击：<code>滤镜 → 通用 → GEGL 操作</code></li><li>在弹出窗口的搜索框输入：<code>lb:hsl-bands</code></li><li>选中后点击「确定」即可使用插件</li></ol></details>
   </article>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
   <ul><li class="l2"><a href="#这个算子做什么">这个算子做什么</a></li>
 <li class="l2"><a href="#算法">算法</a></li>
 <li class="l2"><a href="#2026-11-12补上洋红段">2026-11-12：补上洋红段</a></li>
+<li class="l2"><a href="#2026-11-18算子-id-改名">2026-11-18：算子 id 改名</a></li>
 <li class="l2"><a href="#与-lbhue-saturation-的分工">与 lb:hue-saturation 的分工</a></li></ul>
 </aside>
 </div></div>
@@ -135,20 +139,22 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
   <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Color</p>
   <h1>HSL 8 Bands</h1>
   <div class="meta">
-    <code>lb:hsl-seven</code>
+    <code>lb:hsl-bands</code>
     <span class="tag t-color">Color</span>
     <span>per-pixel</span>
   </div>
   <p class="lede">Eight hue bands (red, orange, yellow, green, cyan, blue, purple, magenta), each with its own H/S/L shift — the RAW editor's HSL panel.</p>
 </section><div class="article-layout">
   <article class="prose">
-<p><code>lb:hsl-seven</code> · menu <strong>Colors → SuperMrWang → Color → HSL 8 Bands</strong> · <code>GeglOperationPointFilter</code> (per-pixel)</p>
+<p><code>lb:hsl-bands</code> · menu <strong>SuperMrWang → Color → HSL 8 Bands</strong> · <code>GeglOperationPointFilter</code> (per-pixel)</p>
 <h2 id="what-it-does">What it does</h2>
 <p>Eight hue bands — red, orange, yellow, green, cyan, blue, purple, magenta — each with its own hue, saturation and lightness shift: 24 sliders in all, weighted by hue band and summed, with <code>feather</code> cross-fading adjacent bands. Pixels below <code>min-saturation</code> (greys, which have no meaningful hue) can be skipped.</p>
 <p>The reference is the RAW editor's HSL panel: pull one band's saturation down to desaturate just those hues, or push a band's lightness to open up one colour without touching the rest.</p>
 <h2 id="change-of-2026-11-12-the-magenta-band-was-added">Change of 2026-11-12: the magenta band was added</h2>
 <p>the RAW editor's mixer has eight bands; this operator had seven. The old purple band (0.78–0.92) is now split in half: purple 0.78–0.85 and magenta 0.85–0.92.</p>
-<p>The seven original property names and their boundary behaviour are unchanged, and the operator id stays <code>lb:hsl-seven</code> — that string is what GIMP stores in XCF files and cannot be renamed.</p>
+<p>The seven original property names and their boundary behaviour are unchanged.</p>
+<h2 id="change-of-2026-11-18-the-id-was-renamed">Change of 2026-11-18: the id was renamed</h2>
+<p>With the eighth band in place, <code>seven</code> in the id described the wrong thing. It is now <code>lb:hsl-bands</code>, which no longer promises a band count. Filters already saved in XCF files under the old id will show as unavailable; keeping the old <code>hsl-seven.dll</code> alongside makes those files open again — the two ids do not collide.</p>
 <h2 id="algorithm">Algorithm</h2>
 <p>Eight hue bands each carry their own H/S/L offset, summed with band weights; the boundaries cross-fade with smoothstep:</p>
 <div class="math-display">$$w_k(h) = \sigma\!\left(h,\ s_k-f,\ s_k\right)\cdot\Bigl(1-\sigma\bigl(h,\ e_k,\ e_k+f\bigr)\Bigr),
@@ -161,9 +167,9 @@ L \mathrel{+}= \frac{\Delta L_k}{100}\,w_k$$</div>
 <p><code>lb:hue-saturation</code> is the classic editor's dialog: a master control plus six hue ranges, relative offsets, HSL arithmetic. This one is the RAW editor's mixer: eight bands, all three components per band. Same idea, different layout and different numbers — pick the one whose panel you are used to.</p><div class="op-dl">
   <div>
     <h3>Just this one</h3>
-    <p>Windows module <code>hsl-seven.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>hsl-seven.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+    <p>Windows module <code>hsl-bands.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hsl-seven.dll">Download hsl-seven.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/hsl-seven.so">Download hsl-seven.so<span class="size">Linux x86_64</span></a></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hsl-bands.dll">Download hsl-bands.dll<span class="size">Windows x64</span></a></div>
 </div><nav class="pager"><a class="prev" href="hue-saturation-basic.html"><span>Previous</span>Hue/Saturation (Basic)</a><a class="next" href="color-balance.html"><span>Next</span>Color Balance</a></nav><details class="legacy-intro"><summary>Original plugin docs<span class="muted"> — written when this was a standalone plug-in: the build commands assume the old directory layout and the menu paths have changed. The algorithm notes above supersede it.</span></summary><h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
 <h4 id="native-linux-system-installed-gimp">Native Linux (System installed GIMP)</h4>
 <pre><code class="language-bash">sh build_linux.sh
@@ -176,13 +182,14 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
 <h4 id="method-1-menu-bar-recommended">Method 1: Menu Bar (Recommended)</h4>
 <p>Menu path: <code>Colors → SuperMrWang → Color → HSL 8 Bands</code></p>
 <h4 id="method-2-gegl-operation">Method 2: GEGL Operation</h4>
-<ol><li>Go to <code>Filters → Generic → GEGL Operations</code></li><li>In the search box, enter: <code>lb:hsl-seven</code></li><li>Select it and click <code>OK</code> to apply</li></ol>
+<ol><li>Go to <code>Filters → Generic → GEGL Operations</code></li><li>In the search box, enter: <code>lb:hsl-bands</code></li><li>Select it and click <code>OK</code> to apply</li></ol>
 <hr></details>
   </article>
   <aside class="toc">
   <p class="toc-title">On this page</p>
   <ul><li class="l2"><a href="#what-it-does">What it does</a></li>
 <li class="l2"><a href="#change-of-2026-11-12-the-magenta-band-was-added">Change of 2026-11-12: the magenta band was added</a></li>
+<li class="l2"><a href="#change-of-2026-11-18-the-id-was-renamed">Change of 2026-11-18: the id was renamed</a></li>
 <li class="l2"><a href="#algorithm">Algorithm</a></li>
 <li class="l2"><a href="#relation-to-lbhue-saturation">Relation to lb:hue-saturation</a></li></ul>
 </aside>
@@ -198,7 +205,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">4a2d23c</span>
+    <span class="muted">d98baeb</span>
   </div>
 </footer>
 <script>
