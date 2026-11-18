@@ -959,7 +959,7 @@ ul.menu-list li { font-family: var(--mono, ui-monospace, monospace); font-size: 
 }
 
 /* ==========================================================================
-   主页：两个方框 —— 算子一个、插件一个
+   主页：两张卡 —— 算子一张、插件一张（宽屏时排在标题块右侧）
    --------------------------------------------------------------------------
    背景光斑用 isolation 把负 z-index 关在本节里，免得跑到 body 底色下面；
    方框的渐变描边用 padding + mask-composite 做，不加额外 DOM。
@@ -1262,101 +1262,64 @@ ul.menu-list li { font-family: var(--mono, ui-monospace, monospace); font-size: 
 }
 
 /* ==========================================================================
-   宽屏：首页单独放开 --max
+   首屏：左边标题，右边两张卡片
    --------------------------------------------------------------------------
-   全站正文锁在 1120px 是为长文的行宽，首页是版式页，1900 的屏上两侧各空
-   400px 会显得小气。这里只对 body.home 抬 --max —— 页头、main、页脚都用
-   同一个变量算左右留白，抬一处三者仍然对齐，不会出现「页头比正文宽」。
-   卡片在 1560 以上从并排改成整幅横条（左文右下载），中文行宽不会被拉成
-   一条 90 字的长线。
+   1120 以上排成一行两列，标题块在左、两张下载卡竖排在右；再窄退回上下，
+   卡片在 900 以下并成单列。左列比右列矮一截，所以让标题块 sticky：滚下去
+   时字留在原处，不会早早滚走、底下空一大片。
    ========================================================================== */
+@media (min-width: 1000px) {
+  .home-split {
+    display: grid;
+    grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
+    column-gap: 64px;
+    align-items: start;
+    padding-top: 88px;
+  }
+  .home-split .home-hero {
+    max-width: none;
+    /* 卡片内边距 28，这里补 16 让眉标和卡片的「01 · OPERATORS」大致同一行 */
+    padding: 16px 0 32px;
+    position: sticky;
+    top: 88px;
+  }
+  /* 光斑跟着左列，别铺到卡片底下去糊描边 */
+  .home-split .home-glow { top: -88px; height: 560px; }
+  .home-split .home-hero h1 {
+    font-size: clamp(34px, 3.4vw, 58px);
+    /* 左列窄，靠均衡断行凑出两行，别让「一整套调色链」掉到第三行去 */
+    text-wrap: balance;
+  }
+  .home-split .home-hero .lede { font-size: 17px; max-width: 44ch; }
+  .home-split .home-hero .facts { margin-top: 36px; }
+  .home-split .home-hero .facts li { padding: 0 18px; }
+  .home-split .doors {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+    margin: 0;
+  }
+  .home-split .door { padding: 28px 28px 20px; gap: 14px; border-radius: 22px; }
+  /* 右列只有一列宽，两个平台的下载按钮并排，卡片能矮 70px */
+  .home-split .door-dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* 宽屏：首屏已经把宽度用掉了，这里只抬页面留白和正文字号。卡片不再长成
+   横条——右边一列塞不下「正文 / 计数 / 下载」三栏。 */
 @media (min-width: 1320px) {
-  body.home { --max: 1300px; }
-  body.home .home-hero { max-width: 1060px; padding-top: 104px; }
-  body.home .home-glow { height: 660px; }
-  body.home .home-hero h1 { font-size: clamp(62px, 4.8vw, 86px); }
-  body.home .home-hero .lede { font-size: 19px; max-width: 56ch; margin-top: 24px; }
-  body.home .home-hero .facts { margin-top: 46px; gap: 14px 0; }
-  body.home .home-hero .facts b { font-size: 22px; }
-  body.home .home-hero .facts li { padding: 0 28px; }
-  body.home .doors { gap: 28px; margin-top: 64px; }
-  body.home .door { padding: 38px 38px 26px; gap: 18px; border-radius: 24px; }
-  body.home .door > h2 { font-size: 38px; }
-  body.home .door-lead { font-size: 15.5px; line-height: 1.78; }
-  body.home .door-meta { font-size: 13px; gap: 8px 22px; }
-  body.home .door-meta b { font-size: 15px; }
-  body.home .dl-link { padding: 14px 18px; }
-  body.home .dl-link .os { font-size: 15.5px; }
+  body.home { --max: 1360px; }
+  .home-split { column-gap: 72px; }
+  body.home .home-split .home-hero .lede { font-size: 18px; }
+  body.home .home-split .door { padding: 32px 32px 22px; }
   body.home .quick { margin-top: 88px; }
   body.home .quick-list { gap: 22px; }
   body.home .quick-list li { padding: 24px 26px; }
   body.home .quick-list p { font-size: 13.5px; }
 }
 
-@media (min-width: 1560px) {
-  body.home { --max: 1500px; }
-  body.home .home-hero {
-    max-width: 1260px;
-    padding-top: 116px;
-    /* 标题只占左边，右边空出一大片；把四个数字竖过来当规格栏，
-     * 与卡片右侧的计数栏同一套语言。 */
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 248px;
-    column-gap: 60px;
-    align-items: end;
-  }
-  body.home .home-hero .eyebrow { grid-column: 1; justify-self: start; }
-  body.home .home-hero h1 { grid-column: 1; font-size: clamp(84px, 4.6vw, 104px); }
-  body.home .home-hero .lede {
-    grid-column: 1; font-size: 20px; max-width: 62ch; margin-bottom: 6px;
-  }
-  body.home .home-hero .facts {
-    grid-column: 2; grid-row: 1 / span 3;
-    flex-direction: column; align-items: flex-start; gap: 0;
-    margin: 0 0 6px; padding: 0 0 0 28px;
-    border-left: 1px solid var(--line-soft);
-  }
-  body.home .home-hero .facts li {
-    width: 100%; padding: 14px 0 12px;
-    border-left: 0; border-top: 1px solid var(--line-soft);
-  }
-  body.home .home-hero .facts li:first-child { border-top: 0; padding-top: 0; }
-  body.home .home-hero .facts b { font-size: 28px; }
-  body.home .doors { grid-template-columns: minmax(0, 1fr); gap: 26px; margin-top: 72px; }
-  body.home .door {
-    display: grid;
-    /* 三列：正文 / 计数 / 下载。计数单独一列是因为两列时文字只有 400 宽、
-     * 右边空出 500 的洞，看着像没排完。 */
-    grid-template-columns: minmax(0, 1fr) 176px 360px;
-    align-items: start;
-    column-gap: 44px;
-    row-gap: 12px;
-    padding: 42px 46px 30px;
-  }
-  body.home .door-kicker { grid-column: 1; grid-row: 1; }
-  body.home .door > h2 { grid-column: 1; grid-row: 2; font-size: 44px; }
-  body.home .door-lead { grid-column: 1; grid-row: 3; font-size: 16px; max-width: 80ch; }
-  /* 计数改成竖排，左侧一条发丝线，正好填住原来的空档 */
-  body.home .door-meta {
-    grid-column: 2; grid-row: 2 / span 3;
-    flex-direction: column; align-items: flex-start; gap: 16px;
-    align-self: stretch;
-    margin: 0; padding: 8px 0 0 26px;
-    border-top: 0; border-left: 1px solid var(--line);
-  }
-  body.home .door-meta b { display: block; margin: 0 0 3px; font-size: 17px; }
-  body.home .door-dl { grid-column: 3; grid-row: 2 / span 3; margin-top: 8px; }
-  body.home .door-note { grid-column: 1 / -1; margin-top: 12px; }
-  body.home .door-foot { grid-column: 1 / -1; margin-top: 12px; }
-}
-
-@media (min-width: 1920px) {
-  /* 再放大就只是两侧留白变多，行宽反而不舒服，1700 封顶 */
-  body.home { --max: 1700px; }
-  body.home .home-hero { max-width: 1420px; }
-  body.home .home-hero h1 { font-size: 108px; }
-  body.home .door { grid-template-columns: minmax(0, 1fr) 200px 400px; column-gap: 56px; }
-  body.home .door > h2 { font-size: 50px; }
+@media (min-width: 1680px) {
+  body.home { --max: 1560px; }
+  .home-split { column-gap: 88px; }
+  .home-split .home-hero h1 { font-size: clamp(52px, 3.1vw, 64px); }
 }
 
 /* 文章页（带右侧「本页目录」的那批算子页）：宽屏下把正文行宽和 --max 一起抬，

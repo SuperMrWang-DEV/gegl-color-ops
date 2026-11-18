@@ -8,11 +8,12 @@
 算子页是**中英双语**的：中文正文来自 ops/<dir>/README.md，英文正文来自
 tools/site/en/<dir>.md（front matter 给 name / blurb）。两套内容同时写进同一个
 HTML，靠 <html data-lang> 决定显示哪一套，页头的 中文/EN 按钮切换并记住偏好
-（localStorage + ?lang=en）。**index.html 是主页**：两个方框，算子一个、插件一个，
-各自挂 Windows / Linux 整包；长版（三步安装、算法来源、版权）在 overview.html，
-页脚有入口。清单页、插件页、安装页只有中文，不显示切换按钮。
+（localStorage + ?lang=en）。**index.html 是主页**：宽屏上一行两列，左边标题块、
+右边算子与插件两张卡（各挂 Windows / Linux 整包），窄屏退回上下；长版（三步
+安装、算法来源、版权）在 overview.html，页脚有入口。清单页、插件页、安装页
+只有中文，不显示切换按钮。
 
-plugins.html 只是十一块方格（每个插件一块，链到 plugins/<slug>.html），
+plugins.html 是和算子清单同一套表格（三组，链到 plugins/<slug>.html），
 正文全在文章页里；数据与文案集中在 tools/plugin_docs.py，两边不会漂。
 feed.xml 里收了十一篇插件文章。
 
@@ -782,8 +783,15 @@ Linux    ~/.config/GIMP/3.x/plug-ins</code></pre>
      long version live in the <a href="overview.html">full overview</a>.</span></p>
 </section>"""
 
+    # 宽屏上首屏是左右两张：左边标题块、右边两张卡片。窄屏退回上下，
+    # 900 以下连卡片也并入单列。
+    split = """<div class="home-split">
+%s
+%s
+</div>""" % (hero, doors)
+
     return page("gegl-color-ops · GIMP 3 的 GEGL 算子与插件",
-                hero + doors + quick, body_class="home",
+                split + quick, body_class="home",
                 desc="GIMP 3 的 %d 个 GEGL 色彩算子 + %d 个 Python 插件，"
                      "Windows 与 Linux 整包直接下载。" % (n_live, n_plug),
                 titles=("gegl-color-ops · GIMP 3 的 GEGL 算子与插件",
