@@ -609,6 +609,58 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
      曲线的 trc 钉在编码值上，与 <code>channel-range-to-alpha</code> 的 0–255 滑块
      同一刻度。依赖 <code>lb:channel-range-to-alpha</code>（除 alpha 模式外）。</p>""",
     ),
+    dict(
+        key='color-range',
+        slug='color-range',
+        title='Color Range（色彩范围）',
+        tag=('蒙版', 't-mask'),
+        count='▤',
+        area='Mask',
+        menu='SuperMrWang → Mask → Color Range',
+        menus=['SuperMrWang → Mask → Color Range',
+               '图层右键 → SuperMrWang → Color Range'],
+        pdb='lb-plugin-color-range(image, drawables)',
+        lede="""GEGL 的算子参数是静态的：<code>lb:color-mask-select</code> 里高光、
+       阴影、中间调各有一组限值，GIMP 的通用对话框会把四根 0–255 的滑杆
+       <b>一起摆出来</b>，切换「选择颜色」时一根都不动。这个插件换成自己搭的
+       对话框：选颜色系只给容差，选高光只给一根「范围」且默认 192，
+       选阴影是 64，选中间调是上下限 64 / 192。""",
+        body="""<div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>为什么需要一层壳</h3><span class="pill">静态 vs 联动</span></div>
+      <p>GEGL 的属性声明是<b>编译期固定</b>的：<code>property_enum</code> 和四个
+         <code>property_int</code> 之间没有任何联动机制，对话框也没法因为枚举变了
+         就换掉别的控件。所以算子那边只能四根杆常驻，选「红色」时那四根依旧
+         占着界面、全程无效。</p>
+      <p>能真正联动的是<b>程序自己的 GTK 对话框</b>。像素运算仍然交给
+         <code>lb:color-mask-select</code>——壳只负责「哪个模式该显示哪几根杆、
+         各自从多少起步」，所以两条入口算出来的像素完全一致。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>每个模式各自的起点</h3></div>
+      <ul class="deps">
+        <li><b>红 / 黄 / 绿 / 青 / 蓝 / 洋红</b>：颜色容差 50、最低彩度 0（范围是色相环，没有阈值杆）</li>
+        <li><b>高光</b>：范围 <b>192</b>（亮度 ≥ 192 算高光）</li>
+        <li><b>阴影</b>：范围 <b>64</b>（亮度 ≤ 64 算阴影）</li>
+        <li><b>中间调</b>：下限 <b>64</b> / 上限 <b>192</b></li>
+        <li><b>自定颜色</b>：取色按钮（默认纯红）+ 容差 + 最低彩度</li>
+      </ul>
+      <p>切模式只换页，各页自己记住自己的值：改过高光的 192 再切到阴影、切回来，
+         还是改过之后的数。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>预览与落地</h3><span class="pill">红色叠加</span></div>
+      <p>拖参数时画面上是<b>红色叠加</b>实时预览（60 ms 内连续改动合并成一次重算）。
+         按「确定」时先把叠加关掉再合并，<b>红色不会被烤进图层</b>；蒙版写进
+         图层 alpha。按「取消」把预览滤镜整个撤掉，连中途补上的 alpha 通道也回滚。</p>
+      <p>与非破坏的区别：这里是<b>一次性应用</b>，合并后不能回改。想随时改参数，
+         用菜单里的 <code>lb:color-mask-select</code> 算子版本挂成滤镜——同一份
+         参数、同一份像素，只是界面朴素。</p>
+    </div>
+  </div>
+  <p class="note">依赖 <code>lb:color-mask-select</code>；缺算子会明确报错并给出装包提示，
+     不会静默什么都不做。图层组没有像素，会拒绝并提示先合并。</p>""",
+    ),
 ]
 
 BY_KEY = {p["key"]: p for p in PAGES}
@@ -630,9 +682,12 @@ BRIEF = {
     "grey": "一层 50% 灰、柔光下恒等；白笔提亮、黑笔压暗、灰盖回去。",
     "alpha-curves": "把颜色通道写进 alpha，再接一条三个控制点的平滑曲线："
                     "挂上去先拉满，往下拖即成形状。",
+    "color-range": "色彩范围的定制对话框：选什么颜色，下面就只显示那种颜色的参数，"
+                   "高光 192 / 阴影 64 / 中间调 64–192 各自归位。",
 }
 
-AREA = {"selection": "图层转换", "channel": "图层转换", "alpha-curves": "Mask"}
+AREA = {"selection": "图层转换", "channel": "图层转换", "alpha-curves": "Mask",
+        "color-range": "Mask"}
 
 DEPS = {
     "hsv": ["lb:hsv-dual", "lb:hsv-compose", "gimp:curves"],
@@ -644,6 +699,7 @@ DEPS = {
     "dodge": ["gimp:curves"],
     "grey": [],
     "alpha-curves": ["lb:channel-range-to-alpha", "gimp:curves"],
+    "color-range": ["lb:color-mask-select"],
 }
 
 DEPS_NOTE = {

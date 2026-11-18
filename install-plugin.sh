@@ -33,7 +33,7 @@ for SRC in "$SRC_ROOT"/*/; do
 done
 echo "· 重启 GIMP 后生效（菜单栏顶层多一个 SuperMrWang，与「颜色」「图层」平级）："
 echo "    SuperMrWang → Shortcut   HSV·LCh·HSL·Lab·HSI Split + 高低频/双曲线/中性灰磨皮"
-echo "    SuperMrWang → Mask        Alpha Curves（通道 → Alpha + alpha 曲线）"
+echo "    SuperMrWang → Mask        Alpha Curves（通道 → Alpha + alpha 曲线）/ Color Range（色彩范围）"
 echo "    SuperMrWang → Convert     图层 → 选区 / 通道（含 gray-mask）"
 echo "    SuperMrWang → Blend       应用图像 / 计算"
 echo "    图层右键 → SuperMrWang   Layer to Selection / Layer to Channel"

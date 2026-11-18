@@ -1513,6 +1513,16 @@ PLUGIN_SPECS = [
                   "画的曲线（gimp:curves，通道 = Alpha）。两条都是非破坏滤镜，"
                   "梯形、S 形、任意起伏都行。",
              pdb="lb-plugin-alpha-curves(image, drawables, channel, shape)"),
+        dict(key="color-range", ops=["color-mask-select"],
+             name="gegl-color-ops-plugin-color-range.zip",
+             src_dir=os.path.join(ROOT, "plugin", "color-range"),
+             py="color-range.py", menu="Color Range（色彩范围）",
+             menus="    SuperMrWang → Mask → Color Range\n"
+                   "    图层右键 → SuperMrWang → Color Range",
+             desc="Color Range：色彩范围的定制对话框。选哪种颜色就只显示那种颜色"
+                  "的参数，高光 192 / 阴影 64 / 中间调 64–192 各自归位；"
+                  "红色叠加实时预览，确定后蒙版写进 alpha。",
+             pdb="lb-plugin-color-range(image, drawables)"),
 ]
 
 
