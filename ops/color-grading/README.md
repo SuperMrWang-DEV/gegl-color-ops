@@ -65,7 +65,7 @@ t = \frac{\text{Sat}}{100}\,w,\qquad
 
 ## 标定状态（诚实声明）
 
-本机 经典图像编辑器 2025 **未装 RAW 编辑器 插件**，无法像 colorize / color-mask-select
+本机经典图像编辑器2025 **未装 RAW 编辑器 插件**，无法像 colorize / color-mask-select
 那样逐码标定。分界 0.3/0.7、过渡 ±0.25、Rec.709 亮度等均为按 RAW 编辑器 公开
 行为设定的合理模型，**不是黑盒实测值**。结构、参数语义与 RAW 编辑器 面板
 一一对应；数值行为由 `tools/check_color_grading.py` 按设计模型验证。

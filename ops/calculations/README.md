@@ -2,7 +2,7 @@
 
 > `lb:calculations` · 菜单 **SuperMrWang → Blend → Calculations** · 双输入（input + aux）
 
-对应 经典图像编辑器 的 **图像 → 计算**：从两路各取一个通道（可以各自反相），按混合模式
+对应 经典图像编辑器的 **图像 → 计算**：从两路各取一个通道（可以各自反相），按混合模式
 算出灰度结果，输出成灰蒙版或 alpha 蒙版。
 
 Replicates the classic editor's **Image → Calculations**: take one channel from each of two
@@ -16,7 +16,7 @@ sources (each optionally inverted), blend them, and output a grey or alpha mask.
 | `invert-source1` | 否 | 源 1 反相 |
 | `source2-channel` | Luminance | aux 取哪个通道 |
 | `invert-source2` | 否 | 源 2 反相 |
-| `blend-mode` | Multiply | 26 种混合模式，与 经典图像编辑器 列表一致 |
+| `blend-mode` | Multiply | 26 种混合模式，与经典图像编辑器列表一致 |
 | `scale` | 1.0 | **仅加法/减法**：结果 = (A ± B) / 缩放 + 补偿值，范围 1.0..2.0 |
 | `offset` | 0 | **仅加法/减法**：缩放后加上的补偿值，±255（8bit 口径） |
 | `opacity` | 100 | 混合强度 |
@@ -72,12 +72,11 @@ alpha 蒙版代替：把它当作图层的不透明度，或转成选区。经�
 
 ## 想要选区 / 通道：手动三步 / Getting a selection or channel by hand
 
-GEGL 算子只能产出像素，碰不到选区、通道、图层这些图像对象，所以 经典图像编辑器 计算对话框
+GEGL 算子只能产出像素，碰不到选区、通道、图层这些图像对象，所以经典图像编辑器计算对话框
 里的 Result 下拉在这里只能落到「灰蒙版 / alpha 蒙版」。要选区或通道，不改代码也
 能做到：
 
-1. **Ctrl+Shift+D 复制图层**——**必做**。GEGL 滤镜是直接改当前图层的像素，不像 经典图像编辑器
-   的计算那样不碰原图，在副本上跑才不会把原图换掉。
+1. **Ctrl+Shift+D 复制图层**——**必做**。GEGL 滤镜是直接改当前图层的像素，不像经典图像编辑器的计算那样不碰原图，在副本上跑才不会把原图换掉。
 2. 在副本上跑 **Colors → SuperMrWang → Blend → Calculations**，`Output` 选
    **Mask (alpha)**。这一步是关键：alpha 版把灰度写在图层的 alpha 上，才能用
    「alpha → 选区」；选灰蒙版的话 alpha 恒为 1，转出来是全选。

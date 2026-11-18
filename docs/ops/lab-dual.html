@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="Lab Dual Extract · gegl-color-ops" data-title-en="Lab Dual Extract · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lab Dual Extract · gegl-color-ops</title>
-<meta name="description" content="Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量">
-<meta property="og:title" content="Lab Dual Extract · gegl-color-ops">
-<meta property="og:description" content="Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量">
+<meta name="description" content="Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量" data-desc-zh="Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量" data-desc-en="Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量">
+<meta property="og:title" content="Lab Dual Extract · gegl-color-ops" data-title-zh="Lab Dual Extract · gegl-color-ops" data-title-en="Lab Dual Extract · gegl-color-ops">
+<meta property="og:description" content="Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量" data-desc-zh="Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量" data-desc-en="Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量">
 <link rel="stylesheet" href="../assets/style.css">
-<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
@@ -47,8 +47,20 @@ window.addEventListener("DOMContentLoaded", function () {
     });
   }
 });
-</script></head>
-<body>
+</script><script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body class="article">
 <a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
@@ -59,9 +71,13 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
+<div class="l-zh"><section class="page-head">
   <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 分量</p>
   <h1>Lab Dual Extract</h1>
   <div class="meta">
@@ -116,7 +132,65 @@ L' = L* / 100</code></pre>
 <li class="l2"><a href="#实测">实测</a></li>
 <li class="l2"><a href="#注意">注意</a></li></ul>
 </aside>
-</div>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Component</p>
+  <h1>Lab Dual Extract</h1>
+  <div class="meta">
+    <code>lb:lab-dual</code>
+    <span class="tag t-component">Component</span>
+    <span>area</span>
+  </div>
+  <p class="lede">Packs a* and b* into two channels of one data image so two curves can move them independently — Lab's axes have no blend mode of their own in GIMP.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>Menu: <code>Colors → SuperMrWang → Component → Lab Dual Extract</code> (a filter op)</p>
+<h2 id="overview">Overview</h2>
+<p>Packs an image into <strong>one data image</strong>: <code>R = a*</code>, <code>G = b*</code>, <code>B = L*</code>, all 0…1. Alpha is always 1.</p>
+<pre><code>input ── lb:lab-dual ──&gt; (R=a, G=b, B=L)
+            │
+            ├── a curve (red)
+            ├── b curve (green)
+            ▼
+     lb:lab-compose ──&gt; real Lab colour
+            │
+     (an L curve can then sit on top, LCh lightness mode)</code></pre>
+<h2 id="why-a-and-b-share-one-image">Why a and b share one image</h2>
+<p>Lab's <code>a</code> and <code>b</code> are <strong>rectangular coordinates</strong>, and GIMP's component blend modes only know HSV / LCh / Luminance — there is no "a" and no "b". LCh's <code>C</code> (chroma) and <code>h</code> (hue) are the polar form of a/b, so it looks like they could stand in:</p>
+<pre><code>C = √(a² + b²)        h = atan2(b, a)</code></pre>
+<p>But each layer's curve only sees its own single scalar. For the a curve and the b curve to map <strong>independently</strong>, both values have to be in hand at the same time and converted to <code>(C, h)</code> together — while the "LCh chroma" layer holds only a C and cannot know what happened to b. Two 1D curves cannot express that two-variable map; it has to be computed jointly:</p>
+<pre><code>a curve ─┐
+         ├─&gt; (a', b') ─&gt; Lab ─&gt; real colour
+b curve ─┘</code></pre>
+<p>What comes out is already a complete colour (L∗ included), so the "L layer" only needs one <code>LCh lightness</code> mode: Lab's L∗ and LCh's L∗ are <strong>the same quantity</strong>, which makes that step bit-exact with no approximation.</p>
+<h2 id="input-and-output">Input and output</h2>
+<div class="table-wrap"><table><thead><tr><th></th><th>Format</th><th>Meaning</th></tr></thead><tbody><tr><td>input</td><td><code>R'G'B'A float</code></td><td>the filter stack's encoding-domain buffer, same domain as <code>component-extract</code></td></tr><tr><td>output</td><td><code>R'G'B'A float</code></td><td><strong>the numbers are data, not colour</strong>: 0.745 / 0.502 / 0.382 = a∗ 62, b∗ 0, L∗ 38</td></tr></tbody></table></div>
+<p>Ranges follow babl's <code>CIE Lab float</code> (D50 white point, the same Lab space GIMP uses):</p>
+<pre><code>a' = (a* + 128) / 255      neutral grey a* = 0 lands on 0.502
+b' = (b* + 128) / 255      neutral grey b* = 0 lands on 0.502
+L' = L* / 100</code></pre>
+<p>Alpha is written as 1 unconditionally: a component layer has to be opaque, and transparency belongs on a group mask — a semi-transparent blend layer would lerp with alpha instead of replacing.</p>
+<h2 id="verification">Verification</h2>
+<p><code>tools/check_lab_split.py</code> runs the <code>dual → compose</code> identity round trip: <strong>0.010 codes</strong> on a 32-bit float image, <strong>0.499 codes</strong> on 8-bit (quantisation only). After editing the a curve the result lands on the Lab point where "a∗ moved, b∗ and L∗ did not", within <strong>0.0026 codes</strong> (zero pixels over 0.5 codes).</p>
+<p>Lab points outside sRGB (which happens when a∗/b∗ are pushed hard) are clipped to [0,1] by <code>lb:lab-compose</code> — that is the gamut, not an error in the operator.</p>
+<h2 id="notes">Notes</h2>
+<ul><li>The output is a data image — <strong>do not read it as a photo</strong>. It looks like a strange colour image; that is expected.</li><li>It is only meaningful together with <code>lb:lab-compose</code>.</li><li>Negative or above-1 values are not truncated in float images (the curves can still read them); clipping happens when the result is projected to 8-bit.</li></ul><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>lab-dual.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lab-dual.dll">Download lab-dual.dll<span class="size">Windows x64</span></a></div>
+</div><nav class="pager"><a class="prev" href="hsv-compose.html"><span>Previous</span>HSV Compose</a><a class="next" href="lab-compose.html"><span>Next</span>Lab Compose</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#overview">Overview</a></li>
+<li class="l2"><a href="#why-a-and-b-share-one-image">Why a and b share one image</a></li>
+<li class="l2"><a href="#input-and-output">Input and output</a></li>
+<li class="l2"><a href="#verification">Verification</a></li>
+<li class="l2"><a href="#notes">Notes</a></li></ul>
+</aside>
+</div></div>
 </main>
 <footer class="site-foot">
   <div>
@@ -128,8 +202,51 @@ L' = L* / 100</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">d98baeb</span>
+    <span class="muted">a65d634</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

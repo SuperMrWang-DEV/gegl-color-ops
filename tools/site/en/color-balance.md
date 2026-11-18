@@ -80,7 +80,7 @@ zero-sum matrix (preserve luminosity) does match the measurements and is kept as
 
 1. The mathematics behind the Color Balance adjustment layer — 王先生的副业, Zhihu
    https://zhuanlan.zhihu.com/p/679776283
-2. How 经典图像编辑器's Color Balance adjustment layer works — 章佳杰, Zhihu
+2. How the classic editor's Color Balance adjustment layer works — 章佳杰, Zhihu
    https://zhuanlan.zhihu.com/p/59450298
 
 Article 1's three-curve model does not match the measurements; article 2's zero-sum

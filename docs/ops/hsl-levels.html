@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HSL Levels · gegl-color-ops</title>
-<meta name="description" content="HSL 三个分量各自设输入 / 输出黑白场与伽马">
-<meta property="og:title" content="HSL Levels · gegl-color-ops">
-<meta property="og:description" content="HSL 三个分量各自设输入 / 输出黑白场与伽马">
+<meta name="description" content="HSL 三个分量各自设输入 / 输出黑白场与伽马" data-desc-zh="HSL 三个分量各自设输入 / 输出黑白场与伽马" data-desc-en="HSL 三个分量各自设输入 / 输出黑白场与伽马">
+<meta property="og:title" content="HSL Levels · gegl-color-ops" data-title-zh="HSL Levels · gegl-color-ops" data-title-en="HSL Levels · gegl-color-ops">
+<meta property="og:description" content="HSL 三个分量各自设输入 / 输出黑白场与伽马" data-desc-zh="HSL 三个分量各自设输入 / 输出黑白场与伽马" data-desc-en="HSL 三个分量各自设输入 / 输出黑白场与伽马">
 <link rel="stylesheet" href="../assets/style.css">
-<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
@@ -60,7 +60,7 @@ window.addEventListener("DOMContentLoaded", function () {
 })();
 </script>
 </head>
-<body>
+<body class="article">
 <a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
@@ -204,7 +204,7 @@ S_{\text{out}} = (\text{ob}-\text{oa}) \bmod 360$$</div>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">d98baeb</span>
+    <span class="muted">a65d634</span>
   </div>
 </footer>
 <script>
@@ -225,6 +225,13 @@ S_{\text{out}} = (\text{ob}-\text{oa}) \bmod 360$$</div>
     }
     if (root.dataset.titleZh && root.dataset.titleEn) {
       document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
     }
   }
   for (var i = 0; i < btns.length; i++) {

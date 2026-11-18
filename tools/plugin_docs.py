@@ -665,6 +665,14 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
 
 BY_KEY = {p["key"]: p for p in PAGES}
 
+# 英文正文单独一个模块（大段 HTML，混在这里不好读）
+try:
+    from plugin_docs_en import PLUGIN_EN as _PLUGIN_EN
+except ImportError:  # 直接 import 的场合（tools 不在 sys.path）
+    import os as _os, sys as _sys
+    _sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+    from plugin_docs_en import PLUGIN_EN as _PLUGIN_EN
+
 # ---- 卡片与文章页共用的派生字段 ---------------------------------------------
 # 卡片只放一句（plugins.html 就只剩十块方格），长的都在文章页里。
 
@@ -684,6 +692,55 @@ BRIEF = {
                     "挂上去先拉满，往下拖即成形状。",
     "color-range": "色彩范围的定制对话框：选什么颜色，下面就只显示那种颜色的参数，"
                    "高光 192 / 阴影 64 / 中间调 64–192 各自归位。",
+}
+
+TAG_EN = {"曲线": "Curves", "磨皮": "Retouching", "选区": "Selection",
+          "通道": "Channels", "蒙版": "Mask"}
+
+TITLE_EN = {
+    "frequency": "Frequency Separation",
+    "dodge": "Dodge & Burn",
+    "grey": "Neutral Grey",
+    "alpha-curves": "Alpha Curves",
+    "color-range": "Color Range",
+}
+
+BRIEF_EN = {
+    "selection": "Right-click any layer and turn it into the current selection: "
+                 "Gray / R / G / B / Alpha, four combine modes, optional invert.",
+    "channel": "Right-click any layer and turn it into a grayscale alpha channel — "
+               "invertible, with a custom name.",
+    "hsv": "Splits into H / S / V component layers, one native curve each, restored "
+           "bit-exactly.",
+    "lch": "The same idea in CIE LCh: perceptual lightness, chroma and hue.",
+    "hsl": "GIMP has no HSL component mode, so this converts exactly instead of "
+           "approximating with HSV.",
+    "lab": "a and b share one layer and L* gets its own — curve a and only a moves.",
+    "hsi": "No component mode fits HSI, so all three share one layer with three "
+           "curves.",
+    "frequency": "Low frequency carries tone, high frequency carries detail; stacked "
+                 "they rebuild the original.",
+    "dodge": "Two curves, one lightening and one darkening, under a black mask — "
+             "paint where you want them.",
+    "grey": "A 50% grey layer is identity under soft light: white brush lightens, "
+            "black darkens, grey paints it back.",
+    "alpha-curves": "Writes a colour channel into alpha, then a smooth three-point "
+                    "curve — pull it up to fill, drag down to shape.",
+    "color-range": "A custom Colour Range dialog: pick what to target and only that "
+                   "target's parameters appear.",
+}
+
+AREA_EN = {"图层转换": "Convert", "Mask": "Mask", "Shortcut 快捷方式": "Shortcut"}
+
+DEPS_NOTE_EN = {
+    "grey": "No dependency on this project's operators: it only writes pixels into "
+            "the buffer and uses GIMP's own soft-light mode. Install the plug-in and "
+            "it works.",
+    "selection": "No dependency on this project's operators: it reads layer bytes "
+                 "directly (a C-level array slice, about 4 ms for one megapixel) and "
+                 "only calls GIMP's own selection PDB.",
+    "channel": "No dependency on this project's operators: it reads layer bytes "
+               "directly and only calls GIMP's own channel PDB.",
 }
 
 AREA = {"selection": "图层转换", "channel": "图层转换", "alpha-curves": "Mask",
@@ -712,12 +769,23 @@ DEPS_NOTE = {
 
 for _p in PAGES:
     _p["brief"] = BRIEF[_p["key"]]
+    _p["brief_en"] = BRIEF_EN.get(_p["key"], "")
+    _en = _PLUGIN_EN.get(_p["key"], {})
+    _p["lede_en"] = _en.get("lede", "")
+    _p["body_en"] = _en.get("body", "")
+    _p["tag_en"] = TAG_EN.get(_p["tag"][0], _p["tag"][0])
+    _p["title_en"] = TITLE_EN.get(_p["key"], _p["title"])
+    _p["area_en"] = AREA_EN.get(AREA.get(_p["key"], "Shortcut 快捷方式"), "Shortcut")
     _p["area"] = AREA.get(_p["key"], "Shortcut 快捷方式")
     _p["deps"] = DEPS.get(_p["key"], [])
     if "menus" not in _p:
         _name = _p["menu"].split("→")[-1].strip()
         _p["menus"] = ["SuperMrWang → Shortcut → " + _name,
                        "图层右键 → SuperMrWang → Shortcut → " + _name]
+    _p["deps_note_en"] = DEPS_NOTE_EN.get(
+        _p["key"], "The operators below do the work. <b>They are already inside this "
+                   "plug-in's download</b> (<code>modules-windows-x64</code> / "
+                   "<code>modules-linux-x64</code>) — nothing else to fetch:")
     _p["deps_note"] = DEPS_NOTE.get(
         _p["key"], "靠下面这些算子干活。<b>它们已经打进这个插件的下载包</b>"
                    "（<code>modules-windows-x64</code> / ""<code>modules-linux-x64</code>），不用另外去下：")

@@ -123,7 +123,7 @@
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/color-mask-select/README.md"/>
     <id>tag:github.com,2026:lb:color-mask-select</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览the classic editor Color Range: build a mask from a picked colour, a fuzzinessradius and feathering, with an optional red overlay preview.</summary>
+    <summary>经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览</summary>
   </entry>
   <entry>
     <title>Color Lookup</title>
@@ -137,14 +137,14 @@
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/xyz-multiply/README.md"/>
     <id>tag:github.com,2026:lb:xyz-multiply</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。the classic editor&#x27;s Photo Filter: multiply the filter colour in XYZ space,density as opacity, with an optional preserve-luminosity switch.</summary>
+    <summary>经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。</summary>
   </entry>
   <entry>
     <title>Channel Mixer Plus</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/channel-mixer-plus/README.md"/>
     <id>tag:github.com,2026:lb:channel-mixer-plus</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移the classic editor Channel Mixer: every output channel is a weighted sum of</summary>
+    <summary>经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移</summary>
   </entry>
   <entry>
     <title>Calculations</title>
@@ -165,7 +165,7 @@
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/match-color/README.md"/>
     <id>tag:github.com,2026:lb:match-color</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>经典图像编辑器 匹配颜色：把另一张图（或另一层）的 Lab 统计量迁移到本层the classic editor Match Color: transfer the Lab statistics of another image(or layer) onto this layer.</summary>
+    <summary>经典图像编辑器 匹配颜色：把另一张图（或另一层）的 Lab* 统计量迁移到本层</summary>
   </entry>
   <entry>
     <title>Hue/Saturation Range</title>
@@ -221,7 +221,7 @@
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/color-balance/README.md"/>
     <id>tag:github.com,2026:lb:color-balance</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴the classic editor Color Balance: shadow, midtone and highlight each carry threeaxis pairs (C-R, M-G, Y-B).</summary>
+    <summary>经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴</summary>
   </entry>
   <entry>
     <title>HSL 8 Bands</title>
@@ -249,7 +249,7 @@
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/rgb-domain-grayscale/README.md"/>
     <id>tag:github.com,2026:lb:rgb-domain-grayscale</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色the classic editor Black &amp; White: six hue sliders (red, yellow, green, cyan,blue, magenta) weight the grey conversion, with optionaltinting.</summary>
+    <summary>经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色</summary>
   </entry>
   <entry>
     <title>Shadows/Highlights</title>
@@ -270,14 +270,14 @@
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/exposure/README.md"/>
     <id>tag:github.com,2026:lb:exposure</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>经典图像编辑器 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）the classic editor Exposure: EV, offset and gamma in three stages, measured inexposure stops.</summary>
+    <summary>经典图像编辑器 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）</summary>
   </entry>
   <entry>
     <title>Gray To Component</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/gray-to-component/README.md"/>
     <id>tag:github.com,2026:lb:gray-to-component</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue /</summary>
+    <summary>通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue /Saturation / Lightness / LCh 系）读取还原，全程非破坏</summary>
   </entry>
   <entry>
     <title>HSI Compose</title>
@@ -396,6 +396,6 @@
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/levels/README.md"/>
     <id>tag:github.com,2026:lb:levels</id>
     <updated>2026-11-15T00:00:00Z</updated>
-    <summary>经典图像编辑器 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 经典图像编辑器 对话框的数字框一一对应the classic editor Levels: composite plus per-channel input black / gamma /white and output black / white, in 0-255 </summary>
+    <summary>经典图像编辑器 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 经典图像编辑器 对话框的数字框一一对应</summary>
   </entry>
 </feed>

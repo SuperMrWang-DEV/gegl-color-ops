@@ -1,18 +1,36 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="Alpha Curves（透明通道曲线） · Python 插件 · gegl-color-ops" data-title-en="Alpha Curves（透明通道曲线） · Python plug-ins · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Alpha Curves（透明通道曲线） · Python 插件 · gegl-color-ops</title>
 <meta name="description" content="GIMP 的曲线工具本来就有 Alpha 通道，但那条曲线只能调「已经存在的
        透明度」——它不知道红通道是多少。要按颜色通道决定透明度，得先把通道搬进
-       alpha。这个插件把两步都做了：一条 通道 → Alpha">
-<meta property="og:title" content="Alpha Curves（透明通道曲线） · Python 插件 · gegl-color-ops">
+       alpha。这个插件把两步都做了：一条 通道 → Alpha" data-desc-zh="GIMP 的曲线工具本来就有 Alpha 通道，但那条曲线只能调「已经存在的
+       透明度」——它不知道红通道是多少。要按颜色通道决定透明度，得先把通道搬进
+       alpha。这个插件把两步都做了：一条 通道 → Alpha" data-desc-en="GIMP&#x27;s curves tool does have an Alpha channel, but that curve can only edit
+   transparency that already exists — it has">
+<meta property="og:title" content="Alpha Curves（透明通道曲线） · Python 插件 · gegl-color-ops" data-title-zh="Alpha Curves（透明通道曲线） · Python 插件 · gegl-color-ops" data-title-en="Alpha Curves（透明通道曲线） · Python plug-ins · gegl-color-ops">
 <meta property="og:description" content="GIMP 的曲线工具本来就有 Alpha 通道，但那条曲线只能调「已经存在的
        透明度」——它不知道红通道是多少。要按颜色通道决定透明度，得先把通道搬进
-       alpha。这个插件把两步都做了：一条 通道 → Alpha">
+       alpha。这个插件把两步都做了：一条 通道 → Alpha" data-desc-zh="GIMP 的曲线工具本来就有 Alpha 通道，但那条曲线只能调「已经存在的
+       透明度」——它不知道红通道是多少。要按颜色通道决定透明度，得先把通道搬进
+       alpha。这个插件把两步都做了：一条 通道 → Alpha" data-desc-en="GIMP&#x27;s curves tool does have an Alpha channel, but that curve can only edit
+   transparency that already exists — it has">
 <link rel="stylesheet" href="../assets/style.css">
-<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
 <a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
@@ -25,11 +43,15 @@
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../plugins.html">插件</a>
-    / Mask</p>
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> /
+    <a href="../plugins.html">插件</a> / Mask</p>
   <h1>Alpha Curves（透明通道曲线）</h1>
   <div class="meta">
     <code>plugin/alpha-curves</code>
@@ -47,8 +69,7 @@
     <div class="dl primary-dl">
       <div class="dl-head"><h3>菜单位置</h3><span class="pill">多条</span></div>
       <ul class="menu-list"><li>SuperMrWang → Mask → Alpha Curves</li><li>图层右键 → SuperMrWang → Shortcut → Alpha Curves</li></ul>
-      <p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——
-         组没有自己的像素，会直接报错并提示先合并。</p>
+      <p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>脚本调用</h3></div>
@@ -119,16 +140,133 @@
   </div>
 </section>
 
-<p class="note">文中「码」指 8 位图上的一个台阶：0–255 共 256 级，相邻两级的差就是
-   1 码，等于 1/255 ≈ 0.392%（也就是 RGB 128 与 129 之间的差）。各数量级的含义与
-   「码为什么不是感知量」的说明见
+<p class="note">文中「码」指 8 位图上的一个台阶：0–255 共 256 级，
+   相邻两级的差就是 1 码，等于 1/255 ≈ 0.392%%（也就是 RGB 128 与 129 之间的差）。
+   各数量级的含义与「码为什么不是感知量」的说明见
    <a href="../guide.html#code">安装指南 · 精度里的「码」</a>。</p>
-
+</div>
 <nav class="pager">
   <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
   <a class="prev" href="neutral-grey.html"><span>上一篇</span>中性灰磨皮</a><a class="next" href="color-range.html"><span>下一篇</span>Color Range（色彩范围）</a>
-</nav>
+</nav></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> /
+    <a href="../plugins.html">Plug-ins</a> / Mask</p>
+  <h1>Alpha Curves</h1>
+  <div class="meta">
+    <code>plugin/alpha-curves</code>
+    <span class="tag t-mask">Mask</span>
+    <span>Mask</span>
+  </div>
+  <p class="lede">GIMP's curves tool does have an Alpha channel, but that curve can only edit
+   transparency that already exists — it has no idea what the red channel holds. Deciding
+   transparency from a colour channel means moving the channel into alpha first. This plug-in
+   does both steps: <b>channel → alpha</b>, then an <b>alpha curve you can draw</b>. Both are
+   non-destructive filters.</p>
+</section>
+
+<div class="prose wide">
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Menu location</h3><span class="pill">Several</span></div>
+      <ul class="menu-list"><li>SuperMrWang → Mask → Alpha Curves</li><li>Layer right-click → SuperMrWang → Shortcut → Alpha Curves</li></ul>
+      <p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Scripting</h3></div>
+      <pre><code>lb-plugin-alpha-curves(image, drawables, channel, shape)</code></pre>
+      <p>A standard PDB procedure; leave an argument empty to take its default.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Dependencies</h3></div>
+      <p>The operators below do the work. <b>They are already inside this plug-in's download</b> (<code>modules-windows-x64</code> / <code>modules-linux-x64</code>) — nothing else to fetch:</p>
+      <ul class="deps"><li><code>lb:channel-range-to-alpha</code></li><li><code>gimp:curves</code></li></ul>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>What gets created</h3><span class="pill">two filters</span></div>
+      <pre><code>Alpha Curves
+ ├─ 2 · Alpha curve    gimp:curves (channel = Alpha)
+ └─ 1 · Channel → alpha  lb:channel-range-to-alpha</code></pre>
+      <p>The first filter writes the chosen channel into alpha linearly: the four sliders go to
+         l1=0, l2=255, r1=r2=255 so the ramp fills the whole range and the mapping collapses to
+         "alpha ← channel value". The second is an ordinary curve whose input is exactly that
+         channel value.</p>
+      <p>Open "2 · Alpha curve" and it starts with three control points on a flat top:
+         (0, 255), (128, 255), (255, 255). The curve is SMOOTH rather than a hand-drawn sample
+         table — three handles, drag any one and the whole curve follows, no hunting through
+         dozens of sampled dots. Press it down a little and the shadows become semi-transparent;
+         press it to the bottom and they vanish. Whatever you draw is the mapping.</p>
+      <p>The moment it is attached the channel is pushed to fully opaque; for "attach it and
+         change nothing", drag the three points back onto the diagonal (45°).</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Relation to Range → Alpha</h3></div>
+      <p><code>lb:channel-range-to-alpha</code> does two things in one step: pick a channel and
+         multiply it into alpha through a four-slider trapezoid. A curve cannot do that in one
+         step — it cannot see "what the channel is", only alpha itself. Hence two filters here:
+         move the channel into alpha, then draw the curve.</p>
+      <p>Conversely, the operator's trapezoid is just one shape a curve can take. The
+         <code>shape</code> parameter offers four starting points, all smooth curves and all
+         draggable once attached:</p>
+      <ul>
+        <li><code>auto</code> / <code>flat</code> (default) = three points at the top, alpha
+            wide open</li>
+        <li><code>band</code> = blend-if style: closed at both ends, open in the middle</li>
+        <li><code>identity</code> (45°) = alpha equals the channel value, a plain copy</li>
+        <li><code>soft</code> = smoothstep: shadows more transparent, highlights more solid</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Measured</h3><span class="pill">check_alpha_curves.py</span></div>
+      <p>With the identity curve, alpha differs from the chosen channel by ≤ 1 code and RGB does
+         not move by a single code; the default flat top opens alpha completely (even the
+         darkest point is 1); <code>band</code> matches
+         <code>lb:channel-range-to-alpha</code>'s trapezoid at both ends and in the middle
+         (≤ 3 codes), while the sharpest corner is rounded by the spline and can differ by up to
+         42 codes — the curve is soft where the operator has a hard corner. 8-bit output is
+         ≤ 2 codes.</p>
+      <p>When the source is semi-transparent the result is a multiply, not a replace:
+         alpha = original alpha × curve(channel value), matching the operator. 45 assertions in
+         the regression suite.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Notes</h3></div>
+      <p>Both filters sit on the layer, so they can be switched off one by one in the Layers
+         panel and re-tuned at any time without touching pixels. Choosing alpha as the source
+         channel attaches only the second filter — the purest form of "curve the transparency I
+         already have".</p>
+      <p>The curve's trc is pinned to encoded values, the same scale as
+         <code>channel-range-to-alpha</code>'s 0–255 sliders. Depends on
+         <code>lb:channel-range-to-alpha</code> (except in alpha mode).</p>
+    </div>
+  </div>
+
+<section class="download" id="download">
+  <h2>Download this one</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>Alpha Curves</h3><span class="pill">1 modules included · no compile</span></div>
+    <p>The archive holds one <code>.py</code>, 1 operator modules and an install note. <b>The operator dependencies are already inside, nothing else to download.</b> The <code>.py</code> goes into GIMP's <code>plug-ins</code>, the modules into GEGL's <code>gegl-0.4/plug-ins</code> — two different directories, and the note inside walks through both.</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-alpha-curves.zip">Download Alpha Curves</a>
+    <p class="muted small">59.2 KB · checksum: <code>SHA256 bc4cede095575d65ab4f934f0d1104b4…</code></p>
+  </div>
+</section>
+
+<p class="note">In this article a "code" means one step on an 8-bit
+   image: 0–255 is 256 levels, so the gap between neighbours is 1 code, or
+   1/255 ≈ 0.392%% (the difference between RGB 128 and 129). For the order of magnitude
+   of each figure, and why a code is not a perceptual quantity, see
+   <a href="../guide.html#code">Install guide · what a code is</a>.</p>
 </div>
+<nav class="pager">
+  <a href="../plugins.html"><span>Back to</span>All plug-ins</a>
+  <a class="prev" href="neutral-grey.html"><span>Previous</span>Neutral Grey</a><a class="next" href="color-range.html"><span>Next</span>Color Range</a>
+</nav></div>
 </main>
 <footer class="site-foot">
   <div>
@@ -140,8 +278,51 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">d98baeb</span>
+    <span class="muted">a65d634</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

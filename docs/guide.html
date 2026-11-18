@@ -1,14 +1,26 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="安装与排错 · gegl-color-ops" data-title-en="Install &amp; troubleshooting · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>安装与排错 · gegl-color-ops</title>
-<meta name="description" content="GIMP 3 GEGL 算子安装、验证与排错">
-<meta property="og:title" content="安装与排错 · gegl-color-ops">
-<meta property="og:description" content="GIMP 3 GEGL 算子安装、验证与排错">
+<meta name="description" content="GIMP 3 GEGL 算子安装、验证与排错" data-desc-zh="GIMP 3 GEGL 算子安装、验证与排错" data-desc-en="Installing, verifying and troubleshooting the GEGL operators for GIMP 3.">
+<meta property="og:title" content="安装与排错 · gegl-color-ops" data-title-zh="安装与排错 · gegl-color-ops" data-title-en="Install &amp; troubleshooting · gegl-color-ops">
+<meta property="og:description" content="GIMP 3 GEGL 算子安装、验证与排错" data-desc-zh="GIMP 3 GEGL 算子安装、验证与排错" data-desc-en="Installing, verifying and troubleshooting the GEGL operators for GIMP 3.">
 <link rel="stylesheet" href="assets/style.css">
-<link rel="alternate" type="application/atom+xml" title="算子更新" href="feed.xml">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
 <a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
@@ -21,9 +33,13 @@
     <a href="index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
+<div class="l-zh"><section class="page-head">
   <p class="eyebrow"><a href="index.html">首页</a> / 安装</p>
   <h1>安装与排错</h1>
   <p class="lede">没有安装程序，也没有注册表：把模块文件放进 GEGL 的插件目录，重启 GIMP 就完事。</p>
@@ -150,7 +166,7 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
   <p>两列数字一模一样。8 位的 0.49 码是量化本身，跟曲线无关。</p>
 
   <h2 id="faq">常见问题</h2>
-  <h3>和 经典图像编辑器 的调整图层结果一致吗？</h3>
+  <h3>和经典图像编辑器的调整图层结果一致吗？</h3>
   <p>多数算子的目标是「肉眼与 8 位输出一致」。实测残差写在每篇算法说明里，
      通常是中位 0–4 码；有明确对不上的段落时也会说明（例如 经典图像编辑器 在个别对角线上的硬裁切）。</p>
   <h3>为什么叫 <code>lb:</code> 前缀？</h3>
@@ -158,7 +174,174 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
      所以这个工程里所有 id 和 GType 名都带前缀。</p>
   <h3>会进 GIMP 官方仓库吗？</h3>
   <p>不会。这是独立的第三方算子集，按 GPL-3.0 发布，自己装进用户插件目录即可。</p>
-</article>
+</article></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="index.html">Home</a> / Install</p>
+  <h1>Install &amp; troubleshooting</h1>
+  <p class="lede">No installer, no registry: drop the module files into GEGL's plug-in
+     directory and restart GIMP. That is the whole procedure.</p>
+</section>
+<article class="prose wide">
+  <h2 id="req">Requirements</h2>
+  <ul>
+    <li><b>GIMP 3.x</b> (tested on 3.0 and 3.2), which ships GEGL 0.4.</li>
+    <li>Prebuilt <code>.dll</code> for Windows x64, <code>.so</code> for Linux x86_64.
+        The Windows bundle has <b>all 41 modules</b>; the Linux bundle currently has
+        29 — the 12 modules of the component family (dual and compose for hsv / hsl / lab / lch / hsi, plus gray-to-component) are not in the bundle yet — build them with <code>./build.sh</code>.</li>
+    <li>No Python runtime needed: the operators are GEGL modules compiled from C.</li>
+  </ul>
+
+  <h2 id="install">Installing</h2>
+  <p>Unpack the archive and copy every module file (<code>.dll</code> / <code>.so</code>)
+     into the user plug-in directory (create it if it does not exist):</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>System</th><th>Directory</th></tr></thead>
+    <tbody>
+      <tr><td>Windows</td><td><code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code></td></tr>
+      <tr><td>Linux</td><td><code>~/.local/share/gegl-0.4/plug-ins</code></td></tr>
+      <tr><td>macOS</td><td><code>~/Library/Application Support/gegl-0.4/plug-ins</code></td></tr>
+    </tbody>
+  </table></div>
+  <p>Then <b>quit GIMP completely and start it again</b> (closing the window is not
+     enough). Directories are scanned once, at startup.</p>
+  <p>To confirm the modules loaded, ask GEGL from a terminal:</p>
+  <pre><code>gegl --info lb:hsl-levels</code></pre>
+  <p>If it prints the property list, the operator is registered. GIMP's own
+     <code>gegl</code> lives in the <code>bin/</code> folder of its install directory —
+     on Windows usually <code>C:\Program Files\GIMP 3\bin\gegl.exe</code>.</p>
+
+  <h2 id="use">Using it</h2>
+  <p>A top-level <code>SuperMrWang</code> menu appears next to Colors and Layers. The
+     levels family (Levels / LAB / HSL / HSB / LCH / CMYK / HSI Levels) sits under
+     <b>Levels</b>; the component family (dual + compose for HSL / Lab / HSI, plus
+     gray-to-component) under <b>Component</b>; the one-click component-curve plug-ins
+     under <b>Shortcut</b>; everything else is split across Tone / Color / Blend / Mask.
+     You can also type an operator name into the action search (<code>/</code>).</p>
+  <p>Almost every operator is a <b>Point</b> or <b>Filter</b> op, so GIMP attaches it to
+     the layer as a non-destructive fx — parameters stay editable and the pixels are not
+     touched. The two-input operators (Apply Image and Calculations) can only be applied
+     destructively for now.</p>
+
+  <h2 id="build">Building from source (optional)</h2>
+  <p>You need GIMP 3's GEGL development headers and gcc (MSYS2's mingw64 toolchain is
+     enough on Windows):</p>
+  <pre><code>git clone https://github.com/SuperMrWang-DEV/gegl-color-ops.git
+cd gegl-color-ops
+./build.sh              # output lands in build/
+./install.sh --verify   # also copies everything into place and checks each op</code></pre>
+  <p>Linux and macOS can use meson instead:</p>
+  <pre><code>export PKG_CONFIG_PATH="/path/to/gimp/lib/pkgconfig"
+meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
+
+  <h2 id="trouble">Troubleshooting</h2>
+  <h3>Nothing shows up in the menu</h3>
+  <ul>
+    <li>Check the path: it must be <code>gegl-0.4/plug-ins</code>, not GIMP's own
+        <code>plug-ins</code>.</li>
+    <li>Did you restart? The scan happens at startup, so copying files in while GIMP
+        runs does nothing.</li>
+    <li>Architecture and dependencies: use the GEGL runtime that ships with GIMP, not a
+        second GEGL from the system.</li>
+    <li>Verify with <code>gegl --info lb:xxx</code>: visible on the command line but
+        missing inside GIMP usually means the GIMP version is too old.</li>
+  </ul>
+  <h3>The same operator appears twice / duplicate registration errors</h3>
+  <p>An old module with a different file name is still in the plug-in directory (early
+     on these were 12 separate repositories with unrelated names). Delete the old
+     <code>.dll</code>; the mapping is listed in the repository's <code>README.md</code>
+     under "relationship to the old layout".</p>
+  <h3>Opening an old image warns about unknown properties</h3>
+  <p>Upgrades occasionally remove properties that were merged into others, and the values
+     stored in old XCFs are then dropped. Loading only warns, never fails, but you have to
+     set those parameters again. Save a copy before upgrading.</p>
+
+  <h2 id="code">What a "code" is</h2>
+  <p>The operator and plug-in pages keep quoting figures like "identity round trip 0.0002
+     codes" or "residual 0.30 codes". <b>One code is one step on an 8-bit image</b>: 0–255
+     is 256 levels, so the gap between neighbours is 1 code, or <b>1/255 ≈ 0.392%</b>.
+     "0.0002 codes" therefore means the encoded result differs from the source by at most
+     0.0002 of a step — RGB 128 comes back as 128.0002.</p>
+  <p>Why that yardstick: floating-point error on its own says nothing (whether 1e-7 is
+     good depends on bit depth and how many operations ran). Expressed as "how many 8-bit
+     levels would this change", every colour space and bit depth becomes comparable, and
+     the number lines up with what the eye can resolve.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Value</th><th>What it means</th></tr></thead>
+    <tbody>
+      <tr><td><b>0.0002 codes</b></td><td>1/5000 of a step — a clean float round trip</td></tr>
+      <tr><td><b>0.0053 codes</b></td><td>1/190 of a step — the scale after several encode passes, still invisible</td></tr>
+      <tr><td><b>0.49 codes</b></td><td>the floor set by 8-bit quantisation; no 8-bit output escapes it</td></tr>
+      <tr><td><b>1 code</b></td><td>barely visible, and only side by side</td></tr>
+      <tr><td><b>3–4 codes</b></td><td>visible; banding may show on gradients</td></tr>
+      <tr><td><b>8 codes and up</b></td><td>an obvious colour or brightness shift</td></tr>
+    </tbody>
+  </table></div>
+  <p><b>It measures whether the output changed, not whether an eye would notice.</b> The
+     figure is the maximum absolute difference in sRGB encoded values (R′G′B′) — the worst
+     pixel, the worst channel, never an average. The encoding space is not perceptually
+     uniform: one code in the shadows is more visible than one code in the highlights, so
+     "how different does it look" has to be computed as ΔE in Lab. Codes are the
+     engineering criterion; ΔE is the perceptual one.</p>
+  <p>Worth adding: a difference below 0.5 codes cannot land on a different pixel in an
+     8-bit image (rounding swallows it). It only shows up in float working images, or after
+     stacking dozens of similar operations. That is why the plug-in pages quote both a
+     32-bit float and an 8-bit number.</p>
+
+  <h2 id="curves">Why the curves are all SMOOTH, and why that costs no precision</h2>
+  <p>Every curve handed to you in the plug-ins is GIMP's <b>SMOOTH</b> spline with three to
+     five control points: a diagonal of <code>(0,0) (128,128) (255,255)</code>, or the five
+     points of a dodge/burn curve. The other form, <b>FREE</b> "hand-drawn", looks more
+     flexible but is really 256 sample points pushed in one at a time: the property panel
+     becomes a wall of dots, editing one segment means finding the right dot first, and one
+     slip drags the whole line. Three handles do not have that problem.</p>
+  <p>I used to assume "smoothing must cost precision". Measured, that is wrong. <b>What
+     matters is where the control points sit</b>: the curve only knows integer levels
+     0…255, and so does <code>x</code>. Writing <code>0.5</code> means 127.5/255, exactly
+     between two levels; GIMP nudges it to one side, so the "diagonal" does not actually
+     pass through the diagonal — the identity is half a code off, and in 8-bit two adjacent
+     levels collapse into one (256 levels become 217). Put the point on
+     <code>128/255</code> (on the grid) and the identity round trip measures <b>0.0002
+     codes</b> with all 256 levels intact — identical to the old fully-sampled form, with
+     three handles instead of 256 dots.</p>
+  <p>And a common idea: <b>lay down 256 sample points, then hit "smooth" in the panel</b>?
+     That works too, also with zero error — GIMP places the converted control points on the
+     <code>32/255</code> grid for you. But it refits those 256 points into <b>9</b> control
+     points and throws the original table away, irreversibly: hard corners you drew get
+     rounded, and the only way back is to redraw. Generating the three on-grid points
+     directly skips that step and loses nothing.</p>
+  <p>The two kinds of curve are kept strictly apart: anything a person drags is a smooth
+     spline; the <b>encoding tables</b> the machine uses for itself (L* 0–100 across the
+     greyscale, hue 0–360° squeezed into 0–255) stay sampled — their shape is computed, not
+     drawn, and they need no handles.</p>
+  <p>Measured side by side (same image, same identity curve, old FREE 256 points vs the
+     current SMOOTH three points):</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Plug-in</th><th>FREE, 256 points</th><th>SMOOTH, 3 points on grid</th><th>8-bit</th></tr></thead>
+    <tbody>
+      <tr><td>HSV</td><td>0.00015 codes</td><td>0.00015 codes</td><td>0.49 codes</td></tr>
+      <tr><td>HSL</td><td>0.00012 codes</td><td>0.00012 codes</td><td>0.49 codes</td></tr>
+      <tr><td>Lab</td><td>0.00243 codes</td><td>0.00243 codes</td><td>0.49 codes</td></tr>
+      <tr><td>LCh</td><td>0.00049 codes</td><td>0.00049 codes</td><td>0.49 codes</td></tr>
+      <tr><td>HSI</td><td>0.00014 codes</td><td>0.00014 codes</td><td>0.50 codes</td></tr>
+    </tbody>
+  </table></div>
+  <p>The two columns are identical. The 0.49 codes in the 8-bit column is quantisation
+     itself, unrelated to the curve.</p>
+
+  <h2 id="faq">FAQ</h2>
+  <h3>Do the results match the classic editor's adjustment layers?</h3>
+  <p>Most operators aim for "the same 8-bit output, to the eye". The measured residual is
+     quoted in every algorithm page, usually 0–4 codes at the median; where something
+     genuinely differs, the page says so (for example the classic editor's hard clipping on
+     a few diagonals).</p>
+  <h3>Why the <code>lb:</code> prefix?</h3>
+  <p>GEGL ids have to be unique. The prefix avoids colliding with GIMP's own operators —
+     a collision fails silently at load time — so every id and GType name in this project
+     carries it.</p>
+  <h3>Will this go into GIMP's official repository?</h3>
+  <p>No. It is an independent third-party operator set, released under GPL-3.0, installed
+     into your own user plug-in directory.</p>
+</article></div>
 </main>
 <footer class="site-foot">
   <div>
@@ -170,8 +353,51 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">d98baeb</span>
+    <span class="muted">a65d634</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

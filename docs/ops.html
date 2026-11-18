@@ -1,14 +1,26 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="算子清单 · gegl-color-ops" data-title-en="Operators · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>算子清单 · gegl-color-ops</title>
-<meta name="description" content="全部算子的清单与一句话说明">
-<meta property="og:title" content="算子清单 · gegl-color-ops">
-<meta property="og:description" content="全部算子的清单与一句话说明">
+<meta name="description" content="全部算子的清单与一句话说明" data-desc-zh="全部算子的清单与一句话说明" data-desc-en="Every operator with a one-line description: levels, component pairs, tone, colour, blend and mask.">
+<meta property="og:title" content="算子清单 · gegl-color-ops" data-title-zh="算子清单 · gegl-color-ops" data-title-en="Operators · gegl-color-ops">
+<meta property="og:description" content="全部算子的清单与一句话说明" data-desc-zh="全部算子的清单与一句话说明" data-desc-en="Every operator with a one-line description: levels, component pairs, tone, colour, blend and mask.">
 <link rel="stylesheet" href="assets/style.css">
-<link rel="alternate" type="application/atom+xml" title="算子更新" href="feed.xml">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
 <a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
@@ -21,78 +33,88 @@
     <a href="index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
 <section class="page-head">
-  <p class="eyebrow"><a href="index.html">首页</a> / 算子清单</p>
-  <h1>41 个算子</h1>
-  <p class="lede">按 GIMP 菜单里的分组排列。点名字进算法说明。</p>
+  <p class="eyebrow"><a href="index.html"><span class="l-zh">首页</span><span class="l-en">Home</span></a> / <span class="l-zh">算子清单</span><span class="l-en">Operators</span></p>
+  <h1><span class="l-zh">41 个算子</span><span class="l-en">41 operators</span></h1>
+  <p class="lede"><span class="l-zh">按 GIMP 菜单里的分组排列。点名字进算法说明。</span><span class="l-en">Grouped the way the GIMP menu is. Open a name for the algorithm notes.</span></p>
 </section>
 <section class="prose wide">
-<h2 id="g-Levels"><span class="tag t-levels">色阶家族</span> 色阶一个不落，全收在一级目录 Levels 里：基础色阶，以及 HSL / HSB / HSI / LCH / LAB / CMYK 六条分量色阶——同一个黑白场+伽马模型，换个色彩空间。</h2>
+<h2 id="g-Levels"><span class="tag t-levels"><span class="l-zh">色阶家族</span><span class="l-en">Levels</span></span></h2>
+<p class="group-desc"><span class="l-zh">色阶一个不落，全收在一级目录 Levels 里：基础色阶，以及 HSL / HSB / HSI / LCH / LAB / CMYK 六条分量色阶——同一个黑白场+伽马模型，换个色彩空间。</span><span class="l-en">Every levels flavour in one top-level Levels submenu: basic Levels plus six component levels — HSL / HSB / HSI / LCh / Lab / CMYK. One black-point / white-point + gamma model, six colour spaces.</span></p>
 <div class="table-wrap"><table class="op-table">
-<thead><tr><th>菜单名</th><th>GEGL id</th><th>类型</th><th>做什么</th></tr></thead><tbody>
-<tr><td><a href="ops/levels.html"><b>Levels</b></a></td><td><code>lb:levels</code></td><td class="nowrap">逐像素</td><td>经典图像编辑器 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 经典图像编…</td></tr>
-<tr><td><a href="ops/lab-levels.html"><b>LAB Levels</b></a></td><td><code>lb:lab-levels</code></td><td class="nowrap">整块区域</td><td>LAB 三通道各自设输入 / 输出黑白场与伽马</td></tr>
-<tr><td><a href="ops/hsl-levels.html"><b>HSL Levels</b></a></td><td><code>lb:hsl-levels</code></td><td class="nowrap">整块区域</td><td>HSL 三个分量各自设输入 / 输出黑白场与伽马</td></tr>
-<tr><td><a href="ops/hsb-levels.html"><b>HSB Levels</b></a></td><td><code>lb:hsb-levels</code></td><td class="nowrap">整块区域</td><td>HSB（=HSV）三个分量各自设输入 / 输出黑白场与伽马</td></tr>
-<tr><td><a href="ops/lch-levels.html"><b>LCH Levels</b></a></td><td><code>lb:lch-levels</code></td><td class="nowrap">整块区域</td><td>CIE LCh 三个分量各自设输入 / 输出黑白场与伽马</td></tr>
-<tr><td><a href="ops/cmyk-levels.html"><b>CMYK Levels</b></a></td><td><code>lb:cmyk-levels</code></td><td class="nowrap">整块区域</td><td>CMYK 四个分量各自设输入 / 输出黑白场与伽马</td></tr>
-<tr><td><a href="ops/hsi-levels.html"><b>HSI Levels</b></a></td><td><code>lb:hsi-levels</code></td><td class="nowrap">整块区域</td><td>HSI 三个分量各自设输入 / 输出黑白场与伽马</td></tr>
+<thead><tr><th><span class="l-zh">菜单名</span><span class="l-en">Menu name</span></th><th>GEGL id</th><th><span class="l-zh">类型</span><span class="l-en">Type</span></th><th><span class="l-zh">做什么</span><span class="l-en">What it does</span></th></tr></thead><tbody>
+<tr><td><a href="ops/levels.html"><b><span class="l-zh">Levels</span><span class="l-en">Levels</span></b></a></td><td><code>lb:levels</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">经典图像编辑器 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 经典图像编…</span><span class="l-en">The classic editor's Levels dialog — composite plus R/G/B, five…</span></td></tr>
+<tr><td><a href="ops/lab-levels.html"><b><span class="l-zh">LAB Levels</span><span class="l-en">LAB Levels</span></b></a></td><td><code>lb:lab-levels</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">LAB 三通道各自设输入 / 输出黑白场与伽马</span><span class="l-en">Levels on CIELAB L, a and b — perceptual lightness and the two colour…</span></td></tr>
+<tr><td><a href="ops/hsl-levels.html"><b><span class="l-zh">HSL Levels</span><span class="l-en">HSL Levels</span></b></a></td><td><code>lb:hsl-levels</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">HSL 三个分量各自设输入 / 输出黑白场与伽马</span><span class="l-en">Levels on H, S and L separately — hue, saturation and lightness each…</span></td></tr>
+<tr><td><a href="ops/hsb-levels.html"><b><span class="l-zh">HSB Levels</span><span class="l-en">HSB Levels</span></b></a></td><td><code>lb:hsb-levels</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">HSB（=HSV）三个分量各自设输入 / 输出黑白场与伽马</span><span class="l-en">Levels on H, S and B (the numbers your colour picker shows) — nearly…</span></td></tr>
+<tr><td><a href="ops/lch-levels.html"><b><span class="l-zh">LCH Levels</span><span class="l-en">LCH Levels</span></b></a></td><td><code>lb:lch-levels</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">CIE LCh 三个分量各自设输入 / 输出黑白场与伽马</span><span class="l-en">Levels on CIE LCh — chroma and hue angle as separate channels, so…</span></td></tr>
+<tr><td><a href="ops/cmyk-levels.html"><b><span class="l-zh">CMYK Levels</span><span class="l-en">CMYK Levels</span></b></a></td><td><code>lb:cmyk-levels</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">CMYK 四个分量各自设输入 / 输出黑白场与伽马</span><span class="l-en">Independent levels for the C/M/Y/K plates — ink black and white…</span></td></tr>
+<tr><td><a href="ops/hsi-levels.html"><b><span class="l-zh">HSI Levels</span><span class="l-en">HSI Levels</span></b></a></td><td><code>lb:hsi-levels</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">HSI 三个分量各自设输入 / 输出黑白场与伽马</span><span class="l-en">Levels on H, S and I — the image-analysis model whose intensity is…</span></td></tr>
 </tbody></table></div>
-<h2 id="g-Component"><span class="tag t-component">分量</span> 把分量打包成一张数据图、再解回来：HSL / Lab / HSI 各自成对的 dual + compose，加上灰度→分量的单通道编码。分量曲线插件就架在这组上。</h2>
+<h2 id="g-Component"><span class="tag t-component"><span class="l-zh">分量</span><span class="l-en">Component</span></span></h2>
+<p class="group-desc"><span class="l-zh">把分量打包成一张数据图、再解回来：HSL / Lab / HSI 各自成对的 dual + compose，加上灰度→分量的单通道编码。分量曲线插件就架在这组上。</span><span class="l-en">Pack components into one data image and unpack it again: paired dual + compose for HSL / Lab / HSI, plus the single-channel gray-to-component. The component-curve plug-ins sit on top.</span></p>
 <div class="table-wrap"><table class="op-table">
-<thead><tr><th>菜单名</th><th>GEGL id</th><th>类型</th><th>做什么</th></tr></thead><tbody>
-<tr><td><a href="ops/hsl-dual.html"><b>HSL Dual Extract</b></a></td><td><code>lb:hsl-dual</code></td><td class="nowrap">整块区域</td><td>HSL 分量曲线工作流的提取器：把一张图拆成「R = HSL 饱和度、G = HSL 明度、B = 色相/360」的数据图，一张图同时携带三…</td></tr>
-<tr><td><a href="ops/hsl-compose.html"><b>HSL Compose</b></a></td><td><code>lb:hsl-compose</code></td><td class="nowrap">整块区域</td><td>HSL 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色</td></tr>
-<tr><td><a href="ops/hsv-dual.html"><b>HSV Dual Extract</b></a></td><td><code>lb:hsv-dual</code></td><td class="nowrap">整块区域</td><td>HSV 分量曲线工作流的提取器：把一张图拆成「R = HSV 饱和度、G = HSV 明度、B = 色相/360」的数据图，一张图同时携带三…</td></tr>
-<tr><td><a href="ops/hsv-compose.html"><b>HSV Compose</b></a></td><td><code>lb:hsv-compose</code></td><td class="nowrap">整块区域</td><td>HSV 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色</td></tr>
-<tr><td><a href="ops/lab-dual.html"><b>Lab Dual Extract</b></a></td><td><code>lb:lab-dual</code></td><td class="nowrap">整块区域</td><td>Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量</td></tr>
-<tr><td><a href="ops/lab-compose.html"><b>Lab Compose</b></a></td><td><code>lb:lab-compose</code></td><td class="nowrap">整块区域</td><td>Lab 分量曲线工作流的合成器：把「R = a、G = b、B = L」的数据图还原成真实颜色</td></tr>
-<tr><td><a href="ops/lch-dual.html"><b>LCh Dual Extract</b></a></td><td><code>lb:lch-dual</code></td><td class="nowrap">整块区域</td><td>LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L<em>、G = 彩度 C</em>、B = 色相/360」的数据图，一张图同时携带三个分量</td></tr>
-<tr><td><a href="ops/lch-compose.html"><b>LCh Compose</b></a></td><td><code>lb:lch-compose</code></td><td class="nowrap">整块区域</td><td>LCh 分量曲线工作流的合成器：把「R = L/100、G = C/140、B = 色相/360」的数据图还原成真实颜色</td></tr>
-<tr><td><a href="ops/hsi-dual.html"><b>HSI Dual Extract</b></a></td><td><code>lb:hsi-dual</code></td><td class="nowrap">整块区域</td><td>HSI 分量曲线工作流的提取器：把一张图拆成「R = 饱和度、G = 强度、B = 色相/360」的数据图，一张图同时携带三个分量</td></tr>
-<tr><td><a href="ops/hsi-compose.html"><b>HSI Compose</b></a></td><td><code>lb:hsi-compose</code></td><td class="nowrap">整块区域</td><td>HSI 分量曲线工作流的合成器：把「R = 饱和度、G = 强度、B = 色相/360」的数据图还原成真实颜色</td></tr>
-<tr><td><a href="ops/gray-to-component.html"><b>Gray To Component</b></a></td><td><code>lb:gray-to-component</code></td><td class="nowrap">整块区域</td><td>通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue /</td></tr>
+<thead><tr><th><span class="l-zh">菜单名</span><span class="l-en">Menu name</span></th><th>GEGL id</th><th><span class="l-zh">类型</span><span class="l-en">Type</span></th><th><span class="l-zh">做什么</span><span class="l-en">What it does</span></th></tr></thead><tbody>
+<tr><td><a href="ops/hsl-dual.html"><b><span class="l-zh">HSL Dual Extract</span><span class="l-en">HSL Dual Extract</span></b></a></td><td><code>lb:hsl-dual</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">HSL 分量曲线工作流的提取器：把一张图拆成「R = HSL 饱和度、G = HSL 明度、B = 色相/360」的数据图，一张图同时携带三…</span><span class="l-en">Packs HSL saturation, lightness and hue into a single data image —…</span></td></tr>
+<tr><td><a href="ops/hsl-compose.html"><b><span class="l-zh">HSL Compose</span><span class="l-en">HSL Compose</span></b></a></td><td><code>lb:hsl-compose</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">HSL 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色</span><span class="l-en">Turns the HSL data image back into real colour. The mirror half of…</span></td></tr>
+<tr><td><a href="ops/hsv-dual.html"><b><span class="l-zh">HSV Dual Extract</span><span class="l-en">HSV Dual Extract</span></b></a></td><td><code>lb:hsv-dual</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">HSV 分量曲线工作流的提取器：把一张图拆成「R = HSV 饱和度、G = HSV 明度、B = 色相/360」的数据图，一张图同时携带三…</span><span class="l-en">Packs HSV saturation, value and hue into a single data image — three…</span></td></tr>
+<tr><td><a href="ops/hsv-compose.html"><b><span class="l-zh">HSV Compose</span><span class="l-en">HSV Compose</span></b></a></td><td><code>lb:hsv-compose</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">HSV 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色</span><span class="l-en">Turns the HSV data image back into real colour in one pass — three…</span></td></tr>
+<tr><td><a href="ops/lab-dual.html"><b><span class="l-zh">Lab Dual Extract</span><span class="l-en">Lab Dual Extract</span></b></a></td><td><code>lb:lab-dual</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量</span><span class="l-en">Packs a* and b* into two channels of one data image so two curves can…</span></td></tr>
+<tr><td><a href="ops/lab-compose.html"><b><span class="l-zh">Lab Compose</span><span class="l-en">Lab Compose</span></b></a></td><td><code>lb:lab-compose</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">Lab 分量曲线工作流的合成器：把「R = a、G = b、B = L」的数据图还原成真实颜色</span><span class="l-en">The inverse of Lab Dual Extract — reads a<em>, b</em> and L* back out of the…</span></td></tr>
+<tr><td><a href="ops/lch-dual.html"><b><span class="l-zh">LCh Dual Extract</span><span class="l-en">LCh Dual Extract</span></b></a></td><td><code>lb:lch-dual</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L<em>、G = 彩度 C</em>、B = 色相/360」的数据图，一张图同时携带三个分量</span><span class="l-en">Packs lightness, chroma and hue into one data image in polar form —…</span></td></tr>
+<tr><td><a href="ops/lch-compose.html"><b><span class="l-zh">LCh Compose</span><span class="l-en">LCh Compose</span></b></a></td><td><code>lb:lch-compose</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">LCh 分量曲线工作流的合成器：把「R = L/100、G = C/140、B = 色相/360」的数据图还原成真实颜色</span><span class="l-en">Turns the LCh data image back into colour — lightness, chroma and hue…</span></td></tr>
+<tr><td><a href="ops/hsi-dual.html"><b><span class="l-zh">HSI Dual Extract</span><span class="l-en">HSI Triple Extract</span></b></a></td><td><code>lb:hsi-dual</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">HSI 分量曲线工作流的提取器：把一张图拆成「R = 饱和度、G = 强度、B = 色相/360」的数据图，一张图同时携带三个分量</span><span class="l-en">Packs HSI saturation, intensity and hue into one data image — HSI…</span></td></tr>
+<tr><td><a href="ops/hsi-compose.html"><b><span class="l-zh">HSI Compose</span><span class="l-en">HSI Compose</span></b></a></td><td><code>lb:hsi-compose</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">HSI 分量曲线工作流的合成器：把「R = 饱和度、G = 强度、B = 色相/360」的数据图还原成真实颜色</span><span class="l-en">The inverse of HSI Triple Extract, using HSI's cosine inverse rather…</span></td></tr>
+<tr><td><a href="ops/gray-to-component.html"><b><span class="l-zh">Gray To Component</span><span class="l-en">Gray to Component</span></b></a></td><td><code>lb:gray-to-component</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue /Saturation…</span><span class="l-en">The encoder behind HSV/LCh Split (Curves): turns a component grey…</span></td></tr>
 </tbody></table></div>
-<h2 id="g-Tone"><span class="tag t-tone">影调</span> 明暗与影调：曝光、亮度/对比度、阴影-高光、黑白转换。色阶都在上面的 Levels 组。</h2>
+<h2 id="g-Tone"><span class="tag t-tone"><span class="l-zh">影调</span><span class="l-en">Tone</span></span></h2>
+<p class="group-desc"><span class="l-zh">明暗与影调：曝光、亮度/对比度、阴影-高光、黑白转换。色阶都在上面的 Levels 组。</span><span class="l-en">Light and dark: exposure, brightness/contrast, shadows–highlights, black & white. The levels family lives in the Levels group above.</span></p>
 <div class="table-wrap"><table class="op-table">
-<thead><tr><th>菜单名</th><th>GEGL id</th><th>类型</th><th>做什么</th></tr></thead><tbody>
-<tr><td><a href="ops/exposure.html"><b>Exposure EV</b></a></td><td><code>lb:exposure</code></td><td class="nowrap">整块区域</td><td>经典图像编辑器 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）the classic editor Exposure: EV, o…</td></tr>
-<tr><td><a href="ops/brightness-contrast.html"><b>Brightness/Contrast</b></a></td><td><code>lb:brightness-contrast</code></td><td class="nowrap">逐像素</td><td>复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面</td></tr>
-<tr><td><a href="ops/shadows-highlights.html"><b>Shadows/Highlights</b></a> <span class="badge warn"><span class="l-zh">不推荐</span><span class="l-en">Not recommended</span></span></td><td><code>lb:shadows-highlights</code></td><td class="nowrap">整块区域</td><td>等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按<strong>邻域</strong>亮度分别提亮阴影、压暗高光，而不是只看像素值本身。</td></tr>
-<tr><td><a href="ops/rgb-domain-grayscale.html"><b>Black &amp; White</b></a></td><td><code>lb:rgb-domain-grayscale</code></td><td class="nowrap">逐像素</td><td>经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色the classic editor Black &amp; Whit…</td></tr>
+<thead><tr><th><span class="l-zh">菜单名</span><span class="l-en">Menu name</span></th><th>GEGL id</th><th><span class="l-zh">类型</span><span class="l-en">Type</span></th><th><span class="l-zh">做什么</span><span class="l-en">What it does</span></th></tr></thead><tbody>
+<tr><td><a href="ops/exposure.html"><b><span class="l-zh">Exposure EV</span><span class="l-en">Exposure EV</span></b></a></td><td><code>lb:exposure</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">经典图像编辑器 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）</span><span class="l-en">The classic editor's Exposure adjustment with two formulas — 8-bit…</span></td></tr>
+<tr><td><a href="ops/brightness-contrast.html"><b><span class="l-zh">Brightness/Contrast</span><span class="l-en">Brightness/Contrast</span></b></a></td><td><code>lb:brightness-contrast</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面</span><span class="l-en">The classic editor's Brightness/Contrast, matched by black-box…</span></td></tr>
+<tr><td><a href="ops/shadows-highlights.html"><b><span class="l-zh">Shadows/Highlights</span><span class="l-en">Shadows/Highlights</span></b></a> <span class="badge warn"><span class="l-zh">不推荐</span><span class="l-en">Not recommended</span></span></td><td><code>lb:shadows-highlights</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按<strong>邻域</strong>亮度分别提亮阴影、压暗高光，而不是只看像素值本身。</span><span class="l-en">The classic editor's Shadows/Highlights — an edge-aware neighbourhood…</span></td></tr>
+<tr><td><a href="ops/rgb-domain-grayscale.html"><b><span class="l-zh">Black &amp; White</span><span class="l-en">Black &amp; White</span></b></a></td><td><code>lb:rgb-domain-grayscale</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色</span><span class="l-en">The classic editor's Black &amp; White — six hue sliders decide how much…</span></td></tr>
 </tbody></table></div>
-<h2 id="g-Color"><span class="tag t-color">色彩</span> 调整颜色的方向与浓度：色相饱和度、色彩平衡、白平衡、自然饱和度、可选颜色、匹配颜色。</h2>
+<h2 id="g-Color"><span class="tag t-color"><span class="l-zh">色彩</span><span class="l-en">Color</span></span></h2>
+<p class="group-desc"><span class="l-zh">调整颜色的方向与浓度：色相饱和度、色彩平衡、白平衡、自然饱和度、可选颜色、匹配颜色。</span><span class="l-en">Steer hue and intensity: hue/saturation, colour balance, white balance, vibrance, selective colour, match colour.</span></p>
 <div class="table-wrap"><table class="op-table">
-<thead><tr><th>菜单名</th><th>GEGL id</th><th>类型</th><th>做什么</th></tr></thead><tbody>
-<tr><td><a href="ops/hue-saturation.html"><b>Hue/Saturation</b></a></td><td><code>lb:hue-saturation</code></td><td class="nowrap">逐像素</td><td>全局或按红/黄/绿/青/蓝/品红六个色相区间调整色相、饱和度、明度</td></tr>
-<tr><td><a href="ops/hue-saturation-basic.html"><b>Hue/Saturation (Basic)</b></a></td><td><code>lb:hue-saturation-basic</code></td><td class="nowrap">逐像素</td><td>三滑杆公式：全局色相旋转、饱和度相对缩放、明度向白/黑混合。</td></tr>
-<tr><td><a href="ops/hsl-bands.html"><b>HSL 8 Bands</b></a></td><td><code>lb:hsl-bands</code></td><td class="nowrap">逐像素</td><td>红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，经典 RAW 编辑器风格</td></tr>
-<tr><td><a href="ops/color-balance.html"><b>Color Balance</b></a></td><td><code>lb:color-balance</code></td><td class="nowrap">整块区域</td><td>经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴the classic editor Color…</td></tr>
-<tr><td><a href="ops/color-grading.html"><b>Color Grading</b></a></td><td><code>lb:color-grading</code></td><td class="nowrap">逐像素</td><td>等价 经典 RAW 编辑器的「颜色分级」：阴影 / 中间调 / 高光 / 全局四个轮盘（色相 + 饱和度）加各自的明度滑杆，按亮度分带给画面…</td></tr>
-<tr><td><a href="ops/color-temperature-tint.html"><b>Color Temperature &amp; Tint</b></a></td><td><code>lb:color-temperature-tint</code></td><td class="nowrap">逐像素</td><td>经典图像编辑器 2026「色彩与自然饱和度」里的色温 / 色调：中性灰跟着偏蓝-黄、绿-洋红，黑白两端不动</td></tr>
-<tr><td><a href="ops/vibrance.html"><b>Vibrance</b></a></td><td><code>lb:vibrance</code></td><td class="nowrap">逐像素</td><td>按 经典图像编辑器「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱和主动收手、红带（肤色）额外保护、浅色少给一点，色相与明度不动</td></tr>
-<tr><td><a href="ops/vibrance-hyper.html"><b>Natural Saturation</b></a></td><td><code>lb:vibrance-hyper</code></td><td class="nowrap">逐像素</td><td>自然饱和度：提升低饱和区，抑制高饱和与肤色，不破坏色相</td></tr>
-<tr><td><a href="ops/cmyk-primary-correction.html"><b>CMYK Primary</b></a></td><td><code>lb:cmyk-primary-correction</code></td><td class="nowrap">逐像素</td><td>经典图像编辑器 可选颜色：红/黄/绿/青/蓝/品红/白/中性/黑九组各自独立记忆</td></tr>
-<tr><td><a href="ops/colorize-hsl.html"><b>Colorize</b></a></td><td><code>lb:colorize-hsl</code></td><td class="nowrap">逐像素</td><td>复刻 经典图像编辑器「色相/饱和度」里的「着色」复选框</td></tr>
-<tr><td><a href="ops/hue-range-basic.html"><b>Hue/Saturation Range</b></a></td><td><code>lb:hue-range-basic</code></td><td class="nowrap">逐像素</td><td>色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，与 lb:hue-saturation-basic（全图）串联即接近某图像编…</td></tr>
-<tr><td><a href="ops/match-color.html"><b>Match Color</b></a></td><td><code>lb:match-color</code></td><td class="nowrap">双输入</td><td>经典图像编辑器 匹配颜色：把另一张图（或另一层）的 L<em>a</em>b* 统计量迁移到本层the classic editor Match Colo…</td></tr>
+<thead><tr><th><span class="l-zh">菜单名</span><span class="l-en">Menu name</span></th><th>GEGL id</th><th><span class="l-zh">类型</span><span class="l-en">Type</span></th><th><span class="l-zh">做什么</span><span class="l-en">What it does</span></th></tr></thead><tbody>
+<tr><td><a href="ops/hue-saturation.html"><b><span class="l-zh">Hue/Saturation</span><span class="l-en">Hue/Saturation</span></b></a></td><td><code>lb:hue-saturation</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">全局或按红/黄/绿/青/蓝/品红六个色相区间调整色相、饱和度、明度</span><span class="l-en">GIMP-style Hue/Saturation — a master control plus six hue ranges, all…</span></td></tr>
+<tr><td><a href="ops/hue-saturation-basic.html"><b><span class="l-zh">Hue/Saturation (Basic)</span><span class="l-en">Hue/Saturation (Basic)</span></b></a></td><td><code>lb:hue-saturation-basic</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">三滑杆公式：全局色相旋转、饱和度相对缩放、明度向白/黑混合。</span><span class="l-en">Three sliders — global hue rotation, relative saturation scaling…</span></td></tr>
+<tr><td><a href="ops/hsl-bands.html"><b><span class="l-zh">HSL 8 Bands</span><span class="l-en">HSL 8 Bands</span></b></a></td><td><code>lb:hsl-bands</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，经典 RAW 编辑器风格</span><span class="l-en">Eight hue bands (red, orange, yellow, green, cyan, blue, purple…</span></td></tr>
+<tr><td><a href="ops/color-balance.html"><b><span class="l-zh">Color Balance</span><span class="l-en">Color Balance</span></b></a></td><td><code>lb:color-balance</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴</span><span class="l-en">The classic editor's Color Balance — one merged levels-style curve…</span></td></tr>
+<tr><td><a href="ops/color-grading.html"><b><span class="l-zh">Color Grading</span><span class="l-en">Color Grading</span></b></a></td><td><code>lb:color-grading</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">等价 经典 RAW 编辑器的「颜色分级」：阴影 / 中间调 / 高光 / 全局四个轮盘（色相 + 饱和度）加各自的明度滑杆，按亮度分带给画面…</span><span class="l-en">The RAW editor's Color Grading panel — shadow, midtone, highlight and…</span></td></tr>
+<tr><td><a href="ops/color-temperature-tint.html"><b><span class="l-zh">Color Temperature &amp; Tint</span><span class="l-en">Color Temperature &amp; Tint the classic editor</span></b></a></td><td><code>lb:color-temperature-tint</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">经典图像编辑器 2026「色彩与自然饱和度」里的色温 / 色调：中性灰跟着偏蓝-黄、绿-洋红，黑白两端不动</span><span class="l-en">The temperature and tint sliders from classic image editor 2026's…</span></td></tr>
+<tr><td><a href="ops/vibrance.html"><b><span class="l-zh">Vibrance</span><span class="l-en">Vibrance</span></b></a></td><td><code>lb:vibrance</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">按 经典图像编辑器「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱和主动收手、红带（肤色）额外保护、浅色少给一点，色相与明度不动</span><span class="l-en">The classic editor's Vibrance, matched by black-box measurement —…</span></td></tr>
+<tr><td><a href="ops/vibrance-hyper.html"><b><span class="l-zh">Natural Saturation</span><span class="l-en">Vibrance (Lab)</span></b></a></td><td><code>lb:vibrance-hyper</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">自然饱和度：提升低饱和区，抑制高饱和与肤色，不破坏色相</span><span class="l-en">An appearance-based vibrance in Lab — hyperbolic chroma mask…</span></td></tr>
+<tr><td><a href="ops/cmyk-primary-correction.html"><b><span class="l-zh">CMYK Primary</span><span class="l-en">CMYK Primary</span></b></a></td><td><code>lb:cmyk-primary-correction</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">经典图像编辑器 可选颜色：红/黄/绿/青/蓝/品红/白/中性/黑九组各自独立记忆</span><span class="l-en">The classic editor's Selective Color — nine colour-range tabs, each…</span></td></tr>
+<tr><td><a href="ops/colorize-hsl.html"><b><span class="l-zh">Colorize</span><span class="l-en">Colorize</span></b></a></td><td><code>lb:colorize-hsl</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">复刻 经典图像编辑器「色相/饱和度」里的「着色」复选框</span><span class="l-en">The classic editor's Colorize checkbox from Hue/Saturation — input…</span></td></tr>
+<tr><td><a href="ops/hue-range-basic.html"><b><span class="l-zh">Hue/Saturation Range</span><span class="l-en">Hue/Saturation Range</span></b></a></td><td><code>lb:hue-range-basic</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，与 lb:hue-saturation-basic（全图）串联即接近某图像编…</span><span class="l-en">Hue, saturation and lightness inside one hue family with a soft…</span></td></tr>
+<tr><td><a href="ops/match-color.html"><b><span class="l-zh">Match Color</span><span class="l-en">Match Color</span></b></a></td><td><code>lb:match-color</code></td><td class="nowrap"><span class="l-zh">双输入</span><span class="l-en">two inputs</span></td><td><span class="l-zh">经典图像编辑器 匹配颜色：把另一张图（或另一层）的 L<em>a</em>b* 统计量迁移到本层</span><span class="l-en">The classic editor's Match Color — Reinhard's Lab mean/variance…</span></td></tr>
 </tbody></table></div>
-<h2 id="g-Blend"><span class="tag t-blend">混合与通道</span> 把两层或多路通道混起来：应用图像、计算、通道混合器、XYZ 正片叠底、颜色查找、灰度转分量。</h2>
+<h2 id="g-Blend"><span class="tag t-blend"><span class="l-zh">混合与通道</span><span class="l-en">Blend</span></span></h2>
+<p class="group-desc"><span class="l-zh">把两层或多路通道混起来：应用图像、计算、通道混合器、XYZ 正片叠底、颜色查找、灰度转分量。</span><span class="l-en">Mix two layers or several channels: apply image, calculations, channel mixer, XYZ multiply, colour lookup, gray to component.</span></p>
 <div class="table-wrap"><table class="op-table">
-<thead><tr><th>菜单名</th><th>GEGL id</th><th>类型</th><th>做什么</th></tr></thead><tbody>
-<tr><td><a href="ops/apply-image.html"><b>Apply Image</b></a></td><td><code>lb:apply-image</code></td><td class="nowrap">双输入</td><td>经典图像编辑器 应用图像：把 aux 输入当成源，按混合模式、不透明度与遮罩压到主输入上，可选只作用于某一个通道</td></tr>
-<tr><td><a href="ops/calculations.html"><b>Calculations</b></a></td><td><code>lb:calculations</code></td><td class="nowrap">双输入 · 逐像素</td><td>经典图像编辑器 计算：两路通道按混合模式合成，输出灰度图或 alpha 蒙版</td></tr>
-<tr><td><a href="ops/channel-mixer-plus.html"><b>Channel Mixer Plus</b></a></td><td><code>lb:channel-mixer-plus</code></td><td class="nowrap">逐像素</td><td>经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移the classic editor Channel Mixe…</td></tr>
-<tr><td><a href="ops/xyz-multiply.html"><b>Photo Filter</b></a></td><td><code>lb:xyz-multiply</code></td><td class="nowrap">逐像素</td><td>经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。the classic editor's…</td></tr>
-<tr><td><a href="ops/color-lookup.html"><b>Color Lookup</b></a></td><td><code>lb:color-lookup</code></td><td class="nowrap">整块区域</td><td>按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价于经典图像编辑器「颜色查找」调整图层；强度按 0..1 与原图线性混…</td></tr>
+<thead><tr><th><span class="l-zh">菜单名</span><span class="l-en">Menu name</span></th><th>GEGL id</th><th><span class="l-zh">类型</span><span class="l-en">Type</span></th><th><span class="l-zh">做什么</span><span class="l-en">What it does</span></th></tr></thead><tbody>
+<tr><td><a href="ops/apply-image.html"><b><span class="l-zh">Apply Image</span><span class="l-en">Apply Image</span></b></a></td><td><code>lb:apply-image</code></td><td class="nowrap"><span class="l-zh">双输入</span><span class="l-en">two inputs</span></td><td><span class="l-zh">经典图像编辑器 应用图像：把 aux 输入当成源，按混合模式、不透明度与遮罩压到主输入上，可选只作用于某一个通道</span><span class="l-en">The classic editor's Image → Apply Image: blend a second image into…</span></td></tr>
+<tr><td><a href="ops/calculations.html"><b><span class="l-zh">Calculations</span><span class="l-en">Calculations</span></b></a></td><td><code>lb:calculations</code></td><td class="nowrap"><span class="l-zh">双输入 · 逐像素</span><span class="l-en">two inputs · per-pixel</span></td><td><span class="l-zh">经典图像编辑器 计算：两路通道按混合模式合成，输出灰度图或 alpha 蒙版</span><span class="l-en">The classic editor's Image → Calculations: pull one channel from each…</span></td></tr>
+<tr><td><a href="ops/channel-mixer-plus.html"><b><span class="l-zh">Channel Mixer Plus</span><span class="l-en">Channel Mixer Plus</span></b></a></td><td><code>lb:channel-mixer-plus</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移</span><span class="l-en">The classic editor's Channel Mixer — a 3×3 matrix from R/G/B into…</span></td></tr>
+<tr><td><a href="ops/xyz-multiply.html"><b><span class="l-zh">Photo Filter</span><span class="l-en">Photo Filter</span></b></a></td><td><code>lb:xyz-multiply</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。</span><span class="l-en">The classic editor's Photo Filter, reproduced end to end — colour…</span></td></tr>
+<tr><td><a href="ops/color-lookup.html"><b><span class="l-zh">Color Lookup</span><span class="l-en">Color Lookup</span></b></a></td><td><code>lb:color-lookup</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价于经典图像编辑器「颜色查找」调整图层；强度按 0..1 与原图线性混…</span><span class="l-en">The classic editor's Color Lookup adjustment built on the Adobe Cube…</span></td></tr>
 </tbody></table></div>
-<h2 id="g-Mask"><span class="tag t-mask">蒙版</span> 按颜色或数值区间取蒙版：色彩范围、通道区间到 alpha。</h2>
+<h2 id="g-Mask"><span class="tag t-mask"><span class="l-zh">蒙版</span><span class="l-en">Mask</span></span></h2>
+<p class="group-desc"><span class="l-zh">按颜色或数值区间取蒙版：色彩范围、通道区间到 alpha。</span><span class="l-en">Build masks from colour ranges or value intervals: colour range, channel range to alpha.</span></p>
 <div class="table-wrap"><table class="op-table">
-<thead><tr><th>菜单名</th><th>GEGL id</th><th>类型</th><th>做什么</th></tr></thead><tbody>
-<tr><td><a href="ops/color-mask-select.html"><b>Mask by Color</b></a></td><td><code>lb:color-mask-select</code></td><td class="nowrap">逐像素</td><td>经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览the classic editor Color Range:…</td></tr>
-<tr><td><a href="ops/channel-range-to-alpha.html"><b>Range → Alpha</b></a></td><td><code>lb:channel-range-to-alpha</code></td><td class="nowrap">逐像素</td><td>按通道数值区间（0–255）生成 alpha，实现「混合颜色带」式透明控制</td></tr>
+<thead><tr><th><span class="l-zh">菜单名</span><span class="l-en">Menu name</span></th><th>GEGL id</th><th><span class="l-zh">类型</span><span class="l-en">Type</span></th><th><span class="l-zh">做什么</span><span class="l-en">What it does</span></th></tr></thead><tbody>
+<tr><td><a href="ops/color-mask-select.html"><b><span class="l-zh">Mask by Color</span><span class="l-en">Mask by Color</span></b></a></td><td><code>lb:color-mask-select</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览</span><span class="l-en">The classic editor's Color Range as a mask operator — colour presets…</span></td></tr>
+<tr><td><a href="ops/channel-range-to-alpha.html"><b><span class="l-zh">Range → Alpha</span><span class="l-en">Range → Alpha</span></b></a></td><td><code>lb:channel-range-to-alpha</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">按通道数值区间（0–255）生成 alpha，实现「混合颜色带」式透明控制</span><span class="l-en">Turn a numeric range of one channel into alpha — the classic editor's…</span></td></tr>
 </tbody></table></div>
 </section>
 </main>
@@ -106,8 +128,51 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">d98baeb</span>
+    <span class="muted">a65d634</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

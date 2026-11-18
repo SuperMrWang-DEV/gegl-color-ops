@@ -1,14 +1,28 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="高低频磨皮 · Python 插件 · gegl-color-ops" data-title-en="高低频磨皮 · Python plug-ins · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>高低频磨皮 · Python 插件 · gegl-color-ops</title>
-<meta name="description" content="把一张脸拆成影调与细节两层：低频管大块明暗与肤色过渡，高频管毛孔、痘印、细纹。调低频等于重新铺光，调高频等于控制质感，两者互不干扰——这是影楼修图里最老也最稳的一套结构。">
-<meta property="og:title" content="高低频磨皮 · Python 插件 · gegl-color-ops">
-<meta property="og:description" content="把一张脸拆成影调与细节两层：低频管大块明暗与肤色过渡，高频管毛孔、痘印、细纹。调低频等于重新铺光，调高频等于控制质感，两者互不干扰——这是影楼修图里最老也最稳的一套结构。">
+<meta name="description" content="把一张脸拆成影调与细节两层：低频管大块明暗与肤色过渡，高频管毛孔、痘印、细纹。调低频等于重新铺光，调高频等于控制质感，两者互不干扰——这是影楼修图里最老也最稳的一套结构。" data-desc-zh="把一张脸拆成影调与细节两层：低频管大块明暗与肤色过渡，高频管毛孔、痘印、细纹。调低频等于重新铺光，调高频等于控制质感，两者互不干扰——这是影楼修图里最老也最稳的一套结构。" data-desc-en="Splits a face into tone and detail: low frequency carries the broad light
+   and shade and skin transitions, high freque">
+<meta property="og:title" content="高低频磨皮 · Python 插件 · gegl-color-ops" data-title-zh="高低频磨皮 · Python 插件 · gegl-color-ops" data-title-en="高低频磨皮 · Python plug-ins · gegl-color-ops">
+<meta property="og:description" content="把一张脸拆成影调与细节两层：低频管大块明暗与肤色过渡，高频管毛孔、痘印、细纹。调低频等于重新铺光，调高频等于控制质感，两者互不干扰——这是影楼修图里最老也最稳的一套结构。" data-desc-zh="把一张脸拆成影调与细节两层：低频管大块明暗与肤色过渡，高频管毛孔、痘印、细纹。调低频等于重新铺光，调高频等于控制质感，两者互不干扰——这是影楼修图里最老也最稳的一套结构。" data-desc-en="Splits a face into tone and detail: low frequency carries the broad light
+   and shade and skin transitions, high freque">
 <link rel="stylesheet" href="../assets/style.css">
-<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
 <a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
@@ -21,11 +35,15 @@
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../plugins.html">插件</a>
-    / Shortcut 快捷方式</p>
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> /
+    <a href="../plugins.html">插件</a> / Shortcut 快捷方式</p>
   <h1>高低频磨皮</h1>
   <div class="meta">
     <code>plugin/frequency-separation</code>
@@ -40,8 +58,7 @@
     <div class="dl primary-dl">
       <div class="dl-head"><h3>菜单位置</h3><span class="pill">多条</span></div>
       <ul class="menu-list"><li>SuperMrWang → Shortcut → 高低频磨皮</li><li>图层右键 → SuperMrWang → Shortcut → 高低频磨皮</li></ul>
-      <p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——
-         组没有自己的像素，会直接报错并提示先合并。</p>
+      <p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>脚本调用</h3></div>
@@ -112,16 +129,122 @@
   </div>
 </section>
 
-<p class="note">文中「码」指 8 位图上的一个台阶：0–255 共 256 级，相邻两级的差就是
-   1 码，等于 1/255 ≈ 0.392%（也就是 RGB 128 与 129 之间的差）。各数量级的含义与
-   「码为什么不是感知量」的说明见
+<p class="note">文中「码」指 8 位图上的一个台阶：0–255 共 256 级，
+   相邻两级的差就是 1 码，等于 1/255 ≈ 0.392%%（也就是 RGB 128 与 129 之间的差）。
+   各数量级的含义与「码为什么不是感知量」的说明见
    <a href="../guide.html#code">安装指南 · 精度里的「码」</a>。</p>
-
+</div>
 <nav class="pager">
   <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
   <a class="prev" href="hsi-split-curves.html"><span>上一篇</span>HSI Split (Curves)</a><a class="next" href="dodge-burn.html"><span>下一篇</span>双曲线磨皮</a>
-</nav>
+</nav></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> /
+    <a href="../plugins.html">Plug-ins</a> / Shortcut</p>
+  <h1>Frequency Separation</h1>
+  <div class="meta">
+    <code>plugin/frequency-separation</code>
+    <span class="tag t-tone">Retouching</span>
+    <span>Shortcut</span>
+  </div>
+  <p class="lede">Splits a face into <b>tone</b> and <b>detail</b>: low frequency carries the broad light
+   and shade and skin transitions, high frequency carries pores, blemishes and fine lines.
+   Editing low frequency is relighting, editing high frequency is controlling texture, and the
+   two do not interfere — the oldest and steadiest structure in retouching.</p>
+</section>
+
+<div class="prose wide">
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Menu location</h3><span class="pill">Several</span></div>
+      <ul class="menu-list"><li>SuperMrWang → Shortcut → Frequency Separation</li><li>Layer right-click → SuperMrWang → Shortcut → Frequency Separation</li></ul>
+      <p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Scripting</h3></div>
+      <pre><code>lb-plugin-frequency-separation(image, drawables, radius, group)</code></pre>
+      <p>A standard PDB procedure; leave an argument empty to take its default.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Dependencies</h3></div>
+      <p>The operators below do the work. <b>They are already inside this plug-in's download</b> (<code>modules-windows-x64</code> / <code>modules-linux-x64</code>) — nothing else to fetch:</p>
+      <ul class="deps"><li><code>gegl:gaussian-blur</code></li><li><code>gegl:high-pass</code></li></ul>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>What gets created</h3><span class="pill">pass-through group</span></div>
+      <pre><code>Frequency Separation group · pass-through (plus a mask when there is alpha)
+ ├─ 2 · High frequency (detail)  Grain merge + high pass
+ ├─ 1 · Low frequency (tone)     Normal + Gaussian blur
+ └─ original layer (untouched, can be hidden)</code></pre>
+      <p>Each layer carries one non-destructive filter and both use the same radius: change the
+         radius on one and it has to change on the other, otherwise the stack no longer
+         reproduces the original.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>The two filter settings</h3></div>
+      <p>Low frequency is <code>gegl:gaussian-blur</code> with std-dev = radius; high frequency
+         is <code>gegl:high-pass</code> with std-dev = radius and <b>contrast set to 2.0</b>. The
+         default 1.0 produces only half the difference and the stack comes back grey — that one
+         was measured, not guessed.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Why it is an identity</h3><span class="pill">pixel exact</span></div>
+      <p>The high-pass layer is really H = 0.5 + (original − low), and stacking back uses grain
+         merge (H + L − 0.5), so the 0.5 offset cancels. A freshly created group is therefore
+         pixel-identical to the original layer; the remaining error comes from about 1 code of
+         fixed-point offset inside <code>gegl:high-pass</code> and does not depend on the
+         radius.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>How to work with it</h3></div>
+      <ul>
+        <li><b>Low frequency:</b> a low-opacity brush, clone or smudge tool flattens the
+            patches — blotchiness, uneven skin tone and light transitions all live here.</li>
+        <li><b>High frequency:</b> clone or healing brush removes blemishes, pores and fine
+            lines without touching the light.</li>
+        <li>The radius is the dividing line: on a 1024-pixel image start at 4–8 px. Too large
+            and detail gets smeared into tone; too small and broad patches stay in the high
+            frequency.</li>
+        <li>To start over, set both radii back or delete the group and generate it again — the
+            original layer was never touched.</li>
+      </ul>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Measured</h3><span class="pill">check_retouch.py</span></div>
+      <p>Identity within 1.5 codes in float and 8-bit; still an identity after changing the
+         radius (so the structure really is live); hiding the original layer lets the two
+         rebuild it; images with alpha keep their transparency through the group mask, zero
+         error.</p>
+      <p>Parameters: radius 0.2–100 px (default 8), and a group toggle.</p>
+    </div>
+  </div>
+
+<section class="download" id="download">
+  <h2>Download this one</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>Frequency Separation</h3><span class="pill">.py · no compile</span></div>
+    <p>The archive holds a single <code>.py</code> and an install note. Unpack it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register.</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-frequency-separation.zip">Download Frequency Separation</a>
+    <p class="muted small">5.3 KB · checksum: <code>SHA256 907a32321c006ed3811191599e43c770…</code></p>
+  </div>
+</section>
+
+<p class="note">In this article a "code" means one step on an 8-bit
+   image: 0–255 is 256 levels, so the gap between neighbours is 1 code, or
+   1/255 ≈ 0.392%% (the difference between RGB 128 and 129). For the order of magnitude
+   of each figure, and why a code is not a perceptual quantity, see
+   <a href="../guide.html#code">Install guide · what a code is</a>.</p>
 </div>
+<nav class="pager">
+  <a href="../plugins.html"><span>Back to</span>All plug-ins</a>
+  <a class="prev" href="hsi-split-curves.html"><span>Previous</span>HSI Split (Curves)</a><a class="next" href="dodge-burn.html"><span>Next</span>Dodge & Burn</a>
+</nav></div>
 </main>
 <footer class="site-foot">
   <div>
@@ -133,8 +256,51 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">d98baeb</span>
+    <span class="muted">a65d634</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Shadows/Highlights · gegl-color-ops</title>
-<meta name="description" content="等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。">
-<meta property="og:title" content="Shadows/Highlights · gegl-color-ops">
-<meta property="og:description" content="等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。">
+<meta name="description" content="等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。" data-desc-zh="等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。" data-desc-en="等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。">
+<meta property="og:title" content="Shadows/Highlights · gegl-color-ops" data-title-zh="Shadows/Highlights · gegl-color-ops" data-title-en="Shadows/Highlights · gegl-color-ops">
+<meta property="og:description" content="等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。" data-desc-zh="等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。" data-desc-en="等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。">
 <link rel="stylesheet" href="../assets/style.css">
-<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
@@ -60,7 +60,7 @@ window.addEventListener("DOMContentLoaded", function () {
 })();
 </script>
 </head>
-<body>
+<body class="article">
 <a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
@@ -89,11 +89,10 @@ window.addEventListener("DOMContentLoaded", function () {
   <p class="lede">等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按<strong>邻域</strong>亮度分别提亮阴影、压暗高光，而不是只看像素值本身。</p>
 </section><div class="article-layout">
   <article class="prose">
-<blockquote><p><strong>不推荐日常使用（2026-11-15，性能原因）</strong>　算子仍然可用、数值也仍然准确， 但它是空间域算法：半径 30 时每像素约 1.4 µs，2048×1536 默认参数净耗时 0.7 s （含解码 2.1 s），在 GIMP 里拖一次滑杆就重算整图。整体明暗请用 <code>lb:levels</code> / <code>lb:lab-levels</code> / <code>lb:exposure</code>；确实需要「周围亮就少提」的局部行为再用它， 半径压到 10–15 会快很多。标记文件：<code>ops/shadows-highlights/.discouraged</code> （只影响文档与站点展示，<strong>不影响编译和发布</strong>）。</p></blockquote>
 <p>按黑盒标定得到的 经典图像编辑器的「图像 → 调整 → 阴影/高光」。和另外十几个算子的最大 区别是<strong>它看邻域</strong>：同样一个 128 的像素，周围暗就多提、周围亮就少提，所以不可能简化 成一条 LUT，必须做空间域滤波。</p>
 <ul><li>GEGL id：<code>lb:shadows-highlights</code></li><li>菜单：<code>Colors → SuperMrWang → Tone → Shadows/Highlights</code></li><li>类型：<code>GeglOperationFilter</code>（空间域，按 192 行一条带处理）</li><li>参数（默认值照抄 经典图像编辑器）：阴影 <code>amount 35 / width 50 / radius 30</code>、高光 <code>0 / 50 / 30</code>、 <code>color-correction 20</code>、<code>midtone-contrast 0</code>、<code>black-clip 0.01</code>、<code>white-clip 0.01</code></li></ul>
 <h2 id="先记一个坑经典图像编辑器的脚本入口不叫-shadowhighlight">先记一个坑：经典图像编辑器的脚本入口不叫 Shadow/Highlight</h2>
-<p>想把 经典图像编辑器 当 oracle，第一步是能用脚本调起它。<code>Shdw</code>、<code>ShHl</code>、<code>shadowsHighlights</code>、 <code>shadowHighlight</code>、<code>adaptCorrectTones</code> … 13 个 charID 加 8 个 stringID 轮流试， 全部报「命令&lt;未知的&gt;当前不可用」，<code>编辑器进程</code> 和 <code>Required/*.dll</code> 里也搜不到 <code>shadowsHighlights</code> 字样。</p>
+<p>想把经典图像编辑器当 oracle，第一步是能用脚本调起它。<code>Shdw</code>、<code>ShHl</code>、<code>shadowsHighlights</code>、 <code>shadowHighlight</code>、<code>adaptCorrectTones</code> … 13 个 charID 加 8 个 stringID 轮流试， 全部报「命令&lt;未知的&gt;当前不可用」，<code>编辑器进程</code> 和 <code>Required/*.dll</code> 里也搜不到 <code>shadowsHighlights</code> 字样。</p>
 <p>真正的入口是 <strong><code>adaptCorrect</code></strong>，类名 <code>adaptCorrectTones</code>：</p>
 <pre><code class="language-javascript">var d = new ActionDescriptor();
 d.putObject(s2t("shadowMode"),    s2t("adaptCorrectTones"), tones(sh));
@@ -104,7 +103,7 @@ d.putInteger(s2t("colorCorrection"), 20);
 executeAction(s2t("adaptCorrect"), d, DialogModes.NO);</code></pre>
 <p><code>shadowMode</code>/<code>highlightMode</code> 里再放 <code>amount</code>/<code>width</code>/<code>radius</code>（<code>#Prc</code>），其余键都是 stringID 小写。这条线索来自 官方用户社区一个 Clean SL 脚本，比盲试 ID 快得多。</p>
 <h2 id="算法结构">算法结构</h2>
-<p>六个阶段，数全部来自 经典图像编辑器 25.4 的黑盒拟合（同一结构见 PhotoCraft，MIT）：</p>
+<p>六个阶段，数全部来自经典图像编辑器25.4 的黑盒拟合（同一结构见 PhotoCraft，MIT）：</p>
 <ol><li><strong>亮度</strong>：最大通道与 Rec.601 亮度的平均，直接作用在 <strong>sRGB 编码值</strong>上 （不是线性光）。这解释了为什么暗部提亮后颜色会发灰——它动的是显示值：</li></ol>
 <div class="math-display">$$y = \tfrac{1}{2}\bigl(\max(R,G,B) + 0.299R + 0.587G + 0.114B\bigr)$$</div>
 <ol><li><strong>邻域亮度</strong> 边缘感知双边，Durand–Dorsey 的分段线性形式：<ul><li>先把 <code>lum</code> 按 σ=1.3559 轻模糊成 <code>guide</code>（只为了抗噪，不决定尺度）；</li><li>像素按 <code>guide</code> 量化到 <strong>17 级</strong>，每级用权重 <code>w = 1 − |lum − g|/1.0152</code> 单独加权平均；</li><li>权重和 / 加权和在 <code>d = ⌊σ/4⌋</code> 的格子上先累加，再用 <strong>σ = 1.1424·radius</strong> 的高斯模糊；</li><li>最后按 <code>guide</code> 的小数级在相邻两级间插值，双线性上采样回全分辨率。</li></ul></li></ol>
@@ -140,15 +139,15 @@ y'' = y_2 + k\,(y_2-0.5)\bigl(4y_2(1-y_2)\bigr)^p$$</div>
 <h2 id="性能">性能</h2>
 <p>平场部分只有 256 项查表，开销全在邻域：17 级 × 4 次高斯。用 192 行条带限制内存， <code>ramp-2.png</code>（25800×160，129 条带）3.2 s，<code>grid-b016.png</code>（2560×2560）4.7 s， 都是含 PNG 编解码的墙钟时间。半径 30 时每像素约 1.4 µs。</p>
 <h2 id="验收">验收</h2>
-<p><code>python tools/check_shadows_highlights.py</code>（<code>--fast</code> 跳过 经典图像编辑器 对照）：</p>
+<p><code>python tools/check_shadows_highlights.py</code>（<code>--fast</code> 跳过经典图像编辑器对照）：</p>
 <p><strong>一、独立 Python 参考实现 vs 算子</strong>（平场，nb = 自身）。参考实现照上面六步直写， 不复用 C 代码，只共用拟合出来的系数表：</p>
 <div class="table-wrap"><table><thead><tr><th>检查</th><th>组数</th><th>最大偏差</th></tr></thead><tbody><tr><td>灰阶平场 LUT</td><td>6 组 × 29 级</td><td><strong>0.0 码</strong>（逐点完全一致）</td></tr><tr><td>彩色平场（color-correction +100…−100）</td><td>4 组 × 6 色</td><td><strong>0.0 码</strong></td></tr><tr><td>amount=0 恒等 / 平场与半径无关</td><td>2 项</td><td><strong>0.0 码</strong></td></tr><tr><td>中间调支点 128、默认修剪保留 0 与 255</td><td>2 项</td><td>通过</td></tr></tbody></table></div>
 <p>写这个脚本时抓到过一个真 bug：两个修剪都设 0 时 <code>clip_lo/clip_hi</code> 没初始化， <code>(y−0)/(0−0)</code> 把整图推成纯白。现在 <code>prepare()</code> 里复位成 0/1，除法也加了兜底。</p>
-<p><strong>二、和 经典图像编辑器 本身</strong>（<code>shadows-highlights-cal/</code>）：</p>
+<p><strong>二、和经典图像编辑器本身</strong>（<code>shadows-highlights-cal/</code>）：</p>
 <div class="table-wrap"><table><thead><tr><th>数据集</th><th>规模</th><th>逐点中位</th><th>最大</th></tr></thead><tbody><tr><td>平场竖带（17 组参数）</td><td>17×129</td><td>0.5 码</td><td><strong>5.7 码</strong>（<code>h_a100_w0</code>）</td></tr><tr><td>二维格点（14 组背景）</td><td>14×256</td><td>1.0 码</td><td><strong>11.1 码</strong>（<code>grid_h_b240</code>）</td></tr></tbody></table></div>
 <p>平场是强项：14/17 组最大 ≤3 码，阴影侧一律 ≤2.6 码。二维格点里 9 组最大 ≤7 码， 中位 1.0。</p>
 <h2 id="已知偏差">已知偏差</h2>
-<ol><li><strong>极端局部对比的二维格点</strong>（20×20 小块压在 99% 面积的极端背景上， <code>bg=16</code> 配亮块、<code>bg=240</code> 配暗块）最大差 11 码。平场对得上、只有这种「邻域和 像素值差 200 码以上」的合成图案对不上，说明邻域核的边缘保持强度还差一点： 实测 经典图像编辑器的 nb 比本算子更贴近像素自身。把 <code>SH_RANGE</code> 从 1.0152 往下调（边缘保持 更强）会让 87% 的点变好但制造出 87 码的爆点；往上调（4.0 / 50，趋近纯高斯） 则单调变差。1.0152 是实测的局部最优值，所以保持原样，这个尾巴留着。</li><li><strong><code>h_a100_w0</code> 的 5.7 码</strong>：色调宽度 0 时遮罩退化成 Beta(1.95, 23) 在最暗一段的 陡壁，插值表按宽度每 5 一档建，宽度 0 正好落在第一个节点上，误差最敏感。</li><li><strong>半径 &gt; 300 没标定</strong>：经典图像编辑器 对话框上限 2500，标定只做到 300，更大半径按同一 σ=1.1424·r 外推。</li><li><code>midtone_contrast</code> 与 <code>color_correction</code> 用的是参考实现的拟合系数，<strong>没有单独做 经典图像编辑器 实测</strong>（平场和彩色平场只验证了算子与参考实现一致，不是与 经典图像编辑器 一致）。</li></ol>
+<ol><li><strong>极端局部对比的二维格点</strong>（20×20 小块压在 99% 面积的极端背景上， <code>bg=16</code> 配亮块、<code>bg=240</code> 配暗块）最大差 11 码。平场对得上、只有这种「邻域和 像素值差 200 码以上」的合成图案对不上，说明邻域核的边缘保持强度还差一点： 实测 经典图像编辑器的 nb 比本算子更贴近像素自身。把 <code>SH_RANGE</code> 从 1.0152 往下调（边缘保持 更强）会让 87% 的点变好但制造出 87 码的爆点；往上调（4.0 / 50，趋近纯高斯） 则单调变差。1.0152 是实测的局部最优值，所以保持原样，这个尾巴留着。</li><li><strong><code>h_a100_w0</code> 的 5.7 码</strong>：色调宽度 0 时遮罩退化成 Beta(1.95, 23) 在最暗一段的 陡壁，插值表按宽度每 5 一档建，宽度 0 正好落在第一个节点上，误差最敏感。</li><li><strong>半径 &gt; 300 没标定</strong>：经典图像编辑器 对话框上限 2500，标定只做到 300，更大半径按同一 σ=1.1424·r 外推。</li><li><code>midtone_contrast</code> 与 <code>color_correction</code> 用的是参考实现的拟合系数，<strong>没有单独做 经典图像编辑器实测</strong>（平场和彩色平场只验证了算子与参考实现一致，不是与经典图像编辑器一致）。</li></ol>
 <h2 id="复现标定">复现标定</h2>
 <p><code>shadows-highlights-cal/</code> 里有全套脚本：<code>apply_cases.jsx</code>（经典图像编辑器 侧执行器）、 <code>run_cases.py</code>（批量跑 + 读结果）、<code>make_ramp.py</code> / <code>make_grid.py</code>（三套探针： 灰阶竖带、二维格点、阶跃边）、<code>compare_op.py</code>（逐点比对）、<code>dump_grid.py</code> / <code>analyze_nb.py</code>（单例残差与邻域反推）、<code>sweep.py</code>（邻域尺度扫参）。</p>
 <hr>
@@ -188,7 +187,6 @@ y'' = y_2 + k\,(y_2-0.5)\bigl(4y_2(1-y_2)\bigr)^p$$</div>
   <p class="lede">The classic editor's Shadows/Highlights — an edge-aware neighbourhood algorithm, so it cannot be a LUT. Accurate, but it is a spatial filter and costs like one.</p>
 </section><div class="article-layout">
   <article class="prose">
-<blockquote><p><strong>Not recommended for daily use (2026-11-15, performance).</strong> The operator still works and is still numerically accurate, but it is a spatial algorithm: about 1.4 µs per pixel at radius 30, so a 2048×1536 image takes 0.7 s of compute (2.1 s including decode), and every slider drag in GIMP recomputes the whole image. For overall brightness use <code>lb:levels</code> / <code>lb:lab-levels</code> / <code>lb:exposure</code>; come back here only when you need the local "lift less where the surroundings are bright" behaviour, and drop the radius to 10–15 for a big speedup. Marker: <code>ops/shadows-highlights/.discouraged</code> (documentation and site display only; <strong>it does not affect building or publishing</strong>).</p></blockquote>
 <p>the classic editor's <code>Image → Adjustments → Shadows/Highlights</code>, matched as a black box. What sets it apart from the other operators is that <strong>it looks at the neighbourhood</strong>: the same 128 pixel is lifted more when its surroundings are dark and less when they are bright, so it cannot collapse into a LUT and needs a spatial filter.</p>
 <ul><li>GEGL id: <code>lb:shadows-highlights</code></li><li>Menu: <code>Colors → SuperMrWang → Tone → Shadows/Highlights</code></li><li>Type: <code>GeglOperationFilter</code> (spatial, processed in strips of 192 rows)</li><li>Parameters (defaults copied from the classic editor): shadows <code>amount 35 / width 50 / radius 30</code>, highlights <code>0 / 50 / 30</code>, <code>color-correction 20</code>, <code>midtone-contrast 0</code>, <code>black-clip 0.01</code>, <code>white-clip 0.01</code></li></ul>
 <h2 id="one-trap-first-the-classic-editors-scripting-entry-is-not-called-shadowhighlight">One trap first: the classic editor's scripting entry is not called Shadow/Highlight</h2>
@@ -284,7 +282,7 @@ y'' = y_2 + k\,(y_2-0.5)\bigl(4y_2(1-y_2)\bigr)^p$$</div>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">d98baeb</span>
+    <span class="muted">a65d634</span>
   </div>
 </footer>
 <script>
@@ -305,6 +303,13 @@ y'' = y_2 + k\,(y_2-0.5)\bigl(4y_2(1-y_2)\bigr)^p$$</div>
     }
     if (root.dataset.titleZh && root.dataset.titleEn) {
       document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
     }
   }
   for (var i = 0; i < btns.length; i++) {

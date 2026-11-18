@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Match Color · gegl-color-ops</title>
-<meta name="description" content="经典图像编辑器 匹配颜色：把另一张图（或另一层）的 Lab 统计量迁移到本层the classic editor Match Color: transfer the Lab statistics of another image(or la">
-<meta property="og:title" content="Match Color · gegl-color-ops">
-<meta property="og:description" content="经典图像编辑器 匹配颜色：把另一张图（或另一层）的 Lab 统计量迁移到本层the classic editor Match Color: transfer the Lab statistics of another image(or la">
+<meta name="description" content="经典图像编辑器 匹配颜色：把另一张图（或另一层）的 Lab* 统计量迁移到本层" data-desc-zh="经典图像编辑器 匹配颜色：把另一张图（或另一层）的 Lab* 统计量迁移到本层" data-desc-en="经典图像编辑器 匹配颜色：把另一张图（或另一层）的 Lab* 统计量迁移到本层">
+<meta property="og:title" content="Match Color · gegl-color-ops" data-title-zh="Match Color · gegl-color-ops" data-title-en="Match Color · gegl-color-ops">
+<meta property="og:description" content="经典图像编辑器 匹配颜色：把另一张图（或另一层）的 Lab* 统计量迁移到本层" data-desc-zh="经典图像编辑器 匹配颜色：把另一张图（或另一层）的 Lab* 统计量迁移到本层" data-desc-en="经典图像编辑器 匹配颜色：把另一张图（或另一层）的 Lab* 统计量迁移到本层">
 <link rel="stylesheet" href="../assets/style.css">
-<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
@@ -60,7 +60,7 @@ window.addEventListener("DOMContentLoaded", function () {
 })();
 </script>
 </head>
-<body>
+<body class="article">
 <a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
@@ -85,7 +85,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <span class="tag t-color">色彩</span>
     <span>双输入</span>
   </div>
-  <p class="lede">经典图像编辑器 匹配颜色：把另一张图（或另一层）的 L<em>a</em>b* 统计量迁移到本层the classic editor Match Color: transfer the L<em>a</em>b* statistics of another image(or layer) onto this layer.</p>
+  <p class="lede">经典图像编辑器 匹配颜色：把另一张图（或另一层）的 L<em>a</em>b* 统计量迁移到本层</p>
 </section><div class="article-layout">
   <article class="prose">
 <p>经典图像编辑器的「图像 → 调整 → 匹配颜色」的复刻：把<strong>另一张图 / 另一个图层</strong>的 颜色统计量迁移到本层。内核是 Reinhard 等 2001 年提出、经典图像编辑器 沿用至今的 L\<em>a\</em>b\* 均值-方差仿射迁移。</p>
@@ -105,7 +105,7 @@ window.addEventListener("DOMContentLoaded", function () {
 <p>GEGL 的 process 每次只拿一小块，而均值/方差必须对整层算。做法：</p>
 <ul><li>首次 <code>process</code> 时整层扫一遍 input 与 aux（Lab 域，攒 sum/sum²），缓存在 operation 实例上（互斥锁保护，键 = 缓冲指针 + extent + 层级）；</li><li>后续块直接复用缓存，<strong>预览拖滑杆不会反复重算</strong>；</li><li>来源图层内容变了（非破坏预览场景）勾一次「重算统计 / Refresh stats」， 重算完自动复位。</li></ul>
 <h2 id="细则">细则</h2>
-<ul><li><strong>透明像素不进统计</strong>：目标与来源两侧都以 <code>alpha ≤ 0</code> 剔除，抠图层的洞 不会把统计拖向黑（这个坑在应用图像/计算里已经踩过一轮）。</li><li><strong>σ 保护</strong>：σ &lt; 1e-3 视为常数通道，比值取 1；均匀色来源会把输出均值 平移到自己的均值色（<code>(v − μt)</code> 项本来就是 0）。</li><li><strong>削顶</strong>：输出 L 削到 [0, 100]、a/b 削到 [−128, 127]，与 经典图像编辑器 在 8bit L\<em>a\</em>b\* 里工作一致。</li><li><strong>与「只有相交部分起作用」无关</strong>：匹配颜色不是逐像素混合，来源只捐统计 量，映射作用于目标整层——这正是 经典图像编辑器的行为。</li><li>匹配是仿射的，几何不必对齐：来源图层尺寸/偏移随意。</li></ul>
+<ul><li><strong>透明像素不进统计</strong>：目标与来源两侧都以 <code>alpha ≤ 0</code> 剔除，抠图层的洞 不会把统计拖向黑（这个坑在应用图像/计算里已经踩过一轮）。</li><li><strong>σ 保护</strong>：σ &lt; 1e-3 视为常数通道，比值取 1；均匀色来源会把输出均值 平移到自己的均值色（<code>(v − μt)</code> 项本来就是 0）。</li><li><strong>削顶</strong>：输出 L 削到 [0, 100]、a/b 削到 [−128, 127]，与经典图像编辑器在 8bit L\<em>a\</em>b\* 里工作一致。</li><li><strong>与「只有相交部分起作用」无关</strong>：匹配颜色不是逐像素混合，来源只捐统计 量，映射作用于目标整层——这正是 经典图像编辑器的行为。</li><li>匹配是仿射的，几何不必对齐：来源图层尺寸/偏移随意。</li></ul>
 <h2 id="验证">验证</h2>
 <pre><code class="language-bash">./build.sh
 "D:/fastsoftware/GIMP 3/bin/gimp-console-3.2.exe" -i -c -d -f \
@@ -190,7 +190,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">d98baeb</span>
+    <span class="muted">a65d634</span>
   </div>
 </footer>
 <script>
@@ -211,6 +211,13 @@ window.addEventListener("DOMContentLoaded", function () {
     }
     if (root.dataset.titleZh && root.dataset.titleEn) {
       document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
     }
   }
   for (var i = 0; i < btns.length; i++) {

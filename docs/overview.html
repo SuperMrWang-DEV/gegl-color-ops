@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>gegl-color-ops · GIMP 3 色彩算子集</title>
-<meta name="description" content="41 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。">
-<meta property="og:title" content="gegl-color-ops · GIMP 3 色彩算子集">
-<meta property="og:description" content="41 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。">
+<meta name="description" content="41 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。" data-desc-zh="41 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。" data-desc-en="41 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。">
+<meta property="og:title" content="gegl-color-ops · GIMP 3 色彩算子集" data-title-zh="gegl-color-ops · GIMP 3 色彩算子集" data-title-en="gegl-color-ops · colour operators for GIMP 3">
+<meta property="og:description" content="41 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。" data-desc-zh="41 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。" data-desc-en="41 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。">
 <link rel="stylesheet" href="assets/style.css">
-<link rel="alternate" type="application/atom+xml" title="算子更新" href="feed.xml">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="feed.xml">
 <script>
 (function () {
   try {
@@ -185,7 +185,7 @@
     
   </div>
   <h3><span class="l-zh">HSL Dual Extract</span><span class="l-en">HSL Dual Extract</span></h3>
-  <p><span class="l-zh">HSL 分量曲线工作流的提取器：把一张图拆成「R = HSL 饱和度、G = HSL 明度、B = 色相/360」的…</span><span class="l-en">Extractor for the HSL component-curve workflow: turns an image into a data image with R =…</span></p>
+  <p><span class="l-zh">HSL 分量曲线工作流的提取器：把一张图拆成「R = HSL 饱和度、G = HSL 明度、B = 色相/360」的…</span><span class="l-en">Packs HSL saturation, lightness and hue into a single data image — one channel per…</span></p>
   <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/hsl-compose.html">
@@ -195,7 +195,7 @@
     
   </div>
   <h3><span class="l-zh">HSL Compose</span><span class="l-en">HSL Compose</span></h3>
-  <p><span class="l-zh">HSL 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色</span><span class="l-en">Composer for the HSL component-curve workflow: turns the data image (R = S, G = L, B =…</span></p>
+  <p><span class="l-zh">HSL 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色</span><span class="l-en">Turns the HSL data image back into real colour. The mirror half of HSL Dual Extract —…</span></p>
   <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/hsv-dual.html">
@@ -205,7 +205,7 @@
     
   </div>
   <h3><span class="l-zh">HSV Dual Extract</span><span class="l-en">HSV Dual Extract</span></h3>
-  <p><span class="l-zh">HSV 分量曲线工作流的提取器：把一张图拆成「R = HSV 饱和度、G = HSV 明度、B = 色相/360」的…</span><span class="l-en">Extractor for the HSV component-curve workflow: turns an image into a data image (R = S…</span></p>
+  <p><span class="l-zh">HSV 分量曲线工作流的提取器：把一张图拆成「R = HSV 饱和度、G = HSV 明度、B = 色相/360」的…</span><span class="l-en">Packs HSV saturation, value and hue into a single data image — three curves, one compose…</span></p>
   <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/hsv-compose.html">
@@ -215,7 +215,7 @@
     
   </div>
   <h3><span class="l-zh">HSV Compose</span><span class="l-en">HSV Compose</span></h3>
-  <p><span class="l-zh">HSV 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色</span><span class="l-en">Composer for the HSV component-curve workflow: turns the data image (R = S, G = V, B =…</span></p>
+  <p><span class="l-zh">HSV 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色</span><span class="l-en">Turns the HSV data image back into real colour in one pass — three components in, final…</span></p>
   <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/lab-dual.html">
@@ -225,7 +225,7 @@
     
   </div>
   <h3><span class="l-zh">Lab Dual Extract</span><span class="l-en">Lab Dual Extract</span></h3>
-  <p><span class="l-zh">Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量</span><span class="l-en">Extractor for the Lab component-curve workflow: turns an image into a data image with R =…</span></p>
+  <p><span class="l-zh">Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量</span><span class="l-en">Packs a* and b* into two channels of one data image so two curves can move them…</span></p>
   <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/lab-compose.html">
@@ -235,7 +235,7 @@
     
   </div>
   <h3><span class="l-zh">Lab Compose</span><span class="l-en">Lab Compose</span></h3>
-  <p><span class="l-zh">Lab 分量曲线工作流的合成器：把「R = a、G = b、B = L」的数据图还原成真实颜色</span><span class="l-en">Composer for the Lab component-curve workflow: turns the data image (R = a, G = b, B = L)…</span></p>
+  <p><span class="l-zh">Lab 分量曲线工作流的合成器：把「R = a、G = b、B = L」的数据图还原成真实颜色</span><span class="l-en">The inverse of Lab Dual Extract — reads a<em>, b</em> and L* back out of the data image and…</span></p>
   <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/lch-dual.html">
@@ -245,7 +245,7 @@
     
   </div>
   <h3><span class="l-zh">LCh Dual Extract</span><span class="l-en">LCh Dual Extract</span></h3>
-  <p><span class="l-zh">LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L、G = 彩度 C、B = 色相/360」的数据图，一…</span><span class="l-en">Extractor for the LCh component-curve workflow: turns an image into a data image (R =…</span></p>
+  <p><span class="l-zh">LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L、G = 彩度 C、B = 色相/360」的数据图，一…</span><span class="l-en">Packs lightness, chroma and hue into one data image in polar form — so a curve can add…</span></p>
   <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/lch-compose.html">
@@ -255,7 +255,7 @@
     
   </div>
   <h3><span class="l-zh">LCh Compose</span><span class="l-en">LCh Compose</span></h3>
-  <p><span class="l-zh">LCh 分量曲线工作流的合成器：把「R = L/100、G = C/140、B = 色相/360」的数据图还原成真实…</span><span class="l-en">Composer for the LCh component-curve workflow: turns the data image (R=L/100, G=C/140…</span></p>
+  <p><span class="l-zh">LCh 分量曲线工作流的合成器：把「R = L/100、G = C/140、B = 色相/360」的数据图还原成真实…</span><span class="l-en">Turns the LCh data image back into colour — lightness, chroma and hue multiplied back to…</span></p>
   <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/hsi-dual.html">
@@ -264,8 +264,8 @@
     <code>lb:hsi-dual</code>
     
   </div>
-  <h3><span class="l-zh">HSI Dual Extract</span><span class="l-en">HSI Dual Extract</span></h3>
-  <p><span class="l-zh">HSI 分量曲线工作流的提取器：把一张图拆成「R = 饱和度、G = 强度、B = 色相/360」的数据图，一张图同…</span><span class="l-en">Extractor for the HSI component-curve workflow: turns an image into a data image with R =…</span></p>
+  <h3><span class="l-zh">HSI Dual Extract</span><span class="l-en">HSI Triple Extract</span></h3>
+  <p><span class="l-zh">HSI 分量曲线工作流的提取器：把一张图拆成「R = 饱和度、G = 强度、B = 色相/360」的数据图，一张图同…</span><span class="l-en">Packs HSI saturation, intensity and hue into one data image — HSI matches none of GIMP's…</span></p>
   <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/hsi-compose.html">
@@ -275,7 +275,7 @@
     
   </div>
   <h3><span class="l-zh">HSI Compose</span><span class="l-en">HSI Compose</span></h3>
-  <p><span class="l-zh">HSI 分量曲线工作流的合成器：把「R = 饱和度、G = 强度、B = 色相/360」的数据图还原成真实颜色</span><span class="l-en">Composer for the HSI component-curve workflow: turns the data image (R=S, G=I, B=H/360)…</span></p>
+  <p><span class="l-zh">HSI 分量曲线工作流的合成器：把「R = 饱和度、G = 强度、B = 色相/360」的数据图还原成真实颜色</span><span class="l-en">The inverse of HSI Triple Extract, using HSI's cosine inverse rather than HSV's linear…</span></p>
   <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/gray-to-component.html">
@@ -303,7 +303,7 @@
     
   </div>
   <h3><span class="l-zh">Exposure EV</span><span class="l-en">Exposure EV</span></h3>
-  <p><span class="l-zh">经典图像编辑器 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）the classic editor Exp…</span><span class="l-en">The classic editor's Exposure adjustment with two formulas — 8-bit sRGB and 32-bit linear…</span></p>
+  <p><span class="l-zh">经典图像编辑器 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）</span><span class="l-en">The classic editor's Exposure adjustment with two formulas — 8-bit sRGB and 32-bit linear…</span></p>
   <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/brightness-contrast.html">
@@ -333,7 +333,7 @@
     
   </div>
   <h3><span class="l-zh">Black &amp; White</span><span class="l-en">Black &amp; White</span></h3>
-  <p><span class="l-zh">经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色the classic editor…</span><span class="l-en">The classic editor's Black &amp; White — six hue sliders decide how much each colour…</span></p>
+  <p><span class="l-zh">经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色</span><span class="l-en">The classic editor's Black &amp; White — six hue sliders decide how much each colour…</span></p>
   <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
   </div>
@@ -381,7 +381,7 @@
     
   </div>
   <h3><span class="l-zh">Color Balance</span><span class="l-en">Color Balance</span></h3>
-  <p><span class="l-zh">经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴the classic…</span><span class="l-en">The classic editor's Color Balance — one merged levels-style curve per channel, measured…</span></p>
+  <p><span class="l-zh">经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴</span><span class="l-en">The classic editor's Color Balance — one merged levels-style curve per channel, measured…</span></p>
   <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/color-grading.html">
@@ -461,7 +461,7 @@
     
   </div>
   <h3><span class="l-zh">Match Color</span><span class="l-en">Match Color</span></h3>
-  <p><span class="l-zh">经典图像编辑器 匹配颜色：把另一张图（或另一层）的 Lab 统计量迁移到本层the classic editor M…</span><span class="l-en">The classic editor's Match Color — Reinhard's Lab mean/variance transfer from another…</span></p>
+  <p><span class="l-zh">经典图像编辑器 匹配颜色：把另一张图（或另一层）的 Lab* 统计量迁移到本层</span><span class="l-en">The classic editor's Match Color — Reinhard's Lab mean/variance transfer from another…</span></p>
   <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
   </div>
@@ -499,7 +499,7 @@
     
   </div>
   <h3><span class="l-zh">Channel Mixer Plus</span><span class="l-en">Channel Mixer Plus</span></h3>
-  <p><span class="l-zh">经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移the classic editor…</span><span class="l-en">The classic editor's Channel Mixer — a 3×3 matrix from R/G/B into each output channel…</span></p>
+  <p><span class="l-zh">经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移</span><span class="l-en">The classic editor's Channel Mixer — a 3×3 matrix from R/G/B into each output channel…</span></p>
   <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/xyz-multiply.html">
@@ -509,7 +509,7 @@
     
   </div>
   <h3><span class="l-zh">Photo Filter</span><span class="l-en">Photo Filter</span></h3>
-  <p><span class="l-zh">经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。the clas…</span><span class="l-en">The classic editor's Photo Filter, reproduced end to end — colour fill + multiply +…</span></p>
+  <p><span class="l-zh">经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。</span><span class="l-en">The classic editor's Photo Filter, reproduced end to end — colour fill + multiply +…</span></p>
   <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/color-lookup.html">
@@ -537,7 +537,7 @@
     
   </div>
   <h3><span class="l-zh">Mask by Color</span><span class="l-en">Mask by Color</span></h3>
-  <p><span class="l-zh">经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览the classic editor…</span><span class="l-en">The classic editor's Color Range as a mask operator — colour presets, custom colour, and…</span></p>
+  <p><span class="l-zh">经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览</span><span class="l-en">The classic editor's Color Range as a mask operator — colour presets, custom colour, and…</span></p>
   <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
     <a class="card" href="ops/channel-range-to-alpha.html">
@@ -648,7 +648,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">d98baeb</span>
+    <span class="muted">a65d634</span>
   </div>
 </footer>
 <script>
@@ -669,6 +669,13 @@
     }
     if (root.dataset.titleZh && root.dataset.titleEn) {
       document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
     }
   }
   for (var i = 0; i < btns.length; i++) {

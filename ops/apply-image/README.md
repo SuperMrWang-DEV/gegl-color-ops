@@ -2,7 +2,7 @@
 
 > `lb:apply-image` · 菜单 **SuperMrWang → Blend → Apply Image** · 双输入（input + aux）
 
-对应 经典图像编辑器 的 **图像 → 应用图像**：把一张图（另一个图层 / 另一个文件）当作源，
+对应 经典图像编辑器的 **图像 → 应用图像**：把一张图（另一个图层 / 另一个文件）当作源，
 按混合模式、不透明度、遮罩压到当前图层上，还可以只作用于某一个通道。
 
 Replicates the classic editor's **Image → Apply Image**: takes a second image as the source,
@@ -13,7 +13,7 @@ into a single channel.
 
 | 参数 | 默认 | 说明 |
 |---|---|---|
-| `blend-mode` | Multiply | 26 种混合模式，顺序与 经典图像编辑器 一致（Normal … Divide、Darker/Lighter Color、Hue … Luminosity） |
+| `blend-mode` | Multiply | 26 种混合模式，顺序与经典图像编辑器一致（Normal … Divide、Darker/Lighter Color、Hue … Luminosity） |
 | `scale` | 1.0 | **仅加法/减法**：结果 = (A ± B) / 缩放 + 补偿值，范围 1.0..2.0 |
 | `offset` | 0 | **仅加法/减法**：缩放后加上的补偿值，±255（8bit 口径） |
 | `opacity` | 100 | 混合强度，0 = 不动，100 = 完全应用 |
@@ -96,7 +96,7 @@ GIMP 里图层可以比画布小、也可以带偏移，所以这里得自己定
   的像素原样输出；
 - 盖到的范围内，再由源像素的 alpha 决定**真正有没有像素**：alpha = 0 的地方
   原样输出，alpha 介于 0 和 1 之间按覆盖率减弱。只有「既属于源层、又有像素」
-  的地方才被改动，这才是 经典图像编辑器 意义上「只有相交部分起作用」。
+  的地方才被改动，这才是经典图像编辑器意义上「只有相交部分起作用」。
 
 早先版本用的是 `GeglOperationPointComposer`，`process` 只拿到一段裸指针，
 看不到 aux 的 extent，界外被 GEGL 补成透明黑再参与混合：正片叠底会把外侧涂

@@ -3,15 +3,6 @@ name: Shadows/Highlights
 blurb: the classic editor's Shadows/Highlights — an edge-aware neighbourhood algorithm, so it cannot be a LUT. Accurate, but it is a spatial filter and costs like one.
 ---
 
-> **Not recommended for daily use (2026-11-15, performance).** The operator still works
-> and is still numerically accurate, but it is a spatial algorithm: about 1.4 µs per
-> pixel at radius 30, so a 2048×1536 image takes 0.7 s of compute (2.1 s including
-> decode), and every slider drag in GIMP recomputes the whole image. For overall
-> brightness use `lb:levels` / `lb:lab-levels` / `lb:exposure`; come back here only when
-> you need the local "lift less where the surroundings are bright" behaviour, and drop
-> the radius to 10–15 for a big speedup. Marker: `ops/shadows-highlights/.discouraged`
-> (documentation and site display only; **it does not affect building or publishing**).
-
 the classic editor's `Image → Adjustments → Shadows/Highlights`, matched as a black
 box. What sets it apart from the other operators is that **it looks at the
 neighbourhood**: the same 128 pixel is lifted more when its surroundings are dark and

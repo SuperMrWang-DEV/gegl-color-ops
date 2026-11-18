@@ -1,14 +1,28 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="双曲线磨皮 · Python 插件 · gegl-color-ops" data-title-en="双曲线磨皮 · Python plug-ins · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>双曲线磨皮 · Python 插件 · gegl-color-ops</title>
-<meta name="description" content="提亮一条曲线、压暗一条曲线，各自压在一张全黑蒙版下。涂到哪里，哪里才变亮或变暗——没涂的地方与原图逐像素相同，所以可以反复叠加、随时反悔。">
-<meta property="og:title" content="双曲线磨皮 · Python 插件 · gegl-color-ops">
-<meta property="og:description" content="提亮一条曲线、压暗一条曲线，各自压在一张全黑蒙版下。涂到哪里，哪里才变亮或变暗——没涂的地方与原图逐像素相同，所以可以反复叠加、随时反悔。">
+<meta name="description" content="提亮一条曲线、压暗一条曲线，各自压在一张全黑蒙版下。涂到哪里，哪里才变亮或变暗——没涂的地方与原图逐像素相同，所以可以反复叠加、随时反悔。" data-desc-zh="提亮一条曲线、压暗一条曲线，各自压在一张全黑蒙版下。涂到哪里，哪里才变亮或变暗——没涂的地方与原图逐像素相同，所以可以反复叠加、随时反悔。" data-desc-en="One curve to lighten, one to darken, each under a fully black mask. Paint where you
+   want it and only there does the i">
+<meta property="og:title" content="双曲线磨皮 · Python 插件 · gegl-color-ops" data-title-zh="双曲线磨皮 · Python 插件 · gegl-color-ops" data-title-en="双曲线磨皮 · Python plug-ins · gegl-color-ops">
+<meta property="og:description" content="提亮一条曲线、压暗一条曲线，各自压在一张全黑蒙版下。涂到哪里，哪里才变亮或变暗——没涂的地方与原图逐像素相同，所以可以反复叠加、随时反悔。" data-desc-zh="提亮一条曲线、压暗一条曲线，各自压在一张全黑蒙版下。涂到哪里，哪里才变亮或变暗——没涂的地方与原图逐像素相同，所以可以反复叠加、随时反悔。" data-desc-en="One curve to lighten, one to darken, each under a fully black mask. Paint where you
+   want it and only there does the i">
 <link rel="stylesheet" href="../assets/style.css">
-<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
 <a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
@@ -21,11 +35,15 @@
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../plugins.html">插件</a>
-    / Shortcut 快捷方式</p>
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> /
+    <a href="../plugins.html">插件</a> / Shortcut 快捷方式</p>
   <h1>双曲线磨皮</h1>
   <div class="meta">
     <code>plugin/dodge-burn</code>
@@ -40,8 +58,7 @@
     <div class="dl primary-dl">
       <div class="dl-head"><h3>菜单位置</h3><span class="pill">多条</span></div>
       <ul class="menu-list"><li>SuperMrWang → Shortcut → 双曲线磨皮</li><li>图层右键 → SuperMrWang → Shortcut → 双曲线磨皮</li></ul>
-      <p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——
-         组没有自己的像素，会直接报错并提示先合并。</p>
+      <p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>脚本调用</h3></div>
@@ -110,16 +127,118 @@
   </div>
 </section>
 
-<p class="note">文中「码」指 8 位图上的一个台阶：0–255 共 256 级，相邻两级的差就是
-   1 码，等于 1/255 ≈ 0.392%（也就是 RGB 128 与 129 之间的差）。各数量级的含义与
-   「码为什么不是感知量」的说明见
+<p class="note">文中「码」指 8 位图上的一个台阶：0–255 共 256 级，
+   相邻两级的差就是 1 码，等于 1/255 ≈ 0.392%%（也就是 RGB 128 与 129 之间的差）。
+   各数量级的含义与「码为什么不是感知量」的说明见
    <a href="../guide.html#code">安装指南 · 精度里的「码」</a>。</p>
-
+</div>
 <nav class="pager">
   <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
   <a class="prev" href="frequency-separation.html"><span>上一篇</span>高低频磨皮</a><a class="next" href="neutral-grey.html"><span>下一篇</span>中性灰磨皮</a>
-</nav>
+</nav></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> /
+    <a href="../plugins.html">Plug-ins</a> / Shortcut</p>
+  <h1>Dodge &amp; Burn</h1>
+  <div class="meta">
+    <code>plugin/dodge-burn</code>
+    <span class="tag t-tone">Retouching</span>
+    <span>Shortcut</span>
+  </div>
+  <p class="lede">One curve to lighten, one to darken, each under a fully black mask. Paint where you
+   want it and only there does the image get lighter or darker — everywhere else stays
+   pixel-identical, so you can keep stacking and undo at any time.</p>
+</section>
+
+<div class="prose wide">
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Menu location</h3><span class="pill">Several</span></div>
+      <ul class="menu-list"><li>SuperMrWang → Shortcut → Dodge & Burn</li><li>Layer right-click → SuperMrWang → Shortcut → Dodge & Burn</li></ul>
+      <p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Scripting</h3></div>
+      <pre><code>lb-plugin-dodge-burn(image, drawables, amount, group)</code></pre>
+      <p>A standard PDB procedure; leave an argument empty to take its default.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Dependencies</h3></div>
+      <p>The operators below do the work. <b>They are already inside this plug-in's download</b> (<code>modules-windows-x64</code> / <code>modules-linux-x64</code>) — nothing else to fetch:</p>
+      <ul class="deps"><li><code>gimp:curves</code></li></ul>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>What gets created</h3><span class="pill">two layers, black masks</span></div>
+      <pre><code>Dodge &amp; Burn group · pass-through (plus a mask when there is alpha)
+ ├─ 2 · Darken (black mask)  Normal · curve pulled down
+ ├─ 1 · Lighten (black mask) Normal · curve pushed up
+ └─ original layer (untouched, can be hidden)</code></pre>
+      <p>Both layers are in Normal mode with one <code>gimp:curves</code> (value channel) each;
+         the masks are fully black, so the moment the group is created the two layers do not
+         take part in the composite — pixel-identical to the original.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>You paint the mask, not the layer</h3></div>
+      <p>Click the layer's mask thumbnail (the small image with the white frame, not the layer
+         thumbnail), pick a soft brush, white, opacity 10–20%. Where you paint the mask turns
+         white and that layer shows through: painting the lighten layer brightens, painting the
+         darken layer darkens. Overdone? Switch the foreground to black and paint it back.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>How strong the curve is</h3><span class="pill">12%</span></div>
+      <p>The "strength" parameter is how far the curve deviates from the diagonal at midtones:
+         12 means 0.12 at 0.5, about 30 codes. Default 12, range 1–40. Err on the weak side — one
+         more pass is easier to take than one too many.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>How to work with it</h3></div>
+      <ul>
+        <li><b>Lighten:</b> forehead, bridge of the nose, cheekbone highlights, the triangle
+            under the eyes — push up what should be forward and the face reads as three
+            dimensional.</li>
+        <li><b>Darken:</b> the sides of the cheeks, jawline, shadow beside the nose, eye
+            sockets — pull back what should recede.</li>
+        <li>Alternate as you go (lighten → darken → look again) instead of adding brightness
+            in one direction until the skin looks plastic.</li>
+        <li>To check how much you painted, Alt-click the mask thumbnail to view the mask on its
+            own — the black and white distribution is obvious.</li>
+      </ul>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Measured</h3><span class="pill">check_retouch.py</span></div>
+      <p>Identity round trip 0 codes in float and 0 codes in 8-bit (the masks are black, the
+         layers do not take part); where the mask is white the result equals the curve value
+         exactly; untouched pixels do not move by one bit; images with alpha keep transparency
+         through the group mask, zero error.</p>
+    </div>
+  </div>
+
+<section class="download" id="download">
+  <h2>Download this one</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>Dodge & Burn</h3><span class="pill">.py · no compile</span></div>
+    <p>The archive holds a single <code>.py</code> and an install note. Unpack it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register.</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-dodge-burn.zip">Download Dodge & Burn</a>
+    <p class="muted small">5.4 KB · checksum: <code>SHA256 a9c7ea6be75ac70928a20edef8419aee…</code></p>
+  </div>
+</section>
+
+<p class="note">In this article a "code" means one step on an 8-bit
+   image: 0–255 is 256 levels, so the gap between neighbours is 1 code, or
+   1/255 ≈ 0.392%% (the difference between RGB 128 and 129). For the order of magnitude
+   of each figure, and why a code is not a perceptual quantity, see
+   <a href="../guide.html#code">Install guide · what a code is</a>.</p>
 </div>
+<nav class="pager">
+  <a href="../plugins.html"><span>Back to</span>All plug-ins</a>
+  <a class="prev" href="frequency-separation.html"><span>Previous</span>Frequency Separation</a><a class="next" href="neutral-grey.html"><span>Next</span>Neutral Grey</a>
+</nav></div>
 </main>
 <footer class="site-foot">
   <div>
@@ -131,8 +250,51 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">d98baeb</span>
+    <span class="muted">a65d634</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

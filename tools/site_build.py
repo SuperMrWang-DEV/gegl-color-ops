@@ -126,23 +126,96 @@ def parse_header(c_path):
     return {k: v for k, v in fields.items()}
 
 
-def split_zh_en(lines):
-    """注释盒每段都是先中文后英文，按「ASCII 占比 + 首字母大写」切一刀。
+CJK_RE = re.compile(r"[\u4e00-\u9fff]")
 
-    中文行不含空格且非 ASCII 居多；英文行反过来。这个判定对仓库里 29 个
-    算子逐个看过，没有误切。
+
+def split_zh_en(lines):
+    """注释盒每段都是先中文后英文，在「第一行不含中文」处切一刀。
+
+    早先按「ASCII 占比 > 0.7 且首字母大写」判定，遇到 `the classic editor …`
+    这种小写开头的英文行就切不开，整段英文被并进中文串，页面上出现
+    「…并带通道偏移the classic editor Channel Mixer…」这种中英粘连。
+    改成看「有没有汉字」：中文行为了夹术语会带 ASCII，英文行则不该出现汉字，
+    这个判据在 41 个算子上没有反例，也不依赖句中大小写。
     """
     zh, en = [], []
     for ln in lines:
-        ascii_n = sum(1 for ch in ln if ord(ch) < 128)
-        ratio = ascii_n / max(1, len(ln))
-        if not en and zh and ratio > 0.7 and ln[:1].isupper():
-            en.append(ln)
-        elif en:
-            en.append(ln)
+        if not ln.strip():
+            continue
+        if not en:
+            if zh and not CJK_RE.search(ln):
+                en.append(ln)
+            else:
+                zh.append(ln)
         else:
-            zh.append(ln)
+            en.append(ln)
     return "".join(x for x in zh), " ".join(en)
+
+
+EN_WORD_RE = re.compile(r"[A-Za-z]{3,}")
+
+
+def strip_en_sections(md):
+    """整节删掉「标题和正文都是英文」的章节。
+
+    rgb-domain-grayscale 这类 README 是「英文正文 + 中文正文」前后两套，中文页会
+    先读到一节英文的 Algorithm / Parameters / Notes。英文已经有 tools/site/en 的
+    整页版本，中文页里这些节纯属重复，按标题块整段删掉（含标题本身）。
+
+    判据：该标题到下一个同级/更高级标题之间的内容，除了代码块之外一个汉字都没有，
+    并且英文词数 >= 12。带一点中文的节（哪怕只有标签）都原样保留。
+    """
+    lines = md.split("\n")
+    heads = []
+    for i, ln in enumerate(lines):
+        m = re.match(r"^(#{1,6})\s+(.*)$", ln)
+        if m:
+            heads.append((i, len(m.group(1))))
+    drop = [False] * len(lines)
+    for k, (i, lvl) in enumerate(heads):
+        end = len(lines)
+        for j, lvl2 in heads[k + 1:]:
+            if lvl2 <= lvl:
+                end = j
+                break
+        block = "\n".join(lines[i:end])
+        clean = re.sub(r"```.*?```", "", block, flags=re.S)
+        if not CJK_RE.search(clean) and len(EN_WORD_RE.findall(clean)) >= 12:
+            for t in range(i, end):
+                drop[t] = True
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(
+        ln for ln, d in zip(lines, drop) if not d))
+
+
+def strip_en_blocks(md):
+    """删掉中文正文里「整段纯英文」的副本。
+
+    有一批 README 把中文段落紧跟一段英文翻译一起写（apply-image、calculations、
+    color-balance、rgb-domain-grayscale 都是），GitHub 上读着没问题，但站点已经
+    有 tools/site/en/<dir>.md 的整页英文版，中文页里再留一整段英文就是中英混排：
+    读者在中文模式下滑到半页，会突然读到一段英文公式推导。
+
+    只动普通段落：以 # | > ![ - * 1. ` < 开头的块（标题、表格、引用、图片、
+    列表、代码、内嵌 HTML）一律原样保留，代码块在切分前就整体保护起来。
+    """
+    parts = re.split(r"(```.*?```)", md, flags=re.S)
+    out = []
+    for part in parts:
+        if part.startswith("```"):
+            out.append(part)
+            continue
+        chunks = re.split(r"(\n[ \t]*\n)", part)
+        kept = []
+        for c in chunks:
+            st = c.strip()
+            if st and not CJK_RE.search(st) and len(EN_WORD_RE.findall(st)) >= 8 \
+                    and not re.match(r"^(#|\||>|!\[|[-*+]\s|\d+\.\s|`|<)", st) \
+                    and not st.startswith("http"):
+                kept.append("")
+            else:
+                kept.append(c)
+        out.append("".join(kept))
+    return re.sub(r"\n{3,}", "\n\n", "".join(out))
 
 
 def short(text, n=58):
@@ -314,6 +387,13 @@ LANG_FOOT_JS = """<script>
     if (root.dataset.titleZh && root.dataset.titleEn) {
       document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
     }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
   }
   for (var i = 0; i < btns.length; i++) {
     btns[i].addEventListener("click", function () {
@@ -378,8 +458,14 @@ window.addEventListener("DOMContentLoaded", function () {
 </script>"""
 
 
-def page(title, body, root="", desc="", titles=None, math=False):
-    """titles=(中文标题, English title)。给了就说明这页是双语的，带上切换按钮。"""
+def page(title, body, root="", desc="", titles=None, math=False, desc_en="",
+         body_class=""):
+    """titles=(中文标题, English title)。给了就说明这页是双语的，带上切换按钮。
+
+    body_class 给 <body> 加类名。首页用 home、算子页用 article：宽屏时各自
+    单独放开 --max（首页放版式，文章页放行宽并把右侧目录带回来贴着正文），
+    其余清单页仍是 1120px 的长文行宽。
+    """
     bilingual = bool(titles)
     lang_head, lang_foot, lang_attrs = "", "", ""
     if bilingual:
@@ -387,19 +473,21 @@ def page(title, body, root="", desc="", titles=None, math=False):
         lang_foot = "\n" + LANG_FOOT_JS
         lang_attrs = ' data-title-zh="%s" data-title-en="%s"' % (
             html.escape(titles[0]), html.escape(titles[1]))
+        if not desc_en:
+            desc_en = desc
     return """<!DOCTYPE html>
 <html lang="zh-CN"{attrs}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
-<meta name="description" content="{desc}">
-<meta property="og:title" content="{title}">
-<meta property="og:description" content="{desc}">
+<meta name="description" content="{desc}" data-desc-zh="{desc}" data-desc-en="{desc_en}">
+<meta property="og:title" content="{title}" data-title-zh="{title_zh}" data-title-en="{title_en}">
+<meta property="og:description" content="{desc}" data-desc-zh="{desc}" data-desc-en="{desc_en}">
 <link rel="stylesheet" href="{root}assets/style.css">
-<link rel="alternate" type="application/atom+xml" title="算子更新" href="{root}feed.xml">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="{root}feed.xml">
 {math_head}{lang_head}</head>
-<body>
+<body{body_attr}>
 <a class="skip" href="#main">{skip}</a>
 {head}
 <main id="main">
@@ -409,10 +497,14 @@ def page(title, body, root="", desc="", titles=None, math=False):
 </body>
 </html>
 """.format(title=html.escape(title), body=body, desc=html.escape(desc),
+           desc_en=html.escape(desc_en),
+           title_zh=html.escape(titles[0] if bilingual else title),
+           title_en=html.escape(titles[1] if bilingual else title),
            root=root, head=head_html(root, bilingual), foot=foot_html(VERSION, root),
            attrs=lang_attrs, lang_head=lang_head, lang_foot=lang_foot,
            math_head=MATH_HEAD if math else "",
-           skip=t("跳到正文", "Skip to content"))
+           skip=t("跳到正文", "Skip to content"),
+           body_attr=(' class="%s"' % body_class) if body_class else "")
 
 
 VERSION = "dev"
@@ -647,7 +739,7 @@ Linux    ~/.config/GIMP/3.x/plug-ins</code></pre>
 </section>"""
 
     return page("gegl-color-ops · GIMP 3 的 GEGL 算子与插件",
-                hero + doors + quick,
+                hero + doors + quick, body_class="home",
                 desc="GIMP 3 的 %d 个 GEGL 色彩算子 + %d 个 Python 插件，"
                      "Windows 与 Linux 整包直接下载。" % (n_live, n_plug),
                 titles=("gegl-color-ops · GIMP 3 的 GEGL 算子与插件",
@@ -849,6 +941,11 @@ def build_overview(ops, stats, version):
 
 
 def build_ops_index(ops, version):
+    """算子清单：整页双语，表格每个单元格都过 t()。
+
+    这页此前只有中文，EN 模式下点「Operators」会掉进一页纯中文还没有切换按钮，
+    是整站语言切换最大的一个断点。
+    """
     n_live = sum(1 for o in ops if not o.get("deprecated"))
     n_dep = len(ops) - n_live
     rows = []
@@ -856,29 +953,51 @@ def build_ops_index(ops, version):
         members = [o for o in ops if o["group"] == g]
         if not members:
             continue
-        rows.append('<h2 id="g-%s"><span class="tag t-%s">%s</span> %s</h2>'
-                    % (g, g.lower(), GROUP_ZH[g][1], GROUP_DESC[g]))
+        # 分组说明原先整个塞在 <h2> 里，标题被撑成两行大字，读起来像口号；
+        # 标题只留标签，说明单独一行。
+        rows.append('<h2 id="g-%s"><span class="tag t-%s">%s</span></h2>'
+                    % (g, g.lower(), t(GROUP_ZH[g][1], GROUP_ZH[g][0])))
+        rows.append('<p class="group-desc">%s</p>'
+                    % t(GROUP_DESC[g], GROUP_DESC_EN[g]))
         rows.append('<div class="table-wrap"><table class="op-table">')
-        rows.append("<thead><tr><th>菜单名</th><th>GEGL id</th><th>类型</th>"
-                    "<th>做什么</th></tr></thead><tbody>")
+        rows.append("<thead><tr><th>%s</th><th>GEGL id</th><th>%s</th>"
+                    "<th>%s</th></tr></thead><tbody>"
+                    % (t("菜单名", "Menu name"), t("类型", "Type"),
+                       t("做什么", "What it does")))
         for o in members:
             off = (" " + off_badge(o) + warn_badge(o)) if (o["disabled"] or o["discouraged"]) else ""
             rows.append('<tr><td><a href="ops/%s.html"><b>%s</b></a>%s</td>'
                         '<td><code>%s</code></td><td class="nowrap">%s</td><td>%s</td></tr>'
-                        % (o["dir"], html.escape(o["menu"]), off, html.escape(o["id"]),
-                           html.escape(o["type"]), inline(short(o["purpose_zh"], 70))))
+                        % (o["dir"],
+                           t(html.escape(o["menu"]), html.escape(en_name(o))),
+                           off, html.escape(o["id"]),
+                           t(html.escape(o["type"]),
+                             html.escape(TYPE_EN.get(o["type"], o["type"]))),
+                           t(inline(short(o["purpose_zh"], 70)),
+                             inline(short(en_blurb(o), 70)))))
         rows.append("</tbody></table></div>")
 
+    dep_zh = ("其中 %d 个已废弃，只作存档、不提供下载。" % n_dep) if n_dep else ""
+    dep_en = ("%d of them are retired: archive only, no download." % n_dep) if n_dep else ""
     body = """<section class="page-head">
-  <p class="eyebrow"><a href="index.html">首页</a> / 算子清单</p>
-  <h1>{n} 个算子</h1>
-  <p class="lede">按 GIMP 菜单里的分组排列。点名字进算法说明。{dep}</p>
+  <p class="eyebrow"><a href="index.html">{home}</a> / {ops}</p>
+  <h1>{n}</h1>
+  <p class="lede">{lede}{dep}</p>
 </section>
 <section class="prose wide">
 {rows}
-</section>""".format(n=n_live, rows="\n".join(rows),
-                   dep=("其中 %d 个已废弃，只作存档、不提供下载。" % n_dep) if n_dep else "")
-    return page("算子清单 · gegl-color-ops", body, desc="全部算子的清单与一句话说明")
+</section>""".format(home=t("首页", "Home"), ops=t("算子清单", "Operators"),
+                       n=t("%d 个算子" % n_live, "%d operators" % n_live),
+                       lede=t("按 GIMP 菜单里的分组排列。点名字进算法说明。",
+                              "Grouped the way the GIMP menu is. Open a name for the "
+                              "algorithm notes."),
+                       dep=t(dep_zh, dep_en) if (dep_zh or dep_en) else "",
+                       rows="\n".join(rows))
+    return page("算子清单 · gegl-color-ops", body,
+                desc="全部算子的清单与一句话说明",
+                titles=("算子清单 · gegl-color-ops", "Operators · gegl-color-ops"),
+                desc_en="Every operator with a one-line description: levels, component "
+                        "pairs, tone, colour, blend and mask.")
 
 
 def split_legacy_intro(md):
@@ -1094,7 +1213,11 @@ def pager_html(op, lang):
 
 def build_article(op, version):
     md = open(op["readme"], encoding="utf-8").read()
+    en = load_en(op)
     md, legacy_md = split_legacy_intro(md)
+    if en:
+        md = strip_en_sections(md)
+        md = strip_en_blocks(md)
     # 去掉 README 自带的标题和「本文件是说明文档」的提示，页面头部自己给。
     # 这两样有时夹在当前说明前面（hsl-bands），所以按行清，不限定在文件头。
     md = re.sub(r"^>\s*本文件是该滤镜的(?:原始)?说明文档[^\n]*\n"
@@ -1102,6 +1225,8 @@ def build_article(op, version):
     md = re.sub(r"^#\s+GEGL_GIMP_PLUGIN_[^\n]*\n+", "", md, flags=re.M)
     md = re.sub(r"\A\s*#\s+[^\n]*\n+", "", md)
     md = re.sub(r"\A\s*!\[[^\]]*\]\([^)]*\)\s*\n+", "", md)
+    # 「不推荐使用」的提示由模板在页头渲染，正文开头的同一条 blockquote 去掉，别重复
+    md = re.sub(r"\A\s*>\s*\*\*不推荐[^\n]*\n(?:>[^\n]*\n)*\s*", "", md)
 
     # README 里的图片都写 `assets/xxx.png`；图片实际被拷到 assets/ops/<dir>/ 下，
     # 所以先把 assets/ 前缀去掉，再让转换器统一加前缀
@@ -1121,7 +1246,6 @@ def build_article(op, version):
                              link_base=REPO + "/blob/main/")
     body_html = body_html.replace('src="assets/', 'src="%s' % img_prefix)
 
-    en = load_en(op)
     if en:
         en_html, en_toc = convert(en["md"], image_prefix=img_prefix,
                                   link_base=REPO + "/blob/main/")
@@ -1242,11 +1366,29 @@ def build_article(op, version):
 
     title = "%s · %s" % (op["menu"], "gegl-color-ops")
     return page(title, body, root="../", desc=op["purpose_text"][:120], titles=titles,
-                math=True)
+                math=True, body_class="article")
 
 
 def build_guide(version, stats):
-    body = """<section class="page-head">
+    """安装与排错：整页双语。
+
+    这页原来是纯中文硬编码，英文用户从下载页点「Install」会掉进一页中文。
+    现在中英各一份正文，共用同一套 stats 数字。
+    """
+    n, l = stats["win_files"], stats["linux_files"]
+    if stats["linux_missing"]:
+        miss = len(stats["linux_missing"])
+        lm_zh = ("component 家族那 %d 个模块（hsv / hsl / lab / lch / hsi 各自的 dual 与 "
+                 "compose，再加 gray-to-component）还没出包，可以 <code>./build.sh</code> "
+                 "自己编" % miss)
+        lm_en = ("the %d modules of the component family (dual and compose for hsv / hsl / "
+                 "lab / lch / hsi, plus gray-to-component) are not in the bundle yet — "
+                 "build them with <code>./build.sh</code>" % miss)
+    else:
+        lm_zh = "与 Windows 一致"
+        lm_en = "same as Windows"
+
+    zh = """<section class="page-head">
   <p class="eyebrow"><a href="index.html">首页</a> / 安装</p>
   <h1>安装与排错</h1>
   <p class="lede">没有安装程序，也没有注册表：把模块文件放进 GEGL 的插件目录，重启 GIMP 就完事。</p>
@@ -1373,7 +1515,7 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
   <p>两列数字一模一样。8 位的 0.49 码是量化本身，跟曲线无关。</p>
 
   <h2 id="faq">常见问题</h2>
-  <h3>和 经典图像编辑器 的调整图层结果一致吗？</h3>
+  <h3>和经典图像编辑器的调整图层结果一致吗？</h3>
   <p>多数算子的目标是「肉眼与 8 位输出一致」。实测残差写在每篇算法说明里，
      通常是中位 0–4 码；有明确对不上的段落时也会说明（例如 经典图像编辑器 在个别对角线上的硬裁切）。</p>
   <h3>为什么叫 <code>lb:</code> 前缀？</h3>
@@ -1381,15 +1523,183 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
      所以这个工程里所有 id 和 GType 名都带前缀。</p>
   <h3>会进 GIMP 官方仓库吗？</h3>
   <p>不会。这是独立的第三方算子集，按 GPL-3.0 发布，自己装进用户插件目录即可。</p>
-</article>""".format(
-        repo=REPO, n=stats["win_files"], l=stats["linux_files"],
-        lm=("component 家族那 %d 个模块（hsv / hsl / lab / lch / hsi 各自的 dual 与 "
-            "compose，再加 gray-to-component）还没出包，可以 <code>./build.sh</code> "
-            "自己编" % len(stats["linux_missing"])
-            if stats["linux_missing"] else "与 Windows 一致"))
+</article>""".format(repo=REPO, n=n, l=l, lm=lm_zh)
 
+    en = """<section class="page-head">
+  <p class="eyebrow"><a href="index.html">Home</a> / Install</p>
+  <h1>Install &amp; troubleshooting</h1>
+  <p class="lede">No installer, no registry: drop the module files into GEGL's plug-in
+     directory and restart GIMP. That is the whole procedure.</p>
+</section>
+<article class="prose wide">
+  <h2 id="req">Requirements</h2>
+  <ul>
+    <li><b>GIMP 3.x</b> (tested on 3.0 and 3.2), which ships GEGL 0.4.</li>
+    <li>Prebuilt <code>.dll</code> for Windows x64, <code>.so</code> for Linux x86_64.
+        The Windows bundle has <b>all {n} modules</b>; the Linux bundle currently has
+        {l} — {lm}.</li>
+    <li>No Python runtime needed: the operators are GEGL modules compiled from C.</li>
+  </ul>
+
+  <h2 id="install">Installing</h2>
+  <p>Unpack the archive and copy every module file (<code>.dll</code> / <code>.so</code>)
+     into the user plug-in directory (create it if it does not exist):</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>System</th><th>Directory</th></tr></thead>
+    <tbody>
+      <tr><td>Windows</td><td><code>%LOCALAPPDATA%\\gegl-0.4\\plug-ins</code></td></tr>
+      <tr><td>Linux</td><td><code>~/.local/share/gegl-0.4/plug-ins</code></td></tr>
+      <tr><td>macOS</td><td><code>~/Library/Application Support/gegl-0.4/plug-ins</code></td></tr>
+    </tbody>
+  </table></div>
+  <p>Then <b>quit GIMP completely and start it again</b> (closing the window is not
+     enough). Directories are scanned once, at startup.</p>
+  <p>To confirm the modules loaded, ask GEGL from a terminal:</p>
+  <pre><code>gegl --info lb:hsl-levels</code></pre>
+  <p>If it prints the property list, the operator is registered. GIMP's own
+     <code>gegl</code> lives in the <code>bin/</code> folder of its install directory —
+     on Windows usually <code>C:\\Program Files\\GIMP 3\\bin\\gegl.exe</code>.</p>
+
+  <h2 id="use">Using it</h2>
+  <p>A top-level <code>SuperMrWang</code> menu appears next to Colors and Layers. The
+     levels family (Levels / LAB / HSL / HSB / LCH / CMYK / HSI Levels) sits under
+     <b>Levels</b>; the component family (dual + compose for HSL / Lab / HSI, plus
+     gray-to-component) under <b>Component</b>; the one-click component-curve plug-ins
+     under <b>Shortcut</b>; everything else is split across Tone / Color / Blend / Mask.
+     You can also type an operator name into the action search (<code>/</code>).</p>
+  <p>Almost every operator is a <b>Point</b> or <b>Filter</b> op, so GIMP attaches it to
+     the layer as a non-destructive fx — parameters stay editable and the pixels are not
+     touched. The two-input operators (Apply Image and Calculations) can only be applied
+     destructively for now.</p>
+
+  <h2 id="build">Building from source (optional)</h2>
+  <p>You need GIMP 3's GEGL development headers and gcc (MSYS2's mingw64 toolchain is
+     enough on Windows):</p>
+  <pre><code>git clone {repo}.git
+cd gegl-color-ops
+./build.sh              # output lands in build/
+./install.sh --verify   # also copies everything into place and checks each op</code></pre>
+  <p>Linux and macOS can use meson instead:</p>
+  <pre><code>export PKG_CONFIG_PATH="/path/to/gimp/lib/pkgconfig"
+meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
+
+  <h2 id="trouble">Troubleshooting</h2>
+  <h3>Nothing shows up in the menu</h3>
+  <ul>
+    <li>Check the path: it must be <code>gegl-0.4/plug-ins</code>, not GIMP's own
+        <code>plug-ins</code>.</li>
+    <li>Did you restart? The scan happens at startup, so copying files in while GIMP
+        runs does nothing.</li>
+    <li>Architecture and dependencies: use the GEGL runtime that ships with GIMP, not a
+        second GEGL from the system.</li>
+    <li>Verify with <code>gegl --info lb:xxx</code>: visible on the command line but
+        missing inside GIMP usually means the GIMP version is too old.</li>
+  </ul>
+  <h3>The same operator appears twice / duplicate registration errors</h3>
+  <p>An old module with a different file name is still in the plug-in directory (early
+     on these were 12 separate repositories with unrelated names). Delete the old
+     <code>.dll</code>; the mapping is listed in the repository's <code>README.md</code>
+     under "relationship to the old layout".</p>
+  <h3>Opening an old image warns about unknown properties</h3>
+  <p>Upgrades occasionally remove properties that were merged into others, and the values
+     stored in old XCFs are then dropped. Loading only warns, never fails, but you have to
+     set those parameters again. Save a copy before upgrading.</p>
+
+  <h2 id="code">What a "code" is</h2>
+  <p>The operator and plug-in pages keep quoting figures like "identity round trip 0.0002
+     codes" or "residual 0.30 codes". <b>One code is one step on an 8-bit image</b>: 0–255
+     is 256 levels, so the gap between neighbours is 1 code, or <b>1/255 ≈ 0.392%</b>.
+     "0.0002 codes" therefore means the encoded result differs from the source by at most
+     0.0002 of a step — RGB 128 comes back as 128.0002.</p>
+  <p>Why that yardstick: floating-point error on its own says nothing (whether 1e-7 is
+     good depends on bit depth and how many operations ran). Expressed as "how many 8-bit
+     levels would this change", every colour space and bit depth becomes comparable, and
+     the number lines up with what the eye can resolve.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Value</th><th>What it means</th></tr></thead>
+    <tbody>
+      <tr><td><b>0.0002 codes</b></td><td>1/5000 of a step — a clean float round trip</td></tr>
+      <tr><td><b>0.0053 codes</b></td><td>1/190 of a step — the scale after several encode passes, still invisible</td></tr>
+      <tr><td><b>0.49 codes</b></td><td>the floor set by 8-bit quantisation; no 8-bit output escapes it</td></tr>
+      <tr><td><b>1 code</b></td><td>barely visible, and only side by side</td></tr>
+      <tr><td><b>3–4 codes</b></td><td>visible; banding may show on gradients</td></tr>
+      <tr><td><b>8 codes and up</b></td><td>an obvious colour or brightness shift</td></tr>
+    </tbody>
+  </table></div>
+  <p><b>It measures whether the output changed, not whether an eye would notice.</b> The
+     figure is the maximum absolute difference in sRGB encoded values (R′G′B′) — the worst
+     pixel, the worst channel, never an average. The encoding space is not perceptually
+     uniform: one code in the shadows is more visible than one code in the highlights, so
+     "how different does it look" has to be computed as ΔE in Lab. Codes are the
+     engineering criterion; ΔE is the perceptual one.</p>
+  <p>Worth adding: a difference below 0.5 codes cannot land on a different pixel in an
+     8-bit image (rounding swallows it). It only shows up in float working images, or after
+     stacking dozens of similar operations. That is why the plug-in pages quote both a
+     32-bit float and an 8-bit number.</p>
+
+  <h2 id="curves">Why the curves are all SMOOTH, and why that costs no precision</h2>
+  <p>Every curve handed to you in the plug-ins is GIMP's <b>SMOOTH</b> spline with three to
+     five control points: a diagonal of <code>(0,0) (128,128) (255,255)</code>, or the five
+     points of a dodge/burn curve. The other form, <b>FREE</b> "hand-drawn", looks more
+     flexible but is really 256 sample points pushed in one at a time: the property panel
+     becomes a wall of dots, editing one segment means finding the right dot first, and one
+     slip drags the whole line. Three handles do not have that problem.</p>
+  <p>I used to assume "smoothing must cost precision". Measured, that is wrong. <b>What
+     matters is where the control points sit</b>: the curve only knows integer levels
+     0…255, and so does <code>x</code>. Writing <code>0.5</code> means 127.5/255, exactly
+     between two levels; GIMP nudges it to one side, so the "diagonal" does not actually
+     pass through the diagonal — the identity is half a code off, and in 8-bit two adjacent
+     levels collapse into one (256 levels become 217). Put the point on
+     <code>128/255</code> (on the grid) and the identity round trip measures <b>0.0002
+     codes</b> with all 256 levels intact — identical to the old fully-sampled form, with
+     three handles instead of 256 dots.</p>
+  <p>And a common idea: <b>lay down 256 sample points, then hit "smooth" in the panel</b>?
+     That works too, also with zero error — GIMP places the converted control points on the
+     <code>32/255</code> grid for you. But it refits those 256 points into <b>9</b> control
+     points and throws the original table away, irreversibly: hard corners you drew get
+     rounded, and the only way back is to redraw. Generating the three on-grid points
+     directly skips that step and loses nothing.</p>
+  <p>The two kinds of curve are kept strictly apart: anything a person drags is a smooth
+     spline; the <b>encoding tables</b> the machine uses for itself (L* 0–100 across the
+     greyscale, hue 0–360° squeezed into 0–255) stay sampled — their shape is computed, not
+     drawn, and they need no handles.</p>
+  <p>Measured side by side (same image, same identity curve, old FREE 256 points vs the
+     current SMOOTH three points):</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Plug-in</th><th>FREE, 256 points</th><th>SMOOTH, 3 points on grid</th><th>8-bit</th></tr></thead>
+    <tbody>
+      <tr><td>HSV</td><td>0.00015 codes</td><td>0.00015 codes</td><td>0.49 codes</td></tr>
+      <tr><td>HSL</td><td>0.00012 codes</td><td>0.00012 codes</td><td>0.49 codes</td></tr>
+      <tr><td>Lab</td><td>0.00243 codes</td><td>0.00243 codes</td><td>0.49 codes</td></tr>
+      <tr><td>LCh</td><td>0.00049 codes</td><td>0.00049 codes</td><td>0.49 codes</td></tr>
+      <tr><td>HSI</td><td>0.00014 codes</td><td>0.00014 codes</td><td>0.50 codes</td></tr>
+    </tbody>
+  </table></div>
+  <p>The two columns are identical. The 0.49 codes in the 8-bit column is quantisation
+     itself, unrelated to the curve.</p>
+
+  <h2 id="faq">FAQ</h2>
+  <h3>Do the results match the classic editor's adjustment layers?</h3>
+  <p>Most operators aim for "the same 8-bit output, to the eye". The measured residual is
+     quoted in every algorithm page, usually 0–4 codes at the median; where something
+     genuinely differs, the page says so (for example the classic editor's hard clipping on
+     a few diagonals).</p>
+  <h3>Why the <code>lb:</code> prefix?</h3>
+  <p>GEGL ids have to be unique. The prefix avoids colliding with GIMP's own operators —
+     a collision fails silently at load time — so every id and GType name in this project
+     carries it.</p>
+  <h3>Will this go into GIMP's official repository?</h3>
+  <p>No. It is an independent third-party operator set, released under GPL-3.0, installed
+     into your own user plug-in directory.</p>
+</article>""".format(repo=REPO, n=n, l=l, lm=lm_en)
+
+    body = '<div class="l-zh">%s</div>\n<div class="l-en">%s</div>' % (zh, en)
     return page("安装与排错 · gegl-color-ops", body,
-                desc="GIMP 3 GEGL 算子安装、验证与排错")
+                desc="GIMP 3 GEGL 算子安装、验证与排错",
+                titles=("安装与排错 · gegl-color-ops",
+                        "Install & troubleshooting · gegl-color-ops"),
+                desc_en="Installing, verifying and troubleshooting the GEGL operators "
+                        "for GIMP 3.")
 
 
 # 每个 Python 插件：一个 .py 加上它内部依赖的算子模块。清单放在模块级，
@@ -1723,38 +2033,41 @@ def build_plugins(version, stats=None):
     <div class="card-top"><span class="tag {cls}">{tag}</span></div>
     <h3>{title}</h3>
     <p>{brief}</p>
-    <span class="more">读插件说明 →</span>
-  </a>""".format(slug=p["slug"], cls=p["tag"][1], tag=p["tag"][0],
-                 title=html.escape(p["title"]), brief=p["brief"])
+    <span class="more">{more}</span>
+  </a>""".format(slug=p["slug"], cls=p["tag"][1],
+                 tag=t(p["tag"][0], p.get("tag_en") or p["tag"][0]),
+                 title=t(html.escape(p["title"]), html.escape(p.get("title_en") or p["title"])),
+                 brief=t(p["brief"], p.get("brief_en") or p["brief"]),
+                 more=t("读插件说明 →", "Read the notes →"))
 
-    def group(key, tag, cls, desc, members):
+    def group(key, tag, cls, desc, members, tag_en=None, desc_en=None):
         return """<section class="group" id="{key}">
   <h3 class="group-title"><span class="tag {cls}">{tag}</span>
-    <span class="group-en">{en}</span><span class="count">{n} 个</span></h3>
+    <span class="group-en">{en}</span><span class="count">{n}</span></h3>
   <p class="group-desc">{desc}</p>
   <div class="cards">
 {cards}
   </div>
-</section>""".format(key=key, tag=tag, cls=cls, en=key.capitalize(),
-                     n=len(members),
-                     desc=desc,
+</section>""".format(key=key, tag=t(tag, tag_en or key.capitalize()), cls=cls,
+                     en=t(key.capitalize(), ""),
+                     n=t("%d 个" % len(members), str(len(members))),
+                     desc=t(desc, desc_en or desc),
                      cards="\n".join(card(p) for p in members))
 
     shortcut = [p for p in PD.PAGES if p["area"].startswith("Shortcut")]
     convert = [p for p in PD.PAGES if p["area"] == "图层转换"]
     mask = [p for p in PD.PAGES if p["area"] == "Mask"]
 
+    n_plug = len(PD.PAGES)
     body = """<section class="page-head">
-  <p class="eyebrow"><a href="index.html">首页</a> / Python 插件</p>
-  <h1>11 个 Python 插件</h1>
-  <p class="lede">免编译的 GIMP 3 插件，装进 <code>plug-ins</code> 目录、重启即用。
-     两处入口：菜单栏顶层的 <b>SuperMrWang</b>（十一个都在），以及
-     <b>图层右键 → SuperMrWang</b>。</p>
+  <p class="eyebrow"><a href="index.html">{home}</a> / {plugs}</p>
+  <h1>{h1}</h1>
+  <p class="lede">{lede}</p>
   <ul class="facts">
-    <li><b>11</b> 个插件</li>
-    <li><b>11</b> 个 PDB 过程</li>
-    <li><b>369</b> 条回归断言</li>
-    <li><b>0</b> 编译 · 纯 Python</li>
+    <li>{f1}</li>
+    <li>{f2}</li>
+    <li>{f3}</li>
+    <li>{f4}</li>
   </ul>
 </section>
 
@@ -1762,22 +2075,51 @@ def build_plugins(version, stats=None):
 {shortcut}
 {convert}
 {mask}
-  <p class="note">安装：<code>bash install-plugin.sh</code> 一次装齐，或从各自的页面
-     单独下某一个 <code>.zip</code>；细节见 <a href="guide.html">安装指南</a>。</p>
+  <p class="note">{note}</p>
 </div>""".format(
+        home=t("首页", "Home"), plugs=t("Python 插件", "Python plug-ins"),
+        h1=t("%d 个 Python 插件" % n_plug, "%d Python plug-ins" % n_plug),
+        lede=t("免编译的 GIMP 3 插件，装进 <code>plug-ins</code> 目录、重启即用。"
+               "两处入口：菜单栏顶层的 <b>SuperMrWang</b>（全部都在），以及"
+               "<b>图层右键 → SuperMrWang</b>。",
+               "Compile-free GIMP 3 plug-ins: drop them into the <code>plug-ins</code> "
+               "folder and restart. Two entry points: the top-level <b>SuperMrWang</b> "
+               "menu (all of them) and <b>layer right-click → SuperMrWang</b>."),
+        f1=t("<b>%d</b> 个插件" % n_plug, "<b>%d</b> plug-ins" % n_plug),
+        f2=t("<b>%d</b> 个 PDB 过程" % n_plug, "<b>%d</b> PDB procedures" % n_plug),
+        f3=t("<b>369</b> 条回归断言", "<b>369</b> regression assertions"),
+        f4=t("<b>0</b> 编译 · 纯 Python", "<b>0</b> to compile · pure Python"),
+        note=t("安装：<code>bash install-plugin.sh</code> 一次装齐，或从各自的页面"
+               "单独下某一个 <code>.zip</code>；细节见 "
+               "<a href=\"guide.html\">安装指南</a>。",
+               "Install: <code>bash install-plugin.sh</code> puts them all in place, "
+               "or download a single <code>.zip</code> from its own page — details in "
+               "the <a href=\"guide.html\">install guide</a>."),
         shortcut=group("shortcut", "Shortcut", "t-color",
-                       "五个分量曲线、三个磨皮：把一串手工步骤压成一次点击。",
-                       shortcut),
+                       "五条分量曲线、三个磨皮：把一串手工步骤压成一次点击。",
+                       shortcut, tag_en="Shortcut",
+                       desc_en="Five component-curve plug-ins and three retouching "
+                               "ones: a chain of manual steps collapsed into one click."),
         convert=group("convert", "图层转换", "t-mask",
-                      "算子跑完留下的灰度图，一步变成蒙版或选区存档。", convert),
+                      "算子跑完留下的灰度图，一步变成蒙版或选区存档。", convert,
+                      tag_en="Convert",
+                      desc_en="Turns the greyscale an operator leaves behind into a "
+                              "mask or a saved selection in one step."),
         mask=group("mask", "Mask", "t-mask",
-                   "透明度本身当曲线来画：按通道生成 alpha，形状随便画。", mask)
+                   "透明度本身当曲线来画：按通道生成 alpha，形状随便画。", mask,
+                   tag_en="Mask",
+                   desc_en="Alpha as a curve: generate coverage per channel, then "
+                           "shape it freely.")
         if mask else "")
 
     return page("Python 插件 · gegl-color-ops", body,
                 desc="GIMP 3 Python 插件：图层转选区 / Alpha 通道，"
                      "HSV / LCh / HSL / Lab / HSI 分量分层曲线，"
-                     "高低频 / 双曲线 / 中性灰磨皮——免编译，解压即用")
+                     "高低频 / 双曲线 / 中性灰磨皮——免编译，解压即用",
+                titles=("Python 插件 · gegl-color-ops", "Python plug-ins · gegl-color-ops"),
+                desc_en="%d compile-free GIMP 3 plug-ins: layer to selection or "
+                        "channel, HSV / LCh / HSL / Lab / HSI component curves, "
+                        "frequency separation, dodge & burn, neutral grey." % n_plug)
 
 
 def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
@@ -1788,60 +2130,111 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
     """
     z = ((stats or {}).get("plugin_zips") or {}).get(p["key"])
     name = p["menu"].split("→")[-1].strip()
+    name_en = p.get("title_en") or p["title"]
 
-    if p["deps"]:
-        dep_html = ('<p>%s</p>\n      <ul class="deps">%s</ul>'
-                    % (p["deps_note"],
-                       "".join("<li><code>%s</code></li>" % d for d in p["deps"])))
-    else:
-        dep_html = '<p>%s</p>' % p["deps_note"]
-
-    dl = ""
-    if z:
-        mods = z.get("win_mods") or []
-        absent = z.get("absent") or []
-        if mods:
-            pill = "含 %d 个模块 · 免编译" % len(mods)
-            note = ("包里有一个 <code>.py</code>、%d 个算子模块和一份安装说明。"
-                    "<b>算子依赖已经附在里面，不用另外去下。</b>"
-                    "<code>.py</code> 进 GIMP 的 <code>plug-ins</code>，模块进 GEGL 的 "
-                    "<code>gegl-0.4/plug-ins</code>——两个目录不一样，包内说明分步写了。"
-                    % len(mods))
+    def one_lang(lang):
+        en_ = lang == "en"
+        dn = (p.get("deps_note_en") if en_ else "") or p["deps_note"]
+        if p["deps"]:
+            dep_html = ('<p>%s</p>\n      <ul class="deps">%s</ul>'
+                        % (dn, "".join("<li><code>%s</code></li>" % d for d in p["deps"])))
         else:
-            pill = ".py · 免编译"
-            note = ("包里只有一个 <code>.py</code> 和一份安装说明。解压到 GIMP 的 "
-                    "<code>plug-ins</code> 目录（Windows "
-                    "<code>%%APPDATA%%\\GIMP\\3.x\\plug-ins</code>，Linux "
-                    "<code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。")
-        if absent:
-            note += (" Linux 端的 %s 还没进预编译包，要用 Linux 就 "
-                     "<code>./build.sh</code> 自己编一份（Windows 端齐全）。"
-                     % "、".join(absent))
-        dl = """<section class="download" id="download">
-  <h2>下载这一个</h2>
+            dep_html = '<p>%s</p>' % dn
+
+        menus = p["menus"]
+        if en_:
+            # 菜单条目里夹着中文：入口名、中文插件名、"同上两条"
+            menus = [m.replace("图层右键", "Layer right-click")
+                      .replace("同上两条", "same as the two above")
+                      .replace(p["title"], p.get("title_en") or p["title"])
+                     for m in menus]
+        menu_html = "".join("<li>%s</li>" % m for m in menus)
+
+        dl = ""
+        if z:
+            mods = z.get("win_mods") or []
+            absent = z.get("absent") or []
+            if mods:
+                if en_:
+                    pill = "%d modules included · no compile" % len(mods)
+                    note = ("The archive holds one <code>.py</code>, %d operator modules "
+                            "and an install note. <b>The operator dependencies are already "
+                            "inside, nothing else to download.</b> The <code>.py</code> goes "
+                            "into GIMP's <code>plug-ins</code>, the modules into GEGL's "
+                            "<code>gegl-0.4/plug-ins</code> — two different directories, and "
+                            "the note inside walks through both." % len(mods))
+                else:
+                    pill = "含 %d 个模块 · 免编译" % len(mods)
+                    note = ("包里有一个 <code>.py</code>、%d 个算子模块和一份安装说明。"
+                            "<b>算子依赖已经附在里面，不用另外去下。</b>"
+                            "<code>.py</code> 进 GIMP 的 <code>plug-ins</code>，模块进 GEGL 的 "
+                            "<code>gegl-0.4/plug-ins</code>——两个目录不一样，包内说明分步写了。"
+                            % len(mods))
+            else:
+                if en_:
+                    pill = ".py · no compile"
+                    note = ("The archive holds a single <code>.py</code> and an install note. "
+                            "Unpack it into GIMP's <code>plug-ins</code> directory (Windows "
+                            "<code>%%APPDATA%%\\GIMP\\3.x\\plug-ins</code>, Linux "
+                            "<code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> "
+                            "for it to register.")
+                else:
+                    pill = ".py · 免编译"
+                    note = ("包里只有一个 <code>.py</code> 和一份安装说明。解压到 GIMP 的 "
+                            "<code>plug-ins</code> 目录（Windows "
+                            "<code>%%APPDATA%%\\GIMP\\3.x\\plug-ins</code>，Linux "
+                            "<code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。")
+            if absent:
+                if en_:
+                    note += (" The Linux side of %s is not in the prebuilt bundle yet; if you "
+                             "need Linux, build it with <code>./build.sh</code> (Windows is "
+                             "complete)." % ", ".join(absent))
+                else:
+                    note += (" Linux 端的 %s 还没进预编译包，要用 Linux 就 "
+                             "<code>./build.sh</code> 自己编一份（Windows 端齐全）。"
+                             % "、".join(absent))
+            dl = """<section class="download" id="download">
+  <h2>%s</h2>
   <div class="dl primary-dl">
     <div class="dl-head"><h3>%s</h3><span class="pill">%s</span></div>
     <p>%s</p>
-    <a class="btn primary" href="../download/%s">下载 %s</a>
-    <p class="muted small">%s KB · 校验：<code>SHA256 %s…</code></p>
+    <a class="btn primary" href="../download/%s">%s %s</a>
+    <p class="muted small">%s KB · %s<code>SHA256 %s…</code></p>
   </div>
-</section>""" % (name, pill, note, z["name"], name, z["kb"], z["sha"][:32])
+</section>""" % ("Download this one" if en_ else "下载这一个",
+                name_en if en_ else name, pill, note, z["name"],
+                "Download" if en_ else "下载", name_en if en_ else name,
+                z["kb"], "checksum: " if en_ else "校验：", z["sha"][:32])
 
-    def pager_link(q, label, cls):
-        if not q:
-            return ""
-        return ('<a class="%s" href="%s.html"><span>%s</span>%s</a>'
-                % (cls, q["slug"], label, q["title"]))
+        def pager_link(q, label, cls):
+            if not q:
+                return ""
+            return ('<a class="%s" href="%s.html"><span>%s</span>%s</a>'
+                    % (cls, q["slug"], label,
+                       q.get("title_en") or q["title"] if en_ else q["title"]))
 
-    pager = """<nav class="pager">
-  <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
+        pager = """<nav class="pager">
+  <a href="../plugins.html"><span>%s</span>%s</a>
   %s%s
-</nav>""" % (pager_link(prev, "上一篇", "prev"), pager_link(nxt, "下一篇", "next"))
+</nav>""" % ("Back to" if en_ else "回到",
+             "All plug-ins" if en_ else "Python 插件总览",
+             pager_link(prev, "Previous" if en_ else "上一篇", "prev"),
+             pager_link(nxt, "Next" if en_ else "下一篇", "next"))
 
-    menu_html = "".join("<li>%s</li>" % m for m in p["menus"])
-    body = """<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../plugins.html">插件</a>
-    / %s</p>
+        note_code = ("""<p class="note">In this article a "code" means one step on an 8-bit
+   image: 0–255 is 256 levels, so the gap between neighbours is 1 code, or
+   1/255 ≈ 0.392%% (the difference between RGB 128 and 129). For the order of magnitude
+   of each figure, and why a code is not a perceptual quantity, see
+   <a href="../guide.html#code">Install guide · what a code is</a>.</p>"""
+                     if en_ else
+                     """<p class="note">文中「码」指 8 位图上的一个台阶：0–255 共 256 级，
+   相邻两级的差就是 1 码，等于 1/255 ≈ 0.392%%（也就是 RGB 128 与 129 之间的差）。
+   各数量级的含义与「码为什么不是感知量」的说明见
+   <a href="../guide.html#code">安装指南 · 精度里的「码」</a>。</p>""")
+
+        return """<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">%s</a> /
+    <a href="../plugins.html">%s</a> / %s</p>
   <h1>%s</h1>
   <div class="meta">
     <code>plugin/%s</code>
@@ -1854,18 +2247,17 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
 <div class="prose wide">
   <div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>菜单位置</h3><span class="pill">多条</span></div>
+      <div class="dl-head"><h3>%s</h3><span class="pill">%s</span></div>
       <ul class="menu-list">%s</ul>
-      <p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——
-         组没有自己的像素，会直接报错并提示先合并。</p>
+      <p>%s</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>脚本调用</h3></div>
+      <div class="dl-head"><h3>%s</h3></div>
       <pre><code>%s</code></pre>
-      <p>标准 PDB 过程，参数留空走默认值。</p>
+      <p>%s</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>依赖</h3></div>
+      <div class="dl-head"><h3>%s</h3></div>
       %s
     </div>
   </div>
@@ -1874,18 +2266,40 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
 
 %s
 
-<p class="note">文中「码」指 8 位图上的一个台阶：0–255 共 256 级，相邻两级的差就是
-   1 码，等于 1/255 ≈ 0.392%%（也就是 RGB 128 与 129 之间的差）。各数量级的含义与
-   「码为什么不是感知量」的说明见
-   <a href="../guide.html#code">安装指南 · 精度里的「码」</a>。</p>
-
 %s
-</div>""" % (p["area"], p["title"], p["slug"], p["tag"][1], p["tag"][0],
-             p["area"], p["lede"], menu_html, p["pdb"], dep_html,
-             p["body"], dl, pager)
+</div>""" % ("Home" if en_ else "首页",
+             "Plug-ins" if en_ else "插件",
+             (p.get("area_en") if en_ else p["area"]),
+             html.escape(name_en if en_ else p["title"]),
+             p["slug"], p["tag"][1],
+             p.get("tag_en") if en_ else p["tag"][0],
+             p.get("area_en") if en_ else p["area"],
+             (p.get("lede_en") or p["lede"]) if en_ else p["lede"],
+             "Menu location" if en_ else "菜单位置",
+             "Several" if en_ else "多条",
+             menu_html,
+             ("These are all the same action, applied to <b>the one layer you have "
+              "selected</b>. Layer groups do not work — a group has no pixels of its own, "
+              "so the plug-in stops with an explicit error and asks you to merge first."
+              if en_ else
+              "这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——"
+              "组没有自己的像素，会直接报错并提示先合并。"),
+             "Scripting" if en_ else "脚本调用",
+             p["pdb"],
+             "A standard PDB procedure; leave an argument empty to take its default."
+             if en_ else "标准 PDB 过程，参数留空走默认值。",
+             "Dependencies" if en_ else "依赖",
+             dep_html,
+             (p.get("body_en") or p["body"]) if en_ else p["body"],
+             dl, note_code) + "\n" + pager
 
+    body = ('<div class="l-zh">%s</div>\n<div class="l-en">%s</div>'
+            % (one_lang("zh"), one_lang("en")))
     return page("%s · Python 插件 · gegl-color-ops" % p["title"], body, root="../",
-                desc=re.sub(r"<[^>]+>", "", p["lede"])[:120])
+                desc=re.sub(r"<[^>]+>", "", p["lede"])[:120],
+                titles=("%s · Python 插件 · gegl-color-ops" % p["title"],
+                        "%s · Python plug-ins · gegl-color-ops" % p["title"]),
+                desc_en=re.sub(r"<[^>]+>", "", p.get("lede_en") or p["lede"])[:120])
 
 
 def build_feed(ops, version):

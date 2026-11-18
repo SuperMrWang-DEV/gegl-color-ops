@@ -19,7 +19,7 @@
 
 ## 先记一个坑：经典图像编辑器的脚本入口不叫 Shadow/Highlight
 
-想把 经典图像编辑器 当 oracle，第一步是能用脚本调起它。`Shdw`、`ShHl`、`shadowsHighlights`、
+想把经典图像编辑器当 oracle，第一步是能用脚本调起它。`Shdw`、`ShHl`、`shadowsHighlights`、
 `shadowHighlight`、`adaptCorrectTones` … 13 个 charID 加 8 个 stringID 轮流试，
 全部报「命令<未知的>当前不可用」，`编辑器进程` 和 `Required/*.dll` 里也搜不到
 `shadowsHighlights` 字样。
@@ -41,7 +41,7 @@ stringID 小写。这条线索来自 官方用户社区一个 Clean SL 脚本，
 
 ## 算法结构
 
-六个阶段，数全部来自 经典图像编辑器 25.4 的黑盒拟合（同一结构见 PhotoCraft，MIT）：
+六个阶段，数全部来自经典图像编辑器25.4 的黑盒拟合（同一结构见 PhotoCraft，MIT）：
 
 1. **亮度**：最大通道与 Rec.601 亮度的平均，直接作用在 **sRGB 编码值**上
    （不是线性光）。这解释了为什么暗部提亮后颜色会发灰——它动的是显示值：
@@ -120,7 +120,7 @@ y'' = y_2 + k\,(y_2-0.5)\bigl(4y_2(1-y_2)\bigr)^p
 
 ## 验收
 
-`python tools/check_shadows_highlights.py`（`--fast` 跳过 经典图像编辑器 对照）：
+`python tools/check_shadows_highlights.py`（`--fast` 跳过经典图像编辑器对照）：
 
 **一、独立 Python 参考实现 vs 算子**（平场，nb = 自身）。参考实现照上面六步直写，
 不复用 C 代码，只共用拟合出来的系数表：
@@ -135,7 +135,7 @@ y'' = y_2 + k\,(y_2-0.5)\bigl(4y_2(1-y_2)\bigr)^p
 写这个脚本时抓到过一个真 bug：两个修剪都设 0 时 `clip_lo/clip_hi` 没初始化，
 `(y−0)/(0−0)` 把整图推成纯白。现在 `prepare()` 里复位成 0/1，除法也加了兜底。
 
-**二、和 经典图像编辑器 本身**（`shadows-highlights-cal/`）：
+**二、和经典图像编辑器本身**（`shadows-highlights-cal/`）：
 
 | 数据集 | 规模 | 逐点中位 | 最大 |
 |---|---|---|---|
@@ -158,7 +158,7 @@ y'' = y_2 + k\,(y_2-0.5)\bigl(4y_2(1-y_2)\bigr)^p
 3. **半径 > 300 没标定**：经典图像编辑器 对话框上限 2500，标定只做到 300，更大半径按同一
    σ=1.1424·r 外推。
 4. `midtone_contrast` 与 `color_correction` 用的是参考实现的拟合系数，**没有单独做
-   经典图像编辑器 实测**（平场和彩色平场只验证了算子与参考实现一致，不是与 经典图像编辑器 一致）。
+  经典图像编辑器实测**（平场和彩色平场只验证了算子与参考实现一致，不是与经典图像编辑器一致）。
 
 ## 复现标定
 

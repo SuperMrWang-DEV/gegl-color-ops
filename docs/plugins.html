@@ -1,14 +1,26 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="Python 插件 · gegl-color-ops" data-title-en="Python plug-ins · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Python 插件 · gegl-color-ops</title>
-<meta name="description" content="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮——免编译，解压即用">
-<meta property="og:title" content="Python 插件 · gegl-color-ops">
-<meta property="og:description" content="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮——免编译，解压即用">
+<meta name="description" content="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮——免编译，解压即用" data-desc-zh="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮——免编译，解压即用" data-desc-en="12 compile-free GIMP 3 plug-ins: layer to selection or channel, HSV / LCh / HSL / Lab / HSI component curves, frequency separation, dodge &amp; burn, neutral grey.">
+<meta property="og:title" content="Python 插件 · gegl-color-ops" data-title-zh="Python 插件 · gegl-color-ops" data-title-en="Python plug-ins · gegl-color-ops">
+<meta property="og:description" content="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮——免编译，解压即用" data-desc-zh="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮——免编译，解压即用" data-desc-en="12 compile-free GIMP 3 plug-ins: layer to selection or channel, HSV / LCh / HSL / Lab / HSI component curves, frequency separation, dodge &amp; burn, neutral grey.">
 <link rel="stylesheet" href="assets/style.css">
-<link rel="alternate" type="application/atom+xml" title="算子更新" href="feed.xml">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
 <a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
@@ -21,118 +33,119 @@
     <a href="index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
 <section class="page-head">
-  <p class="eyebrow"><a href="index.html">首页</a> / Python 插件</p>
-  <h1>11 个 Python 插件</h1>
-  <p class="lede">免编译的 GIMP 3 插件，装进 <code>plug-ins</code> 目录、重启即用。
-     两处入口：菜单栏顶层的 <b>SuperMrWang</b>（十一个都在），以及
-     <b>图层右键 → SuperMrWang</b>。</p>
+  <p class="eyebrow"><a href="index.html"><span class="l-zh">首页</span><span class="l-en">Home</span></a> / <span class="l-zh">Python 插件</span><span class="l-en">Python plug-ins</span></p>
+  <h1><span class="l-zh">12 个 Python 插件</span><span class="l-en">12 Python plug-ins</span></h1>
+  <p class="lede"><span class="l-zh">免编译的 GIMP 3 插件，装进 <code>plug-ins</code> 目录、重启即用。两处入口：菜单栏顶层的 <b>SuperMrWang</b>（全部都在），以及<b>图层右键 → SuperMrWang</b>。</span><span class="l-en">Compile-free GIMP 3 plug-ins: drop them into the <code>plug-ins</code> folder and restart. Two entry points: the top-level <b>SuperMrWang</b> menu (all of them) and <b>layer right-click → SuperMrWang</b>.</span></p>
   <ul class="facts">
-    <li><b>11</b> 个插件</li>
-    <li><b>11</b> 个 PDB 过程</li>
-    <li><b>369</b> 条回归断言</li>
-    <li><b>0</b> 编译 · 纯 Python</li>
+    <li><span class="l-zh"><b>12</b> 个插件</span><span class="l-en"><b>12</b> plug-ins</span></li>
+    <li><span class="l-zh"><b>12</b> 个 PDB 过程</span><span class="l-en"><b>12</b> PDB procedures</span></li>
+    <li><span class="l-zh"><b>369</b> 条回归断言</span><span class="l-en"><b>369</b> regression assertions</span></li>
+    <li><span class="l-zh"><b>0</b> 编译 · 纯 Python</span><span class="l-en"><b>0</b> to compile · pure Python</span></li>
   </ul>
 </section>
 
 <div class="prose wide">
 <section class="group" id="shortcut">
-  <h3 class="group-title"><span class="tag t-color">Shortcut</span>
-    <span class="group-en">Shortcut</span><span class="count">8 个</span></h3>
-  <p class="group-desc">五个分量曲线、三个磨皮：把一串手工步骤压成一次点击。</p>
+  <h3 class="group-title"><span class="tag t-color"><span class="l-zh">Shortcut</span><span class="l-en">Shortcut</span></span>
+    <span class="group-en"><span class="l-zh">Shortcut</span><span class="l-en"></span></span><span class="count"><span class="l-zh">8 个</span><span class="l-en">8</span></span></h3>
+  <p class="group-desc"><span class="l-zh">五条分量曲线、三个磨皮：把一串手工步骤压成一次点击。</span><span class="l-en">Five component-curve plug-ins and three retouching ones: a chain of manual steps collapsed into one click.</span></p>
   <div class="cards">
   <a class="card" href="plugins/hsv-split-curves.html">
-    <div class="card-top"><span class="tag t-color">曲线</span></div>
-    <h3>HSV Split (Curves)</h3>
-    <p>拆成 H / S / V 三张分量层，每层一条原生曲线，恒等还原。</p>
-    <span class="more">读插件说明 →</span>
+    <div class="card-top"><span class="tag t-color"><span class="l-zh">曲线</span><span class="l-en">Curves</span></span></div>
+    <h3><span class="l-zh">HSV Split (Curves)</span><span class="l-en">HSV Split (Curves)</span></h3>
+    <p><span class="l-zh">拆成 H / S / V 三张分量层，每层一条原生曲线，恒等还原。</span><span class="l-en">Splits into H / S / V component layers, one native curve each, restored bit-exactly.</span></p>
+    <span class="more"><span class="l-zh">读插件说明 →</span><span class="l-en">Read the notes →</span></span>
   </a>
   <a class="card" href="plugins/lch-split-curves.html">
-    <div class="card-top"><span class="tag t-blend">曲线</span></div>
-    <h3>LCh Split (Curves)</h3>
-    <p>同上，换成 CIE LCh 明度 / 彩度 / 色相，感知均匀。</p>
-    <span class="more">读插件说明 →</span>
+    <div class="card-top"><span class="tag t-blend"><span class="l-zh">曲线</span><span class="l-en">Curves</span></span></div>
+    <h3><span class="l-zh">LCh Split (Curves)</span><span class="l-en">LCh Split (Curves)</span></h3>
+    <p><span class="l-zh">同上，换成 CIE LCh 明度 / 彩度 / 色相，感知均匀。</span><span class="l-en">The same idea in CIE LCh: perceptual lightness, chroma and hue.</span></p>
+    <span class="more"><span class="l-zh">读插件说明 →</span><span class="l-en">Read the notes →</span></span>
   </a>
   <a class="card" href="plugins/hsl-split-curves.html">
-    <div class="card-top"><span class="tag t-color">曲线</span></div>
-    <h3>HSL Split (Curves)</h3>
-    <p>GIMP 没有 HSL 分量模式，这个插件精确换算，不拿 HSV 近似。</p>
-    <span class="more">读插件说明 →</span>
+    <div class="card-top"><span class="tag t-color"><span class="l-zh">曲线</span><span class="l-en">Curves</span></span></div>
+    <h3><span class="l-zh">HSL Split (Curves)</span><span class="l-en">HSL Split (Curves)</span></h3>
+    <p><span class="l-zh">GIMP 没有 HSL 分量模式，这个插件精确换算，不拿 HSV 近似。</span><span class="l-en">GIMP has no HSL component mode, so this converts exactly instead of approximating with HSV.</span></p>
+    <span class="more"><span class="l-zh">读插件说明 →</span><span class="l-en">Read the notes →</span></span>
   </a>
   <a class="card" href="plugins/lab-split-curves.html">
-    <div class="card-top"><span class="tag t-blend">曲线</span></div>
-    <h3>Lab Split (Curves)</h3>
-    <p>a 与 b 合一层、L* 一层，调 a 只动 a、调 b 只动 b。</p>
-    <span class="more">读插件说明 →</span>
+    <div class="card-top"><span class="tag t-blend"><span class="l-zh">曲线</span><span class="l-en">Curves</span></span></div>
+    <h3><span class="l-zh">Lab Split (Curves)</span><span class="l-en">Lab Split (Curves)</span></h3>
+    <p><span class="l-zh">a 与 b 合一层、L* 一层，调 a 只动 a、调 b 只动 b。</span><span class="l-en">a and b share one layer and L* gets its own — curve a and only a moves.</span></p>
+    <span class="more"><span class="l-zh">读插件说明 →</span><span class="l-en">Read the notes →</span></span>
   </a>
   <a class="card" href="plugins/hsi-split-curves.html">
-    <div class="card-top"><span class="tag t-color">曲线</span></div>
-    <h3>HSI Split (Curves)</h3>
-    <p>I 借不到任何分量模式，三个分量合进一层、三条曲线各管一个。</p>
-    <span class="more">读插件说明 →</span>
+    <div class="card-top"><span class="tag t-color"><span class="l-zh">曲线</span><span class="l-en">Curves</span></span></div>
+    <h3><span class="l-zh">HSI Split (Curves)</span><span class="l-en">HSI Split (Curves)</span></h3>
+    <p><span class="l-zh">I 借不到任何分量模式，三个分量合进一层、三条曲线各管一个。</span><span class="l-en">No component mode fits HSI, so all three share one layer with three curves.</span></p>
+    <span class="more"><span class="l-zh">读插件说明 →</span><span class="l-en">Read the notes →</span></span>
   </a>
   <a class="card" href="plugins/frequency-separation.html">
-    <div class="card-top"><span class="tag t-tone">磨皮</span></div>
-    <h3>高低频磨皮</h3>
-    <p>低频管影调、高频管细节，叠起来就是原图；半径决定分界。</p>
-    <span class="more">读插件说明 →</span>
+    <div class="card-top"><span class="tag t-tone"><span class="l-zh">磨皮</span><span class="l-en">Retouching</span></span></div>
+    <h3><span class="l-zh">高低频磨皮</span><span class="l-en">Frequency Separation</span></h3>
+    <p><span class="l-zh">低频管影调、高频管细节，叠起来就是原图；半径决定分界。</span><span class="l-en">Low frequency carries tone, high frequency carries detail; stacked they rebuild the original.</span></p>
+    <span class="more"><span class="l-zh">读插件说明 →</span><span class="l-en">Read the notes →</span></span>
   </a>
   <a class="card" href="plugins/dodge-burn.html">
-    <div class="card-top"><span class="tag t-tone">磨皮</span></div>
-    <h3>双曲线磨皮</h3>
-    <p>提亮 / 压暗两条曲线压在黑蒙版下：涂到哪里动哪里。</p>
-    <span class="more">读插件说明 →</span>
+    <div class="card-top"><span class="tag t-tone"><span class="l-zh">磨皮</span><span class="l-en">Retouching</span></span></div>
+    <h3><span class="l-zh">双曲线磨皮</span><span class="l-en">Dodge &amp; Burn</span></h3>
+    <p><span class="l-zh">提亮 / 压暗两条曲线压在黑蒙版下：涂到哪里动哪里。</span><span class="l-en">Two curves, one lightening and one darkening, under a black mask — paint where you want them.</span></p>
+    <span class="more"><span class="l-zh">读插件说明 →</span><span class="l-en">Read the notes →</span></span>
   </a>
   <a class="card" href="plugins/neutral-grey.html">
-    <div class="card-top"><span class="tag t-tone">磨皮</span></div>
-    <h3>中性灰磨皮</h3>
-    <p>一层 50% 灰、柔光下恒等；白笔提亮、黑笔压暗、灰盖回去。</p>
-    <span class="more">读插件说明 →</span>
+    <div class="card-top"><span class="tag t-tone"><span class="l-zh">磨皮</span><span class="l-en">Retouching</span></span></div>
+    <h3><span class="l-zh">中性灰磨皮</span><span class="l-en">Neutral Grey</span></h3>
+    <p><span class="l-zh">一层 50% 灰、柔光下恒等；白笔提亮、黑笔压暗、灰盖回去。</span><span class="l-en">A 50% grey layer is identity under soft light: white brush lightens, black darkens, grey paints it back.</span></p>
+    <span class="more"><span class="l-zh">读插件说明 →</span><span class="l-en">Read the notes →</span></span>
   </a>
   </div>
 </section>
 <section class="group" id="convert">
-  <h3 class="group-title"><span class="tag t-mask">图层转换</span>
-    <span class="group-en">Convert</span><span class="count">2 个</span></h3>
-  <p class="group-desc">算子跑完留下的灰度图，一步变成蒙版或选区存档。</p>
+  <h3 class="group-title"><span class="tag t-mask"><span class="l-zh">图层转换</span><span class="l-en">Convert</span></span>
+    <span class="group-en"><span class="l-zh">Convert</span><span class="l-en"></span></span><span class="count"><span class="l-zh">2 个</span><span class="l-en">2</span></span></h3>
+  <p class="group-desc"><span class="l-zh">算子跑完留下的灰度图，一步变成蒙版或选区存档。</span><span class="l-en">Turns the greyscale an operator leaves behind into a mask or a saved selection in one step.</span></p>
   <div class="cards">
   <a class="card" href="plugins/layer-to-selection.html">
-    <div class="card-top"><span class="tag t-mask">选区</span></div>
-    <h3>Layer to Selection</h3>
-    <p>右键任意图层，把它转成当前选区：Gray / R / G / B / Alpha，四种组合方式，可反相。</p>
-    <span class="more">读插件说明 →</span>
+    <div class="card-top"><span class="tag t-mask"><span class="l-zh">选区</span><span class="l-en">Selection</span></span></div>
+    <h3><span class="l-zh">Layer to Selection</span><span class="l-en">Layer to Selection</span></h3>
+    <p><span class="l-zh">右键任意图层，把它转成当前选区：Gray / R / G / B / Alpha，四种组合方式，可反相。</span><span class="l-en">Right-click any layer and turn it into the current selection: Gray / R / G / B / Alpha, four combine modes, optional invert.</span></p>
+    <span class="more"><span class="l-zh">读插件说明 →</span><span class="l-en">Read the notes →</span></span>
   </a>
   <a class="card" href="plugins/layer-to-channel.html">
-    <div class="card-top"><span class="tag t-mask">通道</span></div>
-    <h3>Layer to Channel</h3>
-    <p>右键任意图层，把它变成一条灰度 Alpha 通道，可反相、可自定义名。</p>
-    <span class="more">读插件说明 →</span>
+    <div class="card-top"><span class="tag t-mask"><span class="l-zh">通道</span><span class="l-en">Channels</span></span></div>
+    <h3><span class="l-zh">Layer to Channel</span><span class="l-en">Layer to Channel</span></h3>
+    <p><span class="l-zh">右键任意图层，把它变成一条灰度 Alpha 通道，可反相、可自定义名。</span><span class="l-en">Right-click any layer and turn it into a grayscale alpha channel — invertible, with a custom name.</span></p>
+    <span class="more"><span class="l-zh">读插件说明 →</span><span class="l-en">Read the notes →</span></span>
   </a>
   </div>
 </section>
 <section class="group" id="mask">
-  <h3 class="group-title"><span class="tag t-mask">Mask</span>
-    <span class="group-en">Mask</span><span class="count">2 个</span></h3>
-  <p class="group-desc">透明度本身当曲线来画：按通道生成 alpha，形状随便画。</p>
+  <h3 class="group-title"><span class="tag t-mask"><span class="l-zh">Mask</span><span class="l-en">Mask</span></span>
+    <span class="group-en"><span class="l-zh">Mask</span><span class="l-en"></span></span><span class="count"><span class="l-zh">2 个</span><span class="l-en">2</span></span></h3>
+  <p class="group-desc"><span class="l-zh">透明度本身当曲线来画：按通道生成 alpha，形状随便画。</span><span class="l-en">Alpha as a curve: generate coverage per channel, then shape it freely.</span></p>
   <div class="cards">
   <a class="card" href="plugins/alpha-curves.html">
-    <div class="card-top"><span class="tag t-mask">蒙版</span></div>
-    <h3>Alpha Curves（透明通道曲线）</h3>
-    <p>把颜色通道写进 alpha，再接一条三个控制点的平滑曲线：挂上去先拉满，往下拖即成形状。</p>
-    <span class="more">读插件说明 →</span>
+    <div class="card-top"><span class="tag t-mask"><span class="l-zh">蒙版</span><span class="l-en">Mask</span></span></div>
+    <h3><span class="l-zh">Alpha Curves（透明通道曲线）</span><span class="l-en">Alpha Curves</span></h3>
+    <p><span class="l-zh">把颜色通道写进 alpha，再接一条三个控制点的平滑曲线：挂上去先拉满，往下拖即成形状。</span><span class="l-en">Writes a colour channel into alpha, then a smooth three-point curve — pull it up to fill, drag down to shape.</span></p>
+    <span class="more"><span class="l-zh">读插件说明 →</span><span class="l-en">Read the notes →</span></span>
   </a>
   <a class="card" href="plugins/color-range.html">
-    <div class="card-top"><span class="tag t-mask">蒙版</span></div>
-    <h3>Color Range（色彩范围）</h3>
-    <p>色彩范围的定制对话框：选什么颜色，下面就只显示那种颜色的参数，高光 192 / 阴影 64 / 中间调 64–192 各自归位。</p>
-    <span class="more">读插件说明 →</span>
+    <div class="card-top"><span class="tag t-mask"><span class="l-zh">蒙版</span><span class="l-en">Mask</span></span></div>
+    <h3><span class="l-zh">Color Range（色彩范围）</span><span class="l-en">Color Range</span></h3>
+    <p><span class="l-zh">色彩范围的定制对话框：选什么颜色，下面就只显示那种颜色的参数，高光 192 / 阴影 64 / 中间调 64–192 各自归位。</span><span class="l-en">A custom Colour Range dialog: pick what to target and only that target's parameters appear.</span></p>
+    <span class="more"><span class="l-zh">读插件说明 →</span><span class="l-en">Read the notes →</span></span>
   </a>
   </div>
 </section>
-  <p class="note">安装：<code>bash install-plugin.sh</code> 一次装齐，或从各自的页面
-     单独下某一个 <code>.zip</code>；细节见 <a href="guide.html">安装指南</a>。</p>
+  <p class="note"><span class="l-zh">安装：<code>bash install-plugin.sh</code> 一次装齐，或从各自的页面单独下某一个 <code>.zip</code>；细节见 <a href="guide.html">安装指南</a>。</span><span class="l-en">Install: <code>bash install-plugin.sh</code> puts them all in place, or download a single <code>.zip</code> from its own page — details in the <a href="guide.html">install guide</a>.</span></p>
 </div>
 </main>
 <footer class="site-foot">
@@ -145,8 +158,51 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">d98baeb</span>
+    <span class="muted">a65d634</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

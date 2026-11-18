@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mask by Color · gegl-color-ops</title>
-<meta name="description" content="经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览the classic editor Color Range: build a mask from a picked colour, a fuzzinessrad">
-<meta property="og:title" content="Mask by Color · gegl-color-ops">
-<meta property="og:description" content="经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览the classic editor Color Range: build a mask from a picked colour, a fuzzinessrad">
+<meta name="description" content="经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览" data-desc-zh="经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览" data-desc-en="经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览">
+<meta property="og:title" content="Mask by Color · gegl-color-ops" data-title-zh="Mask by Color · gegl-color-ops" data-title-en="Mask by Color · gegl-color-ops">
+<meta property="og:description" content="经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览" data-desc-zh="经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览" data-desc-en="经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览">
 <link rel="stylesheet" href="../assets/style.css">
-<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
@@ -60,7 +60,7 @@ window.addEventListener("DOMContentLoaded", function () {
 })();
 </script>
 </head>
-<body>
+<body class="article">
 <a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
@@ -85,7 +85,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <span class="tag t-mask">蒙版</span>
     <span>逐像素</span>
   </div>
-  <p class="lede">经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览the classic editor Color Range: build a mask from a picked colour, a fuzzinessradius and feathering, with an optional red overlay preview.</p>
+  <p class="lede">经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览</p>
 </section><div class="article-layout">
   <article class="prose">
 <h2 id="行为变更记录2026-11-12-重写">行为变更记录（2026-11-12 重写）</h2>
@@ -95,12 +95,12 @@ window.addEventListener("DOMContentLoaded", function () {
 <ul><li>feather（0–100）：容差窗内缘的过渡带宽度，feather=10 → 窗口内侧 10% 平滑衰减</li><li>Min Saturation：色系预设的彩度（s×v）下限，0 = 固定底限 0.25</li><li>Invert（新增）：反相蒙版，同 经典图像编辑器的「反相」勾选框</li><li>Red Overlay Preview 默认改为关：开着点确定会把红色混合烤进图层，预览完记得关</li></ul>
 <p>16 色块回归：红/黄/白/黑/中间调/自定/反相/fz0/fz200 九个用例全部符合上表语义。</p>
 <hr>
-<h2 id="高光-阴影-中间调改成-经典图像编辑器-实测模型2026-11-12-二次修订">高光 / 阴影 / 中间调改成 经典图像编辑器 实测模型（2026-11-12 二次修订）</h2>
+<h2 id="高光-阴影-中间调改成经典图像编辑器实测模型2026-11-12-二次修订">高光 / 阴影 / 中间调改成经典图像编辑器实测模型（2026-11-12 二次修订）</h2>
 <p>上面那版统一模型仍有问题：<strong>「容差」一个滑杆同时决定了阈值和柔边</strong>，想收紧范围 必然连带把过渡带变硬，经典图像编辑器 里这是两个独立滑杆。用户说「特别不好用」，根子在这。</p>
 <h3 id="先解决经典图像编辑器-色彩范围没法脚本化的误会">先解决「经典图像编辑器 色彩范围没法脚本化」的误会</h3>
 <p>之前两次尝试都以 编辑器进程 当场退出告终，结论写成「该编辑器的色彩范围不可脚本化」。 真正的坑有两个：</p>
 <ol><li><strong>ExtendScript 的 <code>File</code> 对象没有 <code>flush()</code></strong>。<code>say()</code> 里写了 <code>f.writeln(s); f.flush();</code>，<code>writeln</code> 已经把行落盘、<code>flush</code> 抛异常， 于是日志永远只停在第 1 行，看起来像「经典图像编辑器 在 executeAction 处崩溃」。 改成每行 <code>open("a") / writeln / close</code> 后，日志一路写到底。</li><li><code>executeAction('colorRange', desc, DialogModes.NO)</code> <strong>本来就能跑</strong>， 不需要弹窗、不需要点确定。<code>DialogModes.ALL</code> 反而会把脚本卡在模态框上。</li></ol>
-<p>另外 经典图像编辑器 2026 在本机被安全策略拦住（<code>reg.exe</code> 黑名单），改用 <strong>经典图像编辑器 2025 (26.10.0)</strong> 做基准；两版「色彩范围」行为一致。驱动脚本在 <code>clrr-cal/</code>。</p>
+<p>另外经典图像编辑器2026 在本机被安全策略拦住（<code>reg.exe</code> 黑名单），改用 <strong>经典图像编辑器 2025 (26.10.0)</strong> 做基准；两版「色彩范围」行为一致。驱动脚本在 <code>clrr-cal/</code>。</p>
 <h3 id="参数键名别猜从二进制里挖">参数键名：别猜，从二进制里挖</h3>
 <p><code>shadowsUpperLimit</code> 这类键能在 编辑器进程 里直接搜到，周围的字符串就是 整张 schema。挖出来的关键几条（网上流传的教程基本都没提这几个）：</p>
 <pre><code>fuzziness / minimum / maximum          取样颜色用
@@ -115,9 +115,9 @@ invert / colors(highlights|midtones|shadows|outOfGamut|skinTone)</code></pre>
 <h3 id="实测出来的模型">实测出来的模型</h3>
 <ul><li><strong>亮度 = Rec.601 伽马域加权</strong>（0.299/0.587/0.114），不是 Lab L*： 阈值 100 时 50% 交界落在 luma 100.9，阈值 150 时落在 149.0。</li><li><strong>阈值是硬边界，容差把过渡带按「到极端还剩多少」铺开</strong>：</li></ul>
 <div class="table-wrap"><table><thead><tr><th>模式</th><th>过渡带</th></tr></thead><tbody><tr><td>阴影</td><td><code>band = fz·(255 − lim)</code>，从 lim 一路铺到纯白</td></tr><tr><td>高光</td><td><code>band = fz·lim</code>，从 lim 一路铺到纯黑</td></tr><tr><td>中间调</td><td>下边 <code>fz·low</code>（铺到纯黑）、上边 <code>fz·(255 − high)</code>（铺到纯白），取交</td></tr></tbody></table></div>
-<p><code>fz</code> 是 经典图像编辑器的容差 0–100（本算子 <code>fuzziness</code> 0–200，内部 ÷2），所以 <strong>容差拉满 = 过渡带正好碰到纯黑/纯白</strong>，与 经典图像编辑器 手感一致。</p>
+<p><code>fz</code> 是 经典图像编辑器的容差 0–100（本算子 <code>fuzziness</code> 0–200，内部 ÷2），所以 <strong>容差拉满 = 过渡带正好碰到纯黑/纯白</strong>，与经典图像编辑器手感一致。</p>
 <ul><li>曲线不是纯 smoothstep：实测 50% 点落在带宽的 <strong>0.555</strong> 处（9 组参数 53%–58%），纯 smoothstep 是 0.5，中段会偏亮 10 码。改成 <code>alpha = 1 − smoothstep(t^1.2)</code>，幂次 1.2 是拿 24 组参考曲线扫出来的最优。</li></ul>
-<h3 id="精度对-经典图像编辑器-2025-实测0255-码">精度（对 经典图像编辑器 2025 实测，0–255 码）</h3>
+<h3 id="精度对经典图像编辑器2025-实测0255-码">精度（对经典图像编辑器2025 实测，0–255 码）</h3>
 <ul><li>全表 768 个采样点：<strong>平均 2.12 码</strong>，最大 32.3 码（出现在 alpha &lt; 20 的尾巴上， 肉眼就是「几乎不选」和「选了一点」的差别）。</li><li>阈值/容差取整档（fz = 0）时是逐位一致的硬边界。</li><li>逐像素复核 <code>clrr-cal/verify_op.py</code>：35 组参数在 512 px 斜坡上跑全图对比， 平均 1.46 码。</li></ul>
 <p><code>tools/check_color_mask_select.py</code> 把这份参考表固化成了回归用例 （<code>../clrr-cal/ps_color_range_ref.json</code>，不在仓库里就自动跳过）。</p>
 <h3 id="新增参数">新增参数</h3>
@@ -126,7 +126,7 @@ invert / colors(highlights|midtones|shadows|outOfGamut|skinTone)</code></pre>
 <p><strong>羽化在这三个模式里不参与</strong>——经典图像编辑器的柔边完全由容差决定，硬塞一个羽化会破坏对拍。 色系预设与自定颜色仍是原来的容差窗模型（那部分没动）。</p>
 <hr>
 <h2 id="自定颜色改用-cielab-δe色系预设改彩度门2026-11-16">自定颜色改用 CIELAB ΔE，色系预设改彩度门（2026-11-16）</h2>
-<p>这次只动「匹配质量」，容差窗公式和色调模式一概没改（768 点对 经典图像编辑器 回归仍是平均 2.12 码）。</p>
+<p>这次只动「匹配质量」，容差窗公式和色调模式一概没改（768 点对经典图像编辑器回归仍是平均 2.12 码）。</p>
 <h3 id="自定颜色rgb-距离-cielab-δeδe94-明度权重-kl2">自定颜色：RGB 距离 → CIELAB ΔE（ΔE94 明度权重 kL=2）</h3>
 <p>旧实现有三个问题：</p>
 <ol><li><strong>口径不一致</strong>：目标色用 <code>gegl_color_get_rgba</code> 取，它返回<strong>线性光</strong>， 而逐像素处理的是伽马域值——拿线性值对伽马值算距离，暗色目标整体偏。 现在用 <code>gegl_color_get_pixel</code> 直接按源空间伽马格式取目标色。</li><li><strong>RGB 距离不感知</strong>：灰 (128,128,128) 和目标红的 RGB 距离只有 0.86（÷√3 后 0.50），容差 100 时几乎全选；粉色也被判得很近。感知上它们是「无关色」。</li><li><strong>纯 ΔE76 对明度太敏感</strong>：暗红 (128,0,0) 与红的 ΔL 一项就贡献 27.7， ΔE≈51 刚好被 ΔE50 容差窗挡在门外——选色蒙版要的是「同一族颜色」， 暗红不该被明度差拆开。</li></ol>
@@ -162,11 +162,11 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
   <ul><li class="l2"><a href="#行为变更记录2026-11-12-重写">行为变更记录（2026-11-12 重写）</a></li>
-<li class="l2"><a href="#高光-阴影-中间调改成-经典图像编辑器-实测模型2026-11-12-二次修订">高光 / 阴影 / 中间调改成 经典图像编辑器 实测模型（2026-11-12 二次修订）</a></li>
+<li class="l2"><a href="#高光-阴影-中间调改成经典图像编辑器实测模型2026-11-12-二次修订">高光 / 阴影 / 中间调改成经典图像编辑器实测模型（2026-11-12 二次修订）</a></li>
 <li class="l3"><a href="#先解决经典图像编辑器-色彩范围没法脚本化的误会">先解决「经典图像编辑器 色彩范围没法脚本化」的误会</a></li>
 <li class="l3"><a href="#参数键名别猜从二进制里挖">参数键名：别猜，从二进制里挖</a></li>
 <li class="l3"><a href="#实测出来的模型">实测出来的模型</a></li>
-<li class="l3"><a href="#精度对-经典图像编辑器-2025-实测0255-码">精度（对 经典图像编辑器 2025 实测，0–255 码）</a></li>
+<li class="l3"><a href="#精度对经典图像编辑器2025-实测0255-码">精度（对经典图像编辑器2025 实测，0–255 码）</a></li>
 <li class="l3"><a href="#新增参数">新增参数</a></li>
 <li class="l2"><a href="#自定颜色改用-cielab-δe色系预设改彩度门2026-11-16">自定颜色改用 CIELAB ΔE，色系预设改彩度门（2026-11-16）</a></li>
 <li class="l3"><a href="#自定颜色rgb-距离-cielab-δeδe94-明度权重-kl2">自定颜色：RGB 距离 → CIELAB ΔE（ΔE94 明度权重 kL=2）</a></li>
@@ -263,7 +263,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">d98baeb</span>
+    <span class="muted">a65d634</span>
   </div>
 </footer>
 <script>
@@ -284,6 +284,13 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     }
     if (root.dataset.titleZh && root.dataset.titleEn) {
       document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
     }
   }
   for (var i = 0; i < btns.length; i++) {

@@ -1,16 +1,16 @@
 > 本文件是该滤镜的原始说明文档（构建命令按旧目录结构书写，已过时）。
 > 统一构建方式请见工程根目录 `README.md` 与 `build.sh`。
 
-## 这个算子就是 经典图像编辑器的「照片滤镜」/ This is 经典图像编辑器's Photo Filter
+## 这个算子就是 经典图像编辑器的「照片滤镜」/ This is the classic editor's Photo Filter
 
 经典图像编辑器的照片滤镜（`滤镜 → 调整 → 照片滤镜`）内部等价于「纯色填充 + 正片叠底 +
 密度」，本算子按实测把整条链路复刻出来。参数一一对应：
 
-| 经典图像编辑器 照片滤镜 | `lb:xyz-multiply` | 说明 |
+|经典图像编辑器照片滤镜 | `lb:xyz-multiply` | 说明 |
 |---|---|---|
 | 滤镜（Filter）颜色 | `overlay_color` | 经典图像编辑器的 20 多个预设只是快捷方式，本质仍是颜色 |
 | 密度（Density）0–100% | `opacity` 0–1 | 除以 100 |
-| 保留明度（Preserve Luminosity） | `preserve_luminosity` | **默认开**，与 经典图像编辑器 出厂设置一致 |
+| 保留明度（Preserve Luminosity） | `preserve_luminosity` | **默认开**，与经典图像编辑器出厂设置一致 |
 | —（经典图像编辑器 没有） | `white_mode` | 参照白点，**默认 D50**（经典图像编辑器的 Lab 白点） |
 
 ### 算法（实测反推，不是猜的）
@@ -60,8 +60,8 @@ M = A_{\text{XYZ}}^{-1}\cdot\operatorname{diag}(k)\cdot A_{\text{sRGB}}
 
 ```bash
 python photo-filter-cal/make_probe.py        # 256×16 灰阶探针（嵌 sRGB ICC）
-# 经典图像编辑器 里跑 photo-filter-cal/batch_pf.jsx      # 12 档灰阶
-# 经典图像编辑器 里跑 photo-filter-cal/batch_pf_color.jsx # 6 档彩色
+#经典图像编辑器里跑 photo-filter-cal/batch_pf.jsx      # 12 档灰阶
+#经典图像编辑器里跑 photo-filter-cal/batch_pf_color.jsx # 6 档彩色
 python photo-filter-cal/model_pf.py         # 模型 vs 经典图像编辑器
 python tools/check_photo_filter.py          # 算子 vs 经典图像编辑器（端到端）
 python tools/check_xyz_multiply.py --all    # 算子 vs 独立参考实现

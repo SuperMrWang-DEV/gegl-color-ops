@@ -1,7 +1,7 @@
 # lb:brightness-contrast · Brightness/Contrast
 
 按黑盒标定得到的 经典图像编辑器的「亮度/对比度」，**新版与旧版（对话框里的「使用旧版」）两套行为都在里面**。
-同一张标定图分别过 经典图像编辑器 26.10 和本算子，逐像素对比见文末「验收」。
+同一张标定图分别过经典图像编辑器26.10 和本算子，逐像素对比见文末「验收」。
 
 - GEGL id：`lb:brightness-contrast`
 - 菜单：`Colors → SuperMrWang → Tone → Brightness/Contrast`
@@ -101,4 +101,4 @@ Python 参考实现 `bc-cal/bc_ref.py` 直接对 16 位数据回放，新版残�
 ## 与 `lb:hue-saturation` / `lb:exposure` 的关系
 
 那个是把亮度当 HSL 的 L 或 EV 处理，卷的是色彩模型；这个只忠实复刻 经典图像编辑器的两条曲线。
-需要"和 经典图像编辑器 对得上"就用这个，需要"调得好看"用别的。
+需要"和经典图像编辑器对得上"就用这个，需要"调得好看"用别的。

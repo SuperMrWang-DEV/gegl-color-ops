@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Channel Mixer Plus · gegl-color-ops</title>
-<meta name="description" content="经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移the classic editor Channel Mixer: every output channel is a weighted sum of">
-<meta property="og:title" content="Channel Mixer Plus · gegl-color-ops">
-<meta property="og:description" content="经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移the classic editor Channel Mixer: every output channel is a weighted sum of">
+<meta name="description" content="经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移" data-desc-zh="经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移" data-desc-en="经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移">
+<meta property="og:title" content="Channel Mixer Plus · gegl-color-ops" data-title-zh="Channel Mixer Plus · gegl-color-ops" data-title-en="Channel Mixer Plus · gegl-color-ops">
+<meta property="og:description" content="经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移" data-desc-zh="经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移" data-desc-en="经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移">
 <link rel="stylesheet" href="../assets/style.css">
-<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
@@ -60,7 +60,7 @@ window.addEventListener("DOMContentLoaded", function () {
 })();
 </script>
 </head>
-<body>
+<body class="article">
 <a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
@@ -85,7 +85,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <span class="tag t-blend">混合与通道</span>
     <span>逐像素</span>
   </div>
-  <p class="lede">经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移the classic editor Channel Mixer: every output channel is a weighted sum of</p>
+  <p class="lede">经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移</p>
 </section><div class="article-layout">
   <article class="prose">
 <h2 id="算法">算法</h2>
@@ -97,7 +97,7 @@ B' &amp;= b_r\,R + b_g\,G + b_b\,B + b_{\text{off}}
 \end{aligned}$$</div>
 <p>默认是单位矩阵（对角 1、其余 0）、常数全 0，所以什么都不动时算子等于直通。 结果裁到 0..1。增益允许 −2…2，既能加也能减某个通道。</p>
 <h2 id="单色">单色</h2>
-<p><code>monochrome</code> 打开后三路共用一组系数（<code>mono_r</code> / <code>mono_g</code> / <code>mono_b</code>，默认 0.33 / 0.33 / 0.34）加一个 <code>mono_offset</code>，输出灰图——就是 经典图像编辑器 那个单色勾选框。 此时逐通道矩阵被忽略，两套设置可以共存，来回切换不丢。</p>
+<p><code>monochrome</code> 打开后三路共用一组系数（<code>mono_r</code> / <code>mono_g</code> / <code>mono_b</code>，默认 0.33 / 0.33 / 0.34）加一个 <code>mono_offset</code>，输出灰图——就是经典图像编辑器那个单色勾选框。 此时逐通道矩阵被忽略，两套设置可以共存，来回切换不丢。</p>
 <h2 id="参数">参数</h2>
 <div class="table-wrap"><table><thead><tr><th>参数</th><th>默认</th><th>说明</th></tr></thead><tbody><tr><td><code>monochrome</code></td><td>关</td><td>单组系数出灰（经典图像编辑器 单色）</td></tr><tr><td><code>mono_r</code> / <code>mono_g</code> / <code>mono_b</code></td><td>0.33 / 0.33 / 0.34</td><td>单色权重，默认和为 1</td></tr><tr><td><code>mono_offset</code></td><td>0</td><td>单色常数</td></tr><tr><td><code>rr_gain</code> / <code>rg_gain</code> / <code>rb_gain</code></td><td>1 / 0 / 0</td><td>输出 R 取 R / G / B 的权重</td></tr><tr><td><code>gr_gain</code> / <code>gg_gain</code> / <code>gb_gain</code></td><td>0 / 1 / 0</td><td>输出 G 的三个权重</td></tr><tr><td><code>r_offset</code> / <code>g_offset</code> / <code>b_offset</code></td><td>0</td><td>各输出通道的常数项</td></tr></tbody></table></div>
 <h2 id="与-gegl-内置-channel-mixer-的差别">与 GEGL 内置 channel-mixer 的差别</h2>
@@ -205,7 +205,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">d98baeb</span>
+    <span class="muted">a65d634</span>
   </div>
 </footer>
 <script>
@@ -226,6 +226,13 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     }
     if (root.dataset.titleZh && root.dataset.titleEn) {
       document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
     }
   }
   for (var i = 0; i < btns.length; i++) {

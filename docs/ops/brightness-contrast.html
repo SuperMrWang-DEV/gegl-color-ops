@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Brightness/Contrast · gegl-color-ops</title>
-<meta name="description" content="复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面">
-<meta property="og:title" content="Brightness/Contrast · gegl-color-ops">
-<meta property="og:description" content="复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面">
+<meta name="description" content="复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面" data-desc-zh="复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面" data-desc-en="复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面">
+<meta property="og:title" content="Brightness/Contrast · gegl-color-ops" data-title-zh="Brightness/Contrast · gegl-color-ops" data-title-en="Brightness/Contrast · gegl-color-ops">
+<meta property="og:description" content="复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面" data-desc-zh="复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面" data-desc-en="复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面">
 <link rel="stylesheet" href="../assets/style.css">
-<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
@@ -60,7 +60,7 @@ window.addEventListener("DOMContentLoaded", function () {
 })();
 </script>
 </head>
-<body>
+<body class="article">
 <a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
@@ -88,7 +88,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <p class="lede">复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面</p>
 </section><div class="article-layout">
   <article class="prose">
-<p>按黑盒标定得到的 经典图像编辑器的「亮度/对比度」，<strong>新版与旧版（对话框里的「使用旧版」）两套行为都在里面</strong>。 同一张标定图分别过 经典图像编辑器 26.10 和本算子，逐像素对比见文末「验收」。</p>
+<p>按黑盒标定得到的 经典图像编辑器的「亮度/对比度」，<strong>新版与旧版（对话框里的「使用旧版」）两套行为都在里面</strong>。 同一张标定图分别过经典图像编辑器26.10 和本算子，逐像素对比见文末「验收」。</p>
 <ul><li>GEGL id：<code>lb:brightness-contrast</code></li><li>菜单：<code>Colors → SuperMrWang → Tone → Brightness/Contrast</code></li><li>类型：<code>GeglOperationPointFilter</code>（逐像素，无邻域）</li><li>参数：<code>brightness</code>（−150…150）、<code>contrast</code>（−50…100）、<code>legacy</code>（默认关＝新版）</li></ul>
 <h2 id="先看一条结论它就是一条逐通道相同的-lut">先看一条结论：它就是一条逐通道相同的 LUT</h2>
 <p>标定图里放了灰阶 ramp、反向 ramp、R/G/B 单通道 ramp 和全色相环，实测：</p>
@@ -121,7 +121,7 @@ window.addEventListener("DOMContentLoaded", function () {
 <h2 id="已知偏差">已知偏差</h2>
 <ol><li><strong>旧版 c=100</strong>：经典图像编辑器 在支点 x=89 上输出 159（K 发散时 <code>0×∞</code> 的产物），本算子按极限 输出 0/255。只影响恰好等于 89 的那一列像素，其余全部一致（95% 分位 0 码）。</li><li><strong>新版的 255 特例</strong>：b&lt;0 时实测 254 照曲线走（b=−150 时 214），255 却原样保留 255 —— 单纯白保护（b&gt;0 时曲线本来就自然收在 255，不需要这条）。本算子照抄这一行为； 不想要可以在上游 <code>bc_ref.py</code> 里去掉。</li><li>参数取非整数时（例如 b=7、c=43）误差会升到 0.6 码左右，因为表按步长 5 建。 要更细就把 <code>bc-cal/batch_bc2.jsx</code> 的步长改小重跑。</li></ol>
 <h2 id="与-lbhue-saturation-lbexposure-的关系">与 <code>lb:hue-saturation</code> / <code>lb:exposure</code> 的关系</h2>
-<p>那个是把亮度当 HSL 的 L 或 EV 处理，卷的是色彩模型；这个只忠实复刻 经典图像编辑器的两条曲线。 需要"和 经典图像编辑器 对得上"就用这个，需要"调得好看"用别的。</p><div class="op-dl">
+<p>那个是把亮度当 HSL 的 L 或 EV 处理，卷的是色彩模型；这个只忠实复刻 经典图像编辑器的两条曲线。 需要"和经典图像编辑器对得上"就用这个，需要"调得好看"用别的。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>lb-brightness-contrast.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>lb-brightness-contrast.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
@@ -214,7 +214,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">d98baeb</span>
+    <span class="muted">a65d634</span>
   </div>
 </footer>
 <script>
@@ -235,6 +235,13 @@ window.addEventListener("DOMContentLoaded", function () {
     }
     if (root.dataset.titleZh && root.dataset.titleEn) {
       document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
     }
   }
   for (var i = 0; i < btns.length; i++) {

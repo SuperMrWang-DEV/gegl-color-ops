@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Color Balance · gegl-color-ops</title>
-<meta name="description" content="经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴the classic editor Color Balance: shadow, midtone and highlight each carry">
-<meta property="og:title" content="Color Balance · gegl-color-ops">
-<meta property="og:description" content="经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴the classic editor Color Balance: shadow, midtone and highlight each carry">
+<meta name="description" content="经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴" data-desc-zh="经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴" data-desc-en="经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴">
+<meta property="og:title" content="Color Balance · gegl-color-ops" data-title-zh="Color Balance · gegl-color-ops" data-title-en="Color Balance · gegl-color-ops">
+<meta property="og:description" content="经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴" data-desc-zh="经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴" data-desc-en="经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴">
 <link rel="stylesheet" href="../assets/style.css">
-<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
@@ -60,7 +60,7 @@ window.addEventListener("DOMContentLoaded", function () {
 })();
 </script>
 </head>
-<body>
+<body class="article">
 <a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
@@ -85,11 +85,11 @@ window.addEventListener("DOMContentLoaded", function () {
     <span class="tag t-color">色彩</span>
     <span>整块区域</span>
   </div>
-  <p class="lede">经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴the classic editor Color Balance: shadow, midtone and highlight each carry threeaxis pairs (C-R, M-G, Y-B).</p>
+  <p class="lede">经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴</p>
 </section><div class="article-layout">
   <article class="prose">
 <p>对应 经典图像编辑器的「色彩平衡」调整。两个模式：</p>
-<ul><li><strong>不保留明度（默认）</strong>：经典图像编辑器的逐通道曲线，见下面「算法」一节。</li><li><strong>保留明度</strong>：MATLAB 零和矩阵（系数减中位数 → 高光 <code>in/(1−α)</code> → 阴影 <code>(in−α)/(1−α)</code> → 中间调 <code>in^γ</code>），与 经典图像编辑器 实测最大差 3.0 码，未做改动。</li></ul>
+<ul><li><strong>不保留明度（默认）</strong>：经典图像编辑器的逐通道曲线，见下面「算法」一节。</li><li><strong>保留明度</strong>：MATLAB 零和矩阵（系数减中位数 → 高光 <code>in/(1−α)</code> → 阴影 <code>(in−α)/(1−α)</code> → 中间调 <code>in^γ</code>），与经典图像编辑器实测最大差 3.0 码，未做改动。</li></ul>
 <hr>
 <h2 id="算法不保留明度">算法（不保留明度）</h2>
 <p>一个通道（C-R 动 R、M-G 动 G、Y-B 动 B）只由自己那条滑杆决定，与其它两个通道无关。 三个色调区间的参数先合并成<strong>一条</strong>曲线：</p>
@@ -103,7 +103,7 @@ W = \begin{cases} 255-s_{\text{高}}, &amp; s_{\text{高}} &gt; 0 \\ 255, &amp; 
 y_1 = 255\,H^{G},\qquad
 \text{out} = \operatorname{Hermite}\!\left(\frac{v-b}{h_0-b},\ S_u H,\ y_1,\ G\,y_1\right)$$</div>
 <ul><li>指数：中间调 <code>2^(∓s/100)</code>，阴影和高光各只有它的一半 <code>2^(∓s/200)</code>； 算子用实测表（<code>cb-tables.h</code> 的 <code>CB_G</code>），不套公式。</li><li><code>Su</code>（归一化起点斜率）与 <code>H</code>（趾部宽度占比）都<strong>只随复合指数 G 变化</strong>， 与「这个 G 是哪个区间给的」无关：单区间档与组合档落在同一条曲线上（表 <code>CB_TOE</code>）。 G ≥ 0.85 时 H 衰减到 0，趾部自然消失。</li><li>忽略趾部的话，中间调 +100 在 v≈4 处会差 16 码；补上后全档 ≤ 0.3 码。</li></ul>
-<p>参数由 <code>cb-cal</code> 的 经典图像编辑器 标定得到（经典图像编辑器 26.10、16 位、600 档单区间 + 9 组合）， 完整推导与精度见 <code>../../cb-cal/RESULTS.md</code>。</p>
+<p>参数由 <code>cb-cal</code> 的经典图像编辑器标定得到（经典图像编辑器 26.10、16 位、600 档单区间 + 9 组合）， 完整推导与精度见 <code>../../cb-cal/RESULTS.md</code>。</p>
 <p><strong>不要手改 <code>cb-tables.h</code></strong>，它由 <code>cb-cal/gen_cb_tables.py</code> 从标定数据生成。</p>
 <p>精度（1024 px 连续斜坡、16 位、全图逐像素）：</p>
 <div class="table-wrap"><table><thead><tr><th>分组</th><th>最大</th><th>中位</th></tr></thead><tbody><tr><td>阴影 ±1…±100</td><td>0.21 码</td><td>0.01 码</td></tr><tr><td>中间调</td><td>0.30 码</td><td>0.00 码</td></tr><tr><td>高光</td><td>0.27 码</td><td>0.00 码</td></tr><tr><td>组合</td><td>0.65 码</td><td>0.06 码</td></tr></tbody></table></div>
@@ -112,7 +112,8 @@ y_1 = 255\,H^{G},\qquad
 <p>工程早期按下面第 1 篇的「三段独立通道曲线、依次作用」实现，实测下来在高光正向和 阴影负向上偏到 30 码级，组合档更差。本轮重新标定后确认：三段不是依次作用，而是 指数相乘、黑场/白场各取一端的参数合并；单段曲线也不是文章里的 <code>1 − k·s</code> 线性指数。 第 2 篇的零和矩阵（保留明度）与实测吻合，保留原样。</p>
 <hr>
 <h2 id="参考-references">参考 / References</h2>
-<ol><li>色彩平衡调整图层的本质-背后的数学原理 - 王先生的副业 - 知乎 <a href="https://zhuanlan.zhihu.com/p/679776283" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/679776283</a></li><li>经典图像编辑器 中的色彩平衡调整图层的原理分析 - 章佳杰 - 知乎 <a href="https://zhuanlan.zhihu.com/p/59450298" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/59450298</a></li></ol>
+<ol><li>色彩平衡调整图层的本质-背后的数学原理 - 王先生的副业 - 知乎 <a href="https://zhuanlan.zhihu.com/p/679776283" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/679776283</a></li></ol>
+<p>2.经典图像编辑器中的色彩平衡调整图层的原理分析 - 章佳杰 - 知乎 <a href="https://zhuanlan.zhihu.com/p/59450298" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/59450298</a></p>
 <p>第 1 篇的三段曲线模型与实测不符（见上）；第 2 篇的零和矩阵与保留明度模式吻合。 Article 1's three-separate-curves model does not match the measurements; article 2's zero-sum matrix matches the preserve-luminosity mode.</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
@@ -161,7 +162,7 @@ y_1 = 255\,H^{G},\qquad
 <h3 id="relation-to-the-two-zhihu-articles">Relation to the two Zhihu articles</h3>
 <p>The project first implemented article 1's model — three independent channel curves applied in sequence — and measured it drifting by 30 code values on highlights in the positive direction and shadows in the negative direction, worse still for combinations. Re-calibration showed that the three ranges do <strong>not</strong> apply in sequence: their exponents multiply and the black/white point parameters merge. Nor is a single range the linear <code>1 − k·s</code> exponent the article proposes. Article 2's zero-sum matrix (preserve luminosity) does match the measurements and is kept as is.</p>
 <h2 id="references">References</h2>
-<ol><li>The mathematics behind the Color Balance adjustment layer — 王先生的副业, Zhihu <a href="https://zhuanlan.zhihu.com/p/679776283" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/679776283</a></li><li>How 经典图像编辑器's Color Balance adjustment layer works — 章佳杰, Zhihu <a href="https://zhuanlan.zhihu.com/p/59450298" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/59450298</a></li></ol>
+<ol><li>The mathematics behind the Color Balance adjustment layer — 王先生的副业, Zhihu <a href="https://zhuanlan.zhihu.com/p/679776283" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/679776283</a></li><li>How the classic editor's Color Balance adjustment layer works — 章佳杰, Zhihu <a href="https://zhuanlan.zhihu.com/p/59450298" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/59450298</a></li></ol>
 <p>Article 1's three-curve model does not match the measurements; article 2's zero-sum matrix matches the preserve-luminosity mode.</p><div class="op-dl">
   <div>
     <h3>Just this one</h3>
@@ -188,7 +189,7 @@ y_1 = 255\,H^{G},\qquad
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">d98baeb</span>
+    <span class="muted">a65d634</span>
   </div>
 </footer>
 <script>
@@ -209,6 +210,13 @@ y_1 = 255\,H^{G},\qquad
     }
     if (root.dataset.titleZh && root.dataset.titleEn) {
       document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
     }
   }
   for (var i = 0; i < btns.length; i++) {

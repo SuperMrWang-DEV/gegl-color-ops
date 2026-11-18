@@ -1,14 +1,28 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="中性灰磨皮 · Python 插件 · gegl-color-ops" data-title-en="中性灰磨皮 · Python plug-ins · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>中性灰磨皮 · Python 插件 · gegl-color-ops</title>
-<meta name="description" content="一张 50% 灰的柔光层，柔光在 0.5 处是恒等映射——刚建好时与原图逐像素相同。之后白色画笔提亮、黑色画笔压暗，原图像素一个都没动，整层删掉就能回到起点。">
-<meta property="og:title" content="中性灰磨皮 · Python 插件 · gegl-color-ops">
-<meta property="og:description" content="一张 50% 灰的柔光层，柔光在 0.5 处是恒等映射——刚建好时与原图逐像素相同。之后白色画笔提亮、黑色画笔压暗，原图像素一个都没动，整层删掉就能回到起点。">
+<meta name="description" content="一张 50% 灰的柔光层，柔光在 0.5 处是恒等映射——刚建好时与原图逐像素相同。之后白色画笔提亮、黑色画笔压暗，原图像素一个都没动，整层删掉就能回到起点。" data-desc-zh="一张 50% 灰的柔光层，柔光在 0.5 处是恒等映射——刚建好时与原图逐像素相同。之后白色画笔提亮、黑色画笔压暗，原图像素一个都没动，整层删掉就能回到起点。" data-desc-en="A 50% grey layer set to soft light — soft light is an identity at 0.5, so a freshly
+   created layer is pixel-identical ">
+<meta property="og:title" content="中性灰磨皮 · Python 插件 · gegl-color-ops" data-title-zh="中性灰磨皮 · Python 插件 · gegl-color-ops" data-title-en="中性灰磨皮 · Python plug-ins · gegl-color-ops">
+<meta property="og:description" content="一张 50% 灰的柔光层，柔光在 0.5 处是恒等映射——刚建好时与原图逐像素相同。之后白色画笔提亮、黑色画笔压暗，原图像素一个都没动，整层删掉就能回到起点。" data-desc-zh="一张 50% 灰的柔光层，柔光在 0.5 处是恒等映射——刚建好时与原图逐像素相同。之后白色画笔提亮、黑色画笔压暗，原图像素一个都没动，整层删掉就能回到起点。" data-desc-en="A 50% grey layer set to soft light — soft light is an identity at 0.5, so a freshly
+   created layer is pixel-identical ">
 <link rel="stylesheet" href="../assets/style.css">
-<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
 <a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
@@ -21,11 +35,15 @@
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../plugins.html">插件</a>
-    / Shortcut 快捷方式</p>
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> /
+    <a href="../plugins.html">插件</a> / Shortcut 快捷方式</p>
   <h1>中性灰磨皮</h1>
   <div class="meta">
     <code>plugin/neutral-grey</code>
@@ -40,8 +58,7 @@
     <div class="dl primary-dl">
       <div class="dl-head"><h3>菜单位置</h3><span class="pill">多条</span></div>
       <ul class="menu-list"><li>SuperMrWang → Shortcut → 中性灰磨皮</li><li>图层右键 → SuperMrWang → Shortcut → 中性灰磨皮</li></ul>
-      <p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——
-         组没有自己的像素，会直接报错并提示先合并。</p>
+      <p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>脚本调用</h3></div>
@@ -108,16 +125,117 @@
   </div>
 </section>
 
-<p class="note">文中「码」指 8 位图上的一个台阶：0–255 共 256 级，相邻两级的差就是
-   1 码，等于 1/255 ≈ 0.392%（也就是 RGB 128 与 129 之间的差）。各数量级的含义与
-   「码为什么不是感知量」的说明见
+<p class="note">文中「码」指 8 位图上的一个台阶：0–255 共 256 级，
+   相邻两级的差就是 1 码，等于 1/255 ≈ 0.392%%（也就是 RGB 128 与 129 之间的差）。
+   各数量级的含义与「码为什么不是感知量」的说明见
    <a href="../guide.html#code">安装指南 · 精度里的「码」</a>。</p>
-
+</div>
 <nav class="pager">
   <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
   <a class="prev" href="dodge-burn.html"><span>上一篇</span>双曲线磨皮</a><a class="next" href="alpha-curves.html"><span>下一篇</span>Alpha Curves（透明通道曲线）</a>
-</nav>
+</nav></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> /
+    <a href="../plugins.html">Plug-ins</a> / Shortcut</p>
+  <h1>Neutral Grey</h1>
+  <div class="meta">
+    <code>plugin/neutral-grey</code>
+    <span class="tag t-tone">Retouching</span>
+    <span>Shortcut</span>
+  </div>
+  <p class="lede">A 50% grey layer set to soft light — soft light is an identity at 0.5, so a freshly
+   created layer is pixel-identical to the original. From there a white brush lightens and a
+   black brush darkens, without a single original pixel being touched: delete the layer and you
+   are back at the start.</p>
+</section>
+
+<div class="prose wide">
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Menu location</h3><span class="pill">Several</span></div>
+      <ul class="menu-list"><li>SuperMrWang → Shortcut → Neutral Grey</li><li>Layer right-click → SuperMrWang → Shortcut → Neutral Grey</li></ul>
+      <p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Scripting</h3></div>
+      <pre><code>lb-plugin-neutral-grey(image, drawables, group)</code></pre>
+      <p>A standard PDB procedure; leave an argument empty to take its default.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Dependencies</h3></div>
+      <p>No dependency on this project's operators: it only writes pixels into the buffer and uses GIMP's own soft-light mode. Install the plug-in and it works.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>What gets created</h3><span class="pill">one layer</span></div>
+      <pre><code>Neutral Grey group · pass-through (plus a mask when there is alpha)
+ └─ 1 · Neutral grey  Soft light · the layer is all 128 grey
+ └─ original layer (untouched, can be hidden)</code></pre>
+      <p>One layer, no mask: the whole layer is filled with encoded grey 0.5 and set to soft
+         light. You paint straight on this layer, unlike dodge &amp; burn where you switch to a
+         mask.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Why soft light, not overlay</h3></div>
+      <p>Both are identities at 0.5 and differ in slope: soft light is gentle, so one or two
+         strokes land within a few codes — right for repeated fine adjustment. Overlay is twice
+         the slope, twice as strong for the same pressure, and much easier to blotch.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Why 128, not Lab mid grey</h3></div>
+      <p>The layer is filled with encoded value 0.5 (128 in 8-bit). Lab's L*=50 converts to
+         about 0.46 in sRGB, and soft-lighting that darkens the whole image a little — which is
+         no longer an identity. This is the trap neutral grey is most often caught by.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>How to work with it</h3></div>
+      <ul>
+        <li>Select the "1 · Neutral grey" layer, soft brush, opacity 5–15%, flow 10–30%.</li>
+        <li>White paints light: flatten dark patches, bags under the eyes, nasolabial
+            shadows.</li>
+        <li>Black paints dark: pull back highlights, knock down shine, deepen contours.</li>
+        <li>Overdone? Paint it back with 50% grey (#808080) — this is where it beats dodge
+            &amp; burn, which needs the mask inverted.</li>
+      </ul>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Measured, and one implementation note</h3><span class="pill">0 codes</span></div>
+      <p>Identity round trip is 0 codes in both float and 8-bit; white lightens, black darkens,
+         untouched pixels do not move by one bit; images with alpha keep transparency through
+         the group mask.</p>
+      <p>After writing the grey pixels the plug-in must <code>flush()</code> and then
+         <code>update()</code>: changing only the private buffer without telling the core
+         leaves the projection stale, so the export is right while that layer looks black on
+         screen. This release fixes exactly that, and the regression suite now asserts an
+         <code>update(0,0,W,H)</code>.</p>
+    </div>
+  </div>
+
+<section class="download" id="download">
+  <h2>Download this one</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>Neutral Grey</h3><span class="pill">.py · no compile</span></div>
+    <p>The archive holds a single <code>.py</code> and an install note. Unpack it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register.</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-neutral-grey.zip">Download Neutral Grey</a>
+    <p class="muted small">4.8 KB · checksum: <code>SHA256 cdba96429f3f0ad4496938d94750f98e…</code></p>
+  </div>
+</section>
+
+<p class="note">In this article a "code" means one step on an 8-bit
+   image: 0–255 is 256 levels, so the gap between neighbours is 1 code, or
+   1/255 ≈ 0.392%% (the difference between RGB 128 and 129). For the order of magnitude
+   of each figure, and why a code is not a perceptual quantity, see
+   <a href="../guide.html#code">Install guide · what a code is</a>.</p>
 </div>
+<nav class="pager">
+  <a href="../plugins.html"><span>Back to</span>All plug-ins</a>
+  <a class="prev" href="dodge-burn.html"><span>Previous</span>Dodge & Burn</a><a class="next" href="alpha-curves.html"><span>Next</span>Alpha Curves</a>
+</nav></div>
 </main>
 <footer class="site-foot">
   <div>
@@ -129,8 +247,51 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">d98baeb</span>
+    <span class="muted">a65d634</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

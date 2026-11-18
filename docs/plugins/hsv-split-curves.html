@@ -1,18 +1,36 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="HSV Split (Curves) · Python 插件 · gegl-color-ops" data-title-en="HSV Split (Curves) · Python plug-ins · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HSV Split (Curves) · Python 插件 · gegl-color-ops</title>
 <meta name="description" content="GIMP 的曲线只能选 R / G / B / Alpha——想单独曲「色相」或
        「饱和度」没有入口。这个插件把图层换成一张数据图（红=S、绿=V、蓝=色相），
-       三条曲线各管一个分量，再由一个算子解回颜色：恒等时">
-<meta property="og:title" content="HSV Split (Curves) · Python 插件 · gegl-color-ops">
+       三条曲线各管一个分量，再由一个算子解回颜色：恒等时" data-desc-zh="GIMP 的曲线只能选 R / G / B / Alpha——想单独曲「色相」或
+       「饱和度」没有入口。这个插件把图层换成一张数据图（红=S、绿=V、蓝=色相），
+       三条曲线各管一个分量，再由一个算子解回颜色：恒等时" data-desc-en="GIMP&#x27;s curves only offer R / G / B / Alpha — there is no way to curve hue or
+   saturation on its own. This plug-in turn">
+<meta property="og:title" content="HSV Split (Curves) · Python 插件 · gegl-color-ops" data-title-zh="HSV Split (Curves) · Python 插件 · gegl-color-ops" data-title-en="HSV Split (Curves) · Python plug-ins · gegl-color-ops">
 <meta property="og:description" content="GIMP 的曲线只能选 R / G / B / Alpha——想单独曲「色相」或
        「饱和度」没有入口。这个插件把图层换成一张数据图（红=S、绿=V、蓝=色相），
-       三条曲线各管一个分量，再由一个算子解回颜色：恒等时">
+       三条曲线各管一个分量，再由一个算子解回颜色：恒等时" data-desc-zh="GIMP 的曲线只能选 R / G / B / Alpha——想单独曲「色相」或
+       「饱和度」没有入口。这个插件把图层换成一张数据图（红=S、绿=V、蓝=色相），
+       三条曲线各管一个分量，再由一个算子解回颜色：恒等时" data-desc-en="GIMP&#x27;s curves only offer R / G / B / Alpha — there is no way to curve hue or
+   saturation on its own. This plug-in turn">
 <link rel="stylesheet" href="../assets/style.css">
-<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
 <a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
@@ -25,11 +43,15 @@
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../plugins.html">插件</a>
-    / Shortcut 快捷方式</p>
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> /
+    <a href="../plugins.html">插件</a> / Shortcut 快捷方式</p>
   <h1>HSV Split (Curves)</h1>
   <div class="meta">
     <code>plugin/hsv-split-curves</code>
@@ -48,8 +70,7 @@
     <div class="dl primary-dl">
       <div class="dl-head"><h3>菜单位置</h3><span class="pill">多条</span></div>
       <ul class="menu-list"><li>SuperMrWang → Shortcut → HSV Split (Curves) · single</li><li>SuperMrWang → Shortcut → HSV Split (Curves) · multi</li><li>图层右键 → SuperMrWang → Shortcut → 同上两条</li></ul>
-      <p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——
-         组没有自己的像素，会直接报错并提示先合并。</p>
+      <p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>脚本调用</h3></div>
@@ -120,16 +141,130 @@ multi    HSV split            组 · 穿透（带 alpha 时组上还有蒙版）
   </div>
 </section>
 
-<p class="note">文中「码」指 8 位图上的一个台阶：0–255 共 256 级，相邻两级的差就是
-   1 码，等于 1/255 ≈ 0.392%（也就是 RGB 128 与 129 之间的差）。各数量级的含义与
-   「码为什么不是感知量」的说明见
+<p class="note">文中「码」指 8 位图上的一个台阶：0–255 共 256 级，
+   相邻两级的差就是 1 码，等于 1/255 ≈ 0.392%%（也就是 RGB 128 与 129 之间的差）。
+   各数量级的含义与「码为什么不是感知量」的说明见
    <a href="../guide.html#code">安装指南 · 精度里的「码」</a>。</p>
-
+</div>
 <nav class="pager">
   <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
   <a class="prev" href="layer-to-channel.html"><span>上一篇</span>Layer to Channel</a><a class="next" href="lch-split-curves.html"><span>下一篇</span>LCh Split (Curves)</a>
-</nav>
+</nav></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> /
+    <a href="../plugins.html">Plug-ins</a> / Shortcut</p>
+  <h1>HSV Split (Curves)</h1>
+  <div class="meta">
+    <code>plugin/hsv-split-curves</code>
+    <span class="tag t-color">Curves</span>
+    <span>Shortcut</span>
+  </div>
+  <p class="lede">GIMP's curves only offer R / G / B / Alpha — there is no way to curve hue or
+   saturation on its own. This plug-in turns the layer into a data image (red = S, green = V,
+   blue = hue), gives each component its own curve, and one operator turns it back: at
+   identity the original is restored pixel for pixel, and moving a curve moves only that
+   component. Pick the <b>· multi</b> menu entry if you want the old "every layer switchable"
+   layout.</p>
+</section>
+
+<div class="prose wide">
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Menu location</h3><span class="pill">Several</span></div>
+      <ul class="menu-list"><li>SuperMrWang → Shortcut → HSV Split (Curves) · single</li><li>SuperMrWang → Shortcut → HSV Split (Curves) · multi</li><li>Layer right-click → SuperMrWang → Shortcut → same as the two above</li></ul>
+      <p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Scripting</h3></div>
+      <pre><code>lb-plugin-hsv-split-curves(image, drawables, group)
+lb-plugin-hsv-split-curves-multi(image, drawables, group)</code></pre>
+      <p>A standard PDB procedure; leave an argument empty to take its default.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Dependencies</h3></div>
+      <p>The operators below do the work. <b>They are already inside this plug-in's download</b> (<code>modules-windows-x64</code> / <code>modules-linux-x64</code>) — nothing else to fetch:</p>
+      <ul class="deps"><li><code>lb:hsv-dual</code></li><li><code>lb:hsv-compose</code></li><li><code>gimp:curves</code></li></ul>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Two modes</h3><span class="pill">two menu entries</span></div>
+      <p>The menu holds two separate procedures — <code>… · single</code> and
+         <code>… · multi</code> — and the one you click is the mode you get. The dialog has a
+         single switch left: put everything in a layer group.</p>
+      <pre><code>single  HSV split group · pass-through (plus a mask when there is alpha)
+ └─ 1 · HSV S/V/H mode  Normal  ← one operator chain computes the whole HSV colour
+
+multi   HSV split group · pass-through (plus a mask when there is alpha)
+ ├─ 3 · Value mode       HSV value
+ ├─ 2 · Saturation mode  HSV saturation
+ └─ 1 · Hue mode         HSV hue</code></pre>
+      <p>The single stack is: decompose (<code>lb:hsv-dual</code>) → S curve (red) →
+         V curve (green) → H curve (blue) → compose (<code>lb:hsv-compose</code>). Each
+         component owns one channel and none of them leaks into another.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>single or multi</h3></div>
+      <p><b>single</b> sends S, V and H into <code>lb:hsv-compose</code> together: one layer,
+         five filters, one encode, the smallest error.</p>
+      <p><b>multi</b> is three component layers, each doing extract → curve → encode, stacked
+         back with HSV's three component blend modes. Three layers means three encodes and
+         three quantisations; what you buy is being able to switch any layer off — turn off
+         the Hue layer and you see the intermediate result with only S/V changed, which makes
+         it obvious what you are editing.</p>
+      <p>Both modes use smooth splines for the identity curve (SMOOTH, three control points
+         at (0,0), (128,128), (255,255)). All three sit on the 8-bit grid, so the spline is
+         numerically identical to "256 sample points" — see the round-trip figures
+         below.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Measured precision</h3></div>
+      <p><b>single</b>: identity round trip 0.0002 codes on a 32-bit float image; 0.49 codes
+         on 8-bit, which is the quantisation itself. Moving only the S curve leaves V and hue
+         within <b>&lt; 0.001 codes</b> — the three components really are independent.</p>
+      <p><b>multi</b>: the three-layer identity round trip measures 0.0015 codes in float,
+         and it still stacks back with the original layer hidden. That is seven times the
+         single figure — the leftover from three encode passes — but still in the
+         thousandths of a code, invisible to the eye. In 8-bit both modes land on 0.49 codes
+         where quantisation dominates. So single is more accurate; multi trades that for
+         per-layer switches.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Watch out</h3></div>
+      <p>The channel convention is hard: S in red, V in green, hue in blue. Pick the wrong
+         channel for a curve and you feed one component's data into another. The hue curve
+         must stay continuous (equal at both ends, no jumps in the middle); for a global hue
+         rotation use <code>lb:hue-saturation</code>.</p>
+      <p><code>single</code> depends on <code>lb:hsv-dual</code> /
+         <code>lb:hsv-compose</code>; <code>multi</code> uses only GIMP's own
+         <code>gegl:component-extract</code> and the HSV component blend modes.</p>
+    </div>
+  </div>
+
+<section class="download" id="download">
+  <h2>Download this one</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>HSV Split (Curves)</h3><span class="pill">2 modules included · no compile</span></div>
+    <p>The archive holds one <code>.py</code>, 2 operator modules and an install note. <b>The operator dependencies are already inside, nothing else to download.</b> The <code>.py</code> goes into GIMP's <code>plug-ins</code>, the modules into GEGL's <code>gegl-0.4/plug-ins</code> — two different directories, and the note inside walks through both. The Linux side of hsv-compose.so, hsv-dual.so is not in the prebuilt bundle yet; if you need Linux, build it with <code>./build.sh</code> (Windows is complete).</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-hsv-split-curves.zip">Download HSV Split (Curves)</a>
+    <p class="muted small">76.1 KB · checksum: <code>SHA256 b439cb6e5226e60149c4fbf8d3802d9f…</code></p>
+  </div>
+</section>
+
+<p class="note">In this article a "code" means one step on an 8-bit
+   image: 0–255 is 256 levels, so the gap between neighbours is 1 code, or
+   1/255 ≈ 0.392%% (the difference between RGB 128 and 129). For the order of magnitude
+   of each figure, and why a code is not a perceptual quantity, see
+   <a href="../guide.html#code">Install guide · what a code is</a>.</p>
 </div>
+<nav class="pager">
+  <a href="../plugins.html"><span>Back to</span>All plug-ins</a>
+  <a class="prev" href="layer-to-channel.html"><span>Previous</span>Layer to Channel</a><a class="next" href="lch-split-curves.html"><span>Next</span>LCh Split (Curves)</a>
+</nav></div>
 </main>
 <footer class="site-foot">
   <div>
@@ -141,8 +276,51 @@ multi    HSV split            组 · 穿透（带 alpha 时组上还有蒙版）
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">d98baeb</span>
+    <span class="muted">a65d634</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="LCh Dual Extract · gegl-color-ops" data-title-en="LCh Dual Extract · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>LCh Dual Extract · gegl-color-ops</title>
-<meta name="description" content="LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L、G = 彩度 C、B = 色相/360」的数据图，一张图同时携带三个分量">
-<meta property="og:title" content="LCh Dual Extract · gegl-color-ops">
-<meta property="og:description" content="LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L、G = 彩度 C、B = 色相/360」的数据图，一张图同时携带三个分量">
+<meta name="description" content="LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L、G = 彩度 C、B = 色相/360」的数据图，一张图同时携带三个分量" data-desc-zh="LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L、G = 彩度 C、B = 色相/360」的数据图，一张图同时携带三个分量" data-desc-en="LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L、G = 彩度 C、B = 色相/360」的数据图，一张图同时携带三个分量">
+<meta property="og:title" content="LCh Dual Extract · gegl-color-ops" data-title-zh="LCh Dual Extract · gegl-color-ops" data-title-en="LCh Dual Extract · gegl-color-ops">
+<meta property="og:description" content="LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L、G = 彩度 C、B = 色相/360」的数据图，一张图同时携带三个分量" data-desc-zh="LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L、G = 彩度 C、B = 色相/360」的数据图，一张图同时携带三个分量" data-desc-en="LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L、G = 彩度 C、B = 色相/360」的数据图，一张图同时携带三个分量">
 <link rel="stylesheet" href="../assets/style.css">
-<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
@@ -47,8 +47,20 @@ window.addEventListener("DOMContentLoaded", function () {
     });
   }
 });
-</script></head>
-<body>
+</script><script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body class="article">
 <a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
@@ -59,9 +71,13 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
+<div class="l-zh"><section class="page-head">
   <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 分量</p>
   <h1>LCh Dual Extract</h1>
   <div class="meta">
@@ -104,7 +120,54 @@ window.addEventListener("DOMContentLoaded", function () {
 <li class="l2"><a href="#实测">实测</a></li>
 <li class="l2"><a href="#注意">注意</a></li></ul>
 </aside>
-</div>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Component</p>
+  <h1>LCh Dual Extract</h1>
+  <div class="meta">
+    <code>lb:lch-dual</code>
+    <span class="tag t-component">Component</span>
+    <span>area</span>
+  </div>
+  <p class="lede">Packs lightness, chroma and hue into one data image in polar form — so a curve can add chroma or rotate hue without dragging the other two along.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>Menu: <code>Colors → SuperMrWang → Component → LCh Dual Extract</code> (a filter op)</p>
+<h2 id="overview">Overview</h2>
+<p>Packs an image into <strong>one data image</strong>: <code>R = lightness L*/100</code>, <code>G = chroma C*/140</code>, <code>B = hue/360</code>, all 0…1. Alpha is always 1.</p>
+<pre><code>input ── lb:lch-dual ──&gt; (R=L/100, G=C/140, B=h/360)
+            │
+            ├── L curve (red)
+            ├── C curve (green)
+            ├── h curve (blue)
+            ▼
+     lb:lch-compose ──&gt; real colour</code></pre>
+<h2 id="why-polar-coordinates">Why polar coordinates</h2>
+<p>Lab's <code>a</code> and <code>b</code> are rectangular: <code>C² = a² + b²</code>, <code>h = atan2(b, a)</code>. A 1D curve on a changes chroma <em>and</em> hue together — on screen that reads as a cast. "Add chroma only" or "rotate hue only" has to be expressed in polar form first, which is what this operator does.</p>
+<p>Once the image is (L, C, h), the three curves are independent and <code>lb:lch-compose</code> computes the colour back. The old <code>LCh Split (Curves)</code> used three component layers and three LCh blend modes, and had to encode each component as a colour the blend mode could read (the hue layer needed a ring of constant L* and C*) — a single-layer pipeline drops all of that.</p>
+<h2 id="ranges-measured-babl-d50">Ranges (measured, babl D50)</h2>
+<div class="table-wrap"><table><thead><tr><th>Component</th><th>babl units</th><th>Data image</th></tr></thead><tbody><tr><td>L*</td><td>0…100</td><td><code>L/100</code></td></tr><tr><td>C*</td><td>0…about 133.8 (full sRGB gamut)</td><td><code>C/140</code></td></tr><tr><td>h</td><td>0…360°</td><td><code>h/360</code></td></tr></tbody></table></div>
+<p>Chroma is divided by 140 rather than 135: the most saturated sRGB point is pure blue at <code>C*≈133.8</code>, and the extra headroom lets the whole circle fit. In 8-bit one code is about 0.55 C* units, so the round-trip quantisation stays within 0.5 codes.</p>
+<h2 id="verification">Verification</h2>
+<p><code>tools/check_lch_split.py</code> runs the <code>dual → compose</code> identity round trip: <strong>0.0005 codes</strong> in 32-bit float, <strong>0.49 codes</strong> in 8-bit. Neutral grey (C = 0) has no defined hue on the babl side; the operator folds non-finite values to 0.</p>
+<h2 id="notes">Notes</h2>
+<ul><li>The output is a data image — <strong>do not read it as a photo</strong>.</li><li>It only works paired with <code>lb:lch-compose</code>, and the two must share the same ranges — change one and you have to change the other.</li></ul><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>lch-dual.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lch-dual.dll">Download lch-dual.dll<span class="size">Windows x64</span></a></div>
+</div><nav class="pager"><a class="prev" href="lab-compose.html"><span>Previous</span>Lab Compose</a><a class="next" href="lch-compose.html"><span>Next</span>LCh Compose</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#overview">Overview</a></li>
+<li class="l2"><a href="#why-polar-coordinates">Why polar coordinates</a></li>
+<li class="l2"><a href="#ranges-measured-babl-d50">Ranges (measured, babl D50)</a></li>
+<li class="l2"><a href="#verification">Verification</a></li>
+<li class="l2"><a href="#notes">Notes</a></li></ul>
+</aside>
+</div></div>
 </main>
 <footer class="site-foot">
   <div>
@@ -116,8 +179,51 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">d98baeb</span>
+    <span class="muted">a65d634</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

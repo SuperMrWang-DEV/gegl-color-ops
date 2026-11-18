@@ -96,32 +96,32 @@ Python 插件走另一条线，两种取法都行：
 | `lb:hue-saturation-basic` | Hue/Saturation (Basic) | Hue/Saturation (Basic) | Color | Point | 三滑杆公式：色相旋转、饱和度相对缩放（s/(1−x)）、明度向白/黑混合；逐码对拍参考实现 |
 | `lb:hue-range-basic` | Hue Range (Basic) | Hue/Saturation Range (Basic) | Color | Point | 色系范围：六色系四柄色条（内二柄全选、外二柄线性过渡），范围内按权重缩放应用色相/饱和度/明度；与上一个串联即「主控 + 分色系」 |
 | `lb:hsl-bands` | HSL 8 Bands | HSL 8 Bands | Color | Point | 八段色相（含洋红）各调 H/S/L，RAW 编辑器 风格 |
-| `lb:channel-mixer-plus` | Channel Mixer Plus | Channel Mixer Plus | Blend | Point | 经典图像编辑器 通道混合器 + 通道 offset + 单色模式 |
+| `lb:channel-mixer-plus` | Channel Mixer Plus | Channel Mixer Plus | Blend | Point |经典图像编辑器通道混合器 + 通道 offset + 单色模式 |
 | `lb:channel-range-to-alpha` | Range → Alpha | Channel Range to Alpha | Mask | Point | 通道数值区间 → alpha（混合颜色带） |
 | `lb:cmyk-primary-correction` | CMYK Primary | CMYK Primary Correction | Color | Point | 可选颜色：九组色域各存一份 C/M/Y/K，同时生效 |
-| `lb:color-balance` | Color Balance | Color Balance | Color | Filter | 经典图像编辑器 色彩平衡：三区间指数相乘合成一条逐通道曲线，单段残差 0.30 码 |
+| `lb:color-balance` | Color Balance | Color Balance | Color | Filter |经典图像编辑器色彩平衡：三区间指数相乘合成一条逐通道曲线，单段残差 0.30 码 |
 | `lb:color-grading` | Color Grading | Color Grading | Color | Point | RAW 编辑器 颜色分级：阴影/中间调/高光/全局四轮盘 + 明度 + Blending/Balance，按亮度分带（模型对齐，未逐码标定） |
-| `lb:color-lookup` | Color Lookup | Color Lookup | Blend | Filter | 经典图像编辑器 颜色查找：按 .cube 3D LUT（可带 1D shaper）查表，三线性 / 四面体可选 |
-| `lb:match-color` | Match Color | Match Color | Color | Composer | 经典图像编辑器 匹配颜色：Lab 统计迁移（Reinhard），亮度/颜色强度/渐隐/中和 |
-| `lb:colorize-hsl` | Colorize | Colorize | Color | Point | 经典图像编辑器 色相/饱和度「着色」实测复刻：扔掉原有 H/S，只留输入 L 的单色调，残差 0.03 码 |
-| `lb:color-mask-select` | Mask by Color | Color Mask Select | Mask | Point | 经典图像编辑器 色彩范围：高光/阴影/中间调按「阈值 + 容差」实测复刻（平均 2.1 码），色系/自定色走容差窗 |
+| `lb:color-lookup` | Color Lookup | Color Lookup | Blend | Filter |经典图像编辑器颜色查找：按 .cube 3D LUT（可带 1D shaper）查表，三线性 / 四面体可选 |
+| `lb:match-color` | Match Color | Match Color | Color | Composer |经典图像编辑器匹配颜色：Lab 统计迁移（Reinhard），亮度/颜色强度/渐隐/中和 |
+| `lb:colorize-hsl` | Colorize | Colorize | Color | Point |经典图像编辑器色相/饱和度「着色」实测复刻：扔掉原有 H/S，只留输入 L 的单色调，残差 0.03 码 |
+| `lb:color-mask-select` | Mask by Color | Color Mask Select | Mask | Point |经典图像编辑器色彩范围：高光/阴影/中间调按「阈值 + 容差」实测复刻（平均 2.1 码），色系/自定色走容差窗 |
 | `lb:lab-levels` | LAB Levels | LAB Levels | Levels | Filter | LAB 三通道各自黑白场 + 伽马，a/b 绕中性轴分段 |
 | `lb:hsl-levels` | HSL Levels | HSL Levels | Levels | Filter | HSL 三分量色阶，色相按弧环形重映射 |
 | `lb:hsb-levels` | HSB Levels | HSB Levels | Levels | Filter | HSB（HSV）三分量色阶，S/B 是 HSV 语义 |
 | `lb:lch-levels` | LCH Levels | LCH Levels | Levels | Filter | CIE LCh 的 L/C/H 色阶，调色度不串色相 |
 | `lb:cmyk-levels` | CMYK Levels | CMYK Levels | Levels | Filter | CMYK 四版墨量色阶（babl 分色，非 ICC） |
 | `lb:hsi-levels` | HSI Levels | HSI Levels | Levels | Filter | HSI 三分量色阶，I 取三通道均值 |
-| `lb:levels` | Levels | Levels | Levels | Point | 经典图像编辑器 色阶：复合 + R/G/B 四组输入黑/灰/白场与输出黑白场，0–255 刻度；gamma 方向经公开实测点验证（154@0.46→84、200@1.646→220） |
-| `lb:exposure` | Exposure EV | Exposure EV | Tone | Filter | 经典图像编辑器 曝光：EV、偏移、伽马；整数图走伽马域、浮点图走线性域，按输入精度自动选路 |
-| `lb:rgb-domain-grayscale` | Black & White | Black & White | Tone | Point | 经典图像编辑器 黑白：六色权重转灰 + 可选着色 |
+| `lb:levels` | Levels | Levels | Levels | Point |经典图像编辑器色阶：复合 + R/G/B 四组输入黑/灰/白场与输出黑白场，0–255 刻度；gamma 方向经公开实测点验证（154@0.46→84、200@1.646→220） |
+| `lb:exposure` | Exposure EV | Exposure EV | Tone | Filter |经典图像编辑器曝光：EV、偏移、伽马；整数图走伽马域、浮点图走线性域，按输入精度自动选路 |
+| `lb:rgb-domain-grayscale` | Black & White | Black & White | Tone | Point |经典图像编辑器黑白：六色权重转灰 + 可选着色 |
 | `lb:vibrance-hyper` | Natural Saturation | Natural Saturation | Color | Point | LAB 自然饱和度：色度双曲蒙版 + 肤色保护窗 + 色域收敛不扭色相 |
-| `lb:vibrance` | Vibrance | Vibrance | Color | Point | 经典图像编辑器 自然饱和度实测复刻：ΔS = A(v)·S^p·(1−S)^q，叠红带与亮度项，16 位标定；只管饱和度，色温色调由 `lb:color-temperature-tint` 独立承担 |
-| `lb:brightness-contrast` | Brightness/Contrast | Brightness/Contrast | Tone | Point | 经典图像编辑器 亮度/对比度实测复刻：新版两条曲线族查表 + 旧版闭式（pivot 89、b 夹 ±100） |
-| `lb:xyz-multiply` | Photo Filter | Photo Filter | Blend | Point | **即 经典图像编辑器 照片滤镜**（实测复刻）：滤镜色在 D50 XYZ 域正片叠底，密度 + 保留明度（W3C SetLum）；不保留明度档 ≤0.71 码 |
-| `lb:shadows-highlights` | Shadows/Highlights | Shadows/Highlights | Tone | Filter | 经典图像编辑器 阴影/高光实测复刻：边缘感知邻域亮度决定提亮提多少，含色调宽度、颜色、中间调对比度、修剪黑白。**不推荐日常使用（慢）**：半径 30 时每像素约 1.4 µs，2048×1536 默认参数净耗时 0.7 s，交互拖滑杆会卡；整体明暗请用 `lb:levels` / `lb:lab-levels`，见 `ops/shadows-highlights/.discouraged` |
+| `lb:vibrance` | Vibrance | Vibrance | Color | Point |经典图像编辑器自然饱和度实测复刻：ΔS = A(v)·S^p·(1−S)^q，叠红带与亮度项，16 位标定；只管饱和度，色温色调由 `lb:color-temperature-tint` 独立承担 |
+| `lb:brightness-contrast` | Brightness/Contrast | Brightness/Contrast | Tone | Point |经典图像编辑器亮度/对比度实测复刻：新版两条曲线族查表 + 旧版闭式（pivot 89、b 夹 ±100） |
+| `lb:xyz-multiply` | Photo Filter | Photo Filter | Blend | Point | **即经典图像编辑器照片滤镜**（实测复刻）：滤镜色在 D50 XYZ 域正片叠底，密度 + 保留明度（W3C SetLum）；不保留明度档 ≤0.71 码 |
+| `lb:shadows-highlights` | Shadows/Highlights | Shadows/Highlights | Tone | Filter |经典图像编辑器阴影/高光实测复刻：边缘感知邻域亮度决定提亮提多少，含色调宽度、颜色、中间调对比度、修剪黑白。**不推荐日常使用（慢）**：半径 30 时每像素约 1.4 µs，2048×1536 默认参数净耗时 0.7 s，交互拖滑杆会卡；整体明暗请用 `lb:levels` / `lb:lab-levels`，见 `ops/shadows-highlights/.discouraged` |
 | `lb:color-temperature-tint` | Color Temperature & Tint | Color Temperature & Tint | Color | Point | 经典图像编辑器 2026「色彩与自然饱和度」里的色温 / 色调：冷↔暖、绿↔洋红，中性灰跟着偏色、黑白不动 |
-| `lb:apply-image` | Apply Image | Apply Image | Blend | Composer | 经典图像编辑器 应用图像：aux 层按 26 种混合模式压到本层，可只作用单通道；加法/减法带 缩放(1..2)/补偿值(±255)；源层没盖到和透明的地方原样输出 |
-| `lb:calculations` | Calculations | Calculations | Blend | Composer | 经典图像编辑器 计算：两路通道混合出灰/alpha 蒙版，双源可各自反相；加法/减法带 缩放(1..2)/补偿值(±255)；源 2 透明处蒙版为 0 |
+| `lb:apply-image` | Apply Image | Apply Image | Blend | Composer |经典图像编辑器应用图像：aux 层按 26 种混合模式压到本层，可只作用单通道；加法/减法带 缩放(1..2)/补偿值(±255)；源层没盖到和透明的地方原样输出 |
+| `lb:calculations` | Calculations | Calculations | Blend | Composer |经典图像编辑器计算：两路通道混合出灰/alpha 蒙版，双源可各自反相；加法/减法带 缩放(1..2)/补偿值(±255)；源 2 透明处蒙版为 0 |
 | `lb:gray-to-component` | Gray To Component | Gray To Component | Component | Point | 分量灰度 → 彩色编码：把 `component-extract` 出来的灰度层编成「携带该分量」的彩色，分量混合模式才读得出来。分量曲线插件的旧版靠它做编码；现在五个插件都直接走 dual / compose，它更像一件独立工具（手工搭分层时仍有用） |
 | `lb:hsl-dual` | HSL Dual Extract | HSL Dual Extract | Component | Point | HSL 分量曲线的提取器：一张图同时携带三分量（R = 饱和度、G = 明度、B = 色相/360）。S 与 L 耦合，必须同时读到才能精确换回 HSV 的 S/V；`HSL Split (Curves)` 的第一道滤镜 |
 | `lb:hsl-compose` | HSL Compose | HSL Compose | Component | Point | HSL 分量曲线的合成器：把（R = S、G = L、B = H/360）的数据图还原成真实 HSL 色。babl 做转换，与 GIMP 自己的 HSL 同口径，往返 0.00001 码 |
@@ -150,7 +150,7 @@ alpha 是细筛（这块地方真有像素吗）。抠图层的透明洞里 RGB 
 结果上：透明处蒙版为 0（不选中），半透明柔边按比例衰减。两个算子的判据一致——源层
 没有像素的地方不让它的 RGB 0 参与运算，区别只在落点（保留原值 / 归零）。
 
-**加法/减法的 缩放/补偿值**：与 经典图像编辑器 一致，混合模式选 加法
+**加法/减法的 缩放/补偿值**：与经典图像编辑器一致，混合模式选 加法
 （Linear Dodge）或 减法 时，公式变为 `结果 = (A ± B) / 缩放 + 补偿值`，缩放
 1.0..2.0、补偿值 ±255（8bit 口径，内部归一化）；其余模式这两个参数被忽略。
 共享内核 `common/blend.h` 的 `lb_blend_separable` 统一收 `scale/offset` 两个
@@ -166,7 +166,7 @@ alpha 是细筛（这块地方真有像素吗）。抠图层的透明洞里 RGB 
 
 GEGL 算子只接住了像素计算那一半；**输入选择**（任意打开图像的任意图层/通道、
 遮罩指向第三张图）和**结果落地**（直接生成选区/新建 Alpha 通道）是插件 API 的
-主场。`plugin/blend` 是一对 Python-Fu 插件，把 经典图像编辑器 对话框完整搬过来：
+主场。`plugin/blend` 是一对 Python-Fu 插件，把经典图像编辑器对话框完整搬过来：
 
 - `Apply Image` / `Calculations`，位于 **SuperMrWang**
 - 源可以是任意打开图像的任意图层；通道含 Gray/R/G/B/Alpha/图层蒙版
@@ -191,7 +191,7 @@ GEGL 算子只接住了像素计算那一半；**输入选择**（任意打开�
 ./install-plugin.sh          # 装到 %APPDATA%/GIMP/3.x/plug-ins，重启 GIMP 生效
 ```
 
-交互模式弹自定义对话框；批处理可用注册参数（`blend` 0..25 按 经典图像编辑器 顺序、
+交互模式弹自定义对话框；批处理可用注册参数（`blend` 0..25 按经典图像编辑器顺序、
 `source-image`/`source-layer` 等，见 `do_create_procedure`）。
 
 ### Python 插件版：plugin/gray-mask
@@ -569,11 +569,11 @@ python tools/make_test_image.py out.png     # 生成色环+灰阶+明度测试�
 python tools/contact_sheet.py sheet.png build/smoke/*.png   # 拼成带标签的对照表
 python tools/check_gamma_domain.py          # 数值回归：感知（伽马）域 + 全图像素核对
 python tools/check_blend.py                 # 数值回归：双输入算子 23 用例（含通道映射、源层尺寸/偏移）
-python tools/check_color_balance_fine.py    # 与 经典图像编辑器 实测比对：色彩平衡（--all 跑全部 609 档）
-python tools/check_color_balance_ps.py      # 与 经典图像编辑器 实测比对：色彩平衡（含保留明度）
-python tools/check_color_mask_select.py     # 与 经典图像编辑器 实测比对：色彩范围的高光/阴影/中间调曲线
+python tools/check_color_balance_fine.py    # 与经典图像编辑器实测比对：色彩平衡（--all 跑全部 609 档）
+python tools/check_color_balance_ps.py      # 与经典图像编辑器实测比对：色彩平衡（含保留明度）
+python tools/check_color_mask_select.py     # 与经典图像编辑器实测比对：色彩范围的高光/阴影/中间调曲线
 python tools/check_color_grading.py         # 行为验证：颜色分级（恒等/分带/落位/Blending/Balance/全局）
-python tools/check_levels_ps.py             # 与 经典图像编辑器 实测点比对：色阶（含 gamma 方向与指数形式）
+python tools/check_levels_ps.py             # 与经典图像编辑器实测点比对：色阶（含 gamma 方向与指数形式）
 python tools/check_lab_levels.py            # 数值回归：LAB 色阶（gimp-console 跑，21 项）
 python tools/check_match_color.py           # 数值回归：匹配颜色（gimp-console 跑，17 项）
 python tools/check_gray_to_component.py     # 灰度转分量：九个混合模式的恒等往返，39 条

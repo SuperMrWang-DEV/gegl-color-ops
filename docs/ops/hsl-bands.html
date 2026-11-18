@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HSL 8 Bands · gegl-color-ops</title>
-<meta name="description" content="红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，经典 RAW 编辑器风格">
-<meta property="og:title" content="HSL 8 Bands · gegl-color-ops">
-<meta property="og:description" content="红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，经典 RAW 编辑器风格">
+<meta name="description" content="红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，经典 RAW 编辑器风格" data-desc-zh="红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，经典 RAW 编辑器风格" data-desc-en="红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，经典 RAW 编辑器风格">
+<meta property="og:title" content="HSL 8 Bands · gegl-color-ops" data-title-zh="HSL 8 Bands · gegl-color-ops" data-title-en="HSL 8 Bands · gegl-color-ops">
+<meta property="og:description" content="红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，经典 RAW 编辑器风格" data-desc-zh="红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，经典 RAW 编辑器风格" data-desc-en="红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，经典 RAW 编辑器风格">
 <link rel="stylesheet" href="../assets/style.css">
-<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
@@ -60,7 +60,7 @@ window.addEventListener("DOMContentLoaded", function () {
 })();
 </script>
 </head>
-<body>
+<body class="article">
 <a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
@@ -91,7 +91,7 @@ window.addEventListener("DOMContentLoaded", function () {
 <blockquote><p>2026-11-12：按 RAW 编辑器 8 段混色器补齐洋红段——原紫段 0.78~0.92 对半拆为 紫 0.78~0.85 与洋红 0.85~0.92。旧 7 段属性名与边界行为不变。</p></blockquote>
 <blockquote><p>2026-11-18：算子 id 由 <code>lb:hsl-seven</code> 改为 <code>lb:hsl-bands</code>。补洋红段之后 「seven」已经名不副实，新名字也不再承诺段数。旧 XCF 里的 <code>lb:hsl-seven</code> 滤镜会失效；暂时保留旧的 <code>hsl-seven.dll</code> 可以让老工程照常打开，两个 id 互不冲突。</p></blockquote>
 <h2 id="这个算子做什么">这个算子做什么</h2>
-<p>八段色相（红 / 橙 / 黄 / 绿 / 青 / 蓝 / 紫 / 洋红）各带一组 H/S/L 偏移，共 24 个 滑块，按色相段加权叠加，段间由 <code>feather</code> 交叉淡化；饱和度低于 <code>min-saturation</code> 的灰像素可以选择跳过（灰没有有意义的色相）。参照物是 RAW 编辑器 的 HSL 面板： 只想压掉某几个色相的饱和、或者只把某个色相提亮，就拖那一段。</p>
+<p>八段色相（红 / 橙 / 黄 / 绿 / 青 / 蓝 / 紫 / 洋红）各带一组 H/S/L 偏移，共 24 个 滑块，按色相段加权叠加，段间由 <code>feather</code> 交叉淡化；饱和度低于 <code>min-saturation</code> 的灰像素可以选择跳过（灰没有有意义的色相）。参照物是 RAW 编辑器的 HSL 面板： 只想压掉某几个色相的饱和、或者只把某个色相提亮，就拖那一段。</p>
 <h2 id="算法">算法</h2>
 <p>八段色相各有一套 H/S/L 偏移，按段权重叠加；段边界用 smoothstep 交叉淡化：</p>
 <div class="math-display">$$w_k(h) = \sigma\!\left(h,\ s_k-f,\ s_k\right)\cdot\Bigl(1-\sigma\bigl(h,\ e_k,\ e_k+f\bigr)\Bigr),
@@ -101,12 +101,12 @@ S \mathrel{+}= \frac{\Delta S_k}{100}\,w_k,\qquad
 L \mathrel{+}= \frac{\Delta L_k}{100}\,w_k$$</div>
 <p>八段首尾相接（红 0–45°、橙 45–90°……洋红 315–360°），权重和恒为 1； <span class="math">$S &lt; \text{min-saturation}$</span> 的灰像素可以整段跳过。</p>
 <h2 id="2026-11-12补上洋红段">2026-11-12：补上洋红段</h2>
-<p>RAW 编辑器 的混色器是八段，本算子原来只有七段。原紫段（0.78–0.92）对半拆成 紫 0.78–0.85 与洋红 0.85–0.92。</p>
+<p>RAW 编辑器的混色器是八段，本算子原来只有七段。原紫段（0.78–0.92）对半拆成 紫 0.78–0.85 与洋红 0.85–0.92。</p>
 <p>原来七段的属性名与边界行为不变。</p>
 <h2 id="2026-11-18算子-id-改名">2026-11-18：算子 id 改名</h2>
 <p>补上洋红段之后 id 里的 <code>seven</code> 已经说错了对象。现在叫 <code>lb:hsl-bands</code>，不再承诺段数。 旧 XCF 里以旧 id 保存的滤镜会显示为不可用；把旧的 <code>hsl-seven.dll</code> 留在插件目录里 可以让老工程重新打开——两个 id 不冲突。</p>
 <h2 id="与-lbhue-saturation-的分工">与 lb:hue-saturation 的分工</h2>
-<p><code>lb:hue-saturation</code> 是 经典图像编辑器的对话框：一个主控加六个色相区间，做的是相对偏移、在 HSL 上加减。本算子对应 RAW 编辑器 的混色器：八段、每段三个分量。思路相同，面板与数值 都不同，看惯哪个用哪个。</p><div class="op-dl">
+<p><code>lb:hue-saturation</code> 是 经典图像编辑器的对话框：一个主控加六个色相区间，做的是相对偏移、在 HSL 上加减。本算子对应 RAW 编辑器的混色器：八段、每段三个分量。思路相同，面板与数值 都不同，看惯哪个用哪个。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>hsl-bands.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
@@ -205,7 +205,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">d98baeb</span>
+    <span class="muted">a65d634</span>
   </div>
 </footer>
 <script>
@@ -226,6 +226,13 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     }
     if (root.dataset.titleZh && root.dataset.titleEn) {
       document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
     }
   }
   for (var i = 0; i < btns.length; i++) {

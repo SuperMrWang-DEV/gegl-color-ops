@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Photo Filter · gegl-color-ops</title>
-<meta name="description" content="经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。the classic editor&#x27;s Photo Filter: multiply the filter colour in XYZ s">
-<meta property="og:title" content="Photo Filter · gegl-color-ops">
-<meta property="og:description" content="经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。the classic editor&#x27;s Photo Filter: multiply the filter colour in XYZ s">
+<meta name="description" content="经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。" data-desc-zh="经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。" data-desc-en="经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。">
+<meta property="og:title" content="Photo Filter · gegl-color-ops" data-title-zh="Photo Filter · gegl-color-ops" data-title-en="Photo Filter · gegl-color-ops">
+<meta property="og:description" content="经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。" data-desc-zh="经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。" data-desc-en="经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。">
 <link rel="stylesheet" href="../assets/style.css">
-<link rel="alternate" type="application/atom+xml" title="算子更新" href="../feed.xml">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
@@ -60,7 +60,7 @@ window.addEventListener("DOMContentLoaded", function () {
 })();
 </script>
 </head>
-<body>
+<body class="article">
 <a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
   <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
@@ -85,12 +85,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span class="tag t-blend">混合与通道</span>
     <span>逐像素</span>
   </div>
-  <p class="lede">经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。the classic editor's Photo Filter: multiply the filter colour in XYZ space,density as opacity, with an optional preserve-luminosity switch.</p>
+  <p class="lede">经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。</p>
 </section><div class="article-layout">
   <article class="prose">
-<h2 id="这个算子就是-经典图像编辑器的照片滤镜-this-is-经典图像编辑器s-photo-filter">这个算子就是 经典图像编辑器的「照片滤镜」/ This is 经典图像编辑器's Photo Filter</h2>
+<h2 id="这个算子就是-经典图像编辑器的照片滤镜-this-is-the-classic-editors-photo-filter">这个算子就是 经典图像编辑器的「照片滤镜」/ This is the classic editor's Photo Filter</h2>
 <p>经典图像编辑器的照片滤镜（<code>滤镜 → 调整 → 照片滤镜</code>）内部等价于「纯色填充 + 正片叠底 + 密度」，本算子按实测把整条链路复刻出来。参数一一对应：</p>
-<div class="table-wrap"><table><thead><tr><th>经典图像编辑器 照片滤镜</th><th><code>lb:xyz-multiply</code></th><th>说明</th></tr></thead><tbody><tr><td>滤镜（Filter）颜色</td><td><code>overlay_color</code></td><td>经典图像编辑器的 20 多个预设只是快捷方式，本质仍是颜色</td></tr><tr><td>密度（Density）0–100%</td><td><code>opacity</code> 0–1</td><td>除以 100</td></tr><tr><td>保留明度（Preserve Luminosity）</td><td><code>preserve_luminosity</code></td><td><strong>默认开</strong>，与 经典图像编辑器 出厂设置一致</td></tr><tr><td>—（经典图像编辑器 没有）</td><td><code>white_mode</code></td><td>参照白点，<strong>默认 D50</strong>（经典图像编辑器的 Lab 白点）</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>经典图像编辑器照片滤镜</th><th><code>lb:xyz-multiply</code></th><th>说明</th></tr></thead><tbody><tr><td>滤镜（Filter）颜色</td><td><code>overlay_color</code></td><td>经典图像编辑器的 20 多个预设只是快捷方式，本质仍是颜色</td></tr><tr><td>密度（Density）0–100%</td><td><code>opacity</code> 0–1</td><td>除以 100</td></tr><tr><td>保留明度（Preserve Luminosity）</td><td><code>preserve_luminosity</code></td><td><strong>默认开</strong>，与经典图像编辑器出厂设置一致</td></tr><tr><td>—（经典图像编辑器 没有）</td><td><code>white_mode</code></td><td>参照白点，<strong>默认 D50</strong>（经典图像编辑器的 Lab 白点）</td></tr></tbody></table></div>
 <h3 id="算法实测反推不是猜的">算法（实测反推，不是猜的）</h3>
 <ol><li>sRGB 线性化，用<strong>标准 Bradford</strong>（锥响应矩阵，不是适配矩阵本身）转到 D50 XYZ；</li><li>逐通道乘一个增益 <span class="math">$k$</span>，<span class="math">$d$</span> = 密度：</li></ol>
 <div class="math-display">$$k_c = (1-d) + d\cdot\frac{\bigl[\text{XYZ}_{\text{滤镜}}\bigr]_c}{\bigl[\text{XYZ}_{D50}\bigr]_c}$$</div>
@@ -106,8 +106,8 @@ window.addEventListener("DOMContentLoaded", function () {
 <p>保留明度档的大误差只出现在裁剪边界（整幅彩色图 12288 个通道值里 55～96 个）， 是 经典图像编辑器的取整顺序与 W3C 参考实现不同造成的，非边界点的中位差在 0.7 码以内。</p>
 <p>复现链：</p>
 <pre><code class="language-bash">python photo-filter-cal/make_probe.py        # 256×16 灰阶探针（嵌 sRGB ICC）
-# 经典图像编辑器 里跑 photo-filter-cal/batch_pf.jsx      # 12 档灰阶
-# 经典图像编辑器 里跑 photo-filter-cal/batch_pf_color.jsx # 6 档彩色
+#经典图像编辑器里跑 photo-filter-cal/batch_pf.jsx      # 12 档灰阶
+#经典图像编辑器里跑 photo-filter-cal/batch_pf_color.jsx # 6 档彩色
 python photo-filter-cal/model_pf.py         # 模型 vs 经典图像编辑器
 python tools/check_photo_filter.py          # 算子 vs 经典图像编辑器（端到端）
 python tools/check_xyz_multiply.py --all    # 算子 vs 独立参考实现</code></pre><div class="op-dl">
@@ -132,7 +132,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
   </article>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
-  <ul><li class="l2"><a href="#这个算子就是-经典图像编辑器的照片滤镜-this-is-经典图像编辑器s-photo-filter">这个算子就是 经典图像编辑器的「照片滤镜」/ This is 经典图像编辑器&#x27;s Photo Filter</a></li>
+  <ul><li class="l2"><a href="#这个算子就是-经典图像编辑器的照片滤镜-this-is-the-classic-editors-photo-filter">这个算子就是 经典图像编辑器的「照片滤镜」/ This is the classic editor&#x27;s Photo Filter</a></li>
 <li class="l3"><a href="#算法实测反推不是猜的">算法（实测反推，不是猜的）</a></li>
 <li class="l3"><a href="#实测精度经典图像编辑器-2025">实测精度（经典图像编辑器 2025）</a></li></ul>
 </aside>
@@ -210,7 +210,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">d98baeb</span>
+    <span class="muted">a65d634</span>
   </div>
 </footer>
 <script>
@@ -231,6 +231,13 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     }
     if (root.dataset.titleZh && root.dataset.titleEn) {
       document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
     }
   }
   for (var i = 0; i < btns.length; i++) {
