@@ -82,6 +82,7 @@ Python 插件走另一条线，两种取法都行：
 > Linux 端 component 家族的 11 个模块（各空间的 dual / compose 与 gray-to-component）
 > 还没出预编译包，所以 Linux 插件整包里只有 `channel-range-to-alpha`；五个
 > **Split (Curves)** 插件要在 Linux 上用，先 `./build.sh` 编一份放进 GEGL 目录。
+> `hsl-bands`（2026-11-18 由 `hsl-seven` 改名）的 Linux `.so` 同样等下一次 CI。
 > Windows 端是齐的。
 
 ## 算子清单
@@ -94,7 +95,7 @@ Python 插件走另一条线，两种取法都行：
 | `lb:hue-saturation` | Hue/Saturation | Hue/Saturation | Color | Point | HSL 色相/饱和度/明度，主控 + 六区间独立调 |
 | `lb:hue-saturation-basic` | Hue/Saturation (Basic) | Hue/Saturation (Basic) | Color | Point | 三滑杆公式：色相旋转、饱和度相对缩放（s/(1−x)）、明度向白/黑混合；逐码对拍参考实现 |
 | `lb:hue-range-basic` | Hue Range (Basic) | Hue/Saturation Range (Basic) | Color | Point | 色系范围：六色系四柄色条（内二柄全选、外二柄线性过渡），范围内按权重缩放应用色相/饱和度/明度；与上一个串联即「主控 + 分色系」 |
-| `lb:hsl-seven` | HSL 8 Bands | HSL 8 Bands | Color | Point | 八段色相（含洋红）各调 H/S/L，RAW 编辑器 风格；旧七段属性名不变 |
+| `lb:hsl-bands` | HSL 8 Bands | HSL 8 Bands | Color | Point | 八段色相（含洋红）各调 H/S/L，RAW 编辑器 风格 |
 | `lb:channel-mixer-plus` | Channel Mixer Plus | Channel Mixer Plus | Blend | Point | 经典图像编辑器 通道混合器 + 通道 offset + 单色模式 |
 | `lb:channel-range-to-alpha` | Range → Alpha | Channel Range to Alpha | Mask | Point | 通道数值区间 → alpha（混合颜色带） |
 | `lb:cmyk-primary-correction` | CMYK Primary | CMYK Primary Correction | Color | Point | 可选颜色：九组色域各存一份 C/M/Y/K，同时生效 |
@@ -616,11 +617,18 @@ python tools/make_dist.py                   # 把 build/ 整理成 dist/（含 m
 | `lb:rgbdomaingrayscale` | `lb:rgb-domain-grayscale` |
 | `lb:xyzmultiply` | `lb:xyz-multiply` |
 | `wb:hue-saturation` | `lb:hue-saturation` |
-| `lb:channel-mixer-plus` / `lb:hsl-seven` / `lb:lab-levels` / `lb:vibrance-hyper` | 不变 |
+| `lb:hsl-seven` | `lb:hsl-bands` |
+| `lb:channel-mixer-plus` / `lb:lab-levels` / `lb:vibrance-hyper` | 不变 |
 
 旧布局产出的 DLL 文件名与新布局不同（如 `channelrangetoalpha.dll`、`color_balance.dll`、`hslseven.dll`），
 装新版后请把插件目录里这些**旧文件名**的模块删掉，否则同一个 GEGL id 会被加载两次。
 同理，`exposure` 已改名为 `lb-exposure`（见下），旧的 `exposure.dll` / `exposure.so` 也要删。
+
+**为什么 hsl-seven 要改名**：它最早是七段色相（红橙黄绿青蓝紫），2026-11-12 按
+RAW 编辑器的八段混色器拆出洋红段后，id 里的 `seven` 就和实际不符了。改名成
+`lb:hsl-bands` 之后名字不再承诺段数，也不必再随段数变化。代价是**旧 XCF 里挂着的
+`lb:hsl-seven` 非破坏滤镜会显示为不可用**；要处理老工程可以暂时把旧的 `hsl-seven.dll`
+留在插件目录——两个 id 互不冲突，能同时存在，处理完再删。
 
 **为什么 exposure 要改名**：GEGL 给每个算子生成的 GType 名是 `GeglOp<源文件名>.c`，
 不看 `GEGL_OP_NAME`。源文件叫 `exposure.c` 时生成的类型名与 GEGL 内置 `gegl:exposure`

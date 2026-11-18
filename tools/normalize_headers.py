@@ -39,18 +39,18 @@ OPS = {
         ref_zh="GIMP 内置「色相-饱和度」（HSL 空间重写）",
         ref_en="GIMP Hue-Saturation dialog, reimplemented in HSL space",
     ),
-    "hsl-seven": dict(
-        id="lb:hsl-seven", label="HSL 7 Bands", title="HSL 7 Bands",
-        purpose_zh="红/橙/黄/绿/青/蓝/紫七段色相各自调 H/S/L，ACR 风格",
-        purpose_en="Seven hue bands (red, orange, yellow, green, cyan, blue, purple), "
-                   "each with its own H/S/L shift, Camera Raw style.",
-        algo_zh="21 个滑块按色相段加权叠加，段间由 feather 平滑过渡；低于 min-saturation "
+    "hsl-bands": dict(
+        id="lb:hsl-bands", label="HSL 8 Bands", title="HSL 8 Bands",
+        purpose_zh="红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，RAW 编辑器风格",
+        purpose_en="Eight hue bands (red, orange, yellow, green, cyan, blue, purple, "
+                   "magenta), each with its own H/S/L shift, the RAW editor style.",
+        algo_zh="24 个滑块按色相段加权叠加，段间由 feather 平滑过渡；低于 min-saturation "
                 "的灰像素可选择跳过",
-        algo_en="The 21 sliders are weighted by hue band and summed, with 'feather' "
+        algo_en="The 24 sliders are weighted by hue band and summed, with 'feather' "
                 "cross-fading adjacent bands. Pixels below 'min-saturation' can be "
                 "skipped.",
         type="GeglOperationPointFilter（逐像素 / per-pixel）",
-        ref_zh="Camera Raw 的 HSL 面板",
+        ref_zh="RAW 编辑器的 HSL 面板",
         ref_en="the RAW editor HSL panel",
     ),
     "channel-mixer-plus": dict(

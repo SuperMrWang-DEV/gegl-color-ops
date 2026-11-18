@@ -39,7 +39,7 @@ GROUPS = {
                   "hsi-dual", "hsi-compose", "gray-to-component"],
     "Tone":  ["exposure", "brightness-contrast",
               "shadows-highlights", "rgb-domain-grayscale"],
-    "Color": ["hue-saturation", "hue-saturation-basic", "hsl-seven", "color-balance",
+    "Color": ["hue-saturation", "hue-saturation-basic", "hsl-bands", "color-balance",
               "color-grading", "color-temperature-tint", "vibrance",
               "vibrance-hyper", "cmyk-primary-correction", "colorize-hsl",
               "hue-range-basic", "match-color"],

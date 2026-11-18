@@ -75,7 +75,7 @@ $[\min(o_{\text{lo}},o_{\text{hi}}),\ \max(o_{\text{lo}},o_{\text{hi}})]$.
 | Lower or raise chroma alone, hue untouched | this operator (C channel) |
 | Rotate hue alone, chroma untouched | this operator (H channel) |
 | Move the a and b axes separately (add yellow without green) | `lb:lab-levels` |
-| Per-hue-range saturation/lightness, the RAW editor style | `lb:hsl-seven` |
+| Per-hue-range saturation/lightness, the RAW editor style | `lb:hsl-bands` |
 
 ## Verification
 

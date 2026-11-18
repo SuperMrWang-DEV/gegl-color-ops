@@ -1,8 +1,8 @@
 /* ===========================================================================
  * SuperMrWang · GEGL 算子 / GEGL Operation
  * ---------------------------------------------------------------------------
- * id         lb:hsl-seven
- * menu       HSL 7 Bands
+ * id         lb:hsl-bands
+ * menu       HSL 8 Bands
  * purpose    红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，经典 RAW 编辑器风格
  *            Eight hue bands (red, orange, yellow, green, cyan, blue,
  *            purple, magenta), each with its own H/S/L shift, the RAW editor
@@ -104,8 +104,8 @@ property_double (magenta_lum, _("Magenta Luminance"), 0.0)
 #else
 
 #define GEGL_OP_POINT_FILTER
-#define GEGL_OP_NAME     lb_hsl_seven
-#define GEGL_OP_C_SOURCE hsl-seven.c
+#define GEGL_OP_NAME     lb_hsl_bands
+#define GEGL_OP_C_SOURCE hsl-bands.c
 
 #include "gegl-op.h"
 
@@ -425,9 +425,10 @@ gegl_op_class_init(GeglOpClass *klass)
   fclass->process = process;
 
   gegl_operation_class_set_keys(oclass,
-    "name",            "lb:hsl-seven",
+    "name",            "lb:hsl-bands",
     "title",           _("HSL 8 Bands"),
-    "description",     _("Red Orange Yellow Green Cyan Blue Purple Magenta independent Hue/Sat/Lum"),
+    "description",     _("Eight hue bands (red orange yellow green cyan blue purple "
+                         "magenta), each with its own H/S/L shift, RAW editor style"),
     "gimp:menu-path",  "<Image>/SuperMrWang/Color",
     "gimp:menu-label", _("HSL 8 Bands"),
     NULL);

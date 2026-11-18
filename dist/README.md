@@ -13,7 +13,7 @@ GCC、MSYS2、meson 那一套。内容与当前分支的源码同步（`tools/ma
 | 系统 | 下载 | 放到 |
 |---|---|---|
 | Windows x64 | [`windows-x64/`](windows-x64) 里的 41 个 `.dll` | `%LOCALAPPDATA%\gegl-0.4\plug-ins` |
-| Linux x86_64 | [`linux-x64/`](linux-x64) 里的 32 个 `.so` | `~/.local/share/gegl-0.4/plug-ins` |
+| Linux x86_64 | [`linux-x64/`](linux-x64) 里的 29 个 `.so` | `~/.local/share/gegl-0.4/plug-ins` |
 | macOS (Apple Silicon) | 本目录暂无，见下方「macOS 怎么拿」 | `~/Library/Application Support/gegl-0.4/plug-ins` |
 
 > **两端产物同源**：Windows 由本机 MSYS2 交叉编译，Linux 由 GitHub Actions 的
@@ -26,6 +26,9 @@ GCC、MSYS2、meson 那一套。内容与当前分支的源码同步（`tools/ma
 > 报错（二维映射没有一维回退）。
 > `lb:gray-to-component` 2026-11-15 曾停编，2026-11-17 起恢复（HSV/LCh 分量曲线
 > 插件要用它当编码器，一个滤镜顶三条曲线），所以模块数从 28 变成 30/31。
+>
+> `hsl-bands`（2026-11-18 由 `hsl-seven` 改名）同样只有 Windows 版，Linux 等下一次
+> CI 出包。旧 id 的 `hsl-seven.so` 已从本目录移除，免得两个 id 在 Linux 上同时存在。
 
 - GIMP Flatpak（Linux）：放进 `~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins`
 

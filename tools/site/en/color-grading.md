@@ -45,7 +45,7 @@ w_{\text{mid}} = 1-w_{\text{sh}}-w_{\text{hi}}
 
 One pass of a wheel (multiplied by the band weight w):
 
-- luminance: `V += Lw × 0.005 × w` (same coefficient as `lb:hsl-seven`);
+- luminance: `V += Lw × 0.005 × w` (same coefficient as `lb:hsl-bands`);
 - tint strength `t = Sat/100 × w`: blend toward the **wheel colour at the same
   luminance**, `rgb = rgb·(1−t) + tint·t` with `tint = HSV(wheel hue, 1, V)`.
   Grey pixels pick up the tint naturally; a hue close to the wheel's complement is

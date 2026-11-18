@@ -17,7 +17,7 @@
  *               Balance 把两条分界一起平移（正 = 高光范围扩大）。
  *               mid 权重 = 1 − shadow − highlight（钳到 ≥0）。
  *            3. 染色（每个带 / 全局各做一次，权重 w 相乘）：
- *               - 明度滑杆：V += Lw·0.005·w（与 hsl-seven 同系数，±100 → ±0.5）；
+ *               - 明度滑杆：V += Lw·0.005·w（与 hsl-bands 同系数，±100 → ±0.5）；
  *               - 染色强度 t = Sat/100·w：往「同明度的轮盘纯色」混合，
  *                 rgb = rgb·(1−t) + tint·t，tint = HSV(轮盘色相, 1, V)。
  *                 灰像素于是自然吃到染色，与轮盘色接近互补的色相则去饱和，
@@ -191,8 +191,8 @@ apply_wheel(gfloat *r, gfloat *g, gfloat *b,
     if (h < 0.0f) h += 1.0f;
   }
 
-  /* 明度滑杆：±100 → V ±0.5（与 hsl-seven 的 lightness 系数一致）
-   * Luminance slider: +-100 -> V +-0.5 (same coefficient as hsl-seven) */
+  /* 明度滑杆：±100 → V ±0.5（与 hsl-bands 的 lightness 系数一致）
+   * Luminance slider: +-100 -> V +-0.5 (same coefficient as hsl-bands) */
   v = CLAMP(v + lum_ui * 0.005f * w, 0.0f, 1.0f);
 
   gfloat t = sat_ui * 0.01f * w;
@@ -216,8 +216,8 @@ apply_wheel(gfloat *r, gfloat *g, gfloat *b,
 }
 
 /* 感知（非线性）格式：公式按 8bit sRGB 伽马域推导，必须拿伽马值，否则 babl
- * 会喂线性光，数值对不上（同 hsl-seven / shadows-highlights）
- * Perceptual (non-linear) format, same as hsl-seven / shadows-highlights */
+ * 会喂线性光，数值对不上（同 hsl-bands / shadows-highlights）
+ * Perceptual (non-linear) format, same as hsl-bands / shadows-highlights */
 static const Babl *
 perceptual_format (GeglOperation *op)
 {

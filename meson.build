@@ -23,7 +23,7 @@ ops = [
   ['color-grading',           'color-grading',           'color-grading.c'],
   ['levels',               'levels',               'levels.c'],
   ['colorize-hsl',            'colorize-hsl',            'colorize-hsl.c'],
-  ['hsl-seven',               'hsl-seven',               'hsl-seven.c'],
+  ['hsl-bands',               'hsl-bands',               'hsl-bands.c'],
   ['lab-levels',              'lab-levels',              'lab-levels.c'],
   ['hsl-levels',              'hsl-levels',              'hsl-levels.c'],
   ['hsb-levels',              'hsb-levels',              'hsb-levels.c'],

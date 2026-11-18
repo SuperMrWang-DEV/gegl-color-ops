@@ -890,7 +890,7 @@ def split_legacy_intro(md):
 
     旧文档的边界很规整：正文是 `## English` → `## 中文` 这一段双语安装说明；
     它前面紧邻的「本文件是该滤镜的原始说明文档」提示与 `# GEGL_GIMP_PLUGIN_*`
-    标题也算旧文档。有些 README（xyz-multiply / hsl-seven）在提示之后还写了当前
+    标题也算旧文档。有些 README（xyz-multiply / hsl-bands）在提示之后还写了当前
     实现说明，所以不能简单地「从文件头切到文件尾」。
 
     返回 (正文 md, 旧文档 md 或 None)。
@@ -900,7 +900,7 @@ def split_legacy_intro(md):
         return md, None
 
     # 起点：English 之前紧邻的一串「提示 / GEGL_GIMP_PLUGIN 标题 / 图片 / 分隔线」
-    # 算旧文档；遇到别的行（正文、其它引用块、代码块）就停 —— hsl-seven 的
+    # 算旧文档；遇到别的行（正文、其它引用块、代码块）就停 —— hsl-bands 的
     # 实现说明、xyz-multiply 的整段当前文档都紧在 English 前面，不能一起折叠。
     _LEAD = (r"(?:[ \t]*\n"
              r"|!\[[^\]]*\]\([^)]*\)[ \t]*\n"
@@ -1096,7 +1096,7 @@ def build_article(op, version):
     md = open(op["readme"], encoding="utf-8").read()
     md, legacy_md = split_legacy_intro(md)
     # 去掉 README 自带的标题和「本文件是说明文档」的提示，页面头部自己给。
-    # 这两样有时夹在当前说明前面（hsl-seven），所以按行清，不限定在文件头。
+    # 这两样有时夹在当前说明前面（hsl-bands），所以按行清，不限定在文件头。
     md = re.sub(r"^>\s*本文件是该滤镜的(?:原始)?说明文档[^\n]*\n"
                 r"(?:>\s*统一构建方式[^\n]*\n)?\s*", "", md, flags=re.M)
     md = re.sub(r"^#\s+GEGL_GIMP_PLUGIN_[^\n]*\n+", "", md, flags=re.M)

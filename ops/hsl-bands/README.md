@@ -1,11 +1,15 @@
 > 本文件是该滤镜的原始说明文档（构建命令按旧目录结构书写，已过时）。
 > 统一构建方式请见工程根目录 `README.md` 与 `build.sh`。
 
-# GEGL_GIMP_PLUGIN_hslseven
+# GEGL_GIMP_PLUGIN_hsl-bands
 
 > 2026-11-12：按 RAW 编辑器 8 段混色器补齐洋红段——原紫段 0.78~0.92 对半拆为
-> 紫 0.78~0.85 与洋红 0.85~0.92。旧 7 段属性名与边界行为不变，算子 id
-> 仍为 `lb:hsl-seven`（GIMP 存进 XCF 的字符串，不能改）。
+> 紫 0.78~0.85 与洋红 0.85~0.92。旧 7 段属性名与边界行为不变。
+
+> 2026-11-18：算子 id 由 `lb:hsl-seven` 改为 `lb:hsl-bands`。补洋红段之后
+> 「seven」已经名不副实，新名字也不再承诺段数。旧 XCF 里的 `lb:hsl-seven`
+> 滤镜会失效；暂时保留旧的 `hsl-seven.dll` 可以让老工程照常打开，两个 id
+> 互不冲突。
 
 ## English
 
@@ -36,7 +40,7 @@ Menu path: `Colors → SuperMrWang → Color → HSL 8 Bands`
 #### Method 2: GEGL Operation
 
 1. Go to `Filters → Generic → GEGL Operations`
-2. In the search box, enter: `lb:hsl-seven`
+2. In the search box, enter: `lb:hsl-bands`
 3. Select it and click `OK` to apply
 
 ---
@@ -70,7 +74,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/
 #### 方法二：GEGL 操作打开
 
 1. 顶部菜单点击：`滤镜 → 通用 → GEGL 操作`
-2. 在弹出窗口的搜索框输入：`lb:hsl-seven`
+2. 在弹出窗口的搜索框输入：`lb:hsl-bands`
 3. 选中后点击「确定」即可使用插件
 
 ---
@@ -105,8 +109,13 @@ $S < \text{min-saturation}$ 的灰像素可以整段跳过。
 RAW 编辑器 的混色器是八段，本算子原来只有七段。原紫段（0.78–0.92）对半拆成
 紫 0.78–0.85 与洋红 0.85–0.92。
 
-原来七段的属性名与边界行为不变，算子 id 仍是 `lb:hsl-seven`——这个字符串是 GIMP
-存进 XCF 的东西，不能改。
+原来七段的属性名与边界行为不变。
+
+## 2026-11-18：算子 id 改名
+
+补上洋红段之后 id 里的 `seven` 已经说错了对象。现在叫 `lb:hsl-bands`，不再承诺段数。
+旧 XCF 里以旧 id 保存的滤镜会显示为不可用；把旧的 `hsl-seven.dll` 留在插件目录里
+可以让老工程重新打开——两个 id 不冲突。
 
 ## 与 lb:hue-saturation 的分工
 
