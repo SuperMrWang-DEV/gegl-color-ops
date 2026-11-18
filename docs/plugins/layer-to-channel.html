@@ -67,7 +67,7 @@
   <div class="dl-grid">
     <div class="dl primary-dl">
       <div class="dl-head"><h3>菜单位置</h3><span class="pill">多条</span></div>
-      <ul class="menu-list"><li>图层右键 → SuperMrWang → Layer to Channel</li><li>SuperMrWang → Convert → Layer to Channel</li></ul>
+      <ul class="menu-list"><li>图层右键 → SuperMrWang → Convert → Layer to Channel</li><li>SuperMrWang → Convert → Layer to Channel</li></ul>
       <p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p>
     </div>
     <div class="dl">
@@ -115,10 +115,10 @@
          （写通道前先挂起选区，写完恢复）。</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>和 gray-mask 的分工</h3></div>
-      <p><code>plugin/gray-mask</code> 走复制粘贴，会带上<b>显示效果</b>（蒙版、
-         图层模式）；这两个插件读<b>原始像素</b>、不认显示效果，也更快。
-         要「所见即所得」用 gray-mask，要「数据本身」用这两个。</p>
+      <div class="dl-head"><h3>它取代了 gray-mask</h3></div>
+      <p>原来的 <code>plugin/gray-mask</code> 走复制粘贴、会带上蒙版和图层模式，
+         但彩色层不按亮度转、也不管偏移，2026-11-18 已下线。这两个插件读
+         <b>原始像素</b>，更快也更准，转换就只剩这一条路。</p>
     </div>
   </div>
 
@@ -128,7 +128,7 @@
     <div class="dl-head"><h3>Layer to Channel</h3><span class="pill">.py · 免编译</span></div>
     <p>包里只有一个 <code>.py</code> 和一份安装说明。解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-layer-to-channel.zip">下载 Layer to Channel</a>
-    <p class="muted small">5.8 KB · 校验：<code>SHA256 d5e2c0c725054710a5d72b6051518f83…</code></p>
+    <p class="muted small">5.8 KB · 校验：<code>SHA256 573f62a9018542e448b1edecffb44fa9…</code></p>
   </div>
 </section>
 
@@ -139,7 +139,7 @@
 </div>
 <nav class="pager">
   <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
-  <a class="prev" href="layer-to-selection.html"><span>上一篇</span>Layer to Selection</a><a class="next" href="hsv-split-curves.html"><span>下一篇</span>HSV Split (Curves)</a>
+  <a class="prev" href="layer-to-selection.html"><span>上一篇</span>Layer to Selection</a><a class="next" href="split-channels.html"><span>下一篇</span>Split Channels</a>
 </nav></div>
 <div class="l-en"><section class="page-head">
   <p class="eyebrow"><a href="../index.html">Home</a> /
@@ -160,7 +160,7 @@
   <div class="dl-grid">
     <div class="dl primary-dl">
       <div class="dl-head"><h3>Menu location</h3><span class="pill">Several</span></div>
-      <ul class="menu-list"><li>Layer right-click → SuperMrWang → Layer to Channel</li><li>SuperMrWang → Convert → Layer to Channel</li></ul>
+      <ul class="menu-list"><li>Layer right-click → SuperMrWang → Convert → Layer to Channel</li><li>SuperMrWang → Convert → Layer to Channel</li></ul>
       <p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p>
     </div>
     <div class="dl">
@@ -213,10 +213,11 @@ white 255  → fully selected</code></pre>
          before the write and restored after).</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>Versus gray-mask</h3></div>
-      <p><code>plugin/gray-mask</code> goes through copy-paste and therefore carries display
-         effects (masks, layer modes). These two read raw pixels, ignore display effects and
-         are faster. Want what you see? Use gray-mask. Want the data itself? Use these.</p>
+      <div class="dl-head"><h3>It replaces gray-mask</h3></div>
+      <p>The old <code>plugin/gray-mask</code> went through copy-paste and carried masks and
+         layer modes, but it skipped luma conversion for colour layers and ignored offsets.
+         Retired on 2026-11-18. These two read raw pixels — faster, and now the only way
+         to convert.</p>
     </div>
   </div>
 
@@ -226,7 +227,7 @@ white 255  → fully selected</code></pre>
     <div class="dl-head"><h3>Layer to Channel</h3><span class="pill">.py · no compile</span></div>
     <p>The archive holds a single <code>.py</code> and an install note. Unpack it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register.</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-layer-to-channel.zip">Download Layer to Channel</a>
-    <p class="muted small">5.8 KB · checksum: <code>SHA256 d5e2c0c725054710a5d72b6051518f83…</code></p>
+    <p class="muted small">5.8 KB · checksum: <code>SHA256 573f62a9018542e448b1edecffb44fa9…</code></p>
   </div>
 </section>
 
@@ -238,7 +239,7 @@ white 255  → fully selected</code></pre>
 </div>
 <nav class="pager">
   <a href="../plugins.html"><span>Back to</span>All plug-ins</a>
-  <a class="prev" href="layer-to-selection.html"><span>Previous</span>Layer to Selection</a><a class="next" href="hsv-split-curves.html"><span>Next</span>HSV Split (Curves)</a>
+  <a class="prev" href="layer-to-selection.html"><span>Previous</span>Layer to Selection</a><a class="next" href="split-channels.html"><span>Next</span>Split Channels</a>
 </nav></div>
 </main>
 <footer class="site-foot">
@@ -251,7 +252,7 @@ white 255  → fully selected</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">a65d634</span>
+    <span class="muted">b1bd498</span>
   </div>
 </footer>
 <script>

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-title-zh="Split Channels · Python 插件 · gegl-color-ops" data-title-en="Split Channels · Python plug-ins · gegl-color-ops">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Split Channels · Python 插件 · gegl-color-ops</title>
+<meta name="description" content="一个图层一次拆成多条通道：R、G、B、Alpha 各存一条，通道面板里排好，
+       原图层自动隐藏留作对照。原生做法是逐条「新建通道 → 复制 → 粘贴 → 合并」，
+       四条就是十六步。" data-desc-zh="一个图层一次拆成多条通道：R、G、B、Alpha 各存一条，通道面板里排好，
+       原图层自动隐藏留作对照。原生做法是逐条「新建通道 → 复制 → 粘贴 → 合并」，
+       四条就是十六步。" data-desc-en="One layer becomes several channels in a single step: R, G, B and Alpha each get
+   their own channel, lined up in the Ch">
+<meta property="og:title" content="Split Channels · Python 插件 · gegl-color-ops" data-title-zh="Split Channels · Python 插件 · gegl-color-ops" data-title-en="Split Channels · Python plug-ins · gegl-color-ops">
+<meta property="og:description" content="一个图层一次拆成多条通道：R、G、B、Alpha 各存一条，通道面板里排好，
+       原图层自动隐藏留作对照。原生做法是逐条「新建通道 → 复制 → 粘贴 → 合并」，
+       四条就是十六步。" data-desc-zh="一个图层一次拆成多条通道：R、G、B、Alpha 各存一条，通道面板里排好，
+       原图层自动隐藏留作对照。原生做法是逐条「新建通道 → 复制 → 粘贴 → 合并」，
+       四条就是十六步。" data-desc-en="One layer becomes several channels in a single step: R, G, B and Alpha each get
+   their own channel, lined up in the Ch">
+<link rel="stylesheet" href="../assets/style.css">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+<main id="main">
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> /
+    <a href="../plugins.html">插件</a> / 图层转换</p>
+  <h1>Split Channels</h1>
+  <div class="meta">
+    <code>plugin/split-channels</code>
+    <span class="tag t-mask">通道</span>
+    <span>图层转换</span>
+  </div>
+  <p class="lede">一个图层一次拆成多条通道：R、G、B、Alpha 各存一条，通道面板里排好，
+       原图层自动隐藏留作对照。原生做法是逐条「新建通道 → 复制 → 粘贴 → 合并」，
+       四条就是十六步。</p>
+</section>
+
+<div class="prose wide">
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>菜单位置</h3><span class="pill">多条</span></div>
+      <ul class="menu-list"><li>SuperMrWang → Convert → Split Channels</li><li>图层右键 → SuperMrWang → Convert → Split Channels</li></ul>
+      <p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>脚本调用</h3></div>
+      <pre><code>lb-plugin-split-channels(
+    image, drawables, include-alpha, hide-source, prefix)</code></pre>
+      <p>标准 PDB 过程，参数留空走默认值。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>依赖</h3></div>
+      <p>不依赖任何自研算子：读一次图层数据后按分量切片，只调 GIMP 自己的通道 PDB。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>一次拆完四路</h3><span class="pill">R · G · B · Alpha</span></div>
+      <p>默认按分量拆四条，命名是「图层名 + 后缀」，通道面板里一眼能认出来。同名
+         通道已存在时自动加序号，不会覆盖你之前存的东西。</p>
+      <pre><code>图层「photo」
+  ├ photo R       红分量
+  ├ photo G       绿分量
+  ├ photo B       蓝分量
+  └ photo Alpha   透明分量</code></pre>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>灰度图不硬凑三份</h3></div>
+      <p>灰度图里 R = G = B，拆三路等于三条全黑一样的通道，没有意义——这种图只拆
+         一条 <b>Gray</b>；只有带透明时才多一条 Alpha。彩色图默认四路，把
+         「含 Alpha」关掉就是三路。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>源图层默认隐藏</h3></div>
+      <p>拆完把原图层眼睛关掉、不删除：画布上看到的就是拆分结果，想对照随时点回来。
+         不需要这个行为就把「隐藏源图层」关掉，原图和通道并存。</p>
+      <p>偏移的小图层也照样处理：通道恒为<b>画布大小</b>，图层没盖到的地方补黑，
+         不会出现「通道尺寸跟着图层走、贴上去错位」的老问题。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>和 Layer to Channel 的分工</h3><span class="pill">一条 vs 多条</span></div>
+      <p><b>Layer to Channel</b> 把整层压成<b>一条</b>灰度通道（恒按亮度），适合
+         「这张灰度图当蒙版存档」。<b>Split Channels</b> 保留<b>分量本身</b>、一次
+         出多条，适合「分开看 R/G/B 各自的分布」「单独修某一路」。两者产物都在通道
+         面板里，可以并存。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>实测</h3></div>
+      <p><code>tools/check_split_channels.py</code> 31 条断言跑在真实 GIMP 3.2 里：
+         四路内容与源图层同名通道逐项相等（索引错位一位就会露馅）、灰度图只出
+         Gray、无 alpha 图层不出 Alpha、偏移图层外部补零、有选区时通道不被截断、
+         前缀与重名序号。</p>
+      <p>速度：600 万像素拆四路约 0.9 秒（一次读完整层再切片，不是每路读一遍）。</p>
+    </div>
+  </div>
+
+<section class="download" id="download">
+  <h2>下载这一个</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>Split Channels</h3><span class="pill">.py · 免编译</span></div>
+    <p>包里只有一个 <code>.py</code> 和一份安装说明。解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-split-channels.zip">下载 Split Channels</a>
+    <p class="muted small">6.3 KB · 校验：<code>SHA256 42d4a64148fd8e88f0936c643d4330a0…</code></p>
+  </div>
+</section>
+
+<p class="note">文中「码」指 8 位图上的一个台阶：0–255 共 256 级，
+   相邻两级的差就是 1 码，等于 1/255 ≈ 0.392%%（也就是 RGB 128 与 129 之间的差）。
+   各数量级的含义与「码为什么不是感知量」的说明见
+   <a href="../guide.html#code">安装指南 · 精度里的「码」</a>。</p>
+</div>
+<nav class="pager">
+  <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
+  <a class="prev" href="layer-to-channel.html"><span>上一篇</span>Layer to Channel</a><a class="next" href="hsv-split-curves.html"><span>下一篇</span>HSV Split (Curves)</a>
+</nav></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> /
+    <a href="../plugins.html">Plug-ins</a> / Convert</p>
+  <h1>Split Channels</h1>
+  <div class="meta">
+    <code>plugin/split-channels</code>
+    <span class="tag t-mask">Channels</span>
+    <span>Convert</span>
+  </div>
+  <p class="lede">One layer becomes several channels in a single step: R, G, B and Alpha each get
+   their own channel, lined up in the Channels dock, with the source layer hidden so you
+   can still compare. The native route is channel-by-channel "new channel → copy → paste →
+   merge" — sixteen steps for four channels.</p>
+</section>
+
+<div class="prose wide">
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Menu location</h3><span class="pill">Several</span></div>
+      <ul class="menu-list"><li>SuperMrWang → Convert → Split Channels</li><li>Layer right-click → SuperMrWang → Convert → Split Channels</li></ul>
+      <p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Scripting</h3></div>
+      <pre><code>lb-plugin-split-channels(
+    image, drawables, include-alpha, hide-source, prefix)</code></pre>
+      <p>A standard PDB procedure; leave an argument empty to take its default.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Dependencies</h3></div>
+      <p>No dependency on this project's operators: the layer is read once and sliced per component; only GIMP's own channel PDB is used.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>All four at once</h3><span class="pill">R · G · B · Alpha</span></div>
+      <p>Each component becomes its own channel named "layer + suffix", so the Channels
+         dock stays readable. A name that is already taken gets a number instead of
+         overwriting what you stored earlier.</p>
+      <pre><code>layer "photo"
+  ├ photo R       red
+  ├ photo G       green
+  ├ photo B       blue
+  └ photo Alpha   transparency</code></pre>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Grayscale images do not fake three</h3></div>
+      <p>On a greyscale image R = G = B, so three channels would be three identical
+         copies — it produces a single <b>Gray</b> channel instead, plus Alpha when the
+         layer actually has transparency. Colour layers give four by default; turn
+         "Include Alpha" off for three.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>The source layer hides itself</h3></div>
+      <p>It is hidden, never deleted: the canvas shows you the split result and one click
+         brings the original back. Turn "Hide source layer" off if you want both.</p>
+      <p>Small offset layers work too: channels are always <b>canvas-sized</b> and the area
+         the layer does not cover stays black, so nothing lands at the wrong place.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Versus Layer to Channel</h3><span class="pill">one vs many</span></div>
+      <p><b>Layer to Channel</b> flattens the whole layer into <b>one</b> greyscale channel
+         (always luminance) — for "keep this greyscale image as a mask". <b>Split
+         Channels</b> keeps the <b>components themselves</b> and produces several — for
+         "look at the R/G/B distributions separately" or "retouch one channel only". Both
+         leave their results in the Channels dock and can coexist.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Measured</h3></div>
+      <p><code>tools/check_split_channels.py</code> runs 31 assertions inside a real GIMP
+         3.2: each channel equals the same component of the source layer (an off-by-one
+         index shows up immediately), greyscale yields Gray only, no-alpha layers yield
+         three, offset layers are padded with black, the channel is not clipped by an
+         active selection, and prefix plus duplicate numbering behave.</p>
+      <p>Speed: four channels from six megapixels take about 0.9 s — the layer is read once
+         and then sliced, not read once per channel.</p>
+    </div>
+  </div>
+
+<section class="download" id="download">
+  <h2>Download this one</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>Split Channels</h3><span class="pill">.py · no compile</span></div>
+    <p>The archive holds a single <code>.py</code> and an install note. Unpack it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register.</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-split-channels.zip">Download Split Channels</a>
+    <p class="muted small">6.3 KB · checksum: <code>SHA256 42d4a64148fd8e88f0936c643d4330a0…</code></p>
+  </div>
+</section>
+
+<p class="note">In this article a "code" means one step on an 8-bit
+   image: 0–255 is 256 levels, so the gap between neighbours is 1 code, or
+   1/255 ≈ 0.392%% (the difference between RGB 128 and 129). For the order of magnitude
+   of each figure, and why a code is not a perceptual quantity, see
+   <a href="../guide.html#code">Install guide · what a code is</a>.</p>
+</div>
+<nav class="pager">
+  <a href="../plugins.html"><span>Back to</span>All plug-ins</a>
+  <a class="prev" href="layer-to-channel.html"><span>Previous</span>Layer to Channel</a><a class="next" href="hsv-split-curves.html"><span>Next</span>HSV Split (Curves)</a>
+</nav></div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
+    <span class="muted">b1bd498</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
+</body>
+</html>

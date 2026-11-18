@@ -1,0 +1,2 @@
+zh: 三滑杆的逐像素实现还在和参考实现一项项对表：±180° 色相绕回、明度向白/黑混合的边界值都可能再动，先别拿它跑批处理。
+en: The three-slider point filter is still being checked slider by slider against the reference implementation. The ±180° hue wrap and the lightness mix at the ends can still move, so don't put it in a batch pipeline yet.

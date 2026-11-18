@@ -71,11 +71,13 @@
      <code>bin/</code> 里，Windows 上通常是 <code>C:\Program Files\GIMP 3\bin\gegl.exe</code>。</p>
 
   <h2 id="use">怎么用</h2>
-  <p>菜单栏顶层多了 <code>SuperMrWang</code>（和「颜色」「图层」平级）：色阶家族（Levels / LAB / HSL /
-     HSB / LCH / CMYK / HSI Levels）收在 <b>Levels</b> 子菜单里，分量家族
-     （HSL / Lab / HSI 的 dual + compose 与 gray-to-component）收在 <b>Component</b>
-     子菜单里，分量曲线那几个一键插件收在 <b>Shortcut</b> 子菜单里，其余分
-     Tone / Color / Blend / Mask 四组。也可以在 <code>/</code>（搜索动作）里直接输算子名。</p>
+  <p>菜单栏顶层多了 <code>SuperMrWang</code>（和「颜色」「图层」平级），算子按
+     <b>Levels</b>（色阶家族）/ <b>Component</b>（dual + compose 与 gray-to-component）/
+     <b>Tone</b> / <b>Color</b> / <b>Blend</b> / <b>Mask</b> 归组；Python 插件另占
+     <b>Convert</b>（图层 → 选区 / 通道 / 拆分量）、<b>Mask</b>（Alpha Curves、Color Range）、
+     <b>Blend</b>（应用图像、计算）、<b>Retouch</b>（五个分量曲线 + 三个磨皮）。
+     图层右键菜单用同一套 Convert / Mask / Retouch，只列对单层能用的。
+     也可以在 <code>/</code>（搜索动作）里直接输算子名。</p>
   <p>绝大多数算子是 <b>Point</b> 或 <b>Filter</b> 类型，GIMP 会把它们当非破坏性 fx
      挂在图层上——参数随时能改，原像素不动。双输入算子（应用图像 / 计算）目前只能合并应用。</p>
 
@@ -211,12 +213,15 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
      on Windows usually <code>C:\Program Files\GIMP 3\bin\gegl.exe</code>.</p>
 
   <h2 id="use">Using it</h2>
-  <p>A top-level <code>SuperMrWang</code> menu appears next to Colors and Layers. The
-     levels family (Levels / LAB / HSL / HSB / LCH / CMYK / HSI Levels) sits under
-     <b>Levels</b>; the component family (dual + compose for HSL / Lab / HSI, plus
-     gray-to-component) under <b>Component</b>; the one-click component-curve plug-ins
-     under <b>Shortcut</b>; everything else is split across Tone / Color / Blend / Mask.
-     You can also type an operator name into the action search (<code>/</code>).</p>
+  <p>A top-level <code>SuperMrWang</code> menu appears next to Colors and Layers.
+     Operators are grouped as <b>Levels</b> (the levels family), <b>Component</b>
+     (dual + compose plus gray-to-component), <b>Tone</b>, <b>Color</b>, <b>Blend</b>
+     and <b>Mask</b>; the Python plug-ins take <b>Convert</b> (layer → selection /
+     channel, or one split into R/G/B/A), <b>Mask</b> (Alpha Curves, Color Range), <b>Blend</b> (Apply Image,
+     Calculations) and <b>Retouch</b> (five component curves plus three retouching
+     tools). The layer context menu uses the same Convert / Mask / Retouch split and
+     only lists what works on a single layer. You can also type an operator name into
+     the action search (<code>/</code>).</p>
   <p>Almost every operator is a <b>Point</b> or <b>Filter</b> op, so GIMP attaches it to
      the layer as a non-destructive fx — parameters stay editable and the pixels are not
      touched. The two-input operators (Apply Image and Calculations) can only be applied
@@ -353,7 +358,7 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">a65d634</span>
+    <span class="muted">b1bd498</span>
   </div>
 </footer>
 <script>

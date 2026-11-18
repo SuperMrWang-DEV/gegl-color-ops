@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""把 ops/ 下的算子渲染成一套静态站点，输出到 docs/（带 .disabled 的标停用/废弃）。
+"""把 ops/ 下的算子渲染成一套静态站点，输出到 docs/（带 .disabled 的标停用/废弃，
+带 .wip 的标「施工中」：照常发布，但参数和输出还会变）。
 
 设计上把 docs/ 当作纯产物：每次运行整个目录重建，样式源在 tools/site/。
 所以改样式改 tools/site/style.css，别直接改 docs/assets/style.css。
@@ -34,7 +35,7 @@ import zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-import plugin_docs as PD  # Shortcut 八节的正文，插件页与文章页共用
+import plugin_docs as PD  # Retouch 八节的正文，插件页与文章页共用
 ROOT = os.path.dirname(HERE)
 OPS = os.path.join(ROOT, "ops")
 DIST = os.path.join(ROOT, "dist")
@@ -257,6 +258,7 @@ def load_ops():
             "disabled": os.path.exists(os.path.join(d, ".disabled")),
             "deprecated": is_deprecated(os.path.join(d, ".disabled")),
             "discouraged": os.path.exists(os.path.join(d, ".discouraged")),
+            "wip": os.path.exists(os.path.join(d, ".wip")),
             "readme": os.path.join(d, "README.md"),
             "assets": os.path.join(d, "assets"),
         }
@@ -521,18 +523,60 @@ def is_deprecated(mark):
         return False
 
 
-def off_badge(op, temporary="停用", temporary_en="Temporarily disabled"):
+def _lab(zh, en, lang):
+    """页头徽标在 `.l-zh` / `.l-en` 里面，再套一层 t() 就成了语言块嵌套。
+    给了 lang 就只输出这一种；没给（卡片、清单表格这种整页双语的）才用 t()。"""
+    if lang == "en":
+        return en
+    if lang == "zh":
+        return zh
+    return t(zh, en)
+
+
+def off_badge(op, temporary="停用", temporary_en="Temporarily disabled", lang=None):
     if not op.get("disabled"):
         return ""
     if op.get("deprecated"):
-        return '<span class="badge off">%s</span>' % t("已废弃", "Retired")
-    return '<span class="badge off">%s</span>' % t(temporary, temporary_en)
+        return '<span class="badge off">%s</span>' % _lab("已废弃", "Retired", lang)
+    return '<span class="badge off">%s</span>' % _lab(temporary, temporary_en, lang)
 
 
-def warn_badge(op):
+def warn_badge(op, lang=None):
     """`docs` 层面的「不推荐」：算子照常编译发布，只是别拿它当首选。"""
-    return '<span class="badge warn">%s</span>' % t("不推荐", "Not recommended") \
+    return '<span class="badge warn">%s</span>' % _lab("不推荐", "Not recommended", lang) \
         if op.get("discouraged") else ""
+
+
+def wip_badge(op, lang=None):
+    """「施工中」：算子能用、也照常发布，但参数和输出还会变，别写进批处理。"""
+    return '<span class="badge wip">%s</span>' % _lab("施工中", "WIP", lang) \
+        if op.get("wip") else ""
+
+
+def wip_note(op, lang):
+    """页头那条虚线提示。文案写在 `ops/<dir>/.wip` 里，`zh:` / `en:` 各一行；
+    文件空着或没写前缀时回落一句通用的。"""
+    if not op.get("wip"):
+        return ""
+    zh = en = ""
+    try:
+        with open(os.path.join(OPS, op["dir"], ".wip"), encoding="utf-8") as fh:
+            for line in fh:
+                s = line.strip()
+                low = s.lower()
+                if low.startswith("zh:"):
+                    zh = s[3:].strip()
+                elif low.startswith("en:"):
+                    en = s[3:].strip()
+    except OSError:
+        pass
+    if not zh:
+        zh = "这个算子的参数与输出还在收尾，版本之间可能变化。"
+    if not en:
+        en = "Parameters and output are still being wrapped up and may change between builds."
+    return '\n  <p class="wip-note"><b>%s</b>　%s</p>' % (
+        "Work in progress" if lang == "en" else "施工中",
+        html.escape(en if lang == "en" else zh))
 
 
 def en_blurb(op, n=90):
@@ -544,7 +588,7 @@ def en_blurb(op, n=90):
 
 
 def card(op):
-    badge = off_badge(op) + warn_badge(op)
+    badge = off_badge(op) + warn_badge(op) + wip_badge(op)
     return """<a class="card" href="ops/{slug}.html">
   <div class="card-top">
     <span class="tag t-{g}">{tag}</span>
@@ -855,10 +899,10 @@ def build_overview(ops, stats, version):
     </div>
     <div class="dl">
       <div class="dl-head"><h3>{pyplug}</h3><span class="pill">{pypill}</span></div>
-      <p><span class="l-zh">Layer to Selection / Layer to Channel 以及 Shortcut 里那些一键效果，
+      <p><span class="l-zh">Layer to Selection / Layer to Channel 以及 Retouch 里那些一键效果，
          每个插件一个包，<b>插件用到的算子模块已经打在包里</b>，下一次就齐。
          <code>.py</code> 进 GIMP 的 plug-ins，附带的模块进 GEGL 的 plug-ins。</span><span class="l-en">Layer to Selection / Layer to Channel and the one-click effects under
-         Shortcut: one zip each, and <b>the operator modules a plug-in needs are
+         Retouch: one zip each, and <b>the operator modules a plug-in needs are
          already inside</b>. The <code>.py</code> goes into GIMP's plug-ins, the
          bundled modules into GEGL's plug-ins.</span></p>
       <a class="btn ghost" href="plugins.html">{goplugins}</a>
@@ -965,7 +1009,8 @@ def build_ops_index(ops, version):
                     % (t("菜单名", "Menu name"), t("类型", "Type"),
                        t("做什么", "What it does")))
         for o in members:
-            off = (" " + off_badge(o) + warn_badge(o)) if (o["disabled"] or o["discouraged"]) else ""
+            off = (" " + off_badge(o) + warn_badge(o) + wip_badge(o)) \
+                if (o["disabled"] or o["discouraged"] or o["wip"]) else ""
             rows.append('<tr><td><a href="ops/%s.html"><b>%s</b></a>%s</td>'
                         '<td><code>%s</code></td><td class="nowrap">%s</td><td>%s</td></tr>'
                         % (o["dir"],
@@ -1289,6 +1334,9 @@ def build_article(op, version):
 
     def head_block(lang):
         en_ = lang == "en"
+        badges = (off_badge(op, "临时停用", "Temporarily disabled", lang)
+                  + warn_badge(op, lang) + wip_badge(op, lang)) \
+            if (op["disabled"] or op["discouraged"] or op["wip"]) else ""
         meta = """<div class="meta">
     <code>%s</code>
     <span class="tag t-%s">%s</span>
@@ -1308,9 +1356,9 @@ def build_article(op, version):
         return """<section class="page-head">
   <p class="eyebrow">%s</p>
   <h1>%s</h1>
-  %s%s
+  %s%s%s
   <p class="lede">%s</p>
-</section>""" % (eyebrow, html.escape(name), meta,
+</section>""" % (eyebrow, html.escape(name), meta, wip_note(op, lang),
                 warn_en if en_ else warn_zh, blurb)
 
     def one_lang(lang):
@@ -1323,10 +1371,6 @@ def build_article(op, version):
   </article>
   %s
 </div>""" % (head_block(lang), art, toc_block(en_toc if en_ else toc, lang))
-
-    off = (" " + off_badge(op, "临时停用", "Temporarily disabled") + warn_badge(op)) \
-        if (op["disabled"] or op["discouraged"]) else ""
-    badges = off
 
     if op.get("deprecated"):
         warn_zh = ('\n  <p class="dep-note"><b>已废弃</b>　本算子不再编译、不进安装包，'
@@ -1420,11 +1464,13 @@ def build_guide(version, stats):
      <code>bin/</code> 里，Windows 上通常是 <code>C:\\Program Files\\GIMP 3\\bin\\gegl.exe</code>。</p>
 
   <h2 id="use">怎么用</h2>
-  <p>菜单栏顶层多了 <code>SuperMrWang</code>（和「颜色」「图层」平级）：色阶家族（Levels / LAB / HSL /
-     HSB / LCH / CMYK / HSI Levels）收在 <b>Levels</b> 子菜单里，分量家族
-     （HSL / Lab / HSI 的 dual + compose 与 gray-to-component）收在 <b>Component</b>
-     子菜单里，分量曲线那几个一键插件收在 <b>Shortcut</b> 子菜单里，其余分
-     Tone / Color / Blend / Mask 四组。也可以在 <code>/</code>（搜索动作）里直接输算子名。</p>
+  <p>菜单栏顶层多了 <code>SuperMrWang</code>（和「颜色」「图层」平级），算子按
+     <b>Levels</b>（色阶家族）/ <b>Component</b>（dual + compose 与 gray-to-component）/
+     <b>Tone</b> / <b>Color</b> / <b>Blend</b> / <b>Mask</b> 归组；Python 插件另占
+     <b>Convert</b>（图层 → 选区 / 通道 / 拆分量）、<b>Mask</b>（Alpha Curves、Color Range）、
+     <b>Blend</b>（应用图像、计算）、<b>Retouch</b>（五个分量曲线 + 三个磨皮）。
+     图层右键菜单用同一套 Convert / Mask / Retouch，只列对单层能用的。
+     也可以在 <code>/</code>（搜索动作）里直接输算子名。</p>
   <p>绝大多数算子是 <b>Point</b> 或 <b>Filter</b> 类型，GIMP 会把它们当非破坏性 fx
      挂在图层上——参数随时能改，原像素不动。双输入算子（应用图像 / 计算）目前只能合并应用。</p>
 
@@ -1561,12 +1607,15 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
      on Windows usually <code>C:\\Program Files\\GIMP 3\\bin\\gegl.exe</code>.</p>
 
   <h2 id="use">Using it</h2>
-  <p>A top-level <code>SuperMrWang</code> menu appears next to Colors and Layers. The
-     levels family (Levels / LAB / HSL / HSB / LCH / CMYK / HSI Levels) sits under
-     <b>Levels</b>; the component family (dual + compose for HSL / Lab / HSI, plus
-     gray-to-component) under <b>Component</b>; the one-click component-curve plug-ins
-     under <b>Shortcut</b>; everything else is split across Tone / Color / Blend / Mask.
-     You can also type an operator name into the action search (<code>/</code>).</p>
+  <p>A top-level <code>SuperMrWang</code> menu appears next to Colors and Layers.
+     Operators are grouped as <b>Levels</b> (the levels family), <b>Component</b>
+     (dual + compose plus gray-to-component), <b>Tone</b>, <b>Color</b>, <b>Blend</b>
+     and <b>Mask</b>; the Python plug-ins take <b>Convert</b> (layer → selection /
+     channel, or one split into R/G/B/A), <b>Mask</b> (Alpha Curves, Color Range), <b>Blend</b> (Apply Image,
+     Calculations) and <b>Retouch</b> (five component curves plus three retouching
+     tools). The layer context menu uses the same Convert / Mask / Retouch split and
+     only lists what works on a single layer. You can also type an operator name into
+     the action search (<code>/</code>).</p>
   <p>Almost every operator is a <b>Point</b> or <b>Filter</b> op, so GIMP attaches it to
      the layer as a non-destructive fx — parameters stay editable and the pixels are not
      touched. The two-input operators (Apply Image and Calculations) can only be applied
@@ -1710,7 +1759,7 @@ PLUGIN_SPECS = [
              name="gegl-color-ops-plugin-layer-to-selection.zip",
              src_dir=os.path.join(ROOT, "plugin", "layer-to-selection"),
              py="layer-to-selection.py", menu="Layer to Selection",
-             menus="    图层右键 → SuperMrWang → Layer to Selection\n"
+             menus="    图层右键 → SuperMrWang → Convert → Layer to Selection\n"
                    "    SuperMrWang → Convert → Layer to Selection",
              desc="Layer to Selection：右键任意图层，把它转成当前选区"
                   "（Gray/R/G/B/Alpha、四种组合方式、可反相）。",
@@ -1719,18 +1768,28 @@ PLUGIN_SPECS = [
              name="gegl-color-ops-plugin-layer-to-channel.zip",
              src_dir=os.path.join(ROOT, "plugin", "layer-to-channel"),
              py="layer-to-channel.py", menu="Layer to Channel",
-             menus="    图层右键 → SuperMrWang → Layer to Channel\n"
+             menus="    图层右键 → SuperMrWang → Convert → Layer to Channel\n"
                    "    SuperMrWang → Convert → Layer to Channel",
              desc="Layer to Channel：右键任意图层，把它变成一条新的 Alpha 通道"
                   "（恒为灰度：彩色图层先按亮度转灰度，再把灰度值写进通道）。",
              pdb="lb-plugin-layer-to-channel(image, layer, invert, name)"),
+        dict(key="split", ops=[],
+             name="gegl-color-ops-plugin-split-channels.zip",
+             src_dir=os.path.join(ROOT, "plugin", "split-channels"),
+             py="split-channels.py", menu="Split Channels",
+             menus="    图层右键 → SuperMrWang → Convert → Split Channels\n"
+                   "    SuperMrWang → Convert → Split Channels",
+             desc="Split Channels：右键任意图层，一次拆出 R / G / B / Alpha 四条"
+                  "通道（灰度图只出 Gray），原图层自动隐藏留作对照，通道恒为画布"
+                  "大小、偏移图层界外补黑。",
+             pdb="lb-plugin-split-channels(image, layer, include-alpha, hide-source, prefix)"),
         dict(key="hsv", ops=["hsv-dual", "hsv-compose"],
              name="gegl-color-ops-plugin-hsv-split-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "hsv-split-curves"),
              py="hsv-split-curves.py", menu="HSV Split (Curves)",
-             menus="    SuperMrWang → Shortcut → HSV Split (Curves) · single\n"
-                   "    SuperMrWang → Shortcut → HSV Split (Curves) · multi\n"
-                   "    图层右键 → SuperMrWang → Shortcut → 同上两条",
+             menus="    SuperMrWang → Retouch → HSV Split (Curves) · single\n"
+                   "    SuperMrWang → Retouch → HSV Split (Curves) · multi\n"
+                   "    图层右键 → SuperMrWang → Retouch → 同上两条",
              desc="HSV Split (Curves)：在 HSV 空间里调曲线。一张数据图同时携带"
                   "S、V、H（红=S、绿=V、蓝=H/360），三条曲线各管一个分量，再由"
                   "lb:hsv-compose 一起算回颜色。恒等曲线时逐像素还原原图。",
@@ -1740,9 +1799,9 @@ PLUGIN_SPECS = [
              name="gegl-color-ops-plugin-lch-split-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "lch-split-curves"),
              py="lch-split-curves.py", menu="LCh Split (Curves)",
-             menus="    SuperMrWang → Shortcut → LCh Split (Curves) · single\n"
-                   "    SuperMrWang → Shortcut → LCh Split (Curves) · multi\n"
-                   "    图层右键 → SuperMrWang → Shortcut → 同上两条",
+             menus="    SuperMrWang → Retouch → LCh Split (Curves) · single\n"
+                   "    SuperMrWang → Retouch → LCh Split (Curves) · multi\n"
+                   "    图层右键 → SuperMrWang → Retouch → 同上两条",
              desc="LCh Split (Curves)：在 CIE LCh 里调曲线。一张数据图同时携带"
                   "L*、C*、h（红=L/100、绿=C/140、蓝=h/360），三条曲线各管一个"
                   "分量。极坐标，所以调彩度不动色相、调色相不动彩度。",
@@ -1752,9 +1811,9 @@ PLUGIN_SPECS = [
              name="gegl-color-ops-plugin-hsl-split-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "hsl-split-curves"),
              py="hsl-split-curves.py", menu="HSL Split (Curves)",
-             menus="    SuperMrWang → Shortcut → HSL Split (Curves) · single\n"
-                   "    SuperMrWang → Shortcut → HSL Split (Curves) · multi\n"
-                   "    图层右键 → SuperMrWang → Shortcut → 同上两条",
+             menus="    SuperMrWang → Retouch → HSL Split (Curves) · single\n"
+                   "    SuperMrWang → Retouch → HSL Split (Curves) · multi\n"
+                   "    图层右键 → SuperMrWang → Retouch → 同上两条",
              desc="HSL Split (Curves)：在 HSL 空间里调曲线。GIMP 没有 HSL 分量混合"
                   "模式，插件用 lb:hsl-dual / lb:hsl-compose 把 S、L、H 打包进一张"
                   "数据图（红=S、绿=L、蓝=H/360），三条曲线各管一个分量。"
@@ -1765,9 +1824,9 @@ PLUGIN_SPECS = [
              name="gegl-color-ops-plugin-lab-split-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "lab-split-curves"),
              py="lab-split-curves.py", menu="Lab Split (Curves)",
-             menus="    SuperMrWang → Shortcut → Lab Split (Curves) · single\n"
-                   "    SuperMrWang → Shortcut → Lab Split (Curves) · multi\n"
-                   "    图层右键 → SuperMrWang → Shortcut → 同上两条",
+             menus="    SuperMrWang → Retouch → Lab Split (Curves) · single\n"
+                   "    SuperMrWang → Retouch → Lab Split (Curves) · multi\n"
+                   "    图层右键 → SuperMrWang → Retouch → 同上两条",
              desc="Lab Split (Curves)：在 CIE Lab 空间里调曲线。一张数据图同时携带"
                   "a、b、L*（红=a、绿=b、蓝=L*/100），三条曲线各管一个分量，再由"
                   "lb:lab-compose 一起算回颜色。恒等曲线时逐像素还原原图。",
@@ -1777,8 +1836,8 @@ PLUGIN_SPECS = [
              name="gegl-color-ops-plugin-hsi-split-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "hsi-split-curves"),
              py="hsi-split-curves.py", menu="HSI Split (Curves)",
-             menus="    SuperMrWang → Shortcut → HSI Split (Curves) · single\n"
-                   "    图层右键 → SuperMrWang → Shortcut → HSI Split (Curves)",
+             menus="    SuperMrWang → Retouch → HSI Split (Curves) · single\n"
+                   "    图层右键 → SuperMrWang → Retouch → HSI Split (Curves)",
              desc="HSI Split (Curves)：在 HSI 空间里调曲线。HSI 的 I 是 (R+G+B)/3，"
                   "GIMP 的六条分量模式一条也对不上；插件用 lb:hsi-dual / "
                   "lb:hsi-compose 把 S、I、色相挤进一张数据图（红=S、绿=I、蓝=H/360），"
@@ -1788,8 +1847,8 @@ PLUGIN_SPECS = [
              name="gegl-color-ops-plugin-frequency-separation.zip",
              src_dir=os.path.join(ROOT, "plugin", "frequency-separation"),
              py="frequency-separation.py", menu="高低频磨皮 (Frequency Separation)",
-             menus="    SuperMrWang → Shortcut → 高低频磨皮\n"
-                   "    图层右键 → SuperMrWang → Shortcut → 高低频磨皮",
+             menus="    SuperMrWang → Retouch → 高低频磨皮\n"
+                   "    图层右键 → SuperMrWang → Retouch → 高低频磨皮",
              desc="高低频磨皮：一次生成低频（高斯模糊，管影调与颜色）与高频"
                   "（颗粒合并 + 高通，管细节与质感）两层，恒等时合成就是原图。"
                   "在低频层抹平色块、在高频层修细节，互不干扰。",
@@ -1798,8 +1857,8 @@ PLUGIN_SPECS = [
              name="gegl-color-ops-plugin-dodge-burn.zip",
              src_dir=os.path.join(ROOT, "plugin", "dodge-burn"),
              py="dodge-burn.py", menu="双曲线磨皮 (Dodge & Burn)",
-             menus="    SuperMrWang → Shortcut → 双曲线磨皮\n"
-                   "    图层右键 → SuperMrWang → Shortcut → 双曲线磨皮",
+             menus="    SuperMrWang → Retouch → 双曲线磨皮\n"
+                   "    图层右键 → SuperMrWang → Retouch → 双曲线磨皮",
              desc="双曲线磨皮：生成提亮、压暗两条曲线层，蒙版全黑。用白色柔边"
                   "画笔在蒙版上涂抹，涂到哪里就提亮/压暗到哪里，没涂的地方与"
                   "原图逐像素相同。",
@@ -1808,8 +1867,8 @@ PLUGIN_SPECS = [
              name="gegl-color-ops-plugin-neutral-grey.zip",
              src_dir=os.path.join(ROOT, "plugin", "neutral-grey"),
              py="neutral-grey.py", menu="中性灰磨皮 (Neutral Grey)",
-             menus="    SuperMrWang → Shortcut → 中性灰磨皮\n"
-                   "    图层右键 → SuperMrWang → Shortcut → 中性灰磨皮",
+             menus="    SuperMrWang → Retouch → 中性灰磨皮\n"
+                   "    图层右键 → SuperMrWang → Retouch → 中性灰磨皮",
              desc="中性灰磨皮：加一张 50% 灰的柔光层，恒等时与原图逐像素相同。"
                   "白色画笔提亮、黑色画笔压暗，反复涂抹把皮肤推平。",
              pdb="lb-plugin-neutral-grey(image, drawables, group)"),
@@ -1818,7 +1877,7 @@ PLUGIN_SPECS = [
              src_dir=os.path.join(ROOT, "plugin", "alpha-curves"),
              py="alpha-curves.py", menu="Alpha Curves（透明通道曲线）",
              menus="    SuperMrWang → Mask → Alpha Curves\n"
-                   "    图层右键 → SuperMrWang → Shortcut → Alpha Curves",
+                   "    图层右键 → SuperMrWang → Retouch → Alpha Curves",
              desc="Alpha Curves：先把选定颜色通道写进 alpha，再接一条可以随便"
                   "画的曲线（gimp:curves，通道 = Alpha）。两条都是非破坏滤镜，"
                   "梯形、S 形、任意起伏都行。",
@@ -1989,9 +2048,9 @@ def build_plugin_bundle(out_dir):
 放好之后完全退出 GIMP 再打开（关窗口不算）。两个目录都只在启动时扫描。
 
 菜单位置：菜单栏顶层的 SuperMrWang（和「颜色」「图层」平级）
-    SuperMrWang → Shortcut   五个分量曲线 + 高低频 / 双曲线 / 中性灰磨皮
+    SuperMrWang → Retouch   五个分量曲线 + 高低频 / 双曲线 / 中性灰磨皮
     SuperMrWang → Mask       Alpha Curves
-    SuperMrWang → Convert    Layer to Selection / Layer to Channel
+    SuperMrWang → Convert    Layer to Selection / Layer to Channel / Split Channels
     图层右键 → SuperMrWang   同上全部
 {miss_note}
 插件清单：
@@ -2023,38 +2082,44 @@ GPL-3.0-or-later
 
 
 def build_plugins(version, stats=None):
-    """插件总览：和首页同一套「分组 + 方格」，只放入口不写正文。
+    """插件总览：和算子页同一套「分组标题 + 表格」，只放入口不写正文。
 
-    结构与算子页一样：分组标题带标签和数量，配一句 group-desc，下面是卡片；
-    每个插件讲什么、怎么用、误差多少全在 plugins/<slug>.html 里，点开才看到。
+    早先是卡片方格，但插件页和算子页是同一类东西——都是「有哪些、各干什么」的
+    清单，一个用表格一个用方格，来回切换时读法都要重新适应。统一成 op-table：
+    菜单名 / PDB 过程 / 类型 / 一句话，点名字进详情页。
     """
-    def card(p):
-        return """  <a class="card" href="plugins/{slug}.html">
-    <div class="card-top"><span class="tag {cls}">{tag}</span></div>
-    <h3>{title}</h3>
-    <p>{brief}</p>
-    <span class="more">{more}</span>
-  </a>""".format(slug=p["slug"], cls=p["tag"][1],
-                 tag=t(p["tag"][0], p.get("tag_en") or p["tag"][0]),
-                 title=t(html.escape(p["title"]), html.escape(p.get("title_en") or p["title"])),
-                 brief=t(p["brief"], p.get("brief_en") or p["brief"]),
-                 more=t("读插件说明 →", "Read the notes →"))
+    def row(p):
+        # p["pdb"] 是多行签名（含参数），表格里只放过程名
+        pdb_name = p["pdb"].split("(")[0].strip()
+        return ('<tr><td><a href="plugins/%s.html"><b>%s</b></a></td>'
+                '<td><code>%s</code></td><td class="nowrap">%s</td><td>%s</td></tr>'
+                % (p["slug"],
+                   t(html.escape(p["title"]),
+                     html.escape(p.get("title_en") or p["title"])),
+                   html.escape(pdb_name),
+                   t(html.escape(p["tag"][0]),
+                     html.escape(p.get("tag_en") or p["tag"][0])),
+                   t(p["brief"], p.get("brief_en") or p["brief"])))
 
     def group(key, tag, cls, desc, members, tag_en=None, desc_en=None):
-        return """<section class="group" id="{key}">
-  <h3 class="group-title"><span class="tag {cls}">{tag}</span>
-    <span class="group-en">{en}</span><span class="count">{n}</span></h3>
+        rows = "\n".join(row(p) for p in members)
+        return """<h2 id="g-{key}" class="plug-group"><span class="tag {cls}">{tag}</span>
+    <span class="count">{n}</span></h2>
   <p class="group-desc">{desc}</p>
-  <div class="cards">
-{cards}
-  </div>
-</section>""".format(key=key, tag=t(tag, tag_en or key.capitalize()), cls=cls,
-                     en=t(key.capitalize(), ""),
-                     n=t("%d 个" % len(members), str(len(members))),
-                     desc=t(desc, desc_en or desc),
-                     cards="\n".join(card(p) for p in members))
+  <div class="table-wrap"><table class="op-table plug-table">
+    <thead><tr><th>{th1}</th><th>PDB</th><th>{th3}</th><th>{th4}</th></tr></thead>
+    <tbody>
+    {rows}
+    </tbody>
+  </table></div>""".format(key=key, tag=t(tag, tag_en or key.capitalize()), cls=cls,
+                             n=t("%d 个" % len(members), str(len(members))),
+                             desc=t(desc, desc_en or desc),
+                             th1=t("插件", "Plug-in"),
+                             th3=t("类型", "Type"),
+                             th4=t("做什么", "What it does"),
+                             rows=rows)
 
-    shortcut = [p for p in PD.PAGES if p["area"].startswith("Shortcut")]
+    shortcut = [p for p in PD.PAGES if p["area"].startswith("Retouch")]
     convert = [p for p in PD.PAGES if p["area"] == "图层转换"]
     mask = [p for p in PD.PAGES if p["area"] == "Mask"]
 
@@ -2095,9 +2160,9 @@ def build_plugins(version, stats=None):
                "Install: <code>bash install-plugin.sh</code> puts them all in place, "
                "or download a single <code>.zip</code> from its own page — details in "
                "the <a href=\"guide.html\">install guide</a>."),
-        shortcut=group("shortcut", "Shortcut", "t-color",
+        shortcut=group("shortcut", "Retouch", "t-color",
                        "五条分量曲线、三个磨皮：把一串手工步骤压成一次点击。",
-                       shortcut, tag_en="Shortcut",
+                       shortcut, tag_en="Retouch",
                        desc_en="Five component-curve plug-ins and three retouching "
                                "ones: a chain of manual steps collapsed into one click."),
         convert=group("convert", "图层转换", "t-mask",
@@ -2126,7 +2191,7 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
     """每个插件一篇文章：页头 + 位置/PDB/依赖 + 正文 + 下载 + 翻页。
 
     十一个插件共用一套骨架，差异全在 plugin_docs.py 里。图层转换那两个不在
-    Shortcut 菜单下，所以菜单块直接读 p["menus"]，不写死。
+    Retouch 菜单下，所以菜单块直接读 p["menus"]，不写死。
     """
     z = ((stats or {}).get("plugin_zips") or {}).get(p["key"])
     name = p["menu"].split("→")[-1].strip()
@@ -2303,9 +2368,9 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
 
 
 def build_feed(ops, version):
-    """一个极简 Atom，方便订阅「最近加了什么」：算子 + Shortcut 八个插件。
+    """一个极简 Atom，方便订阅「最近加了什么」：算子 + Retouch 八个插件。
 
-    Shortcut 那八条链到站点里的文章页（插件没有 README 可链），日期用加进来的
+    Retouch 那八条链到站点里的文章页（插件没有 README 可链），日期用加进来的
     那天，排在新加算子之后。
     """
     entries = []
@@ -2459,15 +2524,26 @@ GPL-3.0-or-later
 
 def main():
     serve = "--serve" in sys.argv
+    # --no-clean：不删 docs 直接覆盖。预览面板开着 docs 里的页面时，Windows
+    # 上整个目录删不掉（trash 操作会被中止），这时用它重建。代价是已下线的
+    # 页面会留在原地，收尾记得核对 git status 里有没有多余文件。
+    no_clean = "--no-clean" in sys.argv
     stats = collect_stats()
     ops = load_ops()
     version = sh("git", "rev-parse", "--short", "HEAD") or "local"
 
-    if os.path.isdir(DOCS):
-        shutil.rmtree(DOCS)
-    os.makedirs(os.path.join(DOCS, "ops"))
-    os.makedirs(os.path.join(DOCS, "assets"))
-    os.makedirs(os.path.join(DOCS, "download"))
+    if os.path.isdir(DOCS) and not no_clean:
+        try:
+            shutil.rmtree(DOCS)
+        except OSError as exc:
+            # Windows 上删整个目录偶尔会被中止（有句柄的杀软、预览进程都会导致），
+            # 与其整个构建崩掉，不如原地覆盖：新页面照写，下线的页面留在原地。
+            print("· 清空 docs 失败（%s），改为原地覆盖；收尾请核对 git status 里"
+                  "有没有已下线页面残留" % exc)
+            no_clean = True
+    os.makedirs(os.path.join(DOCS, "ops"), exist_ok=True)
+    os.makedirs(os.path.join(DOCS, "assets"), exist_ok=True)
+    os.makedirs(os.path.join(DOCS, "download"), exist_ok=True)
 
     build_zip(stats, os.path.join(DOCS, "download"))
     stats["plugin_zips"] = build_plugin_zips(os.path.join(DOCS, "download"))
@@ -2482,7 +2558,7 @@ def main():
     for op in ops:
         if os.path.isdir(op["assets"]):
             dst = os.path.join(DOCS, "assets", "ops", op["dir"])
-            shutil.copytree(op["assets"], dst)
+            shutil.copytree(op["assets"], dst, dirs_exist_ok=True)
 
     with open(os.path.join(DOCS, ".nojekyll"), "w"):
         pass
@@ -2500,7 +2576,7 @@ def main():
     for op in ops:
         pages["ops/%s.html" % op["dir"]] = build_article(op, version)
 
-    # Shortcut 里每个组件一篇独立文章；翻页在八篇里循环。
+    # Retouch 里每个组件一篇独立文章；翻页在八篇里循环。
     for i, sp in enumerate(PD.PAGES):
         pages["plugins/%s.html" % sp["slug"]] = build_plugin_article(
             sp, version, stats,

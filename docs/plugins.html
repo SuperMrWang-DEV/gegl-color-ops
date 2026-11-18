@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Python 插件 · gegl-color-ops</title>
-<meta name="description" content="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮——免编译，解压即用" data-desc-zh="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮——免编译，解压即用" data-desc-en="12 compile-free GIMP 3 plug-ins: layer to selection or channel, HSV / LCh / HSL / Lab / HSI component curves, frequency separation, dodge &amp; burn, neutral grey.">
+<meta name="description" content="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮——免编译，解压即用" data-desc-zh="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮——免编译，解压即用" data-desc-en="13 compile-free GIMP 3 plug-ins: layer to selection or channel, HSV / LCh / HSL / Lab / HSI component curves, frequency separation, dodge &amp; burn, neutral grey.">
 <meta property="og:title" content="Python 插件 · gegl-color-ops" data-title-zh="Python 插件 · gegl-color-ops" data-title-en="Python plug-ins · gegl-color-ops">
-<meta property="og:description" content="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮——免编译，解压即用" data-desc-zh="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮——免编译，解压即用" data-desc-en="12 compile-free GIMP 3 plug-ins: layer to selection or channel, HSV / LCh / HSL / Lab / HSI component curves, frequency separation, dodge &amp; burn, neutral grey.">
+<meta property="og:description" content="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮——免编译，解压即用" data-desc-zh="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮——免编译，解压即用" data-desc-en="13 compile-free GIMP 3 plug-ins: layer to selection or channel, HSV / LCh / HSL / Lab / HSI component curves, frequency separation, dodge &amp; burn, neutral grey.">
 <link rel="stylesheet" href="assets/style.css">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="feed.xml">
 <script>
@@ -41,110 +41,54 @@
 <main id="main">
 <section class="page-head">
   <p class="eyebrow"><a href="index.html"><span class="l-zh">首页</span><span class="l-en">Home</span></a> / <span class="l-zh">Python 插件</span><span class="l-en">Python plug-ins</span></p>
-  <h1><span class="l-zh">12 个 Python 插件</span><span class="l-en">12 Python plug-ins</span></h1>
+  <h1><span class="l-zh">13 个 Python 插件</span><span class="l-en">13 Python plug-ins</span></h1>
   <p class="lede"><span class="l-zh">免编译的 GIMP 3 插件，装进 <code>plug-ins</code> 目录、重启即用。两处入口：菜单栏顶层的 <b>SuperMrWang</b>（全部都在），以及<b>图层右键 → SuperMrWang</b>。</span><span class="l-en">Compile-free GIMP 3 plug-ins: drop them into the <code>plug-ins</code> folder and restart. Two entry points: the top-level <b>SuperMrWang</b> menu (all of them) and <b>layer right-click → SuperMrWang</b>.</span></p>
   <ul class="facts">
-    <li><span class="l-zh"><b>12</b> 个插件</span><span class="l-en"><b>12</b> plug-ins</span></li>
-    <li><span class="l-zh"><b>12</b> 个 PDB 过程</span><span class="l-en"><b>12</b> PDB procedures</span></li>
+    <li><span class="l-zh"><b>13</b> 个插件</span><span class="l-en"><b>13</b> plug-ins</span></li>
+    <li><span class="l-zh"><b>13</b> 个 PDB 过程</span><span class="l-en"><b>13</b> PDB procedures</span></li>
     <li><span class="l-zh"><b>369</b> 条回归断言</span><span class="l-en"><b>369</b> regression assertions</span></li>
     <li><span class="l-zh"><b>0</b> 编译 · 纯 Python</span><span class="l-en"><b>0</b> to compile · pure Python</span></li>
   </ul>
 </section>
 
 <div class="prose wide">
-<section class="group" id="shortcut">
-  <h3 class="group-title"><span class="tag t-color"><span class="l-zh">Shortcut</span><span class="l-en">Shortcut</span></span>
-    <span class="group-en"><span class="l-zh">Shortcut</span><span class="l-en"></span></span><span class="count"><span class="l-zh">8 个</span><span class="l-en">8</span></span></h3>
+<h2 id="g-shortcut" class="plug-group"><span class="tag t-color"><span class="l-zh">Retouch</span><span class="l-en">Retouch</span></span>
+    <span class="count"><span class="l-zh">8 个</span><span class="l-en">8</span></span></h2>
   <p class="group-desc"><span class="l-zh">五条分量曲线、三个磨皮：把一串手工步骤压成一次点击。</span><span class="l-en">Five component-curve plug-ins and three retouching ones: a chain of manual steps collapsed into one click.</span></p>
-  <div class="cards">
-  <a class="card" href="plugins/hsv-split-curves.html">
-    <div class="card-top"><span class="tag t-color"><span class="l-zh">曲线</span><span class="l-en">Curves</span></span></div>
-    <h3><span class="l-zh">HSV Split (Curves)</span><span class="l-en">HSV Split (Curves)</span></h3>
-    <p><span class="l-zh">拆成 H / S / V 三张分量层，每层一条原生曲线，恒等还原。</span><span class="l-en">Splits into H / S / V component layers, one native curve each, restored bit-exactly.</span></p>
-    <span class="more"><span class="l-zh">读插件说明 →</span><span class="l-en">Read the notes →</span></span>
-  </a>
-  <a class="card" href="plugins/lch-split-curves.html">
-    <div class="card-top"><span class="tag t-blend"><span class="l-zh">曲线</span><span class="l-en">Curves</span></span></div>
-    <h3><span class="l-zh">LCh Split (Curves)</span><span class="l-en">LCh Split (Curves)</span></h3>
-    <p><span class="l-zh">同上，换成 CIE LCh 明度 / 彩度 / 色相，感知均匀。</span><span class="l-en">The same idea in CIE LCh: perceptual lightness, chroma and hue.</span></p>
-    <span class="more"><span class="l-zh">读插件说明 →</span><span class="l-en">Read the notes →</span></span>
-  </a>
-  <a class="card" href="plugins/hsl-split-curves.html">
-    <div class="card-top"><span class="tag t-color"><span class="l-zh">曲线</span><span class="l-en">Curves</span></span></div>
-    <h3><span class="l-zh">HSL Split (Curves)</span><span class="l-en">HSL Split (Curves)</span></h3>
-    <p><span class="l-zh">GIMP 没有 HSL 分量模式，这个插件精确换算，不拿 HSV 近似。</span><span class="l-en">GIMP has no HSL component mode, so this converts exactly instead of approximating with HSV.</span></p>
-    <span class="more"><span class="l-zh">读插件说明 →</span><span class="l-en">Read the notes →</span></span>
-  </a>
-  <a class="card" href="plugins/lab-split-curves.html">
-    <div class="card-top"><span class="tag t-blend"><span class="l-zh">曲线</span><span class="l-en">Curves</span></span></div>
-    <h3><span class="l-zh">Lab Split (Curves)</span><span class="l-en">Lab Split (Curves)</span></h3>
-    <p><span class="l-zh">a 与 b 合一层、L* 一层，调 a 只动 a、调 b 只动 b。</span><span class="l-en">a and b share one layer and L* gets its own — curve a and only a moves.</span></p>
-    <span class="more"><span class="l-zh">读插件说明 →</span><span class="l-en">Read the notes →</span></span>
-  </a>
-  <a class="card" href="plugins/hsi-split-curves.html">
-    <div class="card-top"><span class="tag t-color"><span class="l-zh">曲线</span><span class="l-en">Curves</span></span></div>
-    <h3><span class="l-zh">HSI Split (Curves)</span><span class="l-en">HSI Split (Curves)</span></h3>
-    <p><span class="l-zh">I 借不到任何分量模式，三个分量合进一层、三条曲线各管一个。</span><span class="l-en">No component mode fits HSI, so all three share one layer with three curves.</span></p>
-    <span class="more"><span class="l-zh">读插件说明 →</span><span class="l-en">Read the notes →</span></span>
-  </a>
-  <a class="card" href="plugins/frequency-separation.html">
-    <div class="card-top"><span class="tag t-tone"><span class="l-zh">磨皮</span><span class="l-en">Retouching</span></span></div>
-    <h3><span class="l-zh">高低频磨皮</span><span class="l-en">Frequency Separation</span></h3>
-    <p><span class="l-zh">低频管影调、高频管细节，叠起来就是原图；半径决定分界。</span><span class="l-en">Low frequency carries tone, high frequency carries detail; stacked they rebuild the original.</span></p>
-    <span class="more"><span class="l-zh">读插件说明 →</span><span class="l-en">Read the notes →</span></span>
-  </a>
-  <a class="card" href="plugins/dodge-burn.html">
-    <div class="card-top"><span class="tag t-tone"><span class="l-zh">磨皮</span><span class="l-en">Retouching</span></span></div>
-    <h3><span class="l-zh">双曲线磨皮</span><span class="l-en">Dodge &amp; Burn</span></h3>
-    <p><span class="l-zh">提亮 / 压暗两条曲线压在黑蒙版下：涂到哪里动哪里。</span><span class="l-en">Two curves, one lightening and one darkening, under a black mask — paint where you want them.</span></p>
-    <span class="more"><span class="l-zh">读插件说明 →</span><span class="l-en">Read the notes →</span></span>
-  </a>
-  <a class="card" href="plugins/neutral-grey.html">
-    <div class="card-top"><span class="tag t-tone"><span class="l-zh">磨皮</span><span class="l-en">Retouching</span></span></div>
-    <h3><span class="l-zh">中性灰磨皮</span><span class="l-en">Neutral Grey</span></h3>
-    <p><span class="l-zh">一层 50% 灰、柔光下恒等；白笔提亮、黑笔压暗、灰盖回去。</span><span class="l-en">A 50% grey layer is identity under soft light: white brush lightens, black darkens, grey paints it back.</span></p>
-    <span class="more"><span class="l-zh">读插件说明 →</span><span class="l-en">Read the notes →</span></span>
-  </a>
-  </div>
-</section>
-<section class="group" id="convert">
-  <h3 class="group-title"><span class="tag t-mask"><span class="l-zh">图层转换</span><span class="l-en">Convert</span></span>
-    <span class="group-en"><span class="l-zh">Convert</span><span class="l-en"></span></span><span class="count"><span class="l-zh">2 个</span><span class="l-en">2</span></span></h3>
+  <div class="table-wrap"><table class="op-table plug-table">
+    <thead><tr><th><span class="l-zh">插件</span><span class="l-en">Plug-in</span></th><th>PDB</th><th><span class="l-zh">类型</span><span class="l-en">Type</span></th><th><span class="l-zh">做什么</span><span class="l-en">What it does</span></th></tr></thead>
+    <tbody>
+    <tr><td><a href="plugins/hsv-split-curves.html"><b><span class="l-zh">HSV Split (Curves)</span><span class="l-en">HSV Split (Curves)</span></b></a></td><td><code>lb-plugin-hsv-split-curves</code></td><td class="nowrap"><span class="l-zh">曲线</span><span class="l-en">Curves</span></td><td><span class="l-zh">拆成 H / S / V 三张分量层，每层一条原生曲线，恒等还原。</span><span class="l-en">Splits into H / S / V component layers, one native curve each, restored bit-exactly.</span></td></tr>
+<tr><td><a href="plugins/lch-split-curves.html"><b><span class="l-zh">LCh Split (Curves)</span><span class="l-en">LCh Split (Curves)</span></b></a></td><td><code>lb-plugin-lch-split-curves</code></td><td class="nowrap"><span class="l-zh">曲线</span><span class="l-en">Curves</span></td><td><span class="l-zh">同上，换成 CIE LCh 明度 / 彩度 / 色相，感知均匀。</span><span class="l-en">The same idea in CIE LCh: perceptual lightness, chroma and hue.</span></td></tr>
+<tr><td><a href="plugins/hsl-split-curves.html"><b><span class="l-zh">HSL Split (Curves)</span><span class="l-en">HSL Split (Curves)</span></b></a></td><td><code>lb-plugin-hsl-split-curves</code></td><td class="nowrap"><span class="l-zh">曲线</span><span class="l-en">Curves</span></td><td><span class="l-zh">GIMP 没有 HSL 分量模式，这个插件精确换算，不拿 HSV 近似。</span><span class="l-en">GIMP has no HSL component mode, so this converts exactly instead of approximating with HSV.</span></td></tr>
+<tr><td><a href="plugins/lab-split-curves.html"><b><span class="l-zh">Lab Split (Curves)</span><span class="l-en">Lab Split (Curves)</span></b></a></td><td><code>lb-plugin-lab-split-curves</code></td><td class="nowrap"><span class="l-zh">曲线</span><span class="l-en">Curves</span></td><td><span class="l-zh">a 与 b 合一层、L* 一层，调 a 只动 a、调 b 只动 b。</span><span class="l-en">a and b share one layer and L* gets its own — curve a and only a moves.</span></td></tr>
+<tr><td><a href="plugins/hsi-split-curves.html"><b><span class="l-zh">HSI Split (Curves)</span><span class="l-en">HSI Split (Curves)</span></b></a></td><td><code>lb-plugin-hsi-split-curves</code></td><td class="nowrap"><span class="l-zh">曲线</span><span class="l-en">Curves</span></td><td><span class="l-zh">I 借不到任何分量模式，三个分量合进一层、三条曲线各管一个。</span><span class="l-en">No component mode fits HSI, so all three share one layer with three curves.</span></td></tr>
+<tr><td><a href="plugins/frequency-separation.html"><b><span class="l-zh">高低频磨皮</span><span class="l-en">Frequency Separation</span></b></a></td><td><code>lb-plugin-frequency-separation</code></td><td class="nowrap"><span class="l-zh">磨皮</span><span class="l-en">Retouching</span></td><td><span class="l-zh">低频管影调、高频管细节，叠起来就是原图；半径决定分界。</span><span class="l-en">Low frequency carries tone, high frequency carries detail; stacked they rebuild the original.</span></td></tr>
+<tr><td><a href="plugins/dodge-burn.html"><b><span class="l-zh">双曲线磨皮</span><span class="l-en">Dodge &amp; Burn</span></b></a></td><td><code>lb-plugin-dodge-burn</code></td><td class="nowrap"><span class="l-zh">磨皮</span><span class="l-en">Retouching</span></td><td><span class="l-zh">提亮 / 压暗两条曲线压在黑蒙版下：涂到哪里动哪里。</span><span class="l-en">Two curves, one lightening and one darkening, under a black mask — paint where you want them.</span></td></tr>
+<tr><td><a href="plugins/neutral-grey.html"><b><span class="l-zh">中性灰磨皮</span><span class="l-en">Neutral Grey</span></b></a></td><td><code>lb-plugin-neutral-grey</code></td><td class="nowrap"><span class="l-zh">磨皮</span><span class="l-en">Retouching</span></td><td><span class="l-zh">一层 50% 灰、柔光下恒等；白笔提亮、黑笔压暗、灰盖回去。</span><span class="l-en">A 50% grey layer is identity under soft light: white brush lightens, black darkens, grey paints it back.</span></td></tr>
+    </tbody>
+  </table></div>
+<h2 id="g-convert" class="plug-group"><span class="tag t-mask"><span class="l-zh">图层转换</span><span class="l-en">Convert</span></span>
+    <span class="count"><span class="l-zh">3 个</span><span class="l-en">3</span></span></h2>
   <p class="group-desc"><span class="l-zh">算子跑完留下的灰度图，一步变成蒙版或选区存档。</span><span class="l-en">Turns the greyscale an operator leaves behind into a mask or a saved selection in one step.</span></p>
-  <div class="cards">
-  <a class="card" href="plugins/layer-to-selection.html">
-    <div class="card-top"><span class="tag t-mask"><span class="l-zh">选区</span><span class="l-en">Selection</span></span></div>
-    <h3><span class="l-zh">Layer to Selection</span><span class="l-en">Layer to Selection</span></h3>
-    <p><span class="l-zh">右键任意图层，把它转成当前选区：Gray / R / G / B / Alpha，四种组合方式，可反相。</span><span class="l-en">Right-click any layer and turn it into the current selection: Gray / R / G / B / Alpha, four combine modes, optional invert.</span></p>
-    <span class="more"><span class="l-zh">读插件说明 →</span><span class="l-en">Read the notes →</span></span>
-  </a>
-  <a class="card" href="plugins/layer-to-channel.html">
-    <div class="card-top"><span class="tag t-mask"><span class="l-zh">通道</span><span class="l-en">Channels</span></span></div>
-    <h3><span class="l-zh">Layer to Channel</span><span class="l-en">Layer to Channel</span></h3>
-    <p><span class="l-zh">右键任意图层，把它变成一条灰度 Alpha 通道，可反相、可自定义名。</span><span class="l-en">Right-click any layer and turn it into a grayscale alpha channel — invertible, with a custom name.</span></p>
-    <span class="more"><span class="l-zh">读插件说明 →</span><span class="l-en">Read the notes →</span></span>
-  </a>
-  </div>
-</section>
-<section class="group" id="mask">
-  <h3 class="group-title"><span class="tag t-mask"><span class="l-zh">Mask</span><span class="l-en">Mask</span></span>
-    <span class="group-en"><span class="l-zh">Mask</span><span class="l-en"></span></span><span class="count"><span class="l-zh">2 个</span><span class="l-en">2</span></span></h3>
+  <div class="table-wrap"><table class="op-table plug-table">
+    <thead><tr><th><span class="l-zh">插件</span><span class="l-en">Plug-in</span></th><th>PDB</th><th><span class="l-zh">类型</span><span class="l-en">Type</span></th><th><span class="l-zh">做什么</span><span class="l-en">What it does</span></th></tr></thead>
+    <tbody>
+    <tr><td><a href="plugins/layer-to-selection.html"><b><span class="l-zh">Layer to Selection</span><span class="l-en">Layer to Selection</span></b></a></td><td><code>lb-plugin-layer-to-selection</code></td><td class="nowrap"><span class="l-zh">选区</span><span class="l-en">Selection</span></td><td><span class="l-zh">右键任意图层，把它转成当前选区：Gray / R / G / B / Alpha，四种组合方式，可反相。</span><span class="l-en">Right-click any layer and turn it into the current selection: Gray / R / G / B / Alpha, four combine modes, optional invert.</span></td></tr>
+<tr><td><a href="plugins/layer-to-channel.html"><b><span class="l-zh">Layer to Channel</span><span class="l-en">Layer to Channel</span></b></a></td><td><code>lb-plugin-layer-to-channel</code></td><td class="nowrap"><span class="l-zh">通道</span><span class="l-en">Channels</span></td><td><span class="l-zh">右键任意图层，把它变成一条灰度 Alpha 通道，可反相、可自定义名。</span><span class="l-en">Right-click any layer and turn it into a grayscale alpha channel — invertible, with a custom name.</span></td></tr>
+<tr><td><a href="plugins/split-channels.html"><b><span class="l-zh">Split Channels</span><span class="l-en">Split Channels</span></b></a></td><td><code>lb-plugin-split-channels</code></td><td class="nowrap"><span class="l-zh">通道</span><span class="l-en">Channels</span></td><td><span class="l-zh">右键任意图层，一次拆出 R / G / B / Alpha 四条通道，原图层自动隐藏作对照。</span><span class="l-en">Right-click any layer and get R / G / B / Alpha as four channels at once; the source layer hides itself for reference.</span></td></tr>
+    </tbody>
+  </table></div>
+<h2 id="g-mask" class="plug-group"><span class="tag t-mask"><span class="l-zh">Mask</span><span class="l-en">Mask</span></span>
+    <span class="count"><span class="l-zh">2 个</span><span class="l-en">2</span></span></h2>
   <p class="group-desc"><span class="l-zh">透明度本身当曲线来画：按通道生成 alpha，形状随便画。</span><span class="l-en">Alpha as a curve: generate coverage per channel, then shape it freely.</span></p>
-  <div class="cards">
-  <a class="card" href="plugins/alpha-curves.html">
-    <div class="card-top"><span class="tag t-mask"><span class="l-zh">蒙版</span><span class="l-en">Mask</span></span></div>
-    <h3><span class="l-zh">Alpha Curves（透明通道曲线）</span><span class="l-en">Alpha Curves</span></h3>
-    <p><span class="l-zh">把颜色通道写进 alpha，再接一条三个控制点的平滑曲线：挂上去先拉满，往下拖即成形状。</span><span class="l-en">Writes a colour channel into alpha, then a smooth three-point curve — pull it up to fill, drag down to shape.</span></p>
-    <span class="more"><span class="l-zh">读插件说明 →</span><span class="l-en">Read the notes →</span></span>
-  </a>
-  <a class="card" href="plugins/color-range.html">
-    <div class="card-top"><span class="tag t-mask"><span class="l-zh">蒙版</span><span class="l-en">Mask</span></span></div>
-    <h3><span class="l-zh">Color Range（色彩范围）</span><span class="l-en">Color Range</span></h3>
-    <p><span class="l-zh">色彩范围的定制对话框：选什么颜色，下面就只显示那种颜色的参数，高光 192 / 阴影 64 / 中间调 64–192 各自归位。</span><span class="l-en">A custom Colour Range dialog: pick what to target and only that target's parameters appear.</span></p>
-    <span class="more"><span class="l-zh">读插件说明 →</span><span class="l-en">Read the notes →</span></span>
-  </a>
-  </div>
-</section>
+  <div class="table-wrap"><table class="op-table plug-table">
+    <thead><tr><th><span class="l-zh">插件</span><span class="l-en">Plug-in</span></th><th>PDB</th><th><span class="l-zh">类型</span><span class="l-en">Type</span></th><th><span class="l-zh">做什么</span><span class="l-en">What it does</span></th></tr></thead>
+    <tbody>
+    <tr><td><a href="plugins/alpha-curves.html"><b><span class="l-zh">Alpha Curves（透明通道曲线）</span><span class="l-en">Alpha Curves</span></b></a></td><td><code>lb-plugin-alpha-curves</code></td><td class="nowrap"><span class="l-zh">蒙版</span><span class="l-en">Mask</span></td><td><span class="l-zh">把颜色通道写进 alpha，再接一条三个控制点的平滑曲线：挂上去先拉满，往下拖即成形状。</span><span class="l-en">Writes a colour channel into alpha, then a smooth three-point curve — pull it up to fill, drag down to shape.</span></td></tr>
+<tr><td><a href="plugins/color-range.html"><b><span class="l-zh">Color Range（色彩范围）</span><span class="l-en">Color Range</span></b></a></td><td><code>lb-plugin-color-range</code></td><td class="nowrap"><span class="l-zh">蒙版</span><span class="l-en">Mask</span></td><td><span class="l-zh">色彩范围的定制对话框：选什么颜色，下面就只显示那种颜色的参数，高光 192 / 阴影 64 / 中间调 64–192 各自归位。</span><span class="l-en">A custom Colour Range dialog: pick what to target and only that target's parameters appear.</span></td></tr>
+    </tbody>
+  </table></div>
   <p class="note"><span class="l-zh">安装：<code>bash install-plugin.sh</code> 一次装齐，或从各自的页面单独下某一个 <code>.zip</code>；细节见 <a href="guide.html">安装指南</a>。</span><span class="l-en">Install: <code>bash install-plugin.sh</code> puts them all in place, or download a single <code>.zip</code> from its own page — details in the <a href="guide.html">install guide</a>.</span></p>
 </div>
 </main>
@@ -158,7 +102,7 @@
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">a65d634</span>
+    <span class="muted">b1bd498</span>
   </div>
 </footer>
 <script>

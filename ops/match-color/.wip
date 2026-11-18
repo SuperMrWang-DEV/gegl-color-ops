@@ -1,0 +1,2 @@
+zh: 三种方法已经能用了，但 MKL 的通道尺度（100/128/128）和直方图的 256 桶还在试，极端对比的图上结果随时可能动，先别拿它跑批处理。
+en: All three methods work, but the MKL channel scale (100/128/128) and the 256 histogram bins are still being tuned, so results on extreme-contrast images can still move. Don't put it in a batch pipeline yet.

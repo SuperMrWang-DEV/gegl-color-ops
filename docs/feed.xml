@@ -94,6 +94,15 @@
        · multi 那条就行。</summary>
   </entry>
   <entry>
+    <title>插件 · Split Channels</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/split-channels.html"/>
+    <id>tag:github.com,2026:plugin-split-channels</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>一个图层一次拆成多条通道：R、G、B、Alpha 各存一条，通道面板里排好，
+       原图层自动隐藏留作对照。原生做法是逐条「新建通道 → 复制 → 粘贴 → 合并」，
+       四条就是十六步。</summary>
+  </entry>
+  <entry>
     <title>插件 · Layer to Channel</title>
     <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/layer-to-channel.html"/>
     <id>tag:github.com,2026:plugin-layer-to-channel</id>

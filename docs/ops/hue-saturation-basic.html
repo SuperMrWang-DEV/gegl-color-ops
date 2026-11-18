@@ -83,8 +83,9 @@ window.addEventListener("DOMContentLoaded", function () {
   <div class="meta">
     <code>lb:hue-saturation-basic</code>
     <span class="tag t-color">色彩</span>
-    <span>逐像素</span>
+    <span>逐像素</span><span class="badge wip">施工中</span>
   </div>
+  <p class="wip-note"><b>施工中</b>　三滑杆的逐像素实现还在和参考实现一项项对表：±180° 色相绕回、明度向白/黑混合的边界值都可能再动，先别拿它跑批处理。</p>
   <p class="lede">三滑杆公式：全局色相旋转、饱和度相对缩放、明度向白/黑混合。</p>
 </section><div class="article-layout">
   <article class="prose">
@@ -145,8 +146,9 @@ python tools/analyze_hue_sat_basic.py          # 三条曲线的行为体检</co
   <div class="meta">
     <code>lb:hue-saturation-basic</code>
     <span class="tag t-color">Color</span>
-    <span>per-pixel</span>
+    <span>per-pixel</span><span class="badge wip">WIP</span>
   </div>
+  <p class="wip-note"><b>Work in progress</b>　The three-slider point filter is still being checked slider by slider against the reference implementation. The ±180° hue wrap and the lightness mix at the ends can still move, so don&#x27;t put it in a batch pipeline yet.</p>
   <p class="lede">Three sliders — global hue rotation, relative saturation scaling, lightness mixed toward white or black. No Colorize, no hue ranges.</p>
 </section><div class="article-layout">
   <article class="prose">
@@ -211,7 +213,7 @@ python tools/analyze_hue_sat_basic.py          # behaviour checks on the three c
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">a65d634</span>
+    <span class="muted">b1bd498</span>
   </div>
 </footer>
 <script>

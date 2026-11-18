@@ -51,12 +51,12 @@
 <main id="main">
 <div class="l-zh"><section class="page-head">
   <p class="eyebrow"><a href="../index.html">首页</a> /
-    <a href="../plugins.html">插件</a> / Shortcut 快捷方式</p>
+    <a href="../plugins.html">插件</a> / Retouch 修饰</p>
   <h1>HSL Split (Curves)</h1>
   <div class="meta">
     <code>plugin/hsl-split-curves</code>
     <span class="tag t-color">曲线</span>
-    <span>Shortcut 快捷方式</span>
+    <span>Retouch 修饰</span>
   </div>
   <p class="lede">GIMP 给 HSV 和 LCh 都配了分量混合模式，唯独 HSL 没有，也没有
        HSL 的色相入口。这个插件不拿 HSV 近似 HSL，而是把三者精确换算后打包进
@@ -67,7 +67,7 @@
   <div class="dl-grid">
     <div class="dl primary-dl">
       <div class="dl-head"><h3>菜单位置</h3><span class="pill">多条</span></div>
-      <ul class="menu-list"><li>SuperMrWang → Shortcut → HSL Split (Curves) · single</li><li>SuperMrWang → Shortcut → HSL Split (Curves) · multi</li><li>图层右键 → SuperMrWang → Shortcut → 同上两条</li></ul>
+      <ul class="menu-list"><li>SuperMrWang → Retouch → HSL Split (Curves) · single</li><li>SuperMrWang → Retouch → HSL Split (Curves) · multi</li><li>图层右键 → SuperMrWang → Retouch → 同上两条</li></ul>
       <p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p>
     </div>
     <div class="dl">
@@ -129,7 +129,7 @@ multi    HSL split            组 · 穿透（带 alpha 时组上还有蒙版）
     <div class="dl-head"><h3>HSL Split (Curves) · single</h3><span class="pill">含 2 个模块 · 免编译</span></div>
     <p>包里有一个 <code>.py</code>、2 个算子模块和一份安装说明。<b>算子依赖已经附在里面，不用另外去下。</b><code>.py</code> 进 GIMP 的 <code>plug-ins</code>，模块进 GEGL 的 <code>gegl-0.4/plug-ins</code>——两个目录不一样，包内说明分步写了。 Linux 端的 hsl-compose.so、hsl-dual.so 还没进预编译包，要用 Linux 就 <code>./build.sh</code> 自己编一份（Windows 端齐全）。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-hsl-split-curves.zip">下载 HSL Split (Curves) · single</a>
-    <p class="muted small">75.6 KB · 校验：<code>SHA256 679caad68ec7f978ea30bd19d8d698c2…</code></p>
+    <p class="muted small">75.6 KB · 校验：<code>SHA256 e62efda2f81b8200b93bc0681359834e…</code></p>
   </div>
 </section>
 
@@ -144,12 +144,12 @@ multi    HSL split            组 · 穿透（带 alpha 时组上还有蒙版）
 </nav></div>
 <div class="l-en"><section class="page-head">
   <p class="eyebrow"><a href="../index.html">Home</a> /
-    <a href="../plugins.html">Plug-ins</a> / Shortcut</p>
+    <a href="../plugins.html">Plug-ins</a> / Retouch</p>
   <h1>HSL Split (Curves)</h1>
   <div class="meta">
     <code>plugin/hsl-split-curves</code>
     <span class="tag t-color">Curves</span>
-    <span>Shortcut</span>
+    <span>Retouch</span>
   </div>
   <p class="lede">GIMP ships component blend modes for HSV and LCh but not for HSL, and there is no
    HSL hue entry point either. This plug-in does not approximate HSL with HSV: it converts
@@ -160,7 +160,7 @@ multi    HSL split            组 · 穿透（带 alpha 时组上还有蒙版）
   <div class="dl-grid">
     <div class="dl primary-dl">
       <div class="dl-head"><h3>Menu location</h3><span class="pill">Several</span></div>
-      <ul class="menu-list"><li>SuperMrWang → Shortcut → HSL Split (Curves) · single</li><li>SuperMrWang → Shortcut → HSL Split (Curves) · multi</li><li>Layer right-click → SuperMrWang → Shortcut → same as the two above</li></ul>
+      <ul class="menu-list"><li>SuperMrWang → Retouch → HSL Split (Curves) · single</li><li>SuperMrWang → Retouch → HSL Split (Curves) · multi</li><li>Layer right-click → SuperMrWang → Retouch → same as the two above</li></ul>
       <p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p>
     </div>
     <div class="dl">
@@ -228,7 +228,7 @@ multi   HSL split group · pass-through (plus a mask when there is alpha)
     <div class="dl-head"><h3>HSL Split (Curves)</h3><span class="pill">2 modules included · no compile</span></div>
     <p>The archive holds one <code>.py</code>, 2 operator modules and an install note. <b>The operator dependencies are already inside, nothing else to download.</b> The <code>.py</code> goes into GIMP's <code>plug-ins</code>, the modules into GEGL's <code>gegl-0.4/plug-ins</code> — two different directories, and the note inside walks through both. The Linux side of hsl-compose.so, hsl-dual.so is not in the prebuilt bundle yet; if you need Linux, build it with <code>./build.sh</code> (Windows is complete).</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-hsl-split-curves.zip">Download HSL Split (Curves)</a>
-    <p class="muted small">75.6 KB · checksum: <code>SHA256 679caad68ec7f978ea30bd19d8d698c2…</code></p>
+    <p class="muted small">75.6 KB · checksum: <code>SHA256 e62efda2f81b8200b93bc0681359834e…</code></p>
   </div>
 </section>
 
@@ -253,7 +253,7 @@ multi   HSL split group · pass-through (plus a mask when there is alpha)
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">a65d634</span>
+    <span class="muted">b1bd498</span>
   </div>
 </footer>
 <script>

@@ -83,7 +83,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <div class="meta">
     <code>lb:shadows-highlights</code>
     <span class="tag t-tone">影调</span>
-    <span>整块区域</span> <span class="badge warn"><span class="l-zh">不推荐</span><span class="l-en">Not recommended</span></span>
+    <span>整块区域</span><span class="badge warn">不推荐</span>
   </div>
   <p class="slow-note"><b>不推荐日常使用</b>　邻域双边加 4 次高斯，半径 30 时每像素约 1.4 µs：2048×1536 默认参数净耗时 0.7 s、含解码 2.1 s，在 GIMP 里拖一次滑杆就重算一遍整图。整体明暗改用 <a href="levels.html">色阶</a> / <a href="lab-levels.html">LAB 色阶</a>；确实需要「周围亮就少提」的局部行为再回来用它，半径压到 10–15 会快很多。详见 <code>ops/shadows-highlights/.discouraged</code>。</p>
   <p class="lede">等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按<strong>邻域</strong>亮度分别提亮阴影、压暗高光，而不是只看像素值本身。</p>
@@ -181,7 +181,7 @@ y'' = y_2 + k\,(y_2-0.5)\bigl(4y_2(1-y_2)\bigr)^p$$</div>
   <div class="meta">
     <code>lb:shadows-highlights</code>
     <span class="tag t-tone">Tone</span>
-    <span>area</span> <span class="badge warn"><span class="l-zh">不推荐</span><span class="l-en">Not recommended</span></span>
+    <span>area</span><span class="badge warn">Not recommended</span>
   </div>
   <p class="slow-note"><b>Not recommended for daily use</b> — bilateral over four Gaussian passes costs about 1.4 µs per pixel at radius 30: 0.7 s for a 2048×1536 image at defaults, 2.1 s including decode, and every slider drag in GIMP recomputes the whole image. For overall brightness use <a href="levels.html">Levels</a> / <a href="lab-levels.html">LAB Levels</a>; come back here only when you need the local “lift less where the surroundings are bright” behaviour, and drop the radius to 10–15 for a big speedup. See <code>ops/shadows-highlights/.discouraged</code>.</p>
   <p class="lede">The classic editor's Shadows/Highlights — an edge-aware neighbourhood algorithm, so it cannot be a LUT. Accurate, but it is a spatial filter and costs like one.</p>
@@ -282,7 +282,7 @@ y'' = y_2 + k\,(y_2-0.5)\bigl(4y_2(1-y_2)\bigr)^p$$</div>
     <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
-    <span class="muted">a65d634</span>
+    <span class="muted">b1bd498</span>
   </div>
 </footer>
 <script>
