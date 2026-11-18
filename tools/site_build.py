@@ -556,11 +556,11 @@ def build_home(ops, stats, version):
     hero = """<section class="home-hero">
   <div class="home-glow" aria-hidden="true"></div>
   <p class="eyebrow">GIMP 3.x · GEGL 0.4 · GPL-3.0</p>
-  <h1><span class="l-zh">两个压缩包，<br><span class="grad">一整套调色链</span></span><span class="l-en">Two archives,<br><span class="grad">the whole colour chain</span></span></h1>
+  <h1><span class="l-zh">GIMP 3 的 <span class="grad">GEGL 插件</span><br>两个包，一整套调色链</span><span class="l-en">The <span class="grad">GEGL plug-in set</span><br>for GIMP 3</span></h1>
   <p class="lede"><span class="l-zh">{n} 个 <code>lb:</code> 算子管算法，{p} 个 Python 插件管流程：
      把分量拆成层、把 alpha 画成曲线、把磨皮拆成高低频。装完即用，全部能当非破坏滤镜
-     挂在图层上，改参数不落像素。</span><span class="l-en">{n} <code>lb:</code> operators
-     for the maths, {p} Python plug-ins for the workflow: split a component into layers,
+     挂在图层上，改参数不落像素。</span><span class="l-en">Two archives, the whole colour chain: {n} <code>lb:</code>
+     GEGL operators for the maths, {p} Python plug-ins for the workflow: split a component into layers,
      draw alpha as a curve, separate skin into high and low frequency. Ready to use, all
      of it mounts as non-destructive filters.</span></p>
   <ul class="facts">
@@ -574,7 +574,7 @@ def build_home(ops, stats, version):
     doors = """<section class="doors" id="download">
   <article class="door door-ops" id="ops">
     <p class="door-kicker">01 · OPERATORS</p>
-    <h2><span class="l-zh">算子</span><span class="l-en">Operators</span></h2>
+    <h2><span class="l-zh">GEGL 算子</span><span class="l-en">GEGL operators</span></h2>
     <p class="door-lead"><span class="l-zh">{n} 个单文件 C 模块，一个模块一个滤镜。
      色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版生成都在里面，按
      <b>Levels / Component / Tone / Color / Blend / Mask</b> 六组排在顶层菜单下。</span><span class="l-en">{n} single-file C modules, one filter each. Levels, colour balance,
@@ -595,7 +595,7 @@ def build_home(ops, stats, version):
 
   <article class="door door-plug" id="plugins">
     <p class="door-kicker">02 · PLUG-INS</p>
-    <h2><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></h2>
+    <h2><span class="l-zh">Python 插件</span><span class="l-en">Python plug-ins</span></h2>
     <p class="door-lead"><span class="l-zh">{p} 个 Python 插件，负责把算子串成流程：五个色彩空间的分量
      拆层加三条曲线、Alpha 曲线、高低频 / 双曲线 / 中性灰磨皮、图层转选区与转通道。
      每个插件内部要用的算子模块已经打在包里。</span><span class="l-en">{p} Python plug-ins that string the operators into a workflow: component
@@ -646,12 +646,12 @@ Linux    ~/.config/GIMP/3.x/plug-ins</code></pre>
      long version live in the <a href="overview.html">full overview</a>.</span></p>
 </section>"""
 
-    return page("gegl-color-ops · GIMP 3 色彩算子与插件",
+    return page("gegl-color-ops · GIMP 3 的 GEGL 算子与插件",
                 hero + doors + quick,
                 desc="GIMP 3 的 %d 个 GEGL 色彩算子 + %d 个 Python 插件，"
                      "Windows 与 Linux 整包直接下载。" % (n_live, n_plug),
-                titles=("gegl-color-ops · GIMP 3 色彩算子与插件",
-                        "gegl-color-ops · operators and plug-ins for GIMP 3"))
+                titles=("gegl-color-ops · GIMP 3 的 GEGL 算子与插件",
+                        "gegl-color-ops · GEGL operators and plug-ins for GIMP 3"))
 
 
 def build_overview(ops, stats, version):
