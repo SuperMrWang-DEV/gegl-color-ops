@@ -7,6 +7,17 @@ project('gegl-color-ops', 'c',
 gegl = dependency('gegl-0.4', required: true)
 common_inc = include_directories('common')
 
+# libm：build.sh 一直显式带 -lm，meson 这边漏了。Linux 的 glibc 不会隐式链接
+# libm，用 sqrt/exp 的算子（max-min、color-balance…）编 .so 时虽然能过（共享库
+# 允许未定义符号），但 dlopen 会报 undefined symbol: sqrt。Windows/MinGW 的
+# msvcrt 自带这些符号，所以只在 Linux 暴露。
+cc = meson.get_compiler('c')
+m_dep = cc.find_library('m', required: false)
+op_deps = [gegl]
+if m_dep.found()
+  op_deps += m_dep
+endif
+
 # [目录名, 模块名, 源文件名]。模块名即产出的 .so 文件名（不能带 lib 前缀），
 # 与源文件名保持一致 —— GEGL 的 GType 名取自源文件名，两边对齐才能和
 # build.sh 的产出（按源文件名命名）完全对应。
@@ -49,12 +60,19 @@ ops = [
   ['lab-compose',             'lab-compose',             'lab-compose.c'],
   ['hsi-dual',                'hsi-dual',                'hsi-dual.c'],
   ['hsi-compose',             'hsi-compose',             'hsi-compose.c'],
+  ['hsv-dual',                'hsv-dual',                'hsv-dual.c'],
+  ['hsv-compose',             'hsv-compose',             'hsv-compose.c'],
+  # LCh 与 Lab 同一套 D50 口径，但色相是极角、彩度上限 140，分量曲线单独一对
+  ['lch-dual',                'lch-dual',                'lch-dual.c'],
+  ['lch-compose',             'lch-compose',             'lch-compose.c'],
   # 双输入（aux）算子。本表是手工维护的，加算子时必须同步；带 .disabled 标记的
   # 算子不入表也不编译。CI 用集合比对核对本表与 ops/ 下的源码目录，漏列或多列
   # 都会点名。
   ['apply-image',             'apply-image',             'apply-image.c'],
   ['calculations',            'calculations',            'calculations.c'],
   ['match-color',             'match-color',             'match-color.c'],
+  # 邻域算子（区域滤波）：形态学最大值/最小值，输入需要向外扩半径
+  ['max-min',                 'max-min',                 'max-min.c'],
   ['color-temperature-tint',   'color-temperature-tint',   'color-temperature-tint.c'],
 ]
 
@@ -64,7 +82,7 @@ foreach op : ops
   shared_module(op[1],
                 join_paths('ops', op[0], op[2]),
                 include_directories: [common_inc, include_directories(join_paths('ops', op[0]))],
-                dependencies: gegl,
+                dependencies: op_deps,
                 c_args: ['-O2', '-Wall'],
                 name_prefix: '',
                 install: false)
