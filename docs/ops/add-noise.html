@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-title-zh="Add Noise · gegl-color-ops" data-title-en="Add Noise · gegl-color-ops">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Add Noise · gegl-color-ops</title>
+<meta name="description" content="Photoshop「滤镜 → 杂色 → 添加杂色」的等价物：给每个像素叠一层随机扰动。加颗粒、做旧、掩盖色带、给渐变加「胶片感」都是它。" data-desc-zh="Photoshop「滤镜 → 杂色 → 添加杂色」的等价物：给每个像素叠一层随机扰动。加颗粒、做旧、掩盖色带、给渐变加「胶片感」都是它。" data-desc-en="Photoshop「滤镜 → 杂色 → 添加杂色」的等价物：给每个像素叠一层随机扰动。加颗粒、做旧、掩盖色带、给渐变加「胶片感」都是它。">
+<meta property="og:title" content="Add Noise · gegl-color-ops" data-title-zh="Add Noise · gegl-color-ops" data-title-en="Add Noise · gegl-color-ops">
+<meta property="og:description" content="Photoshop「滤镜 → 杂色 → 添加杂色」的等价物：给每个像素叠一层随机扰动。加颗粒、做旧、掩盖色带、给渐变加「胶片感」都是它。" data-desc-zh="Photoshop「滤镜 → 杂色 → 添加杂色」的等价物：给每个像素叠一层随机扰动。加颗粒、做旧、掩盖色带、给渐变加「胶片感」都是它。" data-desc-en="Photoshop「滤镜 → 杂色 → 添加杂色」的等价物：给每个像素叠一层随机扰动。加颗粒、做旧、掩盖色带、给渐变加「胶片感」都是它。">
+<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body class="article">
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+<main id="main">
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 混合与通道</p>
+  <h1>Add Noise</h1>
+  <div class="meta">
+    <code>lb:add-noise</code>
+    <span class="tag t-blend">混合与通道</span>
+    <span>整块区域</span>
+  </div>
+  <p class="lede">Photoshop「滤镜 → 杂色 → 添加杂色」的等价物：给每个像素叠一层随机扰动。加颗粒、做旧、掩盖色带、给渐变加「胶片感」都是它。</p>
+</section><div class="article-layout">
+  <article class="prose">
+<blockquote><p><code>lb:add-noise</code> · 菜单 <strong>SuperMrWang → Noise → Add Noise</strong> · 单输入</p></blockquote>
+<p>给每个像素叠一层随机扰动。加胶片颗粒、做旧、掩盖 8 位渐变的色带都用它。 与 PS 的不同在于<strong>种子可控</strong>：同一张图、同一个种子，输出逐位相同。</p>
+<h2 id="参数-parameters">参数 / Parameters</h2>
+<div class="table-wrap"><table><thead><tr><th>参数</th><th>范围</th><th>默认</th><th>含义</th></tr></thead><tbody><tr><td><code>amount</code> 数量</td><td>0–100%</td><td>10</td><td>噪点强度。高斯时 σ = 25% × amount，均匀时幅度 ±50% × amount</td></tr><tr><td><code>distribution</code> 分布</td><td>高斯 / 均匀</td><td>高斯</td><td>高斯像胶片与传感器噪点；均匀像数字抖动</td></tr><tr><td><code>monochrome</code> 单色</td><td>开 / 关</td><td>关</td><td>三个通道共用同一个扰动，得到灰度颗粒而不是彩色噪点</td></tr><tr><td><code>seed</code> 种子</td><td>0–999999</td><td>1</td><td>决定随机序列，用于复现</td></tr></tbody></table></div>
+<h2 id="算法">算法</h2>
+<p>按<strong>行</strong>播种：第 <code>y</code> 行的种子由 <code>seed</code> 与 <code>y</code> 混合得到（<code>y</code> 参与哈希， 不是简单相加），因此分带处理与整张处理逐位相同——这是「可复现」能成立的前提。 高斯用 Box–Muller：</p>
+<pre><code>u1, u2 ~ U(0,1]
+n = sqrt(−2 ln u1) · cos(2π u2)</code></pre>
+<p>三个通道各自取一个 <code>n</code>；<code>monochrome</code> 时只取一次，三个通道共用。</p>
+<p><code>alpha</code> 完全不动：叠噪点改的是像素值，不是图层透明度。</p>
+<h2 id="用法-recipes">用法 / Recipes</h2>
+<ul><li><strong>胶片颗粒</strong>：<code>amount=8 distribution=gaussian monochrome=on</code></li><li><strong>掩盖 8 位色带</strong>：<code>amount=3 distribution=uniform monochrome=on</code>，再叠 1px 模糊</li><li><strong>做旧</strong>：<code>amount=15 distribution=gaussian</code>，配合 <code>lb:reduce-noise</code> 反向调节</li></ul>
+<h2 id="与-photoshop-的差异">与 Photoshop 的差异</h2>
+<div class="table-wrap"><table><thead><tr><th></th><th>PS 添加杂色</th><th><code>lb:add-noise</code></th></tr></thead><tbody><tr><td>数量 / 分布 / 单色</td><td>有</td><td>有</td></tr><tr><td>可复现</td><td>无（每次应用都换随机数）</td><td><strong>有</strong>（同种子逐位相同）</td></tr><tr><td>影响 alpha</td><td>不动</td><td>不动</td></tr></tbody></table></div>
+<h2 id="测试-testing">测试 / Testing</h2>
+<p><code>python tools/check_noise_sharpen.py</code>：数量 0 恒等、同种子逐位相同、换种子不同、 单色时三通道相等、均值不偏移、α 透传。</p><div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>add-noise.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/add-noise.dll">下载 add-noise.dll<span class="size">Windows x64</span></a></div>
+</div><nav class="pager"><a class="prev" href="color-lookup.html"><span>上一个</span>Color Lookup</a><a class="next" href="displace.html"><span>下一个</span>Displace</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#参数-parameters">参数 / Parameters</a></li>
+<li class="l2"><a href="#算法">算法</a></li>
+<li class="l2"><a href="#用法-recipes">用法 / Recipes</a></li>
+<li class="l2"><a href="#与-photoshop-的差异">与 Photoshop 的差异</a></li>
+<li class="l2"><a href="#测试-testing">测试 / Testing</a></li></ul>
+</aside>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Blend</p>
+  <h1>Add Noise</h1>
+  <div class="meta">
+    <code>lb:add-noise</code>
+    <span class="tag t-blend">Blend</span>
+    <span>area</span>
+  </div>
+  <p class="lede">Gaussian or uniform noise, monochromatic or per channel, with a seed so the grain can be reproduced exactly.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p><code>lb:add-noise</code> · menu <strong>SuperMrWang → Noise → Add Noise</strong> · one input</p>
+<p>Random perturbation per pixel — film grain, ageing, or hiding the banding in an 8-bit gradient. Unlike Photoshop, the seed is exposed: same image and same seed give byte-identical output.</p>
+<h2 id="parameters">Parameters</h2>
+<div class="table-wrap"><table><thead><tr><th>Parameter</th><th>Range</th><th>Default</th><th>Meaning</th></tr></thead><tbody><tr><td><code>amount</code></td><td>0–100%</td><td>10</td><td>Strength. Gaussian: σ = 25% × amount. Uniform: ±50% × amount</td></tr><tr><td><code>distribution</code></td><td>Gaussian / Uniform</td><td>Gaussian</td><td>Gaussian looks like film and sensor noise, uniform looks like dithering</td></tr><tr><td><code>monochrome</code></td><td>on / off</td><td>off</td><td>One value for all three channels, giving grey grain instead of colour speckle</td></tr><tr><td><code>seed</code></td><td>0–999999</td><td>1</td><td>Drives the sequence, so a look can be reproduced</td></tr></tbody></table></div>
+<h2 id="algorithm">Algorithm</h2>
+<p>Seeding is <strong>per row</strong>: row <code>y</code> gets a seed mixed from <code>seed</code> and <code>y</code> (hashed, not added), so processing the image in bands gives exactly the same bytes as processing it in one go. That is what makes reproducibility hold.</p>
+<p>Gaussian noise comes from Box–Muller:</p>
+<pre><code>u1, u2 ~ U(0,1]
+n = sqrt(−2 ln u1) · cos(2π u2)</code></pre>
+<p>Each channel draws its own <code>n</code>; with <code>monochrome</code> one draw is shared by all three. <code>alpha</code> is never touched — noise changes pixel values, not opacity.</p>
+<h2 id="recipes">Recipes</h2>
+<ul><li><strong>Film grain</strong>: <code>amount=8 distribution=gaussian monochrome=on</code></li><li><strong>Hide 8-bit banding</strong>: <code>amount=3 distribution=uniform monochrome=on</code>, then a 1px blur</li><li><strong>Ageing</strong>: <code>amount=15 distribution=gaussian</code>, balanced with <code>lb:reduce-noise</code></li></ul>
+<h2 id="compared-with-photoshop">Compared with Photoshop</h2>
+<div class="table-wrap"><table><thead><tr><th></th><th>PS Add Noise</th><th><code>lb:add-noise</code></th></tr></thead><tbody><tr><td>Amount / distribution / monochromatic</td><td>yes</td><td>yes</td></tr><tr><td>Reproducible</td><td>no — a new random sequence every apply</td><td><strong>yes</strong> — same seed, same bytes</td></tr><tr><td>Touches alpha</td><td>no</td><td>no</td></tr></tbody></table></div>
+<h2 id="testing">Testing</h2>
+<p><code>python tools/check_noise_sharpen.py</code> — identity at amount 0, same seed identical, different seed different, three channels equal in monochrome mode, mean unmoved, alpha passthrough.</p><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>add-noise.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/add-noise.dll">Download add-noise.dll<span class="size">Windows x64</span></a></div>
+</div><nav class="pager"><a class="prev" href="color-lookup.html"><span>Previous</span>Color Lookup</a><a class="next" href="displace.html"><span>Next</span>Displace</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#parameters">Parameters</a></li>
+<li class="l2"><a href="#algorithm">Algorithm</a></li>
+<li class="l2"><a href="#recipes">Recipes</a></li>
+<li class="l2"><a href="#compared-with-photoshop">Compared with Photoshop</a></li>
+<li class="l2"><a href="#testing">Testing</a></li></ul>
+</aside>
+</div></div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
+    <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
+    <span class="muted">a08b739</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
+</body>
+</html>

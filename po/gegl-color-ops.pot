@@ -8,6 +8,55 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Source-Language: en\n"
 
+#: ops/add-noise/add-noise.c:39
+#: ops/unsharp-mask/unsharp-mask.c:45
+msgid "Amount"
+msgstr ""
+
+#: ops/add-noise/add-noise.c:40
+msgid "Noise strength in percent. 100% means a standard deviation of a quarter of the full range for Gaussian noise, or ±half the range for uniform noise."
+msgstr ""
+
+#: ops/add-noise/add-noise.c:46
+msgid "Distribution"
+msgstr ""
+
+#: ops/add-noise/add-noise.c:48
+msgid "Gaussian looks like film grain and sensor noise; uniform looks like digital dithering."
+msgstr ""
+
+#: ops/add-noise/add-noise.c:51
+msgid "Monochromatic"
+msgstr ""
+
+#: ops/add-noise/add-noise.c:52
+msgid "Use one value for all three channels, giving grey grain instead of coloured speckle. Photoshop's Monochromatic checkbox."
+msgstr ""
+
+#: ops/add-noise/add-noise.c:56
+msgid "Seed"
+msgstr ""
+
+#: ops/add-noise/add-noise.c:57
+msgid "Same seed and same image always give the same noise, so a look can be reproduced exactly."
+msgstr ""
+
+#: ops/add-noise/add-noise.c:177
+msgid "Add Noise"
+msgstr ""
+
+#: ops/add-noise/add-noise.c:178
+msgid "Adds Gaussian or uniform noise, monochromatic or per channel. The seed makes the grain reproducible."
+msgstr ""
+
+#: ops/add-noise/add-noise.c:35
+msgid "Gaussian"
+msgstr ""
+
+#: ops/add-noise/add-noise.c:36
+msgid "Uniform"
+msgstr ""
+
 #: ops/apply-image/apply-image.c:91
 #: ops/calculations/calculations.c:101
 #: plugin/blend/blend.py:778
@@ -1233,6 +1282,7 @@ msgid "Cube LUT (.cube), 1D and/or 3D"
 msgstr ""
 
 #: ops/color-lookup/color-lookup.c:39
+#: ops/reduce-noise/reduce-noise.c:36
 msgid "Strength"
 msgstr ""
 
@@ -1547,20 +1597,20 @@ msgstr ""
 msgid "Bilinear never overshoots; bicubic is sharper on smooth maps but rings on hard edges; nohalo and lohalo stay sharp without ringing"
 msgstr ""
 
-#: ops/displace/displace.c:417
+#: ops/displace/displace.c:421
 msgid "Displacement map"
 msgstr ""
 
-#: ops/displace/displace.c:418
+#: ops/displace/displace.c:422
 msgid "Map that drives the displacement; without it the image passes through"
 msgstr ""
 
-#: ops/displace/displace.c:423
-#: ops/displace/displace.c:429
+#: ops/displace/displace.c:427
+#: ops/displace/displace.c:433
 msgid "Displace"
 msgstr ""
 
-#: ops/displace/displace.c:424
+#: ops/displace/displace.c:428
 msgid "Resamples the image through a displacement map: one RGBA map drives both axes, amounts in pixels or percent of the long edge, five edge policies and a sampler that does not ring by default."
 msgstr ""
 
@@ -1618,6 +1668,36 @@ msgstr ""
 
 #: ops/displace/displace.c:74
 msgid "Lohalo (no ringing, slow)"
+msgstr ""
+
+#: ops/dust-scratches/dust-scratches.c:35
+#: ops/max-min/max-min.c:63
+#: ops/reduce-noise/reduce-noise.c:46
+#: ops/unsharp-mask/unsharp-mask.c:37
+#: plugin/max-min/max-min.py:228
+msgid "Radius"
+msgstr ""
+
+#: ops/dust-scratches/dust-scratches.c:36
+msgid "Neighbourhood radius in pixels. 1 is a 3×3 window. Bigger values remove bigger specks and also soften more detail."
+msgstr ""
+
+#: ops/dust-scratches/dust-scratches.c:41
+#: ops/unsharp-mask/unsharp-mask.c:51
+#: plugin/sky-replace/sky-replace.py:220
+msgid "Threshold"
+msgstr ""
+
+#: ops/dust-scratches/dust-scratches.c:42
+msgid "Neighbours that differ from the centre pixel by more than this many levels (0–255) are ignored, which is what keeps real edges intact. Raise it to remove stronger dust, lower it to protect fine texture."
+msgstr ""
+
+#: ops/dust-scratches/dust-scratches.c:226
+msgid "Dust & Scratches"
+msgstr ""
+
+#: ops/dust-scratches/dust-scratches.c:227
+msgid "Replaces a pixel with the median of the neighbours that are within the threshold, so isolated dust and scratches vanish while real edges — whose neighbours differ too much — stay untouched."
 msgstr ""
 
 #: ops/exposure/lb-exposure.c:52
@@ -2948,11 +3028,6 @@ msgstr ""
 msgid "Square is the (±r, ±r) window; round is a disc of radius r. The counterpart of Photoshop's Preserve: Squareness / Roundness."
 msgstr ""
 
-#: ops/max-min/max-min.c:63
-#: plugin/max-min/max-min.py:228
-msgid "Radius"
-msgstr ""
-
 #: ops/max-min/max-min.c:64
 msgid "Neighbourhood radius in pixels. r=1 means a 3×3 window and grows the edge outward by one pixel. Limited to 1–100, same as Photoshop."
 msgstr ""
@@ -2989,6 +3064,38 @@ msgstr ""
 #: ops/max-min/max-min.c:55
 #: plugin/max-min/max-min.py:168
 msgid "Round"
+msgstr ""
+
+#: ops/reduce-noise/reduce-noise.c:37
+msgid "How aggressively neighbours are averaged. Higher values smooth more and start to eat texture."
+msgstr ""
+
+#: ops/reduce-noise/reduce-noise.c:41
+msgid "Preserve detail"
+msgstr ""
+
+#: ops/reduce-noise/reduce-noise.c:42
+msgid "Shrinks the averaging threshold so fine texture survives. Photoshop's Preserve Details slider."
+msgstr ""
+
+#: ops/reduce-noise/reduce-noise.c:47
+msgid "Neighbourhood radius in pixels. 1 is a 3×3 window; larger radii handle coarser grain but cost quadratically more."
+msgstr ""
+
+#: ops/reduce-noise/reduce-noise.c:52
+msgid "Per channel"
+msgstr ""
+
+#: ops/reduce-noise/reduce-noise.c:53
+msgid "Off: the three channels share one weight set, so colour speckle disappears without shifting hues. On: each channel is filtered on its own, which suits luminance noise only."
+msgstr ""
+
+#: ops/reduce-noise/reduce-noise.c:215
+msgid "Reduce Noise"
+msgstr ""
+
+#: ops/reduce-noise/reduce-noise.c:216
+msgid "Sigma filter: averages only neighbours close to the centre pixel, so flat areas are smoothed and edges are left alone. Colour speckle can be removed without shifting hues."
 msgstr ""
 
 #: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:37
@@ -3135,6 +3242,34 @@ msgstr ""
 
 #: ops/shadows-highlights/shadows-highlights.c:1441
 msgid "the classic editor's Shadows/Highlights: lifts shadows and pulls highlights back according to an edge-aware local neighbourhood, with colour correction, midtone contrast and black/white clipping."
+msgstr ""
+
+#: ops/unsharp-mask/unsharp-mask.c:38
+msgid "Blur radius the sharpening is measured against. Small values sharpen fine texture, large values build local contrast (the so-called clarity look)."
+msgstr ""
+
+#: ops/unsharp-mask/unsharp-mask.c:46
+msgid "How much of the difference is added back, in percent. Photoshop's Amount slider, 1–500%."
+msgstr ""
+
+#: ops/unsharp-mask/unsharp-mask.c:52
+msgid "Differences below this many levels (0–255) count as flat area and are left alone, so grain and sensor noise are not amplified. Photoshop's Threshold slider."
+msgstr ""
+
+#: ops/unsharp-mask/unsharp-mask.c:58
+msgid "Halo suppression"
+msgstr ""
+
+#: ops/unsharp-mask/unsharp-mask.c:59
+msgid "Clamp the sharpened value to the 3×3 neighbourhood of the original, in percent. At 100 the white and dark fringes along hard edges disappear; at 0 this is a plain unsharp mask."
+msgstr ""
+
+#: ops/unsharp-mask/unsharp-mask.c:388
+msgid "Unsharp Mask"
+msgstr ""
+
+#: ops/unsharp-mask/unsharp-mask.c:389
+msgid "Sharpens against a blurred copy with the amount, radius and threshold of Photoshop's Unsharp Mask, plus a halo suppression stage that clamps the result to the 3×3 neighbourhood so hard edges do not grow white fringes."
 msgstr ""
 
 #: ops/vibrance-hyper/vibrance-hyper.c:27
@@ -4664,10 +4799,6 @@ msgstr ""
 
 #: plugin/sky-replace/sky-replace.py:216
 msgid "New sky picture; it is scaled to cover the canvas"
-msgstr ""
-
-#: plugin/sky-replace/sky-replace.py:220
-msgid "Threshold"
 msgstr ""
 
 #: plugin/sky-replace/sky-replace.py:221

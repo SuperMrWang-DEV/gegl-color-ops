@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-title-zh="Unsharp Mask / Smart Sharpen · gegl-color-ops" data-title-en="Unsharp Mask · gegl-color-ops">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unsharp Mask / Smart Sharpen · gegl-color-ops</title>
+<meta name="description" content="Photoshop「锐化 → USM 锐化 / 智能锐化」的等价物：用模糊版做参考，把原图与模糊版的差值按百分比加回去。" data-desc-zh="Photoshop「锐化 → USM 锐化 / 智能锐化」的等价物：用模糊版做参考，把原图与模糊版的差值按百分比加回去。" data-desc-en="Photoshop「锐化 → USM 锐化 / 智能锐化」的等价物：用模糊版做参考，把原图与模糊版的差值按百分比加回去。">
+<meta property="og:title" content="Unsharp Mask / Smart Sharpen · gegl-color-ops" data-title-zh="Unsharp Mask / Smart Sharpen · gegl-color-ops" data-title-en="Unsharp Mask · gegl-color-ops">
+<meta property="og:description" content="Photoshop「锐化 → USM 锐化 / 智能锐化」的等价物：用模糊版做参考，把原图与模糊版的差值按百分比加回去。" data-desc-zh="Photoshop「锐化 → USM 锐化 / 智能锐化」的等价物：用模糊版做参考，把原图与模糊版的差值按百分比加回去。" data-desc-en="Photoshop「锐化 → USM 锐化 / 智能锐化」的等价物：用模糊版做参考，把原图与模糊版的差值按百分比加回去。">
+<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body class="article">
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+<main id="main">
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 混合与通道</p>
+  <h1>Unsharp Mask / Smart Sharpen</h1>
+  <div class="meta">
+    <code>lb:unsharp-mask</code>
+    <span class="tag t-blend">混合与通道</span>
+    <span>AreaFilter</span>
+  </div>
+  <p class="lede">Photoshop「锐化 → USM 锐化 / 智能锐化」的等价物：用模糊版做参考，把原图与模糊版的差值按百分比加回去。</p>
+</section><div class="article-layout">
+  <article class="prose">
+<blockquote><p><code>lb:unsharp-mask</code> · 菜单 <strong>SuperMrWang → Sharpen → Unsharp Mask</strong> · 单输入</p></blockquote>
+<p>用「原图 − 模糊图」的差值把边缘加陡，是 Photoshop「锐化 → USM 锐化」的等价物， 并且把「智能锐化」真正想要的那件事——<strong>不让硬边长出白边</strong>——做成了一个滑杆。</p>
+<h2 id="参数-parameters">参数 / Parameters</h2>
+<div class="table-wrap"><table><thead><tr><th>参数</th><th>范围</th><th>默认</th><th>含义</th></tr></thead><tbody><tr><td><code>radius</code> 半径</td><td>0.1–100</td><td>2.0</td><td>参考模糊的半径（σ）。小半径锐化纹理，大半径做局部对比（清澈感）</td></tr><tr><td><code>amount</code> 数量</td><td>0–500%</td><td>100</td><td>差值加回去的比例，PS 的 Amount</td></tr><tr><td><code>threshold</code> 阈值</td><td>0–255</td><td>0</td><td>差值小于这个码数判为平坦区，原样保留，避免放大颗粒</td></tr><tr><td><code>fringe</code> 光晕抑制</td><td>0–100%</td><td>100</td><td>把结果夹到原图 3×3 邻域的 [min, max]，100 时完全不产生过冲</td></tr></tbody></table></div>
+<p><code>fringe</code> 是这个名字的由来：普通 USM 在硬边两侧各留一条白边/黑边（fringe）， 夹到邻域极值之后就没有了。</p>
+<h2 id="算法">算法</h2>
+<ol><li><strong>参考模糊</strong>。σ ≤ 4 时用真高斯核做可分离卷积（半宽 3σ）；更大时改用 <strong>三次盒式模糊串联</strong>——三次盒式的方差是 <code>3·((2r+1)²−1)/12</code>，反解 <code>r = (√(4σ²+1) − 1)/2</code>。代价与半径无关（O(n) 而不是 O(n·σ)）， 而 σ ≥ 4 时两者分歧已小于 1/255。</li><li><strong>差值</strong> <code>d = v − blur</code>。<code>|d| ≤ threshold/255</code> 直接输出原值。</li><li><strong>锐化</strong> <code>v + amount·d</code>。</li><li><strong>光晕抑制</strong>：取原图 3×3 的 <code>lo</code>/<code>hi</code>，把上一步结果夹进 <code>[lo, hi]</code>， 再按 <code>fringe</code> 与未夹版本混合。</li></ol>
+<p>第 4 步的性质值得说清楚：<strong>硬边上它等于不锐化</strong>（3×3 里没有过渡可陡化）， <strong>软边上它把过渡压陡但不过冲</strong>。所以 100% 时这张图永远不会多出白边， 代价是高光的微弱溢出会被压掉——想要 PS 那种「亮部发光」的锐利感就把 <code>fringe</code> 调到 30–50。</p>
+<h2 id="用法-recipes">用法 / Recipes</h2>
+<ul><li><strong>纹理锐化</strong>：<code>radius=1.0 amount=120 threshold=3 fringe=100</code></li><li><strong>局部对比（清澈感）</strong>：<code>radius=15 amount=40 threshold=0 fringe=60</code></li><li><strong>输出前最后一刀</strong>：<code>radius=0.8 amount=90 threshold=2 fringe=100</code>，配合缩图后使用</li></ul>
+<h2 id="与-photoshop-的差异">与 Photoshop 的差异</h2>
+<div class="table-wrap"><table><thead><tr><th></th><th>PS USM</th><th>PS 智能锐化</th><th><code>lb:unsharp-mask</code></th></tr></thead><tbody><tr><td>半径 / 数量 / 阈值</td><td>有</td><td>有</td><td>有</td></tr><tr><td>光晕抑制</td><td>无</td><td>「移去：高斯/镜头模糊」+ 高光/阴影淡化</td><td>3×3 极值夹取，0–100 可调</td></tr><tr><td>去卷积</td><td>无</td><td>「移去镜头模糊」是盲反卷积</td><td>无（本算子只做 USM）</td></tr></tbody></table></div>
+<p>PS 的「锐化 / 进一步锐化 / 锐化边缘」是三个固定参数的 USM 预设，用本算子 配 <code>amount</code> 即可复现，不再单独出三个算子。</p>
+<h2 id="测试-testing">测试 / Testing</h2>
+<p><code>python tools/check_noise_sharpen.py</code>：数量 0 与阈值 255 恒等、开/关光晕抑制的 过冲对比、软边过渡级数变少、硬边完全抑制时不变、alpha 透传。</p><div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>unsharp-mask.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/unsharp-mask.dll">下载 unsharp-mask.dll<span class="size">Windows x64</span></a></div>
+</div><nav class="pager"><a class="prev" href="reduce-noise.html"><span>上一个</span>Reduce Noise</a><a class="next" href="color-mask-select.html"><span>下一个</span>Mask by Color</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#参数-parameters">参数 / Parameters</a></li>
+<li class="l2"><a href="#算法">算法</a></li>
+<li class="l2"><a href="#用法-recipes">用法 / Recipes</a></li>
+<li class="l2"><a href="#与-photoshop-的差异">与 Photoshop 的差异</a></li>
+<li class="l2"><a href="#测试-testing">测试 / Testing</a></li></ul>
+</aside>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Blend</p>
+  <h1>Unsharp Mask</h1>
+  <div class="meta">
+    <code>lb:unsharp-mask</code>
+    <span class="tag t-blend">Blend</span>
+    <span>AreaFilter</span>
+  </div>
+  <p class="lede">Sharpen against a blurred copy with the amount, radius and threshold of Photoshop's Unsharp Mask, plus a halo stage that keeps hard edges from growing white fringes.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p><code>lb:unsharp-mask</code> · menu <strong>SuperMrWang → Sharpen → Unsharp Mask</strong> · one input</p>
+<p>Steepens edges by adding back the difference between the image and a blurred copy — Photoshop's Unsharp Mask, plus the one thing Smart Sharpen is really after, as a slider.</p>
+<h2 id="parameters">Parameters</h2>
+<div class="table-wrap"><table><thead><tr><th>Parameter</th><th>Range</th><th>Default</th><th>Meaning</th></tr></thead><tbody><tr><td><code>radius</code></td><td>0.1–100</td><td>2.0</td><td>σ of the reference blur. Small sharpens texture, large builds local contrast (the clarity look)</td></tr><tr><td><code>amount</code></td><td>0–500%</td><td>100</td><td>How much of the difference is added back</td></tr><tr><td><code>threshold</code></td><td>0–255</td><td>0</td><td>Differences below this many levels count as flat area and are left alone</td></tr><tr><td><code>fringe</code></td><td>0–100%</td><td>100</td><td>Clamp the result to the 3×3 neighbourhood of the original; at 100 there is no overshoot at all</td></tr></tbody></table></div>
+<p><code>fringe</code> is where the name comes from: plain unsharp masking leaves a bright and a dark fringe on either side of a hard edge, and clamping to the local extremes removes them.</p>
+<h2 id="algorithm">Algorithm</h2>
+<ol><li><strong>Reference blur.</strong> For σ ≤ 4 a true Gaussian kernel, separable (half width 3σ). Above that, three chained box blurs: the variance of three boxes is <code>3·((2r+1)²−1)/12</code>, so <code>r = (√(4σ²+1) − 1)/2</code>. Cost independent of radius — O(n) instead of O(n·σ) — and past σ = 4 the two agree to better than 1/255.</li><li><strong>Difference</strong> <code>d = v − blur</code>. If <code>|d| ≤ threshold/255</code> the pixel is emitted unchanged.</li><li><strong>Sharpen</strong> <code>v + amount·d</code>.</li><li><strong>Halo suppression.</strong> Take the 3×3 min/max of the <em>original</em>, clamp step 3 into <code>[lo, hi]</code>, then blend towards the unclamped value by <code>fringe</code>.</li></ol>
+<p>What step 4 does is worth stating plainly: on a perfect step edge it is a no-op (there is no transition left to steepen), and on a soft edge it steepens without overshoot. At 100% the result can never grow a fringe, at the cost of losing very small highlight overflow — use 30–50% if you want the PS-style "glowing highlights" kind of sharpness.</p>
+<h2 id="recipes">Recipes</h2>
+<ul><li><strong>Texture</strong>: <code>radius=1.0 amount=120 threshold=3 fringe=100</code></li><li><strong>Local contrast</strong>: <code>radius=15 amount=40 threshold=0 fringe=60</code></li><li><strong>Final output pass</strong>: <code>radius=0.8 amount=90 threshold=2 fringe=100</code>, after resizing</li></ul>
+<h2 id="compared-with-photoshop">Compared with Photoshop</h2>
+<div class="table-wrap"><table><thead><tr><th></th><th>PS Unsharp Mask</th><th>PS Smart Sharpen</th><th><code>lb:unsharp-mask</code></th></tr></thead><tbody><tr><td>Radius / amount / threshold</td><td>yes</td><td>yes</td><td>yes</td></tr><tr><td>Halo control</td><td>no</td><td>Remove: Gaussian / Lens Blur, plus fade</td><td>3×3 clamp, 0–100%</td></tr><tr><td>Deconvolution</td><td>no</td><td>"Remove Lens Blur" is blind deconvolution</td><td>no — this op is USM only</td></tr></tbody></table></div>
+<p>PS's Sharpen / Sharpen More / Sharpen Edges are three fixed presets of the same USM; set <code>amount</code> here instead of shipping three operators.</p>
+<h2 id="testing">Testing</h2>
+<p><code>python tools/check_noise_sharpen.py</code> — identity at amount 0 and at threshold 255, overshoot with and without the halo stage, fewer intermediate steps across a soft edge, no change on a hard edge at 100%, alpha passthrough.</p><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>unsharp-mask.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/unsharp-mask.dll">Download unsharp-mask.dll<span class="size">Windows x64</span></a></div>
+</div><nav class="pager"><a class="prev" href="reduce-noise.html"><span>Previous</span>Reduce Noise</a><a class="next" href="color-mask-select.html"><span>Next</span>Mask by Color</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#parameters">Parameters</a></li>
+<li class="l2"><a href="#algorithm">Algorithm</a></li>
+<li class="l2"><a href="#recipes">Recipes</a></li>
+<li class="l2"><a href="#compared-with-photoshop">Compared with Photoshop</a></li>
+<li class="l2"><a href="#testing">Testing</a></li></ul>
+</aside>
+</div></div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
+    <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
+    <span class="muted">a08b739</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
+</body>
+</html>

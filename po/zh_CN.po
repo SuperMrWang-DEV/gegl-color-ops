@@ -1801,4 +1801,139 @@ msgstr "Nohalo（不振铃）"
 #: ops/displace/displace.c:74
 msgid "Lohalo (no ringing, slow)"
 msgstr "Lohalo（不振铃，较慢）"
+#: ops/add-noise/add-noise.c:39
+#: ops/unsharp-mask/unsharp-mask.c:45
+msgid "Amount"
+msgstr "数量"
+
+#: ops/add-noise/add-noise.c:40
+msgid "Noise strength in percent. 100% means a standard deviation of a quarter of the full range for Gaussian noise, or ±half the range for uniform noise."
+msgstr "噪点强度，百分比。100% 表示高斯分布的标准差为量程的四分之一，或均匀分布幅度为正负半个量程。"
+
+#: ops/add-noise/add-noise.c:46
+msgid "Distribution"
+msgstr "分布"
+
+#: ops/add-noise/add-noise.c:48
+msgid "Gaussian looks like film grain and sensor noise; uniform looks like digital dithering."
+msgstr "高斯分布像胶片颗粒与传感器噪点；均匀分布像数字抖动。"
+
+#: ops/add-noise/add-noise.c:51
+msgid "Monochromatic"
+msgstr "单色"
+
+#: ops/add-noise/add-noise.c:52
+msgid "Use one value for all three channels, giving grey grain instead of coloured speckle. Photoshop's Monochromatic checkbox."
+msgstr "三个通道共用一个值，得到灰度颗粒而不是彩色斑点。对应 Photoshop 的「单色」勾选。"
+
+#: ops/add-noise/add-noise.c:56
+msgid "Seed"
+msgstr "种子"
+
+#: ops/add-noise/add-noise.c:57
+msgid "Same seed and same image always give the same noise, so a look can be reproduced exactly."
+msgstr "同一个种子、同一张图永远得到同一份噪点，效果可以精确复现。"
+
+#: ops/add-noise/add-noise.c:177
+msgid "Add Noise"
+msgstr "添加杂色"
+
+#: ops/add-noise/add-noise.c:178
+msgid "Adds Gaussian or uniform noise, monochromatic or per channel. The seed makes the grain reproducible."
+msgstr "添加高斯或均匀噪点，可单色或逐通道。种子让颗粒可以复现。"
+
+#: ops/add-noise/add-noise.c:35
+msgid "Gaussian"
+msgstr "高斯"
+
+#: ops/add-noise/add-noise.c:36
+msgid "Uniform"
+msgstr "均匀"
+
+#: ops/color-lookup/color-lookup.c:39
+#: ops/reduce-noise/reduce-noise.c:36
+msgid "Strength"
+msgstr "强度"
+
+#: ops/dust-scratches/dust-scratches.c:36
+msgid "Neighbourhood radius in pixels. 1 is a 3×3 window. Bigger values remove bigger specks and also soften more detail."
+msgstr "邻域半径（像素）。1 即 3×3 窗口。值越大去掉的斑点越大，同时也会柔化更多细节。"
+
+#: ops/dust-scratches/dust-scratches.c:41
+#: ops/unsharp-mask/unsharp-mask.c:51
+#: plugin/sky-replace/sky-replace.py:220
+msgid "Threshold"
+msgstr "阈值"
+
+#: ops/dust-scratches/dust-scratches.c:42
+msgid "Neighbours that differ from the centre pixel by more than this many levels (0–255) are ignored, which is what keeps real edges intact. Raise it to remove stronger dust, lower it to protect fine texture."
+msgstr "与中心像素相差超过这个码数（0–255）的邻居不参与计算，真实边缘正是靠它保住的。调高可以去掉更明显的灰尘，调低则更保护细微纹理。"
+
+#: ops/dust-scratches/dust-scratches.c:226
+msgid "Dust & Scratches"
+msgstr "蒙尘与划痕"
+
+#: ops/dust-scratches/dust-scratches.c:227
+msgid "Replaces a pixel with the median of the neighbours that are within the threshold, so isolated dust and scratches vanish while real edges — whose neighbours differ too much — stay untouched."
+msgstr "用阈值内邻居的中值替换该像素，孤立的灰尘与划痕消失，而邻居差异过大的真实边缘保持不动。"
+
+#: ops/reduce-noise/reduce-noise.c:37
+msgid "How aggressively neighbours are averaged. Higher values smooth more and start to eat texture."
+msgstr "邻域平均的强度。值越大抹得越狠，也开始吃掉纹理。"
+
+#: ops/reduce-noise/reduce-noise.c:41
+msgid "Preserve detail"
+msgstr "保留细节"
+
+#: ops/reduce-noise/reduce-noise.c:42
+msgid "Shrinks the averaging threshold so fine texture survives. Photoshop's Preserve Details slider."
+msgstr "收窄平均阈值，让细微纹理保留下来。对应 Photoshop 的「保留细节」。"
+
+#: ops/reduce-noise/reduce-noise.c:47
+msgid "Neighbourhood radius in pixels. 1 is a 3×3 window; larger radii handle coarser grain but cost quadratically more."
+msgstr "邻域半径（像素）。1 即 3×3 窗口；半径越大能处理越粗的颗粒，代价按平方增长。"
+
+#: ops/reduce-noise/reduce-noise.c:52
+msgid "Per channel"
+msgstr "每通道"
+
+#: ops/reduce-noise/reduce-noise.c:53
+msgid "Off: the three channels share one weight set, so colour speckle disappears without shifting hues. On: each channel is filtered on its own, which suits luminance noise only."
+msgstr "关闭时三个通道共用一份权重，彩色噪点消失而色调不变；打开时每个通道各自过滤，适合只处理明度噪点。"
+
+#: ops/reduce-noise/reduce-noise.c:215
+msgid "Reduce Noise"
+msgstr "减少杂色"
+
+#: ops/reduce-noise/reduce-noise.c:216
+msgid "Sigma filter: averages only neighbours close to the centre pixel, so flat areas are smoothed and edges are left alone. Colour speckle can be removed without shifting hues."
+msgstr "Sigma 滤波：只平均与中心像素接近的邻居，平坦区被抹平、边缘保持原样。彩色噪点可以在不改变色调的前提下去掉。"
+
+#: ops/unsharp-mask/unsharp-mask.c:38
+msgid "Blur radius the sharpening is measured against. Small values sharpen fine texture, large values build local contrast (the so-called clarity look)."
+msgstr "作为参照的模糊半径。值小锐化细微纹理，值大提升局部对比（所谓「清澈感」）。"
+
+#: ops/unsharp-mask/unsharp-mask.c:46
+msgid "How much of the difference is added back, in percent. Photoshop's Amount slider, 1–500%."
+msgstr "差值加回去的比例，百分比。对应 Photoshop 的「数量」，1–500%。"
+
+#: ops/unsharp-mask/unsharp-mask.c:52
+msgid "Differences below this many levels (0–255) count as flat area and are left alone, so grain and sensor noise are not amplified. Photoshop's Threshold slider."
+msgstr "差值小于这个码数（0–255）的判为平坦区，原样保留，避免放大颗粒与传感器噪点。对应 Photoshop 的「阈值」。"
+
+#: ops/unsharp-mask/unsharp-mask.c:58
+msgid "Halo suppression"
+msgstr "光晕抑制"
+
+#: ops/unsharp-mask/unsharp-mask.c:59
+msgid "Clamp the sharpened value to the 3×3 neighbourhood of the original, in percent. At 100 the white and dark fringes along hard edges disappear; at 0 this is a plain unsharp mask."
+msgstr "把锐化结果夹到原图 3×3 邻域内，百分比。100 时硬边两侧的白边与暗边完全消失；0 就是普通的 USM 锐化。"
+
+#: ops/unsharp-mask/unsharp-mask.c:388
+msgid "Unsharp Mask"
+msgstr "USM 锐化"
+
+#: ops/unsharp-mask/unsharp-mask.c:389
+msgid "Sharpens against a blurred copy with the amount, radius and threshold of Photoshop's Unsharp Mask, plus a halo suppression stage that clamps the result to the 3×3 neighbourhood so hard edges do not grow white fringes."
+msgstr "对比模糊副本做锐化，数量、半径、阈值与 Photoshop 的 USM 一致；另加一级光晕抑制，把结果夹到 3×3 邻域，硬边不会长出白边。"
 

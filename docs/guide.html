@@ -49,7 +49,7 @@
   <ul>
     <li><b>GIMP 3.x</b>（3.0 / 3.2 实测），自带 GEGL 0.4。</li>
     <li>Windows x64 用现成的 <code>.dll</code>，Linux x86_64 用 <code>.so</code>。
-        Windows 包 <b>43 个模块齐全</b>；Linux 包目前 43 个，与 Windows 一致。</li>
+        Windows 包 <b>47 个模块齐全</b>；Linux 包目前 43 个，component 家族那 4 个模块（hsv / hsl / lab / lch / hsi 各自的 dual 与 compose，再加 gray-to-component）还没出包，可以 <code>./build.sh</code> 自己编。</li>
     <li>不需要 Python 运行时——算子是 C 编译的 GEGL 模块。</li>
   </ul>
 
@@ -218,8 +218,8 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
   <ul>
     <li><b>GIMP 3.x</b> (tested on 3.0 and 3.2), which ships GEGL 0.4.</li>
     <li>Prebuilt <code>.dll</code> for Windows x64, <code>.so</code> for Linux x86_64.
-        The Windows bundle has <b>all 43 modules</b>; the Linux bundle currently has
-        43 — same as Windows.</li>
+        The Windows bundle has <b>all 47 modules</b>; the Linux bundle currently has
+        43 — the 4 modules of the component family (dual and compose for hsv / hsl / lab / lch / hsi, plus gray-to-component) are not in the bundle yet — build them with <code>./build.sh</code>.</li>
     <li>No Python runtime needed: the operators are GEGL modules compiled from C.</li>
   </ul>
 
@@ -430,7 +430,7 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">1551379</span>
+    <span class="muted">a08b739</span>
   </div>
 </footer>
 <script>
