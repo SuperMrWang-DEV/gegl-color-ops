@@ -81,6 +81,8 @@ ops = [
   ['match-color',             'match-color',             'match-color.c'],
   # 邻域算子（区域滤波）：形态学最大值/最小值，输入需要向外扩半径
   ['max-min',                 'max-min',                 'max-min.c'],
+  # 置换：单张矢量场 + 可调黑白场/中点，修掉 gegl:displace 的几处硬限制
+  ['displace',                'displace',                'displace.c'],
   ['color-temperature-tint',   'color-temperature-tint',   'color-temperature-tint.c'],
 ]
 

@@ -1627,3 +1627,178 @@ msgstr "Lab 分量曲线 · %s"
 #: plugin/lch-split-curves/lch-split-curves.py:716
 msgid "LCh Split (Curves) · %s"
 msgstr "LCh 分量曲线 · %s"
+#: ops/apply-image/apply-image.c:72
+#: ops/calculations/calculations.c:75
+#: ops/displace/displace.c:52
+#: ops/match-color/match-color.c:72
+msgid "Luminance"
+msgstr "亮度"
+
+#: ops/apply-image/apply-image.c:73
+#: ops/calculations/calculations.c:76
+#: ops/displace/displace.c:56
+#: plugin/blend/blend.py:594
+msgid "Alpha"
+msgstr "Alpha 通道"
+
+#: ops/displace/displace.c:77
+msgid "Horizontal amount"
+msgstr "水平位移量"
+
+#: ops/displace/displace.c:78
+msgid "Displacement along X for a map value at the white point"
+msgstr "位移图取白场值时的水平位移量"
+
+#: ops/displace/displace.c:81
+msgid "Vertical amount"
+msgstr "垂直位移量"
+
+#: ops/displace/displace.c:82
+msgid "Displacement along Y for a map value at the white point"
+msgstr "位移图取白场值时的垂直位移量"
+
+#: ops/displace/displace.c:85
+msgid "Amount unit"
+msgstr "位移量单位"
+
+#: ops/displace/displace.c:87
+msgid "Pixels stay fixed when the image is resized; a percentage of the long edge scales with it"
+msgstr "像素不随图像缩放；按长边百分比则跟着一起缩放"
+
+#: ops/displace/displace.c:90
+msgid "Map mode"
+msgstr "位移图模式"
+
+#: ops/displace/displace.c:92
+msgid "Vector reads R as X and G as Y, so one RGBA map drives both axes. Single channel reads one channel and feeds it to both amounts, the classic grey-map setup"
+msgstr "矢量：R 作水平、G 作垂直，一张 RGBA 图同时驱动两轴。单通道：一个通道同时喂两个位移量，对应传统灰度图用法"
+
+#: ops/displace/displace.c:96
+msgid "Map channel"
+msgstr "位移图通道"
+
+#: ops/displace/displace.c:98
+msgid "Channel read in single channel mode"
+msgstr "单通道模式下读取的通道"
+
+#: ops/displace/displace.c:101
+msgid "Black point"
+msgstr "黑场"
+
+#: ops/displace/displace.c:102
+msgid "Map value that means the full negative displacement"
+msgstr "位移图取这个值时是负向满量位移"
+
+#: ops/displace/displace.c:105
+msgid "Midpoint"
+msgstr "中点"
+
+#: ops/displace/displace.c:106
+msgid "Map value that means no displacement. Grey maps use 0.5; vector fields that are zero at rest use 0"
+msgstr "位移图取这个值时不动。灰度图用 0.5，零中性矢量场用 0"
+
+#: ops/displace/displace.c:110
+msgid "White point"
+msgstr "白场"
+
+#: ops/displace/displace.c:111
+msgid "Map value that means the full positive displacement"
+msgstr "位移图取这个值时是正向满量位移"
+
+#: ops/displace/displace.c:114
+msgid "Weight by map alpha"
+msgstr "按位移图 alpha 加权"
+
+#: ops/displace/displace.c:115
+msgid "Multiply the displacement by the map's alpha. GEGL's own displace always does this, which silently cancels the displacement on transparent parts of the map"
+msgstr "位移量乘以位移图的 alpha。GEGL 自带的 displace 总是这样，会让位移图的透明区域静默失去位移"
+
+#: ops/displace/displace.c:119
+msgid "Out of bounds"
+msgstr "越界处理"
+
+#: ops/displace/displace.c:121
+msgid "How pixels pulled from outside the image are resolved. Wrap around keeps tiles seamless, repeat edge pixels avoids both seams and smears behind a small elongation"
+msgstr "采到图像外时如何取值。环绕适合无缝贴图；重复边缘既不产生接缝，也不会在拉伸背后拖出长条"
+
+#: ops/displace/displace.c:125
+msgid "Resampling"
+msgstr "重采样"
+
+#: ops/displace/displace.c:127
+msgid "Bilinear never overshoots; bicubic is sharper on smooth maps but rings on hard edges; nohalo and lohalo stay sharp without ringing"
+msgstr "双线性不会过冲；双三次在平滑处更锐，但硬边会振铃；nohalo 与 lohalo 锐利且不振铃"
+
+#: ops/displace/displace.c:417
+msgid "Displacement map"
+msgstr "位移图"
+
+#: ops/displace/displace.c:418
+msgid "Map that drives the displacement; without it the image passes through"
+msgstr "驱动位移的图；不接则原样输出"
+
+#: ops/displace/displace.c:423
+#: ops/displace/displace.c:429
+msgid "Displace"
+msgstr "置换"
+
+#: ops/displace/displace.c:424
+msgid "Resamples the image through a displacement map: one RGBA map drives both axes, amounts in pixels or percent of the long edge, five edge policies and a sampler that does not ring by default."
+msgstr "按位移图重采样图像：一张 RGBA 图同时驱动两轴，位移量可按像素或长边百分比，五种越界策略，默认用不振铃的采样器。"
+
+#: ops/displace/displace.c:40
+msgid "Pixels"
+msgstr "像素"
+
+#: ops/displace/displace.c:41
+msgid "Percent of long edge"
+msgstr "长边百分比"
+
+#: ops/displace/displace.c:46
+msgid "Vector (R = X, G = Y)"
+msgstr "矢量（R = X，G = Y）"
+
+#: ops/displace/displace.c:47
+msgid "Single channel"
+msgstr "单通道"
+
+#: ops/displace/displace.c:61
+msgid "Wrap around"
+msgstr "环绕"
+
+#: ops/displace/displace.c:62
+msgid "Repeat edge pixels"
+msgstr "重复边缘像素"
+
+#: ops/displace/displace.c:63
+msgid "Transparent"
+msgstr "透明"
+
+#: ops/displace/displace.c:64
+msgid "Black"
+msgstr "黑色"
+
+#: ops/displace/displace.c:65
+msgid "White"
+msgstr "白色"
+
+#: ops/displace/displace.c:70
+msgid "Nearest"
+msgstr "最近邻"
+
+#: ops/displace/displace.c:71
+msgid "Bilinear"
+msgstr "双线性"
+
+#: ops/displace/displace.c:72
+msgid "Bicubic"
+msgstr "双三次"
+
+#: ops/displace/displace.c:73
+msgid "Nohalo (no ringing)"
+msgstr "Nohalo（不振铃）"
+
+#: ops/displace/displace.c:74
+msgid "Lohalo (no ringing, slow)"
+msgstr "Lohalo（不振铃，较慢）"
+

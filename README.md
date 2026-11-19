@@ -5,7 +5,7 @@
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
 [![Operations](https://img.shields.io/badge/operations-37-brightgreen)](#算子清单)
 
-一组自研的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **42 个**，统一 `lb:` 命名空间，
+一组自研的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **43 个**，统一 `lb:` 命名空间，
 在 GIMP 里收在菜单栏顶层的 **SuperMrWang** 菜单下（和「颜色」「图层」平级）。算法按公开公式与可观察的行为实现，
 不含任何商业软件的代码或素材；文中出现的产品名仅用于说明某个算子参照了哪种行为，
 与各厂商无隶属关系（详见文末「版权与商标」）。
@@ -138,14 +138,17 @@ Python 插件走另一条线，两种取法都行：
 | `lb:lch-compose` | LCh Compose | LCh Compose | Component | Point | LCh 分量曲线的合成器：把（R = L、G = C、B = h）的数据图乘回物理量再转 RGB，与 `lb:lch-levels` 同一套 Lab 口径，浮点往返 0.0005 码 |
 | `lb:hsi-dual` | HSI Dual Extract | HSI Dual Extract | Component | Point | HSI 分量曲线的提取器：R = 饱和度、G = 强度、B = 色相/360。色相用 HSI 自己的余弦角（与 HSV 的参数角最多差 1.117°）；`HSI Split (Curves)` 的唯一一道提取器 |
 | `lb:hsi-compose` | HSI Compose | HSI Compose | Component | Point | HSI 分量曲线的合成器：把（R = S、G = I、B = H/360）的数据图按余弦式逆变换还原成真实色，与 `lb:hsi-levels` 共用 common/color-levels.h 里那份 HSI |
+| `lb:displace` | Displace | Displace | Distort | Composer | 按位移图重采样：一张 RGBA 图同时给 X/Y（R/G），位移图不乘 alpha，覆盖不到的像素原样输出，单位可按长边百分比，五种越界策略，默认 nohalo 不振铃 |
 
 每个算子的算法说明、参数含义见 `ops/<算子名>/README.md`（原始文档）。
 
-**两个双输入算子**（`apply-image` / `calculations`）除 `input` 外还有一个 `aux` pad。
-两者都是 composer，但基类不同：`apply-image` 要按源图层的大小和位置决定「这块有没有
-东西可混」，所以用 `GeglOperationComposer`（`process` 拿到的是 `GeglBuffer`，可以
-`gegl_buffer_get_extent(aux)`）；`calculations` 输出的是整幅蒙版，缺的源按黑算，
-用开销更小的 `GeglOperationPointComposer` 就够。
+**三个双输入算子**（`apply-image` / `calculations` / `displace`）除 `input` 外还有一个
+`aux` pad。三者都是 composer，但基类不同：`apply-image` 要按源图层的大小和位置决定
+「这块有没有东西可混」，所以用 `GeglOperationComposer`（`process` 拿到的是
+`GeglBuffer`，可以 `gegl_buffer_get_extent(aux)`）；`calculations` 输出的是整幅蒙版，
+缺的源按黑算，用开销更小的 `GeglOperationPointComposer` 就够；`displace` 同样要
+extent 来判断位移图盖到哪（盖不到的地方原样输出），并且要自己建 sampler，也只能用
+`GeglOperationComposer`。
 
 `apply-image` 的「有没有东西可混」分两层看：extent 是粗筛（图层盖到哪），源像素的
 alpha 是细筛（这块地方真有像素吗）。抠图层的透明洞里 RGB 是 0，只看 extent 会把洞

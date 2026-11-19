@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-title-zh="Displace · gegl-color-ops" data-title-en="Displace · gegl-color-ops">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Displace · gegl-color-ops</title>
+<meta name="description" content="按位移图重采样图像。相对 GEGL 自带的 gegl:displace，这里修掉四件事：单张图同时给水平/垂直、位移图不强制乘 alpha、位移图覆盖不到的区域原样输出而不是硬移、默认用无振铃的采样器。" data-desc-zh="按位移图重采样图像。相对 GEGL 自带的 gegl:displace，这里修掉四件事：单张图同时给水平/垂直、位移图不强制乘 alpha、位移图覆盖不到的区域原样输出而不是硬移、默认用无振铃的采样器。" data-desc-en="按位移图重采样图像。相对 GEGL 自带的 gegl:displace，这里修掉四件事：单张图同时给水平/垂直、位移图不强制乘 alpha、位移图覆盖不到的区域原样输出而不是硬移、默认用无振铃的采样器。">
+<meta property="og:title" content="Displace · gegl-color-ops" data-title-zh="Displace · gegl-color-ops" data-title-en="Displace · gegl-color-ops">
+<meta property="og:description" content="按位移图重采样图像。相对 GEGL 自带的 gegl:displace，这里修掉四件事：单张图同时给水平/垂直、位移图不强制乘 alpha、位移图覆盖不到的区域原样输出而不是硬移、默认用无振铃的采样器。" data-desc-zh="按位移图重采样图像。相对 GEGL 自带的 gegl:displace，这里修掉四件事：单张图同时给水平/垂直、位移图不强制乘 alpha、位移图覆盖不到的区域原样输出而不是硬移、默认用无振铃的采样器。" data-desc-en="按位移图重采样图像。相对 GEGL 自带的 gegl:displace，这里修掉四件事：单张图同时给水平/垂直、位移图不强制乘 alpha、位移图覆盖不到的区域原样输出而不是硬移、默认用无振铃的采样器。">
+<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body class="article">
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+<main id="main">
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 混合与通道</p>
+  <h1>Displace</h1>
+  <div class="meta">
+    <code>lb:displace</code>
+    <span class="tag t-blend">混合与通道</span>
+    <span>双输入</span>
+  </div>
+  <p class="lede">按位移图重采样图像。相对 GEGL 自带的 gegl:displace，这里修掉四件事：单张图同时给水平/垂直、位移图不强制乘 alpha、位移图覆盖不到的区域原样输出而不是硬移、默认用无振铃的采样器。</p>
+</section><div class="article-layout">
+  <article class="prose">
+<blockquote><p><code>lb:displace</code> · 菜单 <strong>SuperMrWang → Distort → Displace</strong> · 双输入（input + aux）</p></blockquote>
+<p>按位移图重采样图像。GEGL 自带的 <code>gegl:displace</code> 能跑，但参数面被写死在几处地方， 这个算子把它们逐个打开。</p>
+<h2 id="为什么不用-gegldisplace">为什么不用 gegl:displace</h2>
+<p><code>gegl:displace</code> 每像素算的是 <code>2 × amount × (Y′ − 0.5) × alpha</code>，aux 的格式是 <code>Y'A float</code>。这一行决定了它的全部性格：</p>
+<div class="table-wrap"><table><thead><tr><th>项</th><th><code>gegl:displace</code></th><th><code>lb:displace</code></th></tr></thead><tbody><tr><td>位移图读法</td><td>只取亮度 Y′；水平、垂直各要<strong>一张图</strong></td><td>矢量场取 R→X、G→Y，<strong>一张图</strong>同时给两轴；也可切单通道模式</td></tr><tr><td>alpha</td><td>强制相乘，位移图透明处位移静默归零</td><td>默认不乘，<code>alpha-weight</code> 显式打开</td></tr><tr><td>中性值</td><td>固定 0.5，不可改</td><td><code>midpoint</code> 可调，另有 <code>black-point</code> / <code>white-point</code> 做动态范围压缩与超量位移</td></tr><tr><td>单位</td><td>像素</td><td>像素 或 <strong>长边百分比</strong>（换分辨率不用重调）</td></tr><tr><td>越界</td><td>clamp / loop / black / white</td><td>同上，另加 <strong>transparent</strong></td></tr><tr><td>重采样</td><td>默认 bicubic，高对比边缘会振铃出白边</td><td>默认 <strong>nohalo</strong>，可换 bilinear / cubic / lohalo</td></tr><tr><td>位移图未覆盖区</td><td>读出 0 → 整块被硬移 −amount</td><td><strong>原样输出</strong></td></tr><tr><td>输出尺寸</td><td>跟随主图</td><td>跟随主图（显式覆盖 bbox，位移图偏移不会撑大画布）</td></tr></tbody></table></div>
+<p>前两条最要命：拿一张带透明背景的图层当位移图，<code>gegl:displace</code> 会在透明处<strong>不报错地</strong> 取消位移；想同时控制 X 和 Y 又得准备两张对齐的灰度图。这里一张 RGBA 就够。</p>
+<h2 id="参数-parameters">参数 / Parameters</h2>
+<div class="table-wrap"><table><thead><tr><th>参数</th><th>默认</th><th>说明</th></tr></thead><tbody><tr><td><code>amount-x</code></td><td>0</td><td>水平位移量，对应位移图白场处</td></tr><tr><td><code>amount-y</code></td><td>0</td><td>垂直位移量，对应位移图白场处</td></tr><tr><td><code>units</code></td><td>Pixels</td><td><code>Pixels</code> 固定像素；<code>Percent of long edge</code> 按主图长边百分比</td></tr><tr><td><code>map-mode</code></td><td>Vector</td><td><code>Vector</code> 取 R→X、G→Y；<code>Single channel</code> 取一个通道同时喂两轴</td></tr><tr><td><code>map-channel</code></td><td>Luminance</td><td>单通道模式读哪个通道（亮度 / R / G / B / A）</td></tr><tr><td><code>black-point</code></td><td>0</td><td>位移图取这个值时是 −1 倍位移</td></tr><tr><td><code>midpoint</code></td><td>0.5</td><td>位移图取这个值时不动。灰图用 0.5，零中性矢量场用 0</td></tr><tr><td><code>white-point</code></td><td>1</td><td>位移图取这个值时是 +1 倍位移</td></tr><tr><td><code>alpha-weight</code></td><td>否</td><td>位移量乘以位移图的 alpha（复刻 <code>gegl:displace</code> 的行为）</td></tr><tr><td><code>abyss</code></td><td>Wrap around</td><td>采到图外时：环绕 / 重复边缘 / 透明 / 黑 / 白</td></tr><tr><td><code>resampling</code></td><td>Nohalo</td><td>最近邻 / 双线性 / 双三次 / Nohalo / Lohalo</td></tr></tbody></table></div>
+<p><code>black-point</code>、<code>midpoint</code>、<code>white-point</code> 三个一起决定映射曲线：<strong>中点两侧各自</strong>线性 映射到 −1 和 +1。所以 <code>0 / 0.5 / 1</code> 是标准灰图，<code>−1 / 0 / 1</code> 是零中性矢量场， <code>0.2 / 0.4 / 0.6</code> 则是「只取中间一段做完整位移」，相当于先把位移图加对比度。</p>
+<h2 id="算法">算法</h2>
+<pre class="mermaid">flowchart TD
+  A["aux 位移图（R/G 或单通道）"] --&gt; B["remap：black → −1，mid → 0，white → +1"]
+  B --&gt; C["× amount-x / amount-y × 单位"]
+  C --&gt; D["源坐标 = 像素中心 + 偏移"]
+  D --&gt; E["采样 input（默认 nohalo，越界按 abyss）"]
+  E --&gt; F["写回同位置"]
+  G["aux 没覆盖到这里"] --&gt; H["原样输出"]</pre>
+<div class="math-display">$$t(v)=\begin{cases}\dfrac{v-\text{mid}}{\text{white}-\text{mid}} &amp; v\ge \text{mid}\\[4pt]
+\dfrac{v-\text{mid}}{\text{mid}-\text{black}} &amp; v&lt;\text{mid}\end{cases}
+\qquad
+\text{src}=(x+\tfrac12+t_x A_x u,\; y+\tfrac12+t_y A_y u)$$</div>
+<p><code>u</code> 是单位换算（像素时 1，百分比时长边 × 0.01）。矢量模式下 <code>t_x=t(R)</code>、<code>t_y=t(G)</code>； 单通道模式下两者取同一个 <code>t</code>，方向由 <code>amount-x</code> 与 <code>amount-y</code> 的比值决定。</p>
+<h2 id="用法-recipes">用法 / Recipes</h2>
+<ul><li><strong>水波、热浪</strong>：<code>gegl:perlin-noise</code> 当位移图，<code>midpoint=0</code>（噪声以 0 为中心）、 <code>amount</code> 10–30 px，<code>resampling=nohalo</code>。</li><li><strong>无缝贴图的接缝</strong>：位移图也要是无缝的，<code>abyss=Wrap around</code>，否则拉伸后接缝会 出现在另一个位置。</li><li><strong>镜头桶形逆映射</strong>：用 <code>gegl:lens-distortion</code> 的反向参数生成一张坐标场，切 <code>map-mode=Single channel</code> 只能处理同心圆，真正要按半径算还是得用矢量图。</li><li><strong>文字磨损 / 涂抹</strong>：<code>amount</code> 大（&gt;50 px）时把 <code>resampling</code> 提到 <code>Lohalo</code>， 并在位移图上先做一次轻微高斯模糊——硬边的位移图会把边缘采样成锯齿。</li></ul>
+<h2 id="与-gegldisplace-的迁移">与 gegl:displace 的迁移</h2>
+<p>把原来的「两张灰度图」换成「一张 RGBA」：R 放水平图、G 放垂直图，两个都按 <code>0 / 0.5 / 1</code> 保持中灰不动。如果只有一张灰度图，切 <code>map-mode=Single channel</code>、 <code>map-channel=Luminance</code>，<code>amount-x</code> 与 <code>amount-y</code> 分别填原来的两个比例即可。</p>
+<h2 id="测试-testing">测试 / Testing</h2>
+<pre><code class="language-bash">python tools/check_displace.py -v</code></pre>
+<p>11 项逐像素断言：零位移恒等、黑白满量位移、环绕与夹边的区别、矢量场 XY 独立、 单通道模式、百分比单位、白场外推、透明位移图默认仍然生效、勾上 <code>alpha-weight</code> 后透明区不动、位移图只盖半个画面时未覆盖区原样。</p><div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>displace.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/displace.dll">下载 displace.dll<span class="size">Windows x64</span></a></div>
+</div><nav class="pager"><a class="prev" href="color-lookup.html"><span>上一个</span>Color Lookup</a><a class="next" href="max-min.html"><span>下一个</span>Maximum / Minimum</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#为什么不用-gegldisplace">为什么不用 gegl:displace</a></li>
+<li class="l2"><a href="#参数-parameters">参数 / Parameters</a></li>
+<li class="l2"><a href="#算法">算法</a></li>
+<li class="l2"><a href="#用法-recipes">用法 / Recipes</a></li>
+<li class="l2"><a href="#与-gegldisplace-的迁移">与 gegl:displace 的迁移</a></li>
+<li class="l2"><a href="#测试-testing">测试 / Testing</a></li></ul>
+</aside>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Blend</p>
+  <h1>Displace</h1>
+  <div class="meta">
+    <code>lb:displace</code>
+    <span class="tag t-blend">Blend</span>
+    <span>two inputs</span>
+  </div>
+  <p class="lede">Resample the image through a displacement map: one RGBA map drives both axes, five edge policies, and a sampler that does not ring by default.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p><code>lb:displace</code> · menu <strong>SuperMrWang → Distort → Displace</strong> · two inputs (input + aux)</p>
+<p>Resamples the image through a displacement map. GEGL's own <code>gegl:displace</code> works, but several of its knobs are welded shut; this one opens them.</p>
+<h2 id="why-not-gegldisplace">Why not gegl:displace</h2>
+<p><code>gegl:displace</code> computes <code>2 × amount × (Y′ − 0.5) × alpha</code> per pixel, with the map read as <code>Y'A float</code>. That single line defines its whole character:</p>
+<div class="table-wrap"><table><thead><tr><th></th><th><code>gegl:displace</code></th><th><code>lb:displace</code></th></tr></thead><tbody><tr><td>Map is read as</td><td>luminance Y′ only; one image <strong>per axis</strong></td><td>vector field R→X, G→Y, <strong>one image</strong> for both axes; single channel mode too</td></tr><tr><td>alpha</td><td>always multiplied, so a transparent part of the map silently cancels the displacement</td><td>not multiplied by default; <code>alpha-weight</code> turns it on explicitly</td></tr><tr><td>Rest value</td><td>pinned at 0.5</td><td><code>midpoint</code> is adjustable, plus <code>black-point</code> / <code>white-point</code> for range compression and over-range shifts</td></tr><tr><td>Unit</td><td>pixels</td><td>pixels or <strong>percent of the long edge</strong>, so resizing the image does not invalidate the amount</td></tr><tr><td>Out of bounds</td><td>clamp / loop / black / white</td><td>same, plus <strong>transparent</strong></td></tr><tr><td>Resampling</td><td>bicubic by default, which rings into white halos on hard edges</td><td><strong>nohalo</strong> by default, switchable to bilinear / cubic / lohalo</td></tr><tr><td>Where the map does not reach</td><td>reads zero and hard-shifts the area by −amount</td><td><strong>passes through untouched</strong></td></tr><tr><td>Output size</td><td>follows the input</td><td>follows the input (bounding box overridden, so an offset map cannot grow the canvas)</td></tr></tbody></table></div>
+<p>The first two matter most: with a layer that has transparency as the map, <code>gegl:displace</code> cancels the displacement there without a word, and driving both axes needs two perfectly aligned greyscale images. One RGBA map does both here.</p>
+<h2 id="parameters">Parameters</h2>
+<div class="table-wrap"><table><thead><tr><th>Parameter</th><th>Default</th><th>Notes</th></tr></thead><tbody><tr><td><code>amount-x</code></td><td>0</td><td>Horizontal displacement at the map's white point</td></tr><tr><td><code>amount-y</code></td><td>0</td><td>Vertical displacement at the map's white point</td></tr><tr><td><code>units</code></td><td>Pixels</td><td><code>Pixels</code> stays fixed; <code>Percent of long edge</code> scales with the image</td></tr><tr><td><code>map-mode</code></td><td>Vector</td><td><code>Vector</code> reads R→X and G→Y; <code>Single channel</code> feeds one channel to both axes</td></tr><tr><td><code>map-channel</code></td><td>Luminance</td><td>Which channel single channel mode reads (luminance / R / G / B / A)</td></tr><tr><td><code>black-point</code></td><td>0</td><td>Map value meaning −1 × the amount</td></tr><tr><td><code>midpoint</code></td><td>0.5</td><td>Map value meaning no displacement. Grey maps use 0.5, zero-centred vector fields use 0</td></tr><tr><td><code>white-point</code></td><td>1</td><td>Map value meaning +1 × the amount</td></tr><tr><td><code>alpha-weight</code></td><td>no</td><td>Multiply the displacement by the map's alpha (reproduces <code>gegl:displace</code>)</td></tr><tr><td><code>abyss</code></td><td>Wrap around</td><td>Sampling outside the image: wrap / repeat edge / transparent / black / white</td></tr><tr><td><code>resampling</code></td><td>Nohalo</td><td>nearest / bilinear / bicubic / nohalo / lohalo</td></tr></tbody></table></div>
+<p>The three mapping points put −1 at black, 0 at the midpoint and +1 at white, <strong>each side scaled independently</strong>. <code>0 / 0.5 / 1</code> is a plain grey map, <code>−1 / 0 / 1</code> is a zero-centred vector field, and <code>0.2 / 0.4 / 0.6</code> stretches a narrow band of the map into the full range.</p>
+<h2 id="algorithm">Algorithm</h2>
+<pre class="mermaid">flowchart TD
+  A["aux map (R/G or one channel)"] --&gt; B["remap: black → −1, mid → 0, white → +1"]
+  B --&gt; C["× amount-x / amount-y × unit"]
+  C --&gt; D["source = pixel centre + offset"]
+  D --&gt; E["sample input (nohalo by default, abyss policy for outside)"]
+  E --&gt; F["write back to the same pixel"]
+  G["map does not cover this area"] --&gt; H["pass through"]</pre>
+<div class="math-display">$$t(v)=\begin{cases}\dfrac{v-\text{mid}}{\text{white}-\text{mid}} &amp; v\ge \text{mid}\\[4pt]
+\dfrac{v-\text{mid}}{\text{mid}-\text{black}} &amp; v&lt;\text{mid}\end{cases}
+\qquad
+\text{src}=(x+\tfrac12+t_x A_x u,\; y+\tfrac12+t_y A_y u)$$</div>
+<p><code>u</code> is the unit factor (1 for pixels, long edge × 0.01 for percent). Vector mode uses <code>t(R)</code> and <code>t(G)</code>; single channel mode feeds one <code>t</code> to both axes, so the ratio of the two amounts picks the direction.</p>
+<h2 id="recipes">Recipes</h2>
+<ul><li><strong>Water ripples, heat haze</strong>: use <code>gegl:perlin-noise</code> as the map with <code>midpoint=0</code> (the noise is centred on zero), amounts of 10–30 px, <code>resampling=nohalo</code>.</li><li><strong>Seamless tiles</strong>: the map has to be seamless too, and use <code>abyss=Wrap around</code>; otherwise the seam simply moves somewhere else.</li><li><strong>Inverse lens distortion</strong>: generate a coordinate field from the reverse of <code>gegl:lens-distortion</code>. Single channel mode only handles concentric cases; anything radial really needs the vector map.</li><li><strong>Worn type, smearing</strong>: with amounts above ~50 px raise <code>resampling</code> to <code>Lohalo</code> and blur the map slightly first — a hard-edged map samples into stair steps.</li></ul>
+<h2 id="migrating-from-gegldisplace">Migrating from gegl:displace</h2>
+<p>Move the two greyscale maps into one RGBA map: R takes the horizontal map, G the vertical one, both still resting at mid grey. With a single grey map, switch to single channel mode and put the two old ratios into the two amounts.</p>
+<h2 id="testing">Testing</h2>
+<pre><code class="language-bash">python tools/check_displace.py -v</code></pre>
+<p>Eleven per-pixel assertions: identity at zero amount, full-scale shifts in both directions, wrap versus clamp, X and Y independent in a vector field, single channel mode, percent units, over-range white point, a transparent map still shifting by default, <code>alpha-weight</code> freezing the transparent part, and a map that only covers half the canvas leaving the rest untouched.</p><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>displace.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/displace.dll">Download displace.dll<span class="size">Windows x64</span></a></div>
+</div><nav class="pager"><a class="prev" href="color-lookup.html"><span>Previous</span>Color Lookup</a><a class="next" href="max-min.html"><span>Next</span>Maximum / Minimum</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#why-not-gegldisplace">Why not gegl:displace</a></li>
+<li class="l2"><a href="#parameters">Parameters</a></li>
+<li class="l2"><a href="#algorithm">Algorithm</a></li>
+<li class="l2"><a href="#recipes">Recipes</a></li>
+<li class="l2"><a href="#migrating-from-gegldisplace">Migrating from gegl:displace</a></li>
+<li class="l2"><a href="#testing">Testing</a></li></ul>
+</aside>
+</div></div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
+    <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
+    <span class="muted">d21f2e6</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
+</body>
+</html>

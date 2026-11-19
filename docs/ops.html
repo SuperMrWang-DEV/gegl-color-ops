@@ -41,7 +41,7 @@
 <main id="main">
 <section class="page-head">
   <p class="eyebrow"><a href="index.html"><span class="l-zh">首页</span><span class="l-en">Home</span></a> / <span class="l-zh">算子清单</span><span class="l-en">Operators</span></p>
-  <h1><span class="l-zh">42 个算子</span><span class="l-en">42 operators</span></h1>
+  <h1><span class="l-zh">43 个算子</span><span class="l-en">43 operators</span></h1>
   <p class="lede"><span class="l-zh">按 GIMP 菜单里的分组排列。点名字进算法说明。</span><span class="l-en">Grouped the way the GIMP menu is. Open a name for the algorithm notes.</span></p>
 </section>
 <section class="prose wide">
@@ -108,6 +108,7 @@
 <tr><td><a href="ops/channel-mixer-plus.html"><b><span class="l-zh">Channel Mixer Plus</span><span class="l-en">Channel Mixer Plus</span></b></a></td><td><code>lb:channel-mixer-plus</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移</span><span class="l-en">The classic editor's Channel Mixer — a 3×3 matrix from R/G/B into…</span></td></tr>
 <tr><td><a href="ops/xyz-multiply.html"><b><span class="l-zh">Photo Filter</span><span class="l-en">Photo Filter</span></b></a></td><td><code>lb:xyz-multiply</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。</span><span class="l-en">The classic editor's Photo Filter, reproduced end to end — colour…</span></td></tr>
 <tr><td><a href="ops/color-lookup.html"><b><span class="l-zh">Color Lookup</span><span class="l-en">Color Lookup</span></b></a></td><td><code>lb:color-lookup</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价于经典图像编辑器「颜色查找」调整图层；强度按 0..1 与原图线性混…</span><span class="l-en">The classic editor's Color Lookup adjustment built on the Adobe Cube…</span></td></tr>
+<tr><td><a href="ops/displace.html"><b><span class="l-zh">Displace</span><span class="l-en">Displace</span></b></a></td><td><code>lb:displace</code></td><td class="nowrap"><span class="l-zh">双输入</span><span class="l-en">two inputs</span></td><td><span class="l-zh">按位移图重采样图像。相对 GEGL 自带的 gegl:displace，这里修掉四件事：单张图同时给水平/垂直、位移图不强制乘 alpha…</span><span class="l-en">Resample the image through a displacement map: one RGBA map drives…</span></td></tr>
 <tr><td><a href="ops/max-min.html"><b><span class="l-zh">Maximum / Minimum</span><span class="l-en">Maximum / Minimum</span></b></a></td><td><code>lb:max-min</code></td><td class="nowrap"><span class="l-zh">AreaFilter</span><span class="l-en">AreaFilter</span></td><td><span class="l-zh">形态学的两个基本算子，也是 Photoshop「最大值 / 最小值」滤镜的等价物：每个像素取邻域内最大（膨胀）或最小值（腐蚀）。最大值把亮区…</span><span class="l-en">Morphological dilate and erode — Photoshop's Maximum / Minimum…</span></td></tr>
 </tbody></table></div>
 <h2 id="g-Mask"><span class="tag t-mask"><span class="l-zh">蒙版</span><span class="l-en">Mask</span></span></h2>
@@ -130,7 +131,7 @@
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">2b79f09</span>
+    <span class="muted">d21f2e6</span>
   </div>
 </footer>
 <script>

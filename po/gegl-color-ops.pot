@@ -313,6 +313,7 @@ msgstr ""
 #: ops/channel-mixer-plus/channel-mixer-plus.c:33
 #: ops/channel-range-to-alpha/channel-range-to-alpha.c:32
 #: ops/color-mask-select/color-mask-select.c:75
+#: ops/displace/displace.c:53
 #: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:33
 #: plugin/alpha-curves/alpha-curves.py:86
 #: plugin/blend/blend.py:593
@@ -325,6 +326,7 @@ msgstr ""
 #: ops/channel-mixer-plus/channel-mixer-plus.c:37
 #: ops/channel-range-to-alpha/channel-range-to-alpha.c:33
 #: ops/color-mask-select/color-mask-select.c:76
+#: ops/displace/displace.c:54
 #: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:45
 #: plugin/alpha-curves/alpha-curves.py:87
 #: plugin/blend/blend.py:593
@@ -337,6 +339,7 @@ msgstr ""
 #: ops/channel-mixer-plus/channel-mixer-plus.c:41
 #: ops/channel-range-to-alpha/channel-range-to-alpha.c:34
 #: ops/color-mask-select/color-mask-select.c:77
+#: ops/displace/displace.c:55
 #: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:57
 #: plugin/alpha-curves/alpha-curves.py:88
 #: plugin/blend/blend.py:594
@@ -346,12 +349,14 @@ msgstr ""
 
 #: ops/apply-image/apply-image.c:72
 #: ops/calculations/calculations.c:75
+#: ops/displace/displace.c:52
 #: ops/match-color/match-color.c:72
 msgid "Luminance"
 msgstr ""
 
 #: ops/apply-image/apply-image.c:73
 #: ops/calculations/calculations.c:76
+#: ops/displace/displace.c:56
 #: plugin/blend/blend.py:594
 msgid "Alpha"
 msgstr ""
@@ -1452,6 +1457,167 @@ msgstr ""
 
 #: ops/colorize-hsl/colorize-hsl.c:171
 msgid "the classic editor's Colorize: keep the HSL lightness of each pixel, replace hue and saturation with the slider values."
+msgstr ""
+
+#: ops/displace/displace.c:77
+msgid "Horizontal amount"
+msgstr ""
+
+#: ops/displace/displace.c:78
+msgid "Displacement along X for a map value at the white point"
+msgstr ""
+
+#: ops/displace/displace.c:81
+msgid "Vertical amount"
+msgstr ""
+
+#: ops/displace/displace.c:82
+msgid "Displacement along Y for a map value at the white point"
+msgstr ""
+
+#: ops/displace/displace.c:85
+msgid "Amount unit"
+msgstr ""
+
+#: ops/displace/displace.c:87
+msgid "Pixels stay fixed when the image is resized; a percentage of the long edge scales with it"
+msgstr ""
+
+#: ops/displace/displace.c:90
+msgid "Map mode"
+msgstr ""
+
+#: ops/displace/displace.c:92
+msgid "Vector reads R as X and G as Y, so one RGBA map drives both axes. Single channel reads one channel and feeds it to both amounts, the classic grey-map setup"
+msgstr ""
+
+#: ops/displace/displace.c:96
+msgid "Map channel"
+msgstr ""
+
+#: ops/displace/displace.c:98
+msgid "Channel read in single channel mode"
+msgstr ""
+
+#: ops/displace/displace.c:101
+msgid "Black point"
+msgstr ""
+
+#: ops/displace/displace.c:102
+msgid "Map value that means the full negative displacement"
+msgstr ""
+
+#: ops/displace/displace.c:105
+msgid "Midpoint"
+msgstr ""
+
+#: ops/displace/displace.c:106
+msgid "Map value that means no displacement. Grey maps use 0.5; vector fields that are zero at rest use 0"
+msgstr ""
+
+#: ops/displace/displace.c:110
+msgid "White point"
+msgstr ""
+
+#: ops/displace/displace.c:111
+msgid "Map value that means the full positive displacement"
+msgstr ""
+
+#: ops/displace/displace.c:114
+msgid "Weight by map alpha"
+msgstr ""
+
+#: ops/displace/displace.c:115
+msgid "Multiply the displacement by the map's alpha. GEGL's own displace always does this, which silently cancels the displacement on transparent parts of the map"
+msgstr ""
+
+#: ops/displace/displace.c:119
+msgid "Out of bounds"
+msgstr ""
+
+#: ops/displace/displace.c:121
+msgid "How pixels pulled from outside the image are resolved. Wrap around keeps tiles seamless, repeat edge pixels avoids both seams and smears behind a small elongation"
+msgstr ""
+
+#: ops/displace/displace.c:125
+msgid "Resampling"
+msgstr ""
+
+#: ops/displace/displace.c:127
+msgid "Bilinear never overshoots; bicubic is sharper on smooth maps but rings on hard edges; nohalo and lohalo stay sharp without ringing"
+msgstr ""
+
+#: ops/displace/displace.c:417
+msgid "Displacement map"
+msgstr ""
+
+#: ops/displace/displace.c:418
+msgid "Map that drives the displacement; without it the image passes through"
+msgstr ""
+
+#: ops/displace/displace.c:423
+#: ops/displace/displace.c:429
+msgid "Displace"
+msgstr ""
+
+#: ops/displace/displace.c:424
+msgid "Resamples the image through a displacement map: one RGBA map drives both axes, amounts in pixels or percent of the long edge, five edge policies and a sampler that does not ring by default."
+msgstr ""
+
+#: ops/displace/displace.c:40
+msgid "Pixels"
+msgstr ""
+
+#: ops/displace/displace.c:41
+msgid "Percent of long edge"
+msgstr ""
+
+#: ops/displace/displace.c:46
+msgid "Vector (R = X, G = Y)"
+msgstr ""
+
+#: ops/displace/displace.c:47
+msgid "Single channel"
+msgstr ""
+
+#: ops/displace/displace.c:61
+msgid "Wrap around"
+msgstr ""
+
+#: ops/displace/displace.c:62
+msgid "Repeat edge pixels"
+msgstr ""
+
+#: ops/displace/displace.c:63
+msgid "Transparent"
+msgstr ""
+
+#: ops/displace/displace.c:64
+msgid "Black"
+msgstr ""
+
+#: ops/displace/displace.c:65
+msgid "White"
+msgstr ""
+
+#: ops/displace/displace.c:70
+msgid "Nearest"
+msgstr ""
+
+#: ops/displace/displace.c:71
+msgid "Bilinear"
+msgstr ""
+
+#: ops/displace/displace.c:72
+msgid "Bicubic"
+msgstr ""
+
+#: ops/displace/displace.c:73
+msgid "Nohalo (no ringing)"
+msgstr ""
+
+#: ops/displace/displace.c:74
+msgid "Lohalo (no ringing, slow)"
 msgstr ""
 
 #: ops/exposure/lb-exposure.c:52

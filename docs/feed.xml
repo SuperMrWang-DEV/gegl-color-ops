@@ -173,6 +173,13 @@
     <summary>形态学的两个基本算子，也是 Photoshop「最大值 / 最小值」滤镜的等价物：每个像素取邻域内最大（膨胀）或最小值（腐蚀）。最大值把亮区向外推、吞掉暗处的小点；最小值反过来收亮区、啃掉残留的白边。蒙版精修、去灰尘点、发光底图都用它。</summary>
   </entry>
   <entry>
+    <title>Displace</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/displace/README.md"/>
+    <id>tag:github.com,2026:lb:displace</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>按位移图重采样图像。相对 GEGL 自带的 gegl:displace，这里修掉四件事：单张图同时给水平/垂直、位移图不强制乘 alpha、位移图覆盖不到的区域原样输出而不是硬移、默认用无振铃的采样器。</summary>
+  </entry>
+  <entry>
     <title>Color Lookup</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/color-lookup/README.md"/>
     <id>tag:github.com,2026:lb:color-lookup</id>
