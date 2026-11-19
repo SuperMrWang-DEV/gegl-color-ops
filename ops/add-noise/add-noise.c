@@ -178,6 +178,8 @@ gegl_op_class_init (GeglOpClass *klass)
     "description", _("Adds Gaussian or uniform noise, monochromatic or per "
                      "channel. The seed makes the grain reproducible."),
     "categories",  "generic",
+    "gimp:menu-path",  "<Image>/SuperMrWang/Noise",
+    "gimp:menu-label", _("Add Noise"),
     NULL);
 }
 

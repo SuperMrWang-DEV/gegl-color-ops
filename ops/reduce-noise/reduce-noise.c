@@ -218,6 +218,8 @@ gegl_op_class_init (GeglOpClass *klass)
                      "left alone. Colour speckle can be removed without "
                      "shifting hues."),
     "categories",  "generic",
+    "gimp:menu-path",  "<Image>/SuperMrWang/Noise",
+    "gimp:menu-label", _("Reduce Noise"),
     NULL);
 }
 

@@ -391,6 +391,8 @@ gegl_op_class_init (GeglOpClass *klass)
                      "suppression stage that clamps the result to the 3×3 "
                      "neighbourhood so hard edges do not grow white fringes."),
     "categories",  "generic",
+    "gimp:menu-path",  "<Image>/SuperMrWang/Sharpen",
+    "gimp:menu-label", _("Unsharp Mask"),
     NULL);
 }
 

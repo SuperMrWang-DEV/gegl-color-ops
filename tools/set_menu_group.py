@@ -46,6 +46,11 @@ GROUPS = {
     "Blend": ["apply-image", "calculations", "channel-mixer-plus",
               "xyz-multiply", "color-lookup"],
     "Mask":  ["color-mask-select", "channel-range-to-alpha"],
+    # 2026-11 加的 PS 滤镜三组：锐化、杂色、扭曲。和 PS 的菜单同名，
+    # 从 PS 迁过来的人按原路径找得到。
+    "Sharpen": ["unsharp-mask"],
+    "Noise":   ["add-noise", "reduce-noise", "dust-scratches"],
+    "Distort": ["displace"],
 }
 
 # 匹配已有的 menu-path 值（带或不带 /Colors 前缀、带或不带分组后缀）

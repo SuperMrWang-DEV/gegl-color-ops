@@ -570,6 +570,9 @@ h2 { font-size: clamp(22px, 2.5vw, 28px); font-weight: 650; margin-top: 84px; }
 .t-color { background: color-mix(in srgb, #ef4444 9%, transparent); color: #be123c; border-color: color-mix(in srgb, #ef4444 24%, transparent); }
 .t-blend { background: color-mix(in srgb, #6366f1 9%, transparent); color: #4338ca; border-color: color-mix(in srgb, #6366f1 24%, transparent); }
 .t-mask  { background: color-mix(in srgb, #10b981 9%, transparent); color: #047857; border-color: color-mix(in srgb, #10b981 24%, transparent); }
+.t-sharpen { background: color-mix(in srgb, #06b6d4 9%, transparent); color: #0e7490; border-color: color-mix(in srgb, #06b6d4 26%, transparent); }
+.t-noise { background: color-mix(in srgb, #8b5cf6 9%, transparent); color: #6d28d9; border-color: color-mix(in srgb, #8b5cf6 26%, transparent); }
+.t-distort { background: color-mix(in srgb, #ec4899 9%, transparent); color: #be185d; border-color: color-mix(in srgb, #ec4899 24%, transparent); }
 
 @media (prefers-color-scheme: dark) {
   .t-levels { color: #7dd3fc; }
@@ -577,6 +580,9 @@ h2 { font-size: clamp(22px, 2.5vw, 28px); font-weight: 650; margin-top: 84px; }
   .t-color { color: #fda4af; }
   .t-blend { color: #c7d2fe; }
   .t-mask  { color: #6ee7b7; }
+  .t-sharpen { color: #67e8f9; }
+  .t-noise { color: #c4b5fd; }
+  .t-distort { color: #f9a8d4; }
   .badge.warn { color: #fbbf24; }
   .slow-note b { color: #fbbf24; }
   .badge.wip { color: #7dd3fc; }
@@ -1583,3 +1589,67 @@ dl.spec ul.menu-list li {
 .prose .download .dl > p { margin: 12px 0 0; font-size: 14.4px; line-height: 1.75; color: var(--text-2); }
 .prose .download .btn { margin-top: 18px; align-self: flex-start; }
 .prose .download .dl > p.muted { margin-top: 14px; font-size: 12.6px; }
+
+/* ---- 博客：首页三张预告 + 列表页 + 文章页元信息 ---- */
+.blog-teaser { margin: 72px 0 0; }
+.teaser-head {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: baseline;
+  gap: 8px 18px; margin-bottom: 20px;
+}
+.teaser-head .eyebrow { grid-column: 1 / -1; margin: 0; }
+.teaser-head h2 { margin: 0; font-size: 22px; letter-spacing: -.01em; }
+.teaser-sub { margin: 0; color: var(--muted); font-size: 14px; }
+.teaser-all {
+  font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em;
+  text-decoration: none; color: var(--muted); white-space: nowrap;
+}
+.teaser-all:hover { color: var(--accent); }
+.teaser-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.teaser-card {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 20px 20px 22px; border-radius: 12px; text-decoration: none;
+  border: 1px solid var(--line-soft); background: var(--panel-2, rgba(127,127,127,.05));
+  transition: border-color .16s ease, transform .16s ease, background .16s ease;
+}
+.teaser-card:hover {
+  text-decoration: none; border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+  transform: translateY(-2px);
+}
+.teaser-card time {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; color: var(--muted);
+}
+.teaser-card h3 { margin: 0; font-size: 15.5px; line-height: 1.45; color: var(--text); }
+.teaser-card p { margin: 0; font-size: 13px; line-height: 1.65; color: var(--muted); }
+
+.blog-hero .blog-meta {
+  margin: 22px 0 0; font-family: var(--mono); font-size: 11.5px;
+  letter-spacing: .06em; color: var(--muted);
+}
+.post-list { margin: 12px 0 0; }
+.post-row {
+  display: grid; grid-template-columns: 128px minmax(0, 1fr); gap: 28px;
+  padding: 26px 0 28px; border-top: 1px solid var(--line-soft);
+}
+.post-when {
+  display: flex; flex-direction: column; gap: 6px;
+  font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em; color: var(--muted);
+  padding-top: 4px;
+}
+.post-body h2 { margin: 0 0 8px; font-size: 21px; line-height: 1.35; letter-spacing: -.01em; }
+.post-body h2 a { text-decoration: none; color: var(--text); }
+.post-body h2 a:hover { color: var(--accent); }
+.post-body .lede { margin: 0; font-size: 14.6px; line-height: 1.72; }
+.post-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.post-tags .tag {
+  border-color: var(--line); background: var(--panel-2, rgba(127,127,127,.06));
+  font-size: 10px;
+}
+.page-head .meta .post-date { font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em; }
+
+@media (max-width: 900px) {
+  .teaser-grid { grid-template-columns: minmax(0, 1fr); }
+  .teaser-head { grid-template-columns: 1fr auto; }
+  .teaser-sub { grid-column: 1 / -1; }
+  .post-row { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .post-when { flex-direction: row; gap: 12px; }
+}

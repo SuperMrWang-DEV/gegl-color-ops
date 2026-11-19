@@ -229,6 +229,8 @@ gegl_op_class_init (GeglOpClass *klass)
                      "vanish while real edges — whose neighbours differ too "
                      "much — stay untouched."),
     "categories",  "generic",
+    "gimp:menu-path",  "<Image>/SuperMrWang/Noise",
+    "gimp:menu-label", _("Dust & Scratches"),
     NULL);
 }
 

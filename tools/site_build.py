@@ -63,6 +63,9 @@ GROUP_ZH = {
     "Color": ("Color", "色彩"),
     "Blend": ("Blend", "混合与通道"),
     "Mask":  ("Mask",  "蒙版"),
+    "Sharpen": ("Sharpen", "锐化"),
+    "Noise": ("Noise", "杂色"),
+    "Distort": ("Distort", "扭曲"),
 }
 
 GROUP_DESC = {
@@ -74,6 +77,12 @@ GROUP_DESC = {
     "Color": "调整颜色的方向与浓度：色相饱和度、色彩平衡、白平衡、自然饱和度、可选颜色、匹配颜色。",
     "Blend": "把两层或多路通道混起来：应用图像、计算、通道混合器、XYZ 正片叠底、颜色查找、灰度转分量。",
     "Mask":  "按颜色或数值区间取蒙版：色彩范围、通道区间到 alpha。",
+    "Sharpen": "把边缘加陡：PS「锐化 → USM 锐化」的等价物，外加可调的光晕抑制，"
+               "硬边不再长出白边。",
+    "Noise": "颗粒与瑕疵：添加杂色（可复现）、减少杂色（只磨平坦区）、"
+             "蒙尘与划痕（孤立点用邻域中值换掉）。",
+    "Distort": "按位移图重采样：一张 RGBA 图同时给 X/Y，单位可换成长边百分比，"
+               "覆盖不到的区域原样输出。",
 }
 
 GROUP_DESC_EN = {
@@ -91,6 +100,14 @@ GROUP_DESC_EN = {
              "mixer, XYZ multiply, colour lookup, gray to component.",
     "Mask":  "Build masks from colour ranges or value intervals: colour range, "
              "channel range to alpha.",
+    "Sharpen": "Steepen edges: Photoshop's Unsharp Mask with an adjustable halo "
+               "suppression, so hard edges stop growing white fringes.",
+    "Noise": "Grain and blemishes: add noise (reproducible from a seed), reduce "
+             "noise (flat areas only), dust & scratches (isolated specks replaced "
+             "by the median of similar neighbours).",
+    "Distort": "Resample through a displacement map: one RGBA image drives both "
+               "axes, the unit can be a percentage of the long edge, and areas "
+               "the map does not cover pass straight through.",
 }
 
 TYPE_ZH = {
@@ -318,6 +335,7 @@ def head_html(root="", bilingual=False):
   <nav>
     <a href="{r}ops.html">{ops}</a>
     <a href="{r}plugins.html">{plug}</a>
+    <a href="{r}blog.html">{blog}</a>
     <a href="{r}guide.html">{install}</a>
     <a href="{r}index.html#download">{download}</a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -325,6 +343,7 @@ def head_html(root="", bilingual=False):
 {sw}</header>""".format(r=root, sw=sw,
                         ops=t("算子", "Operators"),
                         plug=t("插件", "Plug-ins"),
+                        blog=t("博客", "Blog"),
                         install=t("安装", "Install"),
                         download=t("下载", "Download"))
 
@@ -649,7 +668,7 @@ def group_section(g, ops):
 # 页面
 # --------------------------------------------------------------------------
 
-def build_home(ops, stats, version):
+def build_home(ops, stats, version, posts=None):
     """主页：两个方框 —— 算子一个、插件一个，各自带 Windows / Linux 整包。"""
     n_live = sum(1 for o in ops if not o.get("deprecated"))
     n_groups = len(SMG.GROUPS)
@@ -731,9 +750,11 @@ def build_home(ops, stats, version):
     <h2><span class="l-zh">GEGL 算子</span><span class="l-en">GEGL operators</span></h2>
     <p class="door-lead"><span class="l-zh">{n} 个单文件 C 模块，一个模块一个滤镜。
      色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版生成都在里面，按
-     <b>Levels / Component / Tone / Color / Blend / Mask</b> 六组排在顶层菜单下。</span><span class="l-en">{n} single-file C modules, one filter each. Levels, colour balance,
-     vibrance, white balance, channel mixing and mask building, arranged in six groups —
-     <b>Levels / Component / Tone / Color / Blend / Mask</b> — under one top-level menu.</span></p>
+     <b>Levels / Component / Tone / Color / Blend / Mask / Sharpen / Noise / Distort</b> 九组排在顶层菜单下。</span><span class="l-en">{n} single-file C modules, one filter each. Levels, colour balance,
+     vibrance, white balance, channel mixing, mask building, sharpening, noise and
+     displacement, arranged in nine groups —
+     <b>Levels / Component / Tone / Color / Blend / Mask / Sharpen / Noise / Distort</b> —
+     under one top-level menu.</span></p>
     <div class="door-meta">
       <span><b>{win}</b> <span class="l-zh">个 Windows 模块</span><span class="l-en">Windows modules</span></span>
       <span><b>{lin}</b> <span class="l-zh">个 Linux 模块</span><span class="l-en">Linux modules</span></span>
@@ -836,8 +857,30 @@ Linux    ~/.config/GIMP/3.x/plug-ins</code></pre>
 %s
 </div>""" % (hero, doors)
 
+    cards = ""
+    if posts:
+        cards = "\n".join("""    <a class="teaser-card" href="blog/{slug}.html">
+      <time datetime="{date}">{date_h}</time>
+      <h3>{title}</h3>
+      <p>{lede}</p>
+    </a>""".format(slug=p["slug"], date=p["date"], date_h=p["date_h"],
+                    title=t(html.escape(p["title_zh"]), html.escape(p["title_en"])),
+                    lede=t(html.escape(p["lede_zh"]), html.escape(p["lede_en"])))
+                        for p in posts[:3])
+    blog_teaser = """<section class="blog-teaser">
+  <div class="teaser-head">
+    <p class="eyebrow">03 · NOTES</p>
+    <h2><span class="l-zh">博客</span><span class="l-en">Blog</span></h2>
+    <p class="teaser-sub"><span class="l-zh">算法背后的取舍，中英双版</span><span class="l-en">The trade-offs behind the maths, in both languages</span></p>
+    <a class="teaser-all" href="blog.html"><span class="l-zh">全部 %d 篇</span><span class="l-en">All %d posts</span> <span aria-hidden="true">→</span></a>
+  </div>
+  <div class="teaser-grid">
+%s
+  </div>
+</section>""" % (len(posts), len(posts), cards)
+
     return page("gegl-color-ops · GIMP 3 的 GEGL 算子与插件",
-                top + quick + prov_short, body_class="home",
+                top + quick + blog_teaser + prov_short, body_class="home",
                 desc="GIMP 3 的 %d 个 GEGL 色彩算子 + %d 个 Python 插件，"
                      "Windows 与 Linux 整包直接下载。" % (n_live, n_plug),
                 titles=("gegl-color-ops · GIMP 3 的 GEGL 算子与插件",
@@ -1035,12 +1078,14 @@ def build_overview(ops, stats, version):
     body = hero + steps + """
 <section class="ops" id="ops">
   <h2>{n}</h2>
-  <p class="section-lede"><span class="l-zh">按「找算子时的念头」分了六组，和 GIMP 菜单里的分组一致——
-     七个色阶收在 Levels 一级目录里，分量家族收在 Component 一级目录里。
-     点任一算子进去看算法、参数与实测误差。</span><span class="l-en">Six groups organised by the question you ask when hunting for an operator,
+  <p class="section-lede"><span class="l-zh">按「找算子时的念头」分了九组，和 GIMP 菜单里的分组一致——
+     七个色阶收在 Levels 一级目录里，分量家族收在 Component 一级目录里，
+     锐化 / 杂色 / 扭曲三组在 2026-11 补齐。
+     点任一算子进去看算法、参数与实测误差。</span><span class="l-en">Nine groups organised by the question you ask when hunting for an operator,
      matching the GIMP menu grouping — the levels family and the component family
-     each sit in their own top-level submenu. Open any operator for its algorithm,
-     parameters and measured error.</span></p>
+     each sit in their own top-level submenu, and Sharpen / Noise / Distort joined
+     them in November 2026. Open any operator for its algorithm, parameters and
+     measured error.</span></p>
 {by_g}
 </section>""".format(n=t("%d 个算子" % n_live, "%d operators" % n_live), by_g=by_g) \
         + download + provenance
@@ -1479,6 +1524,184 @@ def build_article(op, version):
     title = "%s · %s" % (op["menu"], "gegl-color-ops")
     return page(title, body, root="../", desc=op["purpose_text"][:120], titles=titles,
                 math=True, body_class="article")
+
+
+# --------------------------------------------------------------------------
+# 博客：正文是长文，不放 README —— README 是算子参考，博客讲的是「为什么」
+# 中文源在 tools/site/blog/<slug>.md，英文源在 tools/site/en/blog/<slug>.md，
+# 两边同名，front matter 给 title / date / lede / tags。
+# --------------------------------------------------------------------------
+
+BLOG_DIR = os.path.join(SRC, "blog")
+BLOG_EN_DIR = os.path.join(EN_DIR, "blog")
+
+
+def _front_matter(path):
+    txt = open(path, encoding="utf-8").read().replace("\r\n", "\n")
+    meta, body = {}, txt
+    m = re.match(r"\A---\n(.*?)\n---\n", txt, re.S)
+    if m:
+        for line in m.group(1).split("\n"):
+            if ":" in line:
+                k, v = line.split(":", 1)
+                meta[k.strip().lower()] = v.strip()
+        body = txt[m.end():]
+    return meta, body.strip("\n")
+
+
+def _read_minutes(md):
+    """粗估阅读时间：中文按 420 字/分，英文单词按 220 词/分。"""
+    cjk = len(re.findall(r"[\u4e00-\u9fff]", md))
+    words = len(re.findall(r"[A-Za-z][A-Za-z'-]+", md)) / 2.2
+    return max(1, int(round(cjk / 420.0 + words / 220.0)))
+
+
+def load_posts():
+    posts = []
+    if not os.path.isdir(BLOG_DIR):
+        return posts
+    for f in sorted(os.listdir(BLOG_DIR)):
+        if not f.endswith(".md"):
+            continue
+        slug = f[:-3]
+        zh, zh_md = _front_matter(os.path.join(BLOG_DIR, f))
+        en_path = os.path.join(BLOG_EN_DIR, f)
+        en, en_md = (_front_matter(en_path) if os.path.exists(en_path)
+                     else ({}, ""))
+        date = zh.get("date") or "2026-11-01"
+        posts.append({
+            "slug": slug,
+            "date": date,
+            "date_h": date.replace("-", "."),
+            "title_zh": zh.get("title") or slug,
+            "title_en": en.get("title") or zh.get("title") or slug,
+            "lede_zh": zh.get("lede") or "",
+            "lede_en": en.get("lede") or zh.get("lede") or "",
+            "tags_zh": [s.strip() for s in (zh.get("tags") or "").split(",") if s.strip()],
+            "tags_en": [s.strip() for s in (en.get("tags") or zh.get("tags") or "").split(",") if s.strip()],
+            "md_zh": zh_md,
+            "md_en": en_md,
+            "min_zh": _read_minutes(zh_md),
+            "min_en": _read_minutes(en_md or zh_md),
+        })
+    posts.sort(key=lambda p: (p["date"], p["slug"]), reverse=True)
+    return posts
+
+
+def _post_tags(post, lang):
+    names = post["tags_en"] if lang == "en" else post["tags_zh"]
+    return "".join('<span class="tag">%s</span>' % html.escape(s) for s in names)
+
+
+def build_post(post, prev=None, nxt=None):
+    zh_html, zh_toc = convert(post["md_zh"])
+    en_html, en_toc = (convert(post["md_en"]) if post["md_en"] else ("", []))
+
+    def toc_block(items, lang):
+        if not items:
+            return ""
+        lis = "\n".join('<li class="l%d"><a href="#%s">%s</a></li>'
+                        % (lv, anc, html.escape(tl)) for lv, anc, tl in items)
+        return """<aside class="toc">
+  <p class="toc-title">%s</p>
+  <ul>%s</ul>
+</aside>""" % ("On this page" if lang == "en" else "本页目录", lis)
+
+    def pager(lang):
+        en_ = lang == "en"
+        back = ('<a class="prev" href="../blog.html"><span>%s</span>%s</a>'
+                % ("All posts" if en_ else "全部文章",
+                   "Back to the blog" if en_ else "回到博客列表"))
+        links = [back]
+        if nxt:
+            links.append('<a class="next" href="%s.html"><span>%s</span>%s</a>'
+                         % (nxt["slug"], "Newer" if en_ else "较新",
+                            html.escape(nxt["title_en"] if en_ else nxt["title_zh"])))
+        return '<nav class="pager">%s</nav>' % "".join(links)
+
+    def head_block(lang):
+        en_ = lang == "en"
+        title = post["title_en"] if en_ else post["title_zh"]
+        lede = post["lede_en"] if en_ else post["lede_zh"]
+        meta = """<div class="meta">
+    <span class="post-date"><time datetime="%s">%s</time></span>
+    <span>%s</span>%s
+  </div>""" % (post["date"], post["date_h"],
+              ("%d min read" % post["min_en"]) if en_ else
+              ("约 %d 分钟" % post["min_zh"]),
+              _post_tags(post, lang))
+        eyebrow = ('<a href="../index.html">Home</a> / <a href="../blog.html">Blog</a>'
+                   if en_ else
+                   '<a href="../index.html">首页</a> / <a href="../blog.html">博客</a>')
+        return """<section class="page-head">
+  <p class="eyebrow">%s</p>
+  <h1>%s</h1>
+  %s
+  <p class="lede">%s</p>
+</section>""" % (eyebrow, html.escape(title), meta, lede)
+
+    def one_lang(lang):
+        en_ = lang == "en"
+        art = (en_html if en_ else zh_html) + pager(lang)
+        return """%s<div class="article-layout">
+  <article class="prose">
+%s
+  </article>
+  %s
+</div>""" % (head_block(lang), art, toc_block(en_toc if en_ else zh_toc, lang))
+
+    body = ('<div class="l-zh">%s</div>\n<div class="l-en">%s</div>'
+            % (one_lang("zh"), one_lang("en")))
+    return page("%s · 博客" % post["title_zh"], body, root="../",
+                desc=post["lede_zh"][:140], desc_en=post["lede_en"][:160],
+                titles=("%s · gegl-color-ops 博客" % post["title_zh"],
+                        "%s · gegl-color-ops blog" % post["title_en"]),
+                math=True, body_class="article")
+
+
+def build_blog(posts):
+    rows = []
+    for p in posts:
+        rows.append("""  <article class="post-row">
+    <div class="post-when">
+      <time datetime="{date}">{date_h}</time>
+      <span class="muted">{mins}</span>
+    </div>
+    <div class="post-body">
+      <h2><a href="blog/{slug}.html">{title}</a></h2>
+      <p class="lede">{lede}</p>
+      <div class="post-tags"><span class="l-zh">{tags_zh}</span><span class="l-en">{tags_en}</span></div>
+    </div>
+  </article>""".format(date=p["date"], date_h=p["date_h"],
+                       mins=t("约 %d 分钟" % p["min_zh"], "%d min read" % p["min_en"]),
+                       slug=p["slug"],
+                       title=t(html.escape(p["title_zh"]), html.escape(p["title_en"])),
+                       lede=t(p["lede_zh"], p["lede_en"]),
+                       tags_zh=_post_tags(p, "zh"), tags_en=_post_tags(p, "en")))
+
+    hero = """<section class="hero blog-hero">
+  <p class="eyebrow">NOTES</p>
+  <h1><span class="l-zh">写代码的时候<br><span class="grad">顺手想明白的事</span></span><span class="l-en">The things we had to<br><span class="grad">work out properly</span></span></h1>
+  <p class="lede"><span class="l-zh">算子页讲的是「参数是什么、误差多大」，这里讲「为什么最后这么写」：
+     一个滤镜在目标软件里为什么让人别扭、公式在哪一步失真、哪一处看着能用其实一直在
+     偷偷改画布。每篇都对着仓库里的实现和自检脚本写。</span><span class="l-en">The operator pages say what the parameters are and how large the error is.
+     These posts are about why the code ended up the way it did: what makes a filter awkward
+     in the reference editor, where the formula loses fidelity, and which part only looks
+     correct while quietly moving the canvas. Each one is written against the implementation
+     and the self-check scripts in the repository.</span></p>
+  <p class="blog-meta"><span class="l-zh">共 %d 篇 · 中英双版</span><span class="l-en">%d posts, both languages</span></p>
+</section>""" % (len(posts), len(posts))
+
+    listing = """<section class="post-list">
+%s
+</section>""" % ("\n".join(rows) if rows else
+                  '<p class="muted">%s</p>' % t("还没有文章。", "No posts yet."))
+
+    return page("博客 · gegl-color-ops",
+                hero + listing, desc="GEGL 算子背后的算法笔记：置换、锐化、杂色。",
+                desc_en="Notes on the algorithms behind the operators: displacement, "
+                        "sharpening, noise.",
+                titles=("博客 · gegl-color-ops", "Blog · gegl-color-ops"))
 
 
 def build_guide(version, stats):
@@ -2619,13 +2842,23 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
                 desc_en=re.sub(r"<[^>]+>", "", p.get("lede_en") or p["lede"])[:120])
 
 
-def build_feed(ops, version):
-    """一个极简 Atom，方便订阅「最近加了什么」：算子 + Retouch 八个插件。
+def build_feed(ops, version, posts=None):
+    """一个极简 Atom，方便订阅「最近加了什么」：博客长文 + 算子 + Retouch 八个插件。
 
     Retouch 那八条链到站点里的文章页（插件没有 README 可链），日期用加进来的
-    那天，排在新加算子之后。
+    那天，排在新加算子之后。博客排在最前，日期用各自的发布日期。
     """
     entries = []
+    for p in (posts or [])[:6]:
+        entries.append("""  <entry>
+    <title>{title}</title>
+    <link href="{site}/blog/{slug}.html"/>
+    <id>tag:github.com,2026:post-{slug}</id>
+    <updated>{date}T00:00:00Z</updated>
+    <summary>{sum}</summary>
+  </entry>""".format(title=html.escape("博客 · " + p["title_zh"]),
+                     site=SITE, slug=p["slug"], date=p["date"],
+                     sum=html.escape(p["lede_zh"][:200])))
     for sp in reversed(PD.PAGES):
         entries.append("""  <entry>
     <title>{title}</title>
@@ -2646,14 +2879,15 @@ def build_feed(ops, version):
   </entry>""".format(menu=html.escape(op["menu"]), repo=REPO, dir=op["dir"],
                      oid=html.escape(op["id"]),
                      sum=html.escape(op["purpose_text"][:200])))
+    newest = posts[0]["date"] if posts else "2026-11-19"
     return """<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <title>gegl-color-ops · 算子与插件</title>
+  <title>gegl-color-ops · 博客、算子与插件</title>
   <link href="{site}/"/>
-  <updated>2026-11-17T00:00:00Z</updated>
+  <updated>{newest}T00:00:00Z</updated>
   <id>tag:github.com,2026:gegl-color-ops</id>
 {entries}
-</feed>""".format(site=SITE, entries="\n".join(entries))
+</feed>""".format(site=SITE, newest=newest, entries="\n".join(entries))
 
 
 # --------------------------------------------------------------------------
@@ -2805,6 +3039,7 @@ def main():
     no_clean = "--no-clean" in sys.argv
     stats = collect_stats()
     ops = load_ops()
+    posts = load_posts()
     version = sh("git", "rev-parse", "--short", "HEAD") or "local"
 
     if os.path.isdir(DOCS) and not no_clean:
@@ -2841,15 +3076,23 @@ def main():
     globals()["VERSION"] = version
 
     pages = {
-        "index.html": build_home(ops, stats, version),
+        "index.html": build_home(ops, stats, version, posts),
         "overview.html": build_overview(ops, stats, version),
         "ops.html": build_ops_index(ops, version),
         "plugins.html": build_plugins(version, stats),
+        "blog.html": build_blog(posts),
         "guide.html": build_guide(version, stats),
-        "feed.xml": build_feed(ops, version),
+        "feed.xml": build_feed(ops, version, posts),
     }
     for op in ops:
         pages["ops/%s.html" % op["dir"]] = build_article(op, version)
+
+    # 博客长文：列表按日期倒序，翻页按同一顺序（较新 / 较旧）
+    for i, post in enumerate(posts):
+        pages["blog/%s.html" % post["slug"]] = build_post(
+            post,
+            nxt=posts[i - 1] if i else None,
+            prev=posts[i + 1] if i + 1 < len(posts) else None)
 
     # Retouch 里每个组件一篇独立文章；翻页在八篇里循环。
     for i, sp in enumerate(PD.PAGES):
@@ -2866,8 +3109,9 @@ def main():
 
     total = sum(os.path.getsize(os.path.join(dp, f))
                 for dp, _, fs in os.walk(DOCS) for f in fs)
-    print("· docs/ 已生成：%d 个总览页、%d 篇算子文章、%d 个资源文件，共 %.1f MB（含下载包 %.1f MB）"
-          % (6, len(ops),
+    print("· docs/ 已生成：%d 个总览页、%d 篇算子文章、%d 篇博客，%d 个资源文件，"
+          "共 %.1f MB（含下载包 %.1f MB）"
+          % (7, len(ops), len(posts),
              sum(len(fs) for _, _, fs in os.walk(os.path.join(DOCS, "assets"))),
              total / 1048576, stats["zip_mb"]))
     print("· 分类：" + " / ".join("%s %d" % (GROUP_ZH[g][1],

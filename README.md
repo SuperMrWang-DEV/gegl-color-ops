@@ -3,7 +3,7 @@
 [![GIMP 3](https://img.shields.io/badge/GIMP-3.x-5C5543?logo=gimp&logoColor=white)](https://www.gimp.org/)
 [![GEGL 0.4](https://img.shields.io/badge/GEGL-0.4-2C4C6B)](https://gegl.org/)
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
-[![Operations](https://img.shields.io/badge/operations-37-brightgreen)](#算子清单)
+[![Operations](https://img.shields.io/badge/operations-47-brightgreen)](#算子清单)
 
 一组自研的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **47 个**，统一 `lb:` 命名空间，
 在 GIMP 里收在菜单栏顶层的 **SuperMrWang** 菜单下（和「颜色」「图层」平级）。算法按公开公式与可观察的行为实现，
@@ -11,9 +11,10 @@
 与各厂商无隶属关系（详见文末「版权与商标」）。
 
 > **在线版**：<https://superMrwang-dev.github.io/gegl-color-ops/> —— 每个算子一篇
-> 算法说明（含参数、实测误差、示例图），Retouch 下的八个插件也各有一篇，首页直接
-> 下载免编译包。站点由 `python tools/site_build.py` 从 `ops/*/README.md` 与
-> `tools/plugin_docs.py` 生成到 `docs/`，不用手写。
+> 算法说明（含参数、实测误差、示例图），Retouch 下的插件也各有一篇，另有一个
+> **博客**栏目写长文（为什么这么实现、哪里踩过坑，中英双版），首页直接下载免编译包。
+> 站点由 `python tools/site_build.py` 从 `ops/*/README.md`、`tools/plugin_docs.py`
+> 与 `tools/site/blog/*.md` 生成到 `docs/`，不用手写。
 
 每个算子都是单文件 C（含 `#ifdef GEGL_PROPERTIES` 段），直接编译成 GEGL 插件模块，
 可作为非破坏性 fx 挂在图层上。本仓库是唯一源码工程：一次编译出全部算子。
@@ -50,9 +51,12 @@ gegl-color-ops/
 ├── dist/                 # 编好的模块，给不想编译的人直接下载（windows-x64 / linux-x64）
 ├── tools/                # 测试图生成、逐算子冒烟、对照表、文件头重排、注释双语化
 ├── tools/site/           # 站点样式源（生成时拷进 docs/assets/）
+│   ├── blog/             #   博客长文正文（中文），英文在 en/blog/
+│   └── en/               #   算子文章与博客的英文正文
 ├── tools/plugin_docs.py  # 十五个插件页的正文与卡片文案（plugins/<slug> 文章页用）
 ├── docs/                 #  GitHub Pages 站点（tools/site_build.py 生成，别手改）
-│   └── plugins/          #  十五个插件各一篇（菜单结构、原理、用法、实测）
+│   ├── plugins/          #  十五个插件各一篇（菜单结构、原理、用法、实测）
+│   └── blog/             #  博客长文（中英双版、带目录）
 ├── build/                # 编译产物（build.sh 生成，可随时删）
 └── LICENSE               # GPL-3.0
 ```
@@ -752,9 +756,10 @@ touch plugin/blend/.disabled        # 停用 Python 插件
 SuperMrWang → Levels    → <算子>   （7 个色阶）
 SuperMrWang → Component → <算子>   （10 个 dual / compose + 灰度转分量）
 SuperMrWang → Tone / Color / Blend / Mask → <算子>
+SuperMrWang → Sharpen / Noise / Distort → <算子>
 ```
 
-41 个算子按「找算子时的念头」分六组，避免一个子菜单里平铺二十多项：
+47 个算子按「找算子时的念头」分九组，避免一个子菜单里平铺二十多项：
 
 | 组 | 想干什么 | 放什么 |
 |---|---|---|
@@ -764,6 +769,9 @@ SuperMrWang → Tone / Color / Blend / Mask → <算子>
 | `Color` | 颜色不对 / 想加味道 | 色相饱和度、HSL 8 Bands、色彩平衡、颜色分级、色温色调、自然饱和度、Vibrance、可选颜色、着色 |
 | `Blend` | 要把两样东西合起来 | 应用图像、计算、通道混合器、照片滤镜、颜色查找 |
 | `Mask` | 要一个选区 | 色彩范围、通道区间 → alpha |
+| `Sharpen` | 边缘不够利 / 想更清澈 | USM 锐化（带可调光晕抑制） |
+| `Noise` | 要颗粒 / 要去颗粒 / 去灰尘 | 添加杂色、减少杂色、蒙尘与划痕 |
+| `Distort` | 要把图掰弯 / 做折射 | 置换（一张 RGBA 同时给 X/Y） |
 
 对应源码里的两个 class key（每个 `ops/*/*.c` 都有）：
 
@@ -772,7 +780,7 @@ SuperMrWang → Tone / Color / Blend / Mask → <算子>
 "gimp:menu-label", _("界面里显示的名字"),
 ```
 
-**别手改 41 个文件**。分组表在 `tools/set_menu_group.py` 里，改完跑一遍即可
+**别手改 47 个文件**。分组表在 `tools/set_menu_group.py` 里，改完跑一遍即可
 （按字节替换，仓库里 LF / CRLF 混用也不会把行尾搞乱）：
 
 ```bash

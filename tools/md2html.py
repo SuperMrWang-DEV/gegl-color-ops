@@ -33,6 +33,26 @@ def _esc(t):
     return _html.escape(t, quote=False)
 
 
+# 中文段落照例是硬折行的，行与行之间不该补空格；英文才需要。
+# 只判断「接缝两侧都是中日韩字符 / 全角标点」，中英混排时该留的空格照样留。
+_CJK = re.compile(r"[\u2014\u2026\u3000-\u303f\u3400-\u4dbf\u4e00-\u9fff"
+                  r"\uf900-\ufaff\uff00-\uffef]")
+
+
+def _join_lines(para):
+    """行尾/行首的 `**`、反引号这类标记不参与判断：要接缝两边「看得见」的字符
+    都是中文才直接相连，否则补空格。"""
+    out = para[0]
+    for ln in para[1:]:
+        tail = out.rstrip("*_`~ ")[-1:]
+        head = ln.lstrip("*_`~ ")[:1]
+        if tail and head and _CJK.match(tail) and _CJK.match(head):
+            out += ln
+        else:
+            out += " " + ln
+    return out
+
+
 def _slug(title, used):
     """锚点：ASCII 转小写连字符；中日韩直接保留（URL 里会被百分号编码，
     浏览器和 static server 都认）。重名加序号。"""
@@ -266,14 +286,14 @@ def convert(text, image_prefix=None, link_base=None):
     def flush():
         if para:
             # 整段就是一个 $$...$$ 显示公式 → 单独的块，别塞进 <p> 里
-            joined = " ".join(para)
+            joined = _join_lines(para)
             m = re.match(r"^\$\$(.+?)\$\$$", joined, re.S)
             if m:
                 out.append('<div class="math-display">$$%s$$</div>'
                            % _esc(m.group(1).strip()))
                 para.clear()
                 return
-            out.append("<p>%s</p>" % _render_inline(" ".join(para), link_base, image_prefix))
+            out.append("<p>%s</p>" % _render_inline(joined, link_base, image_prefix))
             para.clear()
 
     while i < n:
