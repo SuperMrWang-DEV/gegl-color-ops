@@ -103,9 +103,9 @@ window.addEventListener("DOMContentLoaded", function () {
 <ul><li>输出 alpha 恒 1，理由同 <code>lb:hsv-dual</code>。</li><li>输入超出 0…1 的值会被夹紧；NaN 折成 0。</li><li>色相为环形量：0 与 1 是同一个角度，数据图里不要指望「1.0 表示比 0.0 大」。</li></ul><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>hsv-compose.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
+    <p>Windows 模块 <code>hsv-compose.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>hsv-compose.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hsv-compose.dll">下载 hsv-compose.dll<span class="size">Windows x64</span></a></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hsv-compose.dll">下载 hsv-compose.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/hsv-compose.so">下载 hsv-compose.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="hsv-dual.html"><span>上一个</span>HSV Dual Extract</a><a class="next" href="lab-dual.html"><span>下一个</span>Lab Dual Extract</a></nav>
   </article>
   <aside class="toc">
@@ -144,9 +144,9 @@ window.addEventListener("DOMContentLoaded", function () {
 <ul><li>Output alpha is always 1, for the same reason as <code>lb:hsv-dual</code>.</li><li>Input outside 0…1 is clamped; NaN folds to 0.</li><li>Hue is circular: 0 and 1 are the same angle, so do not expect "1.0 is more than 0.0" in the data image.</li></ul><div class="op-dl">
   <div>
     <h3>Just this one</h3>
-    <p>Windows module <code>hsv-compose.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+    <p>Windows module <code>hsv-compose.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>hsv-compose.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hsv-compose.dll">Download hsv-compose.dll<span class="size">Windows x64</span></a></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hsv-compose.dll">Download hsv-compose.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/hsv-compose.so">Download hsv-compose.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="hsv-dual.html"><span>Previous</span>HSV Dual Extract</a><a class="next" href="lab-dual.html"><span>Next</span>Lab Dual Extract</a></nav>
   </article>
   <aside class="toc">
@@ -170,7 +170,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">193c6ab</span>
+    <span class="muted">aadce74</span>
   </div>
 </footer>
 <script>

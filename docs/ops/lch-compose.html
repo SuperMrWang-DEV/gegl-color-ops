@@ -102,9 +102,9 @@ window.addEventListener("DOMContentLoaded", function () {
 <ul><li>输出 alpha 恒 1，理由同 <code>lb:lch-dual</code>。</li><li>彩度或色相推到极端会出 sRGB 色域，8 位图按 0/1 裁掉——LCh 的色域比 sRGB 大， 这是它本身的性质，不是算子的近似。</li><li>色相是环形量：0 与 1 表示同一个角度。</li></ul><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>lch-compose.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
+    <p>Windows 模块 <code>lch-compose.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>lch-compose.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lch-compose.dll">下载 lch-compose.dll<span class="size">Windows x64</span></a></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lch-compose.dll">下载 lch-compose.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/lch-compose.so">下载 lch-compose.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="lch-dual.html"><span>上一个</span>LCh Dual Extract</a><a class="next" href="hsi-dual.html"><span>下一个</span>HSI Dual Extract</a></nav>
   </article>
   <aside class="toc">
@@ -142,9 +142,9 @@ window.addEventListener("DOMContentLoaded", function () {
 <ul><li>Output alpha is always 1, for the same reason as <code>lb:lch-dual</code>.</li><li>Extreme chroma or hue leaves the sRGB gamut and 8-bit output clips at 0/1 — LCh's gamut is larger than sRGB, which is a property of the space, not an approximation in the operator.</li><li>Hue is circular: 0 and 1 are the same angle.</li></ul><div class="op-dl">
   <div>
     <h3>Just this one</h3>
-    <p>Windows module <code>lch-compose.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+    <p>Windows module <code>lch-compose.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>lch-compose.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lch-compose.dll">Download lch-compose.dll<span class="size">Windows x64</span></a></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lch-compose.dll">Download lch-compose.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/lch-compose.so">Download lch-compose.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="lch-dual.html"><span>Previous</span>LCh Dual Extract</a><a class="next" href="hsi-dual.html"><span>Next</span>HSI Triple Extract</a></nav>
   </article>
   <aside class="toc">
@@ -168,7 +168,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">193c6ab</span>
+    <span class="muted">aadce74</span>
   </div>
 </footer>
 <script>

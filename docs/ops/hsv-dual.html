@@ -112,9 +112,9 @@ H = 由三者比例决定（60° 一档的线性插值）</code></pre>
 <ul><li>输出是数据图，<strong>不要直接看它当照片</strong>。</li><li>它和 <code>lb:hsv-compose</code> 配对使用，只装一个没有意义。</li></ul><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>hsv-dual.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
+    <p>Windows 模块 <code>hsv-dual.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>hsv-dual.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hsv-dual.dll">下载 hsv-dual.dll<span class="size">Windows x64</span></a></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hsv-dual.dll">下载 hsv-dual.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/hsv-dual.so">下载 hsv-dual.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="hsl-compose.html"><span>上一个</span>HSL Compose</a><a class="next" href="hsv-compose.html"><span>下一个</span>HSV Compose</a></nav>
   </article>
   <aside class="toc">
@@ -162,9 +162,9 @@ H = set by the ratio between them (linear within 60° steps)</code></pre>
 <ul><li>The output is a data image — <strong>do not read it as a photo</strong>.</li><li>It only works paired with <code>lb:hsv-compose</code>.</li></ul><div class="op-dl">
   <div>
     <h3>Just this one</h3>
-    <p>Windows module <code>hsv-dual.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+    <p>Windows module <code>hsv-dual.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>hsv-dual.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hsv-dual.dll">Download hsv-dual.dll<span class="size">Windows x64</span></a></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hsv-dual.dll">Download hsv-dual.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/hsv-dual.so">Download hsv-dual.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="hsl-compose.html"><span>Previous</span>HSL Compose</a><a class="next" href="hsv-compose.html"><span>Next</span>HSV Compose</a></nav>
   </article>
   <aside class="toc">
@@ -188,7 +188,7 @@ H = set by the ratio between them (linear within 60° steps)</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">193c6ab</span>
+    <span class="muted">aadce74</span>
   </div>
 </footer>
 <script>

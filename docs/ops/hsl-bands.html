@@ -109,9 +109,9 @@ L \mathrel{+}= \frac{\Delta L_k}{100}\,w_k$$</div>
 <p><code>lb:hue-saturation</code> 是 经典图像编辑器的对话框：一个主控加六个色相区间，做的是相对偏移、在 HSL 上加减。本算子对应 RAW 编辑器的混色器：八段、每段三个分量。思路相同，面板与数值 都不同，看惯哪个用哪个。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>hsl-bands.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
+    <p>Windows 模块 <code>hsl-bands.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>hsl-bands.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hsl-bands.dll">下载 hsl-bands.dll<span class="size">Windows x64</span></a></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hsl-bands.dll">下载 hsl-bands.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/hsl-bands.so">下载 hsl-bands.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="hue-saturation-basic.html"><span>上一个</span>Hue/Saturation (Basic)</a><a class="next" href="color-balance.html"><span>下一个</span>Color Balance</a></nav><details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
 <h4 id="linux-原生版系统包安装的gimp">Linux 原生版（系统包安装的GIMP）</h4>
 <pre><code class="language-bash">sh build_linux.sh
@@ -167,9 +167,9 @@ L \mathrel{+}= \frac{\Delta L_k}{100}\,w_k$$</div>
 <p><code>lb:hue-saturation</code> is the classic editor's dialog: a master control plus six hue ranges, relative offsets, HSL arithmetic. This one is the RAW editor's mixer: eight bands, all three components per band. Same idea, different layout and different numbers — pick the one whose panel you are used to.</p><div class="op-dl">
   <div>
     <h3>Just this one</h3>
-    <p>Windows module <code>hsl-bands.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+    <p>Windows module <code>hsl-bands.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>hsl-bands.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hsl-bands.dll">Download hsl-bands.dll<span class="size">Windows x64</span></a></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/hsl-bands.dll">Download hsl-bands.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/hsl-bands.so">Download hsl-bands.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="hue-saturation-basic.html"><span>Previous</span>Hue/Saturation (Basic)</a><a class="next" href="color-balance.html"><span>Next</span>Color Balance</a></nav><details class="legacy-intro"><summary>Original plugin docs<span class="muted"> — written when this was a standalone plug-in: the build commands assume the old directory layout and the menu paths have changed. The algorithm notes above supersede it.</span></summary><h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
 <h4 id="native-linux-system-installed-gimp">Native Linux (System installed GIMP)</h4>
 <pre><code class="language-bash">sh build_linux.sh
@@ -206,7 +206,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">193c6ab</span>
+    <span class="muted">aadce74</span>
   </div>
 </footer>
 <script>

@@ -103,9 +103,9 @@ b* = G · 255 − 128</code></pre>
 <ul><li>「R 是 a、G 是 b、B 是 L」是<strong>硬约定</strong>：算子分辨不出输入是数据图还是普通照片。 挂到照片上会把像素当 Lab 数据解释，结果是错的但不会报错。</li><li>它是 <code>Lab Split (Curves)</code> 那条链的第 4 道滤镜，单独用只有一个场景：把别人存的 Lab 数据图还原成可见颜色。</li></ul><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>lab-compose.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
+    <p>Windows 模块 <code>lab-compose.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>lab-compose.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lab-compose.dll">下载 lab-compose.dll<span class="size">Windows x64</span></a></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lab-compose.dll">下载 lab-compose.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/lab-compose.so">下载 lab-compose.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="lab-dual.html"><span>上一个</span>Lab Dual Extract</a><a class="next" href="lch-dual.html"><span>下一个</span>LCh Dual Extract</a></nav>
   </article>
   <aside class="toc">
@@ -143,9 +143,9 @@ b* = G · 255 − 128</code></pre>
 <ul><li>"R is a, G is b, B is L" is a <strong>hard convention</strong>: the operator cannot tell a data image from a photo. Pointed at a photo it interprets pixels as Lab data — wrong output, no error.</li><li>It is the fourth filter in the <code>Lab Split (Curves)</code> chain. On its own it has one use: restoring somebody else's saved Lab data image to visible colour.</li></ul><div class="op-dl">
   <div>
     <h3>Just this one</h3>
-    <p>Windows module <code>lab-compose.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+    <p>Windows module <code>lab-compose.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>lab-compose.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lab-compose.dll">Download lab-compose.dll<span class="size">Windows x64</span></a></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lab-compose.dll">Download lab-compose.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/lab-compose.so">Download lab-compose.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="lab-dual.html"><span>Previous</span>Lab Dual Extract</a><a class="next" href="lch-dual.html"><span>Next</span>LCh Dual Extract</a></nav>
   </article>
   <aside class="toc">
@@ -168,7 +168,7 @@ b* = G · 255 − 128</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">193c6ab</span>
+    <span class="muted">aadce74</span>
   </div>
 </footer>
 <script>

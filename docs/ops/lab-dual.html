@@ -120,9 +120,9 @@ L' = L* / 100</code></pre>
 <ul><li>输出是数据图，<strong>不要直接看它当照片</strong>：它看起来是某种奇怪的彩色，这是正常的。</li><li>它和 <code>lb:lab-compose</code> 是配对使用的。只装一个没有意义。</li><li>浮点图里负值/超 1 的值不会被砍掉（曲线仍能读到），到 8 位投影时才裁。</li></ul><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>lab-dual.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
+    <p>Windows 模块 <code>lab-dual.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>lab-dual.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lab-dual.dll">下载 lab-dual.dll<span class="size">Windows x64</span></a></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lab-dual.dll">下载 lab-dual.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/lab-dual.so">下载 lab-dual.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="hsv-compose.html"><span>上一个</span>HSV Compose</a><a class="next" href="lab-compose.html"><span>下一个</span>Lab Compose</a></nav>
   </article>
   <aside class="toc">
@@ -177,9 +177,9 @@ L' = L* / 100</code></pre>
 <ul><li>The output is a data image — <strong>do not read it as a photo</strong>. It looks like a strange colour image; that is expected.</li><li>It is only meaningful together with <code>lb:lab-compose</code>.</li><li>Negative or above-1 values are not truncated in float images (the curves can still read them); clipping happens when the result is projected to 8-bit.</li></ul><div class="op-dl">
   <div>
     <h3>Just this one</h3>
-    <p>Windows module <code>lab-dual.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+    <p>Windows module <code>lab-dual.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>lab-dual.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lab-dual.dll">Download lab-dual.dll<span class="size">Windows x64</span></a></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lab-dual.dll">Download lab-dual.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/lab-dual.so">Download lab-dual.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="hsv-compose.html"><span>Previous</span>HSV Compose</a><a class="next" href="lab-compose.html"><span>Next</span>Lab Compose</a></nav>
   </article>
   <aside class="toc">
@@ -203,7 +203,7 @@ L' = L* / 100</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">193c6ab</span>
+    <span class="muted">aadce74</span>
   </div>
 </footer>
 <script>
