@@ -120,6 +120,10 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
   <ul>
     <li>路径对不对：必须是 <code>gegl-0.4/plug-ins</code>，不是 GIMP 的 <code>plug-ins</code>。</li>
     <li>有没有重启：GIMP 启动后才扫描，热拷进去不生效。</li>
+    <li><b>只看到一部分算子</b>：先数模块数——整包是 <b>47 个</b>。旧包只装 43 个，
+        新加的锐化 / 杂色 / 置换就不在菜单里。重装一次整包，或源码目录里跑
+        <code>./install.sh --no-build --verify</code>（装 <code>build/</code> 里现成的产物，
+        再用 <code>gegl --info</code> 逐个确认注册）。</li>
     <li>位数/依赖：用 GIMP 自带的那份 GEGL 运行时，别混用系统里另一套 GEGL。</li>
     <li>用 <code>gegl --info lb:xxx</code> 单独验：命令行能看到、GIMP 看不到，通常是 GIMP 版本太旧。</li>
   </ul>
@@ -431,7 +435,7 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">0b11b44</span>
+    <span class="muted">4cf10b0</span>
   </div>
 </footer>
 <script>

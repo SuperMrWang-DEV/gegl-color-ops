@@ -77,13 +77,13 @@
       <p><span class="l-zh">菜单栏顶层就有 <code>SuperMrWang</code>（和「颜色」「图层」平级）：色阶家族收在一级目录
      <b>Levels</b> 子菜单里（Levels / LAB / HSL / HSB / LCH / CMYK / HSI），
      分量家族的 dual / compose 与 gray-to-component 收在一级目录 <b>Component</b> 里，
-     其余按 Tone / Color / Blend / Mask 四组排开；
+     其余按 Tone / Color / Blend / Mask / Sharpen / Noise / Distort 七组排开；
      也可以按 <code>/</code> 搜算子名直接调。</span><span class="l-en">The filters live in a top-level <code>SuperMrWang</code> menu: the levels family is
      grouped in a top-level <b>Levels</b> submenu (Levels / LAB / HSL / HSB / LCH /
      CMYK / HSI), the component family (dual / compose pairs and gray-to-component)
-     in a top-level <b>Component</b> submenu, and the rest in four groups —
-     Tone / Color / Blend / Mask. You can also press <code>/</code> and search by
-     operator name.</span></p>
+     in a top-level <b>Component</b> submenu, and the rest in seven groups —
+     Tone / Color / Blend / Mask / Sharpen / Noise / Distort. You can also press
+     <code>/</code> and search by operator name.</span></p>
     </li>
   </ol>
 </section>
@@ -472,7 +472,7 @@
 
 <section class="group" id="g-Blend">
   <h3 class="group-title"><span class="tag t-blend"><span class="l-zh">混合与通道</span><span class="l-en">Blend</span></span>
-    <span class="group-en"><span class="l-zh">Blend</span><span class="l-en"></span></span><span class="count"><span class="l-zh">6 个</span><span class="l-en">6</span></span></h3>
+    <span class="group-en"><span class="l-zh">Blend</span><span class="l-en"></span></span><span class="count"><span class="l-zh">5 个</span><span class="l-en">5</span></span></h3>
   <p class="group-desc"><span class="l-zh">把两层或多路通道混起来：应用图像、计算、通道混合器、XYZ 正片叠底、颜色查找、灰度转分量。</span><span class="l-en">Mix two layers or several channels: apply image, calculations, channel mixer, XYZ multiply, colour lookup, gray to component.</span></p>
   <div class="cards">
     <a class="card" href="ops/apply-image.html">
@@ -525,22 +525,12 @@
   <p><span class="l-zh">按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价于经典图像编辑器「颜色查找」调整图层；强度按…</span><span class="l-en">The classic editor's Color Lookup adjustment built on the Adobe Cube LUT spec — trilinear…</span></p>
   <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
-    <a class="card" href="ops/max-min.html">
-  <div class="card-top">
-    <span class="tag t-blend"><span class="l-zh">混合与通道</span><span class="l-en">Blend</span></span>
-    <code>lb:max-min</code>
-    
-  </div>
-  <h3><span class="l-zh">Maximum / Minimum</span><span class="l-en">Maximum / Minimum</span></h3>
-  <p><span class="l-zh">形态学的两个基本算子，也是 Photoshop「最大值 / 最小值」滤镜的等价物：每个像素取邻域内最大（膨胀）或最小…</span><span class="l-en">Morphological dilate and erode — Photoshop's Maximum / Minimum filter. Grows or shrinks…</span></p>
-  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
-</a>
   </div>
 </section>
 
 <section class="group" id="g-Mask">
   <h3 class="group-title"><span class="tag t-mask"><span class="l-zh">蒙版</span><span class="l-en">Mask</span></span>
-    <span class="group-en"><span class="l-zh">Mask</span><span class="l-en"></span></span><span class="count"><span class="l-zh">2 个</span><span class="l-en">2</span></span></h3>
+    <span class="group-en"><span class="l-zh">Mask</span><span class="l-en"></span></span><span class="count"><span class="l-zh">3 个</span><span class="l-en">3</span></span></h3>
   <p class="group-desc"><span class="l-zh">按颜色或数值区间取蒙版：色彩范围、通道区间到 alpha。</span><span class="l-en">Build masks from colour ranges or value intervals: colour range, channel range to alpha.</span></p>
   <div class="cards">
     <a class="card" href="ops/color-mask-select.html">
@@ -561,6 +551,16 @@
   </div>
   <h3><span class="l-zh">Range → Alpha</span><span class="l-en">Range → Alpha</span></h3>
   <p><span class="l-zh">按通道数值区间（0–255）生成 alpha，实现「混合颜色带」式透明控制</span><span class="l-en">Turn a numeric range of one channel into alpha — the classic editor's "Blend If" as a…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
+</a>
+    <a class="card" href="ops/max-min.html">
+  <div class="card-top">
+    <span class="tag t-mask"><span class="l-zh">蒙版</span><span class="l-en">Mask</span></span>
+    <code>lb:max-min</code>
+    
+  </div>
+  <h3><span class="l-zh">Maximum / Minimum</span><span class="l-en">Maximum / Minimum</span></h3>
+  <p><span class="l-zh">形态学的两个基本算子，也是 Photoshop「最大值 / 最小值」滤镜的等价物：每个像素取邻域内最大（膨胀）或最小…</span><span class="l-en">Morphological dilate and erode — Photoshop's Maximum / Minimum filter. Grows or shrinks…</span></p>
   <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
   </div>
@@ -648,7 +648,7 @@
          <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，重启 GIMP 即可。</span><span class="l-en">47 <code>.dll</code> files (2.0 MB). Unpack into
          <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code> and restart GIMP.</span></p>
       <a class="btn primary" href="download/gegl-color-ops-windows-x64.zip">gegl-color-ops-windows-x64.zip</a>
-      <p class="muted small"><span class="l-zh">校验：</span><span class="l-en">Checksum: </span><code>SHA256 b26cec98223dc6f7b4939c43e1e63d3c…</code></p>
+      <p class="muted small"><span class="l-zh">校验：</span><span class="l-en">Checksum: </span><code>SHA256 7757719e76dd87b0694c92b8a3865ab5…</code></p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>Linux x86_64</h3></div>
@@ -656,7 +656,7 @@
          <code>~/.local/share/gegl-0.4/plug-ins</code>，重启 GIMP 即可。</span><span class="l-en">47 <code>.so</code> files (0.5 MB). Unpack into
          <code>~/.local/share/gegl-0.4/plug-ins</code> and restart GIMP.</span></p>
       <a class="btn" href="download/gegl-color-ops-linux-x64.zip">gegl-color-ops-linux-x64.zip</a>
-      <p class="muted small"><span class="l-zh">校验：</span><span class="l-en">Checksum: </span><code>SHA256 caf4f80c160dfb3b9db4bcb27520c972…</code></p>
+      <p class="muted small"><span class="l-zh">校验：</span><span class="l-en">Checksum: </span><code>SHA256 7b896be51788c958609498b31902aa7d…</code></p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3><span class="l-zh">单个算子</span><span class="l-en">A single operator</span></h3></div>
@@ -752,7 +752,7 @@
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">0b11b44</span>
+    <span class="muted">4cf10b0</span>
   </div>
 </footer>
 <script>

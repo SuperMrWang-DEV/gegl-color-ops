@@ -109,7 +109,6 @@
 <tr><td><a href="ops/channel-mixer-plus.html"><b><span class="l-zh">Channel Mixer Plus</span><span class="l-en">Channel Mixer Plus</span></b></a></td><td><code>lb:channel-mixer-plus</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移</span><span class="l-en">The classic editor's Channel Mixer — a 3×3 matrix from R/G/B into…</span></td></tr>
 <tr><td><a href="ops/xyz-multiply.html"><b><span class="l-zh">Photo Filter</span><span class="l-en">Photo Filter</span></b></a></td><td><code>lb:xyz-multiply</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。</span><span class="l-en">The classic editor's Photo Filter, reproduced end to end — colour…</span></td></tr>
 <tr><td><a href="ops/color-lookup.html"><b><span class="l-zh">Color Lookup</span><span class="l-en">Color Lookup</span></b></a></td><td><code>lb:color-lookup</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价于经典图像编辑器「颜色查找」调整图层；强度按 0..1 与原图线性混…</span><span class="l-en">The classic editor's Color Lookup adjustment built on the Adobe Cube…</span></td></tr>
-<tr><td><a href="ops/max-min.html"><b><span class="l-zh">Maximum / Minimum</span><span class="l-en">Maximum / Minimum</span></b></a></td><td><code>lb:max-min</code></td><td class="nowrap"><span class="l-zh">AreaFilter</span><span class="l-en">AreaFilter</span></td><td><span class="l-zh">形态学的两个基本算子，也是 Photoshop「最大值 / 最小值」滤镜的等价物：每个像素取邻域内最大（膨胀）或最小值（腐蚀）。最大值把亮区…</span><span class="l-en">Morphological dilate and erode — Photoshop's Maximum / Minimum…</span></td></tr>
 </tbody></table></div>
 <h2 id="g-Mask"><span class="tag t-mask"><span class="l-zh">蒙版</span><span class="l-en">Mask</span></span></h2>
 <p class="group-desc"><span class="l-zh">按颜色或数值区间取蒙版：色彩范围、通道区间到 alpha。</span><span class="l-en">Build masks from colour ranges or value intervals: colour range, channel range to alpha.</span></p>
@@ -117,6 +116,7 @@
 <thead><tr><th><span class="l-zh">菜单名</span><span class="l-en">Menu name</span></th><th>GEGL id</th><th><span class="l-zh">类型</span><span class="l-en">Type</span></th><th><span class="l-zh">做什么</span><span class="l-en">What it does</span></th></tr></thead><tbody>
 <tr><td><a href="ops/color-mask-select.html"><b><span class="l-zh">Mask by Color</span><span class="l-en">Mask by Color</span></b></a></td><td><code>lb:color-mask-select</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览</span><span class="l-en">The classic editor's Color Range as a mask operator — colour presets…</span></td></tr>
 <tr><td><a href="ops/channel-range-to-alpha.html"><b><span class="l-zh">Range → Alpha</span><span class="l-en">Range → Alpha</span></b></a></td><td><code>lb:channel-range-to-alpha</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">按通道数值区间（0–255）生成 alpha，实现「混合颜色带」式透明控制</span><span class="l-en">Turn a numeric range of one channel into alpha — the classic editor's…</span></td></tr>
+<tr><td><a href="ops/max-min.html"><b><span class="l-zh">Maximum / Minimum</span><span class="l-en">Maximum / Minimum</span></b></a></td><td><code>lb:max-min</code></td><td class="nowrap"><span class="l-zh">AreaFilter</span><span class="l-en">AreaFilter</span></td><td><span class="l-zh">形态学的两个基本算子，也是 Photoshop「最大值 / 最小值」滤镜的等价物：每个像素取邻域内最大（膨胀）或最小值（腐蚀）。最大值把亮区…</span><span class="l-en">Morphological dilate and erode — Photoshop's Maximum / Minimum…</span></td></tr>
 </tbody></table></div>
 <h2 id="g-Sharpen"><span class="tag t-sharpen"><span class="l-zh">锐化</span><span class="l-en">Sharpen</span></span></h2>
 <p class="group-desc"><span class="l-zh">把边缘加陡：PS「锐化 → USM 锐化」的等价物，外加可调的光晕抑制，硬边不再长出白边。</span><span class="l-en">Steepen edges: Photoshop's Unsharp Mask with an adjustable halo suppression, so hard edges stop growing white fringes.</span></p>
@@ -151,7 +151,7 @@
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">0b11b44</span>
+    <span class="muted">4cf10b0</span>
   </div>
 </footer>
 <script>

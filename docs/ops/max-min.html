@@ -79,11 +79,11 @@ window.addEventListener("DOMContentLoaded", function () {
 </header>
 <main id="main">
 <div class="l-zh"><section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 混合与通道</p>
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 蒙版</p>
   <h1>Maximum / Minimum</h1>
   <div class="meta">
     <code>lb:max-min</code>
-    <span class="tag t-blend">混合与通道</span>
+    <span class="tag t-mask">蒙版</span>
     <span>AreaFilter</span>
   </div>
   <p class="lede">形态学的两个基本算子，也是 Photoshop「最大值 / 最小值」滤镜的等价物：每个像素取邻域内最大（膨胀）或最小值（腐蚀）。最大值把亮区向外推、吞掉暗处的小点；最小值反过来收亮区、啃掉残留的白边。蒙版精修、去灰尘点、发光底图都用它。</p>
@@ -137,7 +137,7 @@ $ strings libgegl-0.4-0.dll | grep gegl:dilate   # 空</code></pre>
     <p>Windows 模块 <code>max-min.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>max-min.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/max-min.dll">下载 max-min.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/max-min.so">下载 max-min.so<span class="size">Linux x86_64</span></a></div>
-</div><nav class="pager"><a class="prev" href="color-lookup.html"><span>上一个</span>Color Lookup</a><a class="next" href="color-mask-select.html"><span>下一个</span>Mask by Color</a></nav>
+</div><nav class="pager"><a class="prev" href="channel-range-to-alpha.html"><span>上一个</span>Range → Alpha</a><a class="next" href="unsharp-mask.html"><span>下一个</span>Unsharp Mask / Smart Sharpen</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
@@ -152,11 +152,11 @@ $ strings libgegl-0.4-0.dll | grep gegl:dilate   # 空</code></pre>
 </aside>
 </div></div>
 <div class="l-en"><section class="page-head">
-  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Blend</p>
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Mask</p>
   <h1>Maximum / Minimum</h1>
   <div class="meta">
     <code>lb:max-min</code>
-    <span class="tag t-blend">Blend</span>
+    <span class="tag t-mask">Mask</span>
     <span>AreaFilter</span>
   </div>
   <p class="lede">Morphological dilate and erode — Photoshop's Maximum / Minimum filter. Grows or shrinks bright areas, radius 1–100, square or disc, compared in the buffer's own precision.</p>
@@ -210,7 +210,7 @@ $ strings libgegl-0.4-0.dll | grep gegl:dilate  # empty</code></pre>
     <p>Windows module <code>max-min.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>max-min.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/max-min.dll">Download max-min.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/max-min.so">Download max-min.so<span class="size">Linux x86_64</span></a></div>
-</div><nav class="pager"><a class="prev" href="color-lookup.html"><span>Previous</span>Color Lookup</a><a class="next" href="color-mask-select.html"><span>Next</span>Mask by Color</a></nav>
+</div><nav class="pager"><a class="prev" href="channel-range-to-alpha.html"><span>Previous</span>Range → Alpha</a><a class="next" href="unsharp-mask.html"><span>Next</span>Unsharp Mask</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">On this page</p>
@@ -236,7 +236,7 @@ $ strings libgegl-0.4-0.dll | grep gegl:dilate  # empty</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">0b11b44</span>
+    <span class="muted">4cf10b0</span>
   </div>
 </footer>
 <script>
