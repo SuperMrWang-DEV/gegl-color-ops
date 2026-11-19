@@ -107,9 +107,9 @@ out = Σ(w·v) / Σw</code></pre>
 <p><code>python tools/check_noise_sharpen.py</code>：强度 0 恒等、噪点标准差降到一半以下、 均值不漂移、硬边不动、α 透传。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>reduce-noise.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
+    <p>Windows 模块 <code>reduce-noise.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>reduce-noise.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/reduce-noise.dll">下载 reduce-noise.dll<span class="size">Windows x64</span></a></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/reduce-noise.dll">下载 reduce-noise.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/reduce-noise.so">下载 reduce-noise.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="max-min.html"><span>上一个</span>Maximum / Minimum</a><a class="next" href="unsharp-mask.html"><span>下一个</span>Unsharp Mask / Smart Sharpen</a></nav>
   </article>
   <aside class="toc">
@@ -150,9 +150,9 @@ out = Σ(w·v) / Σw</code></pre>
 <p><code>python tools/check_noise_sharpen.py</code> — identity at strength 0, noise standard deviation at least halved, mean not drifting, hard edge untouched, alpha passthrough.</p><div class="op-dl">
   <div>
     <h3>Just this one</h3>
-    <p>Windows module <code>reduce-noise.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+    <p>Windows module <code>reduce-noise.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>reduce-noise.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/reduce-noise.dll">Download reduce-noise.dll<span class="size">Windows x64</span></a></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/reduce-noise.dll">Download reduce-noise.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/reduce-noise.so">Download reduce-noise.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="max-min.html"><span>Previous</span>Maximum / Minimum</a><a class="next" href="unsharp-mask.html"><span>Next</span>Unsharp Mask</a></nav>
   </article>
   <aside class="toc">
@@ -176,7 +176,7 @@ out = Σ(w·v) / Σw</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">a08b739</span>
+    <span class="muted">f1d4662</span>
   </div>
 </footer>
 <script>

@@ -46,6 +46,7 @@ windows-x64,unsharp-mask.dll,lb:unsharp-mask,Unsharp Mask,123009,a06f6f556b475e6
 windows-x64,vibrance-hyper.dll,lb:vibrance-hyper,Natural Saturation,139210,46f587169de60fdc7d6479ab93b90e259214c0612cbdb3d93ef11b8307b00856
 windows-x64,vibrance.dll,lb:vibrance,Vibrance,135413,8a98f671535c14069c234373ef835f52c84f2b68dab30ba80da0d2cb4837c292
 windows-x64,xyz-multiply.dll,lb:xyz-multiply,Photo Filter,137750,6c7d5314f2b42eae18ef3a342645078e507e9f9340ce5d47d1f1029df729020b
+linux-x64,add-noise.so,lb:add-noise,Add Noise,27616,213dc6e939c104ebb3a9d10f2248052ccc248e3f40e72900d6896698d3dfb785
 linux-x64,apply-image.so,lb:apply-image,Apply Image,40728,0a233c382bac46c2424182126e1359f84e0a465eb7ac04d23c5a6b0a209e90a1
 linux-x64,calculations.so,lb:calculations,Calculations,31952,7fb63f74611bbc1aaf2ef3e679e145f2e57d03137f16926ddcf809fe50aa7cd9
 linux-x64,channel-mixer-plus.so,lb:channel-mixer-plus,Channel Mixer Plus,26624,acc403658b77d23806da59faca72c2f5c5c0b0cce33de11c7e0c9a0a785d719e
@@ -59,6 +60,7 @@ linux-x64,color-mask-select.so,lb:color-mask-select,Color Mask Select,36256,8a37
 linux-x64,color-temperature-tint.so,lb:color-temperature-tint,Color Temperature & Tint,96312,9c83569fa010b7694a7f6e01c2632baa3d84e8b7c3df59f0b6ee2032fd710dc0
 linux-x64,colorize-hsl.so,lb:colorize-hsl,Colorize,22216,35764d2c620362d9a75c8c13952d467a3e56642e0669b52cb0ba548902e850e6
 linux-x64,displace.so,lb:displace,Displace,36648,e24dc4bb756968b61ec70dfabd1a51fa05eeef4fbd12fc000ae379de8a34878c
+linux-x64,dust-scratches.so,lb:dust-scratches,Dust & Scratches,26528,7eba83474832c105008ffac50ac5c6db3527b12d150dfe34daf92a6e42109da8
 linux-x64,gray-to-component.so,lb:gray-to-component,Gray To Component,35624,d38984b7a45319c1ee9229d244588eb1cdcdfee76046cec7308c11776052b8dd
 linux-x64,hsb-levels.so,lb:hsb-levels,HSB Levels,34760,7e8e94a76d07038ab7c349eeead8e8687fdad1ca943a117d16663921a0401e23
 linux-x64,hsi-compose.so,lb:hsi-compose,HSI Compose,17600,9a5329b0fd56d052178ffa4b56ca8e4815d4f17028972c979248713ca2617260
@@ -84,8 +86,10 @@ linux-x64,lch-levels.so,lb:lch-levels,LCH Levels,34760,3ad32169bfa4e4c421d79a78a
 linux-x64,levels.so,lb:levels,Levels,26416,328cad1646b177d022606b3ccc9493d63512f71629fd430928db2370f1c28854
 linux-x64,match-color.so,lb:match-color,Match Color,40056,8f2a274f294e2c098794b7e777c2f85074973bff25f957131d24fe4cbabd5b50
 linux-x64,max-min.so,lb:max-min,Maximum / Minimum,36056,bd91cab0bd5404df5a59c7b41ec36a0929805a70e01a78b46bbd3c0390a792f8
+linux-x64,reduce-noise.so,lb:reduce-noise,Reduce Noise,26832,7ac3632f760a3698161148d7e2e92d8d5d53abffdcaba2e8d8fcbae815363df8
 linux-x64,rgb-domain-grayscale.so,lb:rgb-domain-grayscale,Black & White,27032,f1446a8fa98a79341942d673fd8bc2c0764b7a5f837c7c1b2bbaa42c7649889d
 linux-x64,shadows-highlights.so,lb:shadows-highlights,Shadows/Highlights,52480,4bb8f57a1327bf942e4a1fbe670ebababa2b5c0588bd8490eb6aa38673bcc2c0
+linux-x64,unsharp-mask.so,lb:unsharp-mask,Unsharp Mask,31192,abf919a277ada6b4769e25af0d79b77490fa7ef9d9e5725a2695bc725bb14a2d
 linux-x64,vibrance-hyper.so,lb:vibrance-hyper,Natural Saturation,26616,9d7d906f08dcc4d83990f3e971b705061e7d005e8c42d3a5ee5aff6aed02d21e
 linux-x64,vibrance.so,lb:vibrance,Vibrance,31040,a7b7a786907fc55c9c255cdb807a0e404394e7a64d7eaf133a3ad86e7be59552
 linux-x64,xyz-multiply.so,lb:xyz-multiply,Photo Filter,31968,295833d0bf192aea3f84b5fdab950fc0a9860437aea4cda3e32553fbd8a84661
