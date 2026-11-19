@@ -739,6 +739,7 @@ python tools/normalize_headers.py           # 预览文件头/命名重排，加
 python tools/set_menu_group.py --check      # 核对菜分组映射表与 ops 目录是否一一对应
 python tools/make_dist.py                   # 把 build/ 整理成 dist/（含 manifest + 校验和）
 ./tools/check-linux.sh                      # 在 Linux/WSL 里验证 .so 能加载并渲染（不开 GIMP）
+python tools/git_push_api.py --dry-run      # 推送兜底：github.com:443 不通时改走 Git Data API
 ```
 
 `smoke.sh` 只保证"不崩、有输出"；`check_gamma_domain.py` 用纯色小图对期望值
@@ -750,6 +751,34 @@ python tools/make_dist.py                   # 把 build/ 整理成 dist/（含 m
 取整像素、色相模式只换色相等）。这些脚本都会自动找 gegl 可执行文件，不在 PATH
 也能跑；`smoke.sh` / `check_blend.py` 还支持 `OPS_DIR=` 指向旧版 DLL 目录做前后
 对照（配合 `OUT_DIR=`）。
+
+## 推送受阻时的兜底：git_push_api.py
+
+本机到 `github.com:443` 的 HTTPS 常年不通（直连超时、换 IP 超时、走代理报
+`schannel: server closed abruptly`），但 `api.github.com` 一直可用，凭据管理器里也存着
+带 `repo` + `workflow` 权限的 token。`tools/git_push_api.py` 就是为此写的：本地照常
+`git commit`，然后用 Git Data API 把提交链搬上去。
+
+```bash
+git add -A && git commit -m "..."          # 本地提交不受影响
+python tools/git_push_api.py --dry-run     # 先看要传多少、推哪些提交
+python tools/git_push_api.py               # 真推（默认 12 路并发传 blob）
+```
+
+它依次做四件事：按需 `POST /git/blobs`（远端已有的 sha 直接跳过）、自下而上
+`POST /git/trees`、`POST /git/commits` 接上远端 head、`PATCH /git/refs/heads/main`。
+推完再把远端新建的 commit 对象用 `hash-object -w` 还原到本地并把 `origin/main` 和本地
+分支对齐——没有 fetch 也能让 `git status` 保持干净。
+
+踩过的坑（脚本里都已处理，重写时别再去掉）：
+
+- **tree 的非递归 GET 会假 404**：刚创建的 tree 用 `?recursive=1` 能读、普通 GET 返回
+  404。`remote_tree()` 因此对 404 退回递归读取再筛根级条目。
+- **不要拿本地 sha 当远端 tree 结果**。内容寻址下两者经常相同，但对象没写进远端时
+  commit 建得出来、GET 却 404。每层都真的 POST 一次。
+- **commit 的 message 尾换行会被 GitHub 去掉**，所以远端 sha 与本地必然不同。这不是
+  丢内容，`adopt_remote()` 会按同一规则还原对象并对齐 refs。
+- **串行传 blob 会超时**：18MB / 上千个小文件逐个往返要二十分钟，先并发预取再建树。
 
 ## 新增一个算子
 
