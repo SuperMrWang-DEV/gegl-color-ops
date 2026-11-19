@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-title-zh="最大 / 最小值（Max / Min） · Python 插件 · gegl-color-ops" data-title-en="最大 / 最小值（Max / Min） · Python plug-ins · gegl-color-ops">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>最大 / 最小值（Max / Min） · Python 插件 · gegl-color-ops</title>
+<meta name="description" content="Photoshop 的「最大值 / 最小值」滤镜：每个像素取邻域内的最大或最小值。
+       最大值把亮区往外推、吞掉暗处的小点；最小值收亮区、啃掉残留的白边。
+       GIMP 3 已经不带这个功能了——gegl:dilate " data-desc-zh="Photoshop 的「最大值 / 最小值」滤镜：每个像素取邻域内的最大或最小值。
+       最大值把亮区往外推、吞掉暗处的小点；最小值收亮区、啃掉残留的白边。
+       GIMP 3 已经不带这个功能了——gegl:dilate " data-desc-en="Photoshop&#x27;s Maximum / Minimum filter: every pixel takes the largest or smallest
+   value in its neighbourhood. Maximum p">
+<meta property="og:title" content="最大 / 最小值（Max / Min） · Python 插件 · gegl-color-ops" data-title-zh="最大 / 最小值（Max / Min） · Python 插件 · gegl-color-ops" data-title-en="最大 / 最小值（Max / Min） · Python plug-ins · gegl-color-ops">
+<meta property="og:description" content="Photoshop 的「最大值 / 最小值」滤镜：每个像素取邻域内的最大或最小值。
+       最大值把亮区往外推、吞掉暗处的小点；最小值收亮区、啃掉残留的白边。
+       GIMP 3 已经不带这个功能了——gegl:dilate " data-desc-zh="Photoshop 的「最大值 / 最小值」滤镜：每个像素取邻域内的最大或最小值。
+       最大值把亮区往外推、吞掉暗处的小点；最小值收亮区、啃掉残留的白边。
+       GIMP 3 已经不带这个功能了——gegl:dilate " data-desc-en="Photoshop&#x27;s Maximum / Minimum filter: every pixel takes the largest or smallest
+   value in its neighbourhood. Maximum p">
+<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+<main id="main">
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> /
+    <a href="../plugins.html">插件</a> / Mask</p>
+  <h1>最大 / 最小值（Max / Min）</h1>
+  <div class="meta">
+    <code>plugin/max-min</code>
+    <span class="tag t-mask">蒙版</span>
+    <span>Mask</span>
+  </div>
+  <p class="lede">Photoshop 的「最大值 / 最小值」滤镜：每个像素取邻域内的最大或最小值。
+       最大值把亮区往外推、吞掉暗处的小点；最小值收亮区、啃掉残留的白边。
+       GIMP 3 已经不带这个功能了——<code>gegl:dilate</code> / <code>gegl:erode</code>
+       没被编进官方构建，<code>plug-in-dilate</code> 也早在 2.10 之后移除。
+       所以这里用的是本项目自己的算子 <code>lb:max-min</code>。</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="zh-overview">
+  <dt>菜单位置</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → Mask → 最大值 / 最小值</li><li>图层右键 → SuperMrWang → Mask → 最大值 / 最小值</li></ul><p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p></dd>
+  <dt>脚本调用</dt>
+  <dd><code class="pdb">lb-plugin-max-min(image, drawables, mode, radius, shape, affect-alpha)</code><p>标准 PDB 过程，参数留空走默认值。</p></dd>
+  <dt>依赖</dt>
+  <dd><p>用本项目自己的算子 lb:max-min（GIMP 3 已不带 dilate / erode）。插件包里已附带这个模块，按 readme 放进 GEGL 模块目录即可。</p>
+      <ul class="deps"><li><code>lb:max-min</code></li></ul></dd>
+</dl>
+<div class="dl-grid">
+    <div class="dl" id="zh-sec-1">
+      <div class="dl-head"><h3>两个方向，一件事的两面</h3><span class="pill">形态学</span></div>
+      <p><b>最大值（膨胀）</b>：每个像素取邻域内的最大值，亮区向外长一圈，暗处的小点被吞掉。
+         <b>最小值（腐蚀）</b>：取最小值，亮区向内收缩，白底上的黑点被抹掉、抠图残留的白边
+         被啃干净。</p>
+      <ul class="deps">
+        <li><b>扩边 / 收边</b> · 蒙版、通道上加减一圈</li>
+        <li><b>去灰尘点</b> · 最小值收拾亮斑，最大值收拾暗斑</li>
+        <li><b>发光底图</b> · 最大值先撑开高光，再叠回去就是柔光晕</li>
+        <li><b>做厚度</b> · 最小值内缩一层，与原图求差就是描边</li>
+      </ul>
+    </div>
+    <div class="dl" id="zh-sec-2">
+      <div class="dl-head"><h3>GIMP 里为什么得自己写</h3></div>
+      <p>2.10 之前有「滤镜 → 通用 → 膨胀 / 腐蚀」，之后交给 GEGL 的
+         <code>gegl:dilate</code> / <code>gegl:erode</code>。这两个属于 GEGL 的
+         workshop 算子，<b>官方 Windows 构建没有把它们编进去</b>：本机 3.2.8 上
+         <code>gegl --list-all</code> 查不到，PDB 里也没有 <code>plug-in-dilate</code>。</p>
+      <p>仅剩的原生相关过程是 <code>gimp-selection-grow</code> / <code>-shrink</code>，
+         但它们只作用于选区，改不了一张蒙版或一个图层的像素。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-3">
+      <div class="dl-head"><h3>四个参数</h3><span class="pill">对应 PS 的对话框</span></div>
+      <ul class="deps">
+        <li><b>模式</b> · 最大值（膨胀）/ 最小值（腐蚀）</li>
+        <li><b>半径</b> · 1–100 像素，r=1 即 3×3，边缘向外长一圈</li>
+        <li><b>形状</b> · 方形（方窗）/ 圆形（圆盘），对应 PS 的「方形度 / 圆度」</li>
+        <li><b>影响 alpha</b> · 默认关，PS 同样不动图层透明度</li>
+      </ul>
+      <p>半径语义与 PS 一致：r 表示检查 <b>(±r, ±r)</b> 的邻域，不是窗口边长——所以 r=1 得到
+         的正是 3×3。</p>
+    </div>
+    <div class="dl" id="zh-sec-4">
+      <div class="dl-head"><h3>彩色图上会偏色，这是对的</h3></div>
+      <p>PS 对 RGB 复合图是<b>逐通道</b>取极值的，红蓝交界处因此冒出紫边。插件照这个语义做，
+         不对通道做任何均衡或换算。</p>
+      <p>要没有偏色就把目标换成单色的：蒙版、通道、灰度层。蒙版只有一张平面，取极值就是
+         纯粹的扩边 / 收边。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-5">
+      <div class="dl-head"><h3>逐位正确：在缓冲自己的精度里比较</h3><span class="pill">u8 / u16 / f32</span></div>
+      <p>极值只需要大小关系，但结果值必须原样搬出来。所以三个精度各展开一份代码：
+         u8 比 u8、u16 比 u16、float32 比 float32，<b>中途不做任何格式转换</b>。把 u16 读成
+         float 再写回，个别像素就会差 1 码，这里不给它机会。</p>
+      <p>不做色彩管理、不做 gamma 换算——PS 的这两个滤镜同样是直接对通道值取极值。</p>
+    </div>
+    <div class="dl" id="zh-sec-6">
+      <div class="dl-head"><h3>边缘不会暗一圈</h3></div>
+      <p>画布外按复制边缘像素处理。对取极值来说，这与「只算窗口内的像素」<b>逐位等价</b>：
+         补进来的永远是边缘那一列 / 那一行的副本，不引入新值，也就不像模糊那样在边上留暗边。</p>
+    </div>
+    <div class="dl" id="zh-sec-7">
+      <div class="dl-head"><h3>速度</h3></div>
+      <p><b>方窗可分离</b>：先横向、再纵向，两遍都与半径无关——3MP 图上 r=1 和 r=100 都只要
+         几十毫秒。<b>圆盘</b>每行半宽不同、不能分离，代价随半径线性增长（3MP、r=100 约 1.2 秒）。</p>
+    </div>
+  </div>
+  <p class="note">图层上是<b>非破坏滤镜</b>：参数随时可改、眼睛图标随时可关。蒙版和通道没有
+     滤镜栈（GIMP 3 实测：往蒙版 append 一条滤镜，API 不报错，但渲染不受影响），所以这两类
+     目标是直接写像素，靠撤销退回。回归：<code>check_max_min.py</code> 27 项（对 O(r²) 暴力
+     实现逐位比对，u8 / u16 / f32 × 方 / 圆 × 三档半径，含跨分带与超图半径）+
+     <code>check_max_min_plugin.py</code> 12 项（PDB、滤镜挂载、蒙版写像素、错误分支）。</p>
+
+<section class="download" id="zh-download">
+  <h2>下载这一个</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>最大值 / 最小值</h3><span class="pill">含 1 个模块 · 免编译</span></div>
+    <p>包里有一个 <code>.py</code>、1 个算子模块和一份安装说明。<b>算子依赖已经附在里面，不用另外去下。</b><code>.py</code> 进 GIMP 的 <code>plug-ins</code>，模块进 GEGL 的 <code>gegl-0.4/plug-ins</code>——两个目录不一样，包内说明分步写了。 Linux 端的 max-min.so 还没进预编译包，要用 Linux 就 <code>./build.sh</code> 自己编一份（Windows 端齐全）。</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-max-min.zip">下载 最大值 / 最小值</a>
+    <p class="muted small">48.8 KB · 校验：<code>SHA256 a78371edd23a27a0aae2743d5e360a32…</code></p>
+  </div>
+</section>
+
+<p class="note">文中「码」指 8 位图上的一个台阶：0–255 共 256 级，
+   相邻两级的差就是 1 码，等于 1/255 ≈ 0.392%%（也就是 RGB 128 与 129 之间的差）。
+   各数量级的含义与「码为什么不是感知量」的说明见
+   <a href="../guide.html#code">安装指南 · 精度里的「码」</a>。</p>
+  </article>
+  <aside class="toc">
+    <p class="toc-title">本页目录</p>
+    <ul>
+      <li><a href="#zh-overview">概览</a></li>
+<li><a href="#zh-sec-1">两个方向，一件事的两面</a></li><li><a href="#zh-sec-2">GIMP 里为什么得自己写</a></li><li><a href="#zh-sec-3">四个参数</a></li><li><a href="#zh-sec-4">彩色图上会偏色，这是对的</a></li><li><a href="#zh-sec-5">逐位正确：在缓冲自己的精度里比较</a></li><li><a href="#zh-sec-6">边缘不会暗一圈</a></li><li><a href="#zh-sec-7">速度</a></li>
+      <li><a href="#zh-download">下载</a></li>
+    </ul>
+  </aside>
+</div>
+<nav class="pager">
+  <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
+  <a class="prev" href="convert.html"><span>上一篇</span>Convert（通道 / 选区 / 蒙版 / 路径 十二向转换）</a>
+</nav></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> /
+    <a href="../plugins.html">Plug-ins</a> / Mask</p>
+  <h1>Max / Min</h1>
+  <div class="meta">
+    <code>plugin/max-min</code>
+    <span class="tag t-mask">Mask</span>
+    <span>Mask</span>
+  </div>
+  <p class="lede">Photoshop's Maximum / Minimum filter: every pixel takes the largest or smallest
+   value in its neighbourhood. Maximum pushes bright areas outwards and swallows small dark
+   specks; minimum shrinks bright areas and eats leftover fringes. GIMP 3 no longer has it —
+   <code>gegl:dilate</code> / <code>gegl:erode</code> are not built into the official
+   Windows binaries and <code>plug-in-dilate</code> was removed after 2.10 — so this uses the
+   project's own <code>lb:max-min</code> operator.</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="en-overview">
+  <dt>Menu location</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → Mask → Max / Min</li><li>Layer right-click → SuperMrWang → Mask → Max / Min</li></ul><p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p></dd>
+  <dt>Scripting</dt>
+  <dd><code class="pdb">lb-plugin-max-min(image, drawables, mode, radius, shape, affect-alpha)</code><p>A standard PDB procedure; leave an argument empty to take its default.</p></dd>
+  <dt>Dependencies</dt>
+  <dd><p>Uses this project's own lb:max-min operator, because GIMP 3 no longer ships dilate / erode. The module is inside the plug-in zip — drop it into the GEGL module folder.</p>
+      <ul class="deps"><li><code>lb:max-min</code></li></ul></dd>
+</dl>
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-1">
+      <div class="dl-head"><h3>Two directions, one operation</h3><span class="pill">morphology</span></div>
+      <p><b>Maximum (dilate)</b> takes the largest value around each pixel: bright areas grow
+         a ring outwards and small dark specks disappear. <b>Minimum (erode)</b> takes the
+         smallest: bright areas shrink, dark specks vanish and the fringe left after a cut-out
+         is chewed away.</p>
+      <ul class="deps">
+        <li><b>Grow / shrink</b> a mask or channel by a ring</li>
+        <li><b>Despeckle</b> — minimum for bright specks, maximum for dark ones</li>
+        <li><b>Glow base</b> — maximum spreads the highlights before blending back</li>
+        <li><b>Thickness</b> — erode and subtract from the original for an outline</li>
+      </ul>
+    </div>
+    <div class="dl" id="en-sec-2">
+      <div class="dl-head"><h3>Why it has to be written here</h3></div>
+      <p>Up to 2.10 there was Filters &gt; Generic &gt; Dilate / Erode; afterwards GEGL's
+         <code>gegl:dilate</code> / <code>gegl:erode</code> took over. Those are workshop
+         operators and <b>are not compiled into the official Windows build</b>: on 3.2.8
+         <code>gegl --list-all</code> does not list them and there is no
+         <code>plug-in-dilate</code> in the PDB at all.</p>
+      <p>The only native leftovers are <code>gimp-selection-grow</code> /
+         <code>-shrink</code>, and those work on selections only — they cannot change a mask or
+         a layer's pixels.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-3">
+      <div class="dl-head"><h3>Four parameters</h3><span class="pill">mirrors PS</span></div>
+      <ul class="deps">
+        <li><b>Mode</b> — maximum (dilate) / minimum (erode)</li>
+        <li><b>Radius</b> — 1–100 px; r=1 is a 3×3 window, one ring outwards</li>
+        <li><b>Shape</b> — square or round, i.e. PS's “Preserve: Squareness / Roundness”</li>
+        <li><b>Affect alpha</b> — off by default; PS leaves layer opacity alone too</li>
+      </ul>
+      <p>Radius means the same thing as in PS: it checks a <b>(±r, ±r)</b> neighbourhood, not a
+         window edge length — so r=1 gives exactly 3×3.</p>
+    </div>
+    <div class="dl" id="en-sec-4">
+      <div class="dl-head"><h3>Colour fringing is correct</h3></div>
+      <p>PS applies this per channel on an RGB composite, which is why red/blue edges pick up a
+         magenta fringe. The operator does the same and makes no attempt to balance channels.</p>
+      <p>For no fringing, target a single-plane drawable: a mask, a channel or a greyscale
+         layer. On a mask the operation is pure grow / shrink.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-5">
+      <div class="dl-head"><h3>Bit-exact: compared in the buffer's own precision</h3><span class="pill">u8 / u16 / f32</span></div>
+      <p>A maximum only needs ordering, but the value still has to be carried out untouched.
+         So there are three copies of the kernel: u8 compares u8, u16 compares u16, float32
+         compares float32, with <b>no format conversion in between</b>. Reading a u16 as float
+         and writing it back moves some pixels by one code — that is not allowed here.</p>
+      <p>No colour management, no gamma conversion: PS's Maximum / Minimum also work straight on
+         channel values.</p>
+    </div>
+    <div class="dl" id="en-sec-6">
+      <div class="dl-head"><h3>No darkened border</h3></div>
+      <p>Outside the canvas the edge pixels are replicated. For a min/max that is
+         <b>bit-identical</b> to only counting the in-canvas part of the window: the replicated
+         values are copies of an edge pixel that is already inside it. Unlike a blur, nothing
+         darkens at the border.</p>
+    </div>
+    <div class="dl" id="en-sec-7">
+      <div class="dl-head"><h3>Speed</h3></div>
+      <p><b>A square window is separable</b> — one horizontal pass, one vertical, both
+         independent of the radius: on a 3 MP image r=1 and r=100 both take tens of
+         milliseconds. <b>A disc</b> has a different half-width per row and cannot be split;
+         its cost grows linearly with the radius (3 MP at r=100 is about 1.2 s).</p>
+    </div>
+  </div>
+  <p class="note">On a layer this is a <b>non-destructive filter</b>: change the parameters or
+     toggle it off at any time. Masks and channels carry no filter stack (measured on GIMP 3:
+     appending a filter to a mask neither errors nor has any effect on rendering), so those two
+     are baked into pixels and undone with undo. Regression: <code>check_max_min.py</code>
+     (27 checks against an O(r²) brute force — u8 / u16 / f32 × square / round × three radii,
+     plus band seams and a radius larger than the image) and
+     <code>check_max_min_plugin.py</code> (12 checks: PDB, filter attachment, mask baking,
+     error branches).</p>
+
+<section class="download" id="en-download">
+  <h2>Download this one</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>Max / Min</h3><span class="pill">1 modules included · no compile</span></div>
+    <p>The archive holds one <code>.py</code>, 1 operator modules and an install note. <b>The operator dependencies are already inside, nothing else to download.</b> The <code>.py</code> goes into GIMP's <code>plug-ins</code>, the modules into GEGL's <code>gegl-0.4/plug-ins</code> — two different directories, and the note inside walks through both. The Linux side of max-min.so is not in the prebuilt bundle yet; if you need Linux, build it with <code>./build.sh</code> (Windows is complete).</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-max-min.zip">Download Max / Min</a>
+    <p class="muted small">48.8 KB · checksum: <code>SHA256 a78371edd23a27a0aae2743d5e360a32…</code></p>
+  </div>
+</section>
+
+<p class="note">In this article a "code" means one step on an 8-bit
+   image: 0–255 is 256 levels, so the gap between neighbours is 1 code, or
+   1/255 ≈ 0.392%% (the difference between RGB 128 and 129). For the order of magnitude
+   of each figure, and why a code is not a perceptual quantity, see
+   <a href="../guide.html#code">Install guide · what a code is</a>.</p>
+  </article>
+  <aside class="toc">
+    <p class="toc-title">On this page</p>
+    <ul>
+      <li><a href="#en-overview">Overview</a></li>
+<li><a href="#en-sec-1">Two directions, one operation</a></li><li><a href="#en-sec-2">Why it has to be written here</a></li><li><a href="#en-sec-3">Four parameters</a></li><li><a href="#en-sec-4">Colour fringing is correct</a></li><li><a href="#en-sec-5">Bit-exact: compared in the buffer&#x27;s own precision</a></li><li><a href="#en-sec-6">No darkened border</a></li><li><a href="#en-sec-7">Speed</a></li>
+      <li><a href="#en-download">Download</a></li>
+    </ul>
+  </aside>
+</div>
+<nav class="pager">
+  <a href="../plugins.html"><span>Back to</span>All plug-ins</a>
+  <a class="prev" href="convert.html"><span>Previous</span>Convert</a>
+</nav></div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
+    <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
+    <span class="muted">193c6ab</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
+</body>
+</html>

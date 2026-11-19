@@ -7,7 +7,7 @@
 <meta name="description" content="GIMP 3 GEGL 算子安装、验证与排错" data-desc-zh="GIMP 3 GEGL 算子安装、验证与排错" data-desc-en="Installing, verifying and troubleshooting the GEGL operators for GIMP 3.">
 <meta property="og:title" content="安装与排错 · gegl-color-ops" data-title-zh="安装与排错 · gegl-color-ops" data-title-en="Install &amp; troubleshooting · gegl-color-ops">
 <meta property="og:description" content="GIMP 3 GEGL 算子安装、验证与排错" data-desc-zh="GIMP 3 GEGL 算子安装、验证与排错" data-desc-en="Installing, verifying and troubleshooting the GEGL operators for GIMP 3.">
-<link rel="stylesheet" href="assets/style.css?v=7be715334e">
+<link rel="stylesheet" href="assets/style.css?v=e5483bde3c">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="feed.xml">
 <script>
 (function () {
@@ -49,7 +49,7 @@
   <ul>
     <li><b>GIMP 3.x</b>（3.0 / 3.2 实测），自带 GEGL 0.4。</li>
     <li>Windows x64 用现成的 <code>.dll</code>，Linux x86_64 用 <code>.so</code>。
-        Windows 包 <b>41 个模块齐全</b>；Linux 包目前 29 个，component 家族那 12 个模块（hsv / hsl / lab / lch / hsi 各自的 dual 与 compose，再加 gray-to-component）还没出包，可以 <code>./build.sh</code> 自己编。</li>
+        Windows 包 <b>42 个模块齐全</b>；Linux 包目前 29 个，component 家族那 13 个模块（hsv / hsl / lab / lch / hsi 各自的 dual 与 compose，再加 gray-to-component）还没出包，可以 <code>./build.sh</code> 自己编。</li>
     <li>不需要 Python 运行时——算子是 C 编译的 GEGL 模块。</li>
   </ul>
 
@@ -188,8 +188,8 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
   <ul>
     <li><b>GIMP 3.x</b> (tested on 3.0 and 3.2), which ships GEGL 0.4.</li>
     <li>Prebuilt <code>.dll</code> for Windows x64, <code>.so</code> for Linux x86_64.
-        The Windows bundle has <b>all 41 modules</b>; the Linux bundle currently has
-        29 — the 12 modules of the component family (dual and compose for hsv / hsl / lab / lch / hsi, plus gray-to-component) are not in the bundle yet — build them with <code>./build.sh</code>.</li>
+        The Windows bundle has <b>all 42 modules</b>; the Linux bundle currently has
+        29 — the 13 modules of the component family (dual and compose for hsv / hsl / lab / lch / hsi, plus gray-to-component) are not in the bundle yet — build them with <code>./build.sh</code>.</li>
     <li>No Python runtime needed: the operators are GEGL modules compiled from C.</li>
   </ul>
 
@@ -359,7 +359,7 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">1847510</span>
+    <span class="muted">193c6ab</span>
   </div>
 </footer>
 <script>

@@ -188,6 +188,31 @@ def native_mask_to_channel(img, mask):
     return pdb('gimp-selection-save', image=img).index(1)
 
 
+def native_sel2path(img, layer):
+    """原生「选择 → 路径」，只取它新造出来的那条。
+    Native Select > To Path; returns the path it just created."""
+    before = set(p.get_id() for p in img.get_paths())
+    proc = Gimp.get_pdb().lookup_procedure('plug-in-sel2path')
+    cfg = proc.create_config()
+    cfg.set_property('image', img)
+    cfg.set_core_object_array('drawables', [layer])
+    proc.run(cfg)
+    return [p for p in img.get_paths() if p.get_id() not in before]
+
+
+def native_path_to_selection(img, path):
+    pdb('gimp-image-select-item', image=img,
+        operation=Gimp.ChannelOps.REPLACE, item=path)
+    return img.get_selection()
+
+
+def path_to_rect(img, layer, x, y, w, h):
+    """用原生过程把矩形选区描成路径，当作各方向的源。
+    Seed a path from a rectangular selection using the native tracer."""
+    img.select_rectangle(Gimp.ChannelOps.REPLACE, x, y, w, h)
+    return native_sel2path(img, layer)[0]
+
+
 def run():
     print("\n[1] 通道 → 选区（原生：Y' 当线性直搬）")
     img, _ = new_doc()
@@ -419,6 +444,144 @@ def run():
     except RuntimeError as exc:
         check("14d 报错列出通道名", ["alpha" in str(exc) and "beta" in str(exc)],
               [True])
+    img.delete()
+
+    print("\n[15] 路径 → 选区（原生 select-item，一步）")
+    img, layer = new_doc()
+    path = path_to_rect(img, layer, 6, 0, 8, H)
+    nat = read_y(native_path_to_selection(img, path))
+    img.delete()
+    img, layer = new_doc()
+    path = path_to_rect(img, layer, 6, 0, 8, H)
+    mod.path_to_selection(img, [path])
+    ours = read_y(img.get_selection())
+    check("矩形路径栅格化 = 硬边", nat, [0.0, 255.0, 255.0])
+    check("插件与原生逐位一致", ours, nat)
+    img.delete()
+
+    print("\n[16] 选区 → 路径（原生 plug-in-sel2path）")
+    img, layer = new_doc()
+    img.select_rectangle(Gimp.ChannelOps.REPLACE, 6, 0, 8, H)
+    nat_path = native_sel2path(img, layer)[0]
+    nat = read_y(native_path_to_selection(img, nat_path))
+    img.delete()
+    img, layer = new_doc()
+    img.select_rectangle(Gimp.ChannelOps.REPLACE, 6, 0, 8, H)
+    ours_path = mod.selection_to_path(img, [layer])
+    ours = read_y(native_path_to_selection(img, ours_path))
+    check("描出来的路径栅格化回选区", ours, nat)
+    check("路径名与原生一致", [ours_path.get_name()], [nat_path.get_name()])
+    img.delete()
+
+    print("\n[17] 羽化选区 → 路径：软边被压成 50% 等值线（原生也如此）")
+    img, layer = new_doc()
+    img.select_rectangle(Gimp.ChannelOps.REPLACE, 3, 3, 5, 5)
+    Gimp.Selection.feather(img, 2.0)
+    nat_before = read_y(img.get_selection())
+    nat_path = native_sel2path(img, layer)[0]
+    nat = read_y(native_path_to_selection(img, nat_path))
+    img.delete()
+    img, layer = new_doc()
+    img.select_rectangle(Gimp.ChannelOps.REPLACE, 3, 3, 5, 5)
+    Gimp.Selection.feather(img, 2.0)
+    ours_path = mod.selection_to_path(img, [layer])
+    ours = read_y(native_path_to_selection(img, ours_path))
+    check("羽化边上原本是灰", [0.0 < nat_before[0] < 255.0], [True])
+    check("过路径后只剩硬边", [ours[0] in (0.0, 255.0)], [True])
+    check("插件与原生逐位一致", ours, nat)
+    img.delete()
+
+    print("\n[18] 通道 → 路径（原生两步：通道 → 选区 → 路径）")
+    img, layer = new_doc()
+    ch = make_channel(img)
+    pdb('gimp-image-select-item', image=img,
+        operation=Gimp.ChannelOps.REPLACE, item=ch)
+    nat_path = native_sel2path(img, layer)[0]
+    nat = read_y(native_path_to_selection(img, nat_path))
+    img.delete()
+    img, layer = new_doc()
+    ch = make_channel(img)
+    img.set_selected_layers([layer])
+    img.set_selected_channels([ch])
+    _src, ours_path = mod.channel_to_path(img, [layer])
+    ours = read_y(native_path_to_selection(img, ours_path))
+    check("插件与原生逐位一致", ours, nat)
+    check("路径名带通道名", [ours_path.get_name()], ["Channel ramp"])
+    img.delete()
+
+    print("\n[19] 路径 → 通道 / 蒙版（路径栅格化后走原生落点）")
+    img, layer = new_doc()
+    path = path_to_rect(img, layer, 6, 0, 8, H)
+    pdb('gimp-image-select-item', image=img,
+        operation=Gimp.ChannelOps.REPLACE, item=path)
+    nat_ch = read_y(pdb('gimp-selection-save', image=img).index(1))
+    img.delete()
+    img, layer = new_doc()
+    path = path_to_rect(img, layer, 6, 0, 8, H)
+    _src, ch = mod.path_to_channel(img, [path])
+    ours = read_y(ch)
+    check("路径 → 通道 = 硬边", ours, [0.0, 255.0, 255.0])
+    check("插件与原生逐位一致", ours, nat_ch)
+    mod.path_to_mask(img, [path])
+    check("路径 → 蒙版同为硬边", read_y(layer.get_mask()), ours)
+    img.delete()
+
+    print("\n[20] 蒙版 → 路径（原生两步：蒙版 → 选区 → 路径）")
+    img, layer = new_doc()
+    m = layer.create_mask(Gimp.AddMaskType.WHITE)
+    layer.add_mask(m)
+    set_plane(m, RAMP)
+    pdb('gimp-image-select-item', image=img,
+        operation=Gimp.ChannelOps.REPLACE, item=m)
+    nat_path = native_sel2path(img, layer)[0]
+    nat = read_y(native_path_to_selection(img, nat_path))
+    img.delete()
+    img, layer = new_doc()
+    m = layer.create_mask(Gimp.AddMaskType.WHITE)
+    layer.add_mask(m)
+    set_plane(m, RAMP)
+    _src, ours_path = mod.mask_to_path(img, [layer])
+    ours = read_y(native_path_to_selection(img, ours_path))
+    check("插件与原生逐位一致", ours, nat)
+    check("路径名带图层名", [ours_path.get_name()], ["layer Mask"])
+    img.delete()
+
+    print("\n[21] 重复运行不撞名，也不覆盖旧路径")
+    img, layer = new_doc()
+    img.select_rectangle(Gimp.ChannelOps.REPLACE, 3, 3, 5, 5)
+    p1 = mod.selection_to_path(img, [layer])
+    p2 = mod.selection_to_path(img, [layer])
+    check("第一条叫 Selection", [p1.get_name()], ["Selection"])
+    check("第二条自动编号", [p2.get_name()], ["Selection 2"])
+    check("两条路径都在", [len(img.get_paths())], [2])
+    img.delete()
+
+    print("\n[22] 路径取源兜底与错误分支")
+    img, layer = new_doc()
+    try:
+        mod.path_to_selection(img)
+        check("无路径应报错", ["没报错"], ["应报错"])
+    except RuntimeError as exc:
+        check("无路径报错信息", ["路径" in str(exc)], [True])
+
+    # 两条路径时，认「路径面板里选中的那条」，谁选中就取谁
+    # （GIMP 的路径选中项不会被清空，总有一条是选中状态）
+    pa = path_to_rect(img, layer, 6, 0, 8, H)
+    pb = path_to_rect(img, layer, 0, 0, 4, H)
+    img.set_selected_paths([pa])
+    mod.path_to_selection(img)
+    check("取选中路径 A", tuple(Gimp.Selection.bounds(img))[4:6], (14, 16))
+    img.set_selected_paths([pb])
+    mod.path_to_selection(img)
+    check("取选中路径 B", tuple(Gimp.Selection.bounds(img))[4:6], (4, 16))
+
+    # 没有选区时 → 路径：明确拒绝，不偷偷描空路径
+    pdb('gimp-selection-none', image=img)
+    try:
+        mod.selection_to_path(img, [layer])
+        check("无选区应报错", ["没报错"], ["应报错"])
+    except RuntimeError as exc:
+        check("无选区报错信息", ["选区" in str(exc)], [True])
     img.delete()
 
 

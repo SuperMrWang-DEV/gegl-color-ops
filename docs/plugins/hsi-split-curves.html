@@ -17,7 +17,7 @@
        模式一条也对不上，连「借 HSV 色相换角」都会把 I 带走 22 码。于是三个分量
        合进同一层：红=S、绿=I、蓝=色相，三条曲" data-desc-en="HSI&#x27;s I is (R+G+B)/3 and its hue comes from a cosine definition, so none of GIMP&#x27;s
    six component modes match — even b">
-<link rel="stylesheet" href="../assets/style.css?v=7be715334e">
+<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <script>
 (function () {
@@ -62,27 +62,19 @@
        模式一条也对不上，连「借 HSV 色相换角」都会把 I 带走 22 码。于是三个分量
        合进同一层：红=S、绿=I、蓝=色相，三条曲线各管一个分量。</p>
 </section>
-<div class="prose wide">
-  <div class="dl-grid">
-    <div class="dl primary-dl">
-      <div class="dl-head"><h3>菜单位置</h3><span class="pill">多条</span></div>
-      <ul class="menu-list"><li>SuperMrWang → Retouch → HSI Split (Curves) · single</li><li>图层右键 → SuperMrWang → Retouch → HSI Split (Curves) · single</li></ul>
-      <p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>脚本调用</h3></div>
-      <pre><code>lb-plugin-hsi-split-curves(image, drawables, group)</code></pre>
-      <p>标准 PDB 过程，参数留空走默认值。</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>依赖</h3></div>
-      <p>靠下面这些算子干活。<b>它们已经打进这个插件的下载包</b>（<code>modules-windows-x64</code> / <code>modules-linux-x64</code>），不用另外去下：</p>
-      <ul class="deps"><li><code>lb:hsi-dual</code></li><li><code>lb:hsi-compose</code></li></ul>
-    </div>
-  </div>
-
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="zh-overview">
+  <dt>菜单位置</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → Retouch → HSI Split (Curves) · single</li><li>图层右键 → SuperMrWang → Retouch → HSI Split (Curves) · single</li></ul><p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p></dd>
+  <dt>脚本调用</dt>
+  <dd><code class="pdb">lb-plugin-hsi-split-curves(image, drawables, group)</code><p>标准 PDB 过程，参数留空走默认值。</p></dd>
+  <dt>依赖</dt>
+  <dd><p>靠下面这些算子干活。<b>它们已经打进这个插件的下载包</b>（<code>modules-windows-x64</code> / <code>modules-linux-x64</code>），不用另外去下：</p>
+      <ul class="deps"><li><code>lb:hsi-dual</code></li><li><code>lb:hsi-compose</code></li></ul></dd>
+</dl>
 <div class="dl-grid">
-    <div class="dl primary-dl">
+    <div class="dl" id="zh-sec-1">
       <div class="dl-head"><h3>只有一个模式</h3><span class="pill">single</span></div>
       <pre><code>HSI split          组 · 穿透（带 alpha 时组上还有蒙版）
   └─ 1 · HSI S/I/H   模式 正常   ← 一条算子链算完整 HSI 色
@@ -91,7 +83,7 @@
          <b>I 曲线（绿）</b> → <b>H 曲线（蓝）</b> → <code>compose</code>
          （lb:hsi-compose）。三层分量各占一个通道，互不串门。</p>
     </div>
-    <div class="dl">
+    <div class="dl" id="zh-sec-2">
       <div class="dl-head"><h3>为什么没有 multi</h3></div>
       <p>HSI 一个分量模式都借不到：<code>I=(R+G+B)/3</code> 不是 V 也不是 L；
          色相用余弦定义，接到「HSV 色相」模式上换角时保留的是 HSV 的 S/V，
@@ -100,7 +92,7 @@
          现成的分量混合模式——HSV、LCh 三个都有，HSL 借色相，Lab 借明度。HSI 一个
          都没有，硬拆就是不准，所以这里只有 single。</p>
     </div>
-    <div class="dl">
+    <div class="dl" id="zh-sec-3">
       <div class="dl-head"><h3>两种色相角不是一回事</h3></div>
       <p>HSI 的色相是余弦定义（等亮度平面里的真实夹角），HSV 的是六边形投影上的
          参数角；两者只在 0°/30°/60° 重合，中间最多差 <b>1.117°</b>。数据图里存
@@ -113,7 +105,7 @@
      六边形棱锥，不是立方体），出界部分按 0/1 裁掉。依赖 <code>lb:hsi-dual</code> /
      <code>lb:hsi-compose</code> 两个算子，缺了没有回退，插件会直接报错。</p>
 
-<section class="download" id="download">
+<section class="download" id="zh-download">
   <h2>下载这一个</h2>
   <div class="dl primary-dl">
     <div class="dl-head"><h3>HSI Split (Curves) · single</h3><span class="pill">含 2 个模块 · 免编译</span></div>
@@ -127,6 +119,15 @@
    相邻两级的差就是 1 码，等于 1/255 ≈ 0.392%%（也就是 RGB 128 与 129 之间的差）。
    各数量级的含义与「码为什么不是感知量」的说明见
    <a href="../guide.html#code">安装指南 · 精度里的「码」</a>。</p>
+  </article>
+  <aside class="toc">
+    <p class="toc-title">本页目录</p>
+    <ul>
+      <li><a href="#zh-overview">概览</a></li>
+<li><a href="#zh-sec-1">只有一个模式</a></li><li><a href="#zh-sec-2">为什么没有 multi</a></li><li><a href="#zh-sec-3">两种色相角不是一回事</a></li>
+      <li><a href="#zh-download">下载</a></li>
+    </ul>
+  </aside>
 </div>
 <nav class="pager">
   <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
@@ -146,27 +147,19 @@
    All three components therefore share one layer: red = S, green = I, blue = hue, one curve
    each.</p>
 </section>
-<div class="prose wide">
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="en-overview">
+  <dt>Menu location</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → Retouch → HSI Split (Curves) · single</li><li>Layer right-click → SuperMrWang → Retouch → HSI Split (Curves) · single</li></ul><p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p></dd>
+  <dt>Scripting</dt>
+  <dd><code class="pdb">lb-plugin-hsi-split-curves(image, drawables, group)</code><p>A standard PDB procedure; leave an argument empty to take its default.</p></dd>
+  <dt>Dependencies</dt>
+  <dd><p>The operators below do the work. <b>They are already inside this plug-in's download</b> (<code>modules-windows-x64</code> / <code>modules-linux-x64</code>) — nothing else to fetch:</p>
+      <ul class="deps"><li><code>lb:hsi-dual</code></li><li><code>lb:hsi-compose</code></li></ul></dd>
+</dl>
   <div class="dl-grid">
-    <div class="dl primary-dl">
-      <div class="dl-head"><h3>Menu location</h3><span class="pill">Several</span></div>
-      <ul class="menu-list"><li>SuperMrWang → Retouch → HSI Split (Curves) · single</li><li>Layer right-click → SuperMrWang → Retouch → HSI Split (Curves) · single</li></ul>
-      <p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>Scripting</h3></div>
-      <pre><code>lb-plugin-hsi-split-curves(image, drawables, group)</code></pre>
-      <p>A standard PDB procedure; leave an argument empty to take its default.</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>Dependencies</h3></div>
-      <p>The operators below do the work. <b>They are already inside this plug-in's download</b> (<code>modules-windows-x64</code> / <code>modules-linux-x64</code>) — nothing else to fetch:</p>
-      <ul class="deps"><li><code>lb:hsi-dual</code></li><li><code>lb:hsi-compose</code></li></ul>
-    </div>
-  </div>
-
-  <div class="dl-grid">
-    <div class="dl primary-dl">
+    <div class="dl" id="en-sec-1">
       <div class="dl-head"><h3>One mode only</h3><span class="pill">single</span></div>
       <pre><code>HSI split group · pass-through (plus a mask when there is alpha)
  └─ 1 · HSI S/I/H mode  Normal  ← one operator chain computes the whole HSI colour
@@ -175,7 +168,7 @@
          I curve (green) → H curve (blue) → compose (<code>lb:hsi-compose</code>). Each
          component owns one channel and none of them leaks into another.</p>
     </div>
-    <div class="dl">
+    <div class="dl" id="en-sec-2">
       <div class="dl-head"><h3>Why there is no multi</h3></div>
       <p>HSI cannot borrow a single component mode: I=(R+G+B)/3 is neither V nor L, and hue is
          a cosine definition, so wiring it into "HSV hue" mode preserves HSV's S/V and drags I
@@ -188,7 +181,7 @@
   </div>
 
   <div class="dl-grid">
-    <div class="dl primary-dl">
+    <div class="dl" id="en-sec-3">
       <div class="dl-head"><h3>The two hue angles are not the same thing</h3></div>
       <p>HSI's hue is a cosine definition — the true angle inside the constant-luminance plane
          — while HSV's is a parametric angle on a hexagonal projection. They agree at
@@ -196,7 +189,7 @@
          and <code>lb:hsi-compose</code> inverts with the HSI cosine form, so nothing is ever
          converted halfway: the round trip is 0.0001 codes (0.5 codes in 8-bit).</p>
     </div>
-    <div class="dl">
+    <div class="dl" id="en-sec-4">
       <div class="dl-head"><h3>Watch out</h3></div>
       <p>Average intensity I is closer to perceived brightness than HSV's max, which is why HSI
          turns up in image analysis and exposure correction. Pushing S or I to the extremes
@@ -207,7 +200,7 @@
     </div>
   </div>
 
-<section class="download" id="download">
+<section class="download" id="en-download">
   <h2>Download this one</h2>
   <div class="dl primary-dl">
     <div class="dl-head"><h3>HSI Split (Curves)</h3><span class="pill">2 modules included · no compile</span></div>
@@ -222,6 +215,15 @@
    1/255 ≈ 0.392%% (the difference between RGB 128 and 129). For the order of magnitude
    of each figure, and why a code is not a perceptual quantity, see
    <a href="../guide.html#code">Install guide · what a code is</a>.</p>
+  </article>
+  <aside class="toc">
+    <p class="toc-title">On this page</p>
+    <ul>
+      <li><a href="#en-overview">Overview</a></li>
+<li><a href="#en-sec-1">One mode only</a></li><li><a href="#en-sec-2">Why there is no multi</a></li><li><a href="#en-sec-3">The two hue angles are not the same thing</a></li><li><a href="#en-sec-4">Watch out</a></li>
+      <li><a href="#en-download">Download</a></li>
+    </ul>
+  </aside>
 </div>
 <nav class="pager">
   <a href="../plugins.html"><span>Back to</span>All plug-ins</a>
@@ -239,7 +241,7 @@
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">1847510</span>
+    <span class="muted">193c6ab</span>
   </div>
 </footer>
 <script>

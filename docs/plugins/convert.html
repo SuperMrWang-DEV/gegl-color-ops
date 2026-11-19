@@ -1,23 +1,23 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-title-zh="Convert（通道 / 选区 / 蒙版 六向转换） · Python 插件 · gegl-color-ops" data-title-en="Convert（通道 / 选区 / 蒙版 六向转换） · Python plug-ins · gegl-color-ops">
+<html lang="zh-CN" data-title-zh="Convert（通道 / 选区 / 蒙版 / 路径 十二向转换） · Python 插件 · gegl-color-ops" data-title-en="Convert（通道 / 选区 / 蒙版 / 路径 十二向转换） · Python plug-ins · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Convert（通道 / 选区 / 蒙版 六向转换） · Python 插件 · gegl-color-ops</title>
-<meta name="description" content="通道、选区、蒙版三者两两互转，六个方向各占一个菜单项，点下去直接执行、
-       不弹参数框。原生菜单里这六条路分散在三处，而且「蒙版 → 通道」根本没有直连，
-       只能绕选区两步走。" data-desc-zh="通道、选区、蒙版三者两两互转，六个方向各占一个菜单项，点下去直接执行、
-       不弹参数框。原生菜单里这六条路分散在三处，而且「蒙版 → 通道」根本没有直连，
-       只能绕选区两步走。" data-desc-en="Channels, selections and layer masks, converted in every direction: six menu
-   items, each one click and done — no para">
-<meta property="og:title" content="Convert（通道 / 选区 / 蒙版 六向转换） · Python 插件 · gegl-color-ops" data-title-zh="Convert（通道 / 选区 / 蒙版 六向转换） · Python 插件 · gegl-color-ops" data-title-en="Convert（通道 / 选区 / 蒙版 六向转换） · Python plug-ins · gegl-color-ops">
-<meta property="og:description" content="通道、选区、蒙版三者两两互转，六个方向各占一个菜单项，点下去直接执行、
-       不弹参数框。原生菜单里这六条路分散在三处，而且「蒙版 → 通道」根本没有直连，
-       只能绕选区两步走。" data-desc-zh="通道、选区、蒙版三者两两互转，六个方向各占一个菜单项，点下去直接执行、
-       不弹参数框。原生菜单里这六条路分散在三处，而且「蒙版 → 通道」根本没有直连，
-       只能绕选区两步走。" data-desc-en="Channels, selections and layer masks, converted in every direction: six menu
-   items, each one click and done — no para">
-<link rel="stylesheet" href="../assets/style.css?v=7be715334e">
+<title>Convert（通道 / 选区 / 蒙版 / 路径 十二向转换） · Python 插件 · gegl-color-ops</title>
+<meta name="description" content="通道、选区、蒙版、路径四者两两互转，十二个方向各占一个菜单项，点下去
+       直接执行、不弹参数框。原生菜单里这些路分散在四处，而且「蒙版 → 通道」
+       「通道 → 路径」这类根本没有直连，只能绕选区两步走。路径这一站是有" data-desc-zh="通道、选区、蒙版、路径四者两两互转，十二个方向各占一个菜单项，点下去
+       直接执行、不弹参数框。原生菜单里这些路分散在四处，而且「蒙版 → 通道」
+       「通道 → 路径」这类根本没有直连，只能绕选区两步走。路径这一站是有" data-desc-en="Channels, selections, layer masks and paths, converted in every direction: twelve
+   menu items, each one click and done">
+<meta property="og:title" content="Convert（通道 / 选区 / 蒙版 / 路径 十二向转换） · Python 插件 · gegl-color-ops" data-title-zh="Convert（通道 / 选区 / 蒙版 / 路径 十二向转换） · Python 插件 · gegl-color-ops" data-title-en="Convert（通道 / 选区 / 蒙版 / 路径 十二向转换） · Python plug-ins · gegl-color-ops">
+<meta property="og:description" content="通道、选区、蒙版、路径四者两两互转，十二个方向各占一个菜单项，点下去
+       直接执行、不弹参数框。原生菜单里这些路分散在四处，而且「蒙版 → 通道」
+       「通道 → 路径」这类根本没有直连，只能绕选区两步走。路径这一站是有" data-desc-zh="通道、选区、蒙版、路径四者两两互转，十二个方向各占一个菜单项，点下去
+       直接执行、不弹参数框。原生菜单里这些路分散在四处，而且「蒙版 → 通道」
+       「通道 → 路径」这类根本没有直连，只能绕选区两步走。路径这一站是有" data-desc-en="Channels, selections, layer masks and paths, converted in every direction: twelve
+   menu items, each one click and done">
+<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <script>
 (function () {
@@ -52,48 +52,44 @@
 <div class="l-zh"><section class="page-head">
   <p class="eyebrow"><a href="../index.html">首页</a> /
     <a href="../plugins.html">插件</a> / 图层转换</p>
-  <h1>Convert（通道 / 选区 / 蒙版 六向转换）</h1>
+  <h1>Convert（通道 / 选区 / 蒙版 / 路径 十二向转换）</h1>
   <div class="meta">
     <code>plugin/convert</code>
     <span class="tag t-mask">转换</span>
     <span>图层转换</span>
   </div>
-  <p class="lede">通道、选区、蒙版三者两两互转，六个方向各占一个菜单项，点下去直接执行、
-       不弹参数框。原生菜单里这六条路分散在三处，而且「蒙版 → 通道」根本没有直连，
-       只能绕选区两步走。</p>
+  <p class="lede">通道、选区、蒙版、路径四者两两互转，十二个方向各占一个菜单项，点下去
+       直接执行、不弹参数框。原生菜单里这些路分散在四处，而且「蒙版 → 通道」
+       「通道 → 路径」这类根本没有直连，只能绕选区两步走。路径这一站是<b>有损闸门</b>：
+       它只有几何、没有 alpha，位图进路径时按 50% 等值线取轮廓。</p>
 </section>
 <p class="native-note"><b>只是原生方式的便捷实现</b>　这里没有新算法：
    像素结果全部出自 GIMP 自带的 PDB 过程，插件只负责把散在三处菜单、要跨三四步的动作
    收成一次点击，并保证与手点原生菜单得到的结果逐位相同。</p>
-<div class="prose wide">
-  <div class="dl-grid">
-    <div class="dl primary-dl">
-      <div class="dl-head"><h3>菜单位置</h3><span class="pill">多条</span></div>
-      <ul class="menu-list"><li>SuperMrWang → Convert → Channel to Selection</li><li>SuperMrWang → Convert → Selection to Channel</li><li>SuperMrWang → Convert → Channel to Mask</li><li>SuperMrWang → Convert → Mask to Channel</li><li>SuperMrWang → Convert → Selection to Mask</li><li>SuperMrWang → Convert → Mask to Selection</li><li>图层右键 → SuperMrWang → Convert（同样六项）</li><li>通道右键 → SuperMrWang → Convert（以通道为源的两项）</li></ul>
-      <p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>脚本调用</h3></div>
-      <pre><code>lb-plugin-conv-* 六个过程，全部零参数</code></pre>
-      <p>标准 PDB 过程，参数留空走默认值。</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>依赖</h3></div>
-      <p>不依赖任何自研算子：六个方向都只调 GIMP 自己的通道、选区、蒙版 PDB。</p>
-    </div>
-  </div>
-
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="zh-overview">
+  <dt>菜单位置</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → Convert → 十二项，按目标命名</li><li>图层右键 → SuperMrWang → Convert</li><li>通道右键 / 路径右键 → SuperMrWang → Convert</li></ul><p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p></dd>
+  <dt>脚本调用</dt>
+  <dd><code class="pdb">lb-plugin-conv-* 十二个过程，全部零参数</code><p>标准 PDB 过程，参数留空走默认值。</p></dd>
+  <dt>依赖</dt>
+  <dd><p>不依赖任何自研算子：十二个方向都只调 GIMP 自己的通道、选区、蒙版、路径 PDB。</p></dd>
+</dl>
 <div class="dl-grid">
-    <div class="dl primary-dl">
-      <div class="dl-head"><h3>为什么值得单独做</h3><span class="pill">六条路散在三处</span></div>
+    <div class="dl" id="zh-sec-1">
+      <div class="dl-head"><h3>为什么值得单独做</h3><span class="pill">十二条路散在四处</span></div>
       <p>原生要办同一件事，得记住三套路径：<b>选择</b>菜单里存通道、<b>通道右键</b>转选区、
          <b>图层面板右键 → 添加图层蒙版</b>再在弹窗里挑类型。同一类操作放在三个地方，
          方向还是反的。</p>
       <p>更关键的是<b>蒙版 → 通道根本没有</b>：GIMP 没有这个过程，只能先「蒙版到选区」
          再「选区存通道」，两步、两处菜单。这个插件把它做成一步。</p>
+      <p>路径也一样：<b>路径 → 选区</b>在路径右键里、<b>选区 → 路径</b>在选择菜单里，
+         而<b>通道 / 蒙版 ↔ 路径</b>两个方向原生压根没有入口，只能自己拼两步。
+         现在这些全在同一个子菜单里，按目标命名。</p>
     </div>
-    <div class="dl">
-      <div class="dl-head"><h3>六个方向</h3><span class="pill">全零参数</span></div>
+    <div class="dl" id="zh-sec-2">
+      <div class="dl-head"><h3>十二个方向</h3><span class="pill">全零参数</span></div>
       <ul class="deps">
         <li><b>Channel to Selection</b> · 通道 → 选区</li>
         <li><b>Selection to Channel</b> · 选区 → 通道</li>
@@ -101,18 +97,26 @@
         <li><b>Mask to Channel</b> · 图层蒙版 → 通道</li>
         <li><b>Selection to Mask</b> · 选区 → 图层蒙版</li>
         <li><b>Mask to Selection</b> · 图层蒙版 → 选区</li>
+        <li><b>Path to Selection</b> · 路径 → 选区</li>
+        <li><b>Selection to Path</b> · 选区 → 路径</li>
+        <li><b>Path to Channel</b> · 路径 → 通道</li>
+        <li><b>Channel to Path</b> · 通道 → 路径</li>
+        <li><b>Path to Mask</b> · 路径 → 图层蒙版</li>
+        <li><b>Mask to Path</b> · 图层蒙版 → 路径</li>
       </ul>
       <p>没有省略号的菜单项就是<b>点一下直接跑</b>：源全从上下文取，不需要在对话框里
          再选一遍。</p>
     </div>
-    <div class="dl">
+    <div class="dl" id="zh-sec-3">
       <div class="dl-head"><h3>源永远是「当前」</h3></div>
       <ul class="deps">
         <li><b>通道</b> = 通道面板里右键点中的那条 → 面板里选中的那条 →
             图里唯一的那条，依次兜底</li>
         <li><b>选区</b> = 当前像素选区；<b>没有选区就当全选</b></li>
         <li><b>蒙版</b> = 选中图层的图层蒙版</li>
-        <li>目标：通道新建一条、蒙版挂到选中图层（多选则每个都挂）</li>
+        <li><b>路径</b> = 路径面板里右键点中的那条 → 面板里选中的那条 →
+            图里唯一的那条，同样三路兜底</li>
+        <li>目标：通道 / 路径各新建一条、蒙版挂到选中图层（多选则每个都挂）</li>
       </ul>
       <p>已有蒙版时<b>先丢掉旧的再新建</b>，结果与原生新建逐位一致——改完源再跑
          一次就是刷新。</p>
@@ -120,17 +124,21 @@
   </div>
 
   <div class="dl-grid">
-    <div class="dl primary-dl">
+    <div class="dl" id="zh-sec-4">
       <div class="dl-head"><h3>结果与原生逐位一致</h3><span class="pill">硬指标</span></div>
-      <p>六个方向都不碰像素缓冲，一律转调 GIMP 自己的过程：通道转选区用
+      <p>十二个方向都不碰像素缓冲，一律转调 GIMP 自己的过程：通道 / 路径转选区用
          <code>gimp-image-select-item</code>，选区存通道用 <code>gimp-selection-save</code>，
-         选区建蒙版用 <code>create_mask(SELECTION)</code>。「通道 ↔ 蒙版」原生没有
-         直连，就按原生的两步走。</p>
+         选区建蒙版用 <code>create_mask(SELECTION)</code>，选区描路径用
+         <code>plug-in-sel2path</code>（就是「选择 → 路径」背后那个过程）。
+         凡是原生没有直连的，就按原生的两步走：通道 ↔ 蒙版、通道 / 蒙版 ↔ 路径，
+         都经选区这一站。</p>
       <p>所以中间灰带着原生那点漂移：默认 8 位图上，通道 128 进选区读回 <b>188</b>，
          选区 128 存通道读回 <b>55</b>；而选区与蒙版之间原生会换算，那一对不漂。
-         32 位线性精度的图像上通道本身就存线性值，六个方向都不漂。</p>
+         32 位线性精度的图像上通道本身就存线性值，那六个方向都不漂。
+         路径方向跟着这条链走：通道 → 路径是先变成 188 的选区再描轮廓，轮廓落在
+         50% 等值线上，和原生手点两步的结果一样。</p>
     </div>
-    <div class="dl">
+    <div class="dl" id="zh-sec-5">
       <div class="dl-head"><h3>为什么单步看着不对</h3></div>
       <p><b>不是插件算错。</b>通道和蒙版存的是 <code>Y'</code>（sRGB 编码），选区存的是
          线性 alpha。原生在通道与选区交界处把 <code>Y'</code> 当线性覆盖率直搬，
@@ -140,7 +148,7 @@
       <p><b>蒙版是 8bit。</b>极暗处有 ±1 的量化误差，原生也一样；偏移图层按画布
          坐标对齐，原生建蒙版时同样如此。</p>
     </div>
-    <div class="dl">
+    <div class="dl" id="zh-sec-6">
       <div class="dl-head"><h3>和 Channel to Mask 的关系</h3></div>
       <p><b>Channel to Mask...</b>（Mask 组，带省略号）是同一个动作的<b>可配置版</b>：
          能指定通道名、能反相、能一次挂多个图层。</p>
@@ -148,16 +156,19 @@
          那条、不反相。日常右键直接跑一键版，需要细调时走带参数的那个。</p>
     </div>
   </div>
-  <p class="note">六个方向都不依赖自研算子，只调 GIMP 自己的通道、选区、蒙版 PDB。
-     缺源时会明确说缺什么（没选通道 / 没蒙版 / 图层组没有像素），不会静默什么都不做。</p>
+  <p class="note">十二个方向都不依赖自研算子，只调 GIMP 自己的通道、选区、蒙版、路径 PDB。
+     缺源时会明确说缺什么（没选通道 / 没蒙版 / 没路径 / 图层组没有像素），不会静默什么都不做。
+     <b>路径这一站有损</b>：羽化、渐变、抗锯齿的边缘在「位图 → 路径」时会被压成硬边界，
+     这是路径只有几何、没有 alpha 决定的，原生 To Path 同样如此。反过来「路径 → 位图」
+     不丢任何东西，栅格化出来就是干净的硬边。</p>
 
-<section class="download" id="download">
+<section class="download" id="zh-download">
   <h2>下载这一个</h2>
   <div class="dl primary-dl">
-    <div class="dl-head"><h3>六项</h3><span class="pill">.py · 免编译</span></div>
+    <div class="dl-head"><h3>十二项</h3><span class="pill">.py · 免编译</span></div>
     <p>包里只有一个 <code>.py</code> 和一份安装说明。解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。</p>
-    <a class="btn primary" href="../download/gegl-color-ops-plugin-convert.zip">下载 六项</a>
-    <p class="muted small">6.3 KB · 校验：<code>SHA256 7957a520f21ff06f7a78ff01a32ff829…</code></p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-convert.zip">下载 十二项</a>
+    <p class="muted small">8.6 KB · 校验：<code>SHA256 709d76402f352f418b4a912722d849a5…</code></p>
   </div>
 </section>
 
@@ -165,10 +176,19 @@
    相邻两级的差就是 1 码，等于 1/255 ≈ 0.392%%（也就是 RGB 128 与 129 之间的差）。
    各数量级的含义与「码为什么不是感知量」的说明见
    <a href="../guide.html#code">安装指南 · 精度里的「码」</a>。</p>
+  </article>
+  <aside class="toc">
+    <p class="toc-title">本页目录</p>
+    <ul>
+      <li><a href="#zh-overview">概览</a></li>
+<li><a href="#zh-sec-1">为什么值得单独做</a></li><li><a href="#zh-sec-2">十二个方向</a></li><li><a href="#zh-sec-3">源永远是「当前」</a></li><li><a href="#zh-sec-4">结果与原生逐位一致</a></li><li><a href="#zh-sec-5">为什么单步看着不对</a></li><li><a href="#zh-sec-6">和 Channel to Mask 的关系</a></li>
+      <li><a href="#zh-download">下载</a></li>
+    </ul>
+  </aside>
 </div>
 <nav class="pager">
   <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
-  <a class="prev" href="channel-to-mask.html"><span>上一篇</span>Channel to Mask（通道转图层蒙版）</a>
+  <a class="prev" href="channel-to-mask.html"><span>上一篇</span>Channel to Mask（通道转图层蒙版）</a><a class="next" href="max-min.html"><span>下一篇</span>最大 / 最小值（Max / Min）</a>
 </nav></div>
 <div class="l-en"><section class="page-head">
   <p class="eyebrow"><a href="../index.html">Home</a> /
@@ -179,36 +199,29 @@
     <span class="tag t-mask">转换</span>
     <span>Convert</span>
   </div>
-  <p class="lede">Channels, selections and layer masks, converted in every direction: six menu
-   items, each one click and done — no parameter dialog. Natively these six paths are spread
-   across three places, and <b>mask → channel does not exist at all</b>; it takes a detour
-   through the selection in two steps.</p>
+  <p class="lede">Channels, selections, layer masks and paths, converted in every direction: twelve
+   menu items, each one click and done — no parameter dialog. Natively these paths are spread
+   across four places, and <b>mask → channel does not exist at all</b>; it takes a detour
+   through the selection in two steps. A path is a <b>lossy stop</b>: it carries geometry and
+   no alpha, so anything going into a path is traced along the 50% contour.</p>
 </section>
 <p class="native-note"><b>Only a convenience wrapper over native behaviour</b> —
    no new algorithms here: every pixel comes out of GIMP's own PDB procedures. The plug-in just
    folds a detour that lives in three different menus and takes three or four steps into a
    single click, and keeps the result bit-for-bit identical to doing it by hand.</p>
-<div class="prose wide">
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="en-overview">
+  <dt>Menu location</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → Convert → 十二项，按目标命名</li><li>Layer right-click → SuperMrWang → Convert</li><li>通道右键 / 路径右键 → SuperMrWang → Convert</li></ul><p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p></dd>
+  <dt>Scripting</dt>
+  <dd><code class="pdb">lb-plugin-conv-* 十二个过程，全部零参数</code><p>A standard PDB procedure; leave an argument empty to take its default.</p></dd>
+  <dt>Dependencies</dt>
+  <dd><p>The operators below do the work. <b>They are already inside this plug-in's download</b> (<code>modules-windows-x64</code> / <code>modules-linux-x64</code>) — nothing else to fetch:</p></dd>
+</dl>
   <div class="dl-grid">
-    <div class="dl primary-dl">
-      <div class="dl-head"><h3>Menu location</h3><span class="pill">Several</span></div>
-      <ul class="menu-list"><li>SuperMrWang → Convert → Channel to Selection</li><li>SuperMrWang → Convert → Selection to Channel</li><li>SuperMrWang → Convert → Channel to Mask</li><li>SuperMrWang → Convert → Mask to Channel</li><li>SuperMrWang → Convert → Selection to Mask</li><li>SuperMrWang → Convert → Mask to Selection</li><li>Layer right-click → SuperMrWang → Convert（同样六项）</li><li>通道右键 → SuperMrWang → Convert（以通道为源的两项）</li></ul>
-      <p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>Scripting</h3></div>
-      <pre><code>lb-plugin-conv-* 六个过程，全部零参数</code></pre>
-      <p>A standard PDB procedure; leave an argument empty to take its default.</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>Dependencies</h3></div>
-      <p>The operators below do the work. <b>They are already inside this plug-in's download</b> (<code>modules-windows-x64</code> / <code>modules-linux-x64</code>) — nothing else to fetch:</p>
-    </div>
-  </div>
-
-  <div class="dl-grid">
-    <div class="dl primary-dl">
-      <div class="dl-head"><h3>Why it needs its own entry</h3><span class="pill">three places</span></div>
+    <div class="dl" id="en-sec-1">
+      <div class="dl-head"><h3>Why it needs its own entry</h3><span class="pill">four places</span></div>
       <p>Doing the same thing natively means remembering three routes: <b>Select</b> menu to
          save a channel, the <b>channel context menu</b> to make a selection, and
          <b>Layers → Mask → Add Layer Mask</b> with a type picked in the dialog. Same family
@@ -216,9 +229,13 @@
       <p>Worse, <b>mask → channel simply is not there</b>: GIMP has no such procedure, so it
          is "mask to selection" and then "selection to channel" — two steps, two menus. This
          plug-in makes it one.</p>
+      <p>Paths are the same story: <b>path → selection</b> lives in the Paths context menu and
+         <b>selection → path</b> in the Select menu, while <b>channel / mask ↔ path</b> has no
+         native entry at all and has to be assembled by hand. All of it now sits in one
+         submenu, named by destination.</p>
     </div>
-    <div class="dl">
-      <div class="dl-head"><h3>Six directions</h3><span class="pill">zero arguments</span></div>
+    <div class="dl" id="en-sec-2">
+      <div class="dl-head"><h3>Twelve directions</h3><span class="pill">zero arguments</span></div>
       <ul class="deps">
         <li><b>Channel to Selection</b></li>
         <li><b>Selection to Channel</b></li>
@@ -226,18 +243,26 @@
         <li><b>Mask to Channel</b></li>
         <li><b>Selection to Mask</b></li>
         <li><b>Mask to Selection</b></li>
+        <li><b>Path to Selection</b></li>
+        <li><b>Selection to Path</b></li>
+        <li><b>Path to Channel</b></li>
+        <li><b>Channel to Path</b></li>
+        <li><b>Path to Mask</b></li>
+        <li><b>Mask to Path</b></li>
       </ul>
       <p>A menu item without an ellipsis <b>runs immediately</b>: the source is read from the
          context, so there is nothing to pick in a dialog.</p>
     </div>
-    <div class="dl">
+    <div class="dl" id="en-sec-3">
       <div class="dl-head"><h3>The source is always "current"</h3></div>
       <ul class="deps">
         <li><b>Channel</b> = the one right-clicked in the Channels dock, else the dock
             selection, else the only channel in the image</li>
         <li><b>Selection</b> = the active pixel selection; <b>none means select-all</b></li>
         <li><b>Mask</b> = the selected layer's layer mask</li>
-        <li>Sinks: a new channel, or masks on every selected layer</li>
+        <li><b>Path</b> = the one right-clicked in the Paths dock, else the dock selection,
+            else the only path in the image</li>
+        <li>Sinks: a new channel or path, or masks on every selected layer</li>
       </ul>
       <p>An existing mask is <b>dropped and rebuilt</b>, bit-for-bit identical to a fresh
          native one — change the source and re-run to refresh.</p>
@@ -245,19 +270,24 @@
   </div>
 
   <div class="dl-grid">
-    <div class="dl primary-dl">
+    <div class="dl" id="en-sec-4">
       <div class="dl-head"><h3>Bit-for-bit with native</h3><span class="pill">the hard requirement</span></div>
-      <p>None of the six directions touches a pixel buffer. Each one calls GIMP's own
-         procedure: <code>gimp-image-select-item</code> for a channel to a selection,
+      <p>None of the twelve directions touches a pixel buffer. Each one calls GIMP's own
+         procedure: <code>gimp-image-select-item</code> for a channel or path to a selection,
          <code>gimp-selection-save</code> for a selection to a channel,
-         <code>create_mask(SELECTION)</code> for a selection to a mask. Channel ↔ mask has no
-         native entry, so it runs the native two steps.</p>
+         <code>create_mask(SELECTION)</code> for a selection to a mask, and
+         <code>plug-in-sel2path</code> — the procedure behind Select &gt; To Path — for a
+         selection to a path. Where native has no direct entry (channel ↔ mask, channel / mask
+         ↔ path) it runs the native two steps through the selection.</p>
       <p>That means mid greys carry the native drift: on a default 8-bit image a channel value
          of 128 reads back as <b>188</b> in the selection, and a selection value of 128 reads
          back as <b>55</b> in a channel. Selection ↔ mask converts properly in GIMP, so that
-         pair does not drift. On 32-bit linear precision nothing drifts at all.</p>
+         pair does not drift. On 32-bit linear precision the six bitmap directions do not drift
+         at all. The path directions follow the same chain: channel → path first becomes the
+         188 selection, then the contour is taken at 50%, exactly like doing the two native
+         steps by hand.</p>
     </div>
-    <div class="dl">
+    <div class="dl" id="en-sec-5">
       <div class="dl-head"><h3>Why single steps look wrong</h3></div>
       <p><b>It is not the plug-in's arithmetic.</b> Channels and masks store <code>Y'</code>
          (sRGB encoded); the selection stores linear alpha. Native copies the <code>Y'</code>
@@ -269,7 +299,7 @@
       <p><b>Masks are 8-bit.</b> Expect ±1 quantisation in the deep shadows, exactly as native;
          offset layers align by canvas, also as native.</p>
     </div>
-    <div class="dl">
+    <div class="dl" id="en-sec-6">
       <div class="dl-head"><h3>Relation to Channel to Mask</h3></div>
       <p><b>Channel to Mask...</b> (in the Mask group, with an ellipsis) is the
          <b>configurable</b> version of the same action: channel by name, invert, several
@@ -279,18 +309,21 @@
          parameterised one when you need to adjust.</p>
     </div>
   </div>
-  <p class="note">None of the six directions depends on this project's operators — they only
-     call GIMP's own channel, selection and mask PDB. A missing source produces an explicit
-     message (no channel found / no mask / layer group has no pixels) instead of silently
-     doing nothing.</p>
+  <p class="note">None of the twelve directions depends on this project's operators — they only
+     call GIMP's own channel, selection, mask and path PDB. A missing source produces an explicit
+     message (no channel found / no mask / no path / layer group has no pixels) instead of
+     silently doing nothing. <b>A path is a lossy stop</b>: feathered, gradient and anti-aliased
+     edges collapse to a hard boundary on the way into a path, because a path carries geometry
+     and no alpha — the native To Path does the same. Going the other way loses nothing:
+     rasterising a path gives clean hard edges.</p>
 
-<section class="download" id="download">
+<section class="download" id="en-download">
   <h2>Download this one</h2>
   <div class="dl primary-dl">
     <div class="dl-head"><h3>Convert</h3><span class="pill">.py · no compile</span></div>
     <p>The archive holds a single <code>.py</code> and an install note. Unpack it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register.</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-convert.zip">Download Convert</a>
-    <p class="muted small">6.3 KB · checksum: <code>SHA256 7957a520f21ff06f7a78ff01a32ff829…</code></p>
+    <p class="muted small">8.6 KB · checksum: <code>SHA256 709d76402f352f418b4a912722d849a5…</code></p>
   </div>
 </section>
 
@@ -299,10 +332,19 @@
    1/255 ≈ 0.392%% (the difference between RGB 128 and 129). For the order of magnitude
    of each figure, and why a code is not a perceptual quantity, see
    <a href="../guide.html#code">Install guide · what a code is</a>.</p>
+  </article>
+  <aside class="toc">
+    <p class="toc-title">On this page</p>
+    <ul>
+      <li><a href="#en-overview">Overview</a></li>
+<li><a href="#en-sec-1">Why it needs its own entry</a></li><li><a href="#en-sec-2">Twelve directions</a></li><li><a href="#en-sec-3">The source is always &quot;current&quot;</a></li><li><a href="#en-sec-4">Bit-for-bit with native</a></li><li><a href="#en-sec-5">Why single steps look wrong</a></li><li><a href="#en-sec-6">Relation to Channel to Mask</a></li>
+      <li><a href="#en-download">Download</a></li>
+    </ul>
+  </aside>
 </div>
 <nav class="pager">
   <a href="../plugins.html"><span>Back to</span>All plug-ins</a>
-  <a class="prev" href="channel-to-mask.html"><span>Previous</span>Channel to Mask</a>
+  <a class="prev" href="channel-to-mask.html"><span>Previous</span>Channel to Mask</a><a class="next" href="max-min.html"><span>Next</span>Max / Min</a>
 </nav></div>
 </main>
 <footer class="site-foot">
@@ -316,7 +358,7 @@
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">1847510</span>
+    <span class="muted">193c6ab</span>
   </div>
 </footer>
 <script>

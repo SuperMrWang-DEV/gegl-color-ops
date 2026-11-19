@@ -3,13 +3,14 @@
 """===========================================================================
  SuperMrWang · 六向转换（通道 / 选区 / 蒙版）—— GIMP 3 Python 插件
  ---------------------------------------------------------------------------
- purpose   通道、选区、蒙版三者两两互转，六个方向一次点到位，不弹参数框。
-           原生菜单里这六条路分散在三个地方（选择菜单、图层面板右键、通道
-           右键），而且「蒙版 → 通道」根本没有直连，只能绕两步。这里把它们
-           收进同一个 Convert 子菜单，按目标命名，一眼找得到。
-           Six one-click conversions between channels, selections and layer
-           masks. No parameter dialog: every direction reads its source from
-           the current context and lands in the obvious place.
+ purpose   通道、选区、蒙版、路径四者两两互转，十二个方向一次点到位，不弹参
+           数框。原生菜单里这些路分散在四个地方（选择菜单、图层面板右键、通
+           道右键、路径右键），而且「蒙版 → 通道」「通道 → 路径」这类没有直
+           连，只能绕两步。这里把它们收进同一个 Convert 子菜单，按目标命名，
+           一眼找得到。
+           Twelve one-click conversions between channels, selections, layer
+           masks and paths. No parameter dialog: every direction reads its
+           source from the current context and lands in the obvious place.
 
  menu      SuperMrWang → Convert → Channel to Selection
                               → Selection to Channel
@@ -17,19 +18,28 @@
                               → Mask to Channel
                               → Selection to Mask
                               → Mask to Selection
-           图层右键 → SuperMrWang → Convert（同样六项）
-           通道右键 → SuperMrWang → Convert（以通道为源的那两项）
+                              → Path to Selection
+                              → Selection to Path
+                              → Path to Channel
+                              → Channel to Path
+                              → Path to Mask
+                              → Mask to Path
+           图层右键 → SuperMrWang → Convert（同样十二项）
+           通道右键 → SuperMrWang → Convert（以通道为源的那三项）
+           路径右键 → SuperMrWang → Convert（以路径为源的那三项）
 
  usage     源从上下文推断，全自动：
            · 通道 = 通道面板里右键点中的那条；没有就用面板里选中的那条，
              图里只有一条通道时直接用它
            · 选区 = 当前的像素选区（没有选区就是全画布，GIMP 的既有语义）
            · 蒙版 = 选中的那个图层的图层蒙版
+           · 路径 = 路径面板里右键点中的那条；没有就用面板里选中的，
+             图里只有一条路径时直接用它
            目标也是固定的：选区落到画布、通道新建一条、蒙版挂到选中的图层
-           （多选图层时每个都挂）。已有蒙版重建一张，结果与「原生新建」
-           完全一致，重跑即刷新。
+           （多选图层时每个都挂）、路径新建一条。已有蒙版重建一张，结果与
+           「原生新建」完全一致，重跑即刷新。
 
- numbers   **结果与 GIMP 原生逐位一致，这是硬指标。** 六个方向都不碰像素
+ numbers   **结果与 GIMP 原生逐位一致，这是硬指标。** 十二个方向都不碰像素
            缓冲，一律转调 GIMP 自己的过程：
 
            通道 → 选区   gimp-image-select-item
@@ -39,16 +49,27 @@
            通道 → 蒙版   原生没有直连，按原生的两步走：通道 → 选区 → 蒙版
            蒙版 → 通道   同上两步：蒙版 → 选区 → 通道
 
+           路径这一组同样只有原生那两步可用：
+           路径 → 选区   gimp-image-select-item
+           选区 → 路径   plug-in-sel2path（「选择 → 路径」背后的过程）
+           通道/蒙版 → 路径   先 select-item 再 sel2path
+           路径 → 通道/蒙版   先 select-item 再存通道 / 挂蒙版
+
            这意味着中间灰会带着 GIMP 原生的那点漂移：默认 u8 非线性精度
            下，通道 128 进选区读回是 188，选区 128 存通道读回是 55。原生
            在「通道 ↔ 选区」交界处把 Y' 值当线性覆盖率直搬，不换算空间；
            而「选区 ↔ 蒙版」之间原生会换算，所以那一对不漂。32 位线性精度
-           的图像上通道本身就存线性值，直搬恰好正确，六个方向都不漂。
+           的图像上通道本身就存线性值，直搬恰好正确，那六个方向都不漂。
            要的就是「原生怎样就怎样」，所以这里不做任何补偿。
+           路径只有几何、没有 alpha，凡是「位图 → 路径」都按 50% 等值线
+           取轮廓：羽化、渐变、抗锯齿的边缘会在这一步压成硬边界。原生
+           To Path 也是这个行为，不是这里的选择。
 
  note      图层组没有像素，挂不了蒙版，会明确拒绝。
            选区 → 通道 / 蒙版 → 通道 在没有选区时先按 GIMP 语义全选，
            否则原生过程会拒绝执行。
+           「→ 路径」在没有选区时直接报错（原生菜单此时也是灰的），不会
+           偷偷描一条空路径出来。路径重名自动加序号，重跑不会覆盖旧路径。
 
  license   GPL-3.0-or-later，见工程根目录 LICENSE
  ==========================================================================="""
@@ -158,6 +179,103 @@ def pick_masked_layer(image, drawables):
         _("选中的图层没有图层蒙版 / the selected layer has no layer mask"))
 
 
+def _vector_path(item):
+    """路径面板里点中的可能是路径本身，也可能是它的矢量图层外壳。
+    The Paths dock may hand over a Path or the vector layer wrapping it."""
+    if isinstance(item, Gimp.Path):
+        return item
+    if hasattr(item, 'is_vector_layer') and item.is_vector_layer():
+        try:
+            return item.get_path()
+        except Exception:                        # noqa: BLE001
+            return None
+    return None
+
+
+def pick_path(image, drawables=None):
+    """取源路径，四路兜底，和 pick_channel 同一套顺序：
+    1. 上下文里点中的那条（从路径右键进来时 GIMP 直接交过来）；
+    2. 路径面板里选中的；
+    3. 图里只有一条路径时就是它；
+    4. 都不成立才报错，并列出已有路径名。
+
+    Four fallbacks, same order as pick_channel: context item, dock selection,
+    the only path in the image, then an error listing what is there."""
+    buckets = (list(drawables or []),
+               list(image.get_selected_paths()))
+    for bucket in buckets:
+        for item in bucket:
+            path = _vector_path(item)
+            if path is not None:
+                return path
+
+    paths = image.get_paths()
+    if len(paths) == 1:
+        return paths[0]
+
+    if not paths:
+        raise RuntimeError(_("这张图没有路径，先用路径工具画一条 "
+                             "/ this image has no paths yet"))
+    raise RuntimeError(
+        _("要在路径面板里点一下要用的路径再运行（现有：%s）"
+          " / click the path to use in the Paths dock first (have: %s)")
+        % (", ".join(p.get_name() for p in paths),
+           ", ".join(p.get_name() for p in paths)))
+
+
+def unique_path_name(image, base, exclude=()):
+    """在路径面板里取一个不重名的名字；exclude 是本次刚建出来、还没改名的
+    那几条，算重名时要跳开，否则第一条会被自己挤成「Selection 2」。
+    A free path name; ids in `exclude` are the ones being renamed right now,
+    so they must not count as taken."""
+    skip = set(p.get_id() for p in exclude)
+    used = set(p.get_name() for p in image.get_paths() if p.get_id() not in skip)
+    if base not in used:
+        return base
+    n = 2
+    while "%s %d" % (base, n) in used:
+        n += 1
+    return "%s %d" % (base, n)
+
+
+def _sel2path(image, drawables=None):
+    """原生「选择 → 路径」：plug-in-sel2path，一次生成一条路径，不连通的
+    几块各占一条 stroke。它不回传新路径，只能按 id 做前后差集。
+    Native select-to-path: one path per run, one stroke per contour. It
+    returns nothing, so the new path is found by diffing ids before/after."""
+    proc = Gimp.get_pdb().lookup_procedure('plug-in-sel2path')
+    cfg = proc.create_config()
+    cfg.set_property('image', image)
+    layers = [d for d in (drawables or []) if isinstance(d, Gimp.Layer)]
+    if not layers:
+        layers = list(image.get_selected_layers()) or list(image.get_layers())
+    try:
+        cfg.set_core_object_array('drawables', layers)
+    except Exception:                            # noqa: BLE001
+        pass
+    before = set(p.get_id() for p in image.get_paths())
+    proc.run(cfg)
+    return [p for p in image.get_paths() if p.get_id() not in before]
+
+
+def selection_to_path(image, drawables=None, base="Selection"):
+    """把当前选区描成路径，名字改成好认的（几何结果与原生 To Path 一致）。
+    Trace the selection into a path; only the name differs from the native
+    Select > To Path result."""
+    if selection_empty(image):
+        raise RuntimeError(
+            _("没有选区可以描路径 / there is no selection to trace"))
+    new = _sel2path(image, drawables)
+    if not new:
+        raise RuntimeError(
+            _("选区太小，原生过程没有描出任何路径 "
+              "/ the native tracer produced no path"))
+    for i, path in enumerate(new):
+        base_i = base if i == 0 else "%s %d" % (base, i + 1)
+        path.set_name(unique_path_name(image, base_i, exclude=new))
+    return new[0]
+
+
 def unique_name(image, base):
     used = set(c.get_name() for c in image.get_channels())
     if base not in used:
@@ -248,6 +366,45 @@ def mask_to_selection(image, drawables):
     return layer
 
 
+# ---- 带路径的六个方向 / the six path directions ----------------------------
+# 路径和位图之间没有直连的原生过程，一律经选区这一站：
+# · 位图 → 路径   先 select-item，再 plug-in-sel2path（原生 To Path 的那一步）
+# · 路径 → 位图   只有 select-item 一步，后面的存通道 / 挂蒙版照旧
+# 经选区就意味着跟着原生的数值语义走，也意味着灰度会被压成 0.5 等值线。
+
+def path_to_selection(image, drawables=None):
+    path = pick_path(image, drawables)
+    image.select_item(Gimp.ChannelOps.REPLACE, path)
+    return path
+
+
+def channel_to_path(image, drawables=None):
+    channel = pick_channel(image, drawables)
+    image.select_item(Gimp.ChannelOps.REPLACE, channel)
+    path = selection_to_path(image, drawables, "Channel %s" % channel.get_name())
+    return channel, path
+
+
+def mask_to_path(image, drawables):
+    layer = pick_masked_layer(image, drawables)
+    image.select_item(Gimp.ChannelOps.REPLACE, layer.get_mask())
+    path = selection_to_path(image, drawables, "%s Mask" % layer.get_name())
+    return layer, path
+
+
+def path_to_channel(image, drawables=None):
+    path = pick_path(image, drawables)
+    image.select_item(Gimp.ChannelOps.REPLACE, path)
+    channel = save_selection_as_channel(image, path.get_name())
+    return path, channel
+
+
+def path_to_mask(image, drawables):
+    path = pick_path(image, drawables)
+    image.select_item(Gimp.ChannelOps.REPLACE, path)
+    return path, apply_selection_mask(image, drawables)
+
+
 # ---- 程序包装 / procedure wrapper ------------------------------------------
 
 # 名字 → (菜单标签, 动作, 说明)
@@ -284,6 +441,40 @@ DIRECTIONS = [
      'mask-to-selection',
      _("Turn the selected layer's layer mask into the pixel selection."),
      _("蒙版 → 选区：把所选图层的蒙版变成像素选区")),
+
+    # ---- 路径 / paths ------------------------------------------------------
+    ('lb-plugin-conv-path-to-selection',
+     'Path to Selection',
+     'path-to-selection',
+     _("Turn the selected path into the pixel selection."),
+     _("路径 → 选区：把路径面板里选中的那条路径变成像素选区")),
+    ('lb-plugin-conv-selection-to-path',
+     'Selection to Path',
+     'selection-to-path',
+     _("Trace the current selection into a new path (the native "
+       "Select > To Path geometry, with a readable name)."),
+     _("选区 → 路径：把当前选区描成一条新路径（几何与原生 To Path 相同）")),
+    ('lb-plugin-conv-path-to-channel',
+     'Path to Channel',
+     'path-to-channel',
+     _("Rasterise the selected path into a new channel."),
+     _("路径 → 通道：把选中路径栅格化成一条新通道")),
+    ('lb-plugin-conv-channel-to-path',
+     'Channel to Path',
+     'channel-to-path',
+     _("Trace the selected channel's 50% contour into a new path."),
+     _("通道 → 路径：把选中通道的 50% 等值线描成一条新路径")),
+    ('lb-plugin-conv-path-to-mask',
+     'Path to Mask',
+     'path-to-mask',
+     _("Rasterise the selected path into a layer mask on every selected "
+       "layer."),
+     _("路径 → 蒙版：把选中路径栅格化成所选图层的蒙版")),
+    ('lb-plugin-conv-mask-to-path',
+     'Mask to Path',
+     'mask-to-path',
+     _("Trace the selected layer's mask into a new path."),
+     _("蒙版 → 路径：把所选图层蒙版的轮廓描成一条新路径")),
 ]
 
 BY_KEY = dict((d[2], d) for d in DIRECTIONS)
@@ -316,11 +507,15 @@ class ConvertPlugin(Gimp.PlugIn):
         procedure.add_menu_path("<Image>/SuperMrWang/Convert")
         procedure.add_menu_path("<Layers>/SuperMrWang/Convert")
         if key.startswith('channel-to'):
-            # 以通道为源的两条也挂到通道面板右键：GIMP 会把点中的那条作为
+            # 以通道为源的三条也挂到通道面板右键：GIMP 会把点中的那条作为
             # drawable 传进来，取源不用再去别处点一下。
-            # The two channel-source directions also live in the Channels dock
-            # context menu, where GIMP hands the clicked channel over.
+            # The three channel-source directions also live in the Channels
+            # dock context menu, where GIMP hands the clicked channel over.
             procedure.add_menu_path("<Channels>/SuperMrWang/Convert")
+        if key.startswith('path-to'):
+            # 路径右键同理：点中的那条直接在上下文里。
+            # Same for the Paths dock: the clicked path arrives in context.
+            procedure.add_menu_path("<Paths>/SuperMrWang/Convert")
         return procedure
 
     def run(self, procedure, run_mode, image, drawables, config, data):
@@ -350,6 +545,28 @@ class ConvertPlugin(Gimp.PlugIn):
             elif key == 'mask-to-selection':
                 src = mask_to_selection(image, drawables)
                 note = _("蒙版「%s」→ 选区") % src.get_name()
+            elif key == 'path-to-selection':
+                src = path_to_selection(image, drawables)
+                note = _("路径「%s」→ 选区") % src.get_name()
+            elif key == 'selection-to-path':
+                dst = selection_to_path(image, drawables)
+                note = _("选区 → 路径「%s」") % dst.get_name()
+            elif key == 'path-to-channel':
+                src, dst = path_to_channel(image, drawables)
+                note = _("路径「%s」→ 通道「%s」") % (src.get_name(),
+                                                     dst.get_name())
+            elif key == 'channel-to-path':
+                src, dst = channel_to_path(image, drawables)
+                note = _("通道「%s」→ 路径「%s」") % (src.get_name(),
+                                                     dst.get_name())
+            elif key == 'path-to-mask':
+                src, masks = path_to_mask(image, drawables)
+                note = _("路径「%s」→ %d 个图层的蒙版") % (src.get_name(),
+                                                          len(masks))
+            elif key == 'mask-to-path':
+                src, dst = mask_to_path(image, drawables)
+                note = _("蒙版「%s」→ 路径「%s」") % (src.get_name(),
+                                                     dst.get_name())
             else:
                 raise RuntimeError(_("未知方向 / unknown direction"))
         except Exception as exc:

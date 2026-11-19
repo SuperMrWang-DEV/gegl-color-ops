@@ -5,13 +5,25 @@
   <updated>2026-11-17T00:00:00Z</updated>
   <id>tag:github.com,2026:gegl-color-ops</id>
   <entry>
-    <title>插件 · Convert（通道 / 选区 / 蒙版 六向转换）</title>
+    <title>插件 · 最大 / 最小值（Max / Min）</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/max-min.html"/>
+    <id>tag:github.com,2026:plugin-max-min</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>Photoshop 的「最大值 / 最小值」滤镜：每个像素取邻域内的最大或最小值。
+       最大值把亮区往外推、吞掉暗处的小点；最小值收亮区、啃掉残留的白边。
+       GIMP 3 已经不带这个功能了——gegl:dilate / gegl:erode
+       没被编进官方构建，plug-in-dilate 也早在 2.10 之后移除。
+       所以这里用的是本项目自己的算</summary>
+  </entry>
+  <entry>
+    <title>插件 · Convert（通道 / 选区 / 蒙版 / 路径 十二向转换）</title>
     <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/convert.html"/>
     <id>tag:github.com,2026:plugin-convert</id>
     <updated>2026-11-17T00:00:00Z</updated>
-    <summary>通道、选区、蒙版三者两两互转，六个方向各占一个菜单项，点下去直接执行、
-       不弹参数框。原生菜单里这六条路分散在三处，而且「蒙版 → 通道」根本没有直连，
-       只能绕选区两步走。</summary>
+    <summary>通道、选区、蒙版、路径四者两两互转，十二个方向各占一个菜单项，点下去
+       直接执行、不弹参数框。原生菜单里这些路分散在四处，而且「蒙版 → 通道」
+       「通道 → 路径」这类根本没有直连，只能绕选区两步走。路径这一站是有损闸门：
+       它只有几何、没有 alpha，位图进路径时按 50% 等值线取轮廓。</summary>
   </entry>
   <entry>
     <title>插件 · Channel to Mask（通道转图层蒙版）</title>
@@ -152,6 +164,13 @@
     <id>tag:github.com,2026:lb:color-mask-select</id>
     <updated>2026-11-15T00:00:00Z</updated>
     <summary>经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览</summary>
+  </entry>
+  <entry>
+    <title>Maximum / Minimum</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/max-min/README.md"/>
+    <id>tag:github.com,2026:lb:max-min</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>形态学的两个基本算子，也是 Photoshop「最大值 / 最小值」滤镜的等价物：每个像素取邻域内最大（膨胀）或最小值（腐蚀）。最大值把亮区向外推、吞掉暗处的小点；最小值反过来收亮区、啃掉残留的白边。蒙版精修、去灰尘点、发光底图都用它。</summary>
   </entry>
   <entry>
     <title>Color Lookup</title>

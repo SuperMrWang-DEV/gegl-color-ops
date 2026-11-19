@@ -17,7 +17,7 @@
        而且一次只能伺候一个图层。这个插件把顺序倒过来：先在通道面板选一条，
        再在图层面板选中要挂蒙版的图层，右键一次就好——多选几个就一次" data-desc-en="The native route is Layer → Mask → Add Layer Mask → Channel, then picking a
    channel in the dialog — one layer at a ti">
-<link rel="stylesheet" href="../assets/style.css?v=7be715334e">
+<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <script>
 (function () {
@@ -66,26 +66,18 @@
 <p class="native-note"><b>只是原生方式的便捷实现</b>　这里没有新算法：
    像素结果全部出自 GIMP 自带的 PDB 过程，插件只负责把散在三处菜单、要跨三四步的动作
    收成一次点击，并保证与手点原生菜单得到的结果逐位相同。</p>
-<div class="prose wide">
-  <div class="dl-grid">
-    <div class="dl primary-dl">
-      <div class="dl-head"><h3>菜单位置</h3><span class="pill">多条</span></div>
-      <ul class="menu-list"><li>SuperMrWang → Mask → Channel to Mask</li><li>图层右键 → SuperMrWang → Mask → Channel to Mask</li><li>通道右键 → SuperMrWang → Mask → Channel to Mask</li></ul>
-      <p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>脚本调用</h3></div>
-      <pre><code>lb-plugin-channel-to-mask(image, drawables, channel-name, invert)</code></pre>
-      <p>标准 PDB 过程，参数留空走默认值。</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>依赖</h3></div>
-      <p>不依赖任何自研算子：只读通道像素、只调 GIMP 自己的蒙版 PDB。</p>
-    </div>
-  </div>
-
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="zh-overview">
+  <dt>菜单位置</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → Mask → Channel to Mask</li><li>图层右键 → SuperMrWang → Mask → Channel to Mask</li><li>通道右键 → SuperMrWang → Mask → Channel to Mask</li></ul><p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p></dd>
+  <dt>脚本调用</dt>
+  <dd><code class="pdb">lb-plugin-channel-to-mask(image, drawables, channel-name, invert)</code><p>标准 PDB 过程，参数留空走默认值。</p></dd>
+  <dt>依赖</dt>
+  <dd><p>不依赖任何自研算子：只读通道像素、只调 GIMP 自己的蒙版 PDB。</p></dd>
+</dl>
 <div class="dl-grid">
-    <div class="dl primary-dl">
+    <div class="dl" id="zh-sec-1">
       <div class="dl-head"><h3>原生也能做，差在哪</h3><span class="pill">四步 → 一步</span></div>
       <p>GIMP 自带「从通道取蒙版」，但路径是固定的：先选中图层，菜单进
          <b>图层 → 蒙版 → 添加图层蒙版</b>，类型选「通道」，弹窗里再挑一条通道。
@@ -95,7 +87,7 @@
          （按通道的补集遮罩，省一次反相操作）。像素结果与原生逐位相同，
          包括中间灰那点漂移。</p>
     </div>
-    <div class="dl">
+    <div class="dl" id="zh-sec-2">
       <div class="dl-head"><h3>灰度值就是遮罩强度</h3></div>
       <ul class="deps">
         <li><b>黑</b> = 完全遮住，<b>白</b> = 完全露出，<b>中间灰</b> = 半透明</li>
@@ -107,7 +99,7 @@
       <p>偏移的小图层不用管：蒙版跟图层同尺寸，取的是画布上同位置的通道值，
          不会整块错位。</p>
     </div>
-    <div class="dl">
+    <div class="dl" id="zh-sec-3">
       <div class="dl-head"><h3>数值和原生一模一样</h3><span class="pill">128 → 188</span></div>
       <p>GIMP 3 没有「通道直接建蒙版」的入口，原生用户只能走两步：<b>通道 → 选区 →
          选区建蒙版</b>。这个插件走的就是同一条路，调的是同一个
@@ -123,7 +115,7 @@
      真找不到源时会明确报错并列出可用的通道名，不会静默什么都不做。
      图层组没有像素，会拒绝并提示先合并。</p>
 
-<section class="download" id="download">
+<section class="download" id="zh-download">
   <h2>下载这一个</h2>
   <div class="dl primary-dl">
     <div class="dl-head"><h3>Channel to Mask</h3><span class="pill">.py · 免编译</span></div>
@@ -137,10 +129,19 @@
    相邻两级的差就是 1 码，等于 1/255 ≈ 0.392%%（也就是 RGB 128 与 129 之间的差）。
    各数量级的含义与「码为什么不是感知量」的说明见
    <a href="../guide.html#code">安装指南 · 精度里的「码」</a>。</p>
+  </article>
+  <aside class="toc">
+    <p class="toc-title">本页目录</p>
+    <ul>
+      <li><a href="#zh-overview">概览</a></li>
+<li><a href="#zh-sec-1">原生也能做，差在哪</a></li><li><a href="#zh-sec-2">灰度值就是遮罩强度</a></li><li><a href="#zh-sec-3">数值和原生一模一样</a></li>
+      <li><a href="#zh-download">下载</a></li>
+    </ul>
+  </aside>
 </div>
 <nav class="pager">
   <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
-  <a class="prev" href="color-range.html"><span>上一篇</span>Color Range（色彩范围）</a><a class="next" href="convert.html"><span>下一篇</span>Convert（通道 / 选区 / 蒙版 六向转换）</a>
+  <a class="prev" href="color-range.html"><span>上一篇</span>Color Range（色彩范围）</a><a class="next" href="convert.html"><span>下一篇</span>Convert（通道 / 选区 / 蒙版 / 路径 十二向转换）</a>
 </nav></div>
 <div class="l-en"><section class="page-head">
   <p class="eyebrow"><a href="../index.html">Home</a> /
@@ -160,26 +161,18 @@
    no new algorithms here: every pixel comes out of GIMP's own PDB procedures. The plug-in just
    folds a detour that lives in three different menus and takes three or four steps into a
    single click, and keeps the result bit-for-bit identical to doing it by hand.</p>
-<div class="prose wide">
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="en-overview">
+  <dt>Menu location</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → Mask → Channel to Mask</li><li>Layer right-click → SuperMrWang → Mask → Channel to Mask</li><li>通道右键 → SuperMrWang → Mask → Channel to Mask</li></ul><p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p></dd>
+  <dt>Scripting</dt>
+  <dd><code class="pdb">lb-plugin-channel-to-mask(image, drawables, channel-name, invert)</code><p>A standard PDB procedure; leave an argument empty to take its default.</p></dd>
+  <dt>Dependencies</dt>
+  <dd><p>The operators below do the work. <b>They are already inside this plug-in's download</b> (<code>modules-windows-x64</code> / <code>modules-linux-x64</code>) — nothing else to fetch:</p></dd>
+</dl>
   <div class="dl-grid">
-    <div class="dl primary-dl">
-      <div class="dl-head"><h3>Menu location</h3><span class="pill">Several</span></div>
-      <ul class="menu-list"><li>SuperMrWang → Mask → Channel to Mask</li><li>Layer right-click → SuperMrWang → Mask → Channel to Mask</li><li>通道右键 → SuperMrWang → Mask → Channel to Mask</li></ul>
-      <p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>Scripting</h3></div>
-      <pre><code>lb-plugin-channel-to-mask(image, drawables, channel-name, invert)</code></pre>
-      <p>A standard PDB procedure; leave an argument empty to take its default.</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>Dependencies</h3></div>
-      <p>The operators below do the work. <b>They are already inside this plug-in's download</b> (<code>modules-windows-x64</code> / <code>modules-linux-x64</code>) — nothing else to fetch:</p>
-    </div>
-  </div>
-
-  <div class="dl-grid">
-    <div class="dl primary-dl">
+    <div class="dl" id="en-sec-1">
       <div class="dl-head"><h3>GIMP can do it — here is the difference</h3><span class="pill">four steps → one</span></div>
       <p>GIMP does have "mask from a channel", but the path is fixed: select the layer, menu to
          <b>Layer → Mask → Add Layer Mask</b>, choose the Channel type, then pick one in the
@@ -190,7 +183,7 @@
          complement). Pixel results are bit-for-bit identical to the native route, mid-grey
          drift included.</p>
     </div>
-    <div class="dl">
+    <div class="dl" id="en-sec-2">
       <div class="dl-head"><h3>Grey level is mask strength</h3></div>
       <ul class="deps">
         <li><b>Black</b> hides, <b>white</b> shows, <b>mid grey</b> is partial</li>
@@ -203,7 +196,7 @@
       <p>Offset layers need no attention: the mask matches the layer's size and samples the
          channel at the same canvas position, so nothing lands shifted.</p>
     </div>
-    <div class="dl">
+    <div class="dl" id="en-sec-3">
       <div class="dl-head"><h3>Numbers identical to native</h3><span class="pill">128 → 188</span></div>
       <p>GIMP 3 has no direct "channel to mask" entry, so the native route is two steps:
          <b>channel → selection → mask from selection</b>. This plug-in takes the same road and
@@ -222,7 +215,7 @@
      available channels. Layer groups have no pixels, so it refuses and asks you
      to merge first.</p>
 
-<section class="download" id="download">
+<section class="download" id="en-download">
   <h2>Download this one</h2>
   <div class="dl primary-dl">
     <div class="dl-head"><h3>Channel to Mask</h3><span class="pill">.py · no compile</span></div>
@@ -237,6 +230,15 @@
    1/255 ≈ 0.392%% (the difference between RGB 128 and 129). For the order of magnitude
    of each figure, and why a code is not a perceptual quantity, see
    <a href="../guide.html#code">Install guide · what a code is</a>.</p>
+  </article>
+  <aside class="toc">
+    <p class="toc-title">On this page</p>
+    <ul>
+      <li><a href="#en-overview">Overview</a></li>
+<li><a href="#en-sec-1">GIMP can do it — here is the difference</a></li><li><a href="#en-sec-2">Grey level is mask strength</a></li><li><a href="#en-sec-3">Numbers identical to native</a></li>
+      <li><a href="#en-download">Download</a></li>
+    </ul>
+  </aside>
 </div>
 <nav class="pager">
   <a href="../plugins.html"><span>Back to</span>All plug-ins</a>
@@ -254,7 +256,7 @@
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">1847510</span>
+    <span class="muted">193c6ab</span>
   </div>
 </footer>
 <script>

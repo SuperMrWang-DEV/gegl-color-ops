@@ -778,34 +778,33 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
         key='convert',
         slug='convert',
         native_only=True,   # 只做原生路径的顺手封装，不含新算法
-        title='Convert（通道 / 选区 / 蒙版 六向转换）',
+        title='Convert（通道 / 选区 / 蒙版 / 路径 十二向转换）',
         tag=('转换', 't-mask'),
-        count='六个方向',
+        count='十二个方向',
         area='图层转换',
-        menu='SuperMrWang → Convert → 六项',
-        menus=['SuperMrWang → Convert → Channel to Selection',
-               'SuperMrWang → Convert → Selection to Channel',
-               'SuperMrWang → Convert → Channel to Mask',
-               'SuperMrWang → Convert → Mask to Channel',
-               'SuperMrWang → Convert → Selection to Mask',
-               'SuperMrWang → Convert → Mask to Selection',
-               '图层右键 → SuperMrWang → Convert（同样六项）',
-               '通道右键 → SuperMrWang → Convert（以通道为源的两项）'],
-        pdb='lb-plugin-conv-* 六个过程，全部零参数',
-        lede="""通道、选区、蒙版三者两两互转，六个方向各占一个菜单项，点下去直接执行、
-       不弹参数框。原生菜单里这六条路分散在三处，而且「蒙版 → 通道」根本没有直连，
-       只能绕选区两步走。""",
+        menu='SuperMrWang → Convert → 十二项',
+        menus=['SuperMrWang → Convert → 十二项，按目标命名',
+               '图层右键 → SuperMrWang → Convert',
+               '通道右键 / 路径右键 → SuperMrWang → Convert'],
+        pdb='lb-plugin-conv-* 十二个过程，全部零参数',
+        lede="""通道、选区、蒙版、路径四者两两互转，十二个方向各占一个菜单项，点下去
+       直接执行、不弹参数框。原生菜单里这些路分散在四处，而且「蒙版 → 通道」
+       「通道 → 路径」这类根本没有直连，只能绕选区两步走。路径这一站是<b>有损闸门</b>：
+       它只有几何、没有 alpha，位图进路径时按 50% 等值线取轮廓。""",
         body="""<div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>为什么值得单独做</h3><span class="pill">六条路散在三处</span></div>
+      <div class="dl-head"><h3>为什么值得单独做</h3><span class="pill">十二条路散在四处</span></div>
       <p>原生要办同一件事，得记住三套路径：<b>选择</b>菜单里存通道、<b>通道右键</b>转选区、
          <b>图层面板右键 → 添加图层蒙版</b>再在弹窗里挑类型。同一类操作放在三个地方，
          方向还是反的。</p>
       <p>更关键的是<b>蒙版 → 通道根本没有</b>：GIMP 没有这个过程，只能先「蒙版到选区」
          再「选区存通道」，两步、两处菜单。这个插件把它做成一步。</p>
+      <p>路径也一样：<b>路径 → 选区</b>在路径右键里、<b>选区 → 路径</b>在选择菜单里，
+         而<b>通道 / 蒙版 ↔ 路径</b>两个方向原生压根没有入口，只能自己拼两步。
+         现在这些全在同一个子菜单里，按目标命名。</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>六个方向</h3><span class="pill">全零参数</span></div>
+      <div class="dl-head"><h3>十二个方向</h3><span class="pill">全零参数</span></div>
       <ul class="deps">
         <li><b>Channel to Selection</b> · 通道 → 选区</li>
         <li><b>Selection to Channel</b> · 选区 → 通道</li>
@@ -813,6 +812,12 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
         <li><b>Mask to Channel</b> · 图层蒙版 → 通道</li>
         <li><b>Selection to Mask</b> · 选区 → 图层蒙版</li>
         <li><b>Mask to Selection</b> · 图层蒙版 → 选区</li>
+        <li><b>Path to Selection</b> · 路径 → 选区</li>
+        <li><b>Selection to Path</b> · 选区 → 路径</li>
+        <li><b>Path to Channel</b> · 路径 → 通道</li>
+        <li><b>Channel to Path</b> · 通道 → 路径</li>
+        <li><b>Path to Mask</b> · 路径 → 图层蒙版</li>
+        <li><b>Mask to Path</b> · 图层蒙版 → 路径</li>
       </ul>
       <p>没有省略号的菜单项就是<b>点一下直接跑</b>：源全从上下文取，不需要在对话框里
          再选一遍。</p>
@@ -824,7 +829,9 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
             图里唯一的那条，依次兜底</li>
         <li><b>选区</b> = 当前像素选区；<b>没有选区就当全选</b></li>
         <li><b>蒙版</b> = 选中图层的图层蒙版</li>
-        <li>目标：通道新建一条、蒙版挂到选中图层（多选则每个都挂）</li>
+        <li><b>路径</b> = 路径面板里右键点中的那条 → 面板里选中的那条 →
+            图里唯一的那条，同样三路兜底</li>
+        <li>目标：通道 / 路径各新建一条、蒙版挂到选中图层（多选则每个都挂）</li>
       </ul>
       <p>已有蒙版时<b>先丢掉旧的再新建</b>，结果与原生新建逐位一致——改完源再跑
          一次就是刷新。</p>
@@ -834,13 +841,17 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
   <div class="dl-grid">
     <div class="dl primary-dl">
       <div class="dl-head"><h3>结果与原生逐位一致</h3><span class="pill">硬指标</span></div>
-      <p>六个方向都不碰像素缓冲，一律转调 GIMP 自己的过程：通道转选区用
+      <p>十二个方向都不碰像素缓冲，一律转调 GIMP 自己的过程：通道 / 路径转选区用
          <code>gimp-image-select-item</code>，选区存通道用 <code>gimp-selection-save</code>，
-         选区建蒙版用 <code>create_mask(SELECTION)</code>。「通道 ↔ 蒙版」原生没有
-         直连，就按原生的两步走。</p>
+         选区建蒙版用 <code>create_mask(SELECTION)</code>，选区描路径用
+         <code>plug-in-sel2path</code>（就是「选择 → 路径」背后那个过程）。
+         凡是原生没有直连的，就按原生的两步走：通道 ↔ 蒙版、通道 / 蒙版 ↔ 路径，
+         都经选区这一站。</p>
       <p>所以中间灰带着原生那点漂移：默认 8 位图上，通道 128 进选区读回 <b>188</b>，
          选区 128 存通道读回 <b>55</b>；而选区与蒙版之间原生会换算，那一对不漂。
-         32 位线性精度的图像上通道本身就存线性值，六个方向都不漂。</p>
+         32 位线性精度的图像上通道本身就存线性值，那六个方向都不漂。
+         路径方向跟着这条链走：通道 → 路径是先变成 188 的选区再描轮廓，轮廓落在
+         50% 等值线上，和原生手点两步的结果一样。</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>为什么单步看着不对</h3></div>
@@ -860,8 +871,99 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
          那条、不反相。日常右键直接跑一键版，需要细调时走带参数的那个。</p>
     </div>
   </div>
-  <p class="note">六个方向都不依赖自研算子，只调 GIMP 自己的通道、选区、蒙版 PDB。
-     缺源时会明确说缺什么（没选通道 / 没蒙版 / 图层组没有像素），不会静默什么都不做。</p>""",
+  <p class="note">十二个方向都不依赖自研算子，只调 GIMP 自己的通道、选区、蒙版、路径 PDB。
+     缺源时会明确说缺什么（没选通道 / 没蒙版 / 没路径 / 图层组没有像素），不会静默什么都不做。
+     <b>路径这一站有损</b>：羽化、渐变、抗锯齿的边缘在「位图 → 路径」时会被压成硬边界，
+     这是路径只有几何、没有 alpha 决定的，原生 To Path 同样如此。反过来「路径 → 位图」
+     不丢任何东西，栅格化出来就是干净的硬边。</p>""",
+    ),
+    dict(
+        key='max-min',
+        slug='max-min',
+        title='最大 / 最小值（Max / Min）',
+        tag=('蒙版', 't-mask'),
+        count='2 个方向',
+        area='Mask',
+        menu='SuperMrWang → Mask → 最大值 / 最小值',
+        menus=['SuperMrWang → Mask → 最大值 / 最小值',
+               '图层右键 → SuperMrWang → Mask → 最大值 / 最小值'],
+        menus_en=['SuperMrWang → Mask → Max / Min',
+                  'Layer right-click → SuperMrWang → Mask → Max / Min'],
+        pdb='lb-plugin-max-min(image, drawables, mode, radius, shape, affect-alpha)',
+        lede="""Photoshop 的「最大值 / 最小值」滤镜：每个像素取邻域内的最大或最小值。
+       最大值把亮区往外推、吞掉暗处的小点；最小值收亮区、啃掉残留的白边。
+       GIMP 3 已经不带这个功能了——<code>gegl:dilate</code> / <code>gegl:erode</code>
+       没被编进官方构建，<code>plug-in-dilate</code> 也早在 2.10 之后移除。
+       所以这里用的是本项目自己的算子 <code>lb:max-min</code>。""",
+        body="""<div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>两个方向，一件事的两面</h3><span class="pill">形态学</span></div>
+      <p><b>最大值（膨胀）</b>：每个像素取邻域内的最大值，亮区向外长一圈，暗处的小点被吞掉。
+         <b>最小值（腐蚀）</b>：取最小值，亮区向内收缩，白底上的黑点被抹掉、抠图残留的白边
+         被啃干净。</p>
+      <ul class="deps">
+        <li><b>扩边 / 收边</b> · 蒙版、通道上加减一圈</li>
+        <li><b>去灰尘点</b> · 最小值收拾亮斑，最大值收拾暗斑</li>
+        <li><b>发光底图</b> · 最大值先撑开高光，再叠回去就是柔光晕</li>
+        <li><b>做厚度</b> · 最小值内缩一层，与原图求差就是描边</li>
+      </ul>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>GIMP 里为什么得自己写</h3></div>
+      <p>2.10 之前有「滤镜 → 通用 → 膨胀 / 腐蚀」，之后交给 GEGL 的
+         <code>gegl:dilate</code> / <code>gegl:erode</code>。这两个属于 GEGL 的
+         workshop 算子，<b>官方 Windows 构建没有把它们编进去</b>：本机 3.2.8 上
+         <code>gegl --list-all</code> 查不到，PDB 里也没有 <code>plug-in-dilate</code>。</p>
+      <p>仅剩的原生相关过程是 <code>gimp-selection-grow</code> / <code>-shrink</code>，
+         但它们只作用于选区，改不了一张蒙版或一个图层的像素。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>四个参数</h3><span class="pill">对应 PS 的对话框</span></div>
+      <ul class="deps">
+        <li><b>模式</b> · 最大值（膨胀）/ 最小值（腐蚀）</li>
+        <li><b>半径</b> · 1–100 像素，r=1 即 3×3，边缘向外长一圈</li>
+        <li><b>形状</b> · 方形（方窗）/ 圆形（圆盘），对应 PS 的「方形度 / 圆度」</li>
+        <li><b>影响 alpha</b> · 默认关，PS 同样不动图层透明度</li>
+      </ul>
+      <p>半径语义与 PS 一致：r 表示检查 <b>(±r, ±r)</b> 的邻域，不是窗口边长——所以 r=1 得到
+         的正是 3×3。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>彩色图上会偏色，这是对的</h3></div>
+      <p>PS 对 RGB 复合图是<b>逐通道</b>取极值的，红蓝交界处因此冒出紫边。插件照这个语义做，
+         不对通道做任何均衡或换算。</p>
+      <p>要没有偏色就把目标换成单色的：蒙版、通道、灰度层。蒙版只有一张平面，取极值就是
+         纯粹的扩边 / 收边。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>逐位正确：在缓冲自己的精度里比较</h3><span class="pill">u8 / u16 / f32</span></div>
+      <p>极值只需要大小关系，但结果值必须原样搬出来。所以三个精度各展开一份代码：
+         u8 比 u8、u16 比 u16、float32 比 float32，<b>中途不做任何格式转换</b>。把 u16 读成
+         float 再写回，个别像素就会差 1 码，这里不给它机会。</p>
+      <p>不做色彩管理、不做 gamma 换算——PS 的这两个滤镜同样是直接对通道值取极值。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>边缘不会暗一圈</h3></div>
+      <p>画布外按复制边缘像素处理。对取极值来说，这与「只算窗口内的像素」<b>逐位等价</b>：
+         补进来的永远是边缘那一列 / 那一行的副本，不引入新值，也就不像模糊那样在边上留暗边。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>速度</h3></div>
+      <p><b>方窗可分离</b>：先横向、再纵向，两遍都与半径无关——3MP 图上 r=1 和 r=100 都只要
+         几十毫秒。<b>圆盘</b>每行半宽不同、不能分离，代价随半径线性增长（3MP、r=100 约 1.2 秒）。</p>
+    </div>
+  </div>
+  <p class="note">图层上是<b>非破坏滤镜</b>：参数随时可改、眼睛图标随时可关。蒙版和通道没有
+     滤镜栈（GIMP 3 实测：往蒙版 append 一条滤镜，API 不报错，但渲染不受影响），所以这两类
+     目标是直接写像素，靠撤销退回。回归：<code>check_max_min.py</code> 27 项（对 O(r²) 暴力
+     实现逐位比对，u8 / u16 / f32 × 方 / 圆 × 三档半径，含跨分带与超图半径）+
+     <code>check_max_min_plugin.py</code> 12 项（PDB、滤镜挂载、蒙版写像素、错误分支）。</p>""",
     ),
 ]
 
@@ -897,7 +999,9 @@ BRIEF = {
                    "高光 192 / 阴影 64 / 中间调 64–192 各自归位。",
     "channel-to-mask": "选中通道面板里的一条通道，右键图层就把它挂成图层蒙版："
                        "多选图层一次挂齐，可反相。",
-    "convert": "通道、选区、蒙版三者两两互转，六个方向各一个菜单项，点一下就完事，"
+    "max-min": "形态学的最大值（膨胀）与最小值（腐蚀）：扩边、收边、去亮点暗点，"
+               "半径 1–100、方形或圆盘可选。",
+    "convert": "通道、选区、蒙版、路径四者两两互转，十二个方向各一个菜单项，点一下就完事，"
                "不弹参数框。",
 }
 
@@ -911,6 +1015,7 @@ TITLE_EN = {
     "alpha-curves": "Alpha Curves",
     "color-range": "Color Range",
     "channel-to-mask": "Channel to Mask",
+    "max-min": "Max / Min",
     "convert": "Convert",
 }
 
@@ -942,7 +1047,9 @@ BRIEF_EN = {
     "channel-to-mask": "Pick a channel in the Channels dock, right-click a layer and "
                        "it becomes that layer's mask — several layers at once, "
                        "invertible.",
-    "convert": "Channels, selections and layer masks, all six directions as one-click "
+    "max-min": "Morphological maximum (dilate) and minimum (erode): grow or shrink a "
+               "mask, kill specks, radius 1–100, square or disc.",
+    "convert": "Channels, selections, layer masks and paths, all twelve directions as one-click "
                 "menu items with no dialog.",
 }
 
@@ -960,12 +1067,15 @@ DEPS_NOTE_EN = {
     "split": "No dependency on this project's operators: the layer is read "
              "once and sliced per component; only GIMP's own channel PDB is "
              "used.",
+    "max-min": "Uses this project's own lb:max-min operator, because GIMP 3 no "
+               "longer ships dilate / erode. The module is inside the plug-in "
+               "zip — drop it into the GEGL module folder.",
 }
 
 AREA = {"selection": "图层转换", "channel": "图层转换", "split": "图层转换",
         "convert": "图层转换",
         "alpha-curves": "Mask", "color-range": "Mask",
-        "channel-to-mask": "Mask"}
+        "channel-to-mask": "Mask", "max-min": "Mask"}
 
 DEPS = {
     "hsv": ["lb:hsv-dual", "lb:hsv-compose", "gimp:curves"],
@@ -979,6 +1089,7 @@ DEPS = {
     "alpha-curves": ["lb:channel-range-to-alpha", "gimp:curves"],
     "color-range": ["lb:color-mask-select"],
     "channel-to-mask": [],
+    "max-min": ["lb:max-min"],
     "convert": [],
     "split": [],
 }
@@ -991,7 +1102,9 @@ DEPS_NOTE = {
     "channel": "不依赖任何自研算子：直接读图层字节，只调 GIMP 自己的通道 PDB。",
     "split": "不依赖任何自研算子：读一次图层数据后按分量切片，只调 GIMP 自己的通道 PDB。",
     "channel-to-mask": "不依赖任何自研算子：只读通道像素、只调 GIMP 自己的蒙版 PDB。",
-    "convert": "不依赖任何自研算子：六个方向都只调 GIMP 自己的通道、选区、蒙版 PDB。",
+    "convert": "不依赖任何自研算子：十二个方向都只调 GIMP 自己的通道、选区、蒙版、路径 PDB。",
+    "max-min": "用本项目自己的算子 lb:max-min（GIMP 3 已不带 dilate / erode）。"
+               "插件包里已附带这个模块，按 readme 放进 GEGL 模块目录即可。",
 }
 
 for _p in PAGES:

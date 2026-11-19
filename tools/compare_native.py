@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""原生路径 vs convert 插件：六向转换的数值对比（诊断脚本）。
+"""原生路径 vs convert 插件：十二向转换的数值对比（诊断脚本）。
 
 跑法 / run:
     "D:/fastsoftware/GIMP 3/bin/gimp-console-3.2.exe" -i -c -d -f \
@@ -100,6 +100,27 @@ def read_y(item, xs=None, y=8):
         a.frombytes(bytes(bytearray(raw)))
         out.append(round(a[0] * 255, 1))
     return out
+
+
+def seed_path(img, layer, x=6, w=8):
+    """用原生 process 把矩形选区描成路径，作为路径方向的源。"""
+    img.select_rectangle(Gimp.ChannelOps.REPLACE, x, 0, w, H)
+    before = set(p.get_id() for p in img.get_paths())
+    proc = Gimp.get_pdb().lookup_procedure('plug-in-sel2path')
+    cfg = proc.create_config()
+    cfg.set_property('image', img)
+    cfg.set_core_object_array('drawables', [layer])
+    proc.run(cfg)
+    return [p for p in img.get_paths() if p.get_id() not in before][0]
+
+
+def raster(path_or_sel, img):
+    """把路径栅格化回选区再读值，路径方向都用这一条尺子。"""
+    if isinstance(path_or_sel, Gimp.Path):
+        pdb('gimp-image-select-item', image=img,
+            operation=Gimp.ChannelOps.REPLACE, item=path_or_sel)
+        return read_y(img.get_selection())
+    return read_y(path_or_sel)
 
 
 def line(tag, native, ours):
@@ -267,6 +288,81 @@ def run():
     nat = try_(nat_loops)
     img.delete()
     line("原生往返 ×3", nat, "—")
+
+    # 10 路径 → 选区
+    img, layer = new_doc()
+    path = seed_path(img, layer)
+    nat = try_(lambda: raster(path, img))
+    img.delete()
+    img, layer = new_doc()
+    path = seed_path(img, layer)
+    ours = try_(lambda: (mod.path_to_selection(img, [path]),
+                         read_y(img.get_selection()))[1])
+    img.delete()
+    line("路径 → 选区", nat, ours)
+
+    # 11 选区 → 路径（两边都再栅格化回选区比）
+    img, layer = new_doc()
+    img.select_rectangle(Gimp.ChannelOps.REPLACE, 6, 0, 8, H)
+    nat = try_(lambda: raster(
+        [p for p in [seed_path(img, layer, 6, 8)]][0], img))
+    img.delete()
+    img, layer = new_doc()
+    img.select_rectangle(Gimp.ChannelOps.REPLACE, 6, 0, 8, H)
+    ours = try_(lambda: raster(mod.selection_to_path(img, [layer]), img))
+    img.delete()
+    line("选区 → 路径", nat, ours)
+
+    # 12 通道 → 路径（原生的两步：通道 → 选区 → 路径）
+    img, layer = new_doc()
+    ch = make_channel(img)
+
+    def nat_ch_path():
+        pdb('gimp-image-select-item', image=img,
+            operation=Gimp.ChannelOps.REPLACE, item=ch)
+        before = set(p.get_id() for p in img.get_paths())
+        proc = Gimp.get_pdb().lookup_procedure('plug-in-sel2path')
+        cfg = proc.create_config()
+        cfg.set_property('image', img)
+        cfg.set_core_object_array('drawables', [layer])
+        proc.run(cfg)
+        new = [p for p in img.get_paths() if p.get_id() not in before][0]
+        return raster(new, img)
+    nat = try_(nat_ch_path)
+    img.delete()
+    img, layer = new_doc()
+    ch = make_channel(img)
+    img.set_selected_channels([ch])
+    ours = try_(lambda: raster(mod.channel_to_path(img, [layer])[1], img))
+    img.delete()
+    line("通道 → 路径", nat, ours)
+
+    # 13 蒙版 → 路径（原生两步：蒙版 → 选区 → 路径）
+    img, layer = new_doc()
+    m = layer.create_mask(Gimp.AddMaskType.WHITE)
+    layer.add_mask(m)
+    set_plane(m, [v / 255.0 for v in RAMP] * H)
+
+    def nat_mask_path():
+        pdb('gimp-image-select-item', image=img,
+            operation=Gimp.ChannelOps.REPLACE, item=m)
+        before = set(p.get_id() for p in img.get_paths())
+        proc = Gimp.get_pdb().lookup_procedure('plug-in-sel2path')
+        cfg = proc.create_config()
+        cfg.set_property('image', img)
+        cfg.set_core_object_array('drawables', [layer])
+        proc.run(cfg)
+        new = [p for p in img.get_paths() if p.get_id() not in before][0]
+        return raster(new, img)
+    nat = try_(nat_mask_path)
+    img.delete()
+    img, layer = new_doc()
+    m = layer.create_mask(Gimp.AddMaskType.WHITE)
+    layer.add_mask(m)
+    set_plane(m, [v / 255.0 for v in RAMP] * H)
+    ours = try_(lambda: raster(mod.mask_to_path(img, [layer])[1], img))
+    img.delete()
+    line("蒙版 → 路径", nat, ours)
 
     print("\n目标期望（视觉灰）= %s\n" % WANT)
 

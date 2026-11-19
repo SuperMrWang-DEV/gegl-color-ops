@@ -774,13 +774,14 @@ PLUGIN_EN["channel-to-mask"] = dict(
 
 
 PLUGIN_EN["convert"] = dict(
-    lede="""Channels, selections and layer masks, converted in every direction: six menu
-   items, each one click and done — no parameter dialog. Natively these six paths are spread
-   across three places, and <b>mask → channel does not exist at all</b>; it takes a detour
-   through the selection in two steps.""",
+    lede="""Channels, selections, layer masks and paths, converted in every direction: twelve
+   menu items, each one click and done — no parameter dialog. Natively these paths are spread
+   across four places, and <b>mask → channel does not exist at all</b>; it takes a detour
+   through the selection in two steps. A path is a <b>lossy stop</b>: it carries geometry and
+   no alpha, so anything going into a path is traced along the 50% contour.""",
     body="""  <div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>Why it needs its own entry</h3><span class="pill">three places</span></div>
+      <div class="dl-head"><h3>Why it needs its own entry</h3><span class="pill">four places</span></div>
       <p>Doing the same thing natively means remembering three routes: <b>Select</b> menu to
          save a channel, the <b>channel context menu</b> to make a selection, and
          <b>Layers → Mask → Add Layer Mask</b> with a type picked in the dialog. Same family
@@ -788,9 +789,13 @@ PLUGIN_EN["convert"] = dict(
       <p>Worse, <b>mask → channel simply is not there</b>: GIMP has no such procedure, so it
          is "mask to selection" and then "selection to channel" — two steps, two menus. This
          plug-in makes it one.</p>
+      <p>Paths are the same story: <b>path → selection</b> lives in the Paths context menu and
+         <b>selection → path</b> in the Select menu, while <b>channel / mask ↔ path</b> has no
+         native entry at all and has to be assembled by hand. All of it now sits in one
+         submenu, named by destination.</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>Six directions</h3><span class="pill">zero arguments</span></div>
+      <div class="dl-head"><h3>Twelve directions</h3><span class="pill">zero arguments</span></div>
       <ul class="deps">
         <li><b>Channel to Selection</b></li>
         <li><b>Selection to Channel</b></li>
@@ -798,6 +803,12 @@ PLUGIN_EN["convert"] = dict(
         <li><b>Mask to Channel</b></li>
         <li><b>Selection to Mask</b></li>
         <li><b>Mask to Selection</b></li>
+        <li><b>Path to Selection</b></li>
+        <li><b>Selection to Path</b></li>
+        <li><b>Path to Channel</b></li>
+        <li><b>Channel to Path</b></li>
+        <li><b>Path to Mask</b></li>
+        <li><b>Mask to Path</b></li>
       </ul>
       <p>A menu item without an ellipsis <b>runs immediately</b>: the source is read from the
          context, so there is nothing to pick in a dialog.</p>
@@ -809,7 +820,9 @@ PLUGIN_EN["convert"] = dict(
             selection, else the only channel in the image</li>
         <li><b>Selection</b> = the active pixel selection; <b>none means select-all</b></li>
         <li><b>Mask</b> = the selected layer's layer mask</li>
-        <li>Sinks: a new channel, or masks on every selected layer</li>
+        <li><b>Path</b> = the one right-clicked in the Paths dock, else the dock selection,
+            else the only path in the image</li>
+        <li>Sinks: a new channel or path, or masks on every selected layer</li>
       </ul>
       <p>An existing mask is <b>dropped and rebuilt</b>, bit-for-bit identical to a fresh
          native one — change the source and re-run to refresh.</p>
@@ -819,15 +832,20 @@ PLUGIN_EN["convert"] = dict(
   <div class="dl-grid">
     <div class="dl primary-dl">
       <div class="dl-head"><h3>Bit-for-bit with native</h3><span class="pill">the hard requirement</span></div>
-      <p>None of the six directions touches a pixel buffer. Each one calls GIMP's own
-         procedure: <code>gimp-image-select-item</code> for a channel to a selection,
+      <p>None of the twelve directions touches a pixel buffer. Each one calls GIMP's own
+         procedure: <code>gimp-image-select-item</code> for a channel or path to a selection,
          <code>gimp-selection-save</code> for a selection to a channel,
-         <code>create_mask(SELECTION)</code> for a selection to a mask. Channel ↔ mask has no
-         native entry, so it runs the native two steps.</p>
+         <code>create_mask(SELECTION)</code> for a selection to a mask, and
+         <code>plug-in-sel2path</code> — the procedure behind Select &gt; To Path — for a
+         selection to a path. Where native has no direct entry (channel ↔ mask, channel / mask
+         ↔ path) it runs the native two steps through the selection.</p>
       <p>That means mid greys carry the native drift: on a default 8-bit image a channel value
          of 128 reads back as <b>188</b> in the selection, and a selection value of 128 reads
          back as <b>55</b> in a channel. Selection ↔ mask converts properly in GIMP, so that
-         pair does not drift. On 32-bit linear precision nothing drifts at all.</p>
+         pair does not drift. On 32-bit linear precision the six bitmap directions do not drift
+         at all. The path directions follow the same chain: channel → path first becomes the
+         188 selection, then the contour is taken at 50%, exactly like doing the two native
+         steps by hand.</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>Why single steps look wrong</h3></div>
@@ -851,7 +869,99 @@ PLUGIN_EN["convert"] = dict(
          parameterised one when you need to adjust.</p>
     </div>
   </div>
-  <p class="note">None of the six directions depends on this project's operators — they only
-     call GIMP's own channel, selection and mask PDB. A missing source produces an explicit
-     message (no channel found / no mask / layer group has no pixels) instead of silently
-     doing nothing.</p>""")
+  <p class="note">None of the twelve directions depends on this project's operators — they only
+     call GIMP's own channel, selection, mask and path PDB. A missing source produces an explicit
+     message (no channel found / no mask / no path / layer group has no pixels) instead of
+     silently doing nothing. <b>A path is a lossy stop</b>: feathered, gradient and anti-aliased
+     edges collapse to a hard boundary on the way into a path, because a path carries geometry
+     and no alpha — the native To Path does the same. Going the other way loses nothing:
+     rasterising a path gives clean hard edges.</p>""")
+
+PLUGIN_EN["max-min"] = dict(
+    lede="""Photoshop's Maximum / Minimum filter: every pixel takes the largest or smallest
+   value in its neighbourhood. Maximum pushes bright areas outwards and swallows small dark
+   specks; minimum shrinks bright areas and eats leftover fringes. GIMP 3 no longer has it —
+   <code>gegl:dilate</code> / <code>gegl:erode</code> are not built into the official
+   Windows binaries and <code>plug-in-dilate</code> was removed after 2.10 — so this uses the
+   project's own <code>lb:max-min</code> operator.""",
+    body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Two directions, one operation</h3><span class="pill">morphology</span></div>
+      <p><b>Maximum (dilate)</b> takes the largest value around each pixel: bright areas grow
+         a ring outwards and small dark specks disappear. <b>Minimum (erode)</b> takes the
+         smallest: bright areas shrink, dark specks vanish and the fringe left after a cut-out
+         is chewed away.</p>
+      <ul class="deps">
+        <li><b>Grow / shrink</b> a mask or channel by a ring</li>
+        <li><b>Despeckle</b> — minimum for bright specks, maximum for dark ones</li>
+        <li><b>Glow base</b> — maximum spreads the highlights before blending back</li>
+        <li><b>Thickness</b> — erode and subtract from the original for an outline</li>
+      </ul>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Why it has to be written here</h3></div>
+      <p>Up to 2.10 there was Filters &gt; Generic &gt; Dilate / Erode; afterwards GEGL's
+         <code>gegl:dilate</code> / <code>gegl:erode</code> took over. Those are workshop
+         operators and <b>are not compiled into the official Windows build</b>: on 3.2.8
+         <code>gegl --list-all</code> does not list them and there is no
+         <code>plug-in-dilate</code> in the PDB at all.</p>
+      <p>The only native leftovers are <code>gimp-selection-grow</code> /
+         <code>-shrink</code>, and those work on selections only — they cannot change a mask or
+         a layer's pixels.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Four parameters</h3><span class="pill">mirrors PS</span></div>
+      <ul class="deps">
+        <li><b>Mode</b> — maximum (dilate) / minimum (erode)</li>
+        <li><b>Radius</b> — 1–100 px; r=1 is a 3×3 window, one ring outwards</li>
+        <li><b>Shape</b> — square or round, i.e. PS's “Preserve: Squareness / Roundness”</li>
+        <li><b>Affect alpha</b> — off by default; PS leaves layer opacity alone too</li>
+      </ul>
+      <p>Radius means the same thing as in PS: it checks a <b>(±r, ±r)</b> neighbourhood, not a
+         window edge length — so r=1 gives exactly 3×3.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Colour fringing is correct</h3></div>
+      <p>PS applies this per channel on an RGB composite, which is why red/blue edges pick up a
+         magenta fringe. The operator does the same and makes no attempt to balance channels.</p>
+      <p>For no fringing, target a single-plane drawable: a mask, a channel or a greyscale
+         layer. On a mask the operation is pure grow / shrink.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Bit-exact: compared in the buffer's own precision</h3><span class="pill">u8 / u16 / f32</span></div>
+      <p>A maximum only needs ordering, but the value still has to be carried out untouched.
+         So there are three copies of the kernel: u8 compares u8, u16 compares u16, float32
+         compares float32, with <b>no format conversion in between</b>. Reading a u16 as float
+         and writing it back moves some pixels by one code — that is not allowed here.</p>
+      <p>No colour management, no gamma conversion: PS's Maximum / Minimum also work straight on
+         channel values.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>No darkened border</h3></div>
+      <p>Outside the canvas the edge pixels are replicated. For a min/max that is
+         <b>bit-identical</b> to only counting the in-canvas part of the window: the replicated
+         values are copies of an edge pixel that is already inside it. Unlike a blur, nothing
+         darkens at the border.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Speed</h3></div>
+      <p><b>A square window is separable</b> — one horizontal pass, one vertical, both
+         independent of the radius: on a 3 MP image r=1 and r=100 both take tens of
+         milliseconds. <b>A disc</b> has a different half-width per row and cannot be split;
+         its cost grows linearly with the radius (3 MP at r=100 is about 1.2 s).</p>
+    </div>
+  </div>
+  <p class="note">On a layer this is a <b>non-destructive filter</b>: change the parameters or
+     toggle it off at any time. Masks and channels carry no filter stack (measured on GIMP 3:
+     appending a filter to a mask neither errors nor has any effect on rendering), so those two
+     are baked into pixels and undone with undo. Regression: <code>check_max_min.py</code>
+     (27 checks against an O(r²) brute force — u8 / u16 / f32 × square / round × three radii,
+     plus band seams and a radius larger than the image) and
+     <code>check_max_min_plugin.py</code> (12 checks: PDB, filter attachment, mask baking,
+     error branches).</p>""")

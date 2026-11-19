@@ -752,11 +752,11 @@ def build_home(ops, stats, version):
     <h2><span class="l-zh">Python 插件</span><span class="l-en">Python plug-ins</span></h2>
     <p class="door-lead"><span class="l-zh">{p} 个 Python 插件，负责把算子串成流程：五个色彩空间的分量
      拆层加三条曲线、Alpha 曲线、高低频 / 双曲线 / 中性灰磨皮、图层转选区与转通道，
-     还有通道 / 选区 / 蒙版六个方向的互转。每个插件内部要用的算子模块已经打在包里。</span><span class="l-en">{p} Python plug-ins that string the operators into a workflow: component
+     还有通道 / 选区 / 蒙版 / 路径十二个方向的互转。每个插件内部要用的算子模块已经打在包里。</span><span class="l-en">{p} Python plug-ins that string the operators into a workflow: component
      split-and-curve in five colour spaces, alpha curves, frequency-separation / dodge &amp;
-     burn / neutral-grey retouching, layer-to-selection and layer-to-channel, plus the six-way
-     channel / selection / mask conversion. The operator modules each one needs are already
-     inside.</span></p>
+     burn / neutral-grey retouching, layer-to-selection and layer-to-channel, plus the
+     twelve-way channel / selection / mask / path conversion. The operator modules each one
+     needs are already inside.</span></p>
     <div class="door-meta">
       <span><b>{p}</b> <span class="l-zh">个 .py</span><span class="l-en">scripts</span></span>
       <span><b>3</b> <span class="l-zh">组磨皮</span><span class="l-en">retouching sets</span></span>
@@ -1973,13 +1973,25 @@ PLUGIN_SPECS = [
         dict(key="convert", ops=[],
              name="gegl-color-ops-plugin-convert.zip",
              src_dir=os.path.join(ROOT, "plugin", "convert"),
-             py="convert.py", menu="Convert（通道 / 选区 / 蒙版 六向转换）",
-             menus="    SuperMrWang → Convert → 六项，通道 / 选区 / 蒙版两两互转\n"
-                   "    图层右键 → SuperMrWang → Convert（同样六项）",
-             desc="Convert：通道、选区、蒙版三者两两互转，六个方向各一个菜单项，"
-                  "零参数、点一下直接执行。源全从上下文取：通道面板选中那条、当前选区、"
-                  "当前图层的蒙版。原生缺的「蒙版 → 通道」也补成一步。",
-             pdb="lb-plugin-conv-* 六个过程，全部零参数"),
+             py="convert.py", menu="Convert（通道 / 选区 / 蒙版 / 路径 十二向转换）",
+             menus="    SuperMrWang → Convert → 十二项，通道 / 选区 / 蒙版 / 路径两两互转\n"
+                   "    图层右键 / 通道右键 / 路径右键 → SuperMrWang → Convert",
+             desc="Convert：通道、选区、蒙版、路径四者两两互转，十二个方向各一个菜单项，"
+                  "零参数、点一下直接执行。源全从上下文取：通道 / 路径面板选中那条、"
+                  "当前选区、当前图层的蒙版。原生缺的「蒙版 → 通道」「通道 / 蒙版 ↔ 路径」"
+                  "也补成一步；路径只管几何，位图进路径按 50% 等值线取轮廓。",
+             pdb="lb-plugin-conv-* 十二个过程，全部零参数"),
+        dict(key="max-min", ops=["max-min"],
+             name="gegl-color-ops-plugin-max-min.zip",
+             src_dir=os.path.join(ROOT, "plugin", "max-min"),
+             py="max-min.py", menu="最大值 / 最小值（Max / Min）",
+             menus="    SuperMrWang → Mask → 最大值 / 最小值\n"
+                   "    图层右键 → SuperMrWang → Mask → 最大值 / 最小值",
+             desc="最大 / 最小值：形态学的膨胀与腐蚀，Photoshop「最大值 / 最小值」"
+                  "滤镜的等价物。最大值扩边、去暗点；最小值收边、去亮点。"
+                  "半径 1–100、方形或圆盘可选，alpha 默认不动。图层上是非破坏滤镜，"
+                  "蒙版和通道直接写像素。",
+             pdb="lb-plugin-max-min(image, drawables, mode, radius, shape, affect-alpha)"),
 ]
 
 
@@ -2240,7 +2252,7 @@ def build_plugins(version, stats=None):
                "menu (all of them) and <b>layer right-click → SuperMrWang</b>."),
         f1=t("<b>%d</b> 个插件" % n_plug, "<b>%d</b> plug-ins" % n_plug),
         f2=t("<b>%d</b> 个 PDB 过程" % n_plug, "<b>%d</b> PDB procedures" % n_plug),
-        f3=t("<b>419</b> 条回归断言", "<b>419</b> regression assertions"),
+        f3=t("<b>503</b> 条回归断言", "<b>503</b> regression assertions"),
         f4=t("<b>0</b> 编译 · 纯 Python", "<b>0</b> to compile · pure Python"),
         note=t("安装：<code>bash install-plugin.sh</code> 一次装齐，或从各自的页面"
                "单独下某一个 <code>.zip</code>；细节见 "
@@ -2286,6 +2298,26 @@ NATIVE_NOTE_EN = """<p class="native-note"><b>Only a convenience wrapper over na
    single click, and keeps the result bit-for-bit identical to doing it by hand.</p>"""
 
 
+def _mark_plugin_sections(markup, lang):
+    """给插件正文的每个 .dl 小节补锚点，并抽出标题给右侧目录。
+
+    插件正文是手写的 HTML 片段，一个 .dl 就是一小节。与其逐页改标记，
+    不如在拼页时统一加 id、顺便取出 h3 的纯文本。
+    """
+    items = []
+    pat = re.compile(
+        r'<div class="dl(?: primary-dl)?">(\s*<div class="dl-head"><h3>(.*?)</h3>)',
+        re.S)
+
+    def repl(m):
+        sid = "%s-sec-%d" % (lang, len(items) + 1)
+        title = html.unescape(re.sub(r"<[^>]+>", "", m.group(2))).strip()
+        items.append((sid, title))
+        return '<div class="dl" id="%s">%s' % (sid, m.group(1))
+
+    return pat.sub(repl, markup), items
+
+
 def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
     """每个插件一篇文章：页头 + 位置/PDB/依赖 + 正文 + 下载 + 翻页。
 
@@ -2307,11 +2339,15 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
 
         menus = p["menus"]
         if en_:
-            # 菜单条目里夹着中文：入口名、中文插件名、"同上两条"
-            menus = [m.replace("图层右键", "Layer right-click")
-                      .replace("同上两条", "same as the two above")
-                      .replace(p["title"], p.get("title_en") or p["title"])
-                     for m in menus]
+            if p.get("menus_en"):
+                # 有英文原文就直接用，别拿中文去替换（中文插件名替换不干净）
+                menus = p["menus_en"]
+            else:
+                # 菜单条目里夹着中文：入口名、中文插件名、"同上两条"
+                menus = [m.replace("图层右键", "Layer right-click")
+                          .replace("同上两条", "same as the two above")
+                          .replace(p["title"], p.get("title_en") or p["title"])
+                         for m in menus]
         menu_html = "".join("<li>%s</li>" % m for m in menus)
 
         dl = ""
@@ -2357,7 +2393,7 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
                     note += (" Linux 端的 %s 还没进预编译包，要用 Linux 就 "
                              "<code>./build.sh</code> 自己编一份（Windows 端齐全）。"
                              % "、".join(absent))
-            dl = """<section class="download" id="download">
+            dl = """<section class="download" id="%s-download">
   <h2>%s</h2>
   <div class="dl primary-dl">
     <div class="dl-head"><h3>%s</h3><span class="pill">%s</span></div>
@@ -2365,7 +2401,7 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
     <a class="btn primary" href="../download/%s">%s %s</a>
     <p class="muted small">%s KB · %s<code>SHA256 %s…</code></p>
   </div>
-</section>""" % ("Download this one" if en_ else "下载这一个",
+</section>""" % (lang, "Download this one" if en_ else "下载这一个",
                 name_en if en_ else name, pill, note, z["name"],
                 "Download" if en_ else "下载", name_en if en_ else name,
                 z["kb"], "checksum: " if en_ else "校验：", z["sha"][:32])
@@ -2400,6 +2436,31 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
         if not p.get("native_only"):
             native = ""
 
+        spec = """<dl class="spec" id="%s-overview">
+  <dt>%s</dt>
+  <dd><ul class="menu-list">%s</ul><p>%s</p></dd>
+  <dt>%s</dt>
+  <dd><code class="pdb">%s</code><p>%s</p></dd>
+  <dt>%s</dt>
+  <dd>%s</dd>
+</dl>""" % (lang,
+           "Menu location" if en_ else "菜单位置", menu_html,
+           ("These are all the same action, applied to <b>the one layer you have "
+            "selected</b>. Layer groups do not work — a group has no pixels of its own, "
+            "so the plug-in stops with an explicit error and asks you to merge first."
+            if en_ else
+            "这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——"
+            "组没有自己的像素，会直接报错并提示先合并。"),
+           "Scripting" if en_ else "脚本调用", p["pdb"],
+           "A standard PDB procedure; leave an argument empty to take its default."
+           if en_ else "标准 PDB 过程，参数留空走默认值。",
+           "Dependencies" if en_ else "依赖", dep_html)
+
+        arts, secs = _mark_plugin_sections(
+            spec + "\n" + ((p.get("body_en") or p["body"]) if en_ else p["body"]), lang)
+        toc_li = "".join('<li><a href="#%s">%s</a></li>' % (i, html.escape(t))
+                         for i, t in secs)
+
         return """<section class="page-head">
   <p class="eyebrow"><a href="../index.html">%s</a> /
     <a href="../plugins.html">%s</a> / %s</p>
@@ -2411,29 +2472,22 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
   </div>
   <p class="lede">%s</p>
 </section>
-%s<div class="prose wide">
-  <div class="dl-grid">
-    <div class="dl primary-dl">
-      <div class="dl-head"><h3>%s</h3><span class="pill">%s</span></div>
-      <ul class="menu-list">%s</ul>
-      <p>%s</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>%s</h3></div>
-      <pre><code>%s</code></pre>
-      <p>%s</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>%s</h3></div>
-      %s
-    </div>
-  </div>
-
+%s<div class="article-layout">
+  <article class="prose">
 %s
 
 %s
 
 %s
+  </article>
+  <aside class="toc">
+    <p class="toc-title">%s</p>
+    <ul>
+      <li><a href="#%s-overview">%s</a></li>
+%s
+      <li><a href="#%s-download">%s</a></li>
+    </ul>
+  </aside>
 </div>""" % ("Home" if en_ else "首页",
              "Plug-ins" if en_ else "插件",
              (p.get("area_en") if en_ else p["area"]),
@@ -2442,24 +2496,10 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
              p.get("tag_en") if en_ else p["tag"][0],
              p.get("area_en") if en_ else p["area"],
              (p.get("lede_en") or p["lede"]) if en_ else p["lede"],
-             native,
-             "Menu location" if en_ else "菜单位置",
-             "Several" if en_ else "多条",
-             menu_html,
-             ("These are all the same action, applied to <b>the one layer you have "
-              "selected</b>. Layer groups do not work — a group has no pixels of its own, "
-              "so the plug-in stops with an explicit error and asks you to merge first."
-              if en_ else
-              "这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——"
-              "组没有自己的像素，会直接报错并提示先合并。"),
-             "Scripting" if en_ else "脚本调用",
-             p["pdb"],
-             "A standard PDB procedure; leave an argument empty to take its default."
-             if en_ else "标准 PDB 过程，参数留空走默认值。",
-             "Dependencies" if en_ else "依赖",
-             dep_html,
-             (p.get("body_en") or p["body"]) if en_ else p["body"],
-             dl, note_code) + "\n" + pager
+             native, arts, dl, note_code,
+             "On this page" if en_ else "本页目录",
+             lang, "Overview" if en_ else "概览", toc_li,
+             lang, "Download" if en_ else "下载") + "\n" + pager
 
     body = ('<div class="l-zh">%s</div>\n<div class="l-en">%s</div>'
             % (one_lang("zh"), one_lang("en")))

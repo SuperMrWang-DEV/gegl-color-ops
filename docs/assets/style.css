@@ -1439,3 +1439,147 @@ ul.menu-list li { font-family: var(--mono, ui-monospace, monospace); font-size: 
     background: var(--panel);
   }
 }
+
+/* ==========================================================================
+   插件详情页：文档式排版
+   --------------------------------------------------------------------------
+   旧版把每一节都装进 .dl 卡片，三列等高栅格 + 阴影：内容长的长、短的短，
+   短卡底下空一大片，读者先看到十个框、才看到字，像仪表盘而不是文档。
+   现在照文档站的做法重排：
+   · 页面 = 正文（46em）+ 右侧粘性目录，与算子文章页共用 .article-layout；
+   · 顶部三件小事（菜单 / 脚本 / 依赖）压成一张 dt/dd 规格表，不带框；
+   · 正文各节 .dl 取消卡片，改成「小节标题 + 细分割线」的通栏块；
+   · 胶囊标签降级成极小号灰字，不再和标题抢注意力。
+   首页与下载区仍在用 .dl 卡片，所以下面的选择器一律限定在 .dl-grid / .spec 里。
+   ========================================================================== */
+
+/* ---- 顶部规格表：左标签右取值，横线分行，不画框 ---- */
+dl.spec {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  column-gap: 28px;
+  margin: 10px 0 6px;
+}
+dl.spec dt, dl.spec dd {
+  margin: 0; padding: 15px 0;
+  border-top: 1px solid var(--line-soft);
+}
+dl.spec dt:first-of-type, dl.spec dd:first-of-type { border-top: 0; }
+dl.spec dt {
+  font-family: var(--mono);
+  font-size: 11.5px; letter-spacing: .06em;
+  color: var(--muted); font-weight: 600; padding-top: 17px;
+}
+dl.spec dd { font-size: 14.2px; line-height: 1.7; color: var(--text-2); }
+dl.spec dd > :first-child { margin-top: 0; }
+dl.spec dd > :last-child { margin-bottom: 0; }
+dl.spec dd p { margin: 8px 0 0; font-size: 13.4px; color: var(--muted); }
+dl.spec code.pdb {
+  background: none; padding: 0; font-size: 13px; color: var(--text-1);
+  word-break: break-word;
+}
+dl.spec ul.deps { margin: 0; }
+
+/* 菜单路径：不再做成一个个灰底小块，直接等宽字排下来 */
+dl.spec ul.menu-list { margin: 0; }
+dl.spec ul.menu-list li {
+  background: none; border-radius: 0; padding: 2px 0; margin: 0 0 3px;
+  font-size: 12.6px; line-height: 1.55; color: var(--text-2);
+}
+
+/* ---- 正文小节：卡片 → 细线分节 ---- */
+.dl-grid { display: block; margin: 0; }
+.dl-grid + .dl-grid { margin-top: 0; }
+.dl-grid .dl {
+  display: block; position: static; overflow: visible;
+  background: none; border: 0; border-radius: 0; box-shadow: none;
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+  padding: 28px 0 4px; margin: 34px 0 0;
+  border-top: 1px solid var(--line-soft);
+  transition: none;
+}
+.dl-grid .dl::before { display: none; }
+.dl-grid .dl:hover,
+.dl-grid .dl.primary-dl {
+  background: none; box-shadow: none;
+  border: 0; border-radius: 0;
+  border-top: 1px solid var(--line-soft);
+}
+.dl-grid .dl.primary-dl { border-top-color: color-mix(in srgb, var(--accent) 34%, var(--line-soft)); }
+/* 每组第一节也保留顶线：跨组的相邻两节原本会粘在一起，
+   看起来像同一块内容。规格表末尾没有下线，这条正好收口。 */
+.dl-grid .dl:first-child { margin-top: 30px; }
+.dl-grid .dl-head { gap: 12px; }
+.dl-grid .dl-head h3 {
+  font-size: 19px; font-weight: 640; letter-spacing: -.02em; line-height: 1.36;
+}
+.dl-grid .dl > p {
+  margin: 14px 0 0; font-size: 14.8px; line-height: 1.78; color: var(--text-2);
+}
+.dl-grid .dl > pre { margin: 14px 0 0; }
+.dl-grid .dl code { font-size: 12.8px; }
+
+/* 标签：不再做大写字距的胶囊，改成标题后面一行小字，中文才读得清 */
+.dl-grid .pill, dl.spec .pill {
+  background: none; border: 0; padding: 0; border-radius: 0;
+  font-family: var(--sans);
+  font-size: 12px; letter-spacing: .01em; font-weight: 400;
+  text-transform: none; color: var(--muted);
+}
+.dl-grid .dl-head .pill::before { content: "· "; }
+
+/* 小节里的清单：两列，行间细线，读起来像参考表 */
+.dl-grid ul.deps {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 32px; margin: 16px 0 0; padding: 0; list-style: none;
+}
+.dl-grid ul.deps li {
+  background: none; border-radius: 0; border: 0;
+  border-top: 1px solid var(--line-soft);
+  padding: 9px 0; font-size: 13.6px; line-height: 1.6; color: var(--text-2);
+}
+.dl-grid ul.deps li b { color: var(--text-1); font-weight: 600; }
+@media (max-width: 720px) {
+  .dl-grid ul.deps { grid-template-columns: minmax(0, 1fr); }
+  dl.spec { grid-template-columns: minmax(0, 1fr); column-gap: 0; }
+  dl.spec dt { padding: 16px 0 0; }
+  dl.spec dt, dl.spec dd { border-top: 0; }
+  dl.spec dd { padding: 4px 0 16px; border-bottom: 1px solid var(--line-soft); }
+}
+
+/* ---- 顶部「只是原生方式的便捷实现」：去掉整圈边框，只留一道竖线 ---- */
+.native-note {
+  margin: 24px 0 2px; padding: 2px 0 2px 16px;
+  border: 0; border-left: 3px solid color-mix(in srgb, var(--accent) 58%, transparent);
+  border-radius: 0; background: none;
+  max-width: 74ch;
+}
+
+/* ---- 正文里的提示段：去掉底色，只留竖线 ---- */
+.prose .note {
+  background: none; border-radius: 0;
+  padding: 2px 0 2px 16px; border-left-width: 2px;
+  font-size: 13.6px; line-height: 1.75;
+}
+
+/* ---- 下载区：在文档流里当结尾的 CTA，不和正文小节抢 ---- */
+.prose .download { margin-top: 52px; padding-top: 0; }
+.prose .download > h2 { margin-top: 0; }
+
+/* 下载区收尾：正文里只剩这一处还像卡片，去掉圆角与描边，
+   变成「标题 + 说明 + 按钮」的收尾块；首页那两张卡不受影响。 */
+.prose .download .dl {
+  background: none; border: 0; border-radius: 0; box-shadow: none;
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+  padding: 0; gap: 0;
+}
+.prose .download .dl::before { display: none; }
+.prose .download .dl:hover { background: none; box-shadow: none; border: 0; }
+.prose .download .dl-head h3 { font-size: 16.5px; }
+.prose .download .dl-head .pill {
+  background: none; border: 0; padding: 0; border-radius: 0;
+  font-size: 10px; letter-spacing: .14em; color: var(--muted); font-weight: 600;
+}
+.prose .download .dl > p { margin: 12px 0 0; font-size: 14.4px; line-height: 1.75; color: var(--text-2); }
+.prose .download .btn { margin-top: 18px; align-self: flex-start; }
+.prose .download .dl > p.muted { margin-top: 14px; font-size: 12.6px; }

@@ -17,7 +17,7 @@
        原图层自动隐藏留作对照。原生做法是逐条「新建通道 → 复制 → 粘贴 → 合并」，
        四条就是十六步。" data-desc-en="One layer becomes several channels in a single step: R, G, B and Alpha each get
    their own channel, lined up in the Ch">
-<link rel="stylesheet" href="../assets/style.css?v=7be715334e">
+<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <script>
 (function () {
@@ -62,27 +62,19 @@
        原图层自动隐藏留作对照。原生做法是逐条「新建通道 → 复制 → 粘贴 → 合并」，
        四条就是十六步。</p>
 </section>
-<div class="prose wide">
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="zh-overview">
+  <dt>菜单位置</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → Convert → Split Channels</li><li>图层右键 → SuperMrWang → Convert → Split Channels</li></ul><p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p></dd>
+  <dt>脚本调用</dt>
+  <dd><code class="pdb">lb-plugin-split-channels(
+    image, drawables, include-alpha, hide-source, prefix)</code><p>标准 PDB 过程，参数留空走默认值。</p></dd>
+  <dt>依赖</dt>
+  <dd><p>不依赖任何自研算子：读一次图层数据后按分量切片，只调 GIMP 自己的通道 PDB。</p></dd>
+</dl>
   <div class="dl-grid">
-    <div class="dl primary-dl">
-      <div class="dl-head"><h3>菜单位置</h3><span class="pill">多条</span></div>
-      <ul class="menu-list"><li>SuperMrWang → Convert → Split Channels</li><li>图层右键 → SuperMrWang → Convert → Split Channels</li></ul>
-      <p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>脚本调用</h3></div>
-      <pre><code>lb-plugin-split-channels(
-    image, drawables, include-alpha, hide-source, prefix)</code></pre>
-      <p>标准 PDB 过程，参数留空走默认值。</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>依赖</h3></div>
-      <p>不依赖任何自研算子：读一次图层数据后按分量切片，只调 GIMP 自己的通道 PDB。</p>
-    </div>
-  </div>
-
-  <div class="dl-grid">
-    <div class="dl primary-dl">
+    <div class="dl" id="zh-sec-1">
       <div class="dl-head"><h3>一次拆完四路</h3><span class="pill">R · G · B · Alpha</span></div>
       <p>默认按分量拆四条，命名是「图层名 + 后缀」，通道面板里一眼能认出来。同名
          通道已存在时自动加序号，不会覆盖你之前存的东西。</p>
@@ -92,13 +84,13 @@
   ├ photo B       蓝分量
   └ photo Alpha   透明分量</code></pre>
     </div>
-    <div class="dl">
+    <div class="dl" id="zh-sec-2">
       <div class="dl-head"><h3>灰度图不硬凑三份</h3></div>
       <p>灰度图里 R = G = B，拆三路等于三条全黑一样的通道，没有意义——这种图只拆
          一条 <b>Gray</b>；只有带透明时才多一条 Alpha。彩色图默认四路，把
          「含 Alpha」关掉就是三路。</p>
     </div>
-    <div class="dl">
+    <div class="dl" id="zh-sec-3">
       <div class="dl-head"><h3>源图层默认隐藏</h3></div>
       <p>拆完把原图层眼睛关掉、不删除：画布上看到的就是拆分结果，想对照随时点回来。
          不需要这个行为就把「隐藏源图层」关掉，原图和通道并存。</p>
@@ -108,14 +100,14 @@
   </div>
 
   <div class="dl-grid">
-    <div class="dl primary-dl">
+    <div class="dl" id="zh-sec-4">
       <div class="dl-head"><h3>和 Layer to Channel 的分工</h3><span class="pill">一条 vs 多条</span></div>
       <p><b>Layer to Channel</b> 把整层压成<b>一条</b>灰度通道（恒按亮度），适合
          「这张灰度图当蒙版存档」。<b>Split Channels</b> 保留<b>分量本身</b>、一次
          出多条，适合「分开看 R/G/B 各自的分布」「单独修某一路」。两者产物都在通道
          面板里，可以并存。</p>
     </div>
-    <div class="dl">
+    <div class="dl" id="zh-sec-5">
       <div class="dl-head"><h3>实测</h3></div>
       <p><code>tools/check_split_channels.py</code> 31 条断言跑在真实 GIMP 3.2 里：
          四路内容与源图层同名通道逐项相等（索引错位一位就会露馅）、灰度图只出
@@ -125,7 +117,7 @@
     </div>
   </div>
 
-<section class="download" id="download">
+<section class="download" id="zh-download">
   <h2>下载这一个</h2>
   <div class="dl primary-dl">
     <div class="dl-head"><h3>Split Channels</h3><span class="pill">.py · 免编译</span></div>
@@ -139,6 +131,15 @@
    相邻两级的差就是 1 码，等于 1/255 ≈ 0.392%%（也就是 RGB 128 与 129 之间的差）。
    各数量级的含义与「码为什么不是感知量」的说明见
    <a href="../guide.html#code">安装指南 · 精度里的「码」</a>。</p>
+  </article>
+  <aside class="toc">
+    <p class="toc-title">本页目录</p>
+    <ul>
+      <li><a href="#zh-overview">概览</a></li>
+<li><a href="#zh-sec-1">一次拆完四路</a></li><li><a href="#zh-sec-2">灰度图不硬凑三份</a></li><li><a href="#zh-sec-3">源图层默认隐藏</a></li><li><a href="#zh-sec-4">和 Layer to Channel 的分工</a></li><li><a href="#zh-sec-5">实测</a></li>
+      <li><a href="#zh-download">下载</a></li>
+    </ul>
+  </aside>
 </div>
 <nav class="pager">
   <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
@@ -158,27 +159,19 @@
    can still compare. The native route is channel-by-channel "new channel → copy → paste →
    merge" — sixteen steps for four channels.</p>
 </section>
-<div class="prose wide">
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="en-overview">
+  <dt>Menu location</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → Convert → Split Channels</li><li>Layer right-click → SuperMrWang → Convert → Split Channels</li></ul><p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p></dd>
+  <dt>Scripting</dt>
+  <dd><code class="pdb">lb-plugin-split-channels(
+    image, drawables, include-alpha, hide-source, prefix)</code><p>A standard PDB procedure; leave an argument empty to take its default.</p></dd>
+  <dt>Dependencies</dt>
+  <dd><p>No dependency on this project's operators: the layer is read once and sliced per component; only GIMP's own channel PDB is used.</p></dd>
+</dl>
   <div class="dl-grid">
-    <div class="dl primary-dl">
-      <div class="dl-head"><h3>Menu location</h3><span class="pill">Several</span></div>
-      <ul class="menu-list"><li>SuperMrWang → Convert → Split Channels</li><li>Layer right-click → SuperMrWang → Convert → Split Channels</li></ul>
-      <p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>Scripting</h3></div>
-      <pre><code>lb-plugin-split-channels(
-    image, drawables, include-alpha, hide-source, prefix)</code></pre>
-      <p>A standard PDB procedure; leave an argument empty to take its default.</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>Dependencies</h3></div>
-      <p>No dependency on this project's operators: the layer is read once and sliced per component; only GIMP's own channel PDB is used.</p>
-    </div>
-  </div>
-
-  <div class="dl-grid">
-    <div class="dl primary-dl">
+    <div class="dl" id="en-sec-1">
       <div class="dl-head"><h3>All four at once</h3><span class="pill">R · G · B · Alpha</span></div>
       <p>Each component becomes its own channel named "layer + suffix", so the Channels
          dock stays readable. A name that is already taken gets a number instead of
@@ -189,14 +182,14 @@
   ├ photo B       blue
   └ photo Alpha   transparency</code></pre>
     </div>
-    <div class="dl">
+    <div class="dl" id="en-sec-2">
       <div class="dl-head"><h3>Grayscale images do not fake three</h3></div>
       <p>On a greyscale image R = G = B, so three channels would be three identical
          copies — it produces a single <b>Gray</b> channel instead, plus Alpha when the
          layer actually has transparency. Colour layers give four by default; turn
          "Include Alpha" off for three.</p>
     </div>
-    <div class="dl">
+    <div class="dl" id="en-sec-3">
       <div class="dl-head"><h3>The source layer hides itself</h3></div>
       <p>It is hidden, never deleted: the canvas shows you the split result and one click
          brings the original back. Turn "Hide source layer" off if you want both.</p>
@@ -206,7 +199,7 @@
   </div>
 
   <div class="dl-grid">
-    <div class="dl primary-dl">
+    <div class="dl" id="en-sec-4">
       <div class="dl-head"><h3>Versus Layer to Channel</h3><span class="pill">one vs many</span></div>
       <p><b>Layer to Channel</b> flattens the whole layer into <b>one</b> greyscale channel
          (always luminance) — for "keep this greyscale image as a mask". <b>Split
@@ -214,7 +207,7 @@
          "look at the R/G/B distributions separately" or "retouch one channel only". Both
          leave their results in the Channels dock and can coexist.</p>
     </div>
-    <div class="dl">
+    <div class="dl" id="en-sec-5">
       <div class="dl-head"><h3>Measured</h3></div>
       <p><code>tools/check_split_channels.py</code> runs 31 assertions inside a real GIMP
          3.2: each channel equals the same component of the source layer (an off-by-one
@@ -226,7 +219,7 @@
     </div>
   </div>
 
-<section class="download" id="download">
+<section class="download" id="en-download">
   <h2>Download this one</h2>
   <div class="dl primary-dl">
     <div class="dl-head"><h3>Split Channels</h3><span class="pill">.py · no compile</span></div>
@@ -241,6 +234,15 @@
    1/255 ≈ 0.392%% (the difference between RGB 128 and 129). For the order of magnitude
    of each figure, and why a code is not a perceptual quantity, see
    <a href="../guide.html#code">Install guide · what a code is</a>.</p>
+  </article>
+  <aside class="toc">
+    <p class="toc-title">On this page</p>
+    <ul>
+      <li><a href="#en-overview">Overview</a></li>
+<li><a href="#en-sec-1">All four at once</a></li><li><a href="#en-sec-2">Grayscale images do not fake three</a></li><li><a href="#en-sec-3">The source layer hides itself</a></li><li><a href="#en-sec-4">Versus Layer to Channel</a></li><li><a href="#en-sec-5">Measured</a></li>
+      <li><a href="#en-download">Download</a></li>
+    </ul>
+  </aside>
 </div>
 <nav class="pager">
   <a href="../plugins.html"><span>Back to</span>All plug-ins</a>
@@ -258,7 +260,7 @@
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">1847510</span>
+    <span class="muted">193c6ab</span>
   </div>
 </footer>
 <script>

@@ -5,7 +5,7 @@
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
 [![Operations](https://img.shields.io/badge/operations-37-brightgreen)](#算子清单)
 
-一组自研的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **41 个**，统一 `lb:` 命名空间，
+一组自研的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **42 个**，统一 `lb:` 命名空间，
 在 GIMP 里收在菜单栏顶层的 **SuperMrWang** 菜单下（和「颜色」「图层」平级）。算法按公开公式与可观察的行为实现，
 不含任何商业软件的代码或素材；文中出现的产品名仅用于说明某个算子参照了哪种行为，
 与各厂商无隶属关系（详见文末「版权与商标」）。
@@ -36,7 +36,8 @@ gegl-color-ops/
 ├── plugin/layer-to-selection/ # Python 插件：右键任意图层 → 选区
 ├── plugin/layer-to-channel/  # Python 插件：右键任意图层 → Alpha 通道（恒为灰度）
 ├── plugin/channel-to-mask/   # Python 插件：右键任意图层 → 把选中的通道挂成图层蒙版
-├── plugin/convert/           # Python 插件：通道/选区/蒙版 六向互转，一键直达（零参数）
+├── plugin/convert/           # Python 插件：通道/选区/蒙版/路径 十二向互转，一键直达（零参数）
+├── plugin/max-min/           # Python 插件：最大值（膨胀）/ 最小值（腐蚀），半径 1–100
 ├── plugin/split-channels/    # Python 插件：右键任意图层 → 一次拆出 R/G/B/Alpha 四条通道
 ├── plugin/*-split-curves/    # Python 插件：HSV / LCh / HSL / Lab / HSI 分量分层 + 曲线（菜单 Retouch）；
 │                             #   菜单里两条：· single = 一层数据图三条曲线，
@@ -101,6 +102,7 @@ Python 插件走另一条线，两种取法都行：
 | `lb:hsl-bands` | HSL 8 Bands | HSL 8 Bands | Color | Point | 八段色相（含洋红）各调 H/S/L，RAW 编辑器 风格 |
 | `lb:channel-mixer-plus` | Channel Mixer Plus | Channel Mixer Plus | Blend | Point |经典图像编辑器通道混合器 + 通道 offset + 单色模式 |
 | `lb:channel-range-to-alpha` | Range → Alpha | Channel Range to Alpha | Mask | Point | 通道数值区间 → alpha（混合颜色带） |
+| `lb:max-min` | Maximum / Minimum | Maximum / Minimum | Mask | Area | 形态学最大值（膨胀）/ 最小值（腐蚀）：邻域取极值，方窗可分离 O(n)、圆盘 O(n·r)；u8/u16/float 各自在原生精度里比较，不换算色彩空间 |
 | `lb:cmyk-primary-correction` | CMYK Primary | CMYK Primary Correction | Color | Point | 可选颜色：九组色域各存一份 C/M/Y/K，同时生效 |
 | `lb:color-balance` | Color Balance | Color Balance | Color | Filter |经典图像编辑器色彩平衡：三区间指数相乘合成一条逐通道曲线，单段残差 0.30 码 |
 | `lb:color-grading` | Color Grading | Color Grading | Color | Point | RAW 编辑器 颜色分级：阴影/中间调/高光/全局四轮盘 + 明度 + Blending/Balance，按亮度分带（模型对齐，未逐码标定） |
@@ -237,20 +239,24 @@ python-fu-eval 里，不要求插件已安装）保留着，作为那条复制/�
 彩色亮度、四个单通道、通道值/名字/反相、**彩色图层转通道得到的是亮度而不是
 R 通道**、**有选区时转通道不被截断**、四种组合方式）。
 
-### Python 插件：plugin/convert（六向转换）
+### Python 插件：plugin/convert（十二向转换）
 
 ```
 SuperMrWang → Convert → Channel to Selection / Selection to Channel
                       → Channel to Mask / Mask to Channel
                       → Selection to Mask / Mask to Selection
-图层右键 → SuperMrWang → Convert（同样六项）
-通道右键 → SuperMrWang → Convert（以通道为源的两项）
+                      → Path to Selection / Selection to Path
+                      → Path to Channel / Channel to Path
+                      → Path to Mask / Mask to Path
+图层右键 → SuperMrWang → Convert（同样十二项）
+通道右键 → SuperMrWang → Convert（以通道为源的三项）
+路径右键 → SuperMrWang → Convert（以路径为源的三项）
 ```
 
-**只是原生方式的便捷实现**：不新增任何算法，六个方向全部转调 GIMP 自带的 PDB 过程，
-所以结果与手点原生菜单逐位相同；插件的作用只是把散在三处菜单、要跨三四步的动作收成一次点击。
+**只是原生方式的便捷实现**：不新增任何算法，十二个方向全部转调 GIMP 自带的 PDB 过程，
+所以结果与手点原生菜单逐位相同；插件的作用只是把散在四处菜单、要跨三四步的动作收成一次点击。
 
-**一个插件，六个过程，全部零参数。** 通道、选区、蒙版三者两两互转，每条路一个菜单项，
+**一个插件，十二个过程，全部零参数。** 通道、选区、蒙版、路径四者两两互转，每条路一个菜单项，
 点下去直接执行，不弹参数框——源都从上下文取：
 
 | 方向 | 源 | 落点 |
@@ -261,25 +267,75 @@ SuperMrWang → Convert → Channel to Selection / Selection to Channel
 | 蒙版 → 通道 | 选中图层的蒙版 | 新建通道 `<图层名> Mask` |
 | 选区 → 蒙版 | 当前选区 | 选中图层的蒙版 |
 | 蒙版 → 选区 | 选中图层的蒙版 | 像素选区 |
+| 路径 → 选区 | 路径面板里右键点中的那条（否则取面板选中的、或图里唯一的） | 像素选区 |
+| 选区 → 路径 | 当前选区 | 新建路径 `Selection` |
+| 路径 → 通道 | 同上 | 新建通道 `<路径名>` |
+| 通道 → 路径 | 同「通道 → 选区」 | 新建路径 `Channel <通道名>` |
+| 路径 → 蒙版 | 同上 | 选中图层的蒙版 |
+| 蒙版 → 路径 | 选中图层的蒙版 | 新建路径 `<图层名> Mask` |
 
-原生那六条路散在三个地方（选择菜单、通道右键、图层面板右键），其中**「蒙版 → 通道」
-根本不存在**，只能先蒙版到选区再选区存通道。这里把它做成一步。
+原生那些路散在四个地方（选择菜单、通道右键、图层面板右键、路径右键），其中**「蒙版 → 通道」
+根本不存在**，只能先蒙版到选区再选区存通道；**「通道 / 蒙版 ↔ 路径」**同样没有直连。
+这里把它们都做成一步。
 
-**六个方向都转调原生过程，结果逐位一致。** 不碰像素缓冲：通道转选区走
+**十二个方向都转调原生过程，结果逐位一致。** 不碰像素缓冲：通道 / 路径转选区走
 `gimp-image-select-item`，选区存通道走 `gimp-selection-save`，选区建蒙版走
-`create_mask(SELECTION)`；「通道 ↔ 蒙版」原生没有直连，就按原生的两步走。
+`create_mask(SELECTION)`，选区描路径走 `plug-in-sel2path`（「选择 → 路径」背后那个过程）。
+「通道 ↔ 蒙版」「通道 / 蒙版 ↔ 路径」原生没有直连，就按原生的两步走，中间都经选区这一站。
 
 因此中间灰带着原生那点漂移：默认 8 位图上，通道 128 进选区读回 **188**，选区 128
 存通道读回 **55**；而选区 ↔ 蒙版原生自己会换算，那一对不漂。32 位线性精度的图像上
-通道本身就存线性值，六个方向都不漂。这是刻意的——要的就是「原生怎样就怎样」。
+通道本身就存线性值，那六个位图方向都不漂。这是刻意的——要的就是「原生怎样就怎样」。
+路径方向跟着这条链走：通道 → 路径是先变成 188 的选区再描轮廓，轮廓落在 50% 等值线上。
 
-两个注意点：
+三个注意点：
 
 1. **没有选区时先按全选处理**（原生过程没有选区会拒绝执行），通道名 `Selection`；
-2. **已有蒙版先丢掉再新建**，结果与原生新建逐位一致，重跑即刷新。
+2. **已有蒙版先丢掉再新建**，结果与原生新建逐位一致，重跑即刷新；
+3. **路径这一站有损**：它只有几何、没有 alpha，「位图 → 路径」会把羽化、渐变、抗锯齿
+   的边缘压成硬边界（原生 To Path 也一样）；「路径 → 位图」不丢东西，栅格化出来就是
+   干净的硬边。路径重名自动加序号，重跑不覆盖旧路径。
 
-回归：`tools/check_convert.py`（34 条断言，每个方向都拿原生 PDB 的结果当基准逐位
-比较；另覆盖 32 位线性精度、偏移图层、多图层、已有蒙版重建、无选区、三种错误分支）。
+回归：`tools/check_convert.py`（55 条断言，每个方向都拿原生 PDB 的结果当基准逐位
+比较；另覆盖 32 位线性精度、偏移图层、多图层、已有蒙版重建、无选区、三种错误分支，
+以及路径六向、羽化过路径的硬边化、路径取源兜底与重跑命名）。
+`tools/check_convert_pixels.py` 是加严版：0–255 全幅渐变、整幅 4096 像素逐像素比，
+u8 与 32 位线性各跑一遍十二向，要求偏差为 0（24 项）。
+
+### Python 插件：plugin/max-min
+
+```
+SuperMrWang → Mask → 最大值 / 最小值
+图层右键 → SuperMrWang → Mask → 最大值 / 最小值
+```
+
+Photoshop「最大值 / 最小值」的等价物：最大值＝膨胀（亮区外扩、吞掉暗处小点），
+最小值＝腐蚀（亮区收缩、啃掉残留白边）。
+
+**这个功能 GIMP 3 已经没有了**：`gegl:dilate` / `gegl:erode` 属于 GEGL 的
+workshop 算子，官方 Windows 构建没编进去，`plug-in-dilate` 也在 2.10 之后移除
+（本机 3.2.8 上三条都验过：`gegl --list-all` 空、PDB 查不到、DLL 里没有字符串）。
+所以这里用的是本项目自己的算子 `lb:max-min`，不是转调原生。
+
+| 参数 | 范围 | 说明 |
+|---|---|---|
+| 模式 | 最大值 / 最小值 | 膨胀 / 腐蚀 |
+| 半径 | 1–100 px | r=1 即 3×3，边缘向外长一圈（与 PS 同语义） |
+| 形状 | 方形 / 圆形 | 方窗 (±r, ±r) / 圆盘；对应 PS 的方形度 / 圆度 |
+| 影响 alpha | 默认关 | PS 同样不动图层透明度 |
+
+挂载方式按目标分两路：
+
+- **图层** → 非破坏滤镜，参数随时改、可以关掉；
+- **蒙版 / 通道** → 直接写像素（GIMP 3 的蒙版没有滤镜栈：往蒙版 append 一条滤镜，
+  API 不报错但渲染不受影响），靠撤销退回。
+
+彩色图上会出现紫边——PS 也是逐通道取极值，这是语义的一部分。要没有偏色就把目标
+换成蒙版、通道或灰度层。
+
+回归：`tools/check_max_min.py`（27 项，对 O(r²) 暴力实现逐位比，u8/u16/f32 ×
+方/圆 × 三档半径，含跨分带与超图半径）、`tools/check_max_min_plugin.py`（12 项，
+PDB / 滤镜挂载 / 蒙版写像素 / 错误分支）。
 
 ### Python 插件：plugin/channel-to-mask
 
@@ -674,7 +730,11 @@ python tools/check_lab_levels.py            # 数值回归：LAB 色阶（gimp-c
 python tools/check_match_color.py           # 数值回归：匹配颜色（gimp-console 跑，17 项）
 python tools/check_gray_to_component.py     # 灰度转分量：九个混合模式的恒等往返，39 条
 python tools/check_xyz_multiply.py --all    # 数值回归：XYZ 正片叠底（36 组白点×叠加色×不透明度）
-python tools/compare_native.py              # 诊断：六向转换 vs GIMP 原生，两列数值应完全相同
+python tools/check_convert.py               # 数值回归：十二向转换 vs GIMP 原生（55 项）
+python tools/check_convert_pixels.py        # 逐像素回归：十二向 × 两档精度，偏差必须为 0（24 项）
+python tools/check_max_min.py                 # 数值回归：形态学极值 vs O(r²) 暴力（27 项）
+python tools/check_max_min_plugin.py          # 插件回归：PDB / 滤镜挂载 / 蒙版写像素（12 项）
+python tools/compare_native.py              # 诊断：十二向转换 vs GIMP 原生，两列数值应完全相同
 python tools/normalize_headers.py           # 预览文件头/命名重排，加 --write 落盘
 python tools/set_menu_group.py --check      # 核对菜分组映射表与 ops 目录是否一一对应
 python tools/make_dist.py                   # 把 build/ 整理成 dist/（含 manifest + 校验和）

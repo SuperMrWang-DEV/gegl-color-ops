@@ -35,6 +35,7 @@ windows-x64,lch-dual.dll,lb:lch-dual,LCh Dual Extract,99513,7353d1321a4b67a781a7
 windows-x64,lch-levels.dll,lb:lch-levels,LCH Levels,130908,e9189fc4064530a3a0578199d0f9a6d83870d4d8b47b74c4a2bb4868321dc18d
 windows-x64,levels.dll,lb:levels,Levels,131495,3409073283c201dfbe91741b75e6875d89ce33582ca88a2e80d52dac3bc285ef
 windows-x64,match-color.dll,lb:match-color,Match Color,117565,575bc9a7a94f3f2ddb2c811a86a1ef7926123cfbf5dd0a218ef2301d2c946f81
+windows-x64,max-min.dll,lb:max-min,Maximum / Minimum,122669,4c496ce6fc9524bdb9eeefec982a830d4f6a370a0b30a7b4c83c8368958b19d7
 windows-x64,rgb-domain-grayscale.dll,lb:rgb-domain-grayscale,Black & White,108060,837a461facf20ce785ab23330ef009cbd6136b4f4c5fd2d9d0cc325865d2db5a
 windows-x64,shadows-highlights.dll,lb:shadows-highlights,Shadows/Highlights,167641,6c64af104bc31a8f46a7fb986880995ec7b494d31ca0ae86ef00dacdc65213d1
 windows-x64,vibrance-hyper.dll,lb:vibrance-hyper,Natural Saturation,136093,2f121c859e318c649eb62ed452311cc1cb432ea54a911e221bf171ada470bd79

@@ -17,7 +17,7 @@
        阴影、中间调各有一组限值，GIMP 的通用对话框会把四根 0–255 的滑杆
        一起摆出来，切换「选择颜色」时一根都不动。这个插件换" data-desc-en="GEGL operator properties are static: lb:color-mask-select holds a set of
    limits for highlights, shadows and midtones,">
-<link rel="stylesheet" href="../assets/style.css?v=7be715334e">
+<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <script>
 (function () {
@@ -64,27 +64,19 @@
        对话框：选颜色系只给容差，选高光只给一根「范围」且默认 192，
        选阴影是 64，选中间调是上下限 64 / 192。</p>
 </section>
-<div class="prose wide">
-  <div class="dl-grid">
-    <div class="dl primary-dl">
-      <div class="dl-head"><h3>菜单位置</h3><span class="pill">多条</span></div>
-      <ul class="menu-list"><li>SuperMrWang → Mask → Color Range</li><li>图层右键 → SuperMrWang → Mask → Color Range</li></ul>
-      <p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>脚本调用</h3></div>
-      <pre><code>lb-plugin-color-range(image, drawables)</code></pre>
-      <p>标准 PDB 过程，参数留空走默认值。</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>依赖</h3></div>
-      <p>靠下面这些算子干活。<b>它们已经打进这个插件的下载包</b>（<code>modules-windows-x64</code> / <code>modules-linux-x64</code>），不用另外去下：</p>
-      <ul class="deps"><li><code>lb:color-mask-select</code></li></ul>
-    </div>
-  </div>
-
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="zh-overview">
+  <dt>菜单位置</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → Mask → Color Range</li><li>图层右键 → SuperMrWang → Mask → Color Range</li></ul><p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p></dd>
+  <dt>脚本调用</dt>
+  <dd><code class="pdb">lb-plugin-color-range(image, drawables)</code><p>标准 PDB 过程，参数留空走默认值。</p></dd>
+  <dt>依赖</dt>
+  <dd><p>靠下面这些算子干活。<b>它们已经打进这个插件的下载包</b>（<code>modules-windows-x64</code> / <code>modules-linux-x64</code>），不用另外去下：</p>
+      <ul class="deps"><li><code>lb:color-mask-select</code></li></ul></dd>
+</dl>
 <div class="dl-grid">
-    <div class="dl primary-dl">
+    <div class="dl" id="zh-sec-1">
       <div class="dl-head"><h3>为什么需要一层壳</h3><span class="pill">静态 vs 联动</span></div>
       <p>GEGL 的属性声明是<b>编译期固定</b>的：<code>property_enum</code> 和四个
          <code>property_int</code> 之间没有任何联动机制，对话框也没法因为枚举变了
@@ -94,7 +86,7 @@
          <code>lb:color-mask-select</code>——壳只负责「哪个模式该显示哪几根杆、
          各自从多少起步」，所以两条入口算出来的像素完全一致。</p>
     </div>
-    <div class="dl">
+    <div class="dl" id="zh-sec-2">
       <div class="dl-head"><h3>每个模式各自的起点</h3></div>
       <ul class="deps">
         <li><b>红 / 黄 / 绿 / 青 / 蓝 / 洋红</b>：颜色容差 50、最低彩度 0（范围是色相环，没有阈值杆）</li>
@@ -106,7 +98,7 @@
       <p>切模式只换页，各页自己记住自己的值：改过高光的 192 再切到阴影、切回来，
          还是改过之后的数。</p>
     </div>
-    <div class="dl">
+    <div class="dl" id="zh-sec-3">
       <div class="dl-head"><h3>预览与落地</h3><span class="pill">红色叠加</span></div>
       <p>拖参数时画面上是<b>红色叠加</b>实时预览（60 ms 内连续改动合并成一次重算）。
          按「确定」时先把叠加关掉再合并，<b>红色不会被烤进图层</b>；蒙版写进
@@ -119,7 +111,7 @@
   <p class="note">依赖 <code>lb:color-mask-select</code>；缺算子会明确报错并给出装包提示，
      不会静默什么都不做。图层组没有像素，会拒绝并提示先合并。</p>
 
-<section class="download" id="download">
+<section class="download" id="zh-download">
   <h2>下载这一个</h2>
   <div class="dl primary-dl">
     <div class="dl-head"><h3>Color Range</h3><span class="pill">含 1 个模块 · 免编译</span></div>
@@ -133,6 +125,15 @@
    相邻两级的差就是 1 码，等于 1/255 ≈ 0.392%%（也就是 RGB 128 与 129 之间的差）。
    各数量级的含义与「码为什么不是感知量」的说明见
    <a href="../guide.html#code">安装指南 · 精度里的「码」</a>。</p>
+  </article>
+  <aside class="toc">
+    <p class="toc-title">本页目录</p>
+    <ul>
+      <li><a href="#zh-overview">概览</a></li>
+<li><a href="#zh-sec-1">为什么需要一层壳</a></li><li><a href="#zh-sec-2">每个模式各自的起点</a></li><li><a href="#zh-sec-3">预览与落地</a></li>
+      <li><a href="#zh-download">下载</a></li>
+    </ul>
+  </aside>
 </div>
 <nav class="pager">
   <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
@@ -154,27 +155,19 @@
    and you get one range slider defaulting to 192, shadows 64, midtones a low of 64 and a high of
    192.</p>
 </section>
-<div class="prose wide">
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="en-overview">
+  <dt>Menu location</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → Mask → Color Range</li><li>Layer right-click → SuperMrWang → Mask → Color Range</li></ul><p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p></dd>
+  <dt>Scripting</dt>
+  <dd><code class="pdb">lb-plugin-color-range(image, drawables)</code><p>A standard PDB procedure; leave an argument empty to take its default.</p></dd>
+  <dt>Dependencies</dt>
+  <dd><p>The operators below do the work. <b>They are already inside this plug-in's download</b> (<code>modules-windows-x64</code> / <code>modules-linux-x64</code>) — nothing else to fetch:</p>
+      <ul class="deps"><li><code>lb:color-mask-select</code></li></ul></dd>
+</dl>
   <div class="dl-grid">
-    <div class="dl primary-dl">
-      <div class="dl-head"><h3>Menu location</h3><span class="pill">Several</span></div>
-      <ul class="menu-list"><li>SuperMrWang → Mask → Color Range</li><li>Layer right-click → SuperMrWang → Mask → Color Range</li></ul>
-      <p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>Scripting</h3></div>
-      <pre><code>lb-plugin-color-range(image, drawables)</code></pre>
-      <p>A standard PDB procedure; leave an argument empty to take its default.</p>
-    </div>
-    <div class="dl">
-      <div class="dl-head"><h3>Dependencies</h3></div>
-      <p>The operators below do the work. <b>They are already inside this plug-in's download</b> (<code>modules-windows-x64</code> / <code>modules-linux-x64</code>) — nothing else to fetch:</p>
-      <ul class="deps"><li><code>lb:color-mask-select</code></li></ul>
-    </div>
-  </div>
-
-  <div class="dl-grid">
-    <div class="dl primary-dl">
+    <div class="dl" id="en-sec-1">
       <div class="dl-head"><h3>Why a shell is needed</h3><span class="pill">static vs dynamic</span></div>
       <p>GEGL property declarations are fixed at compile time: there is no mechanism linking a
          <code>property_enum</code> to four <code>property_int</code>s, and a dialog cannot swap
@@ -185,7 +178,7 @@
          <code>lb:color-mask-select</code> — the shell only decides "which mode shows which
          sliders, and what each starts at", so both entry points compute identical pixels.</p>
     </div>
-    <div class="dl">
+    <div class="dl" id="en-sec-2">
       <div class="dl-head"><h3>Starting point per mode</h3></div>
       <ul>
         <li>Red / yellow / green / cyan / blue / magenta: colour tolerance 50, minimum chroma 0
@@ -198,7 +191,7 @@
       <p>Switching modes only swaps the page, and each page remembers its own values: change the
          highlight 192, switch to shadows, come back — it is still your number.</p>
     </div>
-    <div class="dl">
+    <div class="dl" id="en-sec-3">
       <div class="dl-head"><h3>Preview and commit</h3><span class="pill">red overlay</span></div>
       <p>While you drag, the canvas shows a live red overlay (changes within 60 ms are merged
          into one recompute). Pressing OK turns the overlay off before merging, so no red is baked
@@ -212,7 +205,7 @@
   </div>
 
   <div class="dl-grid">
-    <div class="dl primary-dl">
+    <div class="dl" id="en-sec-4">
       <div class="dl-head"><h3>Notes</h3></div>
       <p>Depends on <code>lb:color-mask-select</code>; if the operator is missing the plug-in
          fails with an explicit error and a hint about the download rather than silently doing
@@ -220,7 +213,7 @@
     </div>
   </div>
 
-<section class="download" id="download">
+<section class="download" id="en-download">
   <h2>Download this one</h2>
   <div class="dl primary-dl">
     <div class="dl-head"><h3>Color Range</h3><span class="pill">1 modules included · no compile</span></div>
@@ -235,6 +228,15 @@
    1/255 ≈ 0.392%% (the difference between RGB 128 and 129). For the order of magnitude
    of each figure, and why a code is not a perceptual quantity, see
    <a href="../guide.html#code">Install guide · what a code is</a>.</p>
+  </article>
+  <aside class="toc">
+    <p class="toc-title">On this page</p>
+    <ul>
+      <li><a href="#en-overview">Overview</a></li>
+<li><a href="#en-sec-1">Why a shell is needed</a></li><li><a href="#en-sec-2">Starting point per mode</a></li><li><a href="#en-sec-3">Preview and commit</a></li><li><a href="#en-sec-4">Notes</a></li>
+      <li><a href="#en-download">Download</a></li>
+    </ul>
+  </aside>
 </div>
 <nav class="pager">
   <a href="../plugins.html"><span>Back to</span>All plug-ins</a>
@@ -252,7 +254,7 @@
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">1847510</span>
+    <span class="muted">193c6ab</span>
   </div>
 </footer>
 <script>
