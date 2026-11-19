@@ -1,85 +1,85 @@
 platform,file,op_id,title,bytes,sha256
-windows-x64,apply-image.dll,lb:apply-image,Apply Image,118671,f772d8a039f566361f52395bbb3cd4a515c862b1183e43703e2aba7d21cf9bac
-windows-x64,calculations.dll,lb:calculations,Calculations,110008,8c72bb82792472d5d51a59be8229cd7d192c1387481d9f661c883557dd067e91
-windows-x64,channel-mixer-plus.dll,lb:channel-mixer-plus,Channel Mixer Plus,107148,1bd9d744812c77bcb20badc1337ef0172fdf44f550ff88fbbb3bf66fad1c0a8f
-windows-x64,channel-range-to-alpha.dll,lb:channel-range-to-alpha,Channel Range to Alpha,129726,cb65f82f22fac61a1f0a08798e0269c67776b6ed01c824afbd46328e0ac18699
-windows-x64,cmyk-levels.dll,lb:cmyk-levels,CMYK Levels,131426,b2c008ac09cfed6790a5c56ac6e5d074ae4e3609b30b59bb6c6822cf371c5adf
-windows-x64,cmyk-primary-correction.dll,lb:cmyk-primary-correction,CMYK Primary Correction,114659,ba8ec9e3e4020a7c40e8bb78f1973a1d754a9166f87de850a8e414a26e02003e
-windows-x64,color-balance.dll,lb:color-balance,Color Balance,140623,6c5e9babf306a4ae42f0eaf49d73b9165dbe0fc5b16d8967cd526a41800e2e50
-windows-x64,color-grading.dll,lb:color-grading,Color Grading,110213,6b4044edf1e0c574bd27eeabaaa03740eb1846f8b9ee930d7c467509cb1196d1
-windows-x64,color-lookup.dll,lb:color-lookup,Color Lookup,111990,b8727d4bc66832575c574d230493f909b80700bbb779b32dd770d15256102084
-windows-x64,color-mask-select.dll,lb:color-mask-select,Color Mask Select,136912,9e3de4d550d1eacb65f541b12b00a307023353e5a7b80ef37d6feb5e22d3cd10
-windows-x64,color-temperature-tint.dll,lb:color-temperature-tint,Color Temperature & Tint,198501,98aca9be066f9031cef9cab82f715affb99e056168b90d7f47d0cdc835d56fd9
-windows-x64,colorize-hsl.dll,lb:colorize-hsl,Colorize,103326,a7ab6043c4a348569a964a1d9de1291860f80eb57ba6e698c55ed7b7cd95b5aa
-windows-x64,gray-to-component.dll,lb:gray-to-component,Gray To Component,111332,50eb7cb769faaececa318d5184cb2d6c9822e2ca756348c67325bcc3ab27bb7a
-windows-x64,hsb-levels.dll,lb:hsb-levels,HSB Levels,130908,f36c320a18c2beca16a587d0a93d99bedd21067140d6925a17c08fbde1abbe4a
-windows-x64,hsi-compose.dll,lb:hsi-compose,HSI Compose,106136,e214cf8d767393f598cf7d18874b88f7ecd89b86ffdf5d441b34eec377a1e32a
-windows-x64,hsi-dual.dll,lb:hsi-dual,HSI Dual Extract,105194,7076be530b707850da1372d85b0af7ffc614665b877cb55909dcc9e6207e2b1f
-windows-x64,hsi-levels.dll,lb:hsi-levels,HSI Levels,142894,e784b67b5a0729672e5a4bc196fc9355d2384157391ad39814f52c78057af979
-windows-x64,hsl-bands.dll,lb:hsl-bands,HSL 8 Bands,110704,638d19d6019df7b9df5ea00d4660c5931bf6a667150eb3ba0aa7789faa210161
-windows-x64,hsl-compose.dll,lb:hsl-compose,HSL Compose,99019,283031cb851f7b60b4823e6d35ba6ca16bc07a084fd75a255ff0fa7b635554e4
-windows-x64,hsl-dual.dll,lb:hsl-dual,HSL Dual Extract,99001,a68f79b407f5a87e1bb82fe4c6921d0763405dad7450e94f0a7c5ca96121746c
-windows-x64,hsl-levels.dll,lb:hsl-levels,HSL Levels,130908,34354245aff05507935a7ac078c64c7d4ea4f79eaa15ac35e5f1f59d0b5145ca
-windows-x64,hsv-compose.dll,lb:hsv-compose,HSV Compose,99019,15722cdb8f5a3d2d16b36fde84723dd1280ed70ad3f26d9e3165fbbeac5686a4
-windows-x64,hsv-dual.dll,lb:hsv-dual,HSV Dual Extract,99001,940f8d43328e903a8a30a1ea681148cb4af937ba729a82acf85544c714469347
-windows-x64,hue-range-basic.dll,lb:hue-range-basic,Hue/Saturation Range,109454,c67429a65d1cd3a56fdb9304af4b65b1c59e5c1fcaa090d197c581c6cd48a45d
-windows-x64,hue-saturation-basic.dll,lb:hue-saturation-basic,Hue/Saturation (Basic),104933,8292a07696f9ff76a710caa98570e5ba69c26730fe4d37b7e5c26d5f0de26019
-windows-x64,hue-saturation.dll,lb:hue-saturation,Hue/Saturation,109994,92796ea31594ff0107867245cf332e6ee65901e5a5cddeb5333d7421dd6c1051
-windows-x64,lab-compose.dll,lb:lab-compose,Lab Compose,99531,574278d081f1d43e7928977f54c77c88355dc772268e786c154bd7920cea85b9
-windows-x64,lab-dual.dll,lb:lab-dual,Lab Dual Extract,99513,28d3e0b625a21e48d1f3f9e0843834cb44efc78f36dd1cb7c43afe93f982b738
-windows-x64,lab-levels.dll,lb:lab-levels,LAB Levels,132426,6995c7761b08a449be094d25225b8049ec9eacb1ae4f1f610e417dc79891d237
-windows-x64,lb-brightness-contrast.dll,lb:brightness-contrast,Brightness/Contrast,129619,541d1e75695b3ac1078a8325a8f503cee2a324f56a13be22c7a6a44a398abcc7
-windows-x64,lb-exposure.dll,lb:exposure,Exposure EV,129201,f1297f02fa64458ebc0614a29cc05d3cdc1ca7cc58ad2f510d8bcf51f0bcdd49
-windows-x64,lch-compose.dll,lb:lch-compose,LCh Compose,99531,673741b0d3c2a48b87e532d09a1ab85c49d59599145d64bc068cae1cd901622c
-windows-x64,lch-dual.dll,lb:lch-dual,LCh Dual Extract,99513,7353d1321a4b67a781a707650a1f03a6eebbe7737b19339bccc1acd818df6cb7
-windows-x64,lch-levels.dll,lb:lch-levels,LCH Levels,130908,e9189fc4064530a3a0578199d0f9a6d83870d4d8b47b74c4a2bb4868321dc18d
-windows-x64,levels.dll,lb:levels,Levels,131495,3409073283c201dfbe91741b75e6875d89ce33582ca88a2e80d52dac3bc285ef
-windows-x64,match-color.dll,lb:match-color,Match Color,117565,575bc9a7a94f3f2ddb2c811a86a1ef7926123cfbf5dd0a218ef2301d2c946f81
-windows-x64,max-min.dll,lb:max-min,Maximum / Minimum,122669,4c496ce6fc9524bdb9eeefec982a830d4f6a370a0b30a7b4c83c8368958b19d7
-windows-x64,rgb-domain-grayscale.dll,lb:rgb-domain-grayscale,Black & White,108060,837a461facf20ce785ab23330ef009cbd6136b4f4c5fd2d9d0cc325865d2db5a
-windows-x64,shadows-highlights.dll,lb:shadows-highlights,Shadows/Highlights,167641,6c64af104bc31a8f46a7fb986880995ec7b494d31ca0ae86ef00dacdc65213d1
-windows-x64,vibrance-hyper.dll,lb:vibrance-hyper,Natural Saturation,136093,2f121c859e318c649eb62ed452311cc1cb432ea54a911e221bf171ada470bd79
-windows-x64,vibrance.dll,lb:vibrance,Vibrance,132296,7d9e8d4acda0a058622564a18e37848078eea562ed4520a1a7f514d5fbdc7eed
-windows-x64,xyz-multiply.dll,lb:xyz-multiply,Photo Filter,134919,120fdc221ab53acfd46490450c80eb774f2c112d75a0b3b67bec5a8e2c5e119b
-linux-x64,apply-image.so,lb:apply-image,Apply Image,40352,3d2729f9928d8d1decabad1cfd585ebc536ff6e58877e2b0ae68ccf5fbcea316
-linux-x64,calculations.so,lb:calculations,Calculations,27440,b76821804dcc92498a7230591fcc8ce1ecbf90b91539c8f55f7d92084b40b286
-linux-x64,channel-mixer-plus.so,lb:channel-mixer-plus,Channel Mixer Plus,22096,23e1de667d3a834563488fd32c669ade6f7a2dd5414e57e946cc352df5b2a55a
-linux-x64,channel-range-to-alpha.so,lb:channel-range-to-alpha,Channel Range to Alpha,26832,00324edb1976f60cf7eeb5542042cfe816384df2a85fb5ee297e9ce17e40fcc0
-linux-x64,cmyk-levels.so,lb:cmyk-levels,CMYK Levels,30272,1bb3c7489379a903b9f112a191896f93f589e93b462bfbf5b57aac181b91a3dd
-linux-x64,cmyk-primary-correction.so,lb:cmyk-primary-correction,CMYK Primary Correction,34816,d66c3d7d4a072efc3a241b646b67bab2a99e5f08e103dbdee7f4ece96aa8a4e1
-linux-x64,color-balance.so,lb:color-balance,Color Balance,34768,ee40ce8c47c2be44287ad63ce1ab046eed7e3b13bcf44dbc470a52fa3eb6a610
-linux-x64,color-grading.so,lb:color-grading,Color Grading,26144,102bc13eb7636ce48e27515eec64051cb9c9710f8a3d33af8106744e820c98b3
-linux-x64,color-lookup.so,lb:color-lookup,Color Lookup,31424,9257c003b0d57b434b76058256808e137689e9e2ca0f66406e8723b299aadcb8
-linux-x64,color-mask-select.so,lb:color-mask-select,Color Mask Select,35840,59dee2986e4890943cd641056acebc6f2162e7c6c1b15877487b46d7ff8249b0
-linux-x64,color-temperature-tint.so,lb:color-temperature-tint,Color Temperature & Tint,91824,63687825b4ff54bf0ba4dbd06660bf47ed046d039f66af41f5284ee92e34531d
-linux-x64,colorize-hsl.so,lb:colorize-hsl,Colorize,21784,ad5e570b9a1455f8f486f2525033b46853dca1f5624933e3956533ef4947d8d3
-linux-x64,gray-to-component.so,lb:gray-to-component,Gray To Component,31152,20e6950baeec1c92b9f3003473dae7d6e5761ef52c6a009b58eeb5adeaaf5029
-linux-x64,hsb-levels.so,lb:hsb-levels,HSB Levels,26168,57e280c224743ba49cb666480d2a02ab8fe52b7ec61346e084466b30baf9069b
-linux-x64,hsi-compose.so,lb:hsi-compose,HSI Compose,17200,97c2dcba216ffe306736e6adeaaabbd7e808b3025069929597142911b11d8ad1
-linux-x64,hsi-dual.so,lb:hsi-dual,HSI Dual Extract,17232,9dd971561f4cc2089128df8a62398ffb419b0811ef7fa888b34667730ca70a93
-linux-x64,hsi-levels.so,lb:hsi-levels,HSI Levels,26288,1cdafd3c1401108758863612e35942d98e7582ba0aee3932ad0ef158e30c3071
-linux-x64,hsl-bands.so,lb:hsl-bands,HSL 8 Bands,26120,8b931b4de0dd3d2ad01ecc5c830e2b0639aa98c27c62a5cfc06ec704f7f248d6
-linux-x64,hsl-compose.so,lb:hsl-compose,HSL Compose,17424,724fadcb45d8d0c0951e48c81e556aa02a72e13579652c0d3624e996d4a2b00f
-linux-x64,hsl-dual.so,lb:hsl-dual,HSL Dual Extract,17408,5207c941c6499328e301ce83e4103882950a80dcd26cbc67e7874e2509f4ec99
-linux-x64,hsl-levels.so,lb:hsl-levels,HSL Levels,26168,c68487ae0326a0576cd6d1aae23bac45a977f3cfc73e4ebb722847ff5ebbf7fd
-linux-x64,hsv-compose.so,lb:hsv-compose,HSV Compose,17424,c138ea5251d5a538d0b07fef266476b7bb45295fc6ee7fe6a5dcb8e4f79bc721
-linux-x64,hsv-dual.so,lb:hsv-dual,HSV Dual Extract,17408,61aab03460563dfef3bb734b9ffcc63cc495af6accbc2323f438091a3a1c8db3
-linux-x64,hue-range-basic.so,lb:hue-range-basic,Hue/Saturation Range,26504,ca467b686c42eb1479e2a25b39766ad9f2b7e35149523d089154975aaaa1a84e
-linux-x64,hue-saturation-basic.so,lb:hue-saturation-basic,Hue/Saturation (Basic),21888,850fb3127bc9df014e0e73045107b1f6bd38457f5209578534d52dae0c334001
-linux-x64,hue-saturation.so,lb:hue-saturation,Hue/Saturation,25944,aa20798de0e02011ec4aaa7128a3536fd79a14e26a87449b1946cf93c7f14868
-linux-x64,lab-compose.so,lb:lab-compose,Lab Compose,17424,fb6b423e1f6726b97ac60639f4e8593fa1a5b7c9c2a7b922b1ac74a53930d92e
-linux-x64,lab-dual.so,lb:lab-dual,Lab Dual Extract,17408,e7e37b8bb554ffd406538224e11c43af43429484b12fc4961758a92102679db8
-linux-x64,lab-levels.so,lb:lab-levels,LAB Levels,26136,a40c9e8aeb3a139d9d9f44d3a2fda1b66a485407235aa3553157defb71a79cea
-linux-x64,lb-brightness-contrast.so,lb:brightness-contrast,Brightness/Contrast,46912,82382d646dc165d48c1fa311a565a246fa725638777afaae158f0e812578e057
-linux-x64,lb-exposure.so,lb:exposure,Exposure EV,26704,6410dd1ac4f2b105cbfb8f23f65fe75b77523d4a39249cdb26b62c7560705f62
-linux-x64,lch-compose.so,lb:lch-compose,LCh Compose,17424,f5cc93a19b51b953ac601f999296fc4f5adec90148c32846083f203d6281d78f
-linux-x64,lch-dual.so,lb:lch-dual,LCh Dual Extract,17408,1d7f49fa736d5cec69d80e02896c8790757e0d11d00dc5378e3c1bf10c512598
-linux-x64,lch-levels.so,lb:lch-levels,LCH Levels,26168,bca2e184e72c6c218c71fd79fbcd5f773ff55e0b921cec6bb31d4167257265df
-linux-x64,levels.so,lb:levels,Levels,25984,24bb8717b22d9cd6279fa69a51d65cadce1e8170b469dab87aaacfec58bb8942
-linux-x64,match-color.so,lb:match-color,Match Color,35576,55aef9359bb77f0fbec5bb2024b41538489dc475c3f79b78be8e086b3a1c910e
-linux-x64,max-min.so,lb:max-min,Maximum / Minimum,35640,1ab03466bf002f7f8c8e1683d8fde401c57fddddadc45456f460c5a6f89c33de
-linux-x64,rgb-domain-grayscale.so,lb:rgb-domain-grayscale,Black & White,26640,f5be1adaeb69a56375d32417bc7442f881aca190c0e0ef6abb5224c87150ae86
-linux-x64,shadows-highlights.so,lb:shadows-highlights,Shadows/Highlights,52128,a727aafdeb13a09c9257316fe173c0cc7fb1f439f7a5383378bafa2fc88754e5
-linux-x64,vibrance-hyper.so,lb:vibrance-hyper,Natural Saturation,22088,2e8d91ffa58265a3056e2e6c3d02a88b928c4bcc64decf80b58435a83ead98bc
-linux-x64,vibrance.so,lb:vibrance,Vibrance,26512,f4d6b2b35d9b058403391dc62bf5a5affaac4bef1e44dc90c95cb0161fa78f86
-linux-x64,xyz-multiply.so,lb:xyz-multiply,Photo Filter,31552,9e23d85a7bbd4f44ed756bdd6bbabc2232013ff77f0b74ad82ddf13ef4a19b95
+windows-x64,apply-image.dll,lb:apply-image,Apply Image,121502,5652135140f352cfe426a134967ff2d63b23db2857dfe0d584d6f1d6d832c78b
+windows-x64,calculations.dll,lb:calculations,Calculations,113472,af60cc3f6df735d0846413eb2d9e44f0528bee4d2d2604df6f886305694d44ce
+windows-x64,channel-mixer-plus.dll,lb:channel-mixer-plus,Channel Mixer Plus,110265,9196773ae5ce97b81b9ca9f6ac154920cd4d742c790d3bd6525f3b8d534d4091
+windows-x64,channel-range-to-alpha.dll,lb:channel-range-to-alpha,Channel Range to Alpha,132045,d4a7f3d72cbec16c2d427c1987ca3ed6cbe94e4f9812a2be302c8a41eba03ab1
+windows-x64,cmyk-levels.dll,lb:cmyk-levels,CMYK Levels,134934,103e30a1b6b9e72fedd8cfc3fa946a6f3a5e2f6f36670259be78a73894e6a1f9
+windows-x64,cmyk-primary-correction.dll,lb:cmyk-primary-correction,CMYK Primary Correction,117655,d8707e0ada525f19e3c688ce0da5139a30f8874b6c2457509ee18ff3a1899cf1
+windows-x64,color-balance.dll,lb:color-balance,Color Balance,143619,02a2a0de7755c1f996dc9ed415d755ec4fa69bbc2d9b24f8f1b9934a95fb6758
+windows-x64,color-grading.dll,lb:color-grading,Color Grading,113209,ae42f1e4f3cca3f49b5e16e73ee1da3a0ae4d8bed0a4f8abc7bf1e937fedae35
+windows-x64,color-lookup.dll,lb:color-lookup,Color Lookup,114821,6019f07a8ede780b9287094ec8980fbe0124f71586fc58dcefe645fece95454d
+windows-x64,color-mask-select.dll,lb:color-mask-select,Color Mask Select,139231,327e3414a88c35530c7eba0ae0f994ed252061108cbf75396e3eb9697808c134
+windows-x64,color-temperature-tint.dll,lb:color-temperature-tint,Color Temperature & Tint,201497,baa80066e81df2920f3b021ea0a708e67a1678ba8049d328e1210836f3d8c16d
+windows-x64,colorize-hsl.dll,lb:colorize-hsl,Colorize,105931,b2e15ec9ea935ce9bfbf11db752f6379331b877b056b6533d901cd0edcacad7e
+windows-x64,gray-to-component.dll,lb:gray-to-component,Gray To Component,115187,505671f38f2e64d117cf23f543b2c40bcd5bf63950849b3808188636916eb309
+windows-x64,hsb-levels.dll,lb:hsb-levels,HSB Levels,134416,cdf87019864e2bce8a522391f94b32386214c7365bace71f26220a4345ebe3fa
+windows-x64,hsi-compose.dll,lb:hsi-compose,HSI Compose,109644,dc0a0abb33ab1dfed15b22dc75f5227f9b2553e94b500ccbf899603cdb2c6f9b
+windows-x64,hsi-dual.dll,lb:hsi-dual,HSI Dual Extract,108702,31e0bc6d5c2a59a322f3ea17043eca805c0c82df9204253fae8f6271fa05c7ac
+windows-x64,hsi-levels.dll,lb:hsi-levels,HSI Levels,146402,e08829bc4e6c4f5fdfaa3f0054e0fb3ad27f2f13df5866d6f83c1777e71068d4
+windows-x64,hsl-bands.dll,lb:hsl-bands,HSL 8 Bands,114212,85efb03754ac018b982ae2f9dbfd1ef85d490a1c1fd89a878e43f7d4d865569b
+windows-x64,hsl-compose.dll,lb:hsl-compose,HSL Compose,102527,ae59597d406d16380ef19ad0624b4b156d2b14070a6321b17543b0f5f7cf3cb8
+windows-x64,hsl-dual.dll,lb:hsl-dual,HSL Dual Extract,102509,2662164115955a3f40c6fe53b567aa24e434572fe98d888564d510d56f0bda61
+windows-x64,hsl-levels.dll,lb:hsl-levels,HSL Levels,134416,ba41e5db62ee591dde40e4bc3254acf515a338063f6804f75fb1ad93569c6a9c
+windows-x64,hsv-compose.dll,lb:hsv-compose,HSV Compose,102527,6e4564c55e2033f0ea091e51e9eeece46ef8c88ee5d674b89df7dac5a4ea1250
+windows-x64,hsv-dual.dll,lb:hsv-dual,HSV Dual Extract,102509,64fdf1a1bdd292a6b16b015bc1f9002567f2d1a7ed610868b8dc48631e917217
+windows-x64,hue-range-basic.dll,lb:hue-range-basic,Hue/Saturation Range,112406,00642e10e90ea6e8213e2d6b5523cb76a5b2b5a45754c6038de8f53336f62bc4
+windows-x64,hue-saturation-basic.dll,lb:hue-saturation-basic,Hue/Saturation (Basic),108050,577bb510628071d68fbdc55946499c7666864db6ecbe901bbb7e49220d117040
+windows-x64,hue-saturation.dll,lb:hue-saturation,Hue/Saturation,113111,37a948147cfbb1bec7ac26d2adcbeae75fbefd8def40131214ddbcd46d350bad
+windows-x64,lab-compose.dll,lb:lab-compose,Lab Compose,102527,6e77390428ae74130883b8152b73a234e5956de4ad8481b1ebdd79b9c789bfec
+windows-x64,lab-dual.dll,lb:lab-dual,Lab Dual Extract,102509,c2b5d3f27f50f9ebb874ad67b40822a1f70eb9c405d0e7ec671f9dcd337c4cec
+windows-x64,lab-levels.dll,lb:lab-levels,LAB Levels,135422,23ffdaed973a5c332884971f73d3918e8a732c829a2209481d9c2608d3735a86
+windows-x64,lb-brightness-contrast.dll,lb:brightness-contrast,Brightness/Contrast,132736,f1bec12b8949a1340687686925e0198af7e243068c0a0b7340343b54c2d07ae0
+windows-x64,lb-exposure.dll,lb:exposure,Exposure EV,132032,8765a67f4ba4769a8133ab7815d09d49976b0dd0d0869c3f45506a0c19604a7c
+windows-x64,lch-compose.dll,lb:lch-compose,LCh Compose,102527,867ae4d5b012baa0606a6fe814142fa175180966702147ea7e6f93053ffe027b
+windows-x64,lch-dual.dll,lb:lch-dual,LCh Dual Extract,102509,d6aebd714db8b07c6d339ad5a9421c538c8b394d840d61baab03c932f7d9978f
+windows-x64,lch-levels.dll,lb:lch-levels,LCH Levels,134416,63075494e9d02d5261d029df9133b69af4e210253a9a0ef877dce2379529e226
+windows-x64,levels.dll,lb:levels,Levels,135124,1b1d15c1e2342fdd35d77ca72ae1140da7f25d1683353e8d34806dc062340f87
+windows-x64,match-color.dll,lb:match-color,Match Color,120908,1715f7d7a582428474cfde07c5b0d5babbb7561e3b50c13a5c4d96aae6eda3a6
+windows-x64,max-min.dll,lb:max-min,Maximum / Minimum,126012,eeb3b36ef3bcd5b9447bd987d4e2706ab90f7daef505539f0b5d7ce424d3c7ba
+windows-x64,rgb-domain-grayscale.dll,lb:rgb-domain-grayscale,Black & White,111568,1e4396bf8fd39dd657e35c1887ad00162938a5a104045b2369d0956fa9044454
+windows-x64,shadows-highlights.dll,lb:shadows-highlights,Shadows/Highlights,171026,428096835e1a850a6d0f3cec5c4338805ba8999d437b11e5d7842a6c0f6de543
+windows-x64,vibrance-hyper.dll,lb:vibrance-hyper,Natural Saturation,139210,255b2b4981ecd8108d990fac38dd9b341e5cac81603ee83ab3373d89e779fee4
+windows-x64,vibrance.dll,lb:vibrance,Vibrance,135413,bdbae64cc6581bd2dc076a869e71f8204196d0877f8f363fa85c58ab02b9de40
+windows-x64,xyz-multiply.dll,lb:xyz-multiply,Photo Filter,137750,54ad173c3c95e84f56b248f4ce99dca54abebd99adf9017f15c09aefd36b7c03
+linux-x64,apply-image.so,lb:apply-image,Apply Image,40728,0a233c382bac46c2424182126e1359f84e0a465eb7ac04d23c5a6b0a209e90a1
+linux-x64,calculations.so,lb:calculations,Calculations,31952,7fb63f74611bbc1aaf2ef3e679e145f2e57d03137f16926ddcf809fe50aa7cd9
+linux-x64,channel-mixer-plus.so,lb:channel-mixer-plus,Channel Mixer Plus,26624,acc403658b77d23806da59faca72c2f5c5c0b0cce33de11c7e0c9a0a785d719e
+linux-x64,channel-range-to-alpha.so,lb:channel-range-to-alpha,Channel Range to Alpha,27240,59cd4fdd285c4a7031ee6b472f05d78b7cc609e651a17fa96d24ad1f2c9ac042
+linux-x64,cmyk-levels.so,lb:cmyk-levels,CMYK Levels,34768,5af70e51e6464bd4891fffbd8d2446d85a7e248a40b6811af99626605bf2e708
+linux-x64,cmyk-primary-correction.so,lb:cmyk-primary-correction,CMYK Primary Correction,39312,11529f0ec6eafbae275c5d1df9a5fe3c9e318a39316cce58727711207ded4c43
+linux-x64,color-balance.so,lb:color-balance,Color Balance,35160,ad52eda21bfea94aacf1d75994a168db49ec6c0847647c0b9b540b7f70dda4ad
+linux-x64,color-grading.so,lb:color-grading,Color Grading,30632,3752a4d35f144f163c27123ed50baf9962c23294d89991f7630cf2156f7f11de
+linux-x64,color-lookup.so,lb:color-lookup,Color Lookup,31800,0c96d5d79c85d98ba9a4be8c8a1617e4cb4e85e2d50fe53f1216b6fe0a42ea4a
+linux-x64,color-mask-select.so,lb:color-mask-select,Color Mask Select,36256,8a3700fabaaddd4ee56704205e2bff2ec2a07569062d99687225ceb945e21518
+linux-x64,color-temperature-tint.so,lb:color-temperature-tint,Color Temperature & Tint,96312,9c83569fa010b7694a7f6e01c2632baa3d84e8b7c3df59f0b6ee2032fd710dc0
+linux-x64,colorize-hsl.so,lb:colorize-hsl,Colorize,22216,35764d2c620362d9a75c8c13952d467a3e56642e0669b52cb0ba548902e850e6
+linux-x64,gray-to-component.so,lb:gray-to-component,Gray To Component,35624,d38984b7a45319c1ee9229d244588eb1cdcdfee76046cec7308c11776052b8dd
+linux-x64,hsb-levels.so,lb:hsb-levels,HSB Levels,34760,7e8e94a76d07038ab7c349eeead8e8687fdad1ca943a117d16663921a0401e23
+linux-x64,hsi-compose.so,lb:hsi-compose,HSI Compose,17600,9a5329b0fd56d052178ffa4b56ca8e4815d4f17028972c979248713ca2617260
+linux-x64,hsi-dual.so,lb:hsi-dual,HSI Dual Extract,17624,ae094a8b03a4a2a9566fe56817d5ae83d9b1f2f7d9e0df0e818b4364b78be130
+linux-x64,hsi-levels.so,lb:hsi-levels,HSI Levels,34872,6574993967682249fdf5e3f08763e394eb7fe4c565db6ece4087246d96f5a0ef
+linux-x64,hsl-bands.so,lb:hsl-bands,HSL 8 Bands,30608,58380de60e7880217f7db48023dcf1a8f962d3c6bb569608babebacd696d47d2
+linux-x64,hsl-compose.so,lb:hsl-compose,HSL Compose,17824,37c0103c057d9b2b93c56d6ddc84cb0323141aed221ce379f7285e19cc3c2108
+linux-x64,hsl-dual.so,lb:hsl-dual,HSL Dual Extract,17800,d4c6956b15fe27dd520e3dad3c53d4ccde80379736f6da214761290c1278ba60
+linux-x64,hsl-levels.so,lb:hsl-levels,HSL Levels,34760,d49058f228edec824b034dc4d7c09f74006653b472bbcde076ca1fd27e382309
+linux-x64,hsv-compose.so,lb:hsv-compose,HSV Compose,17824,c6fa1ccd183f29c3fde106b0175f7621a50f0b306551e3796c664ad8c38a3c7e
+linux-x64,hsv-dual.so,lb:hsv-dual,HSV Dual Extract,17800,8c42154884e3028fdc67c0b67ff08a902c29d373fa7c5b3fd3741ba1916e034e
+linux-x64,hue-range-basic.so,lb:hue-range-basic,Hue/Saturation Range,31048,8b2f70d4a0f0f841ee9023e80fa3ce96571ca4f008021b134812d234fa4e42f9
+linux-x64,hue-saturation-basic.so,lb:hue-saturation-basic,Hue/Saturation (Basic),22320,47e92473ffee83f067e8491fb0b84a3e50413c88ad394a24136cc735b29fce68
+linux-x64,hue-saturation.so,lb:hue-saturation,Hue/Saturation,26376,77e62a71519b89c1517502157c6253f47c5c0d8c2915eeabcb4165ca2d6ae128
+linux-x64,lab-compose.so,lb:lab-compose,Lab Compose,17824,0c1275683dd03bdbb2e56d9f11ed8be572f93970d89e8fcdc86eb9f6d4bffb16
+linux-x64,lab-dual.so,lb:lab-dual,Lab Dual Extract,17800,4bde35ec9cca9dfa27af3c321bde4e0d3b60290c85045aff7f02c6a7bdcc8eb3
+linux-x64,lab-levels.so,lb:lab-levels,LAB Levels,30632,bcbd7265b9bb29a3bfac1f467c8e77599c40d71a6ea8fba57cbae0a2288f1d88
+linux-x64,lb-brightness-contrast.so,lb:brightness-contrast,Brightness/Contrast,51448,b443ed088c3fe4abcb73e26be161335e2908f8bec7a73f1e60028b137403545b
+linux-x64,lb-exposure.so,lb:exposure,Exposure EV,27080,1e9ef1d10d90120048a30d6762e164bb15814625ebc1a31fee45aa4e51726d72
+linux-x64,lch-compose.so,lb:lch-compose,LCh Compose,17824,86b5979836f43f83eb8a6aa845d78cadc5b85b3409db39fbcd9a26209c05447f
+linux-x64,lch-dual.so,lb:lch-dual,LCh Dual Extract,17800,aee126df4c71423c1de2c0a857519f472555610a6f631d5fed39ec8b4602f2b5
+linux-x64,lch-levels.so,lb:lch-levels,LCH Levels,34760,3ad32169bfa4e4c421d79a78a4aea13335141e71571709677243743cfb168bab
+linux-x64,levels.so,lb:levels,Levels,26416,328cad1646b177d022606b3ccc9493d63512f71629fd430928db2370f1c28854
+linux-x64,match-color.so,lb:match-color,Match Color,40056,8f2a274f294e2c098794b7e777c2f85074973bff25f957131d24fe4cbabd5b50
+linux-x64,max-min.so,lb:max-min,Maximum / Minimum,36056,bd91cab0bd5404df5a59c7b41ec36a0929805a70e01a78b46bbd3c0390a792f8
+linux-x64,rgb-domain-grayscale.so,lb:rgb-domain-grayscale,Black & White,27032,f1446a8fa98a79341942d673fd8bc2c0764b7a5f837c7c1b2bbaa42c7649889d
+linux-x64,shadows-highlights.so,lb:shadows-highlights,Shadows/Highlights,52480,4bb8f57a1327bf942e4a1fbe670ebababa2b5c0588bd8490eb6aa38673bcc2c0
+linux-x64,vibrance-hyper.so,lb:vibrance-hyper,Natural Saturation,26616,9d7d906f08dcc4d83990f3e971b705061e7d005e8c42d3a5ee5aff6aed02d21e
+linux-x64,vibrance.so,lb:vibrance,Vibrance,31040,a7b7a786907fc55c9c255cdb807a0e404394e7a64d7eaf133a3ad86e7be59552
+linux-x64,xyz-multiply.so,lb:xyz-multiply,Photo Filter,31968,295833d0bf192aea3f84b5fdab950fc0a9860437aea4cda3e32553fbd8a84661
