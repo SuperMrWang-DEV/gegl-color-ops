@@ -119,9 +119,9 @@ window.addEventListener("DOMContentLoaded", function () {
 <p>11 项逐像素断言：零位移恒等、黑白满量位移、环绕与夹边的区别、矢量场 XY 独立、 单通道模式、百分比单位、白场外推、透明位移图默认仍然生效、勾上 <code>alpha-weight</code> 后透明区不动、位移图只盖半个画面时未覆盖区原样。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>Windows 模块 <code>displace.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
+    <p>Windows 模块 <code>displace.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>displace.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/displace.dll">下载 displace.dll<span class="size">Windows x64</span></a></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/displace.dll">下载 displace.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/displace.so">下载 displace.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="color-lookup.html"><span>上一个</span>Color Lookup</a><a class="next" href="max-min.html"><span>下一个</span>Maximum / Minimum</a></nav>
   </article>
   <aside class="toc">
@@ -176,9 +176,9 @@ window.addEventListener("DOMContentLoaded", function () {
 <p>Eleven per-pixel assertions: identity at zero amount, full-scale shifts in both directions, wrap versus clamp, X and Y independent in a vector field, single channel mode, percent units, over-range white point, a transparent map still shifting by default, <code>alpha-weight</code> freezing the transparent part, and a map that only covers half the canvas leaving the rest untouched.</p><div class="op-dl">
   <div>
     <h3>Just this one</h3>
-    <p>Windows module <code>displace.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+    <p>Windows module <code>displace.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>displace.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
-  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/displace.dll">Download displace.dll<span class="size">Windows x64</span></a></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/displace.dll">Download displace.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/displace.so">Download displace.so<span class="size">Linux x86_64</span></a></div>
 </div><nav class="pager"><a class="prev" href="color-lookup.html"><span>Previous</span>Color Lookup</a><a class="next" href="max-min.html"><span>Next</span>Maximum / Minimum</a></nav>
   </article>
   <aside class="toc">
@@ -203,7 +203,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">d21f2e6</span>
+    <span class="muted">1551379</span>
   </div>
 </footer>
 <script>

@@ -54,6 +54,7 @@ linux-x64,color-lookup.so,lb:color-lookup,Color Lookup,31800,0c96d5d79c85d98ba9a
 linux-x64,color-mask-select.so,lb:color-mask-select,Color Mask Select,36256,8a3700fabaaddd4ee56704205e2bff2ec2a07569062d99687225ceb945e21518
 linux-x64,color-temperature-tint.so,lb:color-temperature-tint,Color Temperature & Tint,96312,9c83569fa010b7694a7f6e01c2632baa3d84e8b7c3df59f0b6ee2032fd710dc0
 linux-x64,colorize-hsl.so,lb:colorize-hsl,Colorize,22216,35764d2c620362d9a75c8c13952d467a3e56642e0669b52cb0ba548902e850e6
+linux-x64,displace.so,lb:displace,Displace,36648,e24dc4bb756968b61ec70dfabd1a51fa05eeef4fbd12fc000ae379de8a34878c
 linux-x64,gray-to-component.so,lb:gray-to-component,Gray To Component,35624,d38984b7a45319c1ee9229d244588eb1cdcdfee76046cec7308c11776052b8dd
 linux-x64,hsb-levels.so,lb:hsb-levels,HSB Levels,34760,7e8e94a76d07038ab7c349eeead8e8687fdad1ca943a117d16663921a0401e23
 linux-x64,hsi-compose.so,lb:hsi-compose,HSI Compose,17600,9a5329b0fd56d052178ffa4b56ca8e4815d4f17028972c979248713ca2617260
