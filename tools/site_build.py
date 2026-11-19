@@ -779,13 +779,13 @@ def build_home(ops, stats, version):
   <ol class="quick-list">
     <li>
       <h3><span class="l-zh">模块进 GEGL</span><span class="l-en">Modules into GEGL</span></h3>
-      <p><span class="l-zh">解压后把 <code>.dll</code> / <code>.so</code> 整个扔进 GEGL 的模块目录。</span><span class="l-en">Unpack and drop every <code>.dll</code> / <code>.so</code> into GEGL's module directory.</span></p>
+      <p><span class="l-zh">解压后把 <code>.dll</code> / <code>.so</code> 整个扔进 GEGL 的模块目录，<code>locale/</code> 也一起放（中文语言包，不放就只有英文）。</span><span class="l-en">Unpack and drop every <code>.dll</code> / <code>.so</code> into GEGL's module directory — together with <code>locale/</code>, the Chinese catalogue.</span></p>
       <pre><code>Windows  %LOCALAPPDATA%\\gegl-0.4\\plug-ins
 Linux    ~/.local/share/gegl-0.4/plug-ins</code></pre>
     </li>
     <li>
       <h3><span class="l-zh">.py 进 GIMP</span><span class="l-en">Scripts into GIMP</span></h3>
-      <p><span class="l-zh">插件包里的 <code>.py</code> 放进 GIMP 的插件目录，两处都要放，缺一个就报「找不到过程」。</span><span class="l-en">The plug-in bundle's <code>.py</code> files go into GIMP's plug-in directory. Both places — miss one and the procedure won't be found.</span></p>
+      <p><span class="l-zh">插件包里的 <code>.py</code> 放进 GIMP 的插件目录，两处都要放，缺一个就报「找不到过程」；<code>_shared/</code> 与 <code>locale/</code> 跟 <code>.py</code> 放同一层。</span><span class="l-en">The plug-in bundle's <code>.py</code> files go into GIMP's plug-in directory. Both places — miss one and the procedure won't be found. Keep <code>_shared/</code> and <code>locale/</code> at that same level.</span></p>
       <pre><code>Windows  %APPDATA%\\GIMP\\3.x\\plug-ins
 Linux    ~/.config/GIMP/3.x/plug-ins</code></pre>
     </li>
@@ -1531,6 +1531,29 @@ def build_guide(version, stats):
   <p>能打印出参数表就说明注册上了。GIMP 自带的 <code>gegl</code> 在安装目录的
      <code>bin/</code> 里，Windows 上通常是 <code>C:\\Program Files\\GIMP 3\\bin\\gegl.exe</code>。</p>
 
+  <h3>别忘了包里那个 <code>locale</code> 目录</h3>
+  <p>下载包里除了模块，还有 <code>locale/zh_CN/LC_MESSAGES/gegl-color-ops.mo</code>——
+     那就是中文语言包。解压时<b>连目录一起</b>放进 <code>gegl-0.4/plug-ins</code>，
+     最终是 <code>plug-ins/locale/zh_CN/LC_MESSAGES/gegl-color-ops.mo</code>。
+     漏了它不会报错：算子照常工作，只是菜单名和参数说明回落到英文。</p>
+  <p>Python 插件包同理：GIMP 的插件目录里除了 <code>.py</code>，还要有
+     <code>_shared/</code>（翻译取值模块）和 <code>locale/</code>（语言包），
+     即 <code>plug-ins/_shared/lb_i18n.py</code> 与 <code>plug-ins/locale/</code>。</p>
+
+  <h2 id="lang">界面语言</h2>
+  <p>翻译跟着 <b>GIMP 的界面语言</b>走，不跟操作系统走：</p>
+  <ul>
+    <li><b>GIMP 3</b>：编辑 → 首选项 → 界面 → 语言，选「中文（简体）」，完全退出再打开。</li>
+    <li>命令行验证：<code>LANG=en_US.UTF-8 gimp</code> 出英文、<code>LANG=zh_CN.UTF-8 gimp</code>
+        出中文（Linux / macOS）；Windows 可以先 <code>set LANGUAGE=zh_CN</code> 再启动 GIMP。</li>
+    <li>只想单独试一份语言包：<code>LB_LOCALEDIR=/path/to/locale gimp</code>。</li>
+  </ul>
+  <p>切完语言菜单名可能还停在旧语言：GIMP 把插件的菜单名缓存进 <code>pluginrc</code>，
+     里面存的是<b>已经翻译好的字符串</b>，不带语言标记，所以切语言它不会自己失效。
+     关掉 GIMP，删掉 <code>%APPDATA%\\GIMP\\3.x\\pluginrc</code>
+     （Linux 是 <code>~/.config/GIMP/3.x/pluginrc</code>）再启动即可。
+     算子那边不受影响——它们每次启动都重新取。</p>
+
   <h2 id="use">怎么用</h2>
   <p>菜单栏顶层多了 <code>SuperMrWang</code>（和「颜色」「图层」平级），算子按
      <b>Levels</b>（色阶家族）/ <b>Component</b>（dual + compose 与 gray-to-component）/
@@ -1566,6 +1589,13 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
   <h3>打开旧图提示未知参数</h3>
   <p>算子升级时偶尔会删掉合并过的参数，旧 XCF 里存的值会丢。加载只警告、不报错，
      但要重新调一次。升级前建议先另存一份。</p>
+  <h3>菜单和参数说明是英文的</h3>
+  <ul>
+    <li>语言包没放对：确认 <code>plug-ins/locale/zh_CN/LC_MESSAGES/gegl-color-ops.mo</code>
+        在（算子和插件共用这一份）。</li>
+    <li>GIMP 界面语言不是中文：翻译跟界面语言走，不是跟系统语言，见上面「界面语言」。</li>
+    <li>插件菜单名没刷新：删掉 <code>pluginrc</code> 再启动，那里缓存了上一次的语言。</li>
+  </ul>
 
   <h2 id="code">精度里的「码」是什么</h2>
   <p>算子页和插件页里到处写着「恒等往返 0.0002 码」「残差 0.30 码」——<b>1 码就是 8 位
@@ -1674,6 +1704,37 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
      <code>gegl</code> lives in the <code>bin/</code> folder of its install directory —
      on Windows usually <code>C:\\Program Files\\GIMP 3\\bin\\gegl.exe</code>.</p>
 
+  <h3>Do not leave the <code>locale</code> folder behind</h3>
+  <p>Besides the modules, the archive contains
+     <code>locale/zh_CN/LC_MESSAGES/gegl-color-ops.mo</code> — the Chinese catalogue.
+     Keep the directory when unpacking, so it ends up as
+     <code>plug-ins/locale/zh_CN/LC_MESSAGES/gegl-color-ops.mo</code>. Nothing breaks
+     if you drop it: the operators still work, the menu names and parameter blurbs just
+     fall back to English.</p>
+  <p>Same for the Python plug-in archives: next to the <code>.py</code> files GIMP's
+     plug-in folder needs <code>_shared/</code> (the lookup helper) and
+     <code>locale/</code> (the catalogue), i.e. <code>plug-ins/_shared/lb_i18n.py</code>
+     and <code>plug-ins/locale/</code>.</p>
+
+  <h2 id="lang">Interface language</h2>
+  <p>The translation follows <b>GIMP's interface language</b>, not the operating
+     system:</p>
+  <ul>
+    <li><b>GIMP 3</b>: Edit → Preferences → Interface → Language, pick Chinese
+        (Simplified), quit completely and start again.</li>
+    <li>From a terminal: <code>LANG=en_US.UTF-8 gimp</code> gives English and
+        <code>LANG=zh_CN.UTF-8 gimp</code> Chinese (Linux / macOS). On Windows run
+        <code>set LANGUAGE=zh_CN</code> before starting GIMP.</li>
+    <li>To point at one specific catalogue directory:
+        <code>LB_LOCALEDIR=/path/to/locale gimp</code>.</li>
+  </ul>
+  <p>Menu labels may stay in the old language after switching: GIMP caches plug-in menu
+     names in <code>pluginrc</code> as <b>already-translated strings</b> with no language
+     tag, so a language change does not invalidate them. Quit GIMP, delete
+     <code>%APPDATA%\\GIMP\\3.x\\pluginrc</code> (Linux:
+     <code>~/.config/GIMP/3.x/pluginrc</code>) and start it again. Operators are not
+     affected — they resolve their strings on every start.</p>
+
   <h2 id="use">Using it</h2>
   <p>A top-level <code>SuperMrWang</code> menu appears next to Colors and Layers.
      Operators are grouped as <b>Levels</b> (the levels family), <b>Component</b>
@@ -1721,6 +1782,16 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
   <p>Upgrades occasionally remove properties that were merged into others, and the values
      stored in old XCFs are then dropped. Loading only warns, never fails, but you have to
      set those parameters again. Save a copy before upgrading.</p>
+  <h3>Menus and parameter blurbs are in English</h3>
+  <ul>
+    <li>The catalogue is not where it should be: check that
+        <code>plug-ins/locale/zh_CN/LC_MESSAGES/gegl-color-ops.mo</code> exists (operators
+        and plug-ins share that one file).</li>
+    <li>GIMP's interface language is not Chinese: the translation follows the interface
+        language, not the system locale — see "Interface language" above.</li>
+    <li>Plug-in menu labels were not refreshed: delete <code>pluginrc</code> and start
+        GIMP again, it still holds the previous language.</li>
+  </ul>
 
   <h2 id="code">What a "code" is</h2>
   <p>The operator and plug-in pages keep quoting figures like "identity round trip 0.0002
@@ -2028,7 +2099,7 @@ def build_plugin_zips(out_dir):
 
 {desc}
 
-包里有两个东西，要分别放进两个不同的目录——少一个插件就跑不起来：
+包里有三样东西，要分两个目录放——少一样插件就跑不起来：
 
   1) {py}  →  GIMP 的插件目录
         Windows:  %APPDATA%\\GIMP\\3.x\\plug-ins\\
@@ -2041,7 +2112,19 @@ def build_plugin_zips(out_dir):
         Linux:    ~/.local/share/gegl-0.4/plug-ins
         macOS:    ~/Library/Application Support/gegl-0.4/plug-ins
 
-  两处都放好之后，完全退出 GIMP 再打开（不是关窗口）。两个目录都只在启动时扫描。
+  3) _shared\\ 和 locale\\  →  跟着 {py} 放同一个插件目录，不要丢
+        Windows:  %APPDATA%\\GIMP\\3.x\\plug-ins\\_shared\\
+                  %APPDATA%\\GIMP\\3.x\\plug-ins\\locale\\
+        Linux:    ~/.config/GIMP/3.x/plug-ins/_shared/
+                  ~/.config/GIMP/3.x/plug-ins/locale/
+        macOS:    ~/Library/Application Support/GIMP/3.x/plug-ins/_shared/
+
+     _shared\\lb_i18n.py 是翻译的取值模块，locale\\ 下是中文语言包。少这两个
+     插件仍能跑，但界面文案只能是英文——插件的 import 会失败并静默回退。
+     {py} 放子目录也行（plug-ins\\{stem}\\{py}），只要 _shared\\ 和 locale\\
+     还在 plug-ins\\ 这一层。
+
+  三处都放好之后，完全退出 GIMP 再打开（不是关窗口）。这些目录都只在启动时扫描。
 
 包里附带的模块（{py} 的内部依赖，不用另外去下载）：
 {listing}
@@ -2057,6 +2140,7 @@ def build_plugin_zips(out_dir):
 GPL-3.0-or-later
 """.format(py=sp["py"], desc=sp["desc"], menus=sp["menus"], pdb=sp["pdb"],
            repo=REPO, listing="\n".join(listing), extra=extra,
+           stem=os.path.splitext(sp["py"])[0],
            lin_hint=lin_hint)
         else:
             readme = """gegl-color-ops · {py}（GIMP 3 Python 插件）
@@ -2069,7 +2153,9 @@ GPL-3.0-or-later
     Linux:    ~/.config/GIMP/3.x/plug-ins/
     macOS:    ~/Library/Application Support/GIMP/3.x/plug-ins/
 
-这个插件不需要任何额外的算子模块，装这一个文件就够。
+这个插件不需要任何额外的算子模块，但**翻译要跟着走**：把包里的 _shared\\
+和 locale\\ 也放进同一个插件目录（成为 plug-ins\\_shared\\、plug-ins\\locale\\）。
+少了它们插件照常能跑，只是界面文案回落到英文。
 
 然后完全退出 GIMP 再打开。菜单位置：
 {menus}
@@ -2140,8 +2226,12 @@ def build_plugin_bundle(out_dir):
 
 两条路、两个目录——少放一边，插件会报「找不到过程」：
 
-  1) plugins/ 里的 .py  →  GIMP 的用户插件目录
+  1) plugins/ 里的**全部内容**  →  GIMP 的用户插件目录
         {gimp_dir}
+     不只是 .py：_shared/ 和 locale/ 也要一起放进去
+     （最终成为 plug-ins\\_shared\\lb_i18n.py 与 plug-ins\\locale\\zh_CN\\…）。
+     _shared 是翻译取值模块，locale 是中文语言包；少了它们插件照常跑，
+     但界面文案只能是英文。
 
   2) modules-{plat}/ 里的模块  →  GEGL 的模块目录（注意不是上面那个）
         {gegl_dir}
@@ -2365,33 +2455,44 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
             if mods:
                 if en_:
                     pill = "%d modules included · no compile" % len(mods)
-                    note = ("The archive holds one <code>.py</code>, %d operator modules "
-                            "and an install note. <b>The operator dependencies are already "
+                    note = ("The archive holds one <code>.py</code>, %d operator modules, "
+                            "an install note, plus <code>_shared/</code> and "
+                            "<code>locale/</code>. <b>The operator dependencies are already "
                             "inside, nothing else to download.</b> The <code>.py</code> goes "
                             "into GIMP's <code>plug-ins</code>, the modules into GEGL's "
                             "<code>gegl-0.4/plug-ins</code> — two different directories, and "
-                            "the note inside walks through both." % len(mods))
+                            "the note inside walks through both. Keep <code>_shared/</code> "
+                            "and <code>locale/</code> next to the <code>.py</code> or the "
+                            "menu labels stay English." % len(mods))
                 else:
                     pill = "含 %d 个模块 · 免编译" % len(mods)
-                    note = ("包里有一个 <code>.py</code>、%d 个算子模块和一份安装说明。"
+                    note = ("包里有一个 <code>.py</code>、%d 个算子模块和一份安装说明，"
+                            "外加 <code>_shared/</code> 与 <code>locale/</code>。"
                             "<b>算子依赖已经附在里面，不用另外去下。</b>"
                             "<code>.py</code> 进 GIMP 的 <code>plug-ins</code>，模块进 GEGL 的 "
                             "<code>gegl-0.4/plug-ins</code>——两个目录不一样，包内说明分步写了。"
+                            "<code>_shared/</code> 和 <code>locale/</code> 要跟 <code>.py</code> "
+                            "放同一处，否则菜单文案只能是英文。"
                             % len(mods))
             else:
                 if en_:
                     pill = ".py · no compile"
-                    note = ("The archive holds a single <code>.py</code> and an install note. "
-                            "Unpack it into GIMP's <code>plug-ins</code> directory (Windows "
+                    note = ("The archive holds a single <code>.py</code>, an install note and "
+                            "the <code>_shared/</code> + <code>locale/</code> pair. Unpack all "
+                            "of it into GIMP's <code>plug-ins</code> directory (Windows "
                             "<code>%%APPDATA%%\\GIMP\\3.x\\plug-ins</code>, Linux "
                             "<code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> "
-                            "for it to register.")
+                            "for it to register. Without <code>_shared/</code> and "
+                            "<code>locale/</code> it still runs, but only in English.")
                 else:
                     pill = ".py · 免编译"
-                    note = ("包里只有一个 <code>.py</code> 和一份安装说明。解压到 GIMP 的 "
+                    note = ("包里是一个 <code>.py</code>、一份安装说明，以及 "
+                            "<code>_shared/</code> 与 <code>locale/</code>。整包解压到 GIMP 的 "
                             "<code>plug-ins</code> 目录（Windows "
                             "<code>%%APPDATA%%\\GIMP\\3.x\\plug-ins</code>，Linux "
-                            "<code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。")
+                            "<code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。"
+                            "少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，"
+                            "但界面只有英文。")
             if absent:
                 if en_:
                     note += (" The Linux side of %s is not in the prebuilt bundle yet; if you "
@@ -2648,11 +2749,14 @@ def build_zip(stats, out_dir):
 把这些 .dll 全部放进：
     %LOCALAPPDATA%\\gegl-0.4\\plug-ins
 
+locale 目录也要一并放进去（放成 ...\\gegl-0.4\\plug-ins\\locale\\zh_CN\\LC_MESSAGES\\）：
+不放的话算子名和参数说明全是英文——不是坏了，是找不到翻译就回落英文。
+
 然后完全退出 GIMP 再打开。菜单位置：
     菜单栏顶层的 SuperMrWang（和「颜色」「图层」平级）
 
-验证是否加载成功（用 GIMP 自带的 gegl）：
-    "C:////Program Files////GIMP 3////bin////gegl.exe" --info lb:hsl-levels
+验证是否加载成功（gegl.exe 在 GIMP 安装目录的 bin 下，不在 PATH 里就用全路径）：
+    gegl --info lb:hsl-levels
 
 共 {n} 个模块。列表见同目录 manifest.csv，校验和见 SHA256SUMS.txt。
 源码与算法说明：{repo}

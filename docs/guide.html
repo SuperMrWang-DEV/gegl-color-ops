@@ -70,6 +70,29 @@
   <p>能打印出参数表就说明注册上了。GIMP 自带的 <code>gegl</code> 在安装目录的
      <code>bin/</code> 里，Windows 上通常是 <code>C:\Program Files\GIMP 3\bin\gegl.exe</code>。</p>
 
+  <h3>别忘了包里那个 <code>locale</code> 目录</h3>
+  <p>下载包里除了模块，还有 <code>locale/zh_CN/LC_MESSAGES/gegl-color-ops.mo</code>——
+     那就是中文语言包。解压时<b>连目录一起</b>放进 <code>gegl-0.4/plug-ins</code>，
+     最终是 <code>plug-ins/locale/zh_CN/LC_MESSAGES/gegl-color-ops.mo</code>。
+     漏了它不会报错：算子照常工作，只是菜单名和参数说明回落到英文。</p>
+  <p>Python 插件包同理：GIMP 的插件目录里除了 <code>.py</code>，还要有
+     <code>_shared/</code>（翻译取值模块）和 <code>locale/</code>（语言包），
+     即 <code>plug-ins/_shared/lb_i18n.py</code> 与 <code>plug-ins/locale/</code>。</p>
+
+  <h2 id="lang">界面语言</h2>
+  <p>翻译跟着 <b>GIMP 的界面语言</b>走，不跟操作系统走：</p>
+  <ul>
+    <li><b>GIMP 3</b>：编辑 → 首选项 → 界面 → 语言，选「中文（简体）」，完全退出再打开。</li>
+    <li>命令行验证：<code>LANG=en_US.UTF-8 gimp</code> 出英文、<code>LANG=zh_CN.UTF-8 gimp</code>
+        出中文（Linux / macOS）；Windows 可以先 <code>set LANGUAGE=zh_CN</code> 再启动 GIMP。</li>
+    <li>只想单独试一份语言包：<code>LB_LOCALEDIR=/path/to/locale gimp</code>。</li>
+  </ul>
+  <p>切完语言菜单名可能还停在旧语言：GIMP 把插件的菜单名缓存进 <code>pluginrc</code>，
+     里面存的是<b>已经翻译好的字符串</b>，不带语言标记，所以切语言它不会自己失效。
+     关掉 GIMP，删掉 <code>%APPDATA%\GIMP\3.x\pluginrc</code>
+     （Linux 是 <code>~/.config/GIMP/3.x/pluginrc</code>）再启动即可。
+     算子那边不受影响——它们每次启动都重新取。</p>
+
   <h2 id="use">怎么用</h2>
   <p>菜单栏顶层多了 <code>SuperMrWang</code>（和「颜色」「图层」平级），算子按
      <b>Levels</b>（色阶家族）/ <b>Component</b>（dual + compose 与 gray-to-component）/
@@ -105,6 +128,13 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
   <h3>打开旧图提示未知参数</h3>
   <p>算子升级时偶尔会删掉合并过的参数，旧 XCF 里存的值会丢。加载只警告、不报错，
      但要重新调一次。升级前建议先另存一份。</p>
+  <h3>菜单和参数说明是英文的</h3>
+  <ul>
+    <li>语言包没放对：确认 <code>plug-ins/locale/zh_CN/LC_MESSAGES/gegl-color-ops.mo</code>
+        在（算子和插件共用这一份）。</li>
+    <li>GIMP 界面语言不是中文：翻译跟界面语言走，不是跟系统语言，见上面「界面语言」。</li>
+    <li>插件菜单名没刷新：删掉 <code>pluginrc</code> 再启动，那里缓存了上一次的语言。</li>
+  </ul>
 
   <h2 id="code">精度里的「码」是什么</h2>
   <p>算子页和插件页里到处写着「恒等往返 0.0002 码」「残差 0.30 码」——<b>1 码就是 8 位
@@ -212,6 +242,37 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
      <code>gegl</code> lives in the <code>bin/</code> folder of its install directory —
      on Windows usually <code>C:\Program Files\GIMP 3\bin\gegl.exe</code>.</p>
 
+  <h3>Do not leave the <code>locale</code> folder behind</h3>
+  <p>Besides the modules, the archive contains
+     <code>locale/zh_CN/LC_MESSAGES/gegl-color-ops.mo</code> — the Chinese catalogue.
+     Keep the directory when unpacking, so it ends up as
+     <code>plug-ins/locale/zh_CN/LC_MESSAGES/gegl-color-ops.mo</code>. Nothing breaks
+     if you drop it: the operators still work, the menu names and parameter blurbs just
+     fall back to English.</p>
+  <p>Same for the Python plug-in archives: next to the <code>.py</code> files GIMP's
+     plug-in folder needs <code>_shared/</code> (the lookup helper) and
+     <code>locale/</code> (the catalogue), i.e. <code>plug-ins/_shared/lb_i18n.py</code>
+     and <code>plug-ins/locale/</code>.</p>
+
+  <h2 id="lang">Interface language</h2>
+  <p>The translation follows <b>GIMP's interface language</b>, not the operating
+     system:</p>
+  <ul>
+    <li><b>GIMP 3</b>: Edit → Preferences → Interface → Language, pick Chinese
+        (Simplified), quit completely and start again.</li>
+    <li>From a terminal: <code>LANG=en_US.UTF-8 gimp</code> gives English and
+        <code>LANG=zh_CN.UTF-8 gimp</code> Chinese (Linux / macOS). On Windows run
+        <code>set LANGUAGE=zh_CN</code> before starting GIMP.</li>
+    <li>To point at one specific catalogue directory:
+        <code>LB_LOCALEDIR=/path/to/locale gimp</code>.</li>
+  </ul>
+  <p>Menu labels may stay in the old language after switching: GIMP caches plug-in menu
+     names in <code>pluginrc</code> as <b>already-translated strings</b> with no language
+     tag, so a language change does not invalidate them. Quit GIMP, delete
+     <code>%APPDATA%\GIMP\3.x\pluginrc</code> (Linux:
+     <code>~/.config/GIMP/3.x/pluginrc</code>) and start it again. Operators are not
+     affected — they resolve their strings on every start.</p>
+
   <h2 id="use">Using it</h2>
   <p>A top-level <code>SuperMrWang</code> menu appears next to Colors and Layers.
      Operators are grouped as <b>Levels</b> (the levels family), <b>Component</b>
@@ -259,6 +320,16 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
   <p>Upgrades occasionally remove properties that were merged into others, and the values
      stored in old XCFs are then dropped. Loading only warns, never fails, but you have to
      set those parameters again. Save a copy before upgrading.</p>
+  <h3>Menus and parameter blurbs are in English</h3>
+  <ul>
+    <li>The catalogue is not where it should be: check that
+        <code>plug-ins/locale/zh_CN/LC_MESSAGES/gegl-color-ops.mo</code> exists (operators
+        and plug-ins share that one file).</li>
+    <li>GIMP's interface language is not Chinese: the translation follows the interface
+        language, not the system locale — see "Interface language" above.</li>
+    <li>Plug-in menu labels were not refreshed: delete <code>pluginrc</code> and start
+        GIMP again, it still holds the previous language.</li>
+  </ul>
 
   <h2 id="code">What a "code" is</h2>
   <p>The operator and plug-in pages keep quoting figures like "identity round trip 0.0002
@@ -359,7 +430,7 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">b5ad783</span>
+    <span class="muted">2b79f09</span>
   </div>
 </footer>
 <script>

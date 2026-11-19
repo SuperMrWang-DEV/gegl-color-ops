@@ -639,6 +639,32 @@ meson setup build-meson && ninja -C build-meson
 GEGL_PATH="$PWD/build;/d/fastsoftware/GIMP 3/lib/gegl-0.4" gegl in.png -o out.png -- lb:exposure exposure=1.0
 ```
 
+### 下载包怎么装（不编译）
+
+把 zip 解开后**连 `locale/` 一起**放进上表目录 —— 里面是
+`locale/zh_CN/LC_MESSAGES/gegl-color-ops.mo`。少了它模块照样加载，菜单、参数名和
+说明只是回落到英文，不会报错，所以很容易被当成「没做多语言」。
+
+Python 插件是**另一套目录**（GIMP 自己的 `plug-ins/`，不是 GEGL 那个）：除 `.py`
+之外还要有 `_shared/`（`lb_i18n.py`，翻译取值模块）和 `locale/`，三者放在同一层。
+单个插件包与整包的 `安装说明.txt` 里都写了这一步。
+
+### 界面语言
+
+翻译跟 **GIMP 的界面语言**走，不跟操作系统走。GIMP 3：编辑 → 首选项 → 界面 → 语言，
+选中文，完全退出再打开。临时验证：
+
+```bash
+LANG=zh_CN.UTF-8 gimp              # 中文
+LANG=en_US.UTF-8 gimp              # 英文
+LB_LOCALEDIR=/path/to/locale gimp  # 直接指定语言包目录
+```
+
+插件的菜单名会被 GIMP 缓存进 `pluginrc`，里面存的是**已经翻译好的字符串**、不带语言
+标记，所以切语言后它不会自己失效，菜单会停在旧语言。删掉
+`%APPDATA%\GIMP\3.x\pluginrc`（Linux `~/.config/GIMP/3.x/pluginrc`）再启动即可。
+算子不受影响——它们每次启动都重新取。
+
 ## 多语言（gettext）
 
 界面上的一切文案都走 gettext，域名是 `gegl-color-ops`（`common/config.h`）。约定

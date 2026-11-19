@@ -123,13 +123,13 @@
   <ol class="quick-list">
     <li>
       <h3><span class="l-zh">模块进 GEGL</span><span class="l-en">Modules into GEGL</span></h3>
-      <p><span class="l-zh">解压后把 <code>.dll</code> / <code>.so</code> 整个扔进 GEGL 的模块目录。</span><span class="l-en">Unpack and drop every <code>.dll</code> / <code>.so</code> into GEGL's module directory.</span></p>
+      <p><span class="l-zh">解压后把 <code>.dll</code> / <code>.so</code> 整个扔进 GEGL 的模块目录，<code>locale/</code> 也一起放（中文语言包，不放就只有英文）。</span><span class="l-en">Unpack and drop every <code>.dll</code> / <code>.so</code> into GEGL's module directory — together with <code>locale/</code>, the Chinese catalogue.</span></p>
       <pre><code>Windows  %LOCALAPPDATA%\gegl-0.4\plug-ins
 Linux    ~/.local/share/gegl-0.4/plug-ins</code></pre>
     </li>
     <li>
       <h3><span class="l-zh">.py 进 GIMP</span><span class="l-en">Scripts into GIMP</span></h3>
-      <p><span class="l-zh">插件包里的 <code>.py</code> 放进 GIMP 的插件目录，两处都要放，缺一个就报「找不到过程」。</span><span class="l-en">The plug-in bundle's <code>.py</code> files go into GIMP's plug-in directory. Both places — miss one and the procedure won't be found.</span></p>
+      <p><span class="l-zh">插件包里的 <code>.py</code> 放进 GIMP 的插件目录，两处都要放，缺一个就报「找不到过程」；<code>_shared/</code> 与 <code>locale/</code> 跟 <code>.py</code> 放同一层。</span><span class="l-en">The plug-in bundle's <code>.py</code> files go into GIMP's plug-in directory. Both places — miss one and the procedure won't be found. Keep <code>_shared/</code> and <code>locale/</code> at that same level.</span></p>
       <pre><code>Windows  %APPDATA%\GIMP\3.x\plug-ins
 Linux    ~/.config/GIMP/3.x/plug-ins</code></pre>
     </li>
@@ -182,7 +182,7 @@ Linux    ~/.config/GIMP/3.x/plug-ins</code></pre>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">b5ad783</span>
+    <span class="muted">2b79f09</span>
   </div>
 </footer>
 <script>
