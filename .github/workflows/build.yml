@@ -40,6 +40,12 @@ jobs:
       - name: 校验站点双语（docs/ 是提交进仓库的产物）
         run: python3 tools/check_bilingual.py
 
+      - name: 校验每个算子都有菜单注册
+        run: |
+          # gegl --info 能查到 ≠ GIMP 菜单里看得见：漏了 gimp:menu-path 的算子
+          # 命令行照跑、自检照绿，但在 GIMP 里根本找不到（2026-11-20 踩过）。
+          python3 tools/check_menu.py
+
       - name: 编译全部算子
         run: |
           meson setup build-meson --buildtype=release

@@ -1,15 +1,23 @@
 #!/usr/bin/env bash
 # SuperMrWang · GEGL 算子集合 —— 编译 + 安装到 GEGL 用户插件目录
-#   用法: ./install.sh                      默认目标目录
+# 用法: ./install.sh                      默认目标目录
 #         GEGL_PLUGIN_DIR=/path ./install.sh 自定义目标
 #         ./install.sh --verify             装完立刻用 gegl CLI 逐个确认注册
+#         ./install.sh --no-build           跳过 build.sh，直接装 build/ 里现有的产物
+#         （--verify 与 --no-build 可以一起用；两个参数顺序随意）
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VERIFY=0
-[ "${1:-}" = "--verify" ] && VERIFY=1
+NOBUILD=0
+for arg in "$@"; do
+  case "$arg" in
+    --verify)   VERIFY=1 ;;
+    --no-build) NOBUILD=1 ;;
+  esac
+done
 
-"$ROOT/build.sh"
+[ "$NOBUILD" = "1" ] || "$ROOT/build.sh"
 
 case "$(uname -s)" in
   MINGW*|MSYS*|CYGWIN*) EXT=dll

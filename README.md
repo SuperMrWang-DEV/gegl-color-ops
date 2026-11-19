@@ -796,6 +796,11 @@ python tools/set_menu_group.py           # 写入
 改 `menu-path` **不影响 op id**：XCF 里已经用过的滤镜照旧能打开，
 只是菜单位置会变，需要重新 `./build.sh` 并重启 GIMP。
 
+> 踩过的坑：`gegl --info lb:xxx` 能查到、命令行能跑、自检脚本全绿，**不等于 GIMP
+> 菜单里看得见**。漏了 `gimp:menu-path` 的算子只会注册成 GEGL 名字，在 GIMP 里
+> 根本不出现（2026-11-20 锐化 / 杂色四个算子就是这样，装了一个多月没人提是因为
+> 它们压根没进过菜单）。`tools/check_menu.py` 把这条钉成断言，CI 也会跑。
+
 ## 验证与回归（tools/）
 
 ```bash
@@ -820,6 +825,7 @@ python tools/check_max_min_plugin.py          # 插件回归：PDB / 滤镜挂�
 python tools/compare_native.py              # 诊断：十二向转换 vs GIMP 原生，两列数值应完全相同
 python tools/normalize_headers.py           # 预览文件头/命名重排，加 --write 落盘
 python tools/set_menu_group.py --check      # 核对菜分组映射表与 ops 目录是否一一对应
+python tools/check_menu.py                  # 每个算子都有 id / menu-path / menu-label，且路径与分组表一致
 python tools/make_dist.py                   # 把 build/ 整理成 dist/（含 manifest + 校验和）
 ./tools/check-linux.sh                      # 在 Linux/WSL 里验证 .so 能加载并渲染（不开 GIMP）
 python tools/git_push_api.py --dry-run      # 推送兜底：github.com:443 不通时改走 Git Data API

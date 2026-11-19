@@ -281,6 +281,8 @@ gegl_op_class_init (GeglOpClass *klass)
                      "bright areas. The equivalent of Photoshop's Maximum / "
                      "Minimum filter, computed in the buffer's own precision."),
     "categories",  "generic",
+    "gimp:menu-path",  "<Image>/SuperMrWang/Mask",
+    "gimp:menu-label", _("Maximum / Minimum"),
     NULL);
 }
 

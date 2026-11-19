@@ -45,7 +45,7 @@ GROUPS = {
               "hue-range-basic", "match-color"],
     "Blend": ["apply-image", "calculations", "channel-mixer-plus",
               "xyz-multiply", "color-lookup"],
-    "Mask":  ["color-mask-select", "channel-range-to-alpha"],
+    "Mask":  ["color-mask-select", "channel-range-to-alpha", "max-min"],
     # 2026-11 加的 PS 滤镜三组：锐化、杂色、扭曲。和 PS 的菜单同名，
     # 从 PS 迁过来的人按原路径找得到。
     "Sharpen": ["unsharp-mask"],

@@ -934,13 +934,13 @@ def build_overview(ops, stats, version):
       <p><span class="l-zh">菜单栏顶层就有 <code>SuperMrWang</code>（和「颜色」「图层」平级）：色阶家族收在一级目录
      <b>Levels</b> 子菜单里（Levels / LAB / HSL / HSB / LCH / CMYK / HSI），
      分量家族的 dual / compose 与 gray-to-component 收在一级目录 <b>Component</b> 里，
-     其余按 Tone / Color / Blend / Mask 四组排开；
+     其余按 Tone / Color / Blend / Mask / Sharpen / Noise / Distort 七组排开；
      也可以按 <code>/</code> 搜算子名直接调。</span><span class="l-en">The filters live in a top-level <code>SuperMrWang</code> menu: the levels family is
      grouped in a top-level <b>Levels</b> submenu (Levels / LAB / HSL / HSB / LCH /
      CMYK / HSI), the component family (dual / compose pairs and gray-to-component)
-     in a top-level <b>Component</b> submenu, and the rest in four groups —
-     Tone / Color / Blend / Mask. You can also press <code>/</code> and search by
-     operator name.</span></p>
+     in a top-level <b>Component</b> submenu, and the rest in seven groups —
+     Tone / Color / Blend / Mask / Sharpen / Noise / Distort. You can also press
+     <code>/</code> and search by operator name.</span></p>
     </li>
   </ol>
 </section>""".format(files=stats["win_files"])
@@ -1803,6 +1803,10 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
   <ul>
     <li>路径对不对：必须是 <code>gegl-0.4/plug-ins</code>，不是 GIMP 的 <code>plug-ins</code>。</li>
     <li>有没有重启：GIMP 启动后才扫描，热拷进去不生效。</li>
+    <li><b>只看到一部分算子</b>：先数模块数——整包是 <b>47 个</b>。旧包只装 43 个，
+        新加的锐化 / 杂色 / 置换就不在菜单里。重装一次整包，或源码目录里跑
+        <code>./install.sh --no-build --verify</code>（装 <code>build/</code> 里现成的产物，
+        再用 <code>gegl --info</code> 逐个确认注册）。</li>
     <li>位数/依赖：用 GIMP 自带的那份 GEGL 运行时，别混用系统里另一套 GEGL。</li>
     <li>用 <code>gegl --info lb:xxx</code> 单独验：命令行能看到、GIMP 看不到，通常是 GIMP 版本太旧。</li>
   </ul>
