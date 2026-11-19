@@ -21,6 +21,25 @@ jobs:
       - name: 显示 GEGL 版本
         run: pkg-config --modversion gegl-0.4
 
+      - name: 校验翻译文件（gettext）
+        run: |
+          # msgid 一律是英文、无重复、无空译；缺译只提示不失败（缺译回落英文原文）
+          python3 tools/i18n.py check
+          # locale/<lang>/LC_MESSAGES/*.mo 是提交进仓库的运行期产物：C 侧构造函数
+          # 和插件的 lb_i18n.py 直接读它，构建过程不生成。改了 po 忘记 build，
+          # 用户装到的还是旧译文。这里重新生成一遍（工具自带纯 Python 写入器，
+          # 输出是确定性的），与仓库里的那份逐字节比对。
+          python3 tools/i18n.py build
+          if [ -n "$(git status --porcelain -- locale/)" ]; then
+            echo "::error::locale/ 与 po/ 不同步，本地执行 python tools/i18n.py build 后一起提交"
+            git status --porcelain -- locale/
+            exit 1
+          fi
+          echo "· 翻译文件与 .mo 一致"
+
+      - name: 校验站点双语（docs/ 是提交进仓库的产物）
+        run: python3 tools/check_bilingual.py
+
       - name: 编译全部算子
         run: |
           meson setup build-meson --buildtype=release

@@ -35,6 +35,15 @@ fi
 CFLAGS_GEGL="$(pkg-config --cflags gegl-0.4)"
 LIBS_GEGL="$(pkg-config --libs gegl-0.4)"
 
+# ---------- 1.4 多语言的额外链接 ----------
+# common/i18n.h 在算子载入时自己 bindtextdomain。Linux 的 glibc 自带这个符号，
+# macOS 走弱符号（找不到就退化成英文），只有 Windows 的 libintl 是独立 dll、
+# 需要显式链一下。
+case "$(uname -s)" in
+  MINGW*|MSYS*|CYGWIN*) LIBS_I18N="-lintl" ;;
+  *)                    LIBS_I18N="" ;;
+esac
+
 # ---------- 1.5 选工具链 ----------
 # 机器上可能并存多个 gcc（如 Strawberry Perl 自带的 MinGW），它们缺少 libintl.h、
 # 且 ABI 与 GIMP 官方 MSYS2 构建不同。这里用「能否预处理 gegl 的头」来筛。
@@ -95,7 +104,7 @@ for c in "$ROOT"/ops/*/*.c; do
   # -I<common>    ：共用 config.h
   if eval "$TOOLCHAIN" -shared -O2 -fPIC -Wall \
         -I"$dir" -I"$ROOT/common" \
-        "$c" $CFLAGS_GEGL $LIBS_GEGL -lm \
+        "$c" "$ROOT/common/i18n.c" $CFLAGS_GEGL $LIBS_GEGL -lm $LIBS_I18N \
         -o "$OUT/$name.$EXT" 2>"$OUT/.build-$name.log"; then
     printf '  OK   %-26s -> build/%s.%s\n' "${dir##*/}" "$name" "$EXT"
     rm -f "$OUT/.build-$name.log"

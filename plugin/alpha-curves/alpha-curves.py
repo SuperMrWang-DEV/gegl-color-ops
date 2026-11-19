@@ -64,8 +64,21 @@ RANGE_OP = 'lb:channel-range-to-alpha'
 CURVE_OP = 'gimp:curves'
 
 
-def _(message):
-    return GLib.dgettext(None, message)
+# 多语言：查自己的域（gegl-color-ops），语言取自 GIMP 界面设置。
+# helper 在 plugin/_shared/ 下；装成单文件时退回 GIMP 默认域。
+import os as _os
+import sys as _sys
+
+_here = _os.path.dirname(_os.path.abspath(__file__))
+for _cand in (_os.path.join(_here, '_shared'),
+              _os.path.normpath(_os.path.join(_here, '..', '_shared'))):
+    if _os.path.isdir(_cand) and _cand not in _sys.path:
+        _sys.path.append(_cand)
+try:
+    from lb_i18n import _          # noqa: F811
+except Exception:                  # helper 不在：保持可用，只是不翻译
+    def _(message):
+        return GLib.dgettext(None, message)
 
 
 CHANNELS = [
@@ -73,10 +86,10 @@ CHANNELS = [
     ('red', _("Red")),
     ('green', _("Green")),
     ('blue', _("Blue")),
-    ('lab-l', _("LAB L（明度）")),
-    ('lab-a', _("LAB A（绿–品红）")),
-    ('lab-b', _("LAB B（蓝–黄）")),
-    ('alpha', _("Alpha（只调现有透明度）")),
+    ('lab-l', _("LAB L (lightness)")),
+    ('lab-a', _("LAB A (green-magenta)")),
+    ('lab-b', _("LAB B (blue-yellow)")),
+    ('alpha', _("Alpha (adjust existing opacity only)")),
 ]
 
 
@@ -124,7 +137,7 @@ def _add_range_to_alpha(layer, channel):
     l1=0、l2=255、r1=r2=255 时映射退化成 f(x) = x/255，区间外没有衰减，
     所以这条滤镜等价于「alpha ← 通道值」，再乘进原有 alpha。
     """
-    filt = Gimp.DrawableFilter.new(layer, RANGE_OP, _("1 · 通道 → Alpha"))
+    filt = Gimp.DrawableFilter.new(layer, RANGE_OP, _("1 · Channel to alpha"))
     cfg = filt.get_config()
     cfg.set_property('channel', channel)
     cfg.set_property('l1', 0.0)
@@ -138,7 +151,7 @@ def _add_range_to_alpha(layer, channel):
 
 def _add_alpha_curve(layer, shape):
     """第 2 条：alpha 上的一条可编辑曲线（平滑，少量控制点）。"""
-    filt = Gimp.DrawableFilter.new(layer, CURVE_OP, _("2 · Alpha 曲线"))
+    filt = Gimp.DrawableFilter.new(layer, CURVE_OP, _("2 · Alpha curve"))
     cfg = filt.get_config()
     cfg.set_property('curve', _point_curve(SHAPES[shape]))
     cfg.set_property('channel', Gimp.HistogramChannel.ALPHA)
@@ -154,9 +167,7 @@ def _require_range_op(layer):
         probe = Gimp.DrawableFilter.new(layer, RANGE_OP, "probe")
     except Exception:
         raise RuntimeError(
-            _("缺少算子 lb:channel-range-to-alpha，无法把通道写进 alpha。"
-              "装一下 dist 里的模块，或者把「源通道」选成 alpha 只挂曲线。"
-              " / lb:channel-range-to-alpha is not installed"))
+            _("The lb:channel-range-to-alpha operation is missing, so the channel cannot be written into alpha. Install the module from dist/, or set the source channel to alpha to attach the curve alone."))
     try:
         probe.delete()
     except Exception:
@@ -168,11 +179,10 @@ def _require_range_op(layer):
 def alpha_curves(image, base, channel='gray', shape='auto'):
     """在图层上挂「通道 → Alpha」与「Alpha 曲线」两条滤镜。"""
     if base is None:
-        raise RuntimeError(_("没有可以处理的图层 / no layer to work on"))
+        raise RuntimeError(_("Nothing to work on: no layer."))
     if base.is_group():
         raise RuntimeError(
-            _("图层组不能处理：请先选一个栅格图层（右键 → 合并组）"
-              " / a layer group has no pixels of its own"))
+            _("A layer group has no pixels of its own; pick a raster layer (right-click the group, then Merge Group)."))
 
     shape = _shape_for(shape, channel)
     if channel != 'alpha':
@@ -197,8 +207,8 @@ def alpha_curves(image, base, channel='gray', shape='auto'):
         msg = _("Alpha Curves 已挂上：%s。点开「2 · Alpha 曲线」就能拖控制点，"
                 "画成任意映射——恒等时 alpha 正好等于该通道值。"
                 "（初始是平顶：三个点都在 255，往下拖即成形状。）"
-                % (_("两条滤镜（通道 → Alpha，Alpha 曲线）")
-                   if channel != 'alpha' else _("一条 Alpha 曲线")))
+                % (_("Two filters (channel to alpha, alpha curve)")
+                   if channel != 'alpha' else _("One alpha curve")))
         Gimp.message(msg)
     except Exception:
         pass
@@ -210,7 +220,7 @@ def alpha_curves(image, base, channel='gray', shape='auto'):
 class AlphaCurvesPlugin(Gimp.PlugIn):
 
     def do_set_i18n(self, procname):
-        return True, 'gimp30-python', None
+        return True, 'gegl-color-ops', None
 
     def do_query_procedures(self):
         return ['lb-plugin-alpha-curves']
@@ -223,14 +233,12 @@ class AlphaCurvesPlugin(Gimp.PlugIn):
                                        Gimp.ProcedureSensitivityMask.DRAWABLES)
         procedure.set_attribution("SuperMrWang", "SuperMrWang", "2026")
 
-        procedure.set_menu_label(_("Alpha Curves（透明通道曲线）"))
+        procedure.set_menu_label(_("Alpha Curves"))
         procedure.add_menu_path("<Image>/SuperMrWang/Mask")
         procedure.add_menu_path("<Layers>/SuperMrWang/Mask")
 
         procedure.set_documentation(
-            _("给 alpha 挂一条可编辑曲线：先把选定颜色通道写进 alpha，"
-              "再接一条 gimp:curves（通道 = Alpha）。两条都是非破坏滤镜，"
-              "曲线可以画成任意形状，比 Range → Alpha 的四个滑块自由得多。"),
+            _("Attaches an editable curve to alpha: first writes the chosen colour channel into alpha, then chains a gimp:curves with channel = Alpha. Both are non-destructive filters and the curve can take any shape, which is far more flexible than the four sliders of Range to Alpha."),
             _("Curve the alpha channel: copy a colour channel into alpha, then "
               "put an editable curve on it. Non-destructive; the curve can be "
               "any shape, unlike the linear ramps of Range to Alpha."), name)
@@ -239,23 +247,23 @@ class AlphaCurvesPlugin(Gimp.PlugIn):
         for i, (nick, label) in enumerate(CHANNELS):
             channel.add(nick, i, label, label)
         procedure.add_choice_argument(
-            "channel", _("源通道"),
-            _("用哪一路通道决定透明度；alpha 表示只调现有透明度"),
+            "channel", _("Source channel"),
+            _("Which channel decides the opacity; alpha adjusts the existing opacity only."),
             channel, 'gray', GObject.ParamFlags.READWRITE)
 
         shape = Gimp.Choice.new()
-        shape.add('auto', 0, _("auto（自动）"),
-                  _("平顶曲线：0 / 128 / 255 三个点都在顶，往下拖就是形状"))
-        shape.add('flat', 1, _("flat（平顶）"),
-                  _("三个控制点全在 255：alpha 拉满，之后自己往下拖"))
-        shape.add('band', 2, _("band（混合颜色带）"),
-                  _("两端收到透明、中间不透明，用平滑曲线拐弯"))
-        shape.add('identity', 3, _("identity（恒等）"),
-                  _("45° 直线：alpha 正好等于通道值，之后自己拖点"))
-        shape.add('soft', 4, _("soft（S 形）"),
-                  _("smoothstep 的取样点：两端平、中间陡，单调不减"))
+        shape.add('auto', 0, _("auto"),
+                  _("Flat-top curve: 0 / 128 / 255 all sit at the top, drag it down to shape it."))
+        shape.add('flat', 1, _("flat (flat top)"),
+                  _("All three control points sit at 255, so alpha starts fully opaque; drag them down yourself."))
+        shape.add('band', 2, _("band (blend band)"),
+                  _("Transparent at both ends and opaque in the middle, with a smooth bend."))
+        shape.add('identity', 3, _("identity"),
+                  _("A 45° line: alpha equals the channel value exactly; drag the points yourself."))
+        shape.add('soft', 4, _("soft (S-curve)"),
+                  _("Sampled from smoothstep: flat at both ends and steep in the middle, monotonic."))
         procedure.add_choice_argument(
-            "shape", _("初始曲线"), _("挂上去时曲线的初始形状，之后随便改"),
+            "shape", _("Initial curve"), _("Shape the curve starts with when it is attached; change it freely afterwards."),
             shape, 'auto', GObject.ParamFlags.READWRITE)
         return procedure
 

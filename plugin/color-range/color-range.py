@@ -49,8 +49,21 @@ from gi.repository import Gdk
 OP = 'lb:color-mask-select'
 
 
-def _(message):
-    return GLib.dgettext(None, message)
+# 多语言：查自己的域（gegl-color-ops），语言取自 GIMP 界面设置。
+# helper 在 plugin/_shared/ 下；装成单文件时退回 GIMP 默认域。
+import os as _os
+import sys as _sys
+
+_here = _os.path.dirname(_os.path.abspath(__file__))
+for _cand in (_os.path.join(_here, '_shared'),
+              _os.path.normpath(_os.path.join(_here, '..', '_shared'))):
+    if _os.path.isdir(_cand) and _cand not in _sys.path:
+        _sys.path.append(_cand)
+try:
+    from lb_i18n import _          # noqa: F811
+except Exception:                  # helper 不在：保持可用，只是不翻译
+    def _(message):
+        return GLib.dgettext(None, message)
 
 
 # ---- 模式表 / the mode table -------------------------------------------------
@@ -67,16 +80,16 @@ def _(message):
 # 默认范围就是算子里的默认值，逐值相同，切回来时看到的就是这一组。
 
 MODES = [
-    ('red',     _("红色 / Red"),        'chroma'),
-    ('yellow',  _("黄色 / Yellow"),     'chroma'),
-    ('green',   _("绿色 / Green"),      'chroma'),
-    ('cyan',    _("青色 / Cyan"),       'chroma'),
-    ('blue',    _("蓝色 / Blue"),       'chroma'),
-    ('magenta', _("洋红 / Magenta"),    'chroma'),
-    ('white',   _("高光 / Highlights"),  'white'),
-    ('black',   _("阴影 / Shadows"),     'black'),
-    ('gray',    _("中间调 / Midtones"),  'gray'),
-    ('custom',  _("自定颜色 / Picked"),   'custom'),
+    ('red',     _("Red"),        'chroma'),
+    ('yellow',  _("Yellow"),     'chroma'),
+    ('green',   _("Green"),      'chroma'),
+    ('cyan',    _("Cyan"),       'chroma'),
+    ('blue',    _("Blue"),       'chroma'),
+    ('magenta', _("Magenta"),    'chroma'),
+    ('white',   _("Highlights"),  'white'),
+    ('black',   _("Shadows"),     'black'),
+    ('gray',    _("Midtones"),  'gray'),
+    ('custom',  _("Picked colour"),   'custom'),
 ]
 
 DEFAULTS = {
@@ -154,9 +167,7 @@ def _require_op(layer):
         probe = Gimp.DrawableFilter.new(layer, OP, "probe")
     except Exception:
         raise RuntimeError(
-            _("缺少算子 lb:color-mask-select（色彩范围的像素引擎）。"
-              "先装 dist 里的 Windows/Linux 算子包，或 ./build.sh 自编。"
-              " / lb:color-mask-select is not installed"))
+            _("The lb:color-mask-select operation (the pixel engine behind Color Range) is missing. Install the operator package from dist/, or build it with ./build.sh."))
     try:
         probe.delete()
     except Exception:
@@ -167,11 +178,10 @@ def _require_op(layer):
 
 def _check_target(layer):
     if layer is None:
-        raise RuntimeError(_("没有可以处理的图层 / no layer to work on"))
+        raise RuntimeError(_("Nothing to work on: no layer."))
     if layer.is_group():
         raise RuntimeError(
-            _("图层组没有像素：请选一个栅格图层"
-              " / a layer group has no pixels of its own"))
+            _("A layer group has no pixels of its own; pick a raster layer."))
 
 
 def apply_once(image, layer, params):
@@ -180,7 +190,7 @@ def apply_once(image, layer, params):
     _require_op(layer)
     if not layer.has_alpha():
         layer.add_alpha()
-    filt = Gimp.DrawableFilter.new(layer, OP, _("色彩范围"))
+    filt = Gimp.DrawableFilter.new(layer, OP, _("Color Range"))
     params = dict(params)
     params['preview_red_mask'] = False
     push_config(filt, params)
@@ -205,7 +215,7 @@ def _scale(lo, hi, value, step=1.0):
 class ColorRangeDialog(Gtk.Dialog):
 
     def __init__(self, image, layer, filt):
-        Gtk.Dialog.__init__(self, title=_("色彩范围 / Color Range"))
+        Gtk.Dialog.__init__(self, title=_("Color Range"))
         self.image = image
         self.layer = layer
         self.filt = filt
@@ -213,8 +223,8 @@ class ColorRangeDialog(Gtk.Dialog):
 
         self.set_modal(True)
         self.set_default_size(430, -1)
-        self.add_button(_("取消"), Gtk.ResponseType.CANCEL)
-        self.add_button(_("确定"), Gtk.ResponseType.OK)
+        self.add_button(_("Cancel"), Gtk.ResponseType.CANCEL)
+        self.add_button(_("OK"), Gtk.ResponseType.OK)
         self.set_default_response(Gtk.ResponseType.OK)
 
         area = self.get_content_area()
@@ -223,7 +233,7 @@ class ColorRangeDialog(Gtk.Dialog):
 
         # —— 选择模式 ——
         head = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        label = Gtk.Label(label=_("选择"))
+        label = Gtk.Label(label=_("Selection"))
         label.set_xalign(0.0)
         label.set_size_request(74, -1)
         head.pack_start(label, False, False, 0)
@@ -251,13 +261,13 @@ class ColorRangeDialog(Gtk.Dialog):
         common.set_row_spacing(6)
         common.set_hexpand(True)
         r = 0
-        self.feather = self._row(common, r, _("羽化"), _scale(0, 100, DEFAULTS['feather']))
+        self.feather = self._row(common, r, _("Feather"), _scale(0, 100, DEFAULTS['feather']))
         r += 1
         area.pack_start(common, False, False, 0)
 
         checks = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=18)
-        self.invert = Gtk.CheckButton(label=_("反相"))
-        self.preview = Gtk.CheckButton(label=_("红色叠加预览"))
+        self.invert = Gtk.CheckButton(label=_("Invert"))
+        self.preview = Gtk.CheckButton(label=_("Red overlay preview"))
         self.preview.set_active(True)
         checks.pack_start(self.invert, False, False, 0)
         checks.pack_start(self.preview, False, False, 0)
@@ -266,7 +276,7 @@ class ColorRangeDialog(Gtk.Dialog):
         hint = Gtk.Label()
         hint.set_xalign(0.0)
         hint.set_line_wrap(True)
-        hint.set_markup(_("<small>确定后蒙版写入图层 alpha（红色叠加只用于预览，不会烤进去）。</small>"))
+        hint.set_markup(_("<small>On OK the mask is written into the layer alpha (the red overlay is preview only and is never baked in).</small>"))
         area.pack_start(hint, False, False, 0)
 
         # —— 信号 ——
@@ -302,7 +312,7 @@ class ColorRangeDialog(Gtk.Dialog):
 
         if kind in ('chroma', 'custom'):
             st['fuzziness'] = self._row(
-                grid, r, _("颜色容差"),
+                grid, r, _("Color tolerance"),
                 _scale(0, 200, DEFAULTS['fuzziness']))
             st['signals'].append(st['fuzziness'])
             r += 1
@@ -313,50 +323,50 @@ class ColorRangeDialog(Gtk.Dialog):
                 self.color_button.set_rgba(rgba)
                 self.color_button.set_use_alpha(False)
                 self.color_button.connect('color-set', self._queue)
-                self._row(grid, r, _("自定颜色"), self.color_button)
+                self._row(grid, r, _("Picked colour"), self.color_button)
                 st['color_button'] = self.color_button
                 r += 1
             st['saturation_min'] = self._row(
-                grid, r, _("最低彩度"),
+                grid, r, _("Minimum chroma"),
                 _scale(0, 100, DEFAULTS['saturation_min']))
             st['signals'].append(st['saturation_min'])
         elif kind == 'white':
             st['highlights_limit'] = self._row(
-                grid, r, _("范围"), _scale(0, 255, DEFAULTS['highlights']))
+                grid, r, _("Range"), _scale(0, 255, DEFAULTS['highlights']))
             st['signals'].append(st['highlights_limit'])
             r += 1
             st['fuzziness'] = self._row(
-                grid, r, _("颜色容差"), _scale(0, 200, DEFAULTS['fuzziness']))
+                grid, r, _("Color tolerance"), _scale(0, 200, DEFAULTS['fuzziness']))
             st['signals'].append(st['fuzziness'])
             note = Gtk.Label()
             note.set_xalign(0.0)
-            note.set_markup(_("<small>亮度 ≥ 这个值算高光，往下是过渡带。</small>"))
+            note.set_markup(_("<small>Luminance at or above this value counts as highlights; below it is the transition band.</small>"))
             r += 1
             grid.attach(note, 1, r, 1, 1)
         elif kind == 'black':
             st['shadows_limit'] = self._row(
-                grid, r, _("范围"), _scale(0, 255, DEFAULTS['shadows']))
+                grid, r, _("Range"), _scale(0, 255, DEFAULTS['shadows']))
             st['signals'].append(st['shadows_limit'])
             r += 1
             st['fuzziness'] = self._row(
-                grid, r, _("颜色容差"), _scale(0, 200, DEFAULTS['fuzziness']))
+                grid, r, _("Color tolerance"), _scale(0, 200, DEFAULTS['fuzziness']))
             st['signals'].append(st['fuzziness'])
             note = Gtk.Label()
             note.set_xalign(0.0)
-            note.set_markup(_("<small>亮度 ≤ 这个值算阴影，往上是过渡带。</small>"))
+            note.set_markup(_("<small>Luminance at or below this value counts as shadows; above it is the transition band.</small>"))
             r += 1
             grid.attach(note, 1, r, 1, 1)
         elif kind == 'gray':
             st['midtone_low'] = self._row(
-                grid, r, _("范围下限"), _scale(0, 255, DEFAULTS['midtone_low']))
+                grid, r, _("Range low"), _scale(0, 255, DEFAULTS['midtone_low']))
             st['signals'].append(st['midtone_low'])
             r += 1
             st['midtone_high'] = self._row(
-                grid, r, _("范围上限"), _scale(0, 255, DEFAULTS['midtone_high']))
+                grid, r, _("Range high"), _scale(0, 255, DEFAULTS['midtone_high']))
             st['signals'].append(st['midtone_high'])
             r += 1
             st['fuzziness'] = self._row(
-                grid, r, _("颜色容差"), _scale(0, 200, DEFAULTS['fuzziness']))
+                grid, r, _("Color tolerance"), _scale(0, 200, DEFAULTS['fuzziness']))
             st['signals'].append(st['fuzziness'])
         self.state[mode] = st
         return grid
@@ -415,7 +425,7 @@ def color_range(image, layer):
             layer.add_alpha()
             added_alpha = True
 
-        filt = Gimp.DrawableFilter.new(layer, OP, _("色彩范围（预览）"))
+        filt = Gimp.DrawableFilter.new(layer, OP, _("Color Range (preview)"))
         push_config(filt, defaults_for('red'))
         layer.append_filter(filt)
         Gimp.displays_flush()
@@ -457,7 +467,7 @@ def color_range(image, layer):
 class ColorRangePlugin(Gimp.PlugIn):
 
     def do_set_i18n(self, procname):
-        return True, 'gimp30-python', None
+        return True, 'gegl-color-ops', None
 
     def do_query_procedures(self):
         return ['lb-plugin-color-range']
@@ -470,14 +480,12 @@ class ColorRangePlugin(Gimp.PlugIn):
                                        Gimp.ProcedureSensitivityMask.DRAWABLES)
         procedure.set_attribution("SuperMrWang", "SuperMrWang", "2026")
 
-        procedure.set_menu_label(_("Color Range（色彩范围）"))
+        procedure.set_menu_label(_("Color Range"))
         procedure.add_menu_path("<Image>/SuperMrWang/Mask")
         procedure.add_menu_path("<Layers>/SuperMrWang/Mask")
 
         procedure.set_documentation(
-            _("色彩范围的定制对话框：选哪种颜色，下面就只显示那种颜色的参数，"
-              "切换时回到该模式自己的默认值（高光 192、阴影 64、中间调 64/192）。"
-              "确定后蒙版写进图层 alpha。"),
+            _("The custom dialog for Color Range: pick a colour type and only that type's parameters stay visible, each mode keeping its own defaults (highlights 192, shadows 64, midtones 64/192). On OK the mask is written into the layer alpha."),
             _("A custom Color Range dialog: the mode picks which controls exist, "
               "and each mode starts at its own default (highlights 192, "
               "shadows 64, midtones 64/192). The mask lands in the layer alpha."),

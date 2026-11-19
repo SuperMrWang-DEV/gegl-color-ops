@@ -43,6 +43,7 @@
  ==========================================================================="""
 
 import array
+import os
 import sys
 
 import gi
@@ -54,21 +55,26 @@ from gi.repository import Gimp, GLib, GObject, Gegl
 # （在 python-eval 里跑同一段代码不会，所以很容易漏）。
 Gegl.init()
 
+# 多语言 helper 在 plugin/_shared/ 下：仓库里是 ../_shared，安装后是 ./_shared
+_HERE = os.path.dirname(os.path.abspath(__file__))
+for _cand in (os.path.join(_HERE, '_shared'),
+              os.path.normpath(os.path.join(_HERE, '..', '_shared'))):
+    if os.path.isdir(_cand):
+        sys.path.insert(0, _cand)
+        break
+from lb_i18n import _           # noqa: E402  自有 gettext 域 + 语言取自 GLib
+
 OP = 'lb:max-min'
 
 
-def _(message):
-    return GLib.dgettext(None, message)
-
-
 MODES = [
-    ('maximum', _("最大值（膨胀：亮区外扩）")),
-    ('minimum', _("最小值（腐蚀：亮区收缩）")),
+    ('maximum', _("Maximum (dilate: bright areas grow)")),
+    ('minimum', _("Minimum (erode: bright areas shrink)")),
 ]
 
 SHAPES = [
-    ('square', _("方形（(±r, ±r) 方窗）")),
-    ('round', _("圆形（半径 r 的圆盘）")),
+    ('square', _("Square ((±r, ±r) window)")),
+    ('round', _("Round (disc of radius r)")),
 ]
 
 
@@ -119,8 +125,8 @@ def _apply_to_layer(drawable, props, label):
         filt = Gimp.DrawableFilter.new(drawable, OP, label)
     except Exception:
         raise RuntimeError(
-            _("缺少算子 lb:max-min，请先安装 dist 里的模块"
-              " / lb:max-min is not installed"))
+            _("The lb:max-min operation is missing; install the module from "
+              "dist/ first."))
     cfg = filt.get_config()
     for k, v in props.items():
         cfg.set_property(k, v)
@@ -133,14 +139,14 @@ def max_min(image, drawable, mode='maximum', radius=1, shape='square',
             affect_alpha=False):
     """图层挂滤镜；蒙版 / 通道直接写像素。"""
     if drawable is None:
-        raise RuntimeError(_("没有可以处理的图层 / no drawable to work on"))
+        raise RuntimeError(_("Nothing to work on: no drawable."))
     if drawable.is_group():
         raise RuntimeError(
-            _("图层组不能处理：请先选一个栅格图层或它的蒙版"
-              " / a layer group has no pixels of its own"))
+            _("A layer group has no pixels of its own; pick a raster layer or "
+              "its mask."))
 
     props = _props(mode, radius, shape, affect_alpha)
-    label = _("最大值") if mode == 'maximum' else _("最小值")
+    label = _("Maximum") if mode == 'maximum' else _("Minimum")
     is_layer = isinstance(drawable, Gimp.Layer)
 
     image.undo_group_start()
@@ -159,17 +165,20 @@ def max_min(image, drawable, mode='maximum', radius=1, shape='square',
 
     Gimp.displays_flush()
     try:
-        shape_txt = _("方形") if shape == 'square' else _("圆形")
+        shape_txt = _("Square") if shape == 'square' else _("Round")
         if is_layer:
-            msg = _("已挂上「%s」：半径 %d、%s。这是非破坏滤镜——在图层面板"
-                    "的滤镜列表里双击可以改参数，眼睛图标可以随时关掉。") % (
-                        label, radius, shape_txt)
+            msg = _('Added "%(label)s": radius %(radius)d, %(shape)s. This is a '
+                    'non-destructive filter — double-click it in the layer\'s '
+                    'filter list to change the parameters, or use the eye icon '
+                    'to switch it off.') % dict(label=label, radius=radius,
+                                                shape=shape_txt)
         else:
-            msg = _("已对%s应用「%s」：半径 %d、%s。蒙版和通道不接受非破坏"
-                    "滤镜，结果已写入像素（撤销可以退回）。") % (
-                        _("蒙版") if isinstance(drawable, Gimp.LayerMask)
-                        else _("通道"),
-                        label, radius, shape_txt)
+            msg = _('Applied "%(label)s" to the %(target)s: radius %(radius)d, '
+                    '%(shape)s. Masks and channels have no filter stack, so the '
+                    'result was written into the pixels (undo reverts it).') % dict(
+                        label=label, radius=radius, shape=shape_txt,
+                        target=_("mask") if isinstance(drawable, Gimp.LayerMask)
+                        else _("channel"))
         Gimp.message(msg)
     except Exception:
         pass
@@ -181,7 +190,7 @@ def max_min(image, drawable, mode='maximum', radius=1, shape='square',
 class MaxMinPlugin(Gimp.PlugIn):
 
     def do_set_i18n(self, procname):
-        return True, 'gimp30-python', None
+        return True, 'gegl-color-ops', None
 
     def do_query_procedures(self):
         return ['lb-plugin-max-min']
@@ -194,14 +203,16 @@ class MaxMinPlugin(Gimp.PlugIn):
                                        Gimp.ProcedureSensitivityMask.DRAWABLES)
         procedure.set_attribution("SuperMrWang", "SuperMrWang", "2026")
 
-        procedure.set_menu_label(_("最大值 / 最小值 (Max / Min)"))
+        procedure.set_menu_label(_("Maximum / Minimum..."))
         procedure.add_menu_path("<Image>/SuperMrWang/Mask")
         procedure.add_menu_path("<Layers>/SuperMrWang/Mask")
 
         procedure.set_documentation(
-            _("形态学的最大值（膨胀）与最小值（腐蚀）：每个像素取邻域内的"
-              "最大 / 最小值。最大值扩边、去暗点；最小值收边、去亮点。"
-              "以非破坏滤镜形式挂在图层或蒙版上，参数随时可改。"),
+            _("Morphological maximum (dilate) and minimum (erode): each pixel "
+              "takes the largest or smallest value in its neighbourhood. "
+              "Maximum grows the edges and removes dark specks; minimum shrinks "
+              "them and removes bright specks. Attached as a non-destructive "
+              "filter on layers; written into pixels on masks and channels."),
             _("Morphological maximum (dilate) and minimum (erode) over a "
               "square or round neighbourhood, attached as a non-destructive "
               "drawable filter."), name)
@@ -210,23 +221,28 @@ class MaxMinPlugin(Gimp.PlugIn):
         for i, (nick, label) in enumerate(MODES):
             mode.add(nick, i, label, label)
         procedure.add_choice_argument(
-            "mode", _("模式"), _("最大值＝膨胀，最小值＝腐蚀"),
+            "mode", _("Mode"), _("Maximum is dilate, minimum is erode."),
             mode, 'maximum', GObject.ParamFlags.READWRITE)
 
         procedure.add_int_argument(
-            "radius", _("半径"), _("邻域半径（像素）。r=1 即 3×3，边缘向外长一圈"),
+            "radius", _("Radius"),
+            _("Neighbourhood radius in pixels. r=1 is a 3×3 window and grows "
+              "the edge outward by one pixel."),
             1, 100, 1, GObject.ParamFlags.READWRITE)
 
         shape = Gimp.Choice.new()
         for i, (nick, label) in enumerate(SHAPES):
             shape.add(nick, i, label, label)
         procedure.add_choice_argument(
-            "shape", _("形状"), _("方形＝方窗；圆形＝圆盘（对应 PS 的方形度 / 圆度）"),
+            "shape", _("Shape"),
+            _("Square is a square window; round is a disc (Photoshop's "
+              "Preserve: Squareness / Roundness)."),
             shape, 'square', GObject.ParamFlags.READWRITE)
 
         procedure.add_boolean_argument(
-            "affect_alpha", _("影响 alpha"),
-            _("关掉时 alpha 原样保留（PS 同样不改图层透明度）"),
+            "affect_alpha", _("Affect alpha"),
+            _("Leave off to keep alpha untouched (Photoshop does not change "
+              "layer opacity either)."),
             False, GObject.ParamFlags.READWRITE)
         return procedure
 
@@ -234,7 +250,7 @@ class MaxMinPlugin(Gimp.PlugIn):
         if image is None or not drawables:
             return procedure.new_return_values(
                 Gimp.PDBStatusType.CALLING_ERROR,
-                GLib.Error(_("请选择一个图层或其蒙版 / select a layer or a mask")))
+                GLib.Error(_("Select a layer or one of its masks.")))
         try:
             max_min(image, drawables[0],
                     config.get_property('mode') or 'maximum',

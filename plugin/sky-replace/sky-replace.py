@@ -35,8 +35,21 @@ def _N_(message):
     return message
 
 
-def _(message):
-    return GLib.dgettext(None, message)
+# 多语言：查自己的域（gegl-color-ops），语言取自 GIMP 界面设置。
+# helper 在 plugin/_shared/ 下；装成单文件时退回 GIMP 默认域。
+import os as _os
+import sys as _sys
+
+_here = _os.path.dirname(_os.path.abspath(__file__))
+for _cand in (_os.path.join(_here, '_shared'),
+              _os.path.normpath(_os.path.join(_here, '..', '_shared'))):
+    if _os.path.isdir(_cand) and _cand not in _sys.path:
+        _sys.path.append(_cand)
+try:
+    from lb_i18n import _          # noqa: F811
+except Exception:                  # helper 不在：保持可用，只是不翻译
+    def _(message):
+        return GLib.dgettext(None, message)
 
 
 # ---- 核心逻辑（模块级，供回归脚本直接调用） ---------------------------------
@@ -178,7 +191,7 @@ def sky_replace(image, drawable, sky_file, threshold=0.15, edge=1, feather=2.0,
 class SkyReplacePlugin(Gimp.PlugIn):
 
     def do_set_i18n(self, procname):
-        return True, 'gimp30-python', None
+        return True, 'gegl-color-ops', None
 
     def do_query_procedures(self):
         return ['lb-plugin-sky-replace']

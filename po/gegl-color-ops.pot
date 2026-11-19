@@ -1,0 +1,4573 @@
+# gegl-color-ops translation template.
+# 由 tools/i18n.py extract 生成，不要手改。
+msgid ""
+msgstr ""
+"Project-Id-Version: gegl-color-ops\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Source-Language: en\n"
+
+#: ops/apply-image/apply-image.c:91
+#: ops/calculations/calculations.c:101
+#: plugin/blend/blend.py:778
+#: plugin/blend/blend.py:854
+msgid "Blend mode"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:92
+msgid "How the source (aux) is combined with the target"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:99
+#: ops/calculations/calculations.c:109
+#: plugin/blend/blend.py:603
+#: plugin/blend/blend.py:640
+#: plugin/blend/blend.py:785
+#: plugin/blend/blend.py:861
+msgid "Scale"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:100
+#: ops/calculations/calculations.c:110
+#: plugin/blend/blend.py:786
+#: plugin/blend/blend.py:862
+msgid "Add/Subtract only: result = (A ± B) / scale + offset"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:103
+#: ops/calculations/calculations.c:113
+#: ops/exposure/lb-exposure.c:57
+#: plugin/blend/blend.py:604
+#: plugin/blend/blend.py:641
+#: plugin/blend/blend.py:789
+#: plugin/blend/blend.py:865
+msgid "Offset"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:104
+#: ops/calculations/calculations.c:114
+msgid "Add/Subtract only: value added after scaling, -255..255"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:107
+#: ops/calculations/calculations.c:117
+#: plugin/blend/blend.py:601
+#: plugin/blend/blend.py:639
+#: plugin/blend/blend.py:781
+#: plugin/blend/blend.py:857
+msgid "Opacity"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:108
+msgid "Blend strength, 0 = untouched target, 100 = full blend"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:111
+#: plugin/blend/blend.py:792
+msgid "Target channel"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:113
+msgid "Which channel of the main input receives the blend"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:115
+#: plugin/alpha-curves/alpha-curves.py:250
+#: plugin/blend/blend.py:795
+msgid "Source channel"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:117
+msgid "Which channel of the aux input is used as the source"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:119
+#: ops/calculations/calculations.c:121
+#: plugin/blend/blend.py:804
+#: plugin/blend/blend.py:868
+msgid "Use mask"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:120
+msgid "Limit the effect with a channel of the chosen layer"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:122
+msgid "Mask from"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:123
+msgid "Which of the two connected layers the mask channel is read from"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:125
+#: ops/calculations/calculations.c:124
+#: plugin/blend/blend.py:813
+#: plugin/blend/blend.py:877
+msgid "Mask channel"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:127
+msgid "Channel used as the mask; Composite reads luminance"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:129
+#: ops/calculations/calculations.c:128
+#: plugin/blend/blend.py:558
+#: plugin/blend/blend.py:816
+#: plugin/blend/blend.py:880
+msgid "Invert mask"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:130
+#: ops/calculations/calculations.c:129
+msgid "Use the inverted mask value"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:132
+#: plugin/blend/blend.py:605
+#: plugin/blend/blend.py:820
+msgid "Preserve transparency"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:133
+msgid "Leave fully transparent pixels untouched"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:135
+#: ops/calculations/calculations.c:131
+msgid "Output"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:136
+msgid "Composite result, or the blended channel as a grey / alpha mask"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:485
+#: ops/match-color/match-color.c:939
+#: plugin/blend/blend.py:597
+msgid "Source"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:486
+msgid "Image blended onto the input (defaults to the input itself)"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:490
+#: ops/apply-image/apply-image.c:495
+#: plugin/blend/blend.py:353
+msgid "Apply Image"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:491
+msgid "Apply Image: blend a second image over this one with 26 blend modes, per-channel targets, mask and opacity. Areas the source layer does not cover stay untouched."
+msgstr ""
+
+#: ops/apply-image/apply-image.c:38
+#: ops/calculations/calculations.c:31
+msgid "Normal"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:39
+#: ops/calculations/calculations.c:32
+msgid "Darken"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:40
+#: ops/calculations/calculations.c:33
+msgid "Multiply"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:41
+#: ops/calculations/calculations.c:34
+msgid "Color Burn"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:42
+#: ops/calculations/calculations.c:35
+msgid "Linear Burn"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:43
+#: ops/calculations/calculations.c:36
+msgid "Lighten"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:44
+#: ops/calculations/calculations.c:37
+msgid "Screen"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:45
+#: ops/calculations/calculations.c:38
+msgid "Color Dodge"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:46
+#: ops/calculations/calculations.c:39
+msgid "Linear Dodge (Add)"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:47
+#: ops/calculations/calculations.c:40
+msgid "Overlay"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:48
+#: ops/calculations/calculations.c:41
+msgid "Soft Light"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:49
+#: ops/calculations/calculations.c:42
+msgid "Hard Light"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:50
+#: ops/calculations/calculations.c:43
+msgid "Vivid Light"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:51
+#: ops/calculations/calculations.c:44
+msgid "Linear Light"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:52
+#: ops/calculations/calculations.c:45
+msgid "Pin Light"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:53
+#: ops/calculations/calculations.c:46
+msgid "Hard Mix"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:54
+#: ops/calculations/calculations.c:47
+msgid "Difference"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:55
+#: ops/calculations/calculations.c:48
+msgid "Exclusion"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:56
+#: ops/calculations/calculations.c:49
+msgid "Subtract"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:57
+#: ops/calculations/calculations.c:50
+msgid "Divide"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:58
+#: ops/calculations/calculations.c:51
+msgid "Darker Color"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:59
+#: ops/calculations/calculations.c:52
+msgid "Lighter Color"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:60
+#: ops/calculations/calculations.c:53
+#: ops/colorize-hsl/colorize-hsl.c:26
+#: ops/hue-range-basic/hue-range-basic.c:89
+#: ops/hue-saturation-basic/hue-saturation-basic.c:49
+#: ops/hue-saturation/hue-saturation.c:29
+msgid "Hue"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:61
+#: ops/calculations/calculations.c:54
+#: ops/colorize-hsl/colorize-hsl.c:32
+#: ops/hue-range-basic/hue-range-basic.c:95
+#: ops/hue-saturation-basic/hue-saturation-basic.c:55
+#: ops/hue-saturation/hue-saturation.c:34
+#: ops/vibrance-hyper/vibrance-hyper.c:34
+msgid "Saturation"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:62
+#: ops/calculations/calculations.c:55
+msgid "Color"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:63
+#: ops/calculations/calculations.c:56
+msgid "Luminosity"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:68
+#: ops/apply-image/apply-image.c:78
+msgid "Composite"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:69
+#: ops/calculations/calculations.c:72
+#: ops/channel-mixer-plus/channel-mixer-plus.c:33
+#: ops/channel-range-to-alpha/channel-range-to-alpha.c:32
+#: ops/color-mask-select/color-mask-select.c:75
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:33
+#: plugin/alpha-curves/alpha-curves.py:86
+#: plugin/blend/blend.py:593
+#: plugin/color-range/color-range.py:83
+msgid "Red"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:70
+#: ops/calculations/calculations.c:73
+#: ops/channel-mixer-plus/channel-mixer-plus.c:37
+#: ops/channel-range-to-alpha/channel-range-to-alpha.c:33
+#: ops/color-mask-select/color-mask-select.c:76
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:45
+#: plugin/alpha-curves/alpha-curves.py:87
+#: plugin/blend/blend.py:593
+#: plugin/color-range/color-range.py:85
+msgid "Green"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:71
+#: ops/calculations/calculations.c:74
+#: ops/channel-mixer-plus/channel-mixer-plus.c:41
+#: ops/channel-range-to-alpha/channel-range-to-alpha.c:34
+#: ops/color-mask-select/color-mask-select.c:77
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:57
+#: plugin/alpha-curves/alpha-curves.py:88
+#: plugin/blend/blend.py:594
+#: plugin/color-range/color-range.py:87
+msgid "Blue"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:72
+#: ops/calculations/calculations.c:75
+#: ops/match-color/match-color.c:72
+msgid "Luminance"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:73
+#: ops/calculations/calculations.c:76
+#: plugin/blend/blend.py:594
+msgid "Alpha"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:79
+msgid "Mask (grey)"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:80
+msgid "Mask (alpha)"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:85
+#: plugin/blend/blend.py:801
+msgid "Source layer"
+msgstr ""
+
+#: ops/apply-image/apply-image.c:86
+msgid "This layer"
+msgstr ""
+
+#: ops/brightness-contrast/lb-brightness-contrast.c:39
+msgid "Brightness"
+msgstr ""
+
+#: ops/brightness-contrast/lb-brightness-contrast.c:40
+msgid "the classic editor's Brightness, -150 to +150. In the legacy mode the value is clamped to ±100, exactly like the classic editor"
+msgstr ""
+
+#: ops/brightness-contrast/lb-brightness-contrast.c:46
+msgid "Contrast"
+msgstr ""
+
+#: ops/brightness-contrast/lb-brightness-contrast.c:47
+msgid "the classic editor's Contrast, -50 to +100. The pivot is 89/255, not middle grey — that is what the measurement shows"
+msgstr ""
+
+#: ops/brightness-contrast/lb-brightness-contrast.c:53
+msgid "Use Legacy"
+msgstr ""
+
+#: ops/brightness-contrast/lb-brightness-contrast.c:54
+msgid "The legacy behaviour (the classic editor's \"Use Legacy\" checkbox): brightness is a plain offset with hard clipping and the contrast pivot sits at 89. Leave off for the modern curve"
+msgstr ""
+
+#: ops/brightness-contrast/lb-brightness-contrast.c:311
+#: ops/brightness-contrast/lb-brightness-contrast.c:317
+msgid "Brightness/Contrast"
+msgstr ""
+
+#: ops/brightness-contrast/lb-brightness-contrast.c:313
+msgid "the classic editor's Brightness/Contrast, both the modern curve and the legacy behaviour (offset + clip, contrast about 89/255), matched by measurement"
+msgstr ""
+
+#: ops/calculations/calculations.c:87
+msgid "Source 1 channel"
+msgstr ""
+
+#: ops/calculations/calculations.c:89
+msgid "Channel of the main input, used as the backdrop"
+msgstr ""
+
+#: ops/calculations/calculations.c:91
+#: plugin/blend/blend.py:632
+msgid "Invert source 1"
+msgstr ""
+
+#: ops/calculations/calculations.c:92
+msgid "Use the inverted value of source 1"
+msgstr ""
+
+#: ops/calculations/calculations.c:94
+msgid "Source 2 channel"
+msgstr ""
+
+#: ops/calculations/calculations.c:96
+msgid "Channel of the aux input, used as the blend source"
+msgstr ""
+
+#: ops/calculations/calculations.c:98
+#: plugin/blend/blend.py:635
+msgid "Invert source 2"
+msgstr ""
+
+#: ops/calculations/calculations.c:99
+msgid "Use the inverted value of source 2"
+msgstr ""
+
+#: ops/calculations/calculations.c:102
+msgid "Blend mode between source 1 and source 2"
+msgstr ""
+
+#: ops/calculations/calculations.c:118
+msgid "Blend strength, 0 = source 1 only, 100 = full blend"
+msgstr ""
+
+#: ops/calculations/calculations.c:122
+msgid "Limit the effect with a channel of the aux input"
+msgstr ""
+
+#: ops/calculations/calculations.c:126
+msgid "Channel of the aux input used as the mask"
+msgstr ""
+
+#: ops/calculations/calculations.c:133
+msgid "Grey mask for layer masks, or alpha for direct transparency"
+msgstr ""
+
+#: ops/calculations/calculations.c:272
+#: plugin/blend/blend.py:634
+#: plugin/blend/blend.py:837
+msgid "Source 2"
+msgstr ""
+
+#: ops/calculations/calculations.c:273
+msgid "Second channel source (defaults to the input itself)"
+msgstr ""
+
+#: ops/calculations/calculations.c:277
+#: ops/calculations/calculations.c:282
+#: plugin/blend/blend.py:415
+#: plugin/blend/blend.py:417
+#: plugin/blend/blend.py:452
+msgid "Calculations"
+msgstr ""
+
+#: ops/calculations/calculations.c:278
+msgid "Calculations: blend two channels into a grey or alpha mask, 26 blend modes, per-source invert, mask and opacity, scale/offset for Add and Subtract."
+msgstr ""
+
+#: ops/calculations/calculations.c:81
+msgid "Grey mask"
+msgstr ""
+
+#: ops/calculations/calculations.c:82
+msgid "Alpha mask"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:28
+msgid "Monochrome"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:29
+msgid "Produce grayscale monochrome image (classic style single channel mixer)"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:34
+msgid "Red channel contribution for monochrome output"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:38
+msgid "Green channel contribution for monochrome output"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:42
+msgid "Blue channel contribution for monochrome output"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:45
+msgid "Monochrome Offset"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:46
+msgid "Constant offset added to monochrome gray value"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:51
+msgid "Red in Red channel"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:52
+msgid "Set the red amount for the red channel"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:55
+msgid "Green in Red channel"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:56
+msgid "Set the green amount for the red channel"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:59
+msgid "Blue in Red channel"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:60
+msgid "Set the blue amount for the red channel"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:63
+msgid "Red Offset"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:64
+msgid "Constant offset added to red output channel"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:69
+msgid "Red in Green channel"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:70
+msgid "Set the red amount for the green channel"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:73
+msgid "Green for Green channel"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:74
+msgid "Set the green amount for the green channel"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:77
+msgid "Blue in Green channel"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:78
+msgid "Set the blue amount for the green channel"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:81
+msgid "Green Offset"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:82
+msgid "Constant offset added to green output channel"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:87
+msgid "Red in Blue channel"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:88
+msgid "Set the red amount for the blue channel"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:91
+msgid "Green in Blue channel"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:92
+msgid "Set the green amount for the blue channel"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:95
+msgid "Blue in Blue channel"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:96
+msgid "Set the blue amount for the blue channel"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:99
+msgid "Blue Offset"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:100
+msgid "Constant offset added to blue output channel"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:291
+#: ops/channel-mixer-plus/channel-mixer-plus.c:294
+msgid "Channel Mixer Plus"
+msgstr ""
+
+#: ops/channel-mixer-plus/channel-mixer-plus.c:292
+msgid "Mix RGB channels with independent offsets, classic-style monochrome grayscale mode, no luminosity preservation"
+msgstr ""
+
+#: ops/channel-range-to-alpha/channel-range-to-alpha.c:27
+#: plugin/layer-to-selection/layer-to-selection.py:282
+msgid "Channel"
+msgstr ""
+
+#: ops/channel-range-to-alpha/channel-range-to-alpha.c:29
+msgid "Select color channel, luminance or LAB L/A/B"
+msgstr ""
+
+#: ops/channel-range-to-alpha/channel-range-to-alpha.c:35
+msgid "Gray (Luminance)"
+msgstr ""
+
+#: ops/channel-range-to-alpha/channel-range-to-alpha.c:36
+msgid "LAB L (Lightness)"
+msgstr ""
+
+#: ops/channel-range-to-alpha/channel-range-to-alpha.c:37
+msgid "LAB A (Red-Green)"
+msgstr ""
+
+#: ops/channel-range-to-alpha/channel-range-to-alpha.c:38
+msgid "LAB B (Yellow-Blue)"
+msgstr ""
+
+#: ops/channel-range-to-alpha/channel-range-to-alpha.c:49
+msgid "Shadow Min"
+msgstr ""
+
+#: ops/channel-range-to-alpha/channel-range-to-alpha.c:53
+msgid "Shadow Max"
+msgstr ""
+
+#: ops/channel-range-to-alpha/channel-range-to-alpha.c:57
+msgid "Highlight Min"
+msgstr ""
+
+#: ops/channel-range-to-alpha/channel-range-to-alpha.c:61
+msgid "Highlight Max"
+msgstr ""
+
+#: ops/channel-range-to-alpha/channel-range-to-alpha.c:334
+msgid "Channel Range to Alpha"
+msgstr ""
+
+#: ops/channel-range-to-alpha/channel-range-to-alpha.c:337
+msgid "Range → Alpha"
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:22
+msgid "C input black (%)"
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:23
+msgid "Cyan input black: values below it are clamped to the output black point."
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:27
+msgid "C input white (%)"
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:28
+msgid "Cyan input white: values above it are lifted to the output white point."
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:32
+#: ops/lch-levels/lch-levels.c:57
+msgid "C Gamma"
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:33
+msgid "Cyan midtones: >1 lightens the midtones, <1 darkens them."
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:37
+msgid "C output black (%)"
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:38
+msgid "Cyan output black; swap it with the output white to invert."
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:42
+msgid "C output white (%)"
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:43
+msgid "Cyan output white."
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:47
+msgid "M input black (%)"
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:48
+msgid "Magenta input black: values below it are clamped to the output black point."
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:52
+msgid "M input white (%)"
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:53
+msgid "Magenta input white: values above it are lifted to the output white point."
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:57
+msgid "M Gamma"
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:58
+msgid "Magenta midtones: >1 lightens the midtones, <1 darkens them."
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:62
+msgid "M output black (%)"
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:63
+msgid "Magenta output black; swap it with the output white to invert."
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:67
+msgid "M output white (%)"
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:68
+msgid "Magenta output white."
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:72
+msgid "Y input black (%)"
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:73
+msgid "Yellow input black: values below it are clamped to the output black point."
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:77
+msgid "Y input white (%)"
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:78
+msgid "Yellow input white: values above it are lifted to the output white point."
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:82
+msgid "Y Gamma"
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:83
+msgid "Yellow midtones: >1 lightens the midtones, <1 darkens them."
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:87
+msgid "Y output black (%)"
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:88
+msgid "Yellow output black; swap it with the output white to invert."
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:92
+msgid "Y output white (%)"
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:93
+msgid "Yellow output white."
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:97
+msgid "K input black (%)"
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:98
+msgid "Black input black: values below it are clamped to the output black point."
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:102
+msgid "K input white (%)"
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:103
+msgid "Black input white: values above it are lifted to the output white point."
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:107
+msgid "K Gamma"
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:108
+msgid "Black midtones: >1 lightens the midtones, <1 darkens them."
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:112
+msgid "K output black (%)"
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:113
+msgid "Black output black; swap it with the output white to invert."
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:117
+msgid "K output white (%)"
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:118
+msgid "Black output white."
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:192
+#: ops/cmyk-levels/cmyk-levels.c:196
+msgid "CMYK Levels"
+msgstr ""
+
+#: ops/cmyk-levels/cmyk-levels.c:194
+msgid "Independent levels adjustment for C, M, Y and K inks (babl separation, not ICC)"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:31
+msgid "Absolute Mode"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:32
+msgid "the classic editor 'Absolute' checkbox: 100 means a hard +100% ink step instead of a relative one"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:46
+msgid "Reds – Cyan"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:48
+msgid "Reds – Magenta"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:50
+msgid "Reds – Yellow"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:52
+msgid "Reds – Black"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:55
+msgid "Yellows – Cyan"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:57
+msgid "Yellows – Magenta"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:59
+msgid "Yellows – Yellow"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:61
+msgid "Yellows – Black"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:64
+msgid "Greens – Cyan"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:66
+msgid "Greens – Magenta"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:68
+msgid "Greens – Yellow"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:70
+msgid "Greens – Black"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:73
+msgid "Cyans – Cyan"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:75
+msgid "Cyans – Magenta"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:77
+msgid "Cyans – Yellow"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:79
+msgid "Cyans – Black"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:82
+msgid "Blues – Cyan"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:84
+msgid "Blues – Magenta"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:86
+msgid "Blues – Yellow"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:88
+msgid "Blues – Black"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:91
+msgid "Magentas – Cyan"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:93
+msgid "Magentas – Magenta"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:95
+msgid "Magentas – Yellow"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:97
+msgid "Magentas – Black"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:100
+msgid "Whites – Cyan"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:102
+msgid "Whites – Magenta"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:104
+msgid "Whites – Yellow"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:106
+msgid "Whites – Black"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:109
+msgid "Neutrals – Cyan"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:111
+msgid "Neutrals – Magenta"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:113
+msgid "Neutrals – Yellow"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:115
+msgid "Neutrals – Black"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:118
+msgid "Blacks – Cyan"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:120
+msgid "Blacks – Magenta"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:122
+msgid "Blacks – Yellow"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:124
+msgid "Blacks – Black"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:415
+msgid "CMYK Primary Correction"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:416
+msgid "the classic editor Selective Color: 9 color ranges each keep their own C/M/Y/K and all apply at once, absolute/relative mode"
+msgstr ""
+
+#: ops/cmyk-primary-correction/cmyk-primary-correction.c:419
+msgid "CMYK Primary"
+msgstr ""
+
+#: ops/color-balance/color-balance.c:41
+msgid "Shadow Cyan-Red"
+msgstr ""
+
+#: ops/color-balance/color-balance.c:42
+msgid "Shadow Cyan/Red slider (-100 Cyan ~ +100 Red)"
+msgstr ""
+
+#: ops/color-balance/color-balance.c:46
+msgid "Shadow Magenta-Green"
+msgstr ""
+
+#: ops/color-balance/color-balance.c:47
+msgid "Shadow Magenta/Green slider (-100 Magenta ~ +100 Green)"
+msgstr ""
+
+#: ops/color-balance/color-balance.c:51
+msgid "Shadow Yellow-Blue"
+msgstr ""
+
+#: ops/color-balance/color-balance.c:52
+msgid "Shadow Yellow/Blue slider (-100 Yellow ~ +100 Blue)"
+msgstr ""
+
+#: ops/color-balance/color-balance.c:56
+msgid "Midtone Cyan-Red"
+msgstr ""
+
+#: ops/color-balance/color-balance.c:57
+msgid "Midtone Cyan/Red slider (-100 Cyan ~ +100 Red)"
+msgstr ""
+
+#: ops/color-balance/color-balance.c:61
+msgid "Midtone Magenta-Green"
+msgstr ""
+
+#: ops/color-balance/color-balance.c:62
+msgid "Midtone Magenta/Green slider (-100 Magenta ~ +100 Green)"
+msgstr ""
+
+#: ops/color-balance/color-balance.c:66
+msgid "Midtone Yellow-Blue"
+msgstr ""
+
+#: ops/color-balance/color-balance.c:67
+msgid "Midtone Yellow/Blue slider (-100 Yellow ~ +100 Blue)"
+msgstr ""
+
+#: ops/color-balance/color-balance.c:71
+msgid "Highlight Cyan-Red"
+msgstr ""
+
+#: ops/color-balance/color-balance.c:72
+msgid "Highlight Cyan/Red slider (-100 Cyan ~ +100 Red)"
+msgstr ""
+
+#: ops/color-balance/color-balance.c:76
+msgid "Highlight Magenta-Green"
+msgstr ""
+
+#: ops/color-balance/color-balance.c:77
+msgid "Highlight Magenta/Green slider (-100 Magenta ~ +100 Green)"
+msgstr ""
+
+#: ops/color-balance/color-balance.c:81
+msgid "Highlight Yellow-Blue"
+msgstr ""
+
+#: ops/color-balance/color-balance.c:82
+msgid "Highlight Yellow/Blue slider (-100 Yellow ~ +100 Blue)"
+msgstr ""
+
+#: ops/color-balance/color-balance.c:86
+#: ops/xyz-multiply/xyz-multiply.c:53
+msgid "Preserve Luminosity"
+msgstr ""
+
+#: ops/color-balance/color-balance.c:87
+msgid "MATLAB-style zero-sum logic. Unchecked: original the classic editor color balance."
+msgstr ""
+
+#: ops/color-balance/color-balance.c:632
+#: ops/color-balance/color-balance.c:640
+msgid "Color Balance"
+msgstr ""
+
+#: ops/color-balance/color-balance.c:633
+msgid "the classic editor Color Balance: shadow/midtone/highlight C-R, M-G, Y-B. Per-channel levels-style curve: the three range exponents multiply into one power law (black point from a negative shadow slider, white point from a positive highlight slider) plus a near-black toe, measured against the classic editor. Pins itself to the perceptual format."
+msgstr ""
+
+#: ops/color-grading/color-grading.c:44
+msgid "Global Hue"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:46
+msgid "Hue of the global wheel, degrees"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:48
+msgid "Global Saturation"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:50
+msgid "Strength of the global tint"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:52
+msgid "Global Luminance"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:54
+msgid "Brightness shift applied everywhere"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:57
+msgid "Shadows Hue"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:59
+msgid "Hue of the shadows wheel, degrees"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:61
+msgid "Shadows Saturation"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:63
+msgid "Strength of the shadows tint"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:65
+msgid "Shadows Luminance"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:67
+msgid "Brightness shift in the shadows"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:70
+msgid "Midtones Hue"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:72
+msgid "Hue of the midtones wheel, degrees"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:74
+msgid "Midtones Saturation"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:76
+msgid "Strength of the midtones tint"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:78
+msgid "Midtones Luminance"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:80
+msgid "Brightness shift in the midtones"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:83
+msgid "Highlights Hue"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:85
+msgid "Hue of the highlights wheel, degrees"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:87
+msgid "Highlights Saturation"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:89
+msgid "Strength of the highlights tint"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:91
+msgid "Highlights Luminance"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:93
+msgid "Brightness shift in the highlights"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:96
+#: plugin/blend/blend.py:599
+#: plugin/blend/blend.py:637
+msgid "Blending"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:98
+msgid "Cross-fade width between the tonal ranges (0 = hard split)"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:100
+msgid "Balance"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:102
+msgid "Shift the split toward highlights (positive) or shadows (negative)"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:329
+#: ops/color-grading/color-grading.c:332
+msgid "Color Grading"
+msgstr ""
+
+#: ops/color-grading/color-grading.c:330
+msgid "Shadows Midtones Highlights Global color wheels with Luminance, Blending and Balance"
+msgstr ""
+
+#: ops/color-lookup/color-lookup.c:36
+msgid "LUT File"
+msgstr ""
+
+#: ops/color-lookup/color-lookup.c:37
+msgid "Cube LUT (.cube), 1D and/or 3D"
+msgstr ""
+
+#: ops/color-lookup/color-lookup.c:39
+msgid "Strength"
+msgstr ""
+
+#: ops/color-lookup/color-lookup.c:42
+msgid "Blend the mapped colour back towards the source"
+msgstr ""
+
+#: ops/color-lookup/color-lookup.c:44
+msgid "Interpolation"
+msgstr ""
+
+#: ops/color-lookup/color-lookup.c:46
+msgid "How the 3D table is sampled between grid nodes"
+msgstr ""
+
+#: ops/color-lookup/color-lookup.c:49
+msgid "Trilinear"
+msgstr ""
+
+#: ops/color-lookup/color-lookup.c:50
+msgid "Tetrahedral"
+msgstr ""
+
+#: ops/color-lookup/color-lookup.c:629
+#: ops/color-lookup/color-lookup.c:632
+msgid "Color Lookup"
+msgstr ""
+
+#: ops/color-lookup/color-lookup.c:630
+msgid "Colour lookup through a Cube LUT (.cube), the equivalent of the classic editor Color Lookup adjustment layer. 1D shaper tables and trilinear / tetrahedral 3D sampling are supported."
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:70
+msgid "Selection Mode"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:72
+msgid "Color selection mode"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:78
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:51
+#: plugin/color-range/color-range.py:86
+msgid "Cyan"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:79
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:63
+#: plugin/color-range/color-range.py:88
+msgid "Magenta"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:80
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:39
+#: plugin/color-range/color-range.py:84
+msgid "Yellow"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:81
+#: plugin/color-range/color-range.py:89
+msgid "Highlights"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:82
+#: plugin/color-range/color-range.py:90
+msgid "Shadows"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:83
+#: plugin/color-range/color-range.py:91
+msgid "Midtones"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:84
+msgid "Custom Picked Color"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:87
+msgid "Custom Color"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:88
+msgid "Color picked from image"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:90
+msgid "Red Overlay Preview"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:91
+msgid "Blend the mask in as a red overlay. Turn on while adjusting to preview, off to write the mask into the layer alpha. Applying with this on bakes the red blend into the layer"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:95
+msgid "Fuzziness"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:98
+msgid "Width of the soft falloff. In the tonal modes this is the classic editor's Fuzziness: 0 gives a hard edge at the limit, 200 (100 in the classic editor) reaches pure black / pure white"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:106
+msgid "Shadows Upper Limit"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:108
+msgid "Luminance up to this value is fully selected in Shadows mode (the classic editor's Shadows range)"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:111
+msgid "Highlights Lower Limit"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:113
+msgid "Luminance from this value up is fully selected in Highlights mode (the classic editor's Highlights range)"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:116
+msgid "Midtones Lower Limit"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:118
+msgid "Lower edge of the Midtones band"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:120
+msgid "Midtones Upper Limit"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:122
+msgid "Upper edge of the Midtones band"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:124
+#: plugin/color-range/color-range.py:264
+#: plugin/sky-replace/sky-replace.py:228
+msgid "Feather"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:128
+msgid "Min Saturation"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:131
+msgid "Pixels whose chroma (saturation times value) is below this never match a colour preset (grays and near-blacks have no usable hue). 0 uses a small fixed floor"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:135
+#: plugin/channel-to-mask/channel-to-mask.py:203
+#: plugin/color-range/color-range.py:269
+#: plugin/gray-mask/gray-mask.py:192
+#: plugin/gray-mask/gray-mask.py:203
+#: plugin/layer-to-channel/layer-to-channel.py:283
+#: plugin/layer-to-selection/layer-to-selection.py:286
+msgid "Invert"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:136
+msgid "Invert the mask like the classic editor's Invert checkbox"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:571
+msgid "Color Mask Select"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:572
+msgid "the classic editor Color Range with color picker & red overlay"
+msgstr ""
+
+#: ops/color-mask-select/color-mask-select.c:574
+msgid "Mask by Color"
+msgstr ""
+
+#: ops/color-temperature-tint/color-temperature-tint.c:34
+msgid "Temperature"
+msgstr ""
+
+#: ops/color-temperature-tint/color-temperature-tint.c:35
+msgid "Warm / cool shift, -100 to +100. Negative is cooler (blue), positive warmer (yellow); 0 leaves the image untouched"
+msgstr ""
+
+#: ops/color-temperature-tint/color-temperature-tint.c:41
+msgid "Tint"
+msgstr ""
+
+#: ops/color-temperature-tint/color-temperature-tint.c:42
+msgid "Green / magenta shift, -100 to +100. Negative is greener, positive more magenta; 0 leaves the image untouched"
+msgstr ""
+
+#: ops/color-temperature-tint/color-temperature-tint.c:163
+#: ops/color-temperature-tint/color-temperature-tint.c:170
+msgid "Color Temperature & Tint"
+msgstr ""
+
+#: ops/color-temperature-tint/color-temperature-tint.c:165
+msgid "the classic 2026 Temperature and Tint sliders, matched by measurement: a 3rd-order polynomial in linear light over a 17x17 parameter grid, clamped and baked into a 33^3 lookup table"
+msgstr ""
+
+#: ops/colorize-hsl/colorize-hsl.c:27
+msgid "Absolute hue of the tint, in degrees. The slider clamps at 0 and 360, it does not wrap: -20 gives red, not 340."
+msgstr ""
+
+#: ops/colorize-hsl/colorize-hsl.c:33
+msgid "Absolute HSL saturation of the tint, in percent"
+msgstr ""
+
+#: ops/colorize-hsl/colorize-hsl.c:37
+#: ops/hue-range-basic/hue-range-basic.c:101
+#: ops/hue-saturation-basic/hue-saturation-basic.c:61
+#: ops/hue-saturation/hue-saturation.c:39
+msgid "Lightness"
+msgstr ""
+
+#: ops/colorize-hsl/colorize-hsl.c:38
+msgid "Moves HSL lightness: positive pulls towards white, negative towards black"
+msgstr ""
+
+#: ops/colorize-hsl/colorize-hsl.c:170
+#: ops/colorize-hsl/colorize-hsl.c:175
+msgid "Colorize"
+msgstr ""
+
+#: ops/colorize-hsl/colorize-hsl.c:171
+msgid "the classic editor's Colorize: keep the HSL lightness of each pixel, replace hue and saturation with the slider values."
+msgstr ""
+
+#: ops/exposure/lb-exposure.c:52
+msgid "Exposure"
+msgstr ""
+
+#: ops/exposure/lb-exposure.c:53
+msgid "Exposure (EV), same slider range as the classic editor"
+msgstr ""
+
+#: ops/exposure/lb-exposure.c:58
+msgid "Offset, adjusts shadow and midtone; added in linear light"
+msgstr ""
+
+#: ops/exposure/lb-exposure.c:62
+msgid "Gamma Correction"
+msgstr ""
+
+#: ops/exposure/lb-exposure.c:63
+msgid "Gray coefficient correction / Gamma"
+msgstr ""
+
+#: ops/exposure/lb-exposure.c:67
+msgid "Precision"
+msgstr ""
+
+#: ops/exposure/lb-exposure.c:69
+msgid "Which formula to run. Auto picks the 8-bit (gamma) branch for integer input and the 32-bit (linear) branch for float input"
+msgstr ""
+
+#: ops/exposure/lb-exposure.c:256
+#: ops/exposure/lb-exposure.c:259
+msgid "Exposure EV"
+msgstr ""
+
+#: ops/exposure/lb-exposure.c:257
+msgid "the classic editor Exposure: EV, offset and gamma. Picks the 8-bit (gamma) formula for integer images and the 32-bit (linear) formula for float images; override with the precision property."
+msgstr ""
+
+#: ops/exposure/lb-exposure.c:47
+msgid "Auto (from input precision)"
+msgstr ""
+
+#: ops/exposure/lb-exposure.c:48
+msgid "8-bit (sRGB gamma)"
+msgstr ""
+
+#: ops/exposure/lb-exposure.c:49
+msgid "32-bit (linear)"
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:84
+#: ops/max-min/max-min.c:48
+#: plugin/max-min/max-min.py:224
+msgid "Mode"
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:85
+msgid "Encoding mode: which component the grey level maps to. Use hue/saturation/color/value with the HSV and HSL group blend modes, lightness/luminance/lch-* with the LCh group and Luminance, and Lighten to stack the three RGB channels back into colour."
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:92
+msgid "Input Space"
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:94
+msgid "Domain the input pixel values live in. Pick encoded if the component layer came from an 8/16-bit image (the filter stack buffers as R'G'B'A float), linear if it came from a 32-bit float linear image (RGBA float). Choosing wrong makes babl apply the gamma encoding a second time, so the encoded values come out too bright."
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:96
+msgid "Saturation Hue"
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:97
+msgid "Hue (degrees) used by Saturation mode; 0 = red, change it as needed. The layer only carries saturation, so the hue never enters the composite."
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:100
+msgid "Color Saturation"
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:101
+msgid "Fixed saturation percentage for Color mode. Color blend reads both hue and saturation, but a single grey channel can only carry one of them: the grey carries hue and this parameter supplies saturation. At 100% the output matches hue mode."
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:104
+msgid "LCh Lightness"
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:105
+msgid "Fixed lightness L (0-100) used by the LCh modes. When the blend mode only reads hue or chroma this value has no effect; it sits in the middle so the colour stays inside the common gamut."
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:108
+#: ops/gray-to-component/gray-to-component.c:77
+msgid "LCh Chroma"
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:109
+msgid "Fixed chroma C used by lch-hue and lch-color (both encode identically). Higher chroma means more vivid colour; too high can leave sRGB (it still round-trips in float32)."
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:113
+msgid "LCh Hue Angle"
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:114
+msgid "Fixed hue (degrees) used by LCh Chroma mode; 0 = red. The layer only carries chroma, so the hue never enters the composite."
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:117
+msgid "Chroma Scale"
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:118
+msgid "Full scale for LCh Chroma mode: the chroma that grey 1.0 maps to. GIMP's component-extract normalises C to 200 (lch-c = C/200), so set 200 when feeding it decomposed output; keep 100 when building your own grey layer. Inside sRGB chroma tops out around 131; anything above still round-trips in float32."
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:441
+#: ops/gray-to-component/gray-to-component.c:444
+msgid "Gray To Component"
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:442
+msgid "Re-encode a decomposed component gray layer into a color layer that GIMP's color-group blend modes read back exactly. Feed the result as a blend layer: Hue mode for 'hue', Saturation for 'saturation', Color for 'color', Value for 'value', LCh Lightness for 'lightness', Luminance for 'luminance', LCh Hue / LCh Color for 'lch-hue' / 'lch-color', LCh Chroma for 'lch-chroma', and Lighten to recombine the red/green/blue channel layers. Encoding formulas are calibrated by identity round-trip against GIMP 3 blend modes."
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:70
+msgid "Hue (HSL wheel)"
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:71
+msgid "Saturation (HSV)"
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:72
+msgid "Lightness (CIE L)"
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:73
+msgid "Red channel"
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:74
+msgid "Green channel"
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:75
+msgid "Blue channel"
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:76
+msgid "LCh Hue (CIE wheel)"
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:78
+msgid "Color (HSL hue + S)"
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:79
+msgid "Value (HSV V)"
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:80
+msgid "LCh Color (hue, C fixed)"
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:81
+msgid "Luminance (CIE Y)"
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:88
+msgid "Encoded (8/16-bit layers)"
+msgstr ""
+
+#: ops/gray-to-component/gray-to-component.c:89
+msgid "Linear (32-bit float layers)"
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:22
+#: ops/hsi-levels/hsi-levels.c:22
+#: ops/hsl-levels/hsl-levels.c:22
+#: ops/lch-levels/lch-levels.c:72
+msgid "H input black (deg)"
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:23
+#: ops/hsi-levels/hsi-levels.c:23
+#: ops/hsl-levels/hsl-levels.c:23
+#: ops/lch-levels/lch-levels.c:73
+msgid "Start of the hue ring: measured clockwise from here to the white point."
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:27
+#: ops/hsi-levels/hsi-levels.c:27
+#: ops/hsl-levels/hsl-levels.c:27
+#: ops/lch-levels/lch-levels.c:77
+msgid "H input white (deg)"
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:28
+#: ops/hsi-levels/hsi-levels.c:28
+#: ops/hsl-levels/hsl-levels.c:28
+#: ops/lch-levels/lch-levels.c:78
+msgid "End of the hue ring: hues outside the main arc wrap around by the remaining arc length."
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:32
+#: ops/hsi-levels/hsi-levels.c:32
+#: ops/hsl-levels/hsl-levels.c:32
+#: ops/lch-levels/lch-levels.c:82
+msgid "H Gamma"
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:33
+#: ops/hsi-levels/hsi-levels.c:33
+#: ops/hsl-levels/hsl-levels.c:33
+#: ops/lch-levels/lch-levels.c:83
+msgid "Hue distribution inside the main arc: >1 pushes toward black, <1 toward white."
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:37
+#: ops/hsi-levels/hsi-levels.c:37
+#: ops/hsl-levels/hsl-levels.c:37
+#: ops/lch-levels/lch-levels.c:87
+msgid "H output black (deg)"
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:38
+#: ops/hsi-levels/hsi-levels.c:38
+#: ops/hsl-levels/hsl-levels.c:38
+#: ops/lch-levels/lch-levels.c:88
+msgid "Start of the output hue ring; the arc length follows the output black/white difference."
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:42
+#: ops/hsi-levels/hsi-levels.c:42
+#: ops/hsl-levels/hsl-levels.c:42
+#: ops/lch-levels/lch-levels.c:92
+msgid "H output white (deg)"
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:43
+#: ops/hsi-levels/hsi-levels.c:43
+#: ops/hsl-levels/hsl-levels.c:43
+#: ops/lch-levels/lch-levels.c:93
+msgid "End of the output hue ring; coinciding with the black point is treated as a full turn (pure hue rotation)."
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:47
+#: ops/hsi-levels/hsi-levels.c:47
+#: ops/hsl-levels/hsl-levels.c:47
+msgid "S input black (%)"
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:48
+#: ops/hsi-levels/hsi-levels.c:48
+#: ops/hsl-levels/hsl-levels.c:48
+msgid "Saturation input black: values below it are clamped to the output black point."
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:52
+#: ops/hsi-levels/hsi-levels.c:52
+#: ops/hsl-levels/hsl-levels.c:52
+msgid "S input white (%)"
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:53
+#: ops/hsi-levels/hsi-levels.c:53
+#: ops/hsl-levels/hsl-levels.c:53
+msgid "Saturation input white: values above it are lifted to the output white point."
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:57
+#: ops/hsi-levels/hsi-levels.c:57
+#: ops/hsl-levels/hsl-levels.c:57
+msgid "S Gamma"
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:58
+#: ops/hsi-levels/hsi-levels.c:58
+#: ops/hsl-levels/hsl-levels.c:58
+msgid "Saturation midtones: >1 lightens the midtones, <1 darkens them."
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:62
+#: ops/hsi-levels/hsi-levels.c:62
+#: ops/hsl-levels/hsl-levels.c:62
+msgid "S output black (%)"
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:63
+#: ops/hsi-levels/hsi-levels.c:63
+#: ops/hsl-levels/hsl-levels.c:63
+msgid "Saturation output black; swap it with the output white to invert."
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:67
+#: ops/hsi-levels/hsi-levels.c:67
+#: ops/hsl-levels/hsl-levels.c:67
+msgid "S output white (%)"
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:68
+#: ops/hsi-levels/hsi-levels.c:68
+#: ops/hsl-levels/hsl-levels.c:68
+msgid "Saturation output white."
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:72
+msgid "B input black (%)"
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:73
+msgid "Value input black: values below it are clamped to the output black point."
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:77
+msgid "B input white (%)"
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:78
+msgid "Value input white: values above it are lifted to the output white point."
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:82
+msgid "B Gamma"
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:83
+msgid "Value midtones: >1 lightens the midtones, <1 darkens them."
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:87
+msgid "B output black (%)"
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:88
+msgid "Value output black; swap it with the output white to invert."
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:92
+msgid "B output white (%)"
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:93
+msgid "Value output white."
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:162
+#: ops/hsb-levels/hsb-levels.c:166
+msgid "HSB Levels"
+msgstr ""
+
+#: ops/hsb-levels/hsb-levels.c:164
+msgid "Independent levels adjustment for H, S and B (value) channels"
+msgstr ""
+
+#: ops/hsi-compose/hsi-compose.c:111
+#: ops/hsi-compose/hsi-compose.c:116
+msgid "HSI Compose"
+msgstr ""
+
+#: ops/hsi-compose/hsi-compose.c:113
+msgid "Turn the data image (R=S, G=I, B=H/360) back into real HSI colour"
+msgstr ""
+
+#: ops/hsi-dual/hsi-dual.c:111
+#: ops/hsi-dual/hsi-dual.c:116
+msgid "HSI Dual Extract"
+msgstr ""
+
+#: ops/hsi-dual/hsi-dual.c:113
+msgid "Pack HSI saturation, intensity and hue into one data image (R=S, G=I, B=H/360) for curve editing"
+msgstr ""
+
+#: ops/hsi-levels/hsi-levels.c:72
+msgid "I input black (%)"
+msgstr ""
+
+#: ops/hsi-levels/hsi-levels.c:73
+msgid "Intensity input black: values below it are clamped to the output black point."
+msgstr ""
+
+#: ops/hsi-levels/hsi-levels.c:77
+msgid "I input white (%)"
+msgstr ""
+
+#: ops/hsi-levels/hsi-levels.c:78
+msgid "Intensity input white: values above it are lifted to the output white point."
+msgstr ""
+
+#: ops/hsi-levels/hsi-levels.c:82
+msgid "I Gamma"
+msgstr ""
+
+#: ops/hsi-levels/hsi-levels.c:83
+msgid "Intensity midtones: >1 lightens the midtones, <1 darkens them."
+msgstr ""
+
+#: ops/hsi-levels/hsi-levels.c:87
+msgid "I output black (%)"
+msgstr ""
+
+#: ops/hsi-levels/hsi-levels.c:88
+msgid "Intensity output black; swap it with the output white to invert."
+msgstr ""
+
+#: ops/hsi-levels/hsi-levels.c:92
+msgid "I output white (%)"
+msgstr ""
+
+#: ops/hsi-levels/hsi-levels.c:93
+msgid "Intensity output white."
+msgstr ""
+
+#: ops/hsi-levels/hsi-levels.c:155
+#: ops/hsi-levels/hsi-levels.c:159
+msgid "HSI Levels"
+msgstr ""
+
+#: ops/hsi-levels/hsi-levels.c:157
+msgid "Independent levels for H, S and I (intensity) channels"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:30
+msgid "Hue Transition Feather"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:33
+msgid "Smooth transition between color ranges"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:35
+msgid "Min Saturation Filter"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:38
+msgid "Grayscale pixels below this saturation will not be modified"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:41
+msgid "Red Hue"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:43
+msgid "Red Saturation"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:45
+msgid "Red Luminance"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:49
+msgid "Orange Hue"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:51
+msgid "Orange Saturation"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:53
+msgid "Orange Luminance"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:57
+msgid "Yellow Hue"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:59
+msgid "Yellow Saturation"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:61
+msgid "Yellow Luminance"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:65
+msgid "Green Hue"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:67
+msgid "Green Saturation"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:69
+msgid "Green Luminance"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:73
+msgid "Cyan Hue"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:75
+msgid "Cyan Saturation"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:77
+msgid "Cyan Luminance"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:81
+msgid "Blue Hue"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:83
+msgid "Blue Saturation"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:85
+msgid "Blue Luminance"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:89
+msgid "Purple Hue"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:91
+msgid "Purple Saturation"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:93
+msgid "Purple Luminance"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:97
+msgid "Magenta Hue"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:99
+msgid "Magenta Saturation"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:101
+msgid "Magenta Luminance"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:429
+#: ops/hsl-bands/hsl-bands.c:433
+msgid "HSL 8 Bands"
+msgstr ""
+
+#: ops/hsl-bands/hsl-bands.c:430
+msgid "Eight hue bands (red orange yellow green cyan blue purple magenta), each with its own H/S/L shift, RAW editor style"
+msgstr ""
+
+#: ops/hsl-compose/hsl-compose.c:113
+#: ops/hsl-compose/hsl-compose.c:118
+msgid "HSL Compose"
+msgstr ""
+
+#: ops/hsl-compose/hsl-compose.c:115
+msgid "Turn the data image (R=S, G=L, B=H/360) back into real HSL colour"
+msgstr ""
+
+#: ops/hsl-dual/hsl-dual.c:121
+#: ops/hsl-dual/hsl-dual.c:126
+msgid "HSL Dual Extract"
+msgstr ""
+
+#: ops/hsl-dual/hsl-dual.c:123
+msgid "Pack HSL saturation, lightness and hue into one data image (R=S, G=L, B=H/360) for curve editing"
+msgstr ""
+
+#: ops/hsl-levels/hsl-levels.c:72
+msgid "L input black (%)"
+msgstr ""
+
+#: ops/hsl-levels/hsl-levels.c:73
+#: ops/lch-levels/lch-levels.c:23
+msgid "Lightness input black: values below it are clamped to the output black point."
+msgstr ""
+
+#: ops/hsl-levels/hsl-levels.c:77
+msgid "L input white (%)"
+msgstr ""
+
+#: ops/hsl-levels/hsl-levels.c:78
+#: ops/lch-levels/lch-levels.c:28
+msgid "Lightness input white: values above it are lifted to the output white point."
+msgstr ""
+
+#: ops/hsl-levels/hsl-levels.c:82
+#: ops/lab-levels/lab-levels.c:39
+#: ops/lch-levels/lch-levels.c:32
+msgid "L Gamma"
+msgstr ""
+
+#: ops/hsl-levels/hsl-levels.c:83
+#: ops/lch-levels/lch-levels.c:33
+msgid "Lightness midtones: >1 lightens the midtones, <1 darkens them."
+msgstr ""
+
+#: ops/hsl-levels/hsl-levels.c:87
+msgid "L output black (%)"
+msgstr ""
+
+#: ops/hsl-levels/hsl-levels.c:88
+#: ops/lch-levels/lch-levels.c:38
+msgid "Lightness output black; swap it with the output white to invert."
+msgstr ""
+
+#: ops/hsl-levels/hsl-levels.c:92
+msgid "L output white (%)"
+msgstr ""
+
+#: ops/hsl-levels/hsl-levels.c:93
+#: ops/lch-levels/lch-levels.c:43
+msgid "Lightness output white."
+msgstr ""
+
+#: ops/hsl-levels/hsl-levels.c:162
+#: ops/hsl-levels/hsl-levels.c:166
+msgid "HSL Levels"
+msgstr ""
+
+#: ops/hsl-levels/hsl-levels.c:164
+msgid "Independent levels adjustment for H, S and L channels, hue remapped around the circle"
+msgstr ""
+
+#: ops/hsv-compose/hsv-compose.c:113
+#: ops/hsv-compose/hsv-compose.c:118
+msgid "HSV Compose"
+msgstr ""
+
+#: ops/hsv-compose/hsv-compose.c:115
+msgid "Turn the data image (R=S, G=V, B=H/360) back into real HSV colour"
+msgstr ""
+
+#: ops/hsv-dual/hsv-dual.c:122
+#: ops/hsv-dual/hsv-dual.c:127
+msgid "HSV Dual Extract"
+msgstr ""
+
+#: ops/hsv-dual/hsv-dual.c:124
+msgid "Pack HSV saturation, value and hue into one data image (R=S, G=V, B=H/360) for curve editing"
+msgstr ""
+
+#: ops/hue-range-basic/hue-range-basic.c:49
+msgid "Channel Range"
+msgstr ""
+
+#: ops/hue-range-basic/hue-range-basic.c:51
+msgid "Which hue family to adjust"
+msgstr ""
+
+#: ops/hue-range-basic/hue-range-basic.c:54
+msgid "Reds"
+msgstr ""
+
+#: ops/hue-range-basic/hue-range-basic.c:55
+msgid "Yellows"
+msgstr ""
+
+#: ops/hue-range-basic/hue-range-basic.c:56
+msgid "Greens"
+msgstr ""
+
+#: ops/hue-range-basic/hue-range-basic.c:57
+msgid "Cyans"
+msgstr ""
+
+#: ops/hue-range-basic/hue-range-basic.c:58
+msgid "Blues"
+msgstr ""
+
+#: ops/hue-range-basic/hue-range-basic.c:59
+msgid "Magentas"
+msgstr ""
+
+#: ops/hue-range-basic/hue-range-basic.c:65
+msgid "Falloff Left"
+msgstr ""
+
+#: ops/hue-range-basic/hue-range-basic.c:66
+msgid "Outer left handle of the colour bar, in degrees. -1 uses the family default (centre - 45)"
+msgstr ""
+
+#: ops/hue-range-basic/hue-range-basic.c:71
+msgid "Range Left"
+msgstr ""
+
+#: ops/hue-range-basic/hue-range-basic.c:72
+msgid "Inner left handle, in degrees. -1 uses the family default (centre - 15)"
+msgstr ""
+
+#: ops/hue-range-basic/hue-range-basic.c:77
+msgid "Range Right"
+msgstr ""
+
+#: ops/hue-range-basic/hue-range-basic.c:78
+msgid "Inner right handle, in degrees. -1 uses the family default (centre + 15)"
+msgstr ""
+
+#: ops/hue-range-basic/hue-range-basic.c:83
+msgid "Falloff Right"
+msgstr ""
+
+#: ops/hue-range-basic/hue-range-basic.c:84
+msgid "Outer right handle, in degrees. -1 uses the family default (centre + 45)"
+msgstr ""
+
+#: ops/hue-range-basic/hue-range-basic.c:90
+msgid "Rotate the family's hue, in degrees; scaled by the range weight per pixel"
+msgstr ""
+
+#: ops/hue-range-basic/hue-range-basic.c:96
+msgid "Relative saturation for the family, in percent: +100 drives coloured pixels to full saturation, -100 to grey"
+msgstr ""
+
+#: ops/hue-range-basic/hue-range-basic.c:102
+msgid "Lightness for the family, in percent: positive blends toward white, negative toward black, channel by channel"
+msgstr ""
+
+#: ops/hue-range-basic/hue-range-basic.c:394
+#: ops/hue-range-basic/hue-range-basic.c:401
+msgid "Hue/Saturation Range"
+msgstr ""
+
+#: ops/hue-range-basic/hue-range-basic.c:396
+msgid "Hue, saturation and lightness inside one hue family with a soft four-handle range; chain after Hue/Saturation (Basic) for the full master + per-family workflow."
+msgstr ""
+
+#: ops/hue-saturation-basic/hue-saturation-basic.c:50
+msgid "Rotate the hue of every pixel, in degrees; wraps around the hue circle"
+msgstr ""
+
+#: ops/hue-saturation-basic/hue-saturation-basic.c:56
+msgid "Relative saturation, in percent: +100 drives any coloured pixel to full saturation, -100 to grey"
+msgstr ""
+
+#: ops/hue-saturation-basic/hue-saturation-basic.c:62
+msgid "Lightness in percent: positive blends toward white, negative toward black, channel by channel"
+msgstr ""
+
+#: ops/hue-saturation-basic/hue-saturation-basic.c:277
+#: ops/hue-saturation-basic/hue-saturation-basic.c:282
+msgid "Hue/Saturation (Basic)"
+msgstr ""
+
+#: ops/hue-saturation-basic/hue-saturation-basic.c:279
+msgid "Hue rotation, relative saturation scaling and lightness blended toward white/black."
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:30
+msgid "Rotate the hue of every pixel, in degrees"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:35
+msgid "Add to the HSL saturation of every pixel"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:40
+msgid "Add to the HSL lightness of every pixel"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:44
+msgid "Range overlap"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:45
+msgid "How far each of the six hue ranges reaches into its neighbours: 0 = the ranges tile the hue circle exactly and each centre gets its full setting, 1 = wide soft blending that also dilutes the peak strength"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:51
+msgid "Red hue"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:52
+msgid "Hue shift applied to the red range, in degrees"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:56
+msgid "Red saturation"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:60
+msgid "Red lightness"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:64
+msgid "Yellow hue"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:65
+msgid "Hue shift applied to the yellow range, in degrees"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:69
+msgid "Yellow saturation"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:73
+msgid "Yellow lightness"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:77
+msgid "Green hue"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:78
+msgid "Hue shift applied to the green range, in degrees"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:82
+msgid "Green saturation"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:86
+msgid "Green lightness"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:90
+msgid "Cyan hue"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:91
+msgid "Hue shift applied to the cyan range, in degrees"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:95
+msgid "Cyan saturation"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:99
+msgid "Cyan lightness"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:103
+msgid "Blue hue"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:104
+msgid "Hue shift applied to the blue range, in degrees"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:108
+msgid "Blue saturation"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:112
+msgid "Blue lightness"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:116
+msgid "Magenta hue"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:117
+msgid "Hue shift applied to the magenta range, in degrees"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:121
+msgid "Magenta saturation"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:125
+msgid "Magenta lightness"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:383
+#: ops/hue-saturation/hue-saturation.c:388
+msgid "Hue/Saturation"
+msgstr ""
+
+#: ops/hue-saturation/hue-saturation.c:385
+msgid "Adjust hue, saturation and lightness in HSL, globally or per hue range (red/yellow/green/cyan/blue/magenta)."
+msgstr ""
+
+#: ops/lab-compose/lab-compose.c:133
+#: ops/lab-compose/lab-compose.c:138
+msgid "Lab Compose"
+msgstr ""
+
+#: ops/lab-compose/lab-compose.c:135
+msgid "Turn the data image (R=a, G=b, B=L) back into real Lab colour"
+msgstr ""
+
+#: ops/lab-dual/lab-dual.c:123
+#: ops/lab-dual/lab-dual.c:128
+msgid "Lab Dual Extract"
+msgstr ""
+
+#: ops/lab-dual/lab-dual.c:125
+msgid "Pack Lab a, b and lightness into one data image (R=a, G=b, B=L) for curve editing"
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:29
+#: ops/lch-levels/lch-levels.c:22
+msgid "L input black"
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:30
+msgid "Lightness channel input black."
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:34
+#: ops/lch-levels/lch-levels.c:27
+msgid "L input white"
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:35
+msgid "Lightness channel input white."
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:40
+msgid "Lightness channel gamma / midtones."
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:44
+#: ops/lch-levels/lch-levels.c:37
+msgid "L output black"
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:45
+msgid "Lightness channel output black."
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:48
+#: ops/lch-levels/lch-levels.c:42
+msgid "L output white"
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:49
+msgid "Lightness channel output white."
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:52
+msgid "a input black"
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:53
+msgid "a channel (red-green axis) input black."
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:56
+msgid "a input white"
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:57
+msgid "a channel (red-green axis) input white."
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:60
+msgid "a Gamma"
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:61
+msgid "a channel gamma, pivoting about the neutral axis; controls the midtone colour cast."
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:65
+msgid "a output black"
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:66
+msgid "a channel output black; caps how far green can go."
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:69
+msgid "a output white"
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:70
+msgid "a channel output white; caps how far magenta can go."
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:73
+msgid "b input black"
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:74
+msgid "b channel (yellow-blue axis) input black."
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:77
+msgid "b input white"
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:78
+msgid "b channel (yellow-blue axis) input white."
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:81
+msgid "b Gamma"
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:82
+msgid "b channel gamma, pivoting about the neutral axis; controls the midtone colour cast."
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:86
+msgid "b output black"
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:87
+msgid "b channel output black; caps how far blue can go."
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:90
+msgid "b output white"
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:91
+msgid "b channel output white; caps how far yellow can go."
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:349
+#: ops/lab-levels/lab-levels.c:353
+msgid "LAB Levels"
+msgstr ""
+
+#: ops/lab-levels/lab-levels.c:351
+msgid "Independent levels adjustment for L,a,b channel, adjust tone and color separately"
+msgstr ""
+
+#: ops/lch-compose/lch-compose.c:116
+#: ops/lch-compose/lch-compose.c:121
+msgid "LCh Compose"
+msgstr ""
+
+#: ops/lch-compose/lch-compose.c:118
+msgid "Turn the data image (R=L/100, G=C/140, B=h/360) back into real LCh colour"
+msgstr ""
+
+#: ops/lch-dual/lch-dual.c:126
+#: ops/lch-dual/lch-dual.c:131
+msgid "LCh Dual Extract"
+msgstr ""
+
+#: ops/lch-dual/lch-dual.c:128
+msgid "Pack LCh lightness, chroma and hue into one data image (R=L/100, G=C/140, B=h/360)"
+msgstr ""
+
+#: ops/lch-levels/lch-levels.c:47
+msgid "C input black"
+msgstr ""
+
+#: ops/lch-levels/lch-levels.c:48
+msgid "Chroma input black: values below it are clamped to the output black point."
+msgstr ""
+
+#: ops/lch-levels/lch-levels.c:52
+msgid "C input white"
+msgstr ""
+
+#: ops/lch-levels/lch-levels.c:53
+msgid "Chroma input white: values above it are lifted to the output white point."
+msgstr ""
+
+#: ops/lch-levels/lch-levels.c:58
+msgid "Chroma midtones: >1 lightens the midtones, <1 darkens them."
+msgstr ""
+
+#: ops/lch-levels/lch-levels.c:62
+msgid "C output black"
+msgstr ""
+
+#: ops/lch-levels/lch-levels.c:63
+msgid "Chroma output black; swap it with the output white to invert."
+msgstr ""
+
+#: ops/lch-levels/lch-levels.c:67
+msgid "C output white"
+msgstr ""
+
+#: ops/lch-levels/lch-levels.c:68
+msgid "Chroma output white."
+msgstr ""
+
+#: ops/lch-levels/lch-levels.c:162
+#: ops/lch-levels/lch-levels.c:166
+msgid "LCH Levels"
+msgstr ""
+
+#: ops/lch-levels/lch-levels.c:164
+msgid "Independent levels adjustment for CIE LCh L, C and H channels"
+msgstr ""
+
+#: ops/levels/levels.c:38
+msgid "Input black"
+msgstr ""
+
+#: ops/levels/levels.c:39
+msgid "Composite channel input black: pixels at or below it become black."
+msgstr ""
+
+#: ops/levels/levels.c:42
+msgid "Input grey"
+msgstr ""
+
+#: ops/levels/levels.c:43
+msgid "Composite midtones: >1 lightens, <1 darkens."
+msgstr ""
+
+#: ops/levels/levels.c:46
+msgid "Input white"
+msgstr ""
+
+#: ops/levels/levels.c:47
+msgid "Composite channel input white: pixels at or above it become white."
+msgstr ""
+
+#: ops/levels/levels.c:50
+msgid "Output black"
+msgstr ""
+
+#: ops/levels/levels.c:51
+msgid "Composite channel output black."
+msgstr ""
+
+#: ops/levels/levels.c:54
+msgid "Output white"
+msgstr ""
+
+#: ops/levels/levels.c:55
+msgid "Composite channel output white."
+msgstr ""
+
+#: ops/levels/levels.c:58
+msgid "Red input black"
+msgstr ""
+
+#: ops/levels/levels.c:59
+msgid "Red channel input black."
+msgstr ""
+
+#: ops/levels/levels.c:62
+msgid "Red input grey"
+msgstr ""
+
+#: ops/levels/levels.c:63
+msgid "Red channel midtones: >1 lightens, <1 darkens."
+msgstr ""
+
+#: ops/levels/levels.c:66
+msgid "Red input white"
+msgstr ""
+
+#: ops/levels/levels.c:67
+msgid "Red channel input white."
+msgstr ""
+
+#: ops/levels/levels.c:70
+msgid "Red output black"
+msgstr ""
+
+#: ops/levels/levels.c:71
+msgid "Red channel output black."
+msgstr ""
+
+#: ops/levels/levels.c:74
+msgid "Red output white"
+msgstr ""
+
+#: ops/levels/levels.c:75
+msgid "Red channel output white."
+msgstr ""
+
+#: ops/levels/levels.c:78
+msgid "Green input black"
+msgstr ""
+
+#: ops/levels/levels.c:79
+msgid "Green channel input black."
+msgstr ""
+
+#: ops/levels/levels.c:82
+msgid "Green input grey"
+msgstr ""
+
+#: ops/levels/levels.c:83
+msgid "Green channel midtones: >1 lightens, <1 darkens."
+msgstr ""
+
+#: ops/levels/levels.c:86
+msgid "Green input white"
+msgstr ""
+
+#: ops/levels/levels.c:87
+msgid "Green channel input white."
+msgstr ""
+
+#: ops/levels/levels.c:90
+msgid "Green output black"
+msgstr ""
+
+#: ops/levels/levels.c:91
+msgid "Green channel output black."
+msgstr ""
+
+#: ops/levels/levels.c:94
+msgid "Green output white"
+msgstr ""
+
+#: ops/levels/levels.c:95
+msgid "Green channel output white."
+msgstr ""
+
+#: ops/levels/levels.c:98
+msgid "Blue input black"
+msgstr ""
+
+#: ops/levels/levels.c:99
+msgid "Blue channel input black."
+msgstr ""
+
+#: ops/levels/levels.c:102
+msgid "Blue input grey"
+msgstr ""
+
+#: ops/levels/levels.c:103
+msgid "Blue channel midtones: >1 lightens, <1 darkens."
+msgstr ""
+
+#: ops/levels/levels.c:106
+msgid "Blue input white"
+msgstr ""
+
+#: ops/levels/levels.c:107
+msgid "Blue channel input white."
+msgstr ""
+
+#: ops/levels/levels.c:110
+msgid "Blue output black"
+msgstr ""
+
+#: ops/levels/levels.c:111
+msgid "Blue channel output black."
+msgstr ""
+
+#: ops/levels/levels.c:114
+msgid "Blue output white"
+msgstr ""
+
+#: ops/levels/levels.c:115
+msgid "Blue channel output white."
+msgstr ""
+
+#: ops/levels/levels.c:273
+#: ops/levels/levels.c:276
+msgid "Levels"
+msgstr ""
+
+#: ops/levels/levels.c:274
+msgid "Replicate the classic editor Levels (composite + per-channel input black/gamma/white and output black/white, 0-255 units). Evaluated in the 8-bit sRGB gamma domain, so the numbers agree with the classic dialog."
+msgstr ""
+
+#: ops/match-color/match-color.c:64
+msgid "Method"
+msgstr ""
+
+#: ops/match-color/match-color.c:65
+msgid "Statistics matches each channel's mean and standard deviation, exactly like the classic editor. Monge-Kantorovich adds the 3x3 covariance so L, a and b stay correlated (no colour blotches). The +histogram variant then pulls the residuals onto the source's histogram, which catches tonal tails a linear map cannot reach"
+msgstr ""
+
+#: ops/match-color/match-color.c:73
+msgid "How strongly the L channel is matched: 100 = exact, 200 = twice the correction, 1 = almost none"
+msgstr ""
+
+#: ops/match-color/match-color.c:77
+msgid "Color intensity"
+msgstr ""
+
+#: ops/match-color/match-color.c:78
+msgid "How strongly the a/b channels are matched"
+msgstr ""
+
+#: ops/match-color/match-color.c:81
+msgid "Fade"
+msgstr ""
+
+#: ops/match-color/match-color.c:82
+msgid "Blend the result back toward the original"
+msgstr ""
+
+#: ops/match-color/match-color.c:85
+msgid "Neutralize"
+msgstr ""
+
+#: ops/match-color/match-color.c:86
+msgid "Force the output chroma mean to neutral (remove color cast); the source still donates contrast"
+msgstr ""
+
+#: ops/match-color/match-color.c:89
+msgid "Refresh stats"
+msgstr ""
+
+#: ops/match-color/match-color.c:90
+msgid "Recompute the statistics on the next tile (use after the source layer changed in a preview session)"
+msgstr ""
+
+#: ops/match-color/match-color.c:941
+msgid "Image whose colors are matched onto the input (statistics donor)"
+msgstr ""
+
+#: ops/match-color/match-color.c:945
+#: ops/match-color/match-color.c:953
+msgid "Match Color"
+msgstr ""
+
+#: ops/match-color/match-color.c:946
+msgid "the classic editor Match Color: transfer the L*a*b* statistics of another image or layer onto this one. Method chooses per-channel mean/std (the classic editor's behaviour), the full 3x3 linear Monge-Kantorovich map, or MKL plus histogram matching; plus luminance, color intensity, fade and neutralize."
+msgstr ""
+
+#: ops/match-color/match-color.c:59
+msgid "Statistics (mean/std)"
+msgstr ""
+
+#: ops/match-color/match-color.c:60
+msgid "Monge-Kantorovich (covariance)"
+msgstr ""
+
+#: ops/match-color/match-color.c:61
+msgid "Monge-Kantorovich + histogram"
+msgstr ""
+
+#: ops/max-min/max-min.c:49
+msgid "Maximum takes the brightest pixel in the neighbourhood, so bright areas grow (dilate); minimum takes the darkest, so they shrink (erode)."
+msgstr ""
+
+#: ops/max-min/max-min.c:58
+#: plugin/max-min/max-min.py:237
+msgid "Shape"
+msgstr ""
+
+#: ops/max-min/max-min.c:59
+msgid "Square is the (±r, ±r) window; round is a disc of radius r. The counterpart of Photoshop's Preserve: Squareness / Roundness."
+msgstr ""
+
+#: ops/max-min/max-min.c:63
+#: plugin/max-min/max-min.py:228
+msgid "Radius"
+msgstr ""
+
+#: ops/max-min/max-min.c:64
+msgid "Neighbourhood radius in pixels. r=1 means a 3×3 window and grows the edge outward by one pixel. Limited to 1–100, same as Photoshop."
+msgstr ""
+
+#: ops/max-min/max-min.c:70
+msgid "Affect Alpha"
+msgstr ""
+
+#: ops/max-min/max-min.c:71
+msgid "Whether alpha takes part in the extremum. Off by default: Photoshop does not change layer opacity either, and letting a cut-out edge dilate is rarely what you want."
+msgstr ""
+
+#: ops/max-min/max-min.c:278
+msgid "Maximum / Minimum"
+msgstr ""
+
+#: ops/max-min/max-min.c:279
+msgid "Morphological dilate (maximum) and erode (minimum) over a square or round neighbourhood: expands or shrinks bright areas. The equivalent of Photoshop's Maximum / Minimum filter, computed in the buffer's own precision."
+msgstr ""
+
+#: ops/max-min/max-min.c:44
+msgid "Maximum (dilate)"
+msgstr ""
+
+#: ops/max-min/max-min.c:45
+msgid "Minimum (erode)"
+msgstr ""
+
+#: ops/max-min/max-min.c:54
+#: plugin/max-min/max-min.py:168
+msgid "Square"
+msgstr ""
+
+#: ops/max-min/max-min.c:55
+#: plugin/max-min/max-min.py:168
+msgid "Round"
+msgstr ""
+
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:37
+msgid "Red color ratio (the classic editor default 40 = 0.4)"
+msgstr ""
+
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:43
+msgid "Yellow color ratio (the classic editor default 60 = 0.6)"
+msgstr ""
+
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:49
+msgid "Green color ratio (the classic editor default 40 = 0.4)"
+msgstr ""
+
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:55
+msgid "Cyan color ratio (the classic editor default 60 = 0.6)"
+msgstr ""
+
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:61
+msgid "Blue color ratio (the classic editor default 20 = 0.2)"
+msgstr ""
+
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:67
+msgid "Magenta color ratio (the classic editor default 80 = 0.8)"
+msgstr ""
+
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:70
+msgid "Tint Enabled"
+msgstr ""
+
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:71
+msgid "Enable tinting mode"
+msgstr ""
+
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:73
+msgid "Tint Color"
+msgstr ""
+
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:74
+msgid "Color used for tinting"
+msgstr ""
+
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:76
+msgid "Tint Strength"
+msgstr ""
+
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:80
+msgid "Strength of tinting effect. 0 = pure black & white, 1 = full tint"
+msgstr ""
+
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:331
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:335
+msgid "Black & White"
+msgstr ""
+
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:332
+msgid "the classic editor Black & White: six color weights (red/yellow/green/cyan/blue/magenta) in RGB domain, optional tint"
+msgstr ""
+
+#: ops/shadows-highlights/shadows-highlights.c:47
+msgid "Shadows Amount"
+msgstr ""
+
+#: ops/shadows-highlights/shadows-highlights.c:51
+msgid "How much to lift the shadows (the classic default 35)"
+msgstr ""
+
+#: ops/shadows-highlights/shadows-highlights.c:53
+msgid "Shadows Tonal Width"
+msgstr ""
+
+#: ops/shadows-highlights/shadows-highlights.c:56
+msgid "Range of shadow tones affected; small values stay in the darkest areas"
+msgstr ""
+
+#: ops/shadows-highlights/shadows-highlights.c:58
+msgid "Shadows Radius"
+msgstr ""
+
+#: ops/shadows-highlights/shadows-highlights.c:62
+msgid "Size of the local neighbourhood that decides what counts as shadow"
+msgstr ""
+
+#: ops/shadows-highlights/shadows-highlights.c:64
+msgid "Highlights Amount"
+msgstr ""
+
+#: ops/shadows-highlights/shadows-highlights.c:68
+msgid "How much to pull the highlights back (the classic default 0)"
+msgstr ""
+
+#: ops/shadows-highlights/shadows-highlights.c:70
+msgid "Highlights Tonal Width"
+msgstr ""
+
+#: ops/shadows-highlights/shadows-highlights.c:73
+msgid "Range of highlight tones affected"
+msgstr ""
+
+#: ops/shadows-highlights/shadows-highlights.c:75
+msgid "Highlights Radius"
+msgstr ""
+
+#: ops/shadows-highlights/shadows-highlights.c:79
+msgid "Size of the local neighbourhood that decides what counts as highlight"
+msgstr ""
+
+#: ops/shadows-highlights/shadows-highlights.c:81
+msgid "Color Correction"
+msgstr ""
+
+#: ops/shadows-highlights/shadows-highlights.c:84
+msgid "How much of the colour difference survives the brightness change; positive keeps more saturation (the classic default +20)"
+msgstr ""
+
+#: ops/shadows-highlights/shadows-highlights.c:87
+msgid "Midtone Contrast"
+msgstr ""
+
+#: ops/shadows-highlights/shadows-highlights.c:90
+msgid "Global S-curve on the resulting brightness"
+msgstr ""
+
+#: ops/shadows-highlights/shadows-highlights.c:92
+msgid "Black Clip"
+msgstr ""
+
+#: ops/shadows-highlights/shadows-highlights.c:96
+msgid "Percent of the darkest pixels stretched to black (0.01 in the classic editor)"
+msgstr ""
+
+#: ops/shadows-highlights/shadows-highlights.c:98
+msgid "White Clip"
+msgstr ""
+
+#: ops/shadows-highlights/shadows-highlights.c:102
+msgid "Percent of the brightest pixels stretched to white (0.01 in the classic editor)"
+msgstr ""
+
+#: ops/shadows-highlights/shadows-highlights.c:1440
+#: ops/shadows-highlights/shadows-highlights.c:1446
+msgid "Shadows/Highlights"
+msgstr ""
+
+#: ops/shadows-highlights/shadows-highlights.c:1441
+msgid "the classic editor's Shadows/Highlights: lifts shadows and pulls highlights back according to an edge-aware local neighbourhood, with colour correction, midtone contrast and black/white clipping."
+msgstr ""
+
+#: ops/vibrance-hyper/vibrance-hyper.c:27
+#: ops/vibrance/vibrance.c:45
+#: ops/vibrance/vibrance.c:428
+#: ops/vibrance/vibrance.c:434
+msgid "Vibrance"
+msgstr ""
+
+#: ops/vibrance-hyper/vibrance-hyper.c:28
+msgid "Adaptive natural saturation: fuller boost on low-chroma colors, fading out on already vivid ones"
+msgstr ""
+
+#: ops/vibrance-hyper/vibrance-hyper.c:35
+msgid "Global linear chroma multiplier, applied independently of Vibrance"
+msgstr ""
+
+#: ops/vibrance-hyper/vibrance-hyper.c:40
+msgid "High Chroma Attenuation"
+msgstr ""
+
+#: ops/vibrance-hyper/vibrance-hyper.c:41
+msgid "How fast Vibrance fades on saturated colors: higher = stronger protection"
+msgstr ""
+
+#: ops/vibrance-hyper/vibrance-hyper.c:46
+msgid "Skin Protection"
+msgstr ""
+
+#: ops/vibrance-hyper/vibrance-hyper.c:47
+msgid "How strongly skin-tone hues (orange band around 55°) are held back: 0 = treat skin like any other color, 1 = almost no boost on skin"
+msgstr ""
+
+#: ops/vibrance-hyper/vibrance-hyper.c:351
+#: ops/vibrance-hyper/vibrance-hyper.c:356
+msgid "Natural Saturation"
+msgstr ""
+
+#: ops/vibrance-hyper/vibrance-hyper.c:353
+msgid "Natural saturation in LAB: chroma-driven hyperbola mask plus skin-hue protection, gamut-limited so hue and lightness never shift"
+msgstr ""
+
+#: ops/vibrance/vibrance.c:46
+msgid "the classic editor's Vibrance, -100 to +100. Low-saturation colours gain the most, already-vivid ones are held back, and the red band carries extra protection"
+msgstr ""
+
+#: ops/vibrance/vibrance.c:53
+msgid "Red-band protection"
+msgstr ""
+
+#: ops/vibrance/vibrance.c:54
+msgid "The measured hold-back on reds/skin (hue within 40° of red). Turn off to boost every hue identically"
+msgstr ""
+
+#: ops/vibrance/vibrance.c:57
+msgid "Lightness compensation"
+msgstr ""
+
+#: ops/vibrance/vibrance.c:58
+msgid "The measured rule that light colours receive a smaller boost (0.72x at HSL lightness 80, 1.39x at 20)"
+msgstr ""
+
+#: ops/vibrance/vibrance.c:430
+msgid "the classic editor's Vibrance, matched by measurement: dS = A(v)·S^p·(1-S)^q with tabulated red-band and lightness terms, gamut-safe by construction"
+msgstr ""
+
+#: ops/xyz-multiply/xyz-multiply.c:34
+msgid "Filter Color"
+msgstr ""
+
+#: ops/xyz-multiply/xyz-multiply.c:35
+msgid "Filter colour, i.e. the Photo Filter preset colour"
+msgstr ""
+
+#: ops/xyz-multiply/xyz-multiply.c:37
+msgid "White Point"
+msgstr ""
+
+#: ops/xyz-multiply/xyz-multiply.c:39
+msgid "CIE standard illuminant white point (the print ICC default)"
+msgstr ""
+
+#: ops/xyz-multiply/xyz-multiply.c:42
+msgid "D50 (print ICC)"
+msgstr ""
+
+#: ops/xyz-multiply/xyz-multiply.c:43
+msgid "D55 (Old daylight)"
+msgstr ""
+
+#: ops/xyz-multiply/xyz-multiply.c:44
+msgid "D65 (sRGB screen)"
+msgstr ""
+
+#: ops/xyz-multiply/xyz-multiply.c:45
+msgid "D75 Cool proof light"
+msgstr ""
+
+#: ops/xyz-multiply/xyz-multiply.c:48
+msgid "Density"
+msgstr ""
+
+#: ops/xyz-multiply/xyz-multiply.c:51
+msgid "Filter density (the classic editor's 0-100% divided by 100)"
+msgstr ""
+
+#: ops/xyz-multiply/xyz-multiply.c:54
+msgid "Keep the original luminance, like the classic editor's default checkbox"
+msgstr ""
+
+#: ops/xyz-multiply/xyz-multiply.c:467
+#: ops/xyz-multiply/xyz-multiply.c:471
+msgid "Photo Filter"
+msgstr ""
+
+#: ops/xyz-multiply/xyz-multiply.c:468
+msgid "the classic editor's Photo Filter: filter colour multiplied in XYZ space, with density and preserve-luminosity"
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:85
+msgid "Gray（0.299R + 0.587G + 0.114B）"
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:89
+msgid "LAB L (lightness)"
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:90
+msgid "LAB A (green-magenta)"
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:91
+msgid "LAB B (blue-yellow)"
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:92
+msgid "Alpha (adjust existing opacity only)"
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:140
+msgid "1 · Channel to alpha"
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:154
+msgid "2 · Alpha curve"
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:170
+msgid "The lb:channel-range-to-alpha operation is missing, so the channel cannot be written into alpha. Install the module from dist/, or set the source channel to alpha to attach the curve alone."
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:182
+#: plugin/color-range/color-range.py:181
+#: plugin/dodge-burn/dodge-burn.py:174
+#: plugin/neutral-grey/neutral-grey.py:150
+msgid "Nothing to work on: no layer."
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:185
+#: plugin/dodge-burn/dodge-burn.py:177
+#: plugin/neutral-grey/neutral-grey.py:153
+msgid "A layer group has no pixels of its own; pick a raster layer (right-click the group, then Merge Group)."
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:210
+msgid "Two filters (channel to alpha, alpha curve)"
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:211
+msgid "One alpha curve"
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:236
+msgid "Alpha Curves"
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:241
+msgid "Attaches an editable curve to alpha: first writes the chosen colour channel into alpha, then chains a gimp:curves with channel = Alpha. Both are non-destructive filters and the curve can take any shape, which is far more flexible than the four sliders of Range to Alpha."
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:242
+msgid "Curve the alpha channel: copy a colour channel into alpha, then put an editable curve on it. Non-destructive; the curve can be any shape, unlike the linear ramps of Range to Alpha."
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:251
+msgid "Which channel decides the opacity; alpha adjusts the existing opacity only."
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:255
+msgid "auto"
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:256
+msgid "Flat-top curve: 0 / 128 / 255 all sit at the top, drag it down to shape it."
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:257
+msgid "flat (flat top)"
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:258
+msgid "All three control points sit at 255, so alpha starts fully opaque; drag them down yourself."
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:259
+msgid "band (blend band)"
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:260
+msgid "Transparent at both ends and opaque in the middle, with a smooth bend."
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:261
+msgid "identity"
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:262
+msgid "A 45° line: alpha equals the channel value exactly; drag the points yourself."
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:263
+msgid "soft (S-curve)"
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:264
+msgid "Sampled from smoothstep: flat at both ends and steep in the middle, monotonic."
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:266
+msgid "Initial curve"
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:266
+msgid "Shape the curve starts with when it is attached; change it freely afterwards."
+msgstr ""
+
+#: plugin/alpha-curves/alpha-curves.py:274
+#: plugin/channel-to-mask/channel-to-mask.py:212
+#: plugin/color-range/color-range.py:499
+#: plugin/hsi-split-curves/hsi-split-curves.py:332
+#: plugin/hsl-split-curves/hsl-split-curves.py:553
+#: plugin/hsv-split-curves/hsv-split-curves.py:563
+#: plugin/lab-split-curves/lab-split-curves.py:610
+#: plugin/layer-to-channel/layer-to-channel.py:295
+#: plugin/layer-to-selection/layer-to-selection.py:299
+#: plugin/lch-split-curves/lch-split-curves.py:739
+msgid "No image or no layer selected"
+msgstr ""
+
+#: plugin/blend/blend.py:326
+msgid "No source layer"
+msgstr ""
+
+#: plugin/blend/blend.py:556
+msgid "Mask source"
+msgstr ""
+
+#: plugin/blend/blend.py:566
+msgid "_Cancel"
+msgstr ""
+
+#: plugin/blend/blend.py:567
+msgid "_OK"
+msgstr ""
+
+#: plugin/blend/blend.py:593
+msgid "RGB"
+msgstr ""
+
+#: plugin/blend/blend.py:598
+msgid "Target"
+msgstr ""
+
+#: plugin/blend/blend.py:607
+#: plugin/blend/blend.py:642
+msgid "Mask"
+msgstr ""
+
+#: plugin/blend/blend.py:608
+#: plugin/blend/blend.py:644
+#: plugin/blend/blend.py:823
+#: plugin/blend/blend.py:884
+msgid "Result"
+msgstr ""
+
+#: plugin/blend/blend.py:628
+msgid "Whole layer"
+msgstr ""
+
+#: plugin/blend/blend.py:628
+msgid "Selection only"
+msgstr ""
+
+#: plugin/blend/blend.py:631
+#: plugin/blend/blend.py:836
+msgid "Source 1"
+msgstr ""
+
+#: plugin/blend/blend.py:643
+#: plugin/blend/blend.py:891
+#: plugin/color-range/color-range.py:335
+#: plugin/color-range/color-range.py:348
+msgid "Range"
+msgstr ""
+
+#: plugin/blend/blend.py:645
+#: plugin/blend/blend.py:895
+msgid "Load result as selection"
+msgstr ""
+
+#: plugin/blend/blend.py:669
+#: plugin/convert/convert.py:528
+msgid "No image"
+msgstr ""
+
+#: plugin/blend/blend.py:772
+msgid "Apply Image: blend a layer from any open image onto this one, per channel, with mask and opacity"
+msgstr ""
+
+#: plugin/blend/blend.py:774
+msgid "Replicates Image > Apply Image from the classic image editor."
+msgstr ""
+
+#: plugin/blend/blend.py:775
+msgid "Apply Image..."
+msgstr ""
+
+#: plugin/blend/blend.py:779
+#: plugin/blend/blend.py:855
+msgid "0 = Normal .. 25 = Luminosity (PS order)"
+msgstr ""
+
+#: plugin/blend/blend.py:782
+#: plugin/blend/blend.py:858
+msgid "Blend strength"
+msgstr ""
+
+#: plugin/blend/blend.py:790
+#: plugin/blend/blend.py:866
+msgid "Add/Subtract only: value added after scaling (-255..255)"
+msgstr ""
+
+#: plugin/blend/blend.py:793
+msgid "0 RGB, 1 R, 2 G, 3 B, 4 Alpha"
+msgstr ""
+
+#: plugin/blend/blend.py:796
+#: plugin/blend/blend.py:840
+msgid "0 Gray, 1 R, 2 G, 3 B, 4 Alpha, 5 mask"
+msgstr ""
+
+#: plugin/blend/blend.py:798
+msgid "Source image"
+msgstr ""
+
+#: plugin/blend/blend.py:799
+msgid "-1 = this image, else index of open images"
+msgstr ""
+
+#: plugin/blend/blend.py:802
+#: plugin/blend/blend.py:811
+#: plugin/blend/blend.py:852
+#: plugin/blend/blend.py:875
+msgid "Layer name; empty = first layer"
+msgstr ""
+
+#: plugin/blend/blend.py:805
+#: plugin/blend/blend.py:869
+msgid "Limit the effect with a mask"
+msgstr ""
+
+#: plugin/blend/blend.py:807
+#: plugin/blend/blend.py:871
+msgid "Mask image"
+msgstr ""
+
+#: plugin/blend/blend.py:808
+#: plugin/blend/blend.py:848
+#: plugin/blend/blend.py:872
+msgid "-1 = this image"
+msgstr ""
+
+#: plugin/blend/blend.py:810
+#: plugin/blend/blend.py:874
+msgid "Mask layer"
+msgstr ""
+
+#: plugin/blend/blend.py:814
+#: plugin/blend/blend.py:878
+msgid "0 Gray .. 5 layer mask"
+msgstr ""
+
+#: plugin/blend/blend.py:817
+#: plugin/blend/blend.py:881
+msgid "Use the inverted mask"
+msgstr ""
+
+#: plugin/blend/blend.py:821
+msgid "Leave transparent pixels alone"
+msgstr ""
+
+#: plugin/blend/blend.py:824
+msgid "0 composite, 1 new grey layer"
+msgstr ""
+
+#: plugin/blend/blend.py:828
+msgid "Calculations: blend two channels from any open image into a selection, channel, grey layer or layer alpha"
+msgstr ""
+
+#: plugin/blend/blend.py:830
+msgid "Replicates Image > Calculations from the classic image editor."
+msgstr ""
+
+#: plugin/blend/blend.py:831
+msgid "Calculations..."
+msgstr ""
+
+#: plugin/blend/blend.py:839
+msgid "%s channel"
+msgstr ""
+
+#: plugin/blend/blend.py:843
+msgid "Invert %s"
+msgstr ""
+
+#: plugin/blend/blend.py:844
+msgid "Invert this channel first"
+msgstr ""
+
+#: plugin/blend/blend.py:847
+msgid "%s image"
+msgstr ""
+
+#: plugin/blend/blend.py:851
+msgid "%s layer"
+msgstr ""
+
+#: plugin/blend/blend.py:885
+msgid "0 selection, 1 new channel, 2 grey layer, 3 layer alpha"
+msgstr ""
+
+#: plugin/blend/blend.py:892
+msgid "0 whole layer, 1 current selection only"
+msgstr ""
+
+#: plugin/blend/blend.py:896
+msgid "Also load the computed grey as the image selection"
+msgstr ""
+
+#: plugin/channel-to-mask/channel-to-mask.py:92
+msgid "No channel named \"%s\"."
+msgstr ""
+
+#: plugin/channel-to-mask/channel-to-mask.py:107
+#: plugin/convert/convert.py:155
+msgid "This image has no channels yet; create one in the Channels dock first."
+msgstr ""
+
+#: plugin/channel-to-mask/channel-to-mask.py:110
+msgid "Click the channel to use in the Channels dock and run again (available: %s), or fill in a channel name."
+msgstr ""
+
+#: plugin/channel-to-mask/channel-to-mask.py:137
+msgid "No layer selected."
+msgstr ""
+
+#: plugin/channel-to-mask/channel-to-mask.py:139
+#: plugin/convert/convert.py:298
+msgid "A layer group has no pixels and cannot take a mask; merge the group first."
+msgstr ""
+
+#: plugin/channel-to-mask/channel-to-mask.py:181
+msgid "Channel to Mask..."
+msgstr ""
+
+#: plugin/channel-to-mask/channel-to-mask.py:188
+msgid "Channel to Mask: take a channel (the one selected in the Channels dock, or one you name) and use its grey levels as a layer mask on the selected layer(s). Black hides, white shows, mid grey is partial. Results match GIMP's own channel-to-selection-to-mask route exactly; layers that already have a mask get a fresh one built the same way."
+msgstr ""
+
+#: plugin/channel-to-mask/channel-to-mask.py:194
+msgid "One click 'channel -> layer mask' for every selected layer. Grey levels become mask strength; invert flips black and white. The reverse of Layer to Channel."
+msgstr ""
+
+#: plugin/channel-to-mask/channel-to-mask.py:199
+#: plugin/gray-mask/gray-mask.py:206
+#: plugin/layer-to-channel/layer-to-channel.py:286
+msgid "Channel name"
+msgstr ""
+
+#: plugin/channel-to-mask/channel-to-mask.py:200
+msgid "Empty = the channel currently selected in the Channels dock"
+msgstr ""
+
+#: plugin/channel-to-mask/channel-to-mask.py:204
+msgid "Swap black and white: mask by the channel's complement"
+msgstr ""
+
+#: plugin/channel-to-mask/channel-to-mask.py:224
+msgid "Nothing selected but layers."
+msgstr ""
+
+#: plugin/channel-to-mask/channel-to-mask.py:232
+msgid "Masked %d layer(s) with channel \\u201c%s\\u201d%s"
+msgstr ""
+
+#: plugin/channel-to-mask/channel-to-mask.py:234
+msgid " (inverted)"
+msgstr ""
+
+#: plugin/color-range/color-range.py:92
+#: plugin/color-range/color-range.py:326
+msgid "Picked colour"
+msgstr ""
+
+#: plugin/color-range/color-range.py:170
+msgid "The lb:color-mask-select operation (the pixel engine behind Color Range) is missing. Install the operator package from dist/, or build it with ./build.sh."
+msgstr ""
+
+#: plugin/color-range/color-range.py:184
+msgid "A layer group has no pixels of its own; pick a raster layer."
+msgstr ""
+
+#: plugin/color-range/color-range.py:193
+#: plugin/color-range/color-range.py:218
+#: plugin/color-range/color-range.py:483
+msgid "Color Range"
+msgstr ""
+
+#: plugin/color-range/color-range.py:226
+msgid "Cancel"
+msgstr ""
+
+#: plugin/color-range/color-range.py:227
+msgid "OK"
+msgstr ""
+
+#: plugin/color-range/color-range.py:236
+msgid "Selection"
+msgstr ""
+
+#: plugin/color-range/color-range.py:270
+msgid "Red overlay preview"
+msgstr ""
+
+#: plugin/color-range/color-range.py:279
+msgid "<small>On OK the mask is written into the layer alpha (the red overlay is preview only and is never baked in).</small>"
+msgstr ""
+
+#: plugin/color-range/color-range.py:315
+#: plugin/color-range/color-range.py:339
+#: plugin/color-range/color-range.py:352
+#: plugin/color-range/color-range.py:369
+msgid "Color tolerance"
+msgstr ""
+
+#: plugin/color-range/color-range.py:330
+msgid "Minimum chroma"
+msgstr ""
+
+#: plugin/color-range/color-range.py:343
+msgid "<small>Luminance at or above this value counts as highlights; below it is the transition band.</small>"
+msgstr ""
+
+#: plugin/color-range/color-range.py:356
+msgid "<small>Luminance at or below this value counts as shadows; above it is the transition band.</small>"
+msgstr ""
+
+#: plugin/color-range/color-range.py:361
+msgid "Range low"
+msgstr ""
+
+#: plugin/color-range/color-range.py:365
+msgid "Range high"
+msgstr ""
+
+#: plugin/color-range/color-range.py:428
+msgid "Color Range (preview)"
+msgstr ""
+
+#: plugin/color-range/color-range.py:488
+msgid "The custom dialog for Color Range: pick a colour type and only that type's parameters stay visible, each mode keeping its own defaults (highlights 192, shadows 64, midtones 64/192). On OK the mask is written into the layer alpha."
+msgstr ""
+
+#: plugin/color-range/color-range.py:489
+msgid "A custom Color Range dialog: the mode picks which controls exist, and each mode starts at its own default (highlights 192, shadows 64, midtones 64/192). The mask lands in the layer alpha."
+msgstr ""
+
+#: plugin/convert/convert.py:157
+msgid "Click the channel to use in the Channels dock and run again (available: %s)."
+msgstr ""
+
+#: plugin/convert/convert.py:176
+msgid "Nothing selected: select the target layer(s) in the Layers dock and run it from there."
+msgstr ""
+
+#: plugin/convert/convert.py:187
+msgid "The selected layer has no layer mask."
+msgstr ""
+
+#: plugin/convert/convert.py:225
+msgid "This image has no paths yet; draw one with the path tool first."
+msgstr ""
+
+#: plugin/convert/convert.py:227
+msgid "Click the path to use in the Paths dock and run again (available: %s)."
+msgstr ""
+
+#: plugin/convert/convert.py:272
+msgid "There is no selection to trace."
+msgstr ""
+
+#: plugin/convert/convert.py:276
+msgid "The native tracer produced no path; the selection is too small."
+msgstr ""
+
+#: plugin/convert/convert.py:418
+msgid "Take the channel selected in the Channels dock and turn it into the pixel selection."
+msgstr ""
+
+#: plugin/convert/convert.py:420
+msgid "Channel to selection: turns the channel selected in the Channels dock into a pixel selection."
+msgstr ""
+
+#: plugin/convert/convert.py:424
+msgid "Save the current selection as a new channel."
+msgstr ""
+
+#: plugin/convert/convert.py:425
+msgid "Selection to channel: saves the current selection as a new channel."
+msgstr ""
+
+#: plugin/convert/convert.py:429
+msgid "Use the selected channel's grey levels as a layer mask on every selected layer."
+msgstr ""
+
+#: plugin/convert/convert.py:431
+msgid "Channel to mask: uses the selected channel's grey as the mask of the selected layer."
+msgstr ""
+
+#: plugin/convert/convert.py:435
+msgid "Turn the selected layer's layer mask into a new channel."
+msgstr ""
+
+#: plugin/convert/convert.py:436
+msgid "Mask to channel: turns the selected layer's mask into a new channel."
+msgstr ""
+
+#: plugin/convert/convert.py:440
+msgid "Use the current selection as a layer mask on every selected layer."
+msgstr ""
+
+#: plugin/convert/convert.py:441
+msgid "Selection to mask: attaches the current selection as the mask of the selected layer."
+msgstr ""
+
+#: plugin/convert/convert.py:445
+msgid "Turn the selected layer's layer mask into the pixel selection."
+msgstr ""
+
+#: plugin/convert/convert.py:446
+msgid "Mask to selection: turns the selected layer's mask into a pixel selection."
+msgstr ""
+
+#: plugin/convert/convert.py:452
+msgid "Turn the selected path into the pixel selection."
+msgstr ""
+
+#: plugin/convert/convert.py:453
+msgid "Path to selection: turns the path selected in the Paths dock into a pixel selection."
+msgstr ""
+
+#: plugin/convert/convert.py:457
+msgid "Trace the current selection into a new path (the native Select > To Path geometry, with a readable name)."
+msgstr ""
+
+#: plugin/convert/convert.py:459
+msgid "Selection to path: traces the current selection into a new path (same geometry as the native To Path)."
+msgstr ""
+
+#: plugin/convert/convert.py:463
+msgid "Rasterise the selected path into a new channel."
+msgstr ""
+
+#: plugin/convert/convert.py:464
+msgid "Path to channel: rasterises the selected path into a new channel."
+msgstr ""
+
+#: plugin/convert/convert.py:468
+msgid "Trace the selected channel's 50% contour into a new path."
+msgstr ""
+
+#: plugin/convert/convert.py:469
+msgid "Channel to path: traces the 50% contour of the selected channel into a new path."
+msgstr ""
+
+#: plugin/convert/convert.py:473
+msgid "Rasterise the selected path into a layer mask on every selected layer."
+msgstr ""
+
+#: plugin/convert/convert.py:475
+msgid "Path to mask: rasterises the selected path into the mask of the selected layer."
+msgstr ""
+
+#: plugin/convert/convert.py:479
+msgid "Trace the selected layer's mask into a new path."
+msgstr ""
+
+#: plugin/convert/convert.py:480
+msgid "Mask to path: traces the outline of the selected layer's mask into a new path."
+msgstr ""
+
+#: plugin/convert/convert.py:534
+msgid "Channel \"%s\" to selection"
+msgstr ""
+
+#: plugin/convert/convert.py:537
+msgid "Selection to channel \"%s\""
+msgstr ""
+
+#: plugin/convert/convert.py:540
+msgid "Channel \"%s\" to the mask of %d layer(s)"
+msgstr ""
+
+#: plugin/convert/convert.py:544
+msgid "Mask to channel \"%s\""
+msgstr ""
+
+#: plugin/convert/convert.py:547
+msgid "Selection to the mask of %d layer(s)"
+msgstr ""
+
+#: plugin/convert/convert.py:550
+msgid "Mask \"%s\" to selection"
+msgstr ""
+
+#: plugin/convert/convert.py:553
+msgid "Path \"%s\" to selection"
+msgstr ""
+
+#: plugin/convert/convert.py:556
+msgid "Selection to path \"%s\""
+msgstr ""
+
+#: plugin/convert/convert.py:559
+msgid "Path \"%s\" to channel \"%s\""
+msgstr ""
+
+#: plugin/convert/convert.py:563
+msgid "Channel \"%s\" to path \"%s\""
+msgstr ""
+
+#: plugin/convert/convert.py:567
+msgid "Path \"%s\" to the mask of %d layer(s)"
+msgstr ""
+
+#: plugin/convert/convert.py:571
+msgid "Mask \"%s\" to path \"%s\""
+msgstr ""
+
+#: plugin/convert/convert.py:574
+msgid "Unknown direction"
+msgstr ""
+
+#: plugin/dodge-burn/dodge-burn.py:127
+#: plugin/frequency-separation/frequency-separation.py:135
+msgid "0 · alpha"
+msgstr ""
+
+#: plugin/dodge-burn/dodge-burn.py:196
+#: plugin/dodge-burn/dodge-burn.py:256
+msgid "Dodge & Burn"
+msgstr ""
+
+#: plugin/dodge-burn/dodge-burn.py:202
+msgid "1 · Dodge (black mask)"
+msgstr ""
+
+#: plugin/dodge-burn/dodge-burn.py:202
+msgid "1 · Dodge curve"
+msgstr ""
+
+#: plugin/dodge-burn/dodge-burn.py:202
+msgid "Paint white to dodge"
+msgstr ""
+
+#: plugin/dodge-burn/dodge-burn.py:203
+msgid "2 · Burn (black mask)"
+msgstr ""
+
+#: plugin/dodge-burn/dodge-burn.py:203
+msgid "2 · Burn curve"
+msgstr ""
+
+#: plugin/dodge-burn/dodge-burn.py:203
+msgid "Paint white to burn"
+msgstr ""
+
+#: plugin/dodge-burn/dodge-burn.py:229
+msgid "Dodge & Burn is set up: a dodge and a burn layer, each with its own curve and a fully black mask, so the image is currently identical to the original. Click one layer's mask and paint with a soft white brush (opacity 10–20%%): painting on the dodge layer lightens, on the burn layer darkens. Strength %g%% (lifts/lowers by %.2f at 0.5)."
+msgstr ""
+
+#: plugin/dodge-burn/dodge-burn.py:231
+#: plugin/frequency-separation/frequency-separation.py:230
+#: plugin/hsi-split-curves/hsi-split-curves.py:288
+#: plugin/hsl-split-curves/hsl-split-curves.py:417
+#: plugin/hsl-split-curves/hsl-split-curves.py:487
+#: plugin/hsv-split-curves/hsv-split-curves.py:442
+#: plugin/hsv-split-curves/hsv-split-curves.py:511
+#: plugin/lab-split-curves/lab-split-curves.py:474
+#: plugin/lab-split-curves/lab-split-curves.py:544
+#: plugin/lch-split-curves/lch-split-curves.py:673
+#: plugin/neutral-grey/neutral-grey.py:203
+msgid "\n(This image has transparency, so the layers went into a group automatically: the group mask preserves it.)"
+msgstr ""
+
+#: plugin/dodge-burn/dodge-burn.py:261
+msgid "Dodge & Burn: creates a dodge and a burn curve layer, both with a fully black mask. Paint with a soft white brush on a mask and only what you paint gets lighter or darker; everywhere else stays pixel-identical to the original."
+msgstr ""
+
+#: plugin/dodge-burn/dodge-burn.py:262
+msgid "Dodge & burn stack: a lighten curve and a darken curve on black masks. Paint white on a mask to dodge or burn; untouched pixels stay identical to the original."
+msgstr ""
+
+#: plugin/dodge-burn/dodge-burn.py:266
+msgid "Strength (%)"
+msgstr ""
+
+#: plugin/dodge-burn/dodge-burn.py:267
+msgid "How far the curve lifts or lowers the midtones: 12 means 0.12 at 0.5 (about 30 levels)."
+msgstr ""
+
+#: plugin/dodge-burn/dodge-burn.py:270
+#: plugin/frequency-separation/frequency-separation.py:269
+#: plugin/hsi-split-curves/hsi-split-curves.py:323
+#: plugin/hsl-split-curves/hsl-split-curves.py:544
+#: plugin/hsv-split-curves/hsv-split-curves.py:554
+#: plugin/lab-split-curves/lab-split-curves.py:601
+#: plugin/lch-split-curves/lch-split-curves.py:730
+#: plugin/neutral-grey/neutral-grey.py:237
+msgid "Put in a layer group"
+msgstr ""
+
+#: plugin/dodge-burn/dodge-burn.py:271
+msgid "Puts both layers into a pass-through group named Dodge & Burn; turn it off to stack them directly above the original layer."
+msgstr ""
+
+#: plugin/dodge-burn/dodge-burn.py:277
+#: plugin/frequency-separation/frequency-separation.py:276
+#: plugin/neutral-grey/neutral-grey.py:244
+msgid "Select exactly one layer."
+msgstr ""
+
+#: plugin/frequency-separation/frequency-separation.py:150
+msgid "Gaussian blur (low frequency)"
+msgstr ""
+
+#: plugin/frequency-separation/frequency-separation.py:160
+msgid "High pass (high frequency)"
+msgstr ""
+
+#: plugin/frequency-separation/frequency-separation.py:175
+#: plugin/hsi-split-curves/hsi-split-curves.py:232
+#: plugin/hsl-split-curves/hsl-split-curves.py:350
+#: plugin/hsl-split-curves/hsl-split-curves.py:431
+#: plugin/hsl-split-curves/hsl-split-curves.py:501
+#: plugin/hsv-split-curves/hsv-split-curves.py:379
+#: plugin/lab-split-curves/lab-split-curves.py:406
+#: plugin/lab-split-curves/lab-split-curves.py:488
+#: plugin/lab-split-curves/lab-split-curves.py:558
+#: plugin/lch-split-curves/lch-split-curves.py:536
+#: plugin/lch-split-curves/lch-split-curves.py:617
+#: plugin/lch-split-curves/lch-split-curves.py:687
+msgid "Nothing to split: no layer."
+msgstr ""
+
+#: plugin/frequency-separation/frequency-separation.py:178
+#: plugin/hsi-split-curves/hsi-split-curves.py:235
+#: plugin/hsl-split-curves/hsl-split-curves.py:353
+#: plugin/hsl-split-curves/hsl-split-curves.py:434
+#: plugin/hsl-split-curves/hsl-split-curves.py:504
+#: plugin/hsv-split-curves/hsv-split-curves.py:382
+#: plugin/lab-split-curves/lab-split-curves.py:409
+#: plugin/lab-split-curves/lab-split-curves.py:491
+#: plugin/lab-split-curves/lab-split-curves.py:561
+#: plugin/lch-split-curves/lch-split-curves.py:539
+#: plugin/lch-split-curves/lch-split-curves.py:620
+#: plugin/lch-split-curves/lch-split-curves.py:690
+msgid "A layer group cannot be split; pick a raster layer first (right-click the group, then Merge Group)."
+msgstr ""
+
+#: plugin/frequency-separation/frequency-separation.py:197
+#: plugin/frequency-separation/frequency-separation.py:255
+msgid "Frequency Separation"
+msgstr ""
+
+#: plugin/frequency-separation/frequency-separation.py:202
+msgid "1 · Low frequency (tone)"
+msgstr ""
+
+#: plugin/frequency-separation/frequency-separation.py:210
+msgid "2 · High frequency (detail)"
+msgstr ""
+
+#: plugin/frequency-separation/frequency-separation.py:228
+msgid "Frequency Separation is set up: a low-frequency layer (gaussian blur %g px, carries tone and colour) and a high-frequency layer (grain merge, carries pores and blemishes). Hide the original layer and the two still reproduce it. To change the strength, change the blur radius of the low-frequency layer."
+msgstr ""
+
+#: plugin/frequency-separation/frequency-separation.py:260
+msgid "Frequency Separation: creates a low-frequency layer (gaussian blur, carries tone and colour) and a high-frequency layer (grain merge, carries detail and texture) in one go; with identity settings the composite is the original. Smooth colour on the low layer and retouch detail on the high layer without disturbing each other."
+msgstr ""
+
+#: plugin/frequency-separation/frequency-separation.py:261
+msgid "Frequency separation: one click builds a blurred low-frequency layer (tone/colour) and a high-pass high-frequency layer (detail) that recombine to the original."
+msgstr ""
+
+#: plugin/frequency-separation/frequency-separation.py:265
+msgid "Split radius (px)"
+msgstr ""
+
+#: plugin/frequency-separation/frequency-separation.py:266
+msgid "Standard deviation of the gaussian blur. Larger pushes more into the low frequency and leaves less detail in the high one."
+msgstr ""
+
+#: plugin/frequency-separation/frequency-separation.py:270
+msgid "Puts both layers into a pass-through group named Frequency Separation; turn it off to stack them directly above the original layer."
+msgstr ""
+
+#: plugin/gray-mask/gray-mask.py:181
+msgid "Grayscale Layer to Selection: turn the active layer's grayscale content into the current selection"
+msgstr ""
+
+#: plugin/gray-mask/gray-mask.py:183
+msgid "One-click 'grayscale layer -> selection' (mask-copy + mask-to-selection fused)."
+msgstr ""
+
+#: plugin/gray-mask/gray-mask.py:185
+msgid "Grayscale Layer to Selection"
+msgstr ""
+
+#: plugin/gray-mask/gray-mask.py:188
+#: plugin/layer-to-selection/layer-to-selection.py:290
+msgid "Combine"
+msgstr ""
+
+#: plugin/gray-mask/gray-mask.py:189
+#: plugin/layer-to-selection/layer-to-selection.py:291
+msgid "0 Replace, 1 Add, 2 Subtract, 3 Intersect"
+msgstr ""
+
+#: plugin/gray-mask/gray-mask.py:193
+msgid "Select the black side instead of the white side"
+msgstr ""
+
+#: plugin/gray-mask/gray-mask.py:197
+msgid "Grayscale Layer to Channel: copy the active layer's grayscale content into a new alpha channel"
+msgstr ""
+
+#: plugin/gray-mask/gray-mask.py:199
+msgid "One-click 'grayscale layer -> channel'."
+msgstr ""
+
+#: plugin/gray-mask/gray-mask.py:200
+msgid "Grayscale Layer to Channel"
+msgstr ""
+
+#: plugin/gray-mask/gray-mask.py:203
+#: plugin/layer-to-channel/layer-to-channel.py:283
+msgid "Invert the channel content"
+msgstr ""
+
+#: plugin/gray-mask/gray-mask.py:207
+#: plugin/layer-to-channel/layer-to-channel.py:287
+msgid "Empty = use the layer name"
+msgstr ""
+
+#: plugin/gray-mask/gray-mask.py:215
+#: plugin/sky-replace/sky-replace.py:245
+msgid "No image or no active layer"
+msgstr ""
+
+#: plugin/hsi-split-curves/hsi-split-curves.py:168
+msgid "Required operations are missing: %s. They are essential for exact HSI fitting (I and S have no counterpart among GIMP's component blend modes and can only be computed together). Install this repository's GEGL operations hsi-dual / hsi-compose (./install.sh) and restart GIMP."
+msgstr ""
+
+#: plugin/hsi-split-curves/hsi-split-curves.py:256
+msgid "HSI split"
+msgstr ""
+
+#: plugin/hsi-split-curves/hsi-split-curves.py:261
+msgid "1 · HSI S/I/H"
+msgstr ""
+
+#: plugin/hsi-split-curves/hsi-split-curves.py:265
+#: plugin/hsl-split-curves/hsl-split-curves.py:384
+#: plugin/hsl-split-curves/hsl-split-curves.py:464
+#: plugin/hsv-split-curves/hsv-split-curves.py:488
+#: plugin/lab-split-curves/lab-split-curves.py:440
+#: plugin/lab-split-curves/lab-split-curves.py:521
+#: plugin/lch-split-curves/lch-split-curves.py:650
+msgid "1 · decompose"
+msgstr ""
+
+#: plugin/hsi-split-curves/hsi-split-curves.py:266
+#: plugin/hsl-split-curves/hsl-split-curves.py:385
+#: plugin/hsl-split-curves/hsl-split-curves.py:465
+#: plugin/hsv-split-curves/hsv-split-curves.py:489
+msgid "2 · S curve"
+msgstr ""
+
+#: plugin/hsi-split-curves/hsi-split-curves.py:268
+msgid "3 · I curve"
+msgstr ""
+
+#: plugin/hsi-split-curves/hsi-split-curves.py:270
+#: plugin/hsl-split-curves/hsl-split-curves.py:469
+#: plugin/hsv-split-curves/hsv-split-curves.py:493
+msgid "4 · H curve"
+msgstr ""
+
+#: plugin/hsi-split-curves/hsi-split-curves.py:272
+#: plugin/hsl-split-curves/hsl-split-curves.py:471
+#: plugin/hsv-split-curves/hsv-split-curves.py:495
+#: plugin/lab-split-curves/lab-split-curves.py:528
+#: plugin/lch-split-curves/lch-split-curves.py:657
+msgid "5 · compose"
+msgstr ""
+
+#: plugin/hsi-split-curves/hsi-split-curves.py:285
+msgid "HSI layers created: %s. The S curve lives in \"2 · S curve\" (red channel), the I curve in \"3 · I curve\" (green channel) and the hue curve in \"4 · H curve\" (blue channel). Hide the original layer; this one reproduces it on its own."
+msgstr ""
+
+#: plugin/hsi-split-curves/hsi-split-curves.py:313
+msgid "HSI Split (Curves) · %s"
+msgstr ""
+
+#: plugin/hsi-split-curves/hsi-split-curves.py:313
+#: plugin/hsl-split-curves/hsl-split-curves.py:530
+#: plugin/hsv-split-curves/hsv-split-curves.py:539
+#: plugin/lab-split-curves/lab-split-curves.py:587
+#: plugin/lch-split-curves/lch-split-curves.py:716
+msgid "single"
+msgstr ""
+
+#: plugin/hsi-split-curves/hsi-split-curves.py:318
+msgid "Adjust curves in HSI space: builds a three-channel data image (red = saturation, green = intensity, blue = hue) with one curve per component. Identity curves reproduce the original exactly, and editing a curve only moves that HSI component."
+msgstr ""
+
+#: plugin/hsi-split-curves/hsi-split-curves.py:319
+msgid "Curve HSI itself. One data layer (R = saturation, G = intensity, B = hue/360) with three curves; identity curves reproduce the image exactly. Needs lb:hsi-dual and lb:hsi-compose."
+msgstr ""
+
+#: plugin/hsi-split-curves/hsi-split-curves.py:324
+msgid "Puts this layer into a pass-through group named HSI split; turn it off to stack it directly above the original layer."
+msgstr ""
+
+#: plugin/hsl-split-curves/hsl-split-curves.py:284
+msgid "Required operations are missing: %s. They are essential for exact HSL fitting (S and L must be computed together and cannot be replaced by a 1D curve). Install this repository's GEGL operations hsl-dual / hsl-compose (./install.sh) and restart GIMP."
+msgstr ""
+
+#: plugin/hsl-split-curves/hsl-split-curves.py:374
+#: plugin/hsl-split-curves/hsl-split-curves.py:455
+msgid "HSL split"
+msgstr ""
+
+#: plugin/hsl-split-curves/hsl-split-curves.py:380
+msgid "1 · S / L"
+msgstr ""
+
+#: plugin/hsl-split-curves/hsl-split-curves.py:387
+#: plugin/hsl-split-curves/hsl-split-curves.py:467
+msgid "3 · L curve"
+msgstr ""
+
+#: plugin/hsl-split-curves/hsl-split-curves.py:389
+#: plugin/lab-split-curves/lab-split-curves.py:445
+msgid "4 · compose"
+msgstr ""
+
+#: plugin/hsl-split-curves/hsl-split-curves.py:393
+msgid "2 · Hue"
+msgstr ""
+
+#: plugin/hsl-split-curves/hsl-split-curves.py:397
+msgid "1 · hue"
+msgstr ""
+
+#: plugin/hsl-split-curves/hsl-split-curves.py:399
+msgid "2 · H curve"
+msgstr ""
+
+#: plugin/hsl-split-curves/hsl-split-curves.py:401
+#: plugin/hsv-split-curves/hsv-split-curves.py:371
+#: plugin/lab-split-curves/lab-split-curves.py:458
+#: plugin/lch-split-curves/lch-split-curves.py:394
+msgid "3 · encode"
+msgstr ""
+
+#: plugin/hsl-split-curves/hsl-split-curves.py:414
+msgid "HSL component layers created: %s. The S curve lives in \"2 · S curve\" (red channel), the L curve in \"3 · L curve\" (green channel) and the hue curve in the Hue layer's \"2 · H curve\". Hide the original layers; these two reproduce it on their own."
+msgstr ""
+
+#: plugin/hsl-split-curves/hsl-split-curves.py:460
+msgid "1 · HSL S/L/H"
+msgstr ""
+
+#: plugin/hsl-split-curves/hsl-split-curves.py:484
+msgid "HSL layers created: %s. The S curve lives in \"2 · S curve\" (red channel), the L curve in \"3 · L curve\" (green channel) and the hue curve in \"4 · H curve\" (blue channel). Hide the original layer; this one reproduces it on its own."
+msgstr ""
+
+#: plugin/hsl-split-curves/hsl-split-curves.py:530
+msgid "HSL Split (Curves) · %s"
+msgstr ""
+
+#: plugin/hsl-split-curves/hsl-split-curves.py:530
+#: plugin/hsv-split-curves/hsv-split-curves.py:539
+#: plugin/lab-split-curves/lab-split-curves.py:587
+#: plugin/lch-split-curves/lch-split-curves.py:716
+msgid "multi"
+msgstr ""
+
+#: plugin/hsl-split-curves/hsl-split-curves.py:535
+msgid "Adjust curves in HSL space: multi mode splits the layer into component layers, attaches one curve to each and stacks them back with GIMP's native component blend modes, so every layer can be switched off separately. Identity curves reproduce the original exactly."
+msgstr ""
+
+#: plugin/hsl-split-curves/hsl-split-curves.py:536
+msgid "Curve HSL itself, multi mode: the old component-layer stack on GIMP's native blend modes, one switch per layer."
+msgstr ""
+
+#: plugin/hsl-split-curves/hsl-split-curves.py:539
+msgid "Adjust curves in HSL space: single mode packs the three components into one data image, one curve per channel, then an operation decodes it back to colour. Identity curves reproduce the original exactly; one layer, five filters."
+msgstr ""
+
+#: plugin/hsl-split-curves/hsl-split-curves.py:540
+msgid "Curve HSL itself, single mode: one packed data layer with three curves; identity reproduces the image exactly."
+msgstr ""
+
+#: plugin/hsl-split-curves/hsl-split-curves.py:545
+msgid "Puts this layer into a pass-through group named HSL split; turn it off to stack it directly above the original layer."
+msgstr ""
+
+#: plugin/hsv-split-curves/hsv-split-curves.py:213
+msgid "Required operations are missing: %s. They are essential for exact HSV fitting (all three components must be evaluated in the same data image). Install this repository's GEGL operations hsv-dual / hsv-compose (./install.sh) and restart GIMP."
+msgstr ""
+
+#: plugin/hsv-split-curves/hsv-split-curves.py:361
+#: plugin/lch-split-curves/lch-split-curves.py:374
+msgid "1 · extract"
+msgstr ""
+
+#: plugin/hsv-split-curves/hsv-split-curves.py:367
+#: plugin/lch-split-curves/lch-split-curves.py:389
+msgid "2 · curve"
+msgstr ""
+
+#: plugin/hsv-split-curves/hsv-split-curves.py:410
+#: plugin/hsv-split-curves/hsv-split-curves.py:479
+msgid "HSV split"
+msgstr ""
+
+#: plugin/hsv-split-curves/hsv-split-curves.py:419
+#: plugin/lch-split-curves/lch-split-curves.py:574
+msgid "1 · Hue"
+msgstr ""
+
+#: plugin/hsv-split-curves/hsv-split-curves.py:422
+msgid "2 · Saturation"
+msgstr ""
+
+#: plugin/hsv-split-curves/hsv-split-curves.py:425
+msgid "3 · Value"
+msgstr ""
+
+#: plugin/hsv-split-curves/hsv-split-curves.py:439
+msgid "HSV component layers created (multi mode): %s. Editing each layer's \"2 · curve\" adjusts that component; leave the encode step alone. Every layer can be switched off separately. Hide the original layer; these three stack back on their own."
+msgstr ""
+
+#: plugin/hsv-split-curves/hsv-split-curves.py:484
+msgid "1 · HSV S/V/H"
+msgstr ""
+
+#: plugin/hsv-split-curves/hsv-split-curves.py:491
+msgid "3 · V curve"
+msgstr ""
+
+#: plugin/hsv-split-curves/hsv-split-curves.py:508
+msgid "HSV layers created: %s. The S curve lives in \"2 · S curve\" (red channel), the V curve in \"3 · V curve\" (green channel) and the hue curve in \"4 · H curve\" (blue channel). Hide the original layer; this one reproduces it on its own."
+msgstr ""
+
+#: plugin/hsv-split-curves/hsv-split-curves.py:539
+msgid "HSV Split (Curves) · %s"
+msgstr ""
+
+#: plugin/hsv-split-curves/hsv-split-curves.py:544
+msgid "Adjust curves in HSV space: multi mode splits the layer into component layers, attaches one curve to each and stacks them back with GIMP's native component blend modes, so every layer can be switched off separately. Identity curves reproduce the original exactly."
+msgstr ""
+
+#: plugin/hsv-split-curves/hsv-split-curves.py:545
+msgid "Curve HSV itself, multi mode: the old component-layer stack on GIMP's native blend modes, one switch per layer."
+msgstr ""
+
+#: plugin/hsv-split-curves/hsv-split-curves.py:548
+msgid "Adjust curves in HSV space: single mode packs the three components into one data image, one curve per channel, then an operation decodes it back to colour. Identity curves reproduce the original exactly; one layer, five filters."
+msgstr ""
+
+#: plugin/hsv-split-curves/hsv-split-curves.py:549
+msgid "Curve HSV itself, single mode: one packed data layer with three curves; identity reproduces the image exactly."
+msgstr ""
+
+#: plugin/hsv-split-curves/hsv-split-curves.py:555
+msgid "Puts the result into a pass-through group named HSV split; turn it off to stack it directly above the original layer."
+msgstr ""
+
+#: plugin/lab-split-curves/lab-split-curves.py:340
+msgid "Required operations are missing: %s. They are essential for exact Lab fitting (a and b must be computed together and cannot be replaced by a 1D curve). Install this repository's GEGL operations lab-dual / lab-compose (./install.sh) and restart GIMP."
+msgstr ""
+
+#: plugin/lab-split-curves/lab-split-curves.py:430
+#: plugin/lab-split-curves/lab-split-curves.py:512
+msgid "Lab split"
+msgstr ""
+
+#: plugin/lab-split-curves/lab-split-curves.py:436
+msgid "1 · a / b"
+msgstr ""
+
+#: plugin/lab-split-curves/lab-split-curves.py:441
+#: plugin/lab-split-curves/lab-split-curves.py:522
+msgid "2 · a curve"
+msgstr ""
+
+#: plugin/lab-split-curves/lab-split-curves.py:443
+#: plugin/lab-split-curves/lab-split-curves.py:524
+msgid "3 · b curve"
+msgstr ""
+
+#: plugin/lab-split-curves/lab-split-curves.py:450
+msgid "2 · L"
+msgstr ""
+
+#: plugin/lab-split-curves/lab-split-curves.py:454
+msgid "1 · lightness"
+msgstr ""
+
+#: plugin/lab-split-curves/lab-split-curves.py:456
+#: plugin/lch-split-curves/lch-split-curves.py:651
+msgid "2 · L curve"
+msgstr ""
+
+#: plugin/lab-split-curves/lab-split-curves.py:471
+msgid "Lab component layers created: %s. The a curve lives in \"2 · a curve\" (red channel), the b curve in \"3 · b curve\" (green channel) and the lightness curve in the L layer's \"2 · L curve\". Hide the original layers; these two reproduce it on their own."
+msgstr ""
+
+#: plugin/lab-split-curves/lab-split-curves.py:517
+msgid "1 · Lab a/b/L"
+msgstr ""
+
+#: plugin/lab-split-curves/lab-split-curves.py:526
+msgid "4 · L curve"
+msgstr ""
+
+#: plugin/lab-split-curves/lab-split-curves.py:541
+msgid "Lab layers created: %s. The a curve lives in \"2 · a curve\" (red channel), the b curve in \"3 · b curve\" (green channel) and the L curve in \"4 · L curve\" (blue channel). Hide the original layer; this one reproduces it on its own."
+msgstr ""
+
+#: plugin/lab-split-curves/lab-split-curves.py:587
+msgid "Lab Split (Curves) · %s"
+msgstr ""
+
+#: plugin/lab-split-curves/lab-split-curves.py:592
+msgid "Adjust curves in Lab space: multi mode splits the layer into component layers, attaches one curve to each and stacks them back with GIMP's native component blend modes, so every layer can be switched off separately. Identity curves reproduce the original exactly."
+msgstr ""
+
+#: plugin/lab-split-curves/lab-split-curves.py:593
+msgid "Curve Lab itself, multi mode: the old component-layer stack on GIMP's native blend modes, one switch per layer."
+msgstr ""
+
+#: plugin/lab-split-curves/lab-split-curves.py:596
+msgid "Adjust curves in Lab space: single mode packs the three components into one data image, one curve per channel, then an operation decodes it back to colour. Identity curves reproduce the original exactly; one layer, five filters."
+msgstr ""
+
+#: plugin/lab-split-curves/lab-split-curves.py:597
+msgid "Curve Lab itself, single mode: one packed data layer with three curves; identity reproduces the image exactly."
+msgstr ""
+
+#: plugin/lab-split-curves/lab-split-curves.py:602
+msgid "Puts this layer into a pass-through group named Lab split; turn it off to stack it directly above the original layer."
+msgstr ""
+
+#: plugin/layer-to-channel/layer-to-channel.py:165
+#: plugin/layer-to-selection/layer-to-selection.py:163
+msgid "A layer group cannot be converted directly; right-click it and Merge Layer Group first."
+msgstr ""
+
+#: plugin/layer-to-channel/layer-to-channel.py:245
+msgid "Channel \\u201c%s\\u201d created from the grey levels of \\u201c%s\\u201d"
+msgstr ""
+
+#: plugin/layer-to-channel/layer-to-channel.py:270
+msgid "Layer to Channel"
+msgstr ""
+
+#: plugin/layer-to-channel/layer-to-channel.py:276
+msgid "Layer to Channel: turn the clicked layer into a new alpha channel. Colour layers are first converted to greyscale (luminosity); grey layers are used as they are, and those grey levels become the channel values."
+msgstr ""
+
+#: plugin/layer-to-channel/layer-to-channel.py:280
+msgid "One click 'any layer -> channel'. Always grayscale: black = not selected, white = fully selected."
+msgstr ""
+
+#: plugin/layer-to-selection/layer-to-selection.py:271
+msgid "Layer to Selection"
+msgstr ""
+
+#: plugin/layer-to-selection/layer-to-selection.py:277
+msgid "Layer to Selection: turn the clicked layer into the current selection (Gray/R/G/B/Alpha, invert, four combine modes)"
+msgstr ""
+
+#: plugin/layer-to-selection/layer-to-selection.py:279
+msgid "One click 'any layer -> selection', no copy/paste detour."
+msgstr ""
+
+#: plugin/layer-to-selection/layer-to-selection.py:283
+msgid "0 Gray (luminosity), 1 Red, 2 Green, 3 Blue, 4 Alpha"
+msgstr ""
+
+#: plugin/layer-to-selection/layer-to-selection.py:287
+msgid "Select the dark side instead of the bright side"
+msgstr ""
+
+#: plugin/lch-split-curves/lch-split-curves.py:386
+msgid "2 · scale (×1.52)"
+msgstr ""
+
+#: plugin/lch-split-curves/lch-split-curves.py:389
+msgid "3 · curve"
+msgstr ""
+
+#: plugin/lch-split-curves/lch-split-curves.py:394
+msgid "4 · encode"
+msgstr ""
+
+#: plugin/lch-split-curves/lch-split-curves.py:522
+msgid "Required operations are missing: %s. They are essential for exact LCh fitting (all three components must be evaluated in the same data image). Install this repository's GEGL operations lch-dual / lch-compose (./install.sh) and restart GIMP."
+msgstr ""
+
+#: plugin/lch-split-curves/lch-split-curves.py:564
+#: plugin/lch-split-curves/lch-split-curves.py:641
+msgid "LCh split"
+msgstr ""
+
+#: plugin/lch-split-curves/lch-split-curves.py:580
+msgid "2 · Chroma"
+msgstr ""
+
+#: plugin/lch-split-curves/lch-split-curves.py:586
+msgid "3 · Lightness"
+msgstr ""
+
+#: plugin/lch-split-curves/lch-split-curves.py:601
+msgid "LCh component layers created: %s. Editing each layer's \"curve\" adjusts that component; leave encode alone."
+msgstr ""
+
+#: plugin/lch-split-curves/lch-split-curves.py:603
+msgid "\n(8-bit images must sit in a group: ungrouped, each layer quantises separately and the hue drifts by a few levels.)"
+msgstr ""
+
+#: plugin/lch-split-curves/lch-split-curves.py:646
+msgid "1 · LCh L/C/h"
+msgstr ""
+
+#: plugin/lch-split-curves/lch-split-curves.py:653
+msgid "3 · C curve"
+msgstr ""
+
+#: plugin/lch-split-curves/lch-split-curves.py:655
+msgid "4 · h curve"
+msgstr ""
+
+#: plugin/lch-split-curves/lch-split-curves.py:670
+msgid "LCh layers created: %s. The L curve lives in \"2 · L curve\" (red channel), the chroma curve in \"3 · C curve\" (green channel) and the hue curve in \"4 · h curve\" (blue channel). Hide the original layer; this one reproduces it on its own."
+msgstr ""
+
+#: plugin/lch-split-curves/lch-split-curves.py:716
+msgid "LCh Split (Curves) · %s"
+msgstr ""
+
+#: plugin/lch-split-curves/lch-split-curves.py:721
+msgid "Adjust curves in LCh space: multi mode splits the layer into component layers, attaches one curve to each and stacks them back with GIMP's native component blend modes, so every layer can be switched off separately. Identity curves reproduce the original exactly."
+msgstr ""
+
+#: plugin/lch-split-curves/lch-split-curves.py:722
+msgid "Curve LCh itself, multi mode: the old component-layer stack on GIMP's native blend modes, one switch per layer."
+msgstr ""
+
+#: plugin/lch-split-curves/lch-split-curves.py:725
+msgid "Adjust curves in LCh space: single mode packs the three components into one data image, one curve per channel, then an operation decodes it back to colour. Identity curves reproduce the original exactly; one layer, five filters."
+msgstr ""
+
+#: plugin/lch-split-curves/lch-split-curves.py:726
+msgid "Curve LCh itself, single mode: one packed data layer with three curves; identity reproduces the image exactly."
+msgstr ""
+
+#: plugin/lch-split-curves/lch-split-curves.py:731
+msgid "Puts this layer into a pass-through group named LCh split; turn it off to stack it directly above the original layer."
+msgstr ""
+
+#: plugin/max-min/max-min.py:71
+msgid "Maximum (dilate: bright areas grow)"
+msgstr ""
+
+#: plugin/max-min/max-min.py:72
+msgid "Minimum (erode: bright areas shrink)"
+msgstr ""
+
+#: plugin/max-min/max-min.py:76
+msgid "Square ((±r, ±r) window)"
+msgstr ""
+
+#: plugin/max-min/max-min.py:77
+msgid "Round (disc of radius r)"
+msgstr ""
+
+#: plugin/max-min/max-min.py:128
+msgid "The lb:max-min operation is missing; install the module from dist/ first."
+msgstr ""
+
+#: plugin/max-min/max-min.py:142
+msgid "Nothing to work on: no drawable."
+msgstr ""
+
+#: plugin/max-min/max-min.py:145
+msgid "A layer group has no pixels of its own; pick a raster layer or its mask."
+msgstr ""
+
+#: plugin/max-min/max-min.py:149
+msgid "Maximum"
+msgstr ""
+
+#: plugin/max-min/max-min.py:149
+msgid "Minimum"
+msgstr ""
+
+#: plugin/max-min/max-min.py:180
+msgid "mask"
+msgstr ""
+
+#: plugin/max-min/max-min.py:181
+msgid "channel"
+msgstr ""
+
+#: plugin/max-min/max-min.py:206
+msgid "Maximum / Minimum..."
+msgstr ""
+
+#: plugin/max-min/max-min.py:211
+msgid "Morphological maximum (dilate) and minimum (erode): each pixel takes the largest or smallest value in its neighbourhood. Maximum grows the edges and removes dark specks; minimum shrinks them and removes bright specks. Attached as a non-destructive filter on layers; written into pixels on masks and channels."
+msgstr ""
+
+#: plugin/max-min/max-min.py:216
+msgid "Morphological maximum (dilate) and minimum (erode) over a square or round neighbourhood, attached as a non-destructive drawable filter."
+msgstr ""
+
+#: plugin/max-min/max-min.py:224
+msgid "Maximum is dilate, minimum is erode."
+msgstr ""
+
+#: plugin/max-min/max-min.py:229
+msgid "Neighbourhood radius in pixels. r=1 is a 3×3 window and grows the edge outward by one pixel."
+msgstr ""
+
+#: plugin/max-min/max-min.py:238
+msgid "Square is a square window; round is a disc (Photoshop's Preserve: Squareness / Roundness)."
+msgstr ""
+
+#: plugin/max-min/max-min.py:243
+msgid "Affect alpha"
+msgstr ""
+
+#: plugin/max-min/max-min.py:244
+msgid "Leave off to keep alpha untouched (Photoshop does not change layer opacity either)."
+msgstr ""
+
+#: plugin/max-min/max-min.py:253
+msgid "Select a layer or one of its masks."
+msgstr ""
+
+#: plugin/neutral-grey/neutral-grey.py:178
+#: plugin/neutral-grey/neutral-grey.py:228
+msgid "Neutral Grey"
+msgstr ""
+
+#: plugin/neutral-grey/neutral-grey.py:184
+msgid "1 · Neutral grey (white dodges, black burns)"
+msgstr ""
+
+#: plugin/neutral-grey/neutral-grey.py:201
+msgid "Neutral Grey is set up: a 50% grey soft-light layer that currently leaves the image identical. Click the layer and paint with a soft brush (opacity 5–15%): white lightens, black darkens, and #808080 paints over the overshoot."
+msgstr ""
+
+#: plugin/neutral-grey/neutral-grey.py:233
+msgid "Neutral Grey: adds a 50% grey soft-light layer that is pixel-identical to the original when untouched. Paint white to lighten and black to darken, going over the skin until it evens out."
+msgstr ""
+
+#: plugin/neutral-grey/neutral-grey.py:234
+msgid "Neutral grey dodge & burn: a 50% grey Soft Light layer, identity on the backdrop; paint white to lighten, black to darken."
+msgstr ""
+
+#: plugin/neutral-grey/neutral-grey.py:238
+msgid "Puts the grey layer into a pass-through group named Neutral Grey; turn it off to stack it directly above the original layer."
+msgstr ""
+
+#: plugin/sky-replace/sky-replace.py:206
+msgid "Sky Replace"
+msgstr ""
+
+#: plugin/sky-replace/sky-replace.py:209
+msgid "Sky Replace: flood-select the sky from the top edge, insert a sky image below the photo layer and mask it with the selection"
+msgstr ""
+
+#: plugin/sky-replace/sky-replace.py:211
+msgid "One-click sky replacement (classic flood-fill segmentation, cover scaling, brightness matching, selection as layer mask)."
+msgstr ""
+
+#: plugin/sky-replace/sky-replace.py:215
+msgid "Sky image"
+msgstr ""
+
+#: plugin/sky-replace/sky-replace.py:216
+msgid "New sky picture; it is scaled to cover the canvas"
+msgstr ""
+
+#: plugin/sky-replace/sky-replace.py:220
+msgid "Threshold"
+msgstr ""
+
+#: plugin/sky-replace/sky-replace.py:221
+msgid "Flood-fill sample threshold (0..0.5)"
+msgstr ""
+
+#: plugin/sky-replace/sky-replace.py:224
+msgid "Edge shift"
+msgstr ""
+
+#: plugin/sky-replace/sky-replace.py:225
+msgid "Positive shrinks the sky mask by n px, negative grows it"
+msgstr ""
+
+#: plugin/sky-replace/sky-replace.py:229
+msgid "Feather radius of the sky mask"
+msgstr ""
+
+#: plugin/sky-replace/sky-replace.py:232
+msgid "Match brightness"
+msgstr ""
+
+#: plugin/sky-replace/sky-replace.py:233
+msgid "Gamma-match the new sky brightness to the old sky region"
+msgstr ""
+
+#: plugin/sky-replace/sky-replace.py:236
+msgid "Save mask channel"
+msgstr ""
+
+#: plugin/sky-replace/sky-replace.py:237
+msgid "Keep the sky mask as a 'Sky Mask' channel for refinement"
+msgstr ""
+
+#: plugin/split-channels/split-channels.py:302
+msgid "Split Channels"
+msgstr ""
+
+#: plugin/split-channels/split-channels.py:308
+msgid "Split Channels: store each component of the layer as its own channel (R / G / B / Alpha; grayscale images yield Gray). The source layer is hidden afterwards so it stays available as a reference."
+msgstr ""
+
+#: plugin/split-channels/split-channels.py:312
+msgid "One click 'one layer -> per-component channels', no manual channel-by-channel copy/paste."
+msgstr ""
+
+#: plugin/split-channels/split-channels.py:315
+msgid "Include Alpha"
+msgstr ""
+
+#: plugin/split-channels/split-channels.py:316
+msgid "Also store the transparency as a channel (only when the layer has one)"
+msgstr ""
+
+#: plugin/split-channels/split-channels.py:320
+msgid "Hide source layer"
+msgstr ""
+
+#: plugin/split-channels/split-channels.py:321
+msgid "Hide the original layer after splitting so the canvas shows you the result"
+msgstr ""
+
+#: plugin/split-channels/split-channels.py:325
+msgid "Name prefix"
+msgstr ""
+
+#: plugin/split-channels/split-channels.py:326
+msgid "Empty = use the layer name; channels become \"<prefix> R\", \"<prefix> G\", ..."
+msgstr ""

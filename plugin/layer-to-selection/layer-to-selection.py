@@ -42,8 +42,21 @@ def _N_(message):
     return message
 
 
-def _(message):
-    return GLib.dgettext(None, message)
+# 多语言：查自己的域（gegl-color-ops），语言取自 GIMP 界面设置。
+# helper 在 plugin/_shared/ 下；装成单文件时退回 GIMP 默认域。
+import os as _os
+import sys as _sys
+
+_here = _os.path.dirname(_os.path.abspath(__file__))
+for _cand in (_os.path.join(_here, '_shared'),
+              _os.path.normpath(_os.path.join(_here, '..', '_shared'))):
+    if _os.path.isdir(_cand) and _cand not in _sys.path:
+        _sys.path.append(_cand)
+try:
+    from lb_i18n import _          # noqa: F811
+except Exception:                  # helper 不在：保持可用，只是不翻译
+    def _(message):
+        return GLib.dgettext(None, message)
 
 
 # ---- 通道常量 / channel ids ------------------------------------------------
@@ -147,8 +160,7 @@ def layer_plane(image, layer, channel):
     iw, ih = image.get_width(), image.get_height()
     out = array.array('f', bytes(iw * ih * 4))
     if layer.is_group():
-        raise RuntimeError(_("图层组不能直接转换：请先右键 → 合并图层组 "
-                             "/ a layer group has no pixels of its own"))
+        raise RuntimeError(_("A layer group cannot be converted directly; right-click it and Merge Layer Group first."))
     lw, lh = layer.get_width(), layer.get_height()
     if lw <= 0 or lh <= 0:
         return out
@@ -243,7 +255,7 @@ def layer_to_selection(image, layer, channel=CH_GRAY, invert=False, operation=0)
 class LayerToSelectionPlugin(Gimp.PlugIn):
 
     def do_set_i18n(self, procname):
-        return True, 'gimp30-python', None
+        return True, 'gegl-color-ops', None
 
     def do_query_procedures(self):
         return ['lb-plugin-layer-to-selection']

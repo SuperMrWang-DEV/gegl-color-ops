@@ -82,9 +82,7 @@ enum_start (lb_gtc_mode)
 enum_end (LbGtcMode)
 
 property_enum (mode, _("Mode"), LbGtcMode, lb_gtc_mode, GTC_MODE_HUE)
-    description (_("编码模式：灰度映射为哪个分量。hue/saturation/color/"
-                   "value 配 HSV·HSL 组混合模式，lightness/luminance/lch-* "
-                   "配 LCh 组与 Luminance，RGB 三通道用 Lighten 叠合还原"))
+    description (_("Encoding mode: which component the grey level maps to. Use hue/saturation/color/value with the HSV and HSL group blend modes, lightness/luminance/lch-* with the LCh group and Luminance, and Lighten to stack the three RGB channels back into colour."))
 
 enum_start (lb_gtc_space)
   enum_value (GTC_SPACE_ENCODED, "encoded", "Encoded (8/16-bit layers)")
@@ -93,44 +91,31 @@ enum_end (LbGtcSpace)
 
 property_enum (input_space, _("Input Space"), LbGtcSpace, lb_gtc_space,
                GTC_SPACE_ENCODED)
-    description (_("输入像素值所在的域。分量灰度层是从 8/16 位图层来的就选 "
-                   "encoded（滤镜栈缓冲为 R'G'B'A float），从 32 位浮点线性"
-                   "图来的选 linear（缓冲为 RGBA float）。选错会让 babl 多"
-                   "做一次 gamma 编码，编码值整体偏亮"))
+    description (_("Domain the input pixel values live in. Pick encoded if the component layer came from an 8/16-bit image (the filter stack buffers as R'G'B'A float), linear if it came from a 32-bit float linear image (RGBA float). Choosing wrong makes babl apply the gamma encoding a second time, so the encoded values come out too bright."))
 
 property_double (sat_hue, _("Saturation Hue"), 0.0)
-    description (_("Saturation 模式使用的色相（度）；0=红，按需可改。该层只"
-                   "提供饱和度信息，色相在混合还原时不进入结果"))
+    description (_("Hue (degrees) used by Saturation mode; 0 = red, change it as needed. The layer only carries saturation, so the hue never enters the composite."))
     value_range (0.0, 360.0)
 
 property_double (color_sat, _("Color Saturation"), 100.0)
-    description (_("Color 模式固定的饱和度百分比。Color 混合模式同时读取"
-                   "色相和饱和度，而单通道灰度只能携带其中一个：灰度携带"
-                   "色相，饱和度由本参数给定。100% 时输出与 hue 模式相同"))
+    description (_("Fixed saturation percentage for Color mode. Color blend reads both hue and saturation, but a single grey channel can only carry one of them: the grey carries hue and this parameter supplies saturation. At 100% the output matches hue mode."))
     value_range (0.0, 100.0)
 
 property_double (lch_l, _("LCh Lightness"), 54.0)
-    description (_("LCh 模式使用的固定明度 L（0-100）。混合模式只读色相/"
-                   "色度时此值不影响结果，取中庸值以留在常见色域内"))
+    description (_("Fixed lightness L (0-100) used by the LCh modes. When the blend mode only reads hue or chroma this value has no effect; it sits in the middle so the colour stays inside the common gamut."))
     value_range (0.0, 100.0)
 
 property_double (lch_c, _("LCh Chroma"), 30.0)
-    description (_("lch-hue / lch-color 模式使用的固定色度 C（两者编码相同）。"
-                   "色度越大颜色越鲜艳，过大可能超出 sRGB 色域"
-                   "（float32 下仍可往返）"))
+    description (_("Fixed chroma C used by lch-hue and lch-color (both encode identically). Higher chroma means more vivid colour; too high can leave sRGB (it still round-trips in float32)."))
     value_range (0.0, 132.0)
     ui_range (0.0, 100.0)
 
 property_double (lch_h, _("LCh Hue Angle"), 30.0)
-    description (_("LCh Chroma 模式使用的固定色相（度）；0=红。该层只提供"
-                   "色度信息，色相在混合还原时不进入结果"))
+    description (_("Fixed hue (degrees) used by LCh Chroma mode; 0 = red. The layer only carries chroma, so the hue never enters the composite."))
     value_range (0.0, 360.0)
 
 property_double (chroma_scale, _("Chroma Scale"), 100.0)
-    description (_("LCh Chroma 模式的满量程：灰度 1.0 对应的色度上限。GIMP "
-                   "的 component-extract 把 C 归一化到 200（lch-c = C/200），"
-                   "所以喂分解结果时要设成 200；自己建灰度层时保持 100 更直观。"
-                   "sRGB 色域内 C 最大约 131，超出的部分在 float32 下仍可往返"))
+    description (_("Full scale for LCh Chroma mode: the chroma that grey 1.0 maps to. GIMP's component-extract normalises C to 200 (lch-c = C/200), so set 200 when feeding it decomposed output; keep 100 when building your own grey layer. Inside sRGB chroma tops out around 131; anything above still round-trips in float32."))
     value_range (0.0, 256.0)
     ui_range (0.0, 200.0)
 

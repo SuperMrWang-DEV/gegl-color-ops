@@ -887,8 +887,8 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
         menu='SuperMrWang → Mask → 最大值 / 最小值',
         menus=['SuperMrWang → Mask → 最大值 / 最小值',
                '图层右键 → SuperMrWang → Mask → 最大值 / 最小值'],
-        menus_en=['SuperMrWang → Mask → Max / Min',
-                  'Layer right-click → SuperMrWang → Mask → Max / Min'],
+        menus_en=['SuperMrWang → Mask → Maximum / Minimum',
+                  'Layer right-click → SuperMrWang → Mask → Maximum / Minimum'],
         pdb='lb-plugin-max-min(image, drawables, mode, radius, shape, affect-alpha)',
         lede="""Photoshop 的「最大值 / 最小值」滤镜：每个像素取邻域内的最大或最小值。
        最大值把亮区往外推、吞掉暗处的小点；最小值收亮区、啃掉残留的白边。
@@ -1006,7 +1006,7 @@ BRIEF = {
 }
 
 TAG_EN = {"曲线": "Curves", "磨皮": "Retouching", "选区": "Selection",
-          "通道": "Channels", "蒙版": "Mask"}
+          "通道": "Channels", "蒙版": "Mask", "转换": "Convert"}
 
 TITLE_EN = {
     "frequency": "Frequency Separation",

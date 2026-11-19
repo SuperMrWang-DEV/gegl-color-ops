@@ -639,6 +639,48 @@ meson setup build-meson && ninja -C build-meson
 GEGL_PATH="$PWD/build;/d/fastsoftware/GIMP 3/lib/gegl-0.4" gegl in.png -o out.png -- lb:exposure exposure=1.0
 ```
 
+## 多语言（gettext）
+
+界面上的一切文案都走 gettext，域名是 `gegl-color-ops`（`common/config.h`）。约定
+**msgid 一律写英文**，译文放在 `po/<lang>.po`；缺译时原样显示英文，不会出现半截中文。
+
+```bash
+python tools/i18n.py extract   # 扫 ops/*/*.c 与 plugin/*/*.py，刷新 po/gegl-color-ops.pot
+python tools/i18n.py build     # po/*.po -> locale/<lang>/LC_MESSAGES/gegl-color-ops.mo
+python tools/i18n.py check     # msgid 里不许留中文；占位符数量要一致；报告缺译与过期条目
+```
+
+目录现状：1045 条 msgid，中文 364 条（原来就是中文的那些，加五个分量曲线插件的
+菜单名），其余是本来就写英文的标题 / 说明。`check` 把「缺译」当提示不算失败——缺译只是
+回落到英文；但 **msgid 里出现中文**、**msgstr 为空**、**占位符数量与 msgid 不一致** 都算错误。
+
+`locale/<lang>/LC_MESSAGES/*.mo` **是提交进仓库的产物**：C 侧的构造函数和插件的
+`lb_i18n.py` 直接读它，构建过程不生成。改了 `po/` 记得跑一次 `build` 再提交，
+CI 会重编一遍并比对，不同步直接红。
+
+翻译菜单名时注意占位符：`"HSV Split (Curves) · %s" % _("multi")` —— 模式词要单独包
+`_()`，否则 extract 抓不到 `multi`（它藏在条件表达式里），中文界面会停在英文。
+
+两侧的衔接方式不同，都要靠自己找目录（GIMP 不会替我们 bindtextdomain）：
+
+- **C 算子**：`common/i18n.c` 是独立编译单元（`build.sh` 与 `meson.build` 都把它和每个算子一起编），
+  用 `__attribute__((constructor))` 在模块载入时 `bindtextdomain`，目录按 `.dll`/`.so` 自身位置
+  推：`locale/` → `../locale` → `../share/locale`。
+- **Python 插件**：`plugin/_shared/lb_i18n.py`，标准库 `gettext` + `GLib.get_language_names()`
+  （Windows 上 locale 模块读的是系统区域设置，而 GIMP 界面语言可以单独选，两者经常不一致）。
+- **枚举标签**（`enum_value` 的第三个参数）不需要包 `_()`：GEGL 在 `enum_end` 里会自己对它
+  做 `dgettext(GETTEXT_PACKAGE)`，进目录即可翻译。
+
+`./install.sh` 会把 `locale/` 复制到模块旁边，`./install-plugin.sh` 复制到 `plug-ins/locale`；
+调试时也可以用 `LB_LOCALEDIR=/some/locale` 直接盖掉搜索顺序。
+
+注意两件事：
+
+1. `%APPDATA%\GIMP\3.2\pluginrc` 缓存的是**已翻译**的菜单名与过程说明，而且不记录语言。
+   换界面语言后如果菜单还停在旧语言，删掉 `pluginrc` 让 GIMP 重建。
+2. 改 `GETTEXT_PACKAGE` 之前它借的是 GEGL 自己的语言包（`gegl-0.4`），会串味：`Blend mode`、
+   `Contrast` 这类同名 msgid 在中文界面里会显示成德文或日文。
+
 ## 临时停用与恢复
 
 想先让某个算子/插件从 GIMP 里消失、但源码继续留在工程里，就在它的目录放一个 `.disabled` 标记：

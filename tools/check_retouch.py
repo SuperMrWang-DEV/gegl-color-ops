@@ -229,8 +229,12 @@ def filters_of(layer):
 
 
 def curve_obj(layer, label):
-    """取某条 gimp:curves 的曲线对象（SMOOTH 曲线没有采样表，只能读控制点）。"""
-    f = [f for f in layer.get_filters() if f.get_name() == label][0]
+    """取某条 gimp:curves 的曲线对象（SMOOTH 曲线没有采样表，只能读控制点）。
+
+    滤镜名走 _()，随界面语言变，所以 label 可以给多个候选（英文 / 中文）。
+    """
+    labels = (label,) if isinstance(label, str) else tuple(label)
+    f = [f for f in layer.get_filters() if f.get_name() in labels][0]
     return f.get_config().get_property("curve")
 
 
@@ -251,12 +255,18 @@ group = img.get_layers()[0]
 check(group.is_group(), "顶层是图层组")
 check(group.get_mode() == Gimp.LayerMode.PASS_THROUGH, "组是穿透混合")
 kids = group.get_children()
-check([k.get_name() for k in kids] == ["2 · 高频（细节）", "1 · 低频（影调）"],
+# 层名走 _()，随界面语言变；英文与中文两套都算通过
+FREQ_NAMES = (
+    ["2 · High frequency (detail)", "1 · Low frequency (tone)"],
+    ["2 · 高频（细节）", "1 · 低频（影调）"],
+)
+check([k.get_name() for k in kids] in FREQ_NAMES,
       "层序：高频在上、低频在下", [k.get_name() for k in kids])
 check(kids[0].get_mode() == Gimp.LayerMode.GRAIN_MERGE, "高频层用颗粒合并")
 check(kids[1].get_mode() == Gimp.LayerMode.NORMAL, "低频层用正常混合")
-check(sorted(l.get_name() for l in img.get_layers()) ==
-      sorted(["高低频磨皮", "base"]), "原图与组并列")
+check(sorted(l.get_name() for l in img.get_layers()) in
+      (sorted(["Frequency Separation", "base"]),
+       sorted(["高低频磨皮", "base"])), "原图与组并列")
 
 print("== A2 滤镜 / filters")
 check(filters_of(kids[1])[-1] == "gegl:gaussian-blur", "低频层挂高斯模糊",
@@ -357,7 +367,11 @@ DODGE.dodge_burn(img, base, 0.12, True)
 group = img.get_layers()[0]
 check(group.is_group(), "顶层是图层组")
 kids = group.get_children()
-check([k.get_name() for k in kids] == ["2 · 压暗（黑蒙版）", "1 · 提亮（黑蒙版）"],
+DODGE_NAMES = (
+    ["2 · Burn (black mask)", "1 · Dodge (black mask)"],
+    ["2 · 压暗（黑蒙版）", "1 · 提亮（黑蒙版）"],
+)
+check([k.get_name() for k in kids] in DODGE_NAMES,
       "层序：压暗在上、提亮在下", [k.get_name() for k in kids])
 check(all(k.get_mode() == Gimp.LayerMode.NORMAL for k in kids), "两层都是正常模式")
 check(all(k.get_mask() is not None for k in kids), "两层各带一张蒙版")
@@ -371,14 +385,15 @@ chan = kids[1].get_filters()[0].get_config().get_property("channel")
 check(chan == Gimp.HistogramChannel.VALUE, "曲线挂在值通道", chan)
 
 print("== B2b 曲线类型 / curve type")
-for k, label in ((kids[1], "1 · 提亮曲线"), (kids[0], "2 · 压暗曲线")):
+for k, label in ((kids[1], ("1 · Dodge curve", "1 · 提亮曲线")),
+                 (kids[0], ("2 · Burn curve", "2 · 压暗曲线"))):
     cur = curve_obj(k, label)
-    check(is_smooth(cur), "%s 是平滑曲线（SMOOTH）" % label,
+    check(is_smooth(cur), "%s 是平滑曲线（SMOOTH）" % (label[0] if isinstance(label, tuple) else label),
           int(cur.get_curve_type()))
-    check(cur.get_n_points() == 5, "%s：五个控制点" % label, cur.get_n_points())
+    check(cur.get_n_points() == 5, "%s：五个控制点" % (label[0] if isinstance(label, tuple) else label), cur.get_n_points())
     pts = points_of(cur)
     check(pts[0] == (0.0, 0.0) and pts[-1] == (1.0, 1.0),
-          "%s：两端不动（0,0）(1,1)" % label, pts)
+          "%s：两端不动（0,0）(1,1)" % (label[0] if isinstance(label, tuple) else label), pts)
     if k is kids[1]:
         check(pts[2][1] > 0.5, "提亮曲线中段高于 0.5", pts[2])
     else:

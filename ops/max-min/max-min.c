@@ -46,8 +46,9 @@ enum_start (lb_mm_mode)
 enum_end (LbMmMode)
 
 property_enum (mode, _("Mode"), LbMmMode, lb_mm_mode, MM_MODE_MAXIMUM)
-    description (_("最大值＝每个像素取邻域内的最大（膨胀，亮区外扩）；"
-                   "最小值＝取最小（腐蚀，亮区收缩）"))
+    description (_("Maximum takes the brightest pixel in the neighbourhood, so "
+                   "bright areas grow (dilate); minimum takes the darkest, so "
+                   "they shrink (erode)."))
 
 enum_start (lb_mm_shape)
   enum_value (MM_SHAPE_SQUARE, "square", "Square")
@@ -55,18 +56,21 @@ enum_start (lb_mm_shape)
 enum_end (LbMmShape)
 
 property_enum (shape, _("Shape"), LbMmShape, lb_mm_shape, MM_SHAPE_SQUARE)
-    description (_("方形＝(±r, ±r) 的方窗；圆形＝半径 r 的圆盘。"
-                   "对应 Photoshop 的「保留：方形度 / 圆度」"))
+    description (_("Square is the (±r, ±r) window; round is a disc of radius r. "
+                   "The counterpart of Photoshop's Preserve: Squareness / "
+                   "Roundness."))
 
 property_int (radius, _("Radius"), 3)
-    description (_("半径（像素）。r=1 即 3×3 邻域，边缘向外长一圈。"
-                   "与 Photoshop 一样限制在 1–100"))
+    description (_("Neighbourhood radius in pixels. r=1 means a 3×3 window and "
+                   "grows the edge outward by one pixel. Limited to 1–100, same "
+                   "as Photoshop."))
     value_range (1, 100)
     ui_range (1, 30)
 
 property_boolean (affect_alpha, _("Affect Alpha"), FALSE)
-    description (_("是否连 alpha 一起取极值。默认不动 alpha：PS 同样不改"
-                   "图层透明度，抠图边缘跟着膨胀往往不是想要的结果"))
+    description (_("Whether alpha takes part in the extremum. Off by default: "
+                   "Photoshop does not change layer opacity either, and letting "
+                   "a cut-out edge dilate is rarely what you want."))
 
 #else
 

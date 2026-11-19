@@ -26,69 +26,69 @@
 
 #ifdef GEGL_PROPERTIES
 
-property_double (L_in_black, _("L 输入黑场"), 0.0)
-    description (_("明度通道 输入黑场"))
+property_double (L_in_black, _("L input black"), 0.0)
+    description (_("Lightness channel input black."))
     value_range (0.0, 95.0)
     ui_range (0.0, 95.0)
 
-property_double (L_in_white, _("L 输入白场"), 100.0)
-    description (_("明度通道 输入白场"))
+property_double (L_in_white, _("L input white"), 100.0)
+    description (_("Lightness channel input white."))
     value_range (5.0, 100.0)
     ui_range (5.0, 100.0)
 
 property_double (L_gamma, _("L Gamma"), 1.0)
-    description (_("明度通道 伽马 / 中间调"))
+    description (_("Lightness channel gamma / midtones."))
     value_range (0.10, 4.0)
     ui_range (0.20, 2.5)
 
-property_double (L_out_black, _("L 输出下限"), 0.0)
-    description (_("明度通道输出黑场"))
+property_double (L_out_black, _("L output black"), 0.0)
+    description (_("Lightness channel output black."))
     value_range (0.0, 100.0)
 
-property_double (L_out_white, _("L 输出上限"), 100.0)
-    description (_("明度通道输出白场"))
+property_double (L_out_white, _("L output white"), 100.0)
+    description (_("Lightness channel output white."))
     value_range (0.0, 100.0)
 
-property_double (a_in_black, _("a 输入黑场"), -128.0)
-    description (_("a通道(红‑绿轴)输入黑场"))
+property_double (a_in_black, _("a input black"), -128.0)
+    description (_("a channel (red-green axis) input black."))
     value_range (-128.0, 120.0)
 
-property_double (a_in_white, _("a 输入白场"), 127.0)
-    description (_("a通道(红‑绿轴)输入白场"))
+property_double (a_in_white, _("a input white"), 127.0)
+    description (_("a channel (red-green axis) input white."))
     value_range (-120.0, 127.0)
 
 property_double (a_gamma, _("a Gamma"), 1.0)
-    description (_("a通道伽马，绕中性轴转动，控制色彩中间调倾向"))
+    description (_("a channel gamma, pivoting about the neutral axis; controls the midtone colour cast."))
     value_range (0.10, 4.0)
     ui_range (0.20, 2.5)
 
-property_double (a_out_black, _("a 输出下限"), -128.0)
-    description (_("a通道输出下限，限制最大绿色"))
+property_double (a_out_black, _("a output black"), -128.0)
+    description (_("a channel output black; caps how far green can go."))
     value_range (-128.0, 127.0)
 
-property_double (a_out_white, _("a 输出上限"), 127.0)
-    description (_("a通道输出上限，限制最大洋红"))
+property_double (a_out_white, _("a output white"), 127.0)
+    description (_("a channel output white; caps how far magenta can go."))
     value_range (-128.0, 127.0)
 
-property_double (b_in_black, _("b 输入黑场"), -128.0)
-    description (_("b通道(黄‑蓝轴)输入黑场"))
+property_double (b_in_black, _("b input black"), -128.0)
+    description (_("b channel (yellow-blue axis) input black."))
     value_range (-128.0, 120.0)
 
-property_double (b_in_white, _("b 输入白场"), 127.0)
-    description (_("b通道(黄‑蓝轴)输入白场"))
+property_double (b_in_white, _("b input white"), 127.0)
+    description (_("b channel (yellow-blue axis) input white."))
     value_range (-120.0, 127.0)
 
 property_double (b_gamma, _("b Gamma"), 1.0)
-    description (_("b通道伽马，绕中性轴转动，控制色彩中间调倾向"))
+    description (_("b channel gamma, pivoting about the neutral axis; controls the midtone colour cast."))
     value_range (0.10, 4.0)
     ui_range (0.20, 2.5)
 
-property_double (b_out_black, _("b 输出下限"), -128.0)
-    description (_("b通道输出下限，限制最大蓝色"))
+property_double (b_out_black, _("b output black"), -128.0)
+    description (_("b channel output black; caps how far blue can go."))
     value_range (-128.0, 127.0)
 
-property_double (b_out_white, _("b 输出上限"), 127.0)
-    description (_("b通道输出上限，限制最大黄色"))
+property_double (b_out_white, _("b output white"), 127.0)
+    description (_("b channel output white; caps how far yellow can go."))
     value_range (-128.0, 127.0)
 
 #else

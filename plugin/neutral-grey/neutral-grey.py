@@ -50,8 +50,21 @@ gi.require_version('Gegl', '0.4')
 from gi.repository import Gimp, GLib, GObject, Gegl
 
 
-def _(message):
-    return GLib.dgettext(None, message)
+# 多语言：查自己的域（gegl-color-ops），语言取自 GIMP 界面设置。
+# helper 在 plugin/_shared/ 下；装成单文件时退回 GIMP 默认域。
+import os as _os
+import sys as _sys
+
+_here = _os.path.dirname(_os.path.abspath(__file__))
+for _cand in (_os.path.join(_here, '_shared'),
+              _os.path.normpath(_os.path.join(_here, '..', '_shared'))):
+    if _os.path.isdir(_cand) and _cand not in _sys.path:
+        _sys.path.append(_cand)
+try:
+    from lb_i18n import _          # noqa: F811
+except Exception:                  # helper 不在：保持可用，只是不翻译
+    def _(message):
+        return GLib.dgettext(None, message)
 
 
 MID_GREY = 0.5
@@ -134,11 +147,10 @@ def _fill_grey(layer):
 def neutral_grey(image, base, make_group=True):
     """在原图层上方加一张 50% 灰的柔光层；恒等时结果 = 原图。"""
     if base is None:
-        raise RuntimeError(_("没有可以处理的图层 / no layer to work on"))
+        raise RuntimeError(_("Nothing to work on: no layer."))
     if base.is_group():
         raise RuntimeError(
-            _("图层组不能处理：请先选一个栅格图层（右键 → 合并组）"
-              " / a layer group has no pixels of its own"))
+            _("A layer group has no pixels of its own; pick a raster layer (right-click the group, then Merge Group)."))
 
     parent = base.get_parent()
     position = _item_position(image, base)
@@ -163,13 +175,13 @@ def neutral_grey(image, base, make_group=True):
     try:
         host = None
         if make_group:
-            host = Gimp.GroupLayer.new(image, _("中性灰磨皮"))
+            host = Gimp.GroupLayer.new(image, _("Neutral Grey"))
             host.set_mode(Gimp.LayerMode.PASS_THROUGH)
             image.insert_layer(host, parent, position)
 
         itype = (Gimp.ImageType.RGBA_IMAGE if base.has_alpha()
                  else Gimp.ImageType.RGB_IMAGE)
-        lay = Gimp.Layer.new(image, _("1 · 中性灰（白提亮 / 黑压暗）"),
+        lay = Gimp.Layer.new(image, _("1 · Neutral grey (white dodges, black burns)"),
                              w, h, itype, 100.0, Gimp.LayerMode.SOFTLIGHT)
         image.insert_layer(lay, host, 0)
         lay.set_offsets(ox, oy)
@@ -186,11 +198,9 @@ def neutral_grey(image, base, make_group=True):
 
     Gimp.displays_flush()
     try:
-        msg = _("中性灰磨皮已建立：一张 50% 灰的柔光层，现在与原图完全一致。"
-                "点中这一层，用柔边画笔（不透明度 5–15%）涂抹：白色提亮、"
-                "黑色压暗，涂过头用 #808080 盖回去。")
+        msg = _("Neutral Grey is set up: a 50% grey soft-light layer that currently leaves the image identical. Click the layer and paint with a soft brush (opacity 5–15%): white lightens, black darkens, and #808080 paints over the overshoot.")
         if auto_group:
-            msg += _("\n（这张图带透明，已自动分组：透明度靠组蒙版保住。）")
+            msg += _("\n(This image has transparency, so the layers went into a group automatically: the group mask preserves it.)")
         Gimp.message(msg)
     except Exception:
         pass
@@ -202,7 +212,7 @@ def neutral_grey(image, base, make_group=True):
 class NeutralGreyPlugin(Gimp.PlugIn):
 
     def do_set_i18n(self, procname):
-        return True, 'gimp30-python', None
+        return True, 'gegl-color-ops', None
 
     def do_query_procedures(self):
         return ['lb-plugin-neutral-grey']
@@ -215,24 +225,23 @@ class NeutralGreyPlugin(Gimp.PlugIn):
                                        Gimp.ProcedureSensitivityMask.DRAWABLES)
         procedure.set_attribution("SuperMrWang", "SuperMrWang", "2026")
 
-        procedure.set_menu_label(_("中性灰磨皮 (Neutral Grey)"))
+        procedure.set_menu_label(_("Neutral Grey"))
         procedure.add_menu_path("<Image>/SuperMrWang/Retouch")
         procedure.add_menu_path("<Layers>/SuperMrWang/Retouch")
 
         procedure.set_documentation(
-            _("中性灰磨皮：加一张 50% 灰的柔光层，恒等时与原图逐像素相同。"
-              "白色画笔提亮、黑色画笔压暗，反复涂抹把皮肤推平。"),
+            _("Neutral Grey: adds a 50% grey soft-light layer that is pixel-identical to the original when untouched. Paint white to lighten and black to darken, going over the skin until it evens out."),
             _("Neutral grey dodge & burn: a 50% grey Soft Light layer, identity "
               "on the backdrop; paint white to lighten, black to darken."), name)
         procedure.add_boolean_argument(
-            "group", _("收进图层组"),
-            _("把灰层放进一个「中性灰磨皮」穿透组里；关掉就直接叠在原图层上方"),
+            "group", _("Put in a layer group"),
+            _("Puts the grey layer into a pass-through group named Neutral Grey; turn it off to stack it directly above the original layer."),
             True, GObject.ParamFlags.READWRITE)
         return procedure
 
     def run(self, procedure, run_mode, image, drawables, config, data):
         if len(drawables) != 1:
-            raise RuntimeError(_("请选择一个图层 / select exactly one layer"))
+            raise RuntimeError(_("Select exactly one layer."))
         neutral_grey(image, drawables[0], config.get_property("group"))
         return procedure.new_return_values(Gimp.PDBStatusType.SUCCESS, None)
 

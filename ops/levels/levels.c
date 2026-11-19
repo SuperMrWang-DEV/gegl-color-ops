@@ -35,84 +35,84 @@
 
 #ifdef GEGL_PROPERTIES
 
-property_double (in_low, _("输入黑场"), 0.0)
-    description (_("复合通道 输入黑场：此值及以下的像素变黑"))
+property_double (in_low, _("Input black"), 0.0)
+    description (_("Composite channel input black: pixels at or below it become black."))
     value_range (0.0, 255.0)
 
-property_double (in_gamma, _("输入灰点"), 1.0)
-    description (_("复合通道 中间调：>1 提亮，<1 压暗"))
+property_double (in_gamma, _("Input grey"), 1.0)
+    description (_("Composite midtones: >1 lightens, <1 darkens."))
     value_range (0.01, 9.99)
 
-property_double (in_high, _("输入白场"), 255.0)
-    description (_("复合通道 输入白场：此值及以上的像素变白"))
+property_double (in_high, _("Input white"), 255.0)
+    description (_("Composite channel input white: pixels at or above it become white."))
     value_range (0.0, 255.0)
 
-property_double (out_low, _("输出黑场"), 0.0)
-    description (_("复合通道 输出黑场"))
+property_double (out_low, _("Output black"), 0.0)
+    description (_("Composite channel output black."))
     value_range (0.0, 255.0)
 
-property_double (out_high, _("输出白场"), 255.0)
-    description (_("复合通道 输出白场"))
+property_double (out_high, _("Output white"), 255.0)
+    description (_("Composite channel output white."))
     value_range (0.0, 255.0)
 
-property_double (red_in_low, _("红 输入黑场"), 0.0)
-    description (_("红色通道 输入黑场"))
+property_double (red_in_low, _("Red input black"), 0.0)
+    description (_("Red channel input black."))
     value_range (0.0, 255.0)
 
-property_double (red_in_gamma, _("红 输入灰点"), 1.0)
-    description (_("红色通道 中间调：>1 提亮，<1 压暗"))
+property_double (red_in_gamma, _("Red input grey"), 1.0)
+    description (_("Red channel midtones: >1 lightens, <1 darkens."))
     value_range (0.01, 9.99)
 
-property_double (red_in_high, _("红 输入白场"), 255.0)
-    description (_("红色通道 输入白场"))
+property_double (red_in_high, _("Red input white"), 255.0)
+    description (_("Red channel input white."))
     value_range (0.0, 255.0)
 
-property_double (red_out_low, _("红 输出黑场"), 0.0)
-    description (_("红色通道 输出黑场"))
+property_double (red_out_low, _("Red output black"), 0.0)
+    description (_("Red channel output black."))
     value_range (0.0, 255.0)
 
-property_double (red_out_high, _("红 输出白场"), 255.0)
-    description (_("红色通道 输出白场"))
+property_double (red_out_high, _("Red output white"), 255.0)
+    description (_("Red channel output white."))
     value_range (0.0, 255.0)
 
-property_double (green_in_low, _("绿 输入黑场"), 0.0)
-    description (_("绿色通道 输入黑场"))
+property_double (green_in_low, _("Green input black"), 0.0)
+    description (_("Green channel input black."))
     value_range (0.0, 255.0)
 
-property_double (green_in_gamma, _("绿 输入灰点"), 1.0)
-    description (_("绿色通道 中间调：>1 提亮，<1 压暗"))
+property_double (green_in_gamma, _("Green input grey"), 1.0)
+    description (_("Green channel midtones: >1 lightens, <1 darkens."))
     value_range (0.01, 9.99)
 
-property_double (green_in_high, _("绿 输入白场"), 255.0)
-    description (_("绿色通道 输入白场"))
+property_double (green_in_high, _("Green input white"), 255.0)
+    description (_("Green channel input white."))
     value_range (0.0, 255.0)
 
-property_double (green_out_low, _("绿 输出黑场"), 0.0)
-    description (_("绿色通道 输出黑场"))
+property_double (green_out_low, _("Green output black"), 0.0)
+    description (_("Green channel output black."))
     value_range (0.0, 255.0)
 
-property_double (green_out_high, _("绿 输出白场"), 255.0)
-    description (_("绿色通道 输出白场"))
+property_double (green_out_high, _("Green output white"), 255.0)
+    description (_("Green channel output white."))
     value_range (0.0, 255.0)
 
-property_double (blue_in_low, _("蓝 输入黑场"), 0.0)
-    description (_("蓝色通道 输入黑场"))
+property_double (blue_in_low, _("Blue input black"), 0.0)
+    description (_("Blue channel input black."))
     value_range (0.0, 255.0)
 
-property_double (blue_in_gamma, _("蓝 输入灰点"), 1.0)
-    description (_("蓝色通道 中间调：>1 提亮，<1 压暗"))
+property_double (blue_in_gamma, _("Blue input grey"), 1.0)
+    description (_("Blue channel midtones: >1 lightens, <1 darkens."))
     value_range (0.01, 9.99)
 
-property_double (blue_in_high, _("蓝 输入白场"), 255.0)
-    description (_("蓝色通道 输入白场"))
+property_double (blue_in_high, _("Blue input white"), 255.0)
+    description (_("Blue channel input white."))
     value_range (0.0, 255.0)
 
-property_double (blue_out_low, _("蓝 输出黑场"), 0.0)
-    description (_("蓝色通道 输出黑场"))
+property_double (blue_out_low, _("Blue output black"), 0.0)
+    description (_("Blue channel output black."))
     value_range (0.0, 255.0)
 
-property_double (blue_out_high, _("蓝 输出白场"), 255.0)
-    description (_("蓝色通道 输出白场"))
+property_double (blue_out_high, _("Blue output white"), 255.0)
+    description (_("Blue channel output white."))
     value_range (0.0, 255.0)
 
 #else

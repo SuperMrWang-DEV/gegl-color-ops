@@ -26,6 +26,14 @@ echo "· 安装到 $DEST"
 cp -f "$ROOT/build"/*.$EXT "$DEST"/
 echo "· 已复制 $(ls "$ROOT/build"/*.$EXT | wc -l) 个模块（重启 GIMP 生效）"
 
+# 翻译目录要和模块放在一起：common/i18n.c 按 .dll/.so 自身位置往上找
+# locale/、../locale、../share/locale，这里命中第一个。
+if [ -d "$ROOT/locale" ]; then
+  mkdir -p "$DEST/locale"
+  cp -r "$ROOT/locale/." "$DEST/locale/"
+  echo "· 已复制翻译目录（$(ls "$ROOT/locale" | tr '\n' ' ')）"
+fi
+
 if [ "$VERIFY" = "1" ]; then
   echo "· 逐个确认注册（gegl --info）"
 

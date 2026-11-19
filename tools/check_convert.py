@@ -380,19 +380,19 @@ def run():
         mod.channel_to_selection(img)
         check("无通道应报错", ["没报错"], ["应报错"])
     except RuntimeError as exc:
-        check("无通道报错信息", ["通道" in str(exc)], [True])
+        check("无通道报错信息", ["channel" in str(exc) or "通道" in str(exc)], [True])
     try:
         mod.mask_to_selection(img, [layer])
         check("无蒙版应报错", ["没报错"], ["应报错"])
     except RuntimeError as exc:
-        check("无蒙版报错信息", ["蒙版" in str(exc)], [True])
+        check("无蒙版报错信息", ["mask" in str(exc) or "蒙版" in str(exc)], [True])
     grp = Gimp.GroupLayer.new(img, "grp")
     img.insert_layer(grp, None, 0)
     try:
         mod.selection_to_mask(img, [grp])
         check("图层组应报错", ["没报错"], ["应报错"])
     except RuntimeError as exc:
-        check("图层组报错信息", ["图层组" in str(exc)], [True])
+        check("图层组报错信息", ["layer group" in str(exc) or "图层组" in str(exc)], [True])
     img.delete()
 
     print("\n[13] 往返闭合（原生也闭合，插件跟随）")
@@ -562,7 +562,7 @@ def run():
         mod.path_to_selection(img)
         check("无路径应报错", ["没报错"], ["应报错"])
     except RuntimeError as exc:
-        check("无路径报错信息", ["路径" in str(exc)], [True])
+        check("无路径报错信息", ["path" in str(exc) or "路径" in str(exc)], [True])
 
     # 两条路径时，认「路径面板里选中的那条」，谁选中就取谁
     # （GIMP 的路径选中项不会被清空，总有一条是选中状态）
@@ -581,7 +581,7 @@ def run():
         mod.selection_to_path(img, [layer])
         check("无选区应报错", ["没报错"], ["应报错"])
     except RuntimeError as exc:
-        check("无选区报错信息", ["选区" in str(exc)], [True])
+        check("无选区报错信息", ["selection" in str(exc) or "选区" in str(exc)], [True])
     img.delete()
 
 

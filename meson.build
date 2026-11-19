@@ -18,6 +18,14 @@ if m_dep.found()
   op_deps += m_dep
 endif
 
+# libintl：common/i18n.c 在模块载入时自己 bindtextdomain。glibc 把它放在 libc 里
+# （find_library 找不到 intl 是正常的，跳过即可）；Windows 的 MinGW 与部分 BSD
+# 需要显式链接。找不到也不能让构建失败 —— 那样只是退化成英文 msgid。
+intl_dep = cc.find_library('intl', required: false)
+if intl_dep.found()
+  op_deps += intl_dep
+endif
+
 # [目录名, 模块名, 源文件名]。模块名即产出的 .so 文件名（不能带 lib 前缀），
 # 与源文件名保持一致 —— GEGL 的 GType 名取自源文件名，两边对齐才能和
 # build.sh 的产出（按源文件名命名）完全对应。
@@ -81,6 +89,7 @@ foreach op : ops
   # 需要把算子自己的目录放进搜索路径，因此两处 include_directories 都不能省。
   shared_module(op[1],
                 join_paths('ops', op[0], op[2]),
+                'common/i18n.c',
                 include_directories: [common_inc, include_directories(join_paths('ops', op[0]))],
                 dependencies: op_deps,
                 c_args: ['-O2', '-Wall'],

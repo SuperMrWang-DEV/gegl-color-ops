@@ -35,8 +35,21 @@ def _N_(message):
     return message
 
 
-def _(message):
-    return GLib.dgettext(None, message)
+# 多语言：查自己的域（gegl-color-ops），语言取自 GIMP 界面设置。
+# helper 在 plugin/_shared/ 下；装成单文件时退回 GIMP 默认域。
+import os as _os
+import sys as _sys
+
+_here = _os.path.dirname(_os.path.abspath(__file__))
+for _cand in (_os.path.join(_here, '_shared'),
+              _os.path.normpath(_os.path.join(_here, '..', '_shared'))):
+    if _os.path.isdir(_cand) and _cand not in _sys.path:
+        _sys.path.append(_cand)
+try:
+    from lb_i18n import _          # noqa: F811
+except Exception:                  # helper 不在：保持可用，只是不翻译
+    def _(message):
+        return GLib.dgettext(None, message)
 
 
 # ---- 通用小件 / small helpers ----------------------------------------------
@@ -739,7 +752,7 @@ class PsBlend(Gimp.PlugIn):
     # -- boilerplate --
 
     def do_set_i18n(self, procname):
-        return True, 'gimp30-python', None
+        return True, 'gegl-color-ops', None
 
     def do_query_procedures(self):
         return ['lb-plugin-apply-image', 'lb-plugin-calculations']
@@ -758,7 +771,7 @@ class PsBlend(Gimp.PlugIn):
             procedure.set_documentation(
                 _("Apply Image: blend a layer from any open image onto "
                   "this one, per channel, with mask and opacity"),
-                _("Replicates 经典图像编辑器 Image > Apply Image."), name)
+                _("Replicates Image > Apply Image from the classic image editor."), name)
             procedure.set_menu_label(_("Apply Image..."))
             procedure.add_menu_path("<Image>/SuperMrWang/Blend")
 
@@ -814,7 +827,7 @@ class PsBlend(Gimp.PlugIn):
             procedure.set_documentation(
                 _("Calculations: blend two channels from any open image "
                   "into a selection, channel, grey layer or layer alpha"),
-                _("Replicates 经典图像编辑器 Image > Calculations."), name)
+                _("Replicates Image > Calculations from the classic image editor."), name)
             procedure.set_menu_label(_("Calculations..."))
             procedure.add_menu_path("<Image>/SuperMrWang/Blend")
 

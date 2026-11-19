@@ -44,6 +44,14 @@ for SRC in "$SRC_ROOT"/*/; do
   cp -r "$SRC" "$DST/plug-ins/$NAME"
   echo "· 已安装到 $DST/plug-ins/$NAME"
 done
+
+# 翻译目录：plugin/_shared/lb_i18n.py 从 plug-ins/_shared 往上找 locale，
+# 所以放在 plug-ins/locale 就能被命中。
+if [ -d "$ROOT/locale" ]; then
+  mkdir -p "$DST/plug-ins/locale"
+  cp -r "$ROOT/locale/." "$DST/plug-ins/locale/"
+  echo "· 已复制翻译目录（$(ls "$ROOT/locale" | tr '\n' ' ')）"
+fi
 echo "· 重启 GIMP 后生效（菜单栏顶层多一个 SuperMrWang，与「颜色」「图层」平级）："
 echo "    SuperMrWang → Convert    图层 → 选区 / 通道 / 一次拆出 R·G·B·Alpha（原始像素，彩色按亮度）"
 echo "                             Channel / Selection / Mask / Path 十二向互转（零参数，点一下直接跑）"

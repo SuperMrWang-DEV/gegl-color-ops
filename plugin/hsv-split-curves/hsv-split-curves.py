@@ -100,8 +100,21 @@ gi.require_version('Gimp', '3.0')
 from gi.repository import Gimp, GLib, GObject
 
 
-def _(message):
-    return GLib.dgettext(None, message)
+# 多语言：查自己的域（gegl-color-ops），语言取自 GIMP 界面设置。
+# helper 在 plugin/_shared/ 下；装成单文件时退回 GIMP 默认域。
+import os as _os
+import sys as _sys
+
+_here = _os.path.dirname(_os.path.abspath(__file__))
+for _cand in (_os.path.join(_here, '_shared'),
+              _os.path.normpath(_os.path.join(_here, '..', '_shared'))):
+    if _os.path.isdir(_cand) and _cand not in _sys.path:
+        _sys.path.append(_cand)
+try:
+    from lb_i18n import _          # noqa: F811
+except Exception:                  # helper 不在：保持可用，只是不翻译
+    def _(message):
+        return GLib.dgettext(None, message)
 
 
 # 精确适配用的两个算子（本仓库 ops/hsv-dual、ops/hsv-compose）
@@ -197,9 +210,7 @@ def _require_adapter_ops(layer):
             missing.append(op)
     if missing:
         raise RuntimeError(
-            _("缺少适配算子：%s。它们是 HSV 精确适配的必需组件（三个分量必须"
-              "在同一张数据图里一起算）。请先安装本仓库的 GEGL 算子 hsv-dual / "
-              "hsv-compose（./install.sh），重启 GIMP 再试。") % ", ".join(missing))
+            _("Required operations are missing: %s. They are essential for exact HSV fitting (all three components must be evaluated in the same data image). Install this repository's GEGL operations hsv-dual / hsv-compose (./install.sh) and restart GIMP.") % ", ".join(missing))
 
 
 def _link_alpha_mask(image, base, host):
@@ -365,11 +376,10 @@ def _component_layer(image, base, title, component, encode, mode, parent):
 
 def _check_base(base):
     if base is None:
-        raise RuntimeError(_("没有可以拆分的图层 / no layer to split"))
+        raise RuntimeError(_("Nothing to split: no layer."))
     if base.is_group():
         raise RuntimeError(
-            _("图层组不能拆分：请先选一个栅格图层（右键 → 合并组）"
-              " / a layer group has no pixels of its own"))
+            _("A layer group cannot be split; pick a raster layer first (right-click the group, then Merge Group)."))
 
 
 def _split_multi(image, base, make_group=True):
@@ -426,12 +436,10 @@ def _split_multi(image, base, make_group=True):
 
     Gimp.displays_flush()
     try:
-        msg = _("HSV 分量层已建立（multi 模式）：%s。改每层「2 · curve」就是调该"
-                "分量的曲线；encode 那步别动。每层都能单独关掉。原图层可以隐藏，"
-                "这三层自己就能叠回去。") \
+        msg = _("HSV component layers created (multi mode): %s. Editing each layer's \"2 · curve\" adjusts that component; leave the encode step alone. Every layer can be switched off separately. Hide the original layer; these three stack back on their own.") \
               % (host.get_name() if host else value.get_name())
         if auto_group:
-            msg += _("\n（这张图带透明，已自动分组：透明度靠组蒙版保住。）")
+            msg += _("\n(This image has transparency, so the layers went into a group automatically: the group mask preserves it.)")
         Gimp.message(msg)
     except Exception:
         pass
@@ -497,10 +505,10 @@ def split_hsv(image, base, mode='single', make_group=True):
 
     Gimp.displays_flush()
     try:
-        msg = _("HSV 层已建立：%s。S 曲线在「2 · S curve」（红通道）、V 曲线在「3 · V curve」（绿通道）、色相曲线在「4 · H curve」（蓝通道）。 原图层可以隐藏，这一层自己就能还原。") \
+        msg = _("HSV layers created: %s. The S curve lives in \"2 · S curve\" (red channel), the V curve in \"3 · V curve\" (green channel) and the hue curve in \"4 · H curve\" (blue channel). Hide the original layer; this one reproduces it on its own.") \
               % (host.get_name() if host else layer.get_name())
         if auto_group:
-            msg += _("\n（这张图带透明，已自动分组：透明度靠组蒙版保住。）")
+            msg += _("\n(This image has transparency, so the layers went into a group automatically: the group mask preserves it.)")
         Gimp.message(msg)
     except Exception:
         pass
@@ -512,7 +520,7 @@ def split_hsv(image, base, mode='single', make_group=True):
 class HsvSplitPlugin(Gimp.PlugIn):
 
     def do_set_i18n(self, procname):
-        return True, 'gimp30-python', None
+        return True, 'gegl-color-ops', None
 
     def do_query_procedures(self):
         return ['lb-plugin-hsv-split-curves',
@@ -528,27 +536,23 @@ class HsvSplitPlugin(Gimp.PlugIn):
 
         multi = name.endswith('-multi')
         procedure.set_menu_label(
-            _("HSV Split (Curves) · %s") % ('multi' if multi else 'single'))
+            _("HSV Split (Curves) · %s") % (_("multi") if multi else _("single")))
         procedure.add_menu_path("<Image>/SuperMrWang/Retouch")
         procedure.add_menu_path("<Layers>/SuperMrWang/Retouch")
 
         if multi:
-            doc_zh = _("在 HSV 空间里调曲线：multi 模式把图层拆成分量层，各挂一条"
-                       "曲线，用 GIMP 原生的分量混合模式叠回去，每层可以单独关掉。"
-                       "恒等曲线时精确还原原图。")
+            doc_zh = _("Adjust curves in HSV space: multi mode splits the layer into component layers, attaches one curve to each and stacks them back with GIMP's native component blend modes, so every layer can be switched off separately. Identity curves reproduce the original exactly.")
             doc_en = _("Curve HSV itself, multi mode: the old component-layer stack "
                        "on GIMP's native blend modes, one switch per layer.")
         else:
-            doc_zh = _("在 HSV 空间里调曲线：single 模式把三个分量打包进一张数据图，"
-                       "三条曲线各管一个通道，再由一个算子解回颜色。恒等曲线时"
-                       "精确还原原图，一层五条滤镜。")
+            doc_zh = _("Adjust curves in HSV space: single mode packs the three components into one data image, one curve per channel, then an operation decodes it back to colour. Identity curves reproduce the original exactly; one layer, five filters.")
             doc_en = _("Curve HSV itself, single mode: one packed data layer with "
                        "three curves; identity reproduces the image exactly.")
         procedure.set_documentation(doc_zh, doc_en, name)
 
         procedure.add_boolean_argument(
-            "group", _("收进图层组"),
-            _("把结果放进一个「HSV split」穿透组里；关掉就直接叠在原图层上方"),
+            "group", _("Put in a layer group"),
+            _("Puts the result into a pass-through group named HSV split; turn it off to stack it directly above the original layer."),
             True, GObject.ParamFlags.READWRITE)
         return procedure
 

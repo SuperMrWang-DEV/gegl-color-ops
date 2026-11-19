@@ -17,6 +17,24 @@ SKIP_TAGS = {"script", "style", "code", "pre", "kbd", "samp"}
 VOID = {"area","base","br","col","embed","hr","img","input","link","meta","param",
         "source","track","wbr"}
 
+# 专有名词豁免：这些字符串在两种语言下本来就该保持原样，报出来只是噪音。
+#   · 菜单路径——照抄界面原文才有用（GIMP 里显示的就是 SuperMrWang → Retouch → …，
+#     single / multi 两个模式的菜单名本来就没进翻译，中文界面也是英文）
+#   · 枚举取值列表——Hue / Saturation / Color / Value 是参数名，不进翻译
+#   · 引用出处——作者名与平台名（知乎）不译
+PROPER = (
+    "SuperMrWang",             # 菜单路径必定以项目名开头
+    "Zhihu",                   # 引用来源
+    "LCh Hue", "LCh Chroma",   # gray-to-component 的分量枚举
+)
+
+
+def proper_noun(s):
+    if any(k in s for k in PROPER):
+        return True
+    # 「A / B / C / D」这种纯术语枚举：斜杠 >= 2 且没有句子结构
+    return s.count(" / ") >= 2 and s.count(" ") <= s.count(" / ") * 2 + 3
+
 
 class Node:
     __slots__ = ("tag", "classes", "attrs", "children", "parent", "text")
@@ -104,6 +122,7 @@ def main():
     pages.sort()
 
     problems = {}
+    unpaired = {}
     for path in pages:
         rel = os.path.relpath(path, os.path.dirname(ROOT)).replace("\\", "/")
         raw = io.open(path, encoding="utf-8").read()
@@ -140,6 +159,8 @@ def main():
                 continue
             if s.startswith("$"):
                 continue   # 公式两种语言共用
+            if proper_noun(s):
+                continue   # 菜单路径 / 枚举取值 / 引用出处，两种语言都保持原样
             if CJK.search(s) and visible_in(node, "en"):
                 zh_leak_en.append(s[:100])
             if not CJK.search(s) and not s.startswith("$"):
@@ -159,12 +180,17 @@ def main():
                 continue
             attr_issues.append("%s[%s]=%s" % (tag, k, v[:70]))
 
-        if zh_leak_en or en_leak_zh or nested or attr_issues or n_zh != n_en:
+        # 条数不配对单独记：中文侧多一段说明、英文侧多一条注释都很正常，
+        # 单看总数不等不是错误，只有上面四类「真漏」才算。
+        if zh_leak_en or en_leak_zh or nested or attr_issues:
             problems[rel] = dict(zh_leak_en=zh_leak_en, en_leak_zh=en_leak_zh,
                                  nested=nested, attrs=attr_issues,
                                  n_zh=n_zh, n_en=n_en)
+        elif n_zh != n_en:
+            unpaired[rel] = (n_zh, n_en)
 
-    print("扫描 %d 个页面，%d 个有问题\n" % (len(pages), len(problems)))
+    print("扫描 %d 个页面，%d 个有漏翻/嵌套/属性问题" % (len(pages), len(problems)))
+    print("（另有 %d 页两侧段落条数不等，属正常，仅供参考）\n" % len(unpaired))
     for rel, d in problems.items():
         print("=" * 78)
         print(rel, "  (l-zh=%d, l-en=%d)" % (d["n_zh"], d["n_en"]))
@@ -185,6 +211,12 @@ def main():
             for s in d["attrs"][:8]:
                 print("     -", s)
 
+    if problems:
+        print("\n✗ %d 个页面需要修" % len(problems))
+        return 1
+    print("✓ 双语切换完整：没有露出另一种语言的段落")
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

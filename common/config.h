@@ -14,14 +14,20 @@
   #define GEGL_MAJOR_VERSION 0
   #define GEGL_MINOR_VERSION 5
   #define GEGL_MICRO_VERSION 0  /* Initial 0.5 release; adjust as needed */
-  #define GETTEXT_PACKAGE "gegl-0.5"
 #else
   #define GEGL_LIBRARY "gegl-0.4"
   #define GEGL_MAJOR_VERSION 0
   #define GEGL_MINOR_VERSION 4
   #define GEGL_MICRO_VERSION 34
-  #define GETTEXT_PACKAGE "gegl-0.4"
 #endif
+
+/* 翻译域名 / gettext domain
+ *
+ * 这里原来是 "gegl-0.4"，也就是借 GEGL 自己的语言包翻译我们的字符串。后果是
+ * 撞车：本工程的 43 条 msgid（Blend mode / Contrast / Radius …）会被 GEGL 的
+ * gegl-0.4.mo 顶掉，中文界面里冒出德文或日文单词，没撞上的又全是英文。
+ * 现在换成自己的域名，由 common/i18n.h 在载入时绑定 locale/ 目录。 */
+#define GETTEXT_PACKAGE "gegl-color-ops"
 
 /* Stability flag (stable for both 0.4 and 0.5 releases) */
 #undef GEGL_UNSTABLE

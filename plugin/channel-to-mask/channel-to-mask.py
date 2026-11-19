@@ -47,8 +47,21 @@ def _N_(message):
     return message
 
 
-def _(message):
-    return GLib.dgettext(None, message)
+# 多语言：查自己的域（gegl-color-ops），语言取自 GIMP 界面设置。
+# helper 在 plugin/_shared/ 下；装成单文件时退回 GIMP 默认域。
+import os as _os
+import sys as _sys
+
+_here = _os.path.dirname(_os.path.abspath(__file__))
+for _cand in (_os.path.join(_here, '_shared'),
+              _os.path.normpath(_os.path.join(_here, '..', '_shared'))):
+    if _os.path.isdir(_cand) and _cand not in _sys.path:
+        _sys.path.append(_cand)
+try:
+    from lb_i18n import _          # noqa: F811
+except Exception:                  # helper 不在：保持可用，只是不翻译
+    def _(message):
+        return GLib.dgettext(None, message)
 
 
 # ---- PDB 小工具 / PDB helpers ----------------------------------------------
@@ -76,7 +89,7 @@ def pick_channel(image, name="", drawables=None):
         for ch in channels:
             if ch.get_name() == name:
                 return ch
-        raise RuntimeError(_("找不到名为「%s」的通道 / no channel named \"%s\"")
+        raise RuntimeError(_("No channel named \"%s\".")
                            % (name, name))
 
     def _chans(items):
@@ -91,15 +104,11 @@ def pick_channel(image, name="", drawables=None):
     if len(channels) == 1:
         return channels[0]
     if not channels:
-        raise RuntimeError(_("这张图没有通道，先在通道面板新建一条 "
-                             "/ this image has no channels yet"))
+        raise RuntimeError(_("This image has no channels yet; create one in the Channels dock first."))
 
     raise RuntimeError(
-        _("要在通道面板里点一下要用的通道再运行（现有：%s），或填「通道名」 "
-          "/ click the channel to use in the Channels dock first (have: %s), "
-          "or fill in a name")
-        % (", ".join(c.get_name() for c in channels),
-           ", ".join(c.get_name() for c in channels)))
+        _("Click the channel to use in the Channels dock and run again (available: %s), or fill in a channel name.")
+        % ", ".join(c.get_name() for c in channels))
 
 
 def resolve_layers(image, drawables):
@@ -125,10 +134,9 @@ def channel_to_mask(image, layer, channel, invert=False):
     Same two steps the native UI takes: channel to selection, selection to
     mask. invert flips black and white afterwards."""
     if layer is None:
-        raise RuntimeError(_("没有选中图层 / no layer selected"))
+        raise RuntimeError(_("No layer selected."))
     if layer.is_group():
-        raise RuntimeError(_("图层组没有像素，挂不了蒙版：请先合并图层组 "
-                             "/ a layer group cannot take a mask"))
+        raise RuntimeError(_("A layer group has no pixels and cannot take a mask; merge the group first."))
 
     image.undo_group_start()
     try:
@@ -157,7 +165,7 @@ def channel_to_mask(image, layer, channel, invert=False):
 class ChannelToMaskPlugin(Gimp.PlugIn):
 
     def do_set_i18n(self, procname):
-        return True, 'gimp30-python', None
+        return True, 'gegl-color-ops', None
 
     def do_query_procedures(self):
         return ['lb-plugin-channel-to-mask']
@@ -213,8 +221,7 @@ class ChannelToMaskPlugin(Gimp.PlugIn):
                 channel_to_mask(image, layer, channel, invert)
                 done += 1
             if not done:
-                raise RuntimeError(_("选中的不是图层 / nothing selected but "
-                                     "layers"))
+                raise RuntimeError(_("Nothing selected but layers."))
         except Exception as exc:
             Gimp.message("channel-to-mask: %s" % exc)
             return procedure.new_return_values(

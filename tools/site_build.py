@@ -1984,7 +1984,7 @@ PLUGIN_SPECS = [
         dict(key="max-min", ops=["max-min"],
              name="gegl-color-ops-plugin-max-min.zip",
              src_dir=os.path.join(ROOT, "plugin", "max-min"),
-             py="max-min.py", menu="最大值 / 最小值（Max / Min）",
+             py="max-min.py", menu="最大值 / 最小值（Maximum / Minimum）",
              menus="    SuperMrWang → Mask → 最大值 / 最小值\n"
                    "    图层右键 → SuperMrWang → Mask → 最大值 / 最小值",
              desc="最大 / 最小值：形态学的膨胀与腐蚀，Photoshop「最大值 / 最小值」"
@@ -2091,6 +2091,7 @@ GPL-3.0-or-later
             for f in lin_so:
                 _zip_add_file(z, os.path.join(lin_src, f),
                               "modules-linux-x64/" + f)
+            _zip_add_i18n(z, "")
             _zip_add_text(z, "安装说明.txt", readme)
         zips[sp["key"]] = {"name": sp["name"], "sha": _sha256_file(path),
                            "kb": round(os.path.getsize(path) / 1024, 1),
@@ -2173,6 +2174,7 @@ GPL-3.0-or-later
             for f in mods:
                 _zip_add_file(z, os.path.join(src_of[plat], f),
                               "modules-%s/%s" % (plat, f))
+            _zip_add_i18n(z, "plugins/")
             _zip_add_text(z, "安装说明.txt", readme)
         out[plat] = {"name": name, "sha": _sha256_file(path),
                      "mb": round(os.path.getsize(path) / (1024 * 1024), 1),
@@ -2344,8 +2346,14 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
                 menus = p["menus_en"]
             else:
                 # 菜单条目里夹着中文：入口名、中文插件名、"同上两条"
+                # 「通道右键 / 路径右键」是另外两个入口，图层转换那几条会用到
                 menus = [m.replace("图层右键", "Layer right-click")
+                          .replace("通道右键", "Channel right-click")
+                          .replace("路径右键", "Path right-click")
                           .replace("同上两条", "same as the two above")
+                          .replace("十二项，按目标命名", "twelve items, named by target")
+                          .replace("十二项", "twelve items")
+                          .replace("最大值 / 最小值", "Maximum / Minimum")
                           .replace(p["title"], p.get("title_en") or p["title"])
                          for m in menus]
         menu_html = "".join("<li>%s</li>" % m for m in menus)
@@ -2572,6 +2580,20 @@ def collect_stats():
 ZIP_EPOCH = (2020, 1, 1, 0, 0, 0)
 
 
+
+def _zip_add_i18n(z, prefix):
+    """插件包必须带上翻译：插件里的 _() 来自 plugin/_shared/lb_i18n.py，
+    少了它 import 就失败，整个插件不加载；.mo 缺了只是回落英文。"""
+    src = os.path.join(ROOT, "plugin", "_shared", "lb_i18n.py")
+    if os.path.exists(src):
+        _zip_add_file(z, src, prefix + "_shared/lb_i18n.py")
+    loc = os.path.join(ROOT, "locale")
+    for lang in sorted(os.listdir(loc)) if os.path.isdir(loc) else []:
+        mo = os.path.join(loc, lang, "LC_MESSAGES", "gegl-color-ops.mo")
+        if os.path.exists(mo):
+            _zip_add_file(z, mo, "%slocale/%s/LC_MESSAGES/gegl-color-ops.mo"
+                          % (prefix, lang))
+
 def _zip_add_file(z, path, arcname):
     info = zipfile.ZipInfo(arcname, date_time=ZIP_EPOCH)
     info.compress_type = zipfile.ZIP_DEFLATED
@@ -2603,6 +2625,12 @@ def _zip_one(out_dir, name, files, root_dir, readme):
     with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
         for f in files:
             _zip_add_file(z, os.path.join(root_dir, f), f)
+        # 算子名与参数说明走 gettext，翻译目录要和 .dll/.so 放在一起
+        loc = os.path.join(ROOT, "locale")
+        for lang in sorted(os.listdir(loc)) if os.path.isdir(loc) else []:
+            mo = os.path.join(loc, lang, "LC_MESSAGES", "gegl-color-ops.mo")
+            if os.path.exists(mo):
+                _zip_add_file(z, mo, "locale/%s/LC_MESSAGES/gegl-color-ops.mo" % lang)
         _zip_add_text(z, "安装说明.txt", readme)
         man = os.path.join(DIST, "manifest.csv")
         if os.path.exists(man):
@@ -2639,7 +2667,7 @@ GPL-3.0-or-later
         lin_readme = """gegl-color-ops · Linux x86_64 免编译包
 ======================================
 
-把这些 .so 全部放进：
+把这些 .so 全部放进（locale 目录一并放进去，算子名与参数说明才会显示中文）：
     ~/.local/share/gegl-0.4/plug-ins
 
 （等价于 ./install.sh 在 Linux 下的默认目标目录。装到系统目录的话是

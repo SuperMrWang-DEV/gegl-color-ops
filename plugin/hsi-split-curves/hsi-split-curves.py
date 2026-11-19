@@ -75,8 +75,21 @@ gi.require_version('Gimp', '3.0')
 from gi.repository import Gimp, GLib, GObject
 
 
-def _(message):
-    return GLib.dgettext(None, message)
+# 多语言：查自己的域（gegl-color-ops），语言取自 GIMP 界面设置。
+# helper 在 plugin/_shared/ 下；装成单文件时退回 GIMP 默认域。
+import os as _os
+import sys as _sys
+
+_here = _os.path.dirname(_os.path.abspath(__file__))
+for _cand in (_os.path.join(_here, '_shared'),
+              _os.path.normpath(_os.path.join(_here, '..', '_shared'))):
+    if _os.path.isdir(_cand) and _cand not in _sys.path:
+        _sys.path.append(_cand)
+try:
+    from lb_i18n import _          # noqa: F811
+except Exception:                  # helper 不在：保持可用，只是不翻译
+    def _(message):
+        return GLib.dgettext(None, message)
 
 
 # 精确适配用的两个算子（本仓库 ops/hsi-dual、ops/hsi-compose）
@@ -152,10 +165,7 @@ def _require_adapter_ops(layer):
             missing.append(op)
     if missing:
         raise RuntimeError(
-            _("缺少适配算子：%s。它们是 HSI 精确适配的必需组件（I 与 S 在 GIMP "
-              "的分量混合模式里都没有对应项，只能联合计算）。请先安装本仓库的 "
-              "GEGL 算子的 hsi-dual / hsi-compose（./install.sh），重启 GIMP "
-              "再试。") % ", ".join(missing))
+            _("Required operations are missing: %s. They are essential for exact HSI fitting (I and S have no counterpart among GIMP's component blend modes and can only be computed together). Install this repository's GEGL operations hsi-dual / hsi-compose (./install.sh) and restart GIMP.") % ", ".join(missing))
 
 
 def _link_alpha_mask(image, base, host):
@@ -219,11 +229,10 @@ def split_hsi(image, base, make_group=True):
     Replace the layer with one HSI data layer carrying three curves; it
     reproduces the original on its own, with the source hidden."""
     if base is None:
-        raise RuntimeError(_("没有可以拆分的图层 / no layer to split"))
+        raise RuntimeError(_("Nothing to split: no layer."))
     if base.is_group():
         raise RuntimeError(
-            _("图层组不能拆分：请先选一个栅格图层（右键 → 合并组）"
-              " / a layer group has no pixels of its own"))
+            _("A layer group cannot be split; pick a raster layer first (right-click the group, then Merge Group)."))
 
     _require_adapter_ops(base)
 
@@ -273,12 +282,10 @@ def split_hsi(image, base, make_group=True):
 
     Gimp.displays_flush()
     try:
-        msg = _("HSI 层已建立：%s。S 曲线在「2 · S curve」（红通道）、"
-                "I 曲线在「3 · I curve」（绿通道）、色相曲线在「4 · H curve」"
-                "（蓝通道）。原图层可以隐藏，这一层自己就能还原。") \
+        msg = _("HSI layers created: %s. The S curve lives in \"2 · S curve\" (red channel), the I curve in \"3 · I curve\" (green channel) and the hue curve in \"4 · H curve\" (blue channel). Hide the original layer; this one reproduces it on its own.") \
               % (host.get_name() if host else layer.get_name())
         if auto_group:
-            msg += _("\n（这张图带透明，已自动分组：透明度靠组蒙版保住。）")
+            msg += _("\n(This image has transparency, so the layers went into a group automatically: the group mask preserves it.)")
         Gimp.message(msg)
     except Exception:
         pass
@@ -290,7 +297,7 @@ def split_hsi(image, base, make_group=True):
 class HsiSplitPlugin(Gimp.PlugIn):
 
     def do_set_i18n(self, procname):
-        return True, 'gimp30-python', None
+        return True, 'gegl-color-ops', None
 
     def do_query_procedures(self):
         return ['lb-plugin-hsi-split-curves']
@@ -303,20 +310,18 @@ class HsiSplitPlugin(Gimp.PlugIn):
                                        Gimp.ProcedureSensitivityMask.DRAWABLES)
         procedure.set_attribution("SuperMrWang", "SuperMrWang", "2026")
 
-        procedure.set_menu_label(_("HSI Split (Curves) · single"))
+        procedure.set_menu_label(_("HSI Split (Curves) · %s") % _("single"))
         procedure.add_menu_path("<Image>/SuperMrWang/Retouch")
         procedure.add_menu_path("<Layers>/SuperMrWang/Retouch")
 
         procedure.set_documentation(
-            _("在 HSI 空间里调曲线：生成一张三联数据图（红通道 = 饱和度、"
-              "绿通道 = 强度、蓝通道 = 色相），三条曲线各管一个分量。恒等曲线"
-              "时精确还原原图，调哪条曲线就只动那个 HSI 分量。"),
+            _("Adjust curves in HSI space: builds a three-channel data image (red = saturation, green = intensity, blue = hue) with one curve per component. Identity curves reproduce the original exactly, and editing a curve only moves that HSI component."),
             _("Curve HSI itself. One data layer (R = saturation, G = intensity, "
               "B = hue/360) with three curves; identity curves reproduce the "
               "image exactly. Needs lb:hsi-dual and lb:hsi-compose."), name)
         procedure.add_boolean_argument(
-            "group", _("收进图层组"),
-            _("把这一层放进一个「HSI split」穿透组里；关掉就直接叠在原图层上方"),
+            "group", _("Put in a layer group"),
+            _("Puts this layer into a pass-through group named HSI split; turn it off to stack it directly above the original layer."),
             True, GObject.ParamFlags.READWRITE)
         return procedure
 

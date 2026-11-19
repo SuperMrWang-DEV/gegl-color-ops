@@ -85,8 +85,21 @@ def _N_(message):
     return message
 
 
-def _(message):
-    return GLib.dgettext(None, message)
+# 多语言：查自己的域（gegl-color-ops），语言取自 GIMP 界面设置。
+# helper 在 plugin/_shared/ 下；装成单文件时退回 GIMP 默认域。
+import os as _os
+import sys as _sys
+
+_here = _os.path.dirname(_os.path.abspath(__file__))
+for _cand in (_os.path.join(_here, '_shared'),
+              _os.path.normpath(_os.path.join(_here, '..', '_shared'))):
+    if _os.path.isdir(_cand) and _cand not in _sys.path:
+        _sys.path.append(_cand)
+try:
+    from lb_i18n import _          # noqa: F811
+except Exception:                  # helper 不在：保持可用，只是不翻译
+    def _(message):
+        return GLib.dgettext(None, message)
 
 
 # ---- PDB 小工具 / PDB helpers ----------------------------------------------
@@ -139,13 +152,10 @@ def pick_channel(image, drawables=None):
         return channels[0]
 
     if not channels:
-        raise RuntimeError(_("这张图没有通道，先在通道面板新建一条 "
-                             "/ this image has no channels yet"))
+        raise RuntimeError(_("This image has no channels yet; create one in the Channels dock first."))
     raise RuntimeError(
-        _("要在通道面板里点一下要用的通道再运行（现有：%s）"
-          " / click the channel to use in the Channels dock first (have: %s)")
-        % (", ".join(c.get_name() for c in channels),
-           ", ".join(c.get_name() for c in channels)))
+        _("Click the channel to use in the Channels dock and run again (available: %s).")
+        % ", ".join(c.get_name() for c in channels))
 
 
 def pick_layers(image, drawables):
@@ -163,9 +173,7 @@ def pick_layers(image, drawables):
             layers = [all_layers[0]]
     if not layers:
         raise RuntimeError(
-            _("选中的不是图层：请在图层面板选中要挂蒙版的图层，再从图层面板 "
-              "右键运行 / no layer in context: select the target layer(s) in "
-              "the Layers dock and run it from there"))
+            _("Nothing selected: select the target layer(s) in the Layers dock and run it from there."))
     return layers
 
 
@@ -176,7 +184,7 @@ def pick_masked_layer(image, drawables):
         if item.get_mask() is not None:
             return item
     raise RuntimeError(
-        _("选中的图层没有图层蒙版 / the selected layer has no layer mask"))
+        _("The selected layer has no layer mask."))
 
 
 def _vector_path(item):
@@ -214,13 +222,10 @@ def pick_path(image, drawables=None):
         return paths[0]
 
     if not paths:
-        raise RuntimeError(_("这张图没有路径，先用路径工具画一条 "
-                             "/ this image has no paths yet"))
+        raise RuntimeError(_("This image has no paths yet; draw one with the path tool first."))
     raise RuntimeError(
-        _("要在路径面板里点一下要用的路径再运行（现有：%s）"
-          " / click the path to use in the Paths dock first (have: %s)")
-        % (", ".join(p.get_name() for p in paths),
-           ", ".join(p.get_name() for p in paths)))
+        _("Click the path to use in the Paths dock and run again (available: %s).")
+        % ", ".join(p.get_name() for p in paths))
 
 
 def unique_path_name(image, base, exclude=()):
@@ -264,12 +269,11 @@ def selection_to_path(image, drawables=None, base="Selection"):
     Select > To Path result."""
     if selection_empty(image):
         raise RuntimeError(
-            _("没有选区可以描路径 / there is no selection to trace"))
+            _("There is no selection to trace."))
     new = _sel2path(image, drawables)
     if not new:
         raise RuntimeError(
-            _("选区太小，原生过程没有描出任何路径 "
-              "/ the native tracer produced no path"))
+            _("The native tracer produced no path; the selection is too small."))
     for i, path in enumerate(new):
         base_i = base if i == 0 else "%s %d" % (base, i + 1)
         path.set_name(unique_path_name(image, base_i, exclude=new))
@@ -291,8 +295,7 @@ def check_layer(layer):
     A layer group has no pixels and cannot take a mask."""
     if layer.is_group():
         raise RuntimeError(
-            _("图层组没有像素，挂不了蒙版：请先合并图层组 "
-              "/ a layer group cannot take a mask"))
+            _("A layer group has no pixels and cannot take a mask; merge the group first."))
 
 
 def drop_mask(image, layer):
@@ -414,67 +417,67 @@ DIRECTIONS = [
      'channel-to-selection',
      _("Take the channel selected in the Channels dock and turn it into the "
        "pixel selection."),
-     _("通道 → 选区：把通道面板里选中的那条通道变成像素选区")),
+     _("Channel to selection: turns the channel selected in the Channels dock into a pixel selection.")),
     ('lb-plugin-conv-selection-to-channel',
      'Selection to Channel',
      'selection-to-channel',
      _("Save the current selection as a new channel."),
-     _("选区 → 通道：把当前选区存成一条新通道")),
+     _("Selection to channel: saves the current selection as a new channel.")),
     ('lb-plugin-conv-channel-to-mask',
      'Channel to Mask',
      'channel-to-mask',
      _("Use the selected channel's grey levels as a layer mask on every "
        "selected layer."),
-     _("通道 → 蒙版：用选中通道的灰度做所选图层的蒙版")),
+     _("Channel to mask: uses the selected channel's grey as the mask of the selected layer.")),
     ('lb-plugin-conv-mask-to-channel',
      'Mask to Channel',
      'mask-to-channel',
      _("Turn the selected layer's layer mask into a new channel."),
-     _("蒙版 → 通道：把所选图层的蒙版变成一条新通道")),
+     _("Mask to channel: turns the selected layer's mask into a new channel.")),
     ('lb-plugin-conv-selection-to-mask',
      'Selection to Mask',
      'selection-to-mask',
      _("Use the current selection as a layer mask on every selected layer."),
-     _("选区 → 蒙版：把当前选区挂成所选图层的蒙版")),
+     _("Selection to mask: attaches the current selection as the mask of the selected layer.")),
     ('lb-plugin-conv-mask-to-selection',
      'Mask to Selection',
      'mask-to-selection',
      _("Turn the selected layer's layer mask into the pixel selection."),
-     _("蒙版 → 选区：把所选图层的蒙版变成像素选区")),
+     _("Mask to selection: turns the selected layer's mask into a pixel selection.")),
 
     # ---- 路径 / paths ------------------------------------------------------
     ('lb-plugin-conv-path-to-selection',
      'Path to Selection',
      'path-to-selection',
      _("Turn the selected path into the pixel selection."),
-     _("路径 → 选区：把路径面板里选中的那条路径变成像素选区")),
+     _("Path to selection: turns the path selected in the Paths dock into a pixel selection.")),
     ('lb-plugin-conv-selection-to-path',
      'Selection to Path',
      'selection-to-path',
      _("Trace the current selection into a new path (the native "
        "Select > To Path geometry, with a readable name)."),
-     _("选区 → 路径：把当前选区描成一条新路径（几何与原生 To Path 相同）")),
+     _("Selection to path: traces the current selection into a new path (same geometry as the native To Path).")),
     ('lb-plugin-conv-path-to-channel',
      'Path to Channel',
      'path-to-channel',
      _("Rasterise the selected path into a new channel."),
-     _("路径 → 通道：把选中路径栅格化成一条新通道")),
+     _("Path to channel: rasterises the selected path into a new channel.")),
     ('lb-plugin-conv-channel-to-path',
      'Channel to Path',
      'channel-to-path',
      _("Trace the selected channel's 50% contour into a new path."),
-     _("通道 → 路径：把选中通道的 50% 等值线描成一条新路径")),
+     _("Channel to path: traces the 50% contour of the selected channel into a new path.")),
     ('lb-plugin-conv-path-to-mask',
      'Path to Mask',
      'path-to-mask',
      _("Rasterise the selected path into a layer mask on every selected "
        "layer."),
-     _("路径 → 蒙版：把选中路径栅格化成所选图层的蒙版")),
+     _("Path to mask: rasterises the selected path into the mask of the selected layer.")),
     ('lb-plugin-conv-mask-to-path',
      'Mask to Path',
      'mask-to-path',
      _("Trace the selected layer's mask into a new path."),
-     _("蒙版 → 路径：把所选图层蒙版的轮廓描成一条新路径")),
+     _("Mask to path: traces the outline of the selected layer's mask into a new path.")),
 ]
 
 BY_KEY = dict((d[2], d) for d in DIRECTIONS)
@@ -483,7 +486,7 @@ BY_KEY = dict((d[2], d) for d in DIRECTIONS)
 class ConvertPlugin(Gimp.PlugIn):
 
     def do_set_i18n(self, procname):
-        return True, 'gimp30-python', None
+        return True, 'gegl-color-ops', None
 
     def do_query_procedures(self):
         return [d[0] for d in DIRECTIONS]
@@ -528,47 +531,47 @@ class ConvertPlugin(Gimp.PlugIn):
         try:
             if key == 'channel-to-selection':
                 src = channel_to_selection(image, drawables)
-                note = _("通道「%s」→ 选区") % src.get_name()
+                note = _("Channel \"%s\" to selection") % src.get_name()
             elif key == 'selection-to-channel':
                 dst = selection_to_channel(image)
-                note = _("选区 → 通道「%s」") % dst.get_name()
+                note = _("Selection to channel \"%s\"") % dst.get_name()
             elif key == 'channel-to-mask':
                 src, masks = channel_to_mask(image, drawables)
-                note = _("通道「%s」→ %d 个图层的蒙版") % (src.get_name(),
+                note = _("Channel \"%s\" to the mask of %d layer(s)") % (src.get_name(),
                                                           len(masks))
             elif key == 'mask-to-channel':
                 dst = mask_to_channel(image, drawables)
-                note = _("蒙版 → 通道「%s」") % dst.get_name()
+                note = _("Mask to channel \"%s\"") % dst.get_name()
             elif key == 'selection-to-mask':
                 masks = selection_to_mask(image, drawables)
-                note = _("选区 → %d 个图层的蒙版") % len(masks)
+                note = _("Selection to the mask of %d layer(s)") % len(masks)
             elif key == 'mask-to-selection':
                 src = mask_to_selection(image, drawables)
-                note = _("蒙版「%s」→ 选区") % src.get_name()
+                note = _("Mask \"%s\" to selection") % src.get_name()
             elif key == 'path-to-selection':
                 src = path_to_selection(image, drawables)
-                note = _("路径「%s」→ 选区") % src.get_name()
+                note = _("Path \"%s\" to selection") % src.get_name()
             elif key == 'selection-to-path':
                 dst = selection_to_path(image, drawables)
-                note = _("选区 → 路径「%s」") % dst.get_name()
+                note = _("Selection to path \"%s\"") % dst.get_name()
             elif key == 'path-to-channel':
                 src, dst = path_to_channel(image, drawables)
-                note = _("路径「%s」→ 通道「%s」") % (src.get_name(),
+                note = _("Path \"%s\" to channel \"%s\"") % (src.get_name(),
                                                      dst.get_name())
             elif key == 'channel-to-path':
                 src, dst = channel_to_path(image, drawables)
-                note = _("通道「%s」→ 路径「%s」") % (src.get_name(),
+                note = _("Channel \"%s\" to path \"%s\"") % (src.get_name(),
                                                      dst.get_name())
             elif key == 'path-to-mask':
                 src, masks = path_to_mask(image, drawables)
-                note = _("路径「%s」→ %d 个图层的蒙版") % (src.get_name(),
+                note = _("Path \"%s\" to the mask of %d layer(s)") % (src.get_name(),
                                                           len(masks))
             elif key == 'mask-to-path':
                 src, dst = mask_to_path(image, drawables)
-                note = _("蒙版「%s」→ 路径「%s」") % (src.get_name(),
+                note = _("Mask \"%s\" to path \"%s\"") % (src.get_name(),
                                                      dst.get_name())
             else:
-                raise RuntimeError(_("未知方向 / unknown direction"))
+                raise RuntimeError(_("Unknown direction"))
         except Exception as exc:
             Gimp.message("convert: %s" % exc)
             return procedure.new_return_values(

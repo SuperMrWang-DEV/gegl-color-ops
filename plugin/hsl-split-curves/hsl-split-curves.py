@@ -101,8 +101,21 @@ gi.require_version('Gimp', '3.0')
 from gi.repository import Gimp, GLib, GObject
 
 
-def _(message):
-    return GLib.dgettext(None, message)
+# 多语言：查自己的域（gegl-color-ops），语言取自 GIMP 界面设置。
+# helper 在 plugin/_shared/ 下；装成单文件时退回 GIMP 默认域。
+import os as _os
+import sys as _sys
+
+_here = _os.path.dirname(_os.path.abspath(__file__))
+for _cand in (_os.path.join(_here, '_shared'),
+              _os.path.normpath(_os.path.join(_here, '..', '_shared'))):
+    if _os.path.isdir(_cand) and _cand not in _sys.path:
+        _sys.path.append(_cand)
+try:
+    from lb_i18n import _          # noqa: F811
+except Exception:                  # helper 不在：保持可用，只是不翻译
+    def _(message):
+        return GLib.dgettext(None, message)
 
 
 # 精确适配用的两个算子（本仓库 ops/hsl-dual、ops/hsl-compose）
@@ -268,9 +281,7 @@ def _require_adapter_ops(layer):
             missing.append(op)
     if missing:
         raise RuntimeError(
-            _("缺少适配算子：%s。它们是 HSL 精确适配的必需组件（S 与 L 必须联合"
-              "计算，无法用一维曲线代替）。请先安装本仓库的 GEGL 算子的 "
-              "hsl-dual / hsl-compose（./install.sh），重启 GIMP 再试。")
+            _("Required operations are missing: %s. They are essential for exact HSL fitting (S and L must be computed together and cannot be replaced by a 1D curve). Install this repository's GEGL operations hsl-dual / hsl-compose (./install.sh) and restart GIMP.")
             % ", ".join(missing))
 
 
@@ -336,11 +347,10 @@ def _split_multi(image, base, make_group=True):
     Split into an S/L layer and a Hue layer that recombine exactly to the
     original, even with the source hidden."""
     if base is None:
-        raise RuntimeError(_("没有可以拆分的图层 / no layer to split"))
+        raise RuntimeError(_("Nothing to split: no layer."))
     if base.is_group():
         raise RuntimeError(
-            _("图层组不能拆分：请先选一个栅格图层（右键 → 合并组）"
-              " / a layer group has no pixels of its own"))
+            _("A layer group cannot be split; pick a raster layer first (right-click the group, then Merge Group)."))
 
     _require_adapter_ops(base)
 
@@ -401,12 +411,10 @@ def _split_multi(image, base, make_group=True):
 
     Gimp.displays_flush()
     try:
-        msg = _("HSL 分量层已建立：%s。S 曲线在「2 · S curve」（红通道）、"
-                "L 曲线在「3 · L curve」（绿通道）、色相曲线在 Hue 层的"
-                "「2 · H curve」。原图层可以隐藏，这两层自己就能还原。") \
+        msg = _("HSL component layers created: %s. The S curve lives in \"2 · S curve\" (red channel), the L curve in \"3 · L curve\" (green channel) and the hue curve in the Hue layer's \"2 · H curve\". Hide the original layers; these two reproduce it on their own.") \
               % (host.get_name() if host else hue.get_name())
         if auto_group:
-            msg += _("\n（这张图带透明，已自动分组：透明度靠组蒙版保住。）")
+            msg += _("\n(This image has transparency, so the layers went into a group automatically: the group mask preserves it.)")
         Gimp.message(msg)
     except Exception:
         pass
@@ -420,11 +428,10 @@ def _split_single(image, base, make_group=True):
     Replace the layer with one HSL data layer carrying three curves; it
     reproduces the original on its own, with the source hidden."""
     if base is None:
-        raise RuntimeError(_("没有可以拆分的图层 / no layer to split"))
+        raise RuntimeError(_("Nothing to split: no layer."))
     if base.is_group():
         raise RuntimeError(
-            _("图层组不能拆分：请先选一个栅格图层（右键 → 合并组）"
-              " / a layer group has no pixels of its own"))
+            _("A layer group cannot be split; pick a raster layer first (right-click the group, then Merge Group)."))
 
     _require_adapter_ops(base)
 
@@ -474,10 +481,10 @@ def _split_single(image, base, make_group=True):
 
     Gimp.displays_flush()
     try:
-        msg = _("HSL 层已建立：%s。S 曲线在「2 · S curve」（红通道）、L 曲线在「3 · L curve」（绿通道）、色相曲线在「4 · H curve」（蓝通道）。 原图层可以隐藏，这一层自己就能还原。") \
+        msg = _("HSL layers created: %s. The S curve lives in \"2 · S curve\" (red channel), the L curve in \"3 · L curve\" (green channel) and the hue curve in \"4 · H curve\" (blue channel). Hide the original layer; this one reproduces it on its own.") \
               % (host.get_name() if host else layer.get_name())
         if auto_group:
-            msg += _("\n（这张图带透明，已自动分组：透明度靠组蒙版保住。）")
+            msg += _("\n(This image has transparency, so the layers went into a group automatically: the group mask preserves it.)")
         Gimp.message(msg)
     except Exception:
         pass
@@ -491,11 +498,10 @@ def split_hsl(image, base, mode='single', make_group=True):
     返回建好的组（或最上面那层）。
     Build the single packed data layer, or the multi component layers."""
     if base is None:
-        raise RuntimeError(_("没有可以拆分的图层 / no layer to split"))
+        raise RuntimeError(_("Nothing to split: no layer."))
     if base.is_group():
         raise RuntimeError(
-            _("图层组不能拆分：请先选一个栅格图层（右键 → 合并组）"
-              " / a layer group has no pixels of its own"))
+            _("A layer group cannot be split; pick a raster layer first (right-click the group, then Merge Group)."))
     if mode == 'multi':
         return _split_multi(image, base, make_group)
     return _split_single(image, base, make_group)
@@ -505,7 +511,7 @@ def split_hsl(image, base, mode='single', make_group=True):
 class HslSplitPlugin(Gimp.PlugIn):
 
     def do_set_i18n(self, procname):
-        return True, 'gimp30-python', None
+        return True, 'gegl-color-ops', None
 
     def do_query_procedures(self):
         return ['lb-plugin-hsl-split-curves',
@@ -521,26 +527,22 @@ class HslSplitPlugin(Gimp.PlugIn):
 
         multi = name.endswith('-multi')
         procedure.set_menu_label(
-            _("HSL Split (Curves) · %s") % ('multi' if multi else 'single'))
+            _("HSL Split (Curves) · %s") % (_("multi") if multi else _("single")))
         procedure.add_menu_path("<Image>/SuperMrWang/Retouch")
         procedure.add_menu_path("<Layers>/SuperMrWang/Retouch")
 
         if multi:
-            doc_zh = _("在 HSL 空间里调曲线：multi 模式把图层拆成分量层，各挂一条"
-                       "曲线，用 GIMP 原生的分量混合模式叠回去，每层可以单独关掉。"
-                       "恒等曲线时精确还原原图。")
+            doc_zh = _("Adjust curves in HSL space: multi mode splits the layer into component layers, attaches one curve to each and stacks them back with GIMP's native component blend modes, so every layer can be switched off separately. Identity curves reproduce the original exactly.")
             doc_en = _("Curve HSL itself, multi mode: the old component-layer stack "
                        "on GIMP's native blend modes, one switch per layer.")
         else:
-            doc_zh = _("在 HSL 空间里调曲线：single 模式把三个分量打包进一张数据图，"
-                       "三条曲线各管一个通道，再由一个算子解回颜色。恒等曲线时"
-                       "精确还原原图，一层五条滤镜。")
+            doc_zh = _("Adjust curves in HSL space: single mode packs the three components into one data image, one curve per channel, then an operation decodes it back to colour. Identity curves reproduce the original exactly; one layer, five filters.")
             doc_en = _("Curve HSL itself, single mode: one packed data layer with "
                        "three curves; identity reproduces the image exactly.")
         procedure.set_documentation(doc_zh, doc_en, name)
         procedure.add_boolean_argument(
-            "group", _("收进图层组"),
-            _("把这一层放进一个「HSL split」穿透组里；关掉就直接叠在原图层上方"),
+            "group", _("Put in a layer group"),
+            _("Puts this layer into a pass-through group named HSL split; turn it off to stack it directly above the original layer."),
             True, GObject.ParamFlags.READWRITE)
         return procedure
 

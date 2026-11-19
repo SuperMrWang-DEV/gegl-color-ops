@@ -120,7 +120,8 @@ window.addEventListener("DOMContentLoaded", function () {
 <p>需要成品的灰度图层当文档用，就在第 2 步选 <code>Mask (grey)</code>，然后「图层 → 复制图层 → 粘贴为新图像」。</p>
 <p><code>plugin/blend</code> 里的 Python 插件版把这几步做成了对话框里的 Result 选项（选区 / 新建 Alpha 通道 / 灰图层 / 写入图层 alpha），但插件目前是停用状态，见根目录 README「Python 插件版」。</p>
 <h2 id="行为细节-behaviour-notes">行为细节 / Behaviour notes</h2>
-<ul><li><strong>aux 没接时</strong>第二路退化为本图，即「同一张图的两个通道互算」——这是计算最 常用的场景（例如 R 与 G 相减做蒙版），单输入就能直接用。</li><li>差值类模式（Difference / Subtract / Divide）在混合后裁到 0..1，与 8bit 行为一致。</li><li>深色 / 浅色在单通道上下文里等价于变暗 / 变亮（只有一个通道，没有整像素概念）。</li><li>灰蒙版输出 alpha = 1，alpha 蒙版输出 alpha = 灰度值。</li><li><strong>通道编号</strong>：枚举第 0 位留给 Composite 占位（<code>enum_value_skip</code>，不出现在 下拉列表里），这样 <code>Red/Green/Blue/Luminance/Alpha</code> 的编号才和 <code>common/blend.h</code> 的 <code>LB_CH_*</code> 对得上。少这个占位会让整张表错一位——默认的 Luminance 实际取到蓝通道。</li><li><strong>源 2 的透明像素不参与计算</strong>：源层是抠图、文字层或带透明背景的图层时， 透明区的 RGB 是 0，当作「黑数据」算进去会把蒙版算成一片黑。这里用源 2 的 alpha 当覆盖率：alpha = 0 处蒙版输出 0（不选中），半透明柔边按比例衰减。 源 2 通道选 Alpha 时，那个 alpha 是数据不是覆盖率，不重复相乘。 Transparent pixels of source 2 take no part: on a cut-out the holes hold RGB 0, which would compute a solid black mask. Source 2's alpha is used as coverage — 0 gives a 0 mask (not selected), and soft mattes fade. When source 2's channel <em>is</em> alpha, that value is data, not coverage.</li><li><strong>源层比主图小 / 带偏移</strong>：aux 没覆盖到的像素按黑色参与计算（蒙版那里就是 0）。经典图像编辑器的计算要求两个来源同尺寸，这里不强制，缺的部分当黑。</li></ul>
+<ul><li><strong>aux 没接时</strong>第二路退化为本图，即「同一张图的两个通道互算」——这是计算最 常用的场景（例如 R 与 G 相减做蒙版），单输入就能直接用。</li><li>差值类模式（Difference / Subtract / Divide）在混合后裁到 0..1，与 8bit 行为一致。</li><li>深色 / 浅色在单通道上下文里等价于变暗 / 变亮（只有一个通道，没有整像素概念）。</li><li>灰蒙版输出 alpha = 1，alpha 蒙版输出 alpha = 灰度值。</li><li><strong>通道编号</strong>：枚举第 0 位留给 Composite 占位（<code>enum_value_skip</code>，不出现在 下拉列表里），这样 <code>Red/Green/Blue/Luminance/Alpha</code> 的编号才和 <code>common/blend.h</code> 的 <code>LB_CH_*</code> 对得上。少这个占位会让整张表错一位——默认的 Luminance 实际取到蓝通道。</li><li><strong>源 2 的透明像素不参与计算</strong>：源层是抠图、文字层或带透明背景的图层时， 透明区的 RGB 是 0，当作「黑数据」算进去会把蒙版算成一片黑。这里用源 2 的 alpha 当覆盖率：alpha = 0 处蒙版输出 0（不选中），半透明柔边按比例衰减。 源 2 通道选 Alpha 时，那个 alpha 是数据不是覆盖率，不重复相乘。</li></ul>
+<ul><li><strong>源层比主图小 / 带偏移</strong>：aux 没覆盖到的像素按黑色参与计算（蒙版那里就是 0）。经典图像编辑器的计算要求两个来源同尺寸，这里不强制，缺的部分当黑。</li></ul>
 <h2 id="测试-testing">测试 / Testing</h2>
 <pre><code class="language-bash">./build.sh
 python tools/check_blend.py     # 含 9 个计算用例：叠底出灰、反相源 2、alpha 模式、四种通道取值、
@@ -225,7 +226,7 @@ python tools/check_blend.py     # includes 9 Calculations cases: multiply to gre
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">aadce74</span>
+    <span class="muted">497ef25</span>
   </div>
 </footer>
 <script>

@@ -1,0 +1,1629 @@
+# gegl-color-ops Simplified Chinese translation.
+# 由 tools/i18n.py extract 生成，不要手改。
+msgid ""
+msgstr ""
+"Project-Id-Version: gegl-color-ops\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Source-Language: en\n"
+"Plural-Forms: nplurals=1; plural=0\n"
+
+#: ops/apply-image/apply-image.c:115
+#: plugin/alpha-curves/alpha-curves.py:237
+#: plugin/blend/blend.py:782
+msgid "Source channel"
+msgstr "源通道"
+
+#: ops/apply-image/apply-image.c:69
+#: ops/calculations/calculations.c:72
+#: ops/channel-mixer-plus/channel-mixer-plus.c:33
+#: ops/channel-range-to-alpha/channel-range-to-alpha.c:32
+#: ops/color-mask-select/color-mask-select.c:75
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:33
+#: plugin/alpha-curves/alpha-curves.py:73
+#: plugin/blend/blend.py:580
+#: plugin/color-range/color-range.py:70
+msgid "Red"
+msgstr "红色"
+
+#: ops/apply-image/apply-image.c:70
+#: ops/calculations/calculations.c:73
+#: ops/channel-mixer-plus/channel-mixer-plus.c:37
+#: ops/channel-range-to-alpha/channel-range-to-alpha.c:33
+#: ops/color-mask-select/color-mask-select.c:76
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:45
+#: plugin/alpha-curves/alpha-curves.py:74
+#: plugin/blend/blend.py:580
+#: plugin/color-range/color-range.py:72
+msgid "Green"
+msgstr "绿色"
+
+#: ops/apply-image/apply-image.c:71
+#: ops/calculations/calculations.c:74
+#: ops/channel-mixer-plus/channel-mixer-plus.c:41
+#: ops/channel-range-to-alpha/channel-range-to-alpha.c:34
+#: ops/color-mask-select/color-mask-select.c:77
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:57
+#: plugin/alpha-curves/alpha-curves.py:75
+#: plugin/blend/blend.py:581
+#: plugin/color-range/color-range.py:74
+msgid "Blue"
+msgstr "蓝色"
+
+#: ops/cmyk-levels/cmyk-levels.c:22
+msgid "C input black (%)"
+msgstr "C 输入黑场（%）"
+
+#: ops/cmyk-levels/cmyk-levels.c:23
+msgid "Cyan input black: values below it are clamped to the output black point."
+msgstr "青输入黑场：低于它的值压到输出黑场"
+
+#: ops/cmyk-levels/cmyk-levels.c:27
+msgid "C input white (%)"
+msgstr "C 输入白场（%）"
+
+#: ops/cmyk-levels/cmyk-levels.c:28
+msgid "Cyan input white: values above it are lifted to the output white point."
+msgstr "青输入白场：高于它的值提到输出白场"
+
+#: ops/cmyk-levels/cmyk-levels.c:33
+msgid "Cyan midtones: >1 lightens the midtones, <1 darkens them."
+msgstr "青中间调：>1 提亮中间调，<1 压暗"
+
+#: ops/cmyk-levels/cmyk-levels.c:37
+msgid "C output black (%)"
+msgstr "C 输出下限（%）"
+
+#: ops/cmyk-levels/cmyk-levels.c:38
+msgid "Cyan output black; swap it with the output white to invert."
+msgstr "青输出黑场，可与输出上限对调做反相"
+
+#: ops/cmyk-levels/cmyk-levels.c:42
+msgid "C output white (%)"
+msgstr "C 输出上限（%）"
+
+#: ops/cmyk-levels/cmyk-levels.c:43
+msgid "Cyan output white."
+msgstr "青输出白场"
+
+#: ops/cmyk-levels/cmyk-levels.c:47
+msgid "M input black (%)"
+msgstr "M 输入黑场（%）"
+
+#: ops/cmyk-levels/cmyk-levels.c:48
+msgid "Magenta input black: values below it are clamped to the output black point."
+msgstr "洋红输入黑场：低于它的值压到输出黑场"
+
+#: ops/cmyk-levels/cmyk-levels.c:52
+msgid "M input white (%)"
+msgstr "M 输入白场（%）"
+
+#: ops/cmyk-levels/cmyk-levels.c:53
+msgid "Magenta input white: values above it are lifted to the output white point."
+msgstr "洋红输入白场：高于它的值提到输出白场"
+
+#: ops/cmyk-levels/cmyk-levels.c:58
+msgid "Magenta midtones: >1 lightens the midtones, <1 darkens them."
+msgstr "洋红中间调：>1 提亮中间调，<1 压暗"
+
+#: ops/cmyk-levels/cmyk-levels.c:62
+msgid "M output black (%)"
+msgstr "M 输出下限（%）"
+
+#: ops/cmyk-levels/cmyk-levels.c:63
+msgid "Magenta output black; swap it with the output white to invert."
+msgstr "洋红输出黑场，可与输出上限对调做反相"
+
+#: ops/cmyk-levels/cmyk-levels.c:67
+msgid "M output white (%)"
+msgstr "M 输出上限（%）"
+
+#: ops/cmyk-levels/cmyk-levels.c:68
+msgid "Magenta output white."
+msgstr "洋红输出白场"
+
+#: ops/cmyk-levels/cmyk-levels.c:72
+msgid "Y input black (%)"
+msgstr "Y 输入黑场（%）"
+
+#: ops/cmyk-levels/cmyk-levels.c:73
+msgid "Yellow input black: values below it are clamped to the output black point."
+msgstr "黄输入黑场：低于它的值压到输出黑场"
+
+#: ops/cmyk-levels/cmyk-levels.c:77
+msgid "Y input white (%)"
+msgstr "Y 输入白场（%）"
+
+#: ops/cmyk-levels/cmyk-levels.c:78
+msgid "Yellow input white: values above it are lifted to the output white point."
+msgstr "黄输入白场：高于它的值提到输出白场"
+
+#: ops/cmyk-levels/cmyk-levels.c:83
+msgid "Yellow midtones: >1 lightens the midtones, <1 darkens them."
+msgstr "黄中间调：>1 提亮中间调，<1 压暗"
+
+#: ops/cmyk-levels/cmyk-levels.c:87
+msgid "Y output black (%)"
+msgstr "Y 输出下限（%）"
+
+#: ops/cmyk-levels/cmyk-levels.c:88
+msgid "Yellow output black; swap it with the output white to invert."
+msgstr "黄输出黑场，可与输出上限对调做反相"
+
+#: ops/cmyk-levels/cmyk-levels.c:92
+msgid "Y output white (%)"
+msgstr "Y 输出上限（%）"
+
+#: ops/cmyk-levels/cmyk-levels.c:93
+msgid "Yellow output white."
+msgstr "黄输出白场"
+
+#: ops/cmyk-levels/cmyk-levels.c:97
+msgid "K input black (%)"
+msgstr "K 输入黑场（%）"
+
+#: ops/cmyk-levels/cmyk-levels.c:98
+msgid "Black input black: values below it are clamped to the output black point."
+msgstr "黑输入黑场：低于它的值压到输出黑场"
+
+#: ops/cmyk-levels/cmyk-levels.c:102
+msgid "K input white (%)"
+msgstr "K 输入白场（%）"
+
+#: ops/cmyk-levels/cmyk-levels.c:103
+msgid "Black input white: values above it are lifted to the output white point."
+msgstr "黑输入白场：高于它的值提到输出白场"
+
+#: ops/cmyk-levels/cmyk-levels.c:108
+msgid "Black midtones: >1 lightens the midtones, <1 darkens them."
+msgstr "黑中间调：>1 提亮中间调，<1 压暗"
+
+#: ops/cmyk-levels/cmyk-levels.c:112
+msgid "K output black (%)"
+msgstr "K 输出下限（%）"
+
+#: ops/cmyk-levels/cmyk-levels.c:113
+msgid "Black output black; swap it with the output white to invert."
+msgstr "黑输出黑场，可与输出上限对调做反相"
+
+#: ops/cmyk-levels/cmyk-levels.c:117
+msgid "K output white (%)"
+msgstr "K 输出上限（%）"
+
+#: ops/cmyk-levels/cmyk-levels.c:118
+msgid "Black output white."
+msgstr "黑输出白场"
+
+#: ops/color-mask-select/color-mask-select.c:78
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:51
+#: plugin/color-range/color-range.py:73
+msgid "Cyan"
+msgstr "青色"
+
+#: ops/color-mask-select/color-mask-select.c:79
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:63
+#: plugin/color-range/color-range.py:75
+msgid "Magenta"
+msgstr "洋红"
+
+#: ops/color-mask-select/color-mask-select.c:80
+#: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:39
+#: plugin/color-range/color-range.py:71
+msgid "Yellow"
+msgstr "黄色"
+
+#: ops/color-mask-select/color-mask-select.c:81
+#: plugin/color-range/color-range.py:76
+msgid "Highlights"
+msgstr "高光"
+
+#: ops/color-mask-select/color-mask-select.c:82
+#: plugin/color-range/color-range.py:77
+msgid "Shadows"
+msgstr "阴影"
+
+#: ops/color-mask-select/color-mask-select.c:83
+#: plugin/color-range/color-range.py:78
+msgid "Midtones"
+msgstr "中间调"
+
+#: ops/color-mask-select/color-mask-select.c:124
+#: plugin/color-range/color-range.py:251
+#: plugin/sky-replace/sky-replace.py:215
+msgid "Feather"
+msgstr "羽化"
+
+#: ops/color-mask-select/color-mask-select.c:135
+#: plugin/channel-to-mask/channel-to-mask.py:190
+#: plugin/color-range/color-range.py:256
+#: plugin/gray-mask/gray-mask.py:179
+#: plugin/gray-mask/gray-mask.py:190
+#: plugin/layer-to-channel/layer-to-channel.py:270
+#: plugin/layer-to-selection/layer-to-selection.py:273
+msgid "Invert"
+msgstr "反相"
+
+#: ops/gray-to-component/gray-to-component.c:84
+#: ops/max-min/max-min.c:48
+#: plugin/max-min/max-min.py:224
+msgid "Mode"
+msgstr "模式"
+
+#: ops/gray-to-component/gray-to-component.c:85
+msgid "Encoding mode: which component the grey level maps to. Use hue/saturation/color/value with the HSV and HSL group blend modes, lightness/luminance/lch-* with the LCh group and Luminance, and Lighten to stack the three RGB channels back into colour."
+msgstr "编码模式：灰度映射为哪个分量。hue/saturation/color/value 配 HSV·HSL 组混合模式，lightness/luminance/lch-* 配 LCh 组与 Luminance，RGB 三通道用 Lighten 叠合还原"
+
+#: ops/gray-to-component/gray-to-component.c:94
+msgid "Domain the input pixel values live in. Pick encoded if the component layer came from an 8/16-bit image (the filter stack buffers as R'G'B'A float), linear if it came from a 32-bit float linear image (RGBA float). Choosing wrong makes babl apply the gamma encoding a second time, so the encoded values come out too bright."
+msgstr "输入像素值所在的域。分量灰度层是从 8/16 位图层来的就选 encoded（滤镜栈缓冲为 R'G'B'A float），从 32 位浮点线性图来的选 linear（缓冲为 RGBA float）。选错会让 babl 多做一次 gamma 编码，编码值整体偏亮"
+
+#: ops/gray-to-component/gray-to-component.c:97
+msgid "Hue (degrees) used by Saturation mode; 0 = red, change it as needed. The layer only carries saturation, so the hue never enters the composite."
+msgstr "Saturation 模式使用的色相（度）；0=红，按需可改。该层只提供饱和度信息，色相在混合还原时不进入结果"
+
+#: ops/gray-to-component/gray-to-component.c:101
+msgid "Fixed saturation percentage for Color mode. Color blend reads both hue and saturation, but a single grey channel can only carry one of them: the grey carries hue and this parameter supplies saturation. At 100% the output matches hue mode."
+msgstr "Color 模式固定的饱和度百分比。Color 混合模式同时读取色相和饱和度，而单通道灰度只能携带其中一个：灰度携带色相，饱和度由本参数给定。100% 时输出与 hue 模式相同"
+
+#: ops/gray-to-component/gray-to-component.c:105
+msgid "Fixed lightness L (0-100) used by the LCh modes. When the blend mode only reads hue or chroma this value has no effect; it sits in the middle so the colour stays inside the common gamut."
+msgstr "LCh 模式使用的固定明度 L（0-100）。混合模式只读色相/色度时此值不影响结果，取中庸值以留在常见色域内"
+
+#: ops/gray-to-component/gray-to-component.c:109
+msgid "Fixed chroma C used by lch-hue and lch-color (both encode identically). Higher chroma means more vivid colour; too high can leave sRGB (it still round-trips in float32)."
+msgstr "lch-hue / lch-color 模式使用的固定色度 C（两者编码相同）。色度越大颜色越鲜艳，过大可能超出 sRGB 色域（float32 下仍可往返）"
+
+#: ops/gray-to-component/gray-to-component.c:114
+msgid "Fixed hue (degrees) used by LCh Chroma mode; 0 = red. The layer only carries chroma, so the hue never enters the composite."
+msgstr "LCh Chroma 模式使用的固定色相（度）；0=红。该层只提供色度信息，色相在混合还原时不进入结果"
+
+#: ops/gray-to-component/gray-to-component.c:118
+msgid "Full scale for LCh Chroma mode: the chroma that grey 1.0 maps to. GIMP's component-extract normalises C to 200 (lch-c = C/200), so set 200 when feeding it decomposed output; keep 100 when building your own grey layer. Inside sRGB chroma tops out around 131; anything above still round-trips in float32."
+msgstr "LCh Chroma 模式的满量程：灰度 1.0 对应的色度上限。GIMP 的 component-extract 把 C 归一化到 200（lch-c = C/200），所以喂分解结果时要设成 200；自己建灰度层时保持 100 更直观。sRGB 色域内 C 最大约 131，超出的部分在 float32 下仍可往返"
+
+#: ops/hsb-levels/hsb-levels.c:22
+#: ops/hsi-levels/hsi-levels.c:22
+#: ops/hsl-levels/hsl-levels.c:22
+#: ops/lch-levels/lch-levels.c:72
+msgid "H input black (deg)"
+msgstr "H 输入黑场（度）"
+
+#: ops/hsb-levels/hsb-levels.c:23
+#: ops/hsi-levels/hsi-levels.c:23
+#: ops/hsl-levels/hsl-levels.c:23
+#: ops/lch-levels/lch-levels.c:73
+msgid "Start of the hue ring: measured clockwise from here to the white point."
+msgstr "色相环上的起点：从这里顺时针量到白场"
+
+#: ops/hsb-levels/hsb-levels.c:27
+#: ops/hsi-levels/hsi-levels.c:27
+#: ops/hsl-levels/hsl-levels.c:27
+#: ops/lch-levels/lch-levels.c:77
+msgid "H input white (deg)"
+msgstr "H 输入白场（度）"
+
+#: ops/hsb-levels/hsb-levels.c:28
+#: ops/hsi-levels/hsi-levels.c:28
+#: ops/hsl-levels/hsl-levels.c:28
+#: ops/lch-levels/lch-levels.c:78
+msgid "End of the hue ring: hues outside the main arc wrap around by the remaining arc length."
+msgstr "色相环上的终点：主弧之外的色相按剩余弧长绕回来"
+
+#: ops/hsb-levels/hsb-levels.c:33
+#: ops/hsi-levels/hsi-levels.c:33
+#: ops/hsl-levels/hsl-levels.c:33
+#: ops/lch-levels/lch-levels.c:83
+msgid "Hue distribution inside the main arc: >1 pushes toward black, <1 toward white."
+msgstr "主弧内的色相分布：>1 往黑场挤，<1 往白场挤"
+
+#: ops/hsb-levels/hsb-levels.c:37
+#: ops/hsi-levels/hsi-levels.c:37
+#: ops/hsl-levels/hsl-levels.c:37
+#: ops/lch-levels/lch-levels.c:87
+msgid "H output black (deg)"
+msgstr "H 输出下限（度）"
+
+#: ops/hsb-levels/hsb-levels.c:38
+#: ops/hsi-levels/hsi-levels.c:38
+#: ops/hsl-levels/hsl-levels.c:38
+#: ops/lch-levels/lch-levels.c:88
+msgid "Start of the output hue ring; the arc length follows the output black/white difference."
+msgstr "输出色相环的起点，弧长沿用输出上下限之差"
+
+#: ops/hsb-levels/hsb-levels.c:42
+#: ops/hsi-levels/hsi-levels.c:42
+#: ops/hsl-levels/hsl-levels.c:42
+#: ops/lch-levels/lch-levels.c:92
+msgid "H output white (deg)"
+msgstr "H 输出上限（度）"
+
+#: ops/hsb-levels/hsb-levels.c:43
+#: ops/hsi-levels/hsi-levels.c:43
+#: ops/hsl-levels/hsl-levels.c:43
+#: ops/lch-levels/lch-levels.c:93
+msgid "End of the output hue ring; coinciding with the black point is treated as a full turn (pure hue rotation)."
+msgstr "输出色相环的终点；与下限重合按整圈处理（纯色相旋转）"
+
+#: ops/hsb-levels/hsb-levels.c:47
+#: ops/hsi-levels/hsi-levels.c:47
+#: ops/hsl-levels/hsl-levels.c:47
+msgid "S input black (%)"
+msgstr "S 输入黑场（%）"
+
+#: ops/hsb-levels/hsb-levels.c:48
+#: ops/hsi-levels/hsi-levels.c:48
+#: ops/hsl-levels/hsl-levels.c:48
+msgid "Saturation input black: values below it are clamped to the output black point."
+msgstr "饱和度输入黑场：低于它的值压到输出黑场"
+
+#: ops/hsb-levels/hsb-levels.c:52
+#: ops/hsi-levels/hsi-levels.c:52
+#: ops/hsl-levels/hsl-levels.c:52
+msgid "S input white (%)"
+msgstr "S 输入白场（%）"
+
+#: ops/hsb-levels/hsb-levels.c:53
+#: ops/hsi-levels/hsi-levels.c:53
+#: ops/hsl-levels/hsl-levels.c:53
+msgid "Saturation input white: values above it are lifted to the output white point."
+msgstr "饱和度输入白场：高于它的值提到输出白场"
+
+#: ops/hsb-levels/hsb-levels.c:58
+#: ops/hsi-levels/hsi-levels.c:58
+#: ops/hsl-levels/hsl-levels.c:58
+msgid "Saturation midtones: >1 lightens the midtones, <1 darkens them."
+msgstr "饱和度中间调：>1 提亮中间调，<1 压暗"
+
+#: ops/hsb-levels/hsb-levels.c:62
+#: ops/hsi-levels/hsi-levels.c:62
+#: ops/hsl-levels/hsl-levels.c:62
+msgid "S output black (%)"
+msgstr "S 输出下限（%）"
+
+#: ops/hsb-levels/hsb-levels.c:63
+#: ops/hsi-levels/hsi-levels.c:63
+#: ops/hsl-levels/hsl-levels.c:63
+msgid "Saturation output black; swap it with the output white to invert."
+msgstr "饱和度输出黑场，可与输出上限对调做反相"
+
+#: ops/hsb-levels/hsb-levels.c:67
+#: ops/hsi-levels/hsi-levels.c:67
+#: ops/hsl-levels/hsl-levels.c:67
+msgid "S output white (%)"
+msgstr "S 输出上限（%）"
+
+#: ops/hsb-levels/hsb-levels.c:68
+#: ops/hsi-levels/hsi-levels.c:68
+#: ops/hsl-levels/hsl-levels.c:68
+msgid "Saturation output white."
+msgstr "饱和度输出白场"
+
+#: ops/hsb-levels/hsb-levels.c:72
+msgid "B input black (%)"
+msgstr "B 输入黑场（%）"
+
+#: ops/hsb-levels/hsb-levels.c:73
+msgid "Value input black: values below it are clamped to the output black point."
+msgstr "明度 V输入黑场：低于它的值压到输出黑场"
+
+#: ops/hsb-levels/hsb-levels.c:77
+msgid "B input white (%)"
+msgstr "B 输入白场（%）"
+
+#: ops/hsb-levels/hsb-levels.c:78
+msgid "Value input white: values above it are lifted to the output white point."
+msgstr "明度 V输入白场：高于它的值提到输出白场"
+
+#: ops/hsb-levels/hsb-levels.c:83
+msgid "Value midtones: >1 lightens the midtones, <1 darkens them."
+msgstr "明度 V中间调：>1 提亮中间调，<1 压暗"
+
+#: ops/hsb-levels/hsb-levels.c:87
+msgid "B output black (%)"
+msgstr "B 输出下限（%）"
+
+#: ops/hsb-levels/hsb-levels.c:88
+msgid "Value output black; swap it with the output white to invert."
+msgstr "明度 V输出黑场，可与输出上限对调做反相"
+
+#: ops/hsb-levels/hsb-levels.c:92
+msgid "B output white (%)"
+msgstr "B 输出上限（%）"
+
+#: ops/hsb-levels/hsb-levels.c:93
+msgid "Value output white."
+msgstr "明度 V输出白场"
+
+#: ops/hsi-levels/hsi-levels.c:72
+msgid "I input black (%)"
+msgstr "I 输入黑场（%）"
+
+#: ops/hsi-levels/hsi-levels.c:73
+msgid "Intensity input black: values below it are clamped to the output black point."
+msgstr "强度输入黑场：低于它的值压到输出黑场"
+
+#: ops/hsi-levels/hsi-levels.c:77
+msgid "I input white (%)"
+msgstr "I 输入白场（%）"
+
+#: ops/hsi-levels/hsi-levels.c:78
+msgid "Intensity input white: values above it are lifted to the output white point."
+msgstr "强度输入白场：高于它的值提到输出白场"
+
+#: ops/hsi-levels/hsi-levels.c:83
+msgid "Intensity midtones: >1 lightens the midtones, <1 darkens them."
+msgstr "强度中间调：>1 提亮中间调，<1 压暗"
+
+#: ops/hsi-levels/hsi-levels.c:87
+msgid "I output black (%)"
+msgstr "I 输出下限（%）"
+
+#: ops/hsi-levels/hsi-levels.c:88
+msgid "Intensity output black; swap it with the output white to invert."
+msgstr "强度输出黑场，可与输出上限对调做反相"
+
+#: ops/hsi-levels/hsi-levels.c:92
+msgid "I output white (%)"
+msgstr "I 输出上限（%）"
+
+#: ops/hsi-levels/hsi-levels.c:93
+msgid "Intensity output white."
+msgstr "强度输出白场"
+
+#: ops/hsl-levels/hsl-levels.c:72
+msgid "L input black (%)"
+msgstr "L 输入黑场（%）"
+
+#: ops/hsl-levels/hsl-levels.c:73
+#: ops/lch-levels/lch-levels.c:23
+msgid "Lightness input black: values below it are clamped to the output black point."
+msgstr "明度输入黑场：低于它的值压到输出黑场"
+
+#: ops/hsl-levels/hsl-levels.c:77
+msgid "L input white (%)"
+msgstr "L 输入白场（%）"
+
+#: ops/hsl-levels/hsl-levels.c:78
+#: ops/lch-levels/lch-levels.c:28
+msgid "Lightness input white: values above it are lifted to the output white point."
+msgstr "明度输入白场：高于它的值提到输出白场"
+
+#: ops/hsl-levels/hsl-levels.c:83
+#: ops/lch-levels/lch-levels.c:33
+msgid "Lightness midtones: >1 lightens the midtones, <1 darkens them."
+msgstr "明度中间调：>1 提亮中间调，<1 压暗"
+
+#: ops/hsl-levels/hsl-levels.c:87
+msgid "L output black (%)"
+msgstr "L 输出下限（%）"
+
+#: ops/hsl-levels/hsl-levels.c:88
+#: ops/lch-levels/lch-levels.c:38
+msgid "Lightness output black; swap it with the output white to invert."
+msgstr "明度输出黑场，可与输出上限对调做反相"
+
+#: ops/hsl-levels/hsl-levels.c:92
+msgid "L output white (%)"
+msgstr "L 输出上限（%）"
+
+#: ops/hsl-levels/hsl-levels.c:93
+#: ops/lch-levels/lch-levels.c:43
+msgid "Lightness output white."
+msgstr "明度输出白场"
+
+#: ops/lab-levels/lab-levels.c:29
+#: ops/lch-levels/lch-levels.c:22
+msgid "L input black"
+msgstr "L 输入黑场"
+
+#: ops/lab-levels/lab-levels.c:30
+msgid "Lightness channel input black."
+msgstr "明度通道输入黑场"
+
+#: ops/lab-levels/lab-levels.c:34
+#: ops/lch-levels/lch-levels.c:27
+msgid "L input white"
+msgstr "L 输入白场"
+
+#: ops/lab-levels/lab-levels.c:35
+msgid "Lightness channel input white."
+msgstr "明度通道输入白场"
+
+#: ops/lab-levels/lab-levels.c:40
+msgid "Lightness channel gamma / midtones."
+msgstr "明度通道伽马 / 中间调"
+
+#: ops/lab-levels/lab-levels.c:44
+#: ops/lch-levels/lch-levels.c:37
+msgid "L output black"
+msgstr "L 输出下限"
+
+#: ops/lab-levels/lab-levels.c:45
+msgid "Lightness channel output black."
+msgstr "明度通道输出黑场"
+
+#: ops/lab-levels/lab-levels.c:48
+#: ops/lch-levels/lch-levels.c:42
+msgid "L output white"
+msgstr "L 输出上限"
+
+#: ops/lab-levels/lab-levels.c:49
+msgid "Lightness channel output white."
+msgstr "明度通道输出白场"
+
+#: ops/lab-levels/lab-levels.c:52
+msgid "a input black"
+msgstr "a 输入黑场"
+
+#: ops/lab-levels/lab-levels.c:53
+msgid "a channel (red-green axis) input black."
+msgstr "a通道(红‑绿轴)输入黑场"
+
+#: ops/lab-levels/lab-levels.c:56
+msgid "a input white"
+msgstr "a 输入白场"
+
+#: ops/lab-levels/lab-levels.c:57
+msgid "a channel (red-green axis) input white."
+msgstr "a通道(红‑绿轴)输入白场"
+
+#: ops/lab-levels/lab-levels.c:61
+msgid "a channel gamma, pivoting about the neutral axis; controls the midtone colour cast."
+msgstr "a通道伽马，绕中性轴转动，控制色彩中间调倾向"
+
+#: ops/lab-levels/lab-levels.c:65
+msgid "a output black"
+msgstr "a 输出下限"
+
+#: ops/lab-levels/lab-levels.c:66
+msgid "a channel output black; caps how far green can go."
+msgstr "a通道输出下限，限制最大绿色"
+
+#: ops/lab-levels/lab-levels.c:69
+msgid "a output white"
+msgstr "a 输出上限"
+
+#: ops/lab-levels/lab-levels.c:70
+msgid "a channel output white; caps how far magenta can go."
+msgstr "a通道输出上限，限制最大洋红"
+
+#: ops/lab-levels/lab-levels.c:73
+msgid "b input black"
+msgstr "b 输入黑场"
+
+#: ops/lab-levels/lab-levels.c:74
+msgid "b channel (yellow-blue axis) input black."
+msgstr "b通道(黄‑蓝轴)输入黑场"
+
+#: ops/lab-levels/lab-levels.c:77
+msgid "b input white"
+msgstr "b 输入白场"
+
+#: ops/lab-levels/lab-levels.c:78
+msgid "b channel (yellow-blue axis) input white."
+msgstr "b通道(黄‑蓝轴)输入白场"
+
+#: ops/lab-levels/lab-levels.c:82
+msgid "b channel gamma, pivoting about the neutral axis; controls the midtone colour cast."
+msgstr "b通道伽马，绕中性轴转动，控制色彩中间调倾向"
+
+#: ops/lab-levels/lab-levels.c:86
+msgid "b output black"
+msgstr "b 输出下限"
+
+#: ops/lab-levels/lab-levels.c:87
+msgid "b channel output black; caps how far blue can go."
+msgstr "b通道输出下限，限制最大蓝色"
+
+#: ops/lab-levels/lab-levels.c:90
+msgid "b output white"
+msgstr "b 输出上限"
+
+#: ops/lab-levels/lab-levels.c:91
+msgid "b channel output white; caps how far yellow can go."
+msgstr "b通道输出上限，限制最大黄色"
+
+#: ops/lch-levels/lch-levels.c:47
+msgid "C input black"
+msgstr "C 输入黑场"
+
+#: ops/lch-levels/lch-levels.c:48
+msgid "Chroma input black: values below it are clamped to the output black point."
+msgstr "色度输入黑场：低于它的值压到输出黑场"
+
+#: ops/lch-levels/lch-levels.c:52
+msgid "C input white"
+msgstr "C 输入白场"
+
+#: ops/lch-levels/lch-levels.c:53
+msgid "Chroma input white: values above it are lifted to the output white point."
+msgstr "色度输入白场：高于它的值提到输出白场"
+
+#: ops/lch-levels/lch-levels.c:58
+msgid "Chroma midtones: >1 lightens the midtones, <1 darkens them."
+msgstr "色度中间调：>1 提亮中间调，<1 压暗"
+
+#: ops/lch-levels/lch-levels.c:62
+msgid "C output black"
+msgstr "C 输出下限"
+
+#: ops/lch-levels/lch-levels.c:63
+msgid "Chroma output black; swap it with the output white to invert."
+msgstr "色度输出黑场，可与输出上限对调做反相"
+
+#: ops/lch-levels/lch-levels.c:67
+msgid "C output white"
+msgstr "C 输出上限"
+
+#: ops/lch-levels/lch-levels.c:68
+msgid "Chroma output white."
+msgstr "色度输出白场"
+
+#: ops/levels/levels.c:38
+msgid "Input black"
+msgstr "输入黑场"
+
+#: ops/levels/levels.c:39
+msgid "Composite channel input black: pixels at or below it become black."
+msgstr "复合通道输入黑场：此值及以下的像素变黑"
+
+#: ops/levels/levels.c:42
+msgid "Input grey"
+msgstr "输入灰点"
+
+#: ops/levels/levels.c:43
+msgid "Composite midtones: >1 lightens, <1 darkens."
+msgstr "复合通道中间调：>1 提亮，<1 压暗"
+
+#: ops/levels/levels.c:46
+msgid "Input white"
+msgstr "输入白场"
+
+#: ops/levels/levels.c:47
+msgid "Composite channel input white: pixels at or above it become white."
+msgstr "复合通道输入白场：此值及以上的像素变白"
+
+#: ops/levels/levels.c:50
+msgid "Output black"
+msgstr "输出黑场"
+
+#: ops/levels/levels.c:51
+msgid "Composite channel output black."
+msgstr "复合通道输出黑场"
+
+#: ops/levels/levels.c:54
+msgid "Output white"
+msgstr "输出白场"
+
+#: ops/levels/levels.c:55
+msgid "Composite channel output white."
+msgstr "复合通道输出白场"
+
+#: ops/levels/levels.c:58
+msgid "Red input black"
+msgstr "红 输入黑场"
+
+#: ops/levels/levels.c:59
+msgid "Red channel input black."
+msgstr "红色通道输入黑场"
+
+#: ops/levels/levels.c:62
+msgid "Red input grey"
+msgstr "红 输入灰点"
+
+#: ops/levels/levels.c:63
+msgid "Red channel midtones: >1 lightens, <1 darkens."
+msgstr "红色通道中间调：>1 提亮，<1 压暗"
+
+#: ops/levels/levels.c:66
+msgid "Red input white"
+msgstr "红 输入白场"
+
+#: ops/levels/levels.c:67
+msgid "Red channel input white."
+msgstr "红色通道输入白场"
+
+#: ops/levels/levels.c:70
+msgid "Red output black"
+msgstr "红 输出黑场"
+
+#: ops/levels/levels.c:71
+msgid "Red channel output black."
+msgstr "红色通道输出黑场"
+
+#: ops/levels/levels.c:74
+msgid "Red output white"
+msgstr "红 输出白场"
+
+#: ops/levels/levels.c:75
+msgid "Red channel output white."
+msgstr "红色通道输出白场"
+
+#: ops/levels/levels.c:78
+msgid "Green input black"
+msgstr "绿 输入黑场"
+
+#: ops/levels/levels.c:79
+msgid "Green channel input black."
+msgstr "绿色通道输入黑场"
+
+#: ops/levels/levels.c:82
+msgid "Green input grey"
+msgstr "绿 输入灰点"
+
+#: ops/levels/levels.c:83
+msgid "Green channel midtones: >1 lightens, <1 darkens."
+msgstr "绿色通道中间调：>1 提亮，<1 压暗"
+
+#: ops/levels/levels.c:86
+msgid "Green input white"
+msgstr "绿 输入白场"
+
+#: ops/levels/levels.c:87
+msgid "Green channel input white."
+msgstr "绿色通道输入白场"
+
+#: ops/levels/levels.c:90
+msgid "Green output black"
+msgstr "绿 输出黑场"
+
+#: ops/levels/levels.c:91
+msgid "Green channel output black."
+msgstr "绿色通道输出黑场"
+
+#: ops/levels/levels.c:94
+msgid "Green output white"
+msgstr "绿 输出白场"
+
+#: ops/levels/levels.c:95
+msgid "Green channel output white."
+msgstr "绿色通道输出白场"
+
+#: ops/levels/levels.c:98
+msgid "Blue input black"
+msgstr "蓝 输入黑场"
+
+#: ops/levels/levels.c:99
+msgid "Blue channel input black."
+msgstr "蓝色通道输入黑场"
+
+#: ops/levels/levels.c:102
+msgid "Blue input grey"
+msgstr "蓝 输入灰点"
+
+#: ops/levels/levels.c:103
+msgid "Blue channel midtones: >1 lightens, <1 darkens."
+msgstr "蓝色通道中间调：>1 提亮，<1 压暗"
+
+#: ops/levels/levels.c:106
+msgid "Blue input white"
+msgstr "蓝 输入白场"
+
+#: ops/levels/levels.c:107
+msgid "Blue channel input white."
+msgstr "蓝色通道输入白场"
+
+#: ops/levels/levels.c:110
+msgid "Blue output black"
+msgstr "蓝 输出黑场"
+
+#: ops/levels/levels.c:111
+msgid "Blue channel output black."
+msgstr "蓝色通道输出黑场"
+
+#: ops/levels/levels.c:114
+msgid "Blue output white"
+msgstr "蓝 输出白场"
+
+#: ops/levels/levels.c:115
+msgid "Blue channel output white."
+msgstr "蓝色通道输出白场"
+
+#: ops/max-min/max-min.c:49
+msgid "Maximum takes the brightest pixel in the neighbourhood, so bright areas grow (dilate); minimum takes the darkest, so they shrink (erode)."
+msgstr "最大值取邻域内最亮的像素，亮区因此外扩（膨胀）；最小值取最暗的，亮区收缩（腐蚀）。"
+
+#: ops/max-min/max-min.c:58
+#: plugin/max-min/max-min.py:237
+msgid "Shape"
+msgstr "形状"
+
+#: ops/max-min/max-min.c:59
+msgid "Square is the (±r, ±r) window; round is a disc of radius r. The counterpart of Photoshop's Preserve: Squareness / Roundness."
+msgstr "方形即 (±r, ±r) 方窗，圆形即半径 r 的圆盘。对应 Photoshop 的「保留：方形度 / 圆度」。"
+
+#: ops/max-min/max-min.c:63
+#: plugin/max-min/max-min.py:228
+msgid "Radius"
+msgstr "半径"
+
+#: ops/max-min/max-min.c:64
+msgid "Neighbourhood radius in pixels. r=1 means a 3×3 window and grows the edge outward by one pixel. Limited to 1–100, same as Photoshop."
+msgstr "邻域半径（像素）。r=1 即 3×3 窗口，边缘向外长一圈。与 Photoshop 一样限制在 1–100。"
+
+#: ops/max-min/max-min.c:70
+msgid "Affect Alpha"
+msgstr "影响 alpha"
+
+#: ops/max-min/max-min.c:71
+msgid "Whether alpha takes part in the extremum. Off by default: Photoshop does not change layer opacity either, and letting a cut-out edge dilate is rarely what you want."
+msgstr "是否连 alpha 一起取极值。默认关：Photoshop 同样不改图层透明度，让抠图边缘跟着膨胀往往不是想要的结果。"
+
+#: ops/max-min/max-min.c:278
+msgid "Maximum / Minimum"
+msgstr "最大值 / 最小值"
+
+#: ops/max-min/max-min.c:279
+msgid "Morphological dilate (maximum) and erode (minimum) over a square or round neighbourhood: expands or shrinks bright areas. The equivalent of Photoshop's Maximum / Minimum filter, computed in the buffer's own precision."
+msgstr "在方形或圆形邻域上做形态学膨胀（最大值）与腐蚀（最小值）：亮区外扩或收缩。等价于 Photoshop 的最大值 / 最小值滤镜，按缓冲区自身的精度计算。"
+
+#: ops/max-min/max-min.c:44
+msgid "Maximum (dilate)"
+msgstr "最大值（膨胀）"
+
+#: ops/max-min/max-min.c:45
+msgid "Minimum (erode)"
+msgstr "最小值（腐蚀）"
+
+#: ops/max-min/max-min.c:54
+#: plugin/max-min/max-min.py:168
+msgid "Square"
+msgstr "方形"
+
+#: ops/max-min/max-min.c:55
+#: plugin/max-min/max-min.py:168
+msgid "Round"
+msgstr "圆形"
+
+#: plugin/alpha-curves/alpha-curves.py:76
+msgid "LAB L (lightness)"
+msgstr "LAB L（明度）"
+
+#: plugin/alpha-curves/alpha-curves.py:77
+msgid "LAB A (green-magenta)"
+msgstr "LAB A（绿–品红）"
+
+#: plugin/alpha-curves/alpha-curves.py:78
+msgid "LAB B (blue-yellow)"
+msgstr "LAB B（蓝–黄）"
+
+#: plugin/alpha-curves/alpha-curves.py:79
+msgid "Alpha (adjust existing opacity only)"
+msgstr "Alpha（只调现有透明度）"
+
+#: plugin/alpha-curves/alpha-curves.py:127
+msgid "1 · Channel to alpha"
+msgstr "1 · 通道 → Alpha"
+
+#: plugin/alpha-curves/alpha-curves.py:141
+msgid "2 · Alpha curve"
+msgstr "2 · Alpha 曲线"
+
+#: plugin/alpha-curves/alpha-curves.py:157
+msgid "The lb:channel-range-to-alpha operation is missing, so the channel cannot be written into alpha. Install the module from dist/, or set the source channel to alpha to attach the curve alone."
+msgstr "缺少算子 lb:channel-range-to-alpha，无法把通道写进 alpha。装一下 dist 里的模块，或者把「源通道」选成 alpha 只挂曲线"
+
+#: plugin/alpha-curves/alpha-curves.py:169
+#: plugin/color-range/color-range.py:168
+#: plugin/dodge-burn/dodge-burn.py:161
+#: plugin/neutral-grey/neutral-grey.py:137
+msgid "Nothing to work on: no layer."
+msgstr "没有可以处理的图层"
+
+#: plugin/alpha-curves/alpha-curves.py:172
+#: plugin/dodge-burn/dodge-burn.py:164
+#: plugin/neutral-grey/neutral-grey.py:140
+msgid "A layer group has no pixels of its own; pick a raster layer (right-click the group, then Merge Group)."
+msgstr "图层组不能处理：请先选一个栅格图层（右键 → 合并组）"
+
+#: plugin/alpha-curves/alpha-curves.py:197
+msgid "Two filters (channel to alpha, alpha curve)"
+msgstr "两条滤镜（通道 → Alpha，Alpha 曲线）"
+
+#: plugin/alpha-curves/alpha-curves.py:198
+msgid "One alpha curve"
+msgstr "一条 Alpha 曲线"
+
+#: plugin/alpha-curves/alpha-curves.py:223
+msgid "Alpha Curves"
+msgstr "Alpha Curves（透明通道曲线）"
+
+#: plugin/alpha-curves/alpha-curves.py:228
+msgid "Attaches an editable curve to alpha: first writes the chosen colour channel into alpha, then chains a gimp:curves with channel = Alpha. Both are non-destructive filters and the curve can take any shape, which is far more flexible than the four sliders of Range to Alpha."
+msgstr "给 alpha 挂一条可编辑曲线：先把选定颜色通道写进 alpha，再接一条 gimp:curves（通道 = Alpha）。两条都是非破坏滤镜，曲线可以画成任意形状，比 Range → Alpha 的四个滑块自由得多。"
+
+#: plugin/alpha-curves/alpha-curves.py:238
+msgid "Which channel decides the opacity; alpha adjusts the existing opacity only."
+msgstr "用哪一路通道决定透明度；alpha 表示只调现有透明度"
+
+#: plugin/alpha-curves/alpha-curves.py:242
+msgid "auto"
+msgstr "auto（自动）"
+
+#: plugin/alpha-curves/alpha-curves.py:243
+msgid "Flat-top curve: 0 / 128 / 255 all sit at the top, drag it down to shape it."
+msgstr "平顶曲线：0 / 128 / 255 三个点都在顶，往下拖就是形状"
+
+#: plugin/alpha-curves/alpha-curves.py:244
+msgid "flat (flat top)"
+msgstr "flat（平顶）"
+
+#: plugin/alpha-curves/alpha-curves.py:245
+msgid "All three control points sit at 255, so alpha starts fully opaque; drag them down yourself."
+msgstr "三个控制点全在 255：alpha 拉满，之后自己往下拖"
+
+#: plugin/alpha-curves/alpha-curves.py:246
+msgid "band (blend band)"
+msgstr "band（混合颜色带）"
+
+#: plugin/alpha-curves/alpha-curves.py:247
+msgid "Transparent at both ends and opaque in the middle, with a smooth bend."
+msgstr "两端收到透明、中间不透明，用平滑曲线拐弯"
+
+#: plugin/alpha-curves/alpha-curves.py:248
+msgid "identity"
+msgstr "identity（恒等）"
+
+#: plugin/alpha-curves/alpha-curves.py:249
+msgid "A 45° line: alpha equals the channel value exactly; drag the points yourself."
+msgstr "45° 直线：alpha 正好等于通道值，之后自己拖点"
+
+#: plugin/alpha-curves/alpha-curves.py:250
+msgid "soft (S-curve)"
+msgstr "soft（S 形）"
+
+#: plugin/alpha-curves/alpha-curves.py:251
+msgid "Sampled from smoothstep: flat at both ends and steep in the middle, monotonic."
+msgstr "smoothstep 的取样点：两端平、中间陡，单调不减"
+
+#: plugin/alpha-curves/alpha-curves.py:253
+msgid "Initial curve"
+msgstr "初始曲线"
+
+#: plugin/alpha-curves/alpha-curves.py:253
+msgid "Shape the curve starts with when it is attached; change it freely afterwards."
+msgstr "挂上去时曲线的初始形状，之后随便改"
+
+#: plugin/blend/blend.py:630
+#: plugin/blend/blend.py:878
+#: plugin/color-range/color-range.py:322
+#: plugin/color-range/color-range.py:335
+msgid "Range"
+msgstr "范围"
+
+#: plugin/blend/blend.py:761
+msgid "Replicates Image > Apply Image from the classic image editor."
+msgstr "Replicates 经典图像编辑器 Image > Apply Image."
+
+#: plugin/blend/blend.py:817
+msgid "Replicates Image > Calculations from the classic image editor."
+msgstr "Replicates 经典图像编辑器 Image > Calculations."
+
+#: plugin/channel-to-mask/channel-to-mask.py:79
+msgid "No channel named \"%s\"."
+msgstr "找不到名为「%s」的通道"
+
+#: plugin/channel-to-mask/channel-to-mask.py:94
+#: plugin/convert/convert.py:142
+msgid "This image has no channels yet; create one in the Channels dock first."
+msgstr "这张图没有通道，先在通道面板新建一条"
+
+#: plugin/channel-to-mask/channel-to-mask.py:97
+msgid "Click the channel to use in the Channels dock and run again (available: %s), or fill in a channel name."
+msgstr "要在通道面板里点一下要用的通道再运行（现有：%s），或填「通道名」"
+
+#: plugin/channel-to-mask/channel-to-mask.py:124
+msgid "No layer selected."
+msgstr "没有选中图层"
+
+#: plugin/channel-to-mask/channel-to-mask.py:126
+#: plugin/convert/convert.py:285
+msgid "A layer group has no pixels and cannot take a mask; merge the group first."
+msgstr "图层组没有像素，挂不了蒙版：请先合并图层组"
+
+#: plugin/channel-to-mask/channel-to-mask.py:211
+msgid "Nothing selected but layers."
+msgstr "选中的不是图层"
+
+#: plugin/color-range/color-range.py:79
+#: plugin/color-range/color-range.py:313
+msgid "Picked colour"
+msgstr "自定颜色"
+
+#: plugin/color-range/color-range.py:157
+msgid "The lb:color-mask-select operation (the pixel engine behind Color Range) is missing. Install the operator package from dist/, or build it with ./build.sh."
+msgstr "缺少算子 lb:color-mask-select（色彩范围的像素引擎）。先装 dist 里的 Windows/Linux 算子包，或 ./build.sh 自编"
+
+#: plugin/color-range/color-range.py:171
+msgid "A layer group has no pixels of its own; pick a raster layer."
+msgstr "图层组没有像素：请选一个栅格图层"
+
+#: plugin/color-range/color-range.py:180
+#: plugin/color-range/color-range.py:205
+#: plugin/color-range/color-range.py:470
+msgid "Color Range"
+msgstr "Color Range（色彩范围）"
+
+#: plugin/color-range/color-range.py:213
+msgid "Cancel"
+msgstr "取消"
+
+#: plugin/color-range/color-range.py:214
+msgid "OK"
+msgstr "确定"
+
+#: plugin/color-range/color-range.py:223
+msgid "Selection"
+msgstr "选择"
+
+#: plugin/color-range/color-range.py:257
+msgid "Red overlay preview"
+msgstr "红色叠加预览"
+
+#: plugin/color-range/color-range.py:266
+msgid "<small>On OK the mask is written into the layer alpha (the red overlay is preview only and is never baked in).</small>"
+msgstr "<small>确定后蒙版写入图层 alpha（红色叠加只用于预览，不会烤进去）。</small>"
+
+#: plugin/color-range/color-range.py:302
+#: plugin/color-range/color-range.py:326
+#: plugin/color-range/color-range.py:339
+#: plugin/color-range/color-range.py:356
+msgid "Color tolerance"
+msgstr "颜色容差"
+
+#: plugin/color-range/color-range.py:317
+msgid "Minimum chroma"
+msgstr "最低彩度"
+
+#: plugin/color-range/color-range.py:330
+msgid "<small>Luminance at or above this value counts as highlights; below it is the transition band.</small>"
+msgstr "<small>亮度 ≥ 这个值算高光，往下是过渡带。</small>"
+
+#: plugin/color-range/color-range.py:343
+msgid "<small>Luminance at or below this value counts as shadows; above it is the transition band.</small>"
+msgstr "<small>亮度 ≤ 这个值算阴影，往上是过渡带。</small>"
+
+#: plugin/color-range/color-range.py:348
+msgid "Range low"
+msgstr "范围下限"
+
+#: plugin/color-range/color-range.py:352
+msgid "Range high"
+msgstr "范围上限"
+
+#: plugin/color-range/color-range.py:415
+msgid "Color Range (preview)"
+msgstr "色彩范围（预览）"
+
+#: plugin/color-range/color-range.py:475
+msgid "The custom dialog for Color Range: pick a colour type and only that type's parameters stay visible, each mode keeping its own defaults (highlights 192, shadows 64, midtones 64/192). On OK the mask is written into the layer alpha."
+msgstr "色彩范围的定制对话框：选哪种颜色，下面就只显示那种颜色的参数，切换时回到该模式自己的默认值（高光 192、阴影 64、中间调 64/192）。确定后蒙版写进图层 alpha。"
+
+#: plugin/convert/convert.py:144
+msgid "Click the channel to use in the Channels dock and run again (available: %s)."
+msgstr "要在通道面板里点一下要用的通道再运行（现有：%s）"
+
+#: plugin/convert/convert.py:163
+msgid "Nothing selected: select the target layer(s) in the Layers dock and run it from there."
+msgstr "选中的不是图层：请在图层面板选中要挂蒙版的图层，再从图层面板右键运行"
+
+#: plugin/convert/convert.py:174
+msgid "The selected layer has no layer mask."
+msgstr "选中的图层没有图层蒙版"
+
+#: plugin/convert/convert.py:212
+msgid "This image has no paths yet; draw one with the path tool first."
+msgstr "这张图没有路径，先用路径工具画一条"
+
+#: plugin/convert/convert.py:214
+msgid "Click the path to use in the Paths dock and run again (available: %s)."
+msgstr "要在路径面板里点一下要用的路径再运行（现有：%s）"
+
+#: plugin/convert/convert.py:259
+msgid "There is no selection to trace."
+msgstr "没有选区可以描路径"
+
+#: plugin/convert/convert.py:263
+msgid "The native tracer produced no path; the selection is too small."
+msgstr "选区太小，原生过程没有描出任何路径"
+
+#: plugin/convert/convert.py:407
+msgid "Channel to selection: turns the channel selected in the Channels dock into a pixel selection."
+msgstr "通道 → 选区：把通道面板里选中的那条通道变成像素选区"
+
+#: plugin/convert/convert.py:412
+msgid "Selection to channel: saves the current selection as a new channel."
+msgstr "选区 → 通道：把当前选区存成一条新通道"
+
+#: plugin/convert/convert.py:418
+msgid "Channel to mask: uses the selected channel's grey as the mask of the selected layer."
+msgstr "通道 → 蒙版：用选中通道的灰度做所选图层的蒙版"
+
+#: plugin/convert/convert.py:423
+msgid "Mask to channel: turns the selected layer's mask into a new channel."
+msgstr "蒙版 → 通道：把所选图层的蒙版变成一条新通道"
+
+#: plugin/convert/convert.py:428
+msgid "Selection to mask: attaches the current selection as the mask of the selected layer."
+msgstr "选区 → 蒙版：把当前选区挂成所选图层的蒙版"
+
+#: plugin/convert/convert.py:433
+msgid "Mask to selection: turns the selected layer's mask into a pixel selection."
+msgstr "蒙版 → 选区：把所选图层的蒙版变成像素选区"
+
+#: plugin/convert/convert.py:440
+msgid "Path to selection: turns the path selected in the Paths dock into a pixel selection."
+msgstr "路径 → 选区：把路径面板里选中的那条路径变成像素选区"
+
+#: plugin/convert/convert.py:446
+msgid "Selection to path: traces the current selection into a new path (same geometry as the native To Path)."
+msgstr "选区 → 路径：把当前选区描成一条新路径（几何与原生 To Path 相同）"
+
+#: plugin/convert/convert.py:451
+msgid "Path to channel: rasterises the selected path into a new channel."
+msgstr "路径 → 通道：把选中路径栅格化成一条新通道"
+
+#: plugin/convert/convert.py:456
+msgid "Channel to path: traces the 50% contour of the selected channel into a new path."
+msgstr "通道 → 路径：把选中通道的 50% 等值线描成一条新路径"
+
+#: plugin/convert/convert.py:462
+msgid "Path to mask: rasterises the selected path into the mask of the selected layer."
+msgstr "路径 → 蒙版：把选中路径栅格化成所选图层的蒙版"
+
+#: plugin/convert/convert.py:467
+msgid "Mask to path: traces the outline of the selected layer's mask into a new path."
+msgstr "蒙版 → 路径：把所选图层蒙版的轮廓描成一条新路径"
+
+#: plugin/convert/convert.py:521
+msgid "Channel \"%s\" to selection"
+msgstr "通道「%s」→ 选区"
+
+#: plugin/convert/convert.py:524
+msgid "Selection to channel \"%s\""
+msgstr "选区 → 通道「%s」"
+
+#: plugin/convert/convert.py:527
+msgid "Channel \"%s\" to the mask of %d layer(s)"
+msgstr "通道「%s」→ %d 个图层的蒙版"
+
+#: plugin/convert/convert.py:531
+msgid "Mask to channel \"%s\""
+msgstr "蒙版 → 通道「%s」"
+
+#: plugin/convert/convert.py:534
+msgid "Selection to the mask of %d layer(s)"
+msgstr "选区 → %d 个图层的蒙版"
+
+#: plugin/convert/convert.py:537
+msgid "Mask \"%s\" to selection"
+msgstr "蒙版「%s」→ 选区"
+
+#: plugin/convert/convert.py:540
+msgid "Path \"%s\" to selection"
+msgstr "路径「%s」→ 选区"
+
+#: plugin/convert/convert.py:543
+msgid "Selection to path \"%s\""
+msgstr "选区 → 路径「%s」"
+
+#: plugin/convert/convert.py:546
+msgid "Path \"%s\" to channel \"%s\""
+msgstr "路径「%s」→ 通道「%s」"
+
+#: plugin/convert/convert.py:550
+msgid "Channel \"%s\" to path \"%s\""
+msgstr "通道「%s」→ 路径「%s」"
+
+#: plugin/convert/convert.py:554
+msgid "Path \"%s\" to the mask of %d layer(s)"
+msgstr "路径「%s」→ %d 个图层的蒙版"
+
+#: plugin/convert/convert.py:558
+msgid "Mask \"%s\" to path \"%s\""
+msgstr "蒙版「%s」→ 路径「%s」"
+
+#: plugin/convert/convert.py:561
+msgid "Unknown direction"
+msgstr "未知方向"
+
+#: plugin/dodge-burn/dodge-burn.py:183
+#: plugin/dodge-burn/dodge-burn.py:243
+msgid "Dodge & Burn"
+msgstr "双曲线磨皮 (Dodge & Burn)"
+
+#: plugin/dodge-burn/dodge-burn.py:189
+msgid "1 · Dodge (black mask)"
+msgstr "1 · 提亮（黑蒙版）"
+
+#: plugin/dodge-burn/dodge-burn.py:189
+msgid "1 · Dodge curve"
+msgstr "1 · 提亮曲线"
+
+#: plugin/dodge-burn/dodge-burn.py:189
+msgid "Paint white to dodge"
+msgstr "涂白提亮"
+
+#: plugin/dodge-burn/dodge-burn.py:190
+msgid "2 · Burn (black mask)"
+msgstr "2 · 压暗（黑蒙版）"
+
+#: plugin/dodge-burn/dodge-burn.py:190
+msgid "2 · Burn curve"
+msgstr "2 · 压暗曲线"
+
+#: plugin/dodge-burn/dodge-burn.py:190
+msgid "Paint white to burn"
+msgstr "涂白压暗"
+
+#: plugin/dodge-burn/dodge-burn.py:216
+msgid "Dodge & Burn is set up: a dodge and a burn layer, each with its own curve and a fully black mask, so the image is currently identical to the original. Click one layer's mask and paint with a soft white brush (opacity 10–20%%): painting on the dodge layer lightens, on the burn layer darkens. Strength %g%% (lifts/lowers by %.2f at 0.5)."
+msgstr "双曲线磨皮已建立：提亮、压暗两层各挂一条曲线，蒙版全黑，所以现在与原图完全一致。点中某层的蒙版，用白色柔边画笔（不透明度 10–20%%）涂抹：涂提亮层变亮，涂压暗层变暗。强度 %g%%（0.5 处抬/压 %.2f）。"
+
+#: plugin/dodge-burn/dodge-burn.py:218
+#: plugin/frequency-separation/frequency-separation.py:217
+#: plugin/hsi-split-curves/hsi-split-curves.py:275
+#: plugin/hsl-split-curves/hsl-split-curves.py:404
+#: plugin/hsl-split-curves/hsl-split-curves.py:474
+#: plugin/hsv-split-curves/hsv-split-curves.py:429
+#: plugin/hsv-split-curves/hsv-split-curves.py:498
+#: plugin/lab-split-curves/lab-split-curves.py:461
+#: plugin/lab-split-curves/lab-split-curves.py:531
+#: plugin/lch-split-curves/lch-split-curves.py:660
+#: plugin/neutral-grey/neutral-grey.py:190
+msgid "\n(This image has transparency, so the layers went into a group automatically: the group mask preserves it.)"
+msgstr "\n（这张图带透明，已自动分组：透明度靠组蒙版保住。）"
+
+#: plugin/dodge-burn/dodge-burn.py:248
+msgid "Dodge & Burn: creates a dodge and a burn curve layer, both with a fully black mask. Paint with a soft white brush on a mask and only what you paint gets lighter or darker; everywhere else stays pixel-identical to the original."
+msgstr "双曲线磨皮：生成提亮、压暗两条曲线层，蒙版全黑。用白色柔边画笔在蒙版上涂抹，涂到哪里就提亮/压暗到哪里，没涂的地方与原图逐像素相同。"
+
+#: plugin/dodge-burn/dodge-burn.py:253
+msgid "Strength (%)"
+msgstr "强度（%）"
+
+#: plugin/dodge-burn/dodge-burn.py:254
+msgid "How far the curve lifts or lowers the midtones: 12 means 0.12 at 0.5 (about 30 levels)."
+msgstr "曲线在中间调抬升/下压的幅度：12 表示 0.5 处抬 0.12（约 30 码）"
+
+#: plugin/dodge-burn/dodge-burn.py:257
+#: plugin/frequency-separation/frequency-separation.py:256
+#: plugin/hsi-split-curves/hsi-split-curves.py:310
+#: plugin/hsl-split-curves/hsl-split-curves.py:531
+#: plugin/hsv-split-curves/hsv-split-curves.py:541
+#: plugin/lab-split-curves/lab-split-curves.py:588
+#: plugin/lch-split-curves/lch-split-curves.py:717
+#: plugin/neutral-grey/neutral-grey.py:224
+msgid "Put in a layer group"
+msgstr "收进图层组"
+
+#: plugin/dodge-burn/dodge-burn.py:258
+msgid "Puts both layers into a pass-through group named Dodge & Burn; turn it off to stack them directly above the original layer."
+msgstr "把两层放进一个「双曲线磨皮」穿透组里；关掉就直接叠在原图层上方"
+
+#: plugin/dodge-burn/dodge-burn.py:264
+#: plugin/frequency-separation/frequency-separation.py:263
+#: plugin/neutral-grey/neutral-grey.py:231
+msgid "Select exactly one layer."
+msgstr "请选择一个图层"
+
+#: plugin/frequency-separation/frequency-separation.py:137
+msgid "Gaussian blur (low frequency)"
+msgstr "高斯模糊（低频）"
+
+#: plugin/frequency-separation/frequency-separation.py:147
+msgid "High pass (high frequency)"
+msgstr "高通（高频）"
+
+#: plugin/frequency-separation/frequency-separation.py:162
+#: plugin/hsi-split-curves/hsi-split-curves.py:219
+#: plugin/hsl-split-curves/hsl-split-curves.py:337
+#: plugin/hsl-split-curves/hsl-split-curves.py:418
+#: plugin/hsl-split-curves/hsl-split-curves.py:488
+#: plugin/hsv-split-curves/hsv-split-curves.py:366
+#: plugin/lab-split-curves/lab-split-curves.py:393
+#: plugin/lab-split-curves/lab-split-curves.py:475
+#: plugin/lab-split-curves/lab-split-curves.py:545
+#: plugin/lch-split-curves/lch-split-curves.py:523
+#: plugin/lch-split-curves/lch-split-curves.py:604
+#: plugin/lch-split-curves/lch-split-curves.py:674
+msgid "Nothing to split: no layer."
+msgstr "没有可以拆分的图层"
+
+#: plugin/frequency-separation/frequency-separation.py:165
+#: plugin/hsi-split-curves/hsi-split-curves.py:222
+#: plugin/hsl-split-curves/hsl-split-curves.py:340
+#: plugin/hsl-split-curves/hsl-split-curves.py:421
+#: plugin/hsl-split-curves/hsl-split-curves.py:491
+#: plugin/hsv-split-curves/hsv-split-curves.py:369
+#: plugin/lab-split-curves/lab-split-curves.py:396
+#: plugin/lab-split-curves/lab-split-curves.py:478
+#: plugin/lab-split-curves/lab-split-curves.py:548
+#: plugin/lch-split-curves/lch-split-curves.py:526
+#: plugin/lch-split-curves/lch-split-curves.py:607
+#: plugin/lch-split-curves/lch-split-curves.py:677
+msgid "A layer group cannot be split; pick a raster layer first (right-click the group, then Merge Group)."
+msgstr "图层组不能拆分：请先选一个栅格图层（右键 → 合并组）"
+
+#: plugin/frequency-separation/frequency-separation.py:184
+#: plugin/frequency-separation/frequency-separation.py:242
+msgid "Frequency Separation"
+msgstr "高低频磨皮 (Frequency Separation)"
+
+#: plugin/frequency-separation/frequency-separation.py:189
+msgid "1 · Low frequency (tone)"
+msgstr "1 · 低频（影调）"
+
+#: plugin/frequency-separation/frequency-separation.py:197
+msgid "2 · High frequency (detail)"
+msgstr "2 · 高频（细节）"
+
+#: plugin/frequency-separation/frequency-separation.py:215
+msgid "Frequency Separation is set up: a low-frequency layer (gaussian blur %g px, carries tone and colour) and a high-frequency layer (grain merge, carries pores and blemishes). Hide the original layer and the two still reproduce it. To change the strength, change the blur radius of the low-frequency layer."
+msgstr "高低频磨皮已建立：低频层（高斯模糊 %g px，管影调与颜色）、高频层（颗粒合并，管毛孔与痘印）。原图层可以隐藏，两层自己就能还原。改磨皮力度＝改低频层的高斯模糊半径。"
+
+#: plugin/frequency-separation/frequency-separation.py:247
+msgid "Frequency Separation: creates a low-frequency layer (gaussian blur, carries tone and colour) and a high-frequency layer (grain merge, carries detail and texture) in one go; with identity settings the composite is the original. Smooth colour on the low layer and retouch detail on the high layer without disturbing each other."
+msgstr "高低频磨皮：一次生成低频（高斯模糊，管影调与颜色）与高频（颗粒合并，管细节与质感）两层，恒等时合成就是原图。在低频层抹平色块、在高频层修细节，互不干扰。"
+
+#: plugin/frequency-separation/frequency-separation.py:252
+msgid "Split radius (px)"
+msgstr "分离半径（px）"
+
+#: plugin/frequency-separation/frequency-separation.py:253
+msgid "Standard deviation of the gaussian blur. Larger pushes more into the low frequency and leaves less detail in the high one."
+msgstr "高斯模糊的标准差。越大，进低频的东西越多、高频留下的细节越少"
+
+#: plugin/frequency-separation/frequency-separation.py:257
+msgid "Puts both layers into a pass-through group named Frequency Separation; turn it off to stack them directly above the original layer."
+msgstr "把两层放进一个「高低频磨皮」穿透组里；关掉就直接叠在原图层上方"
+
+#: plugin/hsi-split-curves/hsi-split-curves.py:155
+msgid "Required operations are missing: %s. They are essential for exact HSI fitting (I and S have no counterpart among GIMP's component blend modes and can only be computed together). Install this repository's GEGL operations hsi-dual / hsi-compose (./install.sh) and restart GIMP."
+msgstr "缺少适配算子：%s。它们是 HSI 精确适配的必需组件（I 与 S 在 GIMP 的分量混合模式里都没有对应项，只能联合计算）。请先安装本仓库的 GEGL 算子的 hsi-dual / hsi-compose（./install.sh），重启 GIMP 再试。"
+
+#: plugin/hsi-split-curves/hsi-split-curves.py:272
+msgid "HSI layers created: %s. The S curve lives in \"2 · S curve\" (red channel), the I curve in \"3 · I curve\" (green channel) and the hue curve in \"4 · H curve\" (blue channel). Hide the original layer; this one reproduces it on its own."
+msgstr "HSI 层已建立：%s。S 曲线在「2 · S curve」（红通道）、I 曲线在「3 · I curve」（绿通道）、色相曲线在「4 · H curve」（蓝通道）。原图层可以隐藏，这一层自己就能还原。"
+
+#: plugin/hsi-split-curves/hsi-split-curves.py:305
+msgid "Adjust curves in HSI space: builds a three-channel data image (red = saturation, green = intensity, blue = hue) with one curve per component. Identity curves reproduce the original exactly, and editing a curve only moves that HSI component."
+msgstr "在 HSI 空间里调曲线：生成一张三联数据图（红通道 = 饱和度、绿通道 = 强度、蓝通道 = 色相），三条曲线各管一个分量。恒等曲线时精确还原原图，调哪条曲线就只动那个 HSI 分量。"
+
+#: plugin/hsi-split-curves/hsi-split-curves.py:311
+msgid "Puts this layer into a pass-through group named HSI split; turn it off to stack it directly above the original layer."
+msgstr "把这一层放进一个「HSI split」穿透组里；关掉就直接叠在原图层上方"
+
+#: plugin/hsl-split-curves/hsl-split-curves.py:271
+msgid "Required operations are missing: %s. They are essential for exact HSL fitting (S and L must be computed together and cannot be replaced by a 1D curve). Install this repository's GEGL operations hsl-dual / hsl-compose (./install.sh) and restart GIMP."
+msgstr "缺少适配算子：%s。它们是 HSL 精确适配的必需组件（S 与 L 必须联合计算，无法用一维曲线代替）。请先安装本仓库的 GEGL 算子的 hsl-dual / hsl-compose（./install.sh），重启 GIMP 再试。"
+
+#: plugin/hsl-split-curves/hsl-split-curves.py:401
+msgid "HSL component layers created: %s. The S curve lives in \"2 · S curve\" (red channel), the L curve in \"3 · L curve\" (green channel) and the hue curve in the Hue layer's \"2 · H curve\". Hide the original layers; these two reproduce it on their own."
+msgstr "HSL 分量层已建立：%s。S 曲线在「2 · S curve」（红通道）、L 曲线在「3 · L curve」（绿通道）、色相曲线在 Hue 层的「2 · H curve」。原图层可以隐藏，这两层自己就能还原。"
+
+#: plugin/hsl-split-curves/hsl-split-curves.py:471
+msgid "HSL layers created: %s. The S curve lives in \"2 · S curve\" (red channel), the L curve in \"3 · L curve\" (green channel) and the hue curve in \"4 · H curve\" (blue channel). Hide the original layer; this one reproduces it on its own."
+msgstr "HSL 层已建立：%s。S 曲线在「2 · S curve」（红通道）、L 曲线在「3 · L curve」（绿通道）、色相曲线在「4 · H curve」（蓝通道）。 原图层可以隐藏，这一层自己就能还原。"
+
+#: plugin/hsl-split-curves/hsl-split-curves.py:522
+msgid "Adjust curves in HSL space: multi mode splits the layer into component layers, attaches one curve to each and stacks them back with GIMP's native component blend modes, so every layer can be switched off separately. Identity curves reproduce the original exactly."
+msgstr "在 HSL 空间里调曲线：multi 模式把图层拆成分量层，各挂一条曲线，用 GIMP 原生的分量混合模式叠回去，每层可以单独关掉。恒等曲线时精确还原原图。"
+
+#: plugin/hsl-split-curves/hsl-split-curves.py:526
+msgid "Adjust curves in HSL space: single mode packs the three components into one data image, one curve per channel, then an operation decodes it back to colour. Identity curves reproduce the original exactly; one layer, five filters."
+msgstr "在 HSL 空间里调曲线：single 模式把三个分量打包进一张数据图，三条曲线各管一个通道，再由一个算子解回颜色。恒等曲线时精确还原原图，一层五条滤镜。"
+
+#: plugin/hsl-split-curves/hsl-split-curves.py:532
+msgid "Puts this layer into a pass-through group named HSL split; turn it off to stack it directly above the original layer."
+msgstr "把这一层放进一个「HSL split」穿透组里；关掉就直接叠在原图层上方"
+
+#: plugin/hsv-split-curves/hsv-split-curves.py:200
+msgid "Required operations are missing: %s. They are essential for exact HSV fitting (all three components must be evaluated in the same data image). Install this repository's GEGL operations hsv-dual / hsv-compose (./install.sh) and restart GIMP."
+msgstr "缺少适配算子：%s。它们是 HSV 精确适配的必需组件（三个分量必须在同一张数据图里一起算）。请先安装本仓库的 GEGL 算子 hsv-dual / hsv-compose（./install.sh），重启 GIMP 再试。"
+
+#: plugin/hsv-split-curves/hsv-split-curves.py:426
+msgid "HSV component layers created (multi mode): %s. Editing each layer's \"2 · curve\" adjusts that component; leave the encode step alone. Every layer can be switched off separately. Hide the original layer; these three stack back on their own."
+msgstr "HSV 分量层已建立（multi 模式）：%s。改每层「2 · curve」就是调该分量的曲线；encode 那步别动。每层都能单独关掉。原图层可以隐藏，这三层自己就能叠回去。"
+
+#: plugin/hsv-split-curves/hsv-split-curves.py:495
+msgid "HSV layers created: %s. The S curve lives in \"2 · S curve\" (red channel), the V curve in \"3 · V curve\" (green channel) and the hue curve in \"4 · H curve\" (blue channel). Hide the original layer; this one reproduces it on its own."
+msgstr "HSV 层已建立：%s。S 曲线在「2 · S curve」（红通道）、V 曲线在「3 · V curve」（绿通道）、色相曲线在「4 · H curve」（蓝通道）。 原图层可以隐藏，这一层自己就能还原。"
+
+#: plugin/hsv-split-curves/hsv-split-curves.py:531
+msgid "Adjust curves in HSV space: multi mode splits the layer into component layers, attaches one curve to each and stacks them back with GIMP's native component blend modes, so every layer can be switched off separately. Identity curves reproduce the original exactly."
+msgstr "在 HSV 空间里调曲线：multi 模式把图层拆成分量层，各挂一条曲线，用 GIMP 原生的分量混合模式叠回去，每层可以单独关掉。恒等曲线时精确还原原图。"
+
+#: plugin/hsv-split-curves/hsv-split-curves.py:535
+msgid "Adjust curves in HSV space: single mode packs the three components into one data image, one curve per channel, then an operation decodes it back to colour. Identity curves reproduce the original exactly; one layer, five filters."
+msgstr "在 HSV 空间里调曲线：single 模式把三个分量打包进一张数据图，三条曲线各管一个通道，再由一个算子解回颜色。恒等曲线时精确还原原图，一层五条滤镜。"
+
+#: plugin/hsv-split-curves/hsv-split-curves.py:542
+msgid "Puts the result into a pass-through group named HSV split; turn it off to stack it directly above the original layer."
+msgstr "把结果放进一个「HSV split」穿透组里；关掉就直接叠在原图层上方"
+
+#: plugin/lab-split-curves/lab-split-curves.py:327
+msgid "Required operations are missing: %s. They are essential for exact Lab fitting (a and b must be computed together and cannot be replaced by a 1D curve). Install this repository's GEGL operations lab-dual / lab-compose (./install.sh) and restart GIMP."
+msgstr "缺少适配算子：%s。它们是 Lab 精确适配的必需组件（a 与 b 必须联合计算，无法用一维曲线代替）。请先安装本仓库的 GEGL 算子的 lab-dual / lab-compose（./install.sh），重启 GIMP 再试。"
+
+#: plugin/lab-split-curves/lab-split-curves.py:458
+msgid "Lab component layers created: %s. The a curve lives in \"2 · a curve\" (red channel), the b curve in \"3 · b curve\" (green channel) and the lightness curve in the L layer's \"2 · L curve\". Hide the original layers; these two reproduce it on their own."
+msgstr "Lab 分量层已建立：%s。a 曲线在「2 · a curve」（红通道）、b 曲线在「3 · b curve」（绿通道）、明度曲线在 L 层的「2 · L curve」。原图层可以隐藏，这两层自己就能还原。"
+
+#: plugin/lab-split-curves/lab-split-curves.py:528
+msgid "Lab layers created: %s. The a curve lives in \"2 · a curve\" (red channel), the b curve in \"3 · b curve\" (green channel) and the L curve in \"4 · L curve\" (blue channel). Hide the original layer; this one reproduces it on its own."
+msgstr "Lab 层已建立：%s。a 曲线在「2 · a curve」（红通道）、b 曲线在「3 · b curve」（绿通道）、L 曲线在「4 · L curve」（蓝通道）。 原图层可以隐藏，这一层自己就能还原。"
+
+#: plugin/lab-split-curves/lab-split-curves.py:579
+msgid "Adjust curves in Lab space: multi mode splits the layer into component layers, attaches one curve to each and stacks them back with GIMP's native component blend modes, so every layer can be switched off separately. Identity curves reproduce the original exactly."
+msgstr "在 Lab 空间里调曲线：multi 模式把图层拆成分量层，各挂一条曲线，用 GIMP 原生的分量混合模式叠回去，每层可以单独关掉。恒等曲线时精确还原原图。"
+
+#: plugin/lab-split-curves/lab-split-curves.py:583
+msgid "Adjust curves in Lab space: single mode packs the three components into one data image, one curve per channel, then an operation decodes it back to colour. Identity curves reproduce the original exactly; one layer, five filters."
+msgstr "在 Lab 空间里调曲线：single 模式把三个分量打包进一张数据图，三条曲线各管一个通道，再由一个算子解回颜色。恒等曲线时精确还原原图，一层五条滤镜。"
+
+#: plugin/lab-split-curves/lab-split-curves.py:589
+msgid "Puts this layer into a pass-through group named Lab split; turn it off to stack it directly above the original layer."
+msgstr "把这一层放进一个「Lab split」穿透组里；关掉就直接叠在原图层上方"
+
+#: plugin/layer-to-channel/layer-to-channel.py:152
+#: plugin/layer-to-selection/layer-to-selection.py:150
+msgid "A layer group cannot be converted directly; right-click it and Merge Layer Group first."
+msgstr "图层组不能直接转换：请先右键 → 合并图层组"
+
+#: plugin/lch-split-curves/lch-split-curves.py:509
+msgid "Required operations are missing: %s. They are essential for exact LCh fitting (all three components must be evaluated in the same data image). Install this repository's GEGL operations lch-dual / lch-compose (./install.sh) and restart GIMP."
+msgstr "缺少适配算子：%s。它们是 LCh 精确适配的必需组件（三个分量必须在同一张数据图里一起算）。请先安装本仓库的 GEGL 算子 lch-dual / lch-compose（./install.sh），重启 GIMP 再试。"
+
+#: plugin/lch-split-curves/lch-split-curves.py:588
+msgid "LCh component layers created: %s. Editing each layer's \"curve\" adjusts that component; leave encode alone."
+msgstr "LCh 分量层已建立：%s。改每层的「curve」就是调该分量的曲线；encode 别动。"
+
+#: plugin/lch-split-curves/lch-split-curves.py:590
+msgid "\n(8-bit images must sit in a group: ungrouped, each layer quantises separately and the hue drifts by a few levels.)"
+msgstr "\n（8 位图像必须放在组里：不分组会逐层量化，色相会偏几码。）"
+
+#: plugin/lch-split-curves/lch-split-curves.py:657
+msgid "LCh layers created: %s. The L curve lives in \"2 · L curve\" (red channel), the chroma curve in \"3 · C curve\" (green channel) and the hue curve in \"4 · h curve\" (blue channel). Hide the original layer; this one reproduces it on its own."
+msgstr "LCh 层已建立：%s。L 曲线在「2 · L curve」（红通道）、彩度曲线在「3 · C curve」（绿通道）、色相曲线在「4 · h curve」（蓝通道）。 原图层可以隐藏，这一层自己就能还原。"
+
+#: plugin/lch-split-curves/lch-split-curves.py:708
+msgid "Adjust curves in LCh space: multi mode splits the layer into component layers, attaches one curve to each and stacks them back with GIMP's native component blend modes, so every layer can be switched off separately. Identity curves reproduce the original exactly."
+msgstr "在 LCh 空间里调曲线：multi 模式把图层拆成分量层，各挂一条曲线，用 GIMP 原生的分量混合模式叠回去，每层可以单独关掉。恒等曲线时精确还原原图。"
+
+#: plugin/lch-split-curves/lch-split-curves.py:712
+msgid "Adjust curves in LCh space: single mode packs the three components into one data image, one curve per channel, then an operation decodes it back to colour. Identity curves reproduce the original exactly; one layer, five filters."
+msgstr "在 LCh 空间里调曲线：single 模式把三个分量打包进一张数据图，三条曲线各管一个通道，再由一个算子解回颜色。恒等曲线时精确还原原图，一层五条滤镜。"
+
+#: plugin/lch-split-curves/lch-split-curves.py:718
+msgid "Puts this layer into a pass-through group named LCh split; turn it off to stack it directly above the original layer."
+msgstr "把这一层放进一个「LCh split」穿透组里；关掉就直接叠在原图层上方"
+
+#: plugin/max-min/max-min.py:71
+msgid "Maximum (dilate: bright areas grow)"
+msgstr "最大值（膨胀：亮区外扩）"
+
+#: plugin/max-min/max-min.py:72
+msgid "Minimum (erode: bright areas shrink)"
+msgstr "最小值（腐蚀：亮区收缩）"
+
+#: plugin/max-min/max-min.py:76
+msgid "Square ((±r, ±r) window)"
+msgstr "方形（(±r, ±r) 方窗）"
+
+#: plugin/max-min/max-min.py:77
+msgid "Round (disc of radius r)"
+msgstr "圆形（半径 r 的圆盘）"
+
+#: plugin/max-min/max-min.py:128
+msgid "The lb:max-min operation is missing; install the module from dist/ first."
+msgstr "缺少算子 lb:max-min，请先安装 dist 里的模块。"
+
+#: plugin/max-min/max-min.py:142
+msgid "Nothing to work on: no drawable."
+msgstr "没有可以处理的图层。"
+
+#: plugin/max-min/max-min.py:145
+msgid "A layer group has no pixels of its own; pick a raster layer or its mask."
+msgstr "图层组没有自己的像素，请选一个栅格图层或它的蒙版。"
+
+#: plugin/max-min/max-min.py:149
+msgid "Maximum"
+msgstr "最大值"
+
+#: plugin/max-min/max-min.py:149
+msgid "Minimum"
+msgstr "最小值"
+
+#: plugin/max-min/max-min.py:180
+msgid "mask"
+msgstr "蒙版"
+
+#: plugin/max-min/max-min.py:181
+msgid "channel"
+msgstr "通道"
+
+#: plugin/max-min/max-min.py:206
+msgid "Maximum / Minimum..."
+msgstr "最大值 / 最小值…"
+
+#: plugin/max-min/max-min.py:211
+msgid "Morphological maximum (dilate) and minimum (erode): each pixel takes the largest or smallest value in its neighbourhood. Maximum grows the edges and removes dark specks; minimum shrinks them and removes bright specks. Attached as a non-destructive filter on layers; written into pixels on masks and channels."
+msgstr "形态学的最大值（膨胀）与最小值（腐蚀）：每个像素取邻域内的最大 / 最小值。最大值扩边、去暗点；最小值收边、去亮点。图层上以非破坏滤镜挂载，蒙版与通道直接写入像素。"
+
+#: plugin/max-min/max-min.py:216
+msgid "Morphological maximum (dilate) and minimum (erode) over a square or round neighbourhood, attached as a non-destructive drawable filter."
+msgstr "在方形或圆形邻域上做形态学的最大值（膨胀）与最小值（腐蚀），以非破坏滤镜形式挂载到可绘制对象。"
+
+#: plugin/max-min/max-min.py:224
+msgid "Maximum is dilate, minimum is erode."
+msgstr "最大值即膨胀，最小值即腐蚀。"
+
+#: plugin/max-min/max-min.py:229
+msgid "Neighbourhood radius in pixels. r=1 is a 3×3 window and grows the edge outward by one pixel."
+msgstr "邻域半径（像素）。r=1 即 3×3 窗口，边缘向外长一圈。"
+
+#: plugin/max-min/max-min.py:238
+msgid "Square is a square window; round is a disc (Photoshop's Preserve: Squareness / Roundness)."
+msgstr "方形即方窗；圆形即圆盘（对应 Photoshop 的方形度 / 圆度）。"
+
+#: plugin/max-min/max-min.py:243
+msgid "Affect alpha"
+msgstr "影响 alpha"
+
+#: plugin/max-min/max-min.py:244
+msgid "Leave off to keep alpha untouched (Photoshop does not change layer opacity either)."
+msgstr "关掉时 alpha 原样保留（Photoshop 同样不改图层透明度）。"
+
+#: plugin/max-min/max-min.py:253
+msgid "Select a layer or one of its masks."
+msgstr "请选择一个图层或它的蒙版。"
+
+#: plugin/neutral-grey/neutral-grey.py:165
+#: plugin/neutral-grey/neutral-grey.py:215
+msgid "Neutral Grey"
+msgstr "中性灰磨皮 (Neutral Grey)"
+
+#: plugin/neutral-grey/neutral-grey.py:171
+msgid "1 · Neutral grey (white dodges, black burns)"
+msgstr "1 · 中性灰（白提亮 / 黑压暗）"
+
+#: plugin/neutral-grey/neutral-grey.py:188
+msgid "Neutral Grey is set up: a 50% grey soft-light layer that currently leaves the image identical. Click the layer and paint with a soft brush (opacity 5–15%): white lightens, black darkens, and #808080 paints over the overshoot."
+msgstr "中性灰磨皮已建立：一张 50% 灰的柔光层，现在与原图完全一致。点中这一层，用柔边画笔（不透明度 5–15%）涂抹：白色提亮、黑色压暗，涂过头用 #808080 盖回去。"
+
+#: plugin/neutral-grey/neutral-grey.py:220
+msgid "Neutral Grey: adds a 50% grey soft-light layer that is pixel-identical to the original when untouched. Paint white to lighten and black to darken, going over the skin until it evens out."
+msgstr "中性灰磨皮：加一张 50% 灰的柔光层，恒等时与原图逐像素相同。白色画笔提亮、黑色画笔压暗，反复涂抹把皮肤推平。"
+
+#: plugin/neutral-grey/neutral-grey.py:225
+msgid "Puts the grey layer into a pass-through group named Neutral Grey; turn it off to stack it directly above the original layer."
+msgstr "把灰层放进一个「中性灰磨皮」穿透组里；关掉就直接叠在原图层上方"
+
+#: plugin/hsi-split-curves/hsi-split-curves.py:313
+msgid "single"
+msgstr "单层"
+
+msgid "multi"
+msgstr "多层"
+
+#: plugin/hsi-split-curves/hsi-split-curves.py:313
+msgid "HSI Split (Curves) · %s"
+msgstr "HSI 分量曲线 · %s"
+
+#: plugin/hsl-split-curves/hsl-split-curves.py:530
+msgid "HSL Split (Curves) · %s"
+msgstr "HSL 分量曲线 · %s"
+
+#: plugin/hsv-split-curves/hsv-split-curves.py:539
+msgid "HSV Split (Curves) · %s"
+msgstr "HSV 分量曲线 · %s"
+
+#: plugin/lab-split-curves/lab-split-curves.py:587
+msgid "Lab Split (Curves) · %s"
+msgstr "Lab 分量曲线 · %s"
+
+#: plugin/lch-split-curves/lch-split-curves.py:716
+msgid "LCh Split (Curves) · %s"
+msgstr "LCh 分量曲线 · %s"

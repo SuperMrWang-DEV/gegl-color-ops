@@ -117,10 +117,12 @@ GEGL filter rewrites the layer it runs on, unlike the classic editor's Calculati
   透明区的 RGB 是 0，当作「黑数据」算进去会把蒙版算成一片黑。这里用源 2 的
   alpha 当覆盖率：alpha = 0 处蒙版输出 0（不选中），半透明柔边按比例衰减。
   源 2 通道选 Alpha 时，那个 alpha 是数据不是覆盖率，不重复相乘。
+
   Transparent pixels of source 2 take no part: on a cut-out the holes hold
   RGB 0, which would compute a solid black mask. Source 2's alpha is used as
   coverage — 0 gives a 0 mask (not selected), and soft mattes fade. When
   source 2's channel *is* alpha, that value is data, not coverage.
+
 - **源层比主图小 / 带偏移**：aux 没覆盖到的像素按黑色参与计算（蒙版那里就是
   0）。经典图像编辑器的计算要求两个来源同尺寸，这里不强制，缺的部分当黑。
 

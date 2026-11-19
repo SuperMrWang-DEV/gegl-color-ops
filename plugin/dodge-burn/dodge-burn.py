@@ -52,8 +52,21 @@ gi.require_version('Gimp', '3.0')
 from gi.repository import Gimp, GLib, GObject
 
 
-def _(message):
-    return GLib.dgettext(None, message)
+# 多语言：查自己的域（gegl-color-ops），语言取自 GIMP 界面设置。
+# helper 在 plugin/_shared/ 下；装成单文件时退回 GIMP 默认域。
+import os as _os
+import sys as _sys
+
+_here = _os.path.dirname(_os.path.abspath(__file__))
+for _cand in (_os.path.join(_here, '_shared'),
+              _os.path.normpath(_os.path.join(_here, '..', '_shared'))):
+    if _os.path.isdir(_cand) and _cand not in _sys.path:
+        _sys.path.append(_cand)
+try:
+    from lb_i18n import _          # noqa: F811
+except Exception:                  # helper 不在：保持可用，只是不翻译
+    def _(message):
+        return GLib.dgettext(None, message)
 
 
 # ---- 公共小工具 / helpers ---------------------------------------------------
@@ -158,11 +171,10 @@ def _append_curve(layer, label, fn):
 def dodge_burn(image, base, amount=0.12, make_group=True):
     """搭好提亮 / 压暗两条曲线层，蒙版全黑（等价于不动原图）。"""
     if base is None:
-        raise RuntimeError(_("没有可以处理的图层 / no layer to work on"))
+        raise RuntimeError(_("Nothing to work on: no layer."))
     if base.is_group():
         raise RuntimeError(
-            _("图层组不能处理：请先选一个栅格图层（右键 → 合并组）"
-              " / a layer group has no pixels of its own"))
+            _("A layer group has no pixels of its own; pick a raster layer (right-click the group, then Merge Group)."))
     amount = min(0.4, max(0.01, float(amount)))
 
     parent = base.get_parent()
@@ -181,14 +193,14 @@ def dodge_burn(image, base, amount=0.12, make_group=True):
     try:
         host = None
         if make_group:
-            host = Gimp.GroupLayer.new(image, _("双曲线磨皮"))
+            host = Gimp.GroupLayer.new(image, _("Dodge & Burn"))
             host.set_mode(Gimp.LayerMode.PASS_THROUGH)
             image.insert_layer(host, parent, position)
 
         layers = []
         for name, label, sign, channel_label in (
-                (_("1 · 提亮（黑蒙版）"), _("1 · 提亮曲线"), +1.0, _("涂白提亮")),
-                (_("2 · 压暗（黑蒙版）"), _("2 · 压暗曲线"), -1.0, _("涂白压暗"))):
+                (_("1 · Dodge (black mask)"), _("1 · Dodge curve"), +1.0, _("Paint white to dodge")),
+                (_("2 · Burn (black mask)"), _("2 · Burn curve"), -1.0, _("Paint white to burn"))):
             lay = Gimp.Layer.new_from_drawable(base, image)
             lay.set_name(name)
             lay.set_mode(Gimp.LayerMode.NORMAL)
@@ -214,12 +226,9 @@ def dodge_burn(image, base, amount=0.12, make_group=True):
 
     Gimp.displays_flush()
     try:
-        msg = _("双曲线磨皮已建立：提亮、压暗两层各挂一条曲线，蒙版全黑，"
-                "所以现在与原图完全一致。点中某层的蒙版，用白色柔边画笔"
-                "（不透明度 10–20%%）涂抹：涂提亮层变亮，涂压暗层变暗。"
-                "强度 %g%%（0.5 处抬/压 %.2f）。") % (amount * 100.0, amount)
+        msg = _("Dodge & Burn is set up: a dodge and a burn layer, each with its own curve and a fully black mask, so the image is currently identical to the original. Click one layer's mask and paint with a soft white brush (opacity 10–20%%): painting on the dodge layer lightens, on the burn layer darkens. Strength %g%% (lifts/lowers by %.2f at 0.5).") % (amount * 100.0, amount)
         if auto_group:
-            msg += _("\n（这张图带透明，已自动分组：透明度靠组蒙版保住。）")
+            msg += _("\n(This image has transparency, so the layers went into a group automatically: the group mask preserves it.)")
         Gimp.message(msg)
     except Exception:
         pass
@@ -231,7 +240,7 @@ def dodge_burn(image, base, amount=0.12, make_group=True):
 class DodgeBurnPlugin(Gimp.PlugIn):
 
     def do_set_i18n(self, procname):
-        return True, 'gimp30-python', None
+        return True, 'gegl-color-ops', None
 
     def do_query_procedures(self):
         return ['lb-plugin-dodge-burn']
@@ -244,30 +253,28 @@ class DodgeBurnPlugin(Gimp.PlugIn):
                                        Gimp.ProcedureSensitivityMask.DRAWABLES)
         procedure.set_attribution("SuperMrWang", "SuperMrWang", "2026")
 
-        procedure.set_menu_label(_("双曲线磨皮 (Dodge & Burn)"))
+        procedure.set_menu_label(_("Dodge & Burn"))
         procedure.add_menu_path("<Image>/SuperMrWang/Retouch")
         procedure.add_menu_path("<Layers>/SuperMrWang/Retouch")
 
         procedure.set_documentation(
-            _("双曲线磨皮：生成提亮、压暗两条曲线层，蒙版全黑。用白色柔边画笔"
-              "在蒙版上涂抹，涂到哪里就提亮/压暗到哪里，没涂的地方与原图"
-              "逐像素相同。"),
+            _("Dodge & Burn: creates a dodge and a burn curve layer, both with a fully black mask. Paint with a soft white brush on a mask and only what you paint gets lighter or darker; everywhere else stays pixel-identical to the original."),
             _("Dodge & burn stack: a lighten curve and a darken curve on black "
               "masks. Paint white on a mask to dodge or burn; untouched pixels "
               "stay identical to the original."), name)
         procedure.add_double_argument(
-            "amount", _("强度（%）"),
-            _("曲线在中间调抬升/下压的幅度：12 表示 0.5 处抬 0.12（约 30 码）"),
+            "amount", _("Strength (%)"),
+            _("How far the curve lifts or lowers the midtones: 12 means 0.12 at 0.5 (about 30 levels)."),
             1.0, 40.0, 12.0, GObject.ParamFlags.READWRITE)
         procedure.add_boolean_argument(
-            "group", _("收进图层组"),
-            _("把两层放进一个「双曲线磨皮」穿透组里；关掉就直接叠在原图层上方"),
+            "group", _("Put in a layer group"),
+            _("Puts both layers into a pass-through group named Dodge & Burn; turn it off to stack them directly above the original layer."),
             True, GObject.ParamFlags.READWRITE)
         return procedure
 
     def run(self, procedure, run_mode, image, drawables, config, data):
         if len(drawables) != 1:
-            raise RuntimeError(_("请选择一个图层 / select exactly one layer"))
+            raise RuntimeError(_("Select exactly one layer."))
         dodge_burn(image, drawables[0],
                    config.get_property("amount") / 100.0,
                    config.get_property("group"))

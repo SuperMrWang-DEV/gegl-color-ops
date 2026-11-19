@@ -59,8 +59,21 @@ gi.require_version('Gimp', '3.0')
 from gi.repository import Gimp, GLib, GObject
 
 
-def _(message):
-    return GLib.dgettext(None, message)
+# 多语言：查自己的域（gegl-color-ops），语言取自 GIMP 界面设置。
+# helper 在 plugin/_shared/ 下；装成单文件时退回 GIMP 默认域。
+import os as _os
+import sys as _sys
+
+_here = _os.path.dirname(_os.path.abspath(__file__))
+for _cand in (_os.path.join(_here, '_shared'),
+              _os.path.normpath(_os.path.join(_here, '..', '_shared'))):
+    if _os.path.isdir(_cand) and _cand not in _sys.path:
+        _sys.path.append(_cand)
+try:
+    from lb_i18n import _          # noqa: F811
+except Exception:                  # helper 不在：保持可用，只是不翻译
+    def _(message):
+        return GLib.dgettext(None, message)
 
 
 BLUR_OP = "gegl:gaussian-blur"
@@ -134,7 +147,7 @@ def _force_opaque(layer):
 
 
 def _append_blur(layer, radius):
-    filt = Gimp.DrawableFilter.new(layer, BLUR_OP, _("高斯模糊（低频）"))
+    filt = Gimp.DrawableFilter.new(layer, BLUR_OP, _("Gaussian blur (low frequency)"))
     cfg = filt.get_config()
     cfg.set_property("std-dev-x", float(radius))
     cfg.set_property("std-dev-y", float(radius))
@@ -144,7 +157,7 @@ def _append_blur(layer, radius):
 
 
 def _append_highpass(layer, radius):
-    filt = Gimp.DrawableFilter.new(layer, HIGHPASS_OP, _("高通（高频）"))
+    filt = Gimp.DrawableFilter.new(layer, HIGHPASS_OP, _("High pass (high frequency)"))
     cfg = filt.get_config()
     cfg.set_property("std-dev", float(radius))
     # contrast 是「差值放大倍数的一半」，2 才输出完整的 (原图 − 模糊)。
@@ -159,11 +172,10 @@ def _append_highpass(layer, radius):
 def separate(image, base, radius=8.0, make_group=True):
     """把图层拆成低频 + 高频两层；恒等时两层合成 = 原图。"""
     if base is None:
-        raise RuntimeError(_("没有可以拆分的图层 / no layer to split"))
+        raise RuntimeError(_("Nothing to split: no layer."))
     if base.is_group():
         raise RuntimeError(
-            _("图层组不能拆分：请先选一个栅格图层（右键 → 合并组）"
-              " / a layer group has no pixels of its own"))
+            _("A layer group cannot be split; pick a raster layer first (right-click the group, then Merge Group)."))
     radius = max(0.2, float(radius))
 
     parent = base.get_parent()
@@ -182,12 +194,12 @@ def separate(image, base, radius=8.0, make_group=True):
     try:
         host = None
         if make_group:
-            host = Gimp.GroupLayer.new(image, _("高低频磨皮"))
+            host = Gimp.GroupLayer.new(image, _("Frequency Separation"))
             host.set_mode(Gimp.LayerMode.PASS_THROUGH)
             image.insert_layer(host, parent, position)
 
         low = Gimp.Layer.new_from_drawable(base, image)
-        low.set_name(_("1 · 低频（影调）"))
+        low.set_name(_("1 · Low frequency (tone)"))
         low.set_mode(Gimp.LayerMode.NORMAL)
         image.insert_layer(low, host, 0)
         if base.has_alpha():
@@ -195,7 +207,7 @@ def separate(image, base, radius=8.0, make_group=True):
         _append_blur(low, radius)
 
         high = Gimp.Layer.new_from_drawable(base, image)
-        high.set_name(_("2 · 高频（细节）"))
+        high.set_name(_("2 · High frequency (detail)"))
         high.set_mode(Gimp.LayerMode.GRAIN_MERGE)
         image.insert_layer(high, host, 0)
         if base.has_alpha():
@@ -213,11 +225,9 @@ def separate(image, base, radius=8.0, make_group=True):
 
     Gimp.displays_flush()
     try:
-        msg = _("高低频磨皮已建立：低频层（高斯模糊 %g px，管影调与颜色）、"
-                "高频层（颗粒合并，管毛孔与痘印）。原图层可以隐藏，两层自己"
-                "就能还原。改磨皮力度＝改低频层的高斯模糊半径。") % radius
+        msg = _("Frequency Separation is set up: a low-frequency layer (gaussian blur %g px, carries tone and colour) and a high-frequency layer (grain merge, carries pores and blemishes). Hide the original layer and the two still reproduce it. To change the strength, change the blur radius of the low-frequency layer.") % radius
         if auto_group:
-            msg += _("\n（这张图带透明，已自动分组：透明度靠组蒙版保住。）")
+            msg += _("\n(This image has transparency, so the layers went into a group automatically: the group mask preserves it.)")
         Gimp.message(msg)
     except Exception:
         pass
@@ -229,7 +239,7 @@ def separate(image, base, radius=8.0, make_group=True):
 class FrequencySeparationPlugin(Gimp.PlugIn):
 
     def do_set_i18n(self, procname):
-        return True, 'gimp30-python', None
+        return True, 'gegl-color-ops', None
 
     def do_query_procedures(self):
         return ['lb-plugin-frequency-separation']
@@ -242,30 +252,28 @@ class FrequencySeparationPlugin(Gimp.PlugIn):
                                        Gimp.ProcedureSensitivityMask.DRAWABLES)
         procedure.set_attribution("SuperMrWang", "SuperMrWang", "2026")
 
-        procedure.set_menu_label(_("高低频磨皮 (Frequency Separation)"))
+        procedure.set_menu_label(_("Frequency Separation"))
         procedure.add_menu_path("<Image>/SuperMrWang/Retouch")
         procedure.add_menu_path("<Layers>/SuperMrWang/Retouch")
 
         procedure.set_documentation(
-            _("高低频磨皮：一次生成低频（高斯模糊，管影调与颜色）与高频"
-              "（颗粒合并，管细节与质感）两层，恒等时合成就是原图。在低频层"
-              "抹平色块、在高频层修细节，互不干扰。"),
+            _("Frequency Separation: creates a low-frequency layer (gaussian blur, carries tone and colour) and a high-frequency layer (grain merge, carries detail and texture) in one go; with identity settings the composite is the original. Smooth colour on the low layer and retouch detail on the high layer without disturbing each other."),
             _("Frequency separation: one click builds a blurred low-frequency "
               "layer (tone/colour) and a high-pass high-frequency layer "
               "(detail) that recombine to the original."), name)
         procedure.add_double_argument(
-            "radius", _("分离半径（px）"),
-            _("高斯模糊的标准差。越大，进低频的东西越多、高频留下的细节越少"),
+            "radius", _("Split radius (px)"),
+            _("Standard deviation of the gaussian blur. Larger pushes more into the low frequency and leaves less detail in the high one."),
             0.2, 100.0, 8.0, GObject.ParamFlags.READWRITE)
         procedure.add_boolean_argument(
-            "group", _("收进图层组"),
-            _("把两层放进一个「高低频磨皮」穿透组里；关掉就直接叠在原图层上方"),
+            "group", _("Put in a layer group"),
+            _("Puts both layers into a pass-through group named Frequency Separation; turn it off to stack them directly above the original layer."),
             True, GObject.ParamFlags.READWRITE)
         return procedure
 
     def run(self, procedure, run_mode, image, drawables, config, data):
         if len(drawables) != 1:
-            raise RuntimeError(_("请选择一个图层 / select exactly one layer"))
+            raise RuntimeError(_("Select exactly one layer."))
         separate(image, drawables[0],
                  config.get_property("radius"),
                  config.get_property("group"))
