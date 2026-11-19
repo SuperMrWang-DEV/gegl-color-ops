@@ -7,7 +7,7 @@
 <meta name="description" content="Photoshop「滤镜 → 杂色 → 蒙尘与划痕」的等价物：把与周围差得太远的孤立像素（灰尘、划痕、传感器坏点）用邻域中值替换，同时尽量不动真实的边缘与细节。" data-desc-zh="Photoshop「滤镜 → 杂色 → 蒙尘与划痕」的等价物：把与周围差得太远的孤立像素（灰尘、划痕、传感器坏点）用邻域中值替换，同时尽量不动真实的边缘与细节。" data-desc-en="Photoshop「滤镜 → 杂色 → 蒙尘与划痕」的等价物：把与周围差得太远的孤立像素（灰尘、划痕、传感器坏点）用邻域中值替换，同时尽量不动真实的边缘与细节。">
 <meta property="og:title" content="Dust &amp; Scratches · gegl-color-ops" data-title-zh="Dust &amp; Scratches · gegl-color-ops" data-title-en="Dust &amp; Scratches · gegl-color-ops">
 <meta property="og:description" content="Photoshop「滤镜 → 杂色 → 蒙尘与划痕」的等价物：把与周围差得太远的孤立像素（灰尘、划痕、传感器坏点）用邻域中值替换，同时尽量不动真实的边缘与细节。" data-desc-zh="Photoshop「滤镜 → 杂色 → 蒙尘与划痕」的等价物：把与周围差得太远的孤立像素（灰尘、划痕、传感器坏点）用邻域中值替换，同时尽量不动真实的边缘与细节。" data-desc-en="Photoshop「滤镜 → 杂色 → 蒙尘与划痕」的等价物：把与周围差得太远的孤立像素（灰尘、划痕、传感器坏点）用邻域中值替换，同时尽量不动真实的边缘与细节。">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -78,28 +79,28 @@ window.addEventListener("DOMContentLoaded", function () {
 </header>
 <main id="main">
 <div class="l-zh"><section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 混合与通道</p>
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 杂色</p>
   <h1>Dust &amp; Scratches</h1>
   <div class="meta">
     <code>lb:dust-scratches</code>
-    <span class="tag t-blend">混合与通道</span>
+    <span class="tag t-noise">杂色</span>
     <span>AreaFilter</span>
   </div>
   <p class="lede">Photoshop「滤镜 → 杂色 → 蒙尘与划痕」的等价物：把与周围差得太远的孤立像素（灰尘、划痕、传感器坏点）用邻域中值替换，同时尽量不动真实的边缘与细节。</p>
 </section><div class="article-layout">
   <article class="prose">
 <blockquote><p><code>lb:dust-scratches</code> · 菜单 <strong>SuperMrWang → Noise → Dust &amp; Scratches</strong> · 单输入</p></blockquote>
-<p>把与周围差得太远的孤立像素（灰尘、划痕、传感器坏点）用邻域中值替换， 同时尽量不动真实的边缘与细节。PS「杂色 → 蒙尘与划痕」的等价物。</p>
+<p>把与周围差得太远的孤立像素（灰尘、划痕、传感器坏点）用邻域中值替换，同时尽量不动真实的边缘与细节。PS「杂色 → 蒙尘与划痕」的等价物。</p>
 <h2 id="参数-parameters">参数 / Parameters</h2>
 <div class="table-wrap"><table><thead><tr><th>参数</th><th>范围</th><th>默认</th><th>含义</th></tr></thead><tbody><tr><td><code>radius</code> 半径</td><td>1–10</td><td>2</td><td>邻域半径，1 即 3×3。越大去掉的斑点越大，细节也丢得越多</td></tr><tr><td><code>threshold</code> 阈值</td><td>0–255</td><td>0</td><td>与中心差超过这个码数的邻居<strong>不参与</strong>取中值。阈值就是「多大的差才算灰尘」</td></tr></tbody></table></div>
 <h2 id="算法">算法</h2>
 <p>对每个像素、每个通道：</p>
 <ol><li>收集半径 <code>r</code> 内所有满足 <code>|v − v₀| ≤ threshold</code> 的邻居——<strong>中心自己不算</strong>；</li><li>取这些值的中值；</li><li>一个合格的都没有时，退回整窗（去中心）的中值。</li></ol>
-<p>用中值而不是均值，是因为中值不会被少数极端值拉动：一个亮斑在均值里会被摊成 一个更大的灰斑，在中值里直接被丢掉。</p>
-<p><strong>中心自己不入集合</strong>是与「直接套中值滤波」的关键差别。灰尘之所以是灰尘， 就因为它和周围都不一样；把它算进集合，它自己就会当选，等于什么都没做。 第 3 步的兜底是为了硬边正中——那里两侧邻居都不合格，此时宁可轻微平滑， 也不要留下一个孤点。</p>
+<p>用中值而不是均值，是因为中值不会被少数极端值拉动：一个亮斑在均值里会被摊成一个更大的灰斑，在中值里直接被丢掉。</p>
+<p><strong>中心自己不入集合</strong>是与「直接套中值滤波」的关键差别。灰尘之所以是灰尘，就因为它和周围都不一样；把它算进集合，它自己就会当选，等于什么都没做。第 3 步的兜底是为了硬边正中——那里两侧邻居都不合格，此时宁可轻微平滑，也不要留下一个孤点。</p>
 <h2 id="用法-recipes">用法 / Recipes</h2>
 <ul><li><strong>扫底片灰尘</strong>：<code>radius=1 threshold=12</code></li><li><strong>去传感器坏点</strong>：<code>radius=2 threshold=30</code></li><li><strong>柔化皮肤小瑕疵</strong>：<code>radius=3 threshold=18</code>，只做局部</li></ul>
-<p>半径与阈值是一对反向旋钮：<code>threshold=0</code> 时就是纯中值滤波（很糊）， 阈值开到 30 以上才只动「明显不对」的像素。</p>
+<p>半径与阈值是一对反向旋钮：<code>threshold=0</code> 时就是纯中值滤波（很糊），阈值开到 30 以上才只动「明显不对」的像素。</p>
 <h2 id="与-photoshop-的差异">与 Photoshop 的差异</h2>
 <div class="table-wrap"><table><thead><tr><th></th><th>PS 蒙尘与划痕</th><th><code>lb:dust-scratches</code></th></tr></thead><tbody><tr><td>半径 / 阈值</td><td>有</td><td>有</td></tr><tr><td>中值集合是否含中心</td><td>含（阈值 0 时等于纯中值）</td><td><strong>不含</strong>，孤点在阈值很大时也能去掉</td></tr><tr><td>全不合格时的行为</td><td>保持原值</td><td>退回整窗中值（硬边不糊，孤点不残留）</td></tr></tbody></table></div>
 <h2 id="测试-testing">测试 / Testing</h2>
@@ -109,7 +110,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <p>Windows 模块 <code>dust-scratches.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>dust-scratches.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/dust-scratches.dll">下载 dust-scratches.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/dust-scratches.so">下载 dust-scratches.so<span class="size">Linux x86_64</span></a></div>
-</div><nav class="pager"><a class="prev" href="displace.html"><span>上一个</span>Displace</a><a class="next" href="max-min.html"><span>下一个</span>Maximum / Minimum</a></nav>
+</div><nav class="pager"><a class="prev" href="reduce-noise.html"><span>上一个</span>Reduce Noise</a><a class="next" href="displace.html"><span>下一个</span>Displace</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
@@ -121,11 +122,11 @@ window.addEventListener("DOMContentLoaded", function () {
 </aside>
 </div></div>
 <div class="l-en"><section class="page-head">
-  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Blend</p>
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Noise</p>
   <h1>Dust &amp; Scratches</h1>
   <div class="meta">
     <code>lb:dust-scratches</code>
-    <span class="tag t-blend">Blend</span>
+    <span class="tag t-noise">Noise</span>
     <span>AreaFilter</span>
   </div>
   <p class="lede">Replaces isolated specks with the median of the neighbours that are within the threshold, so dust disappears and real edges stay put.</p>
@@ -152,7 +153,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <p>Windows module <code>dust-scratches.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>dust-scratches.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/dust-scratches.dll">Download dust-scratches.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/dust-scratches.so">Download dust-scratches.so<span class="size">Linux x86_64</span></a></div>
-</div><nav class="pager"><a class="prev" href="displace.html"><span>Previous</span>Displace</a><a class="next" href="max-min.html"><span>Next</span>Maximum / Minimum</a></nav>
+</div><nav class="pager"><a class="prev" href="reduce-noise.html"><span>Previous</span>Reduce Noise</a><a class="next" href="displace.html"><span>Next</span>Displace</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">On this page</p>
@@ -175,7 +176,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

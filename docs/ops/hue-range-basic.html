@@ -7,7 +7,7 @@
 <meta name="description" content="色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，与 lb:hue-saturation-basic（全图）串联即接近某图像编辑器「色相/饱和度」对话框的「编辑」下拉 + 底部色条模型。" data-desc-zh="色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，与 lb:hue-saturation-basic（全图）串联即接近某图像编辑器「色相/饱和度」对话框的「编辑」下拉 + 底部色条模型。" data-desc-en="色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，与 lb:hue-saturation-basic（全图）串联即接近某图像编辑器「色相/饱和度」对话框的「编辑」下拉 + 底部色条模型。">
 <meta property="og:title" content="Hue/Saturation Range · gegl-color-ops" data-title-zh="Hue/Saturation Range · gegl-color-ops" data-title-en="Hue/Saturation Range · gegl-color-ops">
 <meta property="og:description" content="色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，与 lb:hue-saturation-basic（全图）串联即接近某图像编辑器「色相/饱和度」对话框的「编辑」下拉 + 底部色条模型。" data-desc-zh="色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，与 lb:hue-saturation-basic（全图）串联即接近某图像编辑器「色相/饱和度」对话框的「编辑」下拉 + 底部色条模型。" data-desc-en="色系范围调整：选一个色相族，在其软范围内应用色相/饱和度/明度，与 lb:hue-saturation-basic（全图）串联即接近某图像编辑器「色相/饱和度」对话框的「编辑」下拉 + 底部色条模型。">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -89,7 +90,7 @@ window.addEventListener("DOMContentLoaded", function () {
 </section><div class="article-layout">
   <article class="prose">
 <h2 id="中文">中文</h2>
-<p><strong>色相/饱和度·范围</strong> —— 在一个色相族的软范围内调整色相、饱和度、明度。 与 <strong>Hue/Saturation (Basic)</strong>（全图/Master）串联，再用 <strong>Colorize</strong> 着色： 三个算子合起来复刻经典「色相/饱和度」对话框（编辑下拉 + 底部色条 + 着色）。</p>
+<p><strong>色相/饱和度·范围</strong> —— 在一个色相族的软范围内调整色相、饱和度、明度。与 <strong>Hue/Saturation (Basic)</strong>（全图/Master）串联，再用 <strong>Colorize</strong> 着色：三个算子合起来复刻经典「色相/饱和度」对话框（编辑下拉 + 底部色条 + 着色）。</p>
 <h3 id="参数">参数</h3>
 <div class="table-wrap"><table><thead><tr><th>属性</th><th>默认</th><th>含义</th></tr></thead><tbody><tr><td>色系范围</td><td>红系</td><td>红 / 黄 / 绿 / 青 / 蓝 / 品红</td></tr><tr><td>过渡左 / 范围左 / 范围右 / 过渡右</td><td>-1</td><td>色条四柄：内二柄之间全选（权重 1），向外二柄<strong>线性</strong>过渡。-1 = 跟随色系默认（中心 ±15 全选、±45 过渡）；拖动后为绝对角度 0–360</td></tr><tr><td>色相</td><td>0</td><td>旋转角度，按逐像素范围权重缩放</td></tr><tr><td>饱和度</td><td>0</td><td>相对饱和度百分比（与全图算子同一公式）</td></tr><tr><td>明度</td><td>0</td><td>百分比，正向混白、负向混黑</td></tr></tbody></table></div>
 <h3 id="色系默认范围度">色系默认范围（度）</h3>
@@ -105,7 +106,7 @@ window.addEventListener("DOMContentLoaded", function () {
 <p>四柄都在 <span class="math">$0..360°$</span> 的圆上，先绕内区跨度解环绕再分段，所以范围可以拖过 <span class="math">$0/360$</span>。</p>
 <ul><li>调整量按 w 缩放后走全图算子的同一套公式（明度 screen/multiply → HSL → 色相加法 → 饱和度相对缩放）：w=1 时与 Hue/Saturation (Basic) 逐位一致， w=0 时逐位等于原图。</li><li>四柄可拖过 0/360，实现按内区跨度解环绕。</li></ul>
 <h3 id="验收">验收</h3>
-<p><code>tools/check_hue_range_basic.py</code>：9 色块色卡过 gegl，与 Python 参考实现 （逐字同式）逐像素对比——8 个用例（默认范围、权重缩放色相、饱和度拉满、 明度、环绕柄、绿系、链式 Master→Range）216 个采样点全部 <strong>0 码</strong>。</p><div class="op-dl">
+<p><code>tools/check_hue_range_basic.py</code>：9 色块色卡过 gegl，与 Python 参考实现（逐字同式）逐像素对比——8 个用例（默认范围、权重缩放色相、饱和度拉满、明度、环绕柄、绿系、链式 Master→Range）216 个采样点全部 <strong>0 码</strong>。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>hue-range-basic.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>hue-range-basic.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
@@ -177,7 +178,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

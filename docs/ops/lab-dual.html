@@ -7,7 +7,7 @@
 <meta name="description" content="Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量" data-desc-zh="Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量" data-desc-en="Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量">
 <meta property="og:title" content="Lab Dual Extract · gegl-color-ops" data-title-zh="Lab Dual Extract · gegl-color-ops" data-title-en="Lab Dual Extract · gegl-color-ops">
 <meta property="og:description" content="Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量" data-desc-zh="Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量" data-desc-en="Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -99,7 +100,7 @@ window.addEventListener("DOMContentLoaded", function () {
                           │
                     （上面再叠一层 L 曲线，用 LCh 明度模式换 L*）</code></pre>
 <h2 id="为什么-a-和-b-要挤进同一张图">为什么 a 和 b 要挤进同一张图</h2>
-<p>Lab 的 <code>a</code>、<code>b</code> 是<strong>直角坐标</strong>，而 GIMP 的分量混合模式只认识 HSV / LCh / Luminance 这些——没有「a」也没有「b」。看起来 LCh 的 <code>C</code>（彩度）和 <code>h</code>（色相）是 a/b 的极坐标 形式，似乎能借：</p>
+<p>Lab 的 <code>a</code>、<code>b</code> 是<strong>直角坐标</strong>，而 GIMP 的分量混合模式只认识 HSV / LCh / Luminance 这些——没有「a」也没有「b」。看起来 LCh 的 <code>C</code>（彩度）和 <code>h</code>（色相）是 a/b 的极坐标形式，似乎能借：</p>
 <pre><code>C = √(a² + b²)        h = atan2(b, a)</code></pre>
 <p>但每层的曲线只看得到自己那一个标量。要让 a 曲线和 b 曲线<strong>各自独立</strong>地映射，必须先把 <code>(a, b)</code> 两个值同时拿到手，再一起换算成 <code>(C, h)</code>；而「LCh 彩度」那一层手上只有一个 C，它没法知道 b 变成了多少。所以两条一维曲线拼不出这个二元映射——只能联合算：</p>
 <pre><code>a 曲线 ─┐
@@ -114,8 +115,8 @@ b' = (b* + 128) / 255      中性灰 b* = 0 落在 0.502
 L' = L* / 100</code></pre>
 <p>alpha 恒写 1：分量层必须不透明，透明度交给组蒙版（半透明的混合层会按 alpha 做 lerp 而不是纯替换）。</p>
 <h2 id="实测">实测</h2>
-<p><code>tools/check_lab_split.py</code> 里 <code>dual → compose</code> 恒等往返：32 位浮点图 <strong>0.010 码</strong>， 8 位图 <strong>0.499 码</strong>（只剩量化）。改 a 曲线后，结果落在「a∗ 换了、b∗ 与 L∗ 都没动」 的 Lab 点上，误差 <strong>0.0026 码</strong>（超过 0.5 码的像素 0 个）。</p>
-<p>超 sRGB 色域的 Lab 点（a∗/b∗ 拉太猛时会出现）由 <code>lb:lab-compose</code> 按 [0,1] 裁掉 ——这是色域的事实，不是算子的误差。</p>
+<p><code>tools/check_lab_split.py</code> 里 <code>dual → compose</code> 恒等往返：32 位浮点图 <strong>0.010 码</strong>， 8 位图 <strong>0.499 码</strong>（只剩量化）。改 a 曲线后，结果落在「a∗ 换了、b∗ 与 L∗ 都没动」的 Lab 点上，误差 <strong>0.0026 码</strong>（超过 0.5 码的像素 0 个）。</p>
+<p>超 sRGB 色域的 Lab 点（a∗/b∗ 拉太猛时会出现）由 <code>lb:lab-compose</code> 按 [0,1] 裁掉——这是色域的事实，不是算子的误差。</p>
 <h2 id="注意">注意</h2>
 <ul><li>输出是数据图，<strong>不要直接看它当照片</strong>：它看起来是某种奇怪的彩色，这是正常的。</li><li>它和 <code>lb:lab-compose</code> 是配对使用的。只装一个没有意义。</li><li>浮点图里负值/超 1 的值不会被砍掉（曲线仍能读到），到 8 位投影时才裁。</li></ul><div class="op-dl">
   <div>
@@ -203,7 +204,7 @@ L' = L* / 100</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

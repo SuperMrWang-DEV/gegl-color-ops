@@ -7,7 +7,7 @@
 <meta name="description" content="经典图像编辑器 应用图像：把 aux 输入当成源，按混合模式、不透明度与遮罩压到主输入上，可选只作用于某一个通道" data-desc-zh="经典图像编辑器 应用图像：把 aux 输入当成源，按混合模式、不透明度与遮罩压到主输入上，可选只作用于某一个通道" data-desc-en="经典图像编辑器 应用图像：把 aux 输入当成源，按混合模式、不透明度与遮罩压到主输入上，可选只作用于某一个通道">
 <meta property="og:title" content="Apply Image · gegl-color-ops" data-title-zh="Apply Image · gegl-color-ops" data-title-en="Apply Image · gegl-color-ops">
 <meta property="og:description" content="经典图像编辑器 应用图像：把 aux 输入当成源，按混合模式、不透明度与遮罩压到主输入上，可选只作用于某一个通道" data-desc-zh="经典图像编辑器 应用图像：把 aux 输入当成源，按混合模式、不透明度与遮罩压到主输入上，可选只作用于某一个通道" data-desc-en="经典图像编辑器 应用图像：把 aux 输入当成源，按混合模式、不透明度与遮罩压到主输入上，可选只作用于某一个通道">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -89,7 +90,7 @@ window.addEventListener("DOMContentLoaded", function () {
 </section><div class="article-layout">
   <article class="prose">
 <blockquote><p><code>lb:apply-image</code> · 菜单 <strong>SuperMrWang → Blend → Apply Image</strong> · 双输入（input + aux）</p></blockquote>
-<p>对应 经典图像编辑器的 <strong>图像 → 应用图像</strong>：把一张图（另一个图层 / 另一个文件）当作源， 按混合模式、不透明度、遮罩压到当前图层上，还可以只作用于某一个通道。</p>
+<p>对应 经典图像编辑器的 <strong>图像 → 应用图像</strong>：把一张图（另一个图层 / 另一个文件）当作源，按混合模式、不透明度、遮罩压到当前图层上，还可以只作用于某一个通道。</p>
 <h2 id="参数-parameters">参数 / Parameters</h2>
 <div class="table-wrap"><table><thead><tr><th>参数</th><th>默认</th><th>说明</th></tr></thead><tbody><tr><td><code>blend-mode</code></td><td>Multiply</td><td>26 种混合模式，顺序与经典图像编辑器一致（Normal … Divide、Darker/Lighter Color、Hue … Luminosity）</td></tr><tr><td><code>scale</code></td><td>1.0</td><td><strong>仅加法/减法</strong>：结果 = (A ± B) / 缩放 + 补偿值，范围 1.0..2.0</td></tr><tr><td><code>offset</code></td><td>0</td><td><strong>仅加法/减法</strong>：缩放后加上的补偿值，±255（8bit 口径）</td></tr><tr><td><code>opacity</code></td><td>100</td><td>混合强度，0 = 不动，100 = 完全应用</td></tr><tr><td><code>target-channel</code></td><td>Composite</td><td>结果写回哪个通道；可选整个合成或单个 R/G/B/亮度/Alpha</td></tr><tr><td><code>source-channel</code></td><td>Composite</td><td>从 aux 取哪个通道作为源</td></tr><tr><td><code>mask-enabled</code></td><td>否</td><td>用一路通道当遮罩</td></tr><tr><td><code>mask-from</code></td><td>Source layer</td><td>遮罩取自 aux 还是本层</td></tr><tr><td><code>mask-channel</code></td><td>Composite</td><td>遮罩通道（Composite 取亮度）</td></tr><tr><td><code>invert-mask</code></td><td>否</td><td>遮罩反相</td></tr><tr><td><code>preserve-transparency</code></td><td>否</td><td>全透明像素保持不动（经典图像编辑器的「保留透明区域」）</td></tr><tr><td><code>output-mode</code></td><td>Composite</td><td>输出合成结果 / 灰蒙版 / alpha 蒙版</td></tr></tbody></table></div>
 <h2 id="算法">算法</h2>
@@ -107,15 +108,15 @@ window.addEventListener("DOMContentLoaded", function () {
 <div class="math-display">$$\text{add/sub:}\quad \text{out} = \operatorname{clamp}\!\left(\frac{A \pm B}{\text{scale}} + \frac{\text{offset}}{255},\ 0,\ 1\right)$$</div>
 <h2 id="与-经典图像编辑器的对应关系-how-it-maps-to-经典图像编辑器">与 经典图像编辑器的对应关系 / How it maps to 经典图像编辑器</h2>
 <div class="table-wrap"><table><thead><tr><th>经典图像编辑器</th><th>这里</th></tr></thead><tbody><tr><td>Source: 图像 + 图层</td><td><code>aux</code> pad，在滤镜对话框里选</td></tr><tr><td>Source: 通道</td><td><code>source-channel</code></td></tr><tr><td>Target: 通道</td><td><code>target-channel</code></td></tr><tr><td>Blending / Opacity</td><td><code>blend-mode</code> / <code>opacity</code></td></tr><tr><td>加法/减法 的 Scale / Offset</td><td><code>scale</code> / <code>offset</code></td></tr><tr><td>Preserve Transparency</td><td><code>preserve-transparency</code></td></tr><tr><td>Mask: 图层 + 通道 + 反相</td><td><code>mask-from</code> + <code>mask-channel</code> + <code>invert-mask</code></td></tr></tbody></table></div>
-<p>经典图像编辑器的遮罩可以指向<strong>第三张</strong>图（既不是目标也不是源），GEGL 的 composer 只有 两个输入，所以这里限定在「本层」或「源层」二选一——实际用法里这两处覆盖了 绝大多数场合。</p>
+<p>经典图像编辑器的遮罩可以指向<strong>第三张</strong>图（既不是目标也不是源），GEGL 的 composer 只有两个输入，所以这里限定在「本层」或「源层」二选一——实际用法里这两处覆盖了绝大多数场合。</p>
 <h2 id="行为细节-behaviour-notes">行为细节 / Behaviour notes</h2>
 <ul><li><strong>aux 没接时</strong>源退化为本图，可以用来做「同图内通道互混」； Without an aux connected the source falls back to the input itself.</li><li><strong>源层的透明像素（alpha = 0）不参与作用</strong>：源层是抠图、文字层或带透明背景 的图层时，透明区的 RGB 是 0，照常混合会把目标乘成黑色。alpha 同时当作覆盖率， 半透明的柔边会渐隐而不是留硬边。 Transparent source pixels take no part: on a cut-out or text layer the holes hold RGB 0, which would blacken the target under multiply. The alpha doubles as coverage, so soft mattes fade instead of leaving a hard edge.</li><li>目标是单通道时只改那一个通道，其余原样保留；源是合成时取亮度作标量。 With a single-channel target only that channel changes; a composite source is reduced to luminance.</li><li>深色 / 浅色（Darker / Lighter Color）比较整像素亮度后取其中一方<strong>全部通道</strong>， 不是逐通道取最小/最大——这一点和「变暗 / 变亮」不同。</li><li>在 8bit sRGB 伽马域计算，与 经典图像编辑器的混合模式定义同域；结果会裁到 0..1。</li><li>GIMP 里这类带 aux 的滤镜目前<strong>只能合并应用</strong>，不能保存成非破坏性 fx。</li></ul>
 <pre><code class="language-bash">./build.sh              # 顺带编译出 build/auxrun（双输入 runner）</code></pre>
 <h2 id="源图层的尺寸与位置-source-layer-size-and-position">源图层的尺寸与位置 / Source layer size and position</h2>
 <p>经典图像编辑器的应用图像要求两个图层<strong>像素尺寸完全一致</strong>，尺寸不同时源图层直接灰掉； GIMP 里图层可以比画布小、也可以带偏移，所以这里得自己定规则：</p>
 <ul><li>算子按 <code>aux</code> 缓冲区自己的 extent（即源图层的大小和位置）做<strong>粗筛</strong>，没盖到 的像素原样输出；</li><li>盖到的范围内，再由源像素的 alpha 决定<strong>真正有没有像素</strong>：alpha = 0 的地方 原样输出，alpha 介于 0 和 1 之间按覆盖率减弱。只有「既属于源层、又有像素」 的地方才被改动，这才是经典图像编辑器意义上「只有相交部分起作用」。</li></ul>
-<p>早先版本用的是 <code>GeglOperationPointComposer</code>，<code>process</code> 只拿到一段裸指针， 看不到 aux 的 extent，界外被 GEGL 补成透明黑再参与混合：正片叠底会把外侧涂 黑，正常模式会把外侧擦成透明。改成 <code>GeglOperationComposer</code> 后 <code>process</code> 拿到 的是真正的 <code>GeglBuffer</code>，<code>gegl_buffer_get_extent(aux)</code> 就能取到图层尺寸， <code>tools/auxrun</code> 也补了 <code>aux-x</code> / <code>aux-y</code> 用来模拟带偏移的源层。</p>
-<p>extent 只能说明「这块地方属于源层」，说明不了「这块地方有像素」——抠图的透明 洞也在 extent 里面，光看 extent 会把洞一起乘黑。所以两者要配合用。</p>
+<p>早先版本用的是 <code>GeglOperationPointComposer</code>，<code>process</code> 只拿到一段裸指针，看不到 aux 的 extent，界外被 GEGL 补成透明黑再参与混合：正片叠底会把外侧涂黑，正常模式会把外侧擦成透明。改成 <code>GeglOperationComposer</code> 后 <code>process</code> 拿到的是真正的 <code>GeglBuffer</code>，<code>gegl_buffer_get_extent(aux)</code> 就能取到图层尺寸， <code>tools/auxrun</code> 也补了 <code>aux-x</code> / <code>aux-y</code> 用来模拟带偏移的源层。</p>
+<p>extent 只能说明「这块地方属于源层」，说明不了「这块地方有像素」——抠图的透明洞也在 extent 里面，光看 extent 会把洞一起乘黑。所以两者要配合用。</p>
 <h2 id="测试-testing">测试 / Testing</h2>
 <pre><code class="language-bash">./build.sh
 python tools/check_blend.py     # 26 个用例，其中 19 个属于应用图像：混合模式、遮罩、
@@ -210,7 +211,7 @@ python tools/check_blend.py     # 26 cases, 19 of them for Apply Image: blend mo
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

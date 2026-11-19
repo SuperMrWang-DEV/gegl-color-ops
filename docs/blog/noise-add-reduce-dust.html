@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-title-zh="噪点三件套：加得进去，也取得出来 · gegl-color-ops 博客" data-title-en="The noise trio: easy to add, possible to remove · gegl-color-ops blog">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>噪点三件套：加得进去，也取得出来 · 博客</title>
+<meta name="description" content="添加杂色、减少杂色、蒙尘与划痕是 PS 里同一组菜单的三件事，但要让它们「能用」，难点全在细节：随机数能不能复现、降噪会不会糊边、孤点会不会自己当选。" data-desc-zh="添加杂色、减少杂色、蒙尘与划痕是 PS 里同一组菜单的三件事，但要让它们「能用」，难点全在细节：随机数能不能复现、降噪会不会糊边、孤点会不会自己当选。" data-desc-en="Add Noise, Reduce Noise and Dust &amp; Scratches share one Photoshop menu, but making them usable comes down to details: can the random numbers be reproduced, does ">
+<meta property="og:title" content="噪点三件套：加得进去，也取得出来 · 博客" data-title-zh="噪点三件套：加得进去，也取得出来 · gegl-color-ops 博客" data-title-en="The noise trio: easy to add, possible to remove · gegl-color-ops blog">
+<meta property="og:description" content="添加杂色、减少杂色、蒙尘与划痕是 PS 里同一组菜单的三件事，但要让它们「能用」，难点全在细节：随机数能不能复现、降噪会不会糊边、孤点会不会自己当选。" data-desc-zh="添加杂色、减少杂色、蒙尘与划痕是 PS 里同一组菜单的三件事，但要让它们「能用」，难点全在细节：随机数能不能复现、降噪会不会糊边、孤点会不会自己当选。" data-desc-en="Add Noise, Reduce Noise and Dust &amp; Scratches share one Photoshop menu, but making them usable comes down to details: can the random numbers be reproduced, does ">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body class="article">
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+<main id="main">
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../blog.html">博客</a></p>
+  <h1>噪点三件套：加得进去，也取得出来</h1>
+  <div class="meta">
+    <span class="post-date"><time datetime="2026-11-19">2026.11.19</time></span>
+    <span>约 3 分钟</span><span class="tag">杂色</span><span class="tag">降噪</span><span class="tag">中值</span>
+  </div>
+  <p class="lede">添加杂色、减少杂色、蒙尘与划痕是 PS 里同一组菜单的三件事，但要让它们「能用」，难点全在细节：随机数能不能复现、降噪会不会糊边、孤点会不会自己当选。</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>PS 的「滤镜 → 杂色」下面挂着一排：添加杂色、减少杂色、蒙尘与划痕、中间值。听起来是四件不相干的事，其实是两个方向——<strong>加噪</strong>和<strong>去噪</strong>——加上一个「去掉孤立点」的特例。我们按这个划分做了三个算子：<code>lb:add-noise</code>、<code>lb:reduce-noise</code>、<code>lb:dust-scratches</code>。</p>
+<h2 id="一添加杂色随机数必须可复现">一、添加杂色：随机数必须可复现</h2>
+<p>PS 的添加杂色每次应用都换一批随机数。这意味着：同一个图层调两次参数，颗粒完全不同；想对比「数量 8 和数量 10 哪个好」，你其实在同时比较颗粒和随机种子，判断不了。要复现只能把图层复制一份存着，笨且占地。</p>
+<p>真正的难点不是「随机」，是<strong>分带处理下的随机</strong>。GEGL 会把大图切成带、多线程分配，如果按「处理到第几个像素」取随机数，切法一变结果就变——同一张图在不同线程数下出不同的颗粒，这种不可复现比 PS 那种还糟。</p>
+<p>所以种子的算法是：<strong>第 <code>y</code> 行的随机数由 <code>seed</code> 与 <code>y</code> 混合得到</strong>（<code>y</code> 参与哈希，不是简单相加）。每一行自带一个独立的随机流，行内顺序推进。于是：</p>
+<ul><li>整张算完、切八带算、单线程算、八线程算 —— 结果<strong>逐位相同</strong>；</li><li>换个 <code>seed</code> 就换一整套颗粒，但同一 <code>seed</code> 永远回到同一套。</li></ul>
+<p>高斯用 Box–Muller，<code>u1, u2 ~ U(0,1]</code>：</p>
+<div class="math-display">$$n = \sqrt{-2 \ln u_1} \cdot \cos(2\pi u_2)$$</div>
+<p><code>monochrome</code> 打开时三个通道共用一次 <code>n</code>（灰度颗粒），关掉则各取各的（彩色颗粒）。 <code>alpha</code> 一律不动——叠颗粒改的是像素值，不该改图层透明度。</p>
+<h2 id="二减少杂色只平均像自己的邻居">二、减少杂色：只平均「像自己」的邻居</h2>
+<p>普通模糊会糊边，双边滤波不糊边但慢。PS 的减少杂色走的是中间那条路：sigma 滤波（Lee, 1983）。对每个像素取 <code>(2r+1)²</code> 邻域，用<strong>通道差的最大值</strong> <code>d</code> 做权重：</p>
+<div class="math-display">$$w = \max\left(0,\; 1 - \left(\frac{d}{t}\right)^2\right),
+\qquad \text{out} = \frac{\sum w\,v}{\sum w}$$</div>
+<p><code>d &gt; t</code> 的邻居权重为 0，所以边缘另一侧的像素<strong>根本不会参与</strong>这一侧的平均——这就是它不糊边的原因，不需要任何边缘检测，也没有双边滤波那种指数运算。</p>
+<p>三个参数各管一件事：</p>
+<ul><li><code>strength</code> 决定 <code>t</code>（越大抹得越狠）；</li><li><code>detail</code> 把 <code>t</code> 调小，保留更多纹理（PS 的「保留细节」）；</li><li><code>radius</code> 是搜索范围。PS 里这个是内部按强度推导的，我们把它放出来——半径 2 和半径 5 的差别，比强度 40 和 50 的差别大得多。</li></ul>
+<p><code>per-channel</code> 关闭时，<code>d</code> 取三通道最大差，<strong>三通道共用一份权重</strong>。这一点很关键：彩色噪点是三个通道各自随机偏移，共用权重意味着它们被同一组邻居平均掉，通道之间的比例关系不变，不会出现「降噪后颜色发灰」。打开时每通道各算各的，适合处理单色噪点。</p>
+<p><code>strength=0</code> 时 <code>t=0</code>，只有完全相同的邻居能参与，结果逐位等于原图——这条是自检项。</p>
+<h2 id="三蒙尘与划痕孤点不能自己当选">三、蒙尘与划痕：孤点不能自己当选</h2>
+<p>这个滤镜的想法一句话说完：<strong>把与周围差得太远的孤立像素，用邻域中值替换。</strong>中值而不是均值，是因为中值不会被少数极端值拉动——一个亮斑在均值里会被摊成一个更大的灰斑，在中值里直接被丢掉。</p>
+<p>但照抄「中值滤波」不行，原因很实在：<strong>灰尘之所以是灰尘，就因为它和周围都不一样。</strong>假设一个亮点在纯色区域里，周围全是 0.5，而它自己是 0.9。阈值取 0.1 时，邻居因为差得太远<strong>全部被筛掉</strong>，集合里只剩中心自己——中值就是它自己，像素原封不动。也就是说，把中心放进集合，恰好在这个滤镜最该起作用的场合完全失效。</p>
+<p>所以集合<strong>排除中心</strong>。剩下的邻居按阈值筛：</p>
+<div class="math-display">$$\text{out} = \operatorname{median}\{\,v_k : |v_k - v_0| \le \tau,\; k \ne 0\,\}$$</div>
+<p>一个都不合格时（比如硬边正中，两侧邻居都差得远），退回整窗中值。这条兜底是为了「宁可轻微平滑，也不要留下孤点」：硬边正中的整窗中值会落在边缘上，看起来仍然是一条边，而孤点会被彻底换掉。</p>
+<p><code>threshold=0</code> 时任何差异都算，集合为空 → 全部退回整窗中值，等于纯中值滤波（很糊）。阈值开到 30 以上才只动「明显不对」的像素。</p>
+<h2 id="三个算子的顺序">三个算子的顺序</h2>
+<div class="table-wrap"><table><thead><tr><th>想做的事</th><th>顺序</th></tr></thead><tbody><tr><td>胶片颗粒</td><td><code>add-noise</code>（单色，数量 8）→ 可选 <code>unsharp-mask</code></td></tr><tr><td>高 ISO 清理</td><td><code>reduce-noise</code>（强度 60、细节 25）→ <code>unsharp-mask</code>（数量 60）</td></tr><tr><td>扫底片 / 去坏点</td><td><code>dust-scratches</code>（半径 1、阈值 12）→ 其余照旧</td></tr><tr><td>做旧</td><td><code>add-noise</code> → <code>reduce-noise</code>（把颗粒磨得不均匀）</td></tr></tbody></table></div>
+<p><strong>先降噪再锐化</strong>，反过来会把噪点当边缘放大。</p>
+<h2 id="自检">自检</h2>
+<p><code>python tools/check_noise_sharpen.py</code> 23 项，覆盖三个算子：</p>
+<ul><li>数量 / 强度为 0 时逐位恒等；</li><li>同种子两次运行逐位相同，换种子结果不同；</li><li>单色时三通道扰动相等；</li><li>叠加噪点后均值不漂移（±3 码以内）；</li><li>降噪把噪点标准差压到一半以下、均值不漂移、硬边不动；</li><li>孤立亮点被抹掉、纯色图不变；</li><li>三个算子的 alpha 全部原样透传。</li></ul>
+<p>菜单在 <code>SuperMrWang → Noise</code> 下，三项排在一起。</p><nav class="pager"><a class="prev" href="../blog.html"><span>全部文章</span>回到博客列表</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#一添加杂色随机数必须可复现">一、添加杂色：随机数必须可复现</a></li>
+<li class="l2"><a href="#二减少杂色只平均像自己的邻居">二、减少杂色：只平均「像自己」的邻居</a></li>
+<li class="l2"><a href="#三蒙尘与划痕孤点不能自己当选">三、蒙尘与划痕：孤点不能自己当选</a></li>
+<li class="l2"><a href="#三个算子的顺序">三个算子的顺序</a></li>
+<li class="l2"><a href="#自检">自检</a></li></ul>
+</aside>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../blog.html">Blog</a></p>
+  <h1>The noise trio: easy to add, possible to remove</h1>
+  <div class="meta">
+    <span class="post-date"><time datetime="2026-11-19">2026.11.19</time></span>
+    <span>2 min read</span><span class="tag">Noise</span><span class="tag">Denoise</span><span class="tag">Median</span>
+  </div>
+  <p class="lede">Add Noise, Reduce Noise and Dust & Scratches share one Photoshop menu, but making them usable comes down to details: can the random numbers be reproduced, does denoising smear edges, and does an isolated speck elect itself.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>Photoshop's Filter → Noise menu holds a row of entries: Add Noise, Reduce Noise, Dust &amp; Scratches, Median. They look like four unrelated tools; they are really two directions — adding noise and removing it — plus one special case for isolated pixels. We built three operators along that split: <code>lb:add-noise</code>, <code>lb:reduce-noise</code>, <code>lb:dust-scratches</code>.</p>
+<h2 id="1-add-noise-the-random-numbers-have-to-be-reproducible">1. Add Noise: the random numbers have to be reproducible</h2>
+<p>Photoshop draws a fresh set of random numbers on every application. Apply twice with the same settings and the grain is completely different; trying to compare amount 8 with amount 10 means comparing grain <em>and</em> seed at once, which is not a comparison. The only way to reproduce is to duplicate the layer and keep it — clumsy and heavy.</p>
+<p>The hard part is not randomness, it is randomness <strong>under tiled processing</strong>. GEGL cuts a large image into bands across threads. If the random numbers are drawn by "which pixel am I on", a different split gives a different result: the same image produces different grain at different thread counts, which is worse than Photoshop's irreproducibility.</p>
+<p>So the seed is mixed with the <strong>row index</strong>: row <code>y</code> gets its stream from hash(<code>seed</code>, <code>y</code>), and advances along the row. As a result:</p>
+<ul><li>whole image, eight bands, one thread, eight threads — all <strong>bit-identical</strong>;</li><li>changing <code>seed</code> gives a whole new grain, and the same seed always returns the same one.</li></ul>
+<p>Gaussian noise uses Box–Muller with <code>u1, u2 ~ U(0,1]</code>:</p>
+<div class="math-display">$$n = \sqrt{-2 \ln u_1} \cdot \cos(2\pi u_2)$$</div>
+<p>With <code>monochrome</code> on, all three channels share one <code>n</code> (grey grain); off, each draws its own (colour grain). <code>alpha</code> is never touched — grain changes pixel values, not layer opacity.</p>
+<h2 id="2-reduce-noise-average-only-the-neighbours-that-look-alike">2. Reduce Noise: average only the neighbours that look alike</h2>
+<p>A plain blur smears edges; a bilateral filter preserves them but is slow. Photoshop's Reduce Noise takes the middle road: the sigma filter (Lee, 1983). For each pixel, look at the <code>(2r+1)²</code> neighbourhood and weight each neighbour by the <em>largest</em> per-channel difference <code>d</code>:</p>
+<div class="math-display">$$w = \max\left(0,\; 1 - \left(\frac{d}{t}\right)^2\right),
+\qquad \text{out} = \frac{\sum w\,v}{\sum w}$$</div>
+<p>Neighbours with <code>d &gt; t</code> get zero weight, so pixels on the other side of an edge simply do not participate in the average. That is why it does not smear, with no edge detection and none of the bilateral filter's exponentials.</p>
+<p>Three parameters, three jobs:</p>
+<ul><li><code>strength</code> sets <code>t</code> (higher wipes harder);</li><li><code>detail</code> lowers <code>t</code> again, keeping more texture (Photoshop's Preserve Details);</li><li><code>radius</code> is the search window. Photoshop derives it internally from strength; we expose it, because the gap between radius 2 and radius 5 is far larger than between strength 40 and 50.</li></ul>
+<p>With <code>per-channel</code> off, <code>d</code> is the maximum across channels and <strong>one weight set is shared</strong>. That detail matters: colour speckle is three independent offsets, so a shared weight averages all three channels over the same neighbours and the ratios between channels survive — no greyed-out colour after denoising. With it on, each channel runs its own weights, which suits monochrome noise.</p>
+<p>At <code>strength=0</code>, <code>t=0</code> and only identical neighbours qualify, so the output is bit-exact. That is one of the assertions.</p>
+<h2 id="3-dust-scratches-the-speck-must-not-elect-itself">3. Dust &amp; Scratches: the speck must not elect itself</h2>
+<p>The idea is one sentence: <strong>replace a pixel that differs too much from its surroundings with the median of the neighbourhood.</strong> Median rather than mean, because the median is not dragged by a few extremes — a bright speck becomes a larger grey blot under a mean, and simply disappears under a median.</p>
+<p>But copying "median filter" does not work, for a very concrete reason: <strong>dust is dust precisely because it differs from everything around it.</strong> Suppose a bright pixel of 0.9 sits in a flat region of 0.5, with a threshold of 0.1. Every neighbour is rejected for differing too much, so the candidate set is just the centre pixel — and the median of one value is that value. The pixel survives untouched. Keeping the centre in the set makes the filter fail in exactly the case it exists for.</p>
+<p>So the set <strong>excludes the centre</strong>. The remaining neighbours are filtered by threshold:</p>
+<div class="math-display">$$\text{out} = \operatorname{median}\{\,v_k : |v_k - v_0| \le \tau,\; k \ne 0\,\}$$</div>
+<p>When nothing qualifies — the middle of a hard edge, where both sides differ a lot — it falls back to the median of the whole window. The fallback exists because a slight smoothing is better than a surviving speck: the whole-window median at an edge midpoint still lies on the edge, while an isolated speck is replaced outright.</p>
+<p>At <code>threshold=0</code> every difference counts, the set is empty, and everything falls back to the full-window median — a plain median filter, and quite blurry. Push the threshold past 30 and only "obviously wrong" pixels move.</p>
+<h2 id="ordering-the-three">Ordering the three</h2>
+<div class="table-wrap"><table><thead><tr><th>Goal</th><th>Order</th></tr></thead><tbody><tr><td>Film grain</td><td><code>add-noise</code> (monochrome, amount 8), optionally <code>unsharp-mask</code></td></tr><tr><td>High-ISO cleanup</td><td><code>reduce-noise</code> (strength 60, detail 25) then <code>unsharp-mask</code> (amount 60)</td></tr><tr><td>Film scans / hot pixels</td><td><code>dust-scratches</code> (radius 1, threshold 12), rest unchanged</td></tr><tr><td>Ageing</td><td><code>add-noise</code> then <code>reduce-noise</code>, to make the grain uneven</td></tr></tbody></table></div>
+<p><strong>Denoise before sharpening.</strong> The other way round amplifies noise as if it were edges.</p>
+<h2 id="self-check">Self-check</h2>
+<p><code>python tools/check_noise_sharpen.py</code> runs 23 assertions across the three operators:</p>
+<ul><li>amount / strength zero is a bit-exact identity;</li><li>the same seed twice is bit-identical, a different seed differs;</li><li>monochrome mode gives all three channels the same perturbation;</li><li>the mean does not drift after adding noise (within ±3 code values);</li><li>denoising halves the noise standard deviation, leaves the mean alone, and does not move a hard edge;</li><li>an isolated bright speck is removed and a flat image is unchanged;</li><li>alpha passes through untouched in all three.</li></ul>
+<p>The menu entries sit together under <code>SuperMrWang → Noise</code>.</p><nav class="pager"><a class="prev" href="../blog.html"><span>All posts</span>Back to the blog</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#1-add-noise-the-random-numbers-have-to-be-reproducible">1. Add Noise: the random numbers have to be reproducible</a></li>
+<li class="l2"><a href="#2-reduce-noise-average-only-the-neighbours-that-look-alike">2. Reduce Noise: average only the neighbours that look alike</a></li>
+<li class="l2"><a href="#3-dust-scratches-the-speck-must-not-elect-itself">3. Dust &amp; Scratches: the speck must not elect itself</a></li>
+<li class="l2"><a href="#ordering-the-three">Ordering the three</a></li>
+<li class="l2"><a href="#self-check">Self-check</a></li></ul>
+</aside>
+</div></div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
+    <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
+    <span class="muted">1c0294b</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
+</body>
+</html>

@@ -7,7 +7,7 @@
 <meta name="description" content="LAB 三通道各自设输入 / 输出黑白场与伽马" data-desc-zh="LAB 三通道各自设输入 / 输出黑白场与伽马" data-desc-en="LAB 三通道各自设输入 / 输出黑白场与伽马">
 <meta property="og:title" content="LAB Levels · gegl-color-ops" data-title-zh="LAB Levels · gegl-color-ops" data-title-en="LAB Levels · gegl-color-ops">
 <meta property="og:description" content="LAB 三通道各自设输入 / 输出黑白场与伽马" data-desc-zh="LAB 三通道各自设输入 / 输出黑白场与伽马" data-desc-en="LAB 三通道各自设输入 / 输出黑白场与伽马">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -90,9 +91,9 @@ window.addEventListener("DOMContentLoaded", function () {
   <article class="prose">
 <p>菜单：<code>SuperMrWang → Levels → LAB Levels</code>（Filter 类）</p>
 <h2 id="概述">概述</h2>
-<p>对 CIELAB 的 L/a/b 三个通道各自做独立的色阶调整：输入黑场/白场、gamma、 输出下限/上限。L 管明度，a（绿−洋红）与 b（蓝−黄）管色彩倾向—— 调整 a/b 时明度和中性色都不受影响，这是它与 RGB 色阶的本质差异。</p>
+<p>对 CIELAB 的 L/a/b 三个通道各自做独立的色阶调整：输入黑场/白场、gamma、输出下限/上限。L 管明度，a（绿−洋红）与 b（蓝−黄）管色彩倾向——调整 a/b 时明度和中性色都不受影响，这是它与 RGB 色阶的本质差异。</p>
 <h2 id="色彩空间">色彩空间</h2>
-<p>算子直接工作在 babl 的 <code>CIE Lab alpha float</code>（<strong>D50 白点</strong>）上， RGB↔Lab 交给 babl——数值口径与 GIMP 原生 Lab 工具（指针、曲线的 Lab 模式） 及 <code>lb:match-color</code> 一致。在 Lab 域做 levels 等价于感知域映射， 不依赖"线性光"前提（历史版本自带 D65 线性 RGB→XYZ 转换，已废弃）。</p>
+<p>算子直接工作在 babl 的 <code>CIE Lab alpha float</code>（<strong>D50 白点</strong>）上， RGB↔Lab 交给 babl——数值口径与 GIMP 原生 Lab 工具（指针、曲线的 Lab 模式）及 <code>lb:match-color</code> 一致。在 Lab 域做 levels 等价于感知域映射，不依赖"线性光"前提（历史版本自带 D65 线性 RGB→XYZ 转换，已废弃）。</p>
 <div class="math-display">$$x \leftarrow \operatorname{clamp}(x,\ i_{\text{lo}},\ i_{\text{hi}}),\qquad
 x' = \begin{cases}
 o_{\text{lo}} + u_{-}^{1/\gamma}\,\bigl(0 - o_{\text{lo}}\bigr), &amp; x &lt; 0,\quad u_{-} = \dfrac{x - i_{\text{lo}}}{0 - i_{\text{lo}}} \\[12pt]
@@ -102,9 +103,9 @@ o_{\text{hi}}\,u_{+}^{1/\gamma}, &amp; x \ge 0,\quad u_{+} = \dfrac{x}{i_{\text{
 <h2 id="规则细则">规则细则</h2>
 <ul><li><strong>a/b 的 gamma 绕中性轴 0 转动</strong>：负半轴 <code>[in_black, 0]</code> 与正半轴 <code>[0, in_white]</code> 各自归一化后做 gamma。中性像素（a=b=0 的灰白）在任意 gamma 下保持不动；拖 a/b gamma 只改变彩色中间调的倾向强度。</li><li><strong>黑白场交叉自动交换</strong>：输入黑场拉过白场（或反之）时按交换后的范围映射， 不会塌成单色。</li><li><strong>输出反向（负片）可用</strong>：输出下限 &gt; 上限时做反向映射，clamp 到真实 上下界——L 反转即明度负片，a/b 反转即色度负片。</li><li><strong>alpha ≤ 0 像素原样透传</strong>，alpha 通道始终保留。</li><li>L 的削顶范围 <code>[0, 100]</code>，a/b 为 <code>[-128, 127]</code>，输出自动 clamp。</li><li>L 的 gamma 是标准色阶语义（绕输入范围中点），与 a/b 的绕中性轴不同。</li></ul>
 <h2 id="性能">性能</h2>
-<p>levels 映射为 1D 单调函数，process 时为 L、a/b（负/正半轴各一）建立 4096 项查找表，逐像素查表 + 线性插值，无逐像素 <code>powf</code>。a/b 拆半轴建表是 因为绕轴映射在 0 处导数不连续，跨 0 插值会把中性附近的微小输入过冲放大 （曾导致 +0.03 被插成 +1.95）。表每次 process 确定性重建，跨块一致。</p>
+<p>levels 映射为 1D 单调函数，process 时为 L、a/b（负/正半轴各一）建立 4096 项查找表，逐像素查表 + 线性插值，无逐像素 <code>powf</code>。a/b 拆半轴建表是因为绕轴映射在 0 处导数不连续，跨 0 插值会把中性附近的微小输入过冲放大（曾导致 +0.03 被插成 +1.95）。表每次 process 确定性重建，跨块一致。</p>
 <h2 id="验证">验证</h2>
-<p><code>tools/check_lab_levels.py</code>（21 项，gimp-console 运行）：恒等、灰白中性 保持、gamma 增强/减弱、黑白场重映射与削顶、输出反向单调性、交叉交换、 透明透传、alpha 保留、组合参数整体校验。期望值由 Python 镜像同一套 levels 规则逐像素比对（输入以 Lab 格式建缓冲，镜像与算子看同一份数值）。</p>
+<p><code>tools/check_lab_levels.py</code>（21 项，gimp-console 运行）：恒等、灰白中性保持、gamma 增强/减弱、黑白场重映射与削顶、输出反向单调性、交叉交换、透明透传、alpha 保留、组合参数整体校验。期望值由 Python 镜像同一套 levels 规则逐像素比对（输入以 Lab 格式建缓冲，镜像与算子看同一份数值）。</p>
 <pre><code class="language-bash">"D:/fastsoftware/GIMP 3/bin/gimp-console-3.2.exe" -i -c -d -f \
     --batch-interpreter=python-fu-eval \
     -b "exec(open(r'&lt;repo&gt;/tools/check_lab_levels.py').read())" --quit</code></pre>
@@ -189,7 +190,7 @@ o_{\text{hi}}\,u_{+}^{1/\gamma}, &amp; x \ge 0,\quad u_{+} = \dfrac{x}{i_{\text{
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

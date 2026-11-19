@@ -7,7 +7,7 @@
 <meta name="description" content="Photoshop「滤镜 → 杂色 → 添加杂色」的等价物：给每个像素叠一层随机扰动。加颗粒、做旧、掩盖色带、给渐变加「胶片感」都是它。" data-desc-zh="Photoshop「滤镜 → 杂色 → 添加杂色」的等价物：给每个像素叠一层随机扰动。加颗粒、做旧、掩盖色带、给渐变加「胶片感」都是它。" data-desc-en="Photoshop「滤镜 → 杂色 → 添加杂色」的等价物：给每个像素叠一层随机扰动。加颗粒、做旧、掩盖色带、给渐变加「胶片感」都是它。">
 <meta property="og:title" content="Add Noise · gegl-color-ops" data-title-zh="Add Noise · gegl-color-ops" data-title-en="Add Noise · gegl-color-ops">
 <meta property="og:description" content="Photoshop「滤镜 → 杂色 → 添加杂色」的等价物：给每个像素叠一层随机扰动。加颗粒、做旧、掩盖色带、给渐变加「胶片感」都是它。" data-desc-zh="Photoshop「滤镜 → 杂色 → 添加杂色」的等价物：给每个像素叠一层随机扰动。加颗粒、做旧、掩盖色带、给渐变加「胶片感」都是它。" data-desc-en="Photoshop「滤镜 → 杂色 → 添加杂色」的等价物：给每个像素叠一层随机扰动。加颗粒、做旧、掩盖色带、给渐变加「胶片感」都是它。">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -78,22 +79,22 @@ window.addEventListener("DOMContentLoaded", function () {
 </header>
 <main id="main">
 <div class="l-zh"><section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 混合与通道</p>
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 杂色</p>
   <h1>Add Noise</h1>
   <div class="meta">
     <code>lb:add-noise</code>
-    <span class="tag t-blend">混合与通道</span>
+    <span class="tag t-noise">杂色</span>
     <span>整块区域</span>
   </div>
   <p class="lede">Photoshop「滤镜 → 杂色 → 添加杂色」的等价物：给每个像素叠一层随机扰动。加颗粒、做旧、掩盖色带、给渐变加「胶片感」都是它。</p>
 </section><div class="article-layout">
   <article class="prose">
 <blockquote><p><code>lb:add-noise</code> · 菜单 <strong>SuperMrWang → Noise → Add Noise</strong> · 单输入</p></blockquote>
-<p>给每个像素叠一层随机扰动。加胶片颗粒、做旧、掩盖 8 位渐变的色带都用它。 与 PS 的不同在于<strong>种子可控</strong>：同一张图、同一个种子，输出逐位相同。</p>
+<p>给每个像素叠一层随机扰动。加胶片颗粒、做旧、掩盖 8 位渐变的色带都用它。与 PS 的不同在于<strong>种子可控</strong>：同一张图、同一个种子，输出逐位相同。</p>
 <h2 id="参数-parameters">参数 / Parameters</h2>
 <div class="table-wrap"><table><thead><tr><th>参数</th><th>范围</th><th>默认</th><th>含义</th></tr></thead><tbody><tr><td><code>amount</code> 数量</td><td>0–100%</td><td>10</td><td>噪点强度。高斯时 σ = 25% × amount，均匀时幅度 ±50% × amount</td></tr><tr><td><code>distribution</code> 分布</td><td>高斯 / 均匀</td><td>高斯</td><td>高斯像胶片与传感器噪点；均匀像数字抖动</td></tr><tr><td><code>monochrome</code> 单色</td><td>开 / 关</td><td>关</td><td>三个通道共用同一个扰动，得到灰度颗粒而不是彩色噪点</td></tr><tr><td><code>seed</code> 种子</td><td>0–999999</td><td>1</td><td>决定随机序列，用于复现</td></tr></tbody></table></div>
 <h2 id="算法">算法</h2>
-<p>按<strong>行</strong>播种：第 <code>y</code> 行的种子由 <code>seed</code> 与 <code>y</code> 混合得到（<code>y</code> 参与哈希， 不是简单相加），因此分带处理与整张处理逐位相同——这是「可复现」能成立的前提。 高斯用 Box–Muller：</p>
+<p>按<strong>行</strong>播种：第 <code>y</code> 行的种子由 <code>seed</code> 与 <code>y</code> 混合得到（<code>y</code> 参与哈希，不是简单相加），因此分带处理与整张处理逐位相同——这是「可复现」能成立的前提。高斯用 Box–Muller：</p>
 <pre><code>u1, u2 ~ U(0,1]
 n = sqrt(−2 ln u1) · cos(2π u2)</code></pre>
 <p>三个通道各自取一个 <code>n</code>；<code>monochrome</code> 时只取一次，三个通道共用。</p>
@@ -103,13 +104,13 @@ n = sqrt(−2 ln u1) · cos(2π u2)</code></pre>
 <h2 id="与-photoshop-的差异">与 Photoshop 的差异</h2>
 <div class="table-wrap"><table><thead><tr><th></th><th>PS 添加杂色</th><th><code>lb:add-noise</code></th></tr></thead><tbody><tr><td>数量 / 分布 / 单色</td><td>有</td><td>有</td></tr><tr><td>可复现</td><td>无（每次应用都换随机数）</td><td><strong>有</strong>（同种子逐位相同）</td></tr><tr><td>影响 alpha</td><td>不动</td><td>不动</td></tr></tbody></table></div>
 <h2 id="测试-testing">测试 / Testing</h2>
-<p><code>python tools/check_noise_sharpen.py</code>：数量 0 恒等、同种子逐位相同、换种子不同、 单色时三通道相等、均值不偏移、α 透传。</p><div class="op-dl">
+<p><code>python tools/check_noise_sharpen.py</code>：数量 0 恒等、同种子逐位相同、换种子不同、单色时三通道相等、均值不偏移、α 透传。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>add-noise.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>add-noise.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/add-noise.dll">下载 add-noise.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/add-noise.so">下载 add-noise.so<span class="size">Linux x86_64</span></a></div>
-</div><nav class="pager"><a class="prev" href="color-lookup.html"><span>上一个</span>Color Lookup</a><a class="next" href="displace.html"><span>下一个</span>Displace</a></nav>
+</div><nav class="pager"><a class="prev" href="unsharp-mask.html"><span>上一个</span>Unsharp Mask / Smart Sharpen</a><a class="next" href="reduce-noise.html"><span>下一个</span>Reduce Noise</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
@@ -121,11 +122,11 @@ n = sqrt(−2 ln u1) · cos(2π u2)</code></pre>
 </aside>
 </div></div>
 <div class="l-en"><section class="page-head">
-  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Blend</p>
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Noise</p>
   <h1>Add Noise</h1>
   <div class="meta">
     <code>lb:add-noise</code>
-    <span class="tag t-blend">Blend</span>
+    <span class="tag t-noise">Noise</span>
     <span>area</span>
   </div>
   <p class="lede">Gaussian or uniform noise, monochromatic or per channel, with a seed so the grain can be reproduced exactly.</p>
@@ -152,7 +153,7 @@ n = sqrt(−2 ln u1) · cos(2π u2)</code></pre>
     <p>Windows module <code>add-noise.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>add-noise.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/add-noise.dll">Download add-noise.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/add-noise.so">Download add-noise.so<span class="size">Linux x86_64</span></a></div>
-</div><nav class="pager"><a class="prev" href="color-lookup.html"><span>Previous</span>Color Lookup</a><a class="next" href="displace.html"><span>Next</span>Displace</a></nav>
+</div><nav class="pager"><a class="prev" href="unsharp-mask.html"><span>Previous</span>Unsharp Mask</a><a class="next" href="reduce-noise.html"><span>Next</span>Reduce Noise</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">On this page</p>
@@ -175,7 +176,7 @@ n = sqrt(−2 ln u1) · cos(2π u2)</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

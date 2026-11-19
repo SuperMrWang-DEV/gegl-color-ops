@@ -7,7 +7,7 @@
 <meta name="description" content="形态学的两个基本算子，也是 Photoshop「最大值 / 最小值」滤镜的等价物：每个像素取邻域内最大（膨胀）或最小值（腐蚀）。最大值把亮区向外推、吞掉暗处的小点；最小值反过来收亮区、啃掉残留的白边。蒙版精修、去灰尘点、发光底图都用它。" data-desc-zh="形态学的两个基本算子，也是 Photoshop「最大值 / 最小值」滤镜的等价物：每个像素取邻域内最大（膨胀）或最小值（腐蚀）。最大值把亮区向外推、吞掉暗处的小点；最小值反过来收亮区、啃掉残留的白边。蒙版精修、去灰尘点、发光底图都用它。" data-desc-en="形态学的两个基本算子，也是 Photoshop「最大值 / 最小值」滤镜的等价物：每个像素取邻域内最大（膨胀）或最小值（腐蚀）。最大值把亮区向外推、吞掉暗处的小点；最小值反过来收亮区、啃掉残留的白边。蒙版精修、去灰尘点、发光底图都用它。">
 <meta property="og:title" content="Maximum / Minimum · gegl-color-ops" data-title-zh="Maximum / Minimum · gegl-color-ops" data-title-en="Maximum / Minimum · gegl-color-ops">
 <meta property="og:description" content="形态学的两个基本算子，也是 Photoshop「最大值 / 最小值」滤镜的等价物：每个像素取邻域内最大（膨胀）或最小值（腐蚀）。最大值把亮区向外推、吞掉暗处的小点；最小值反过来收亮区、啃掉残留的白边。蒙版精修、去灰尘点、发光底图都用它。" data-desc-zh="形态学的两个基本算子，也是 Photoshop「最大值 / 最小值」滤镜的等价物：每个像素取邻域内最大（膨胀）或最小值（腐蚀）。最大值把亮区向外推、吞掉暗处的小点；最小值反过来收亮区、啃掉残留的白边。蒙版精修、去灰尘点、发光底图都用它。" data-desc-en="形态学的两个基本算子，也是 Photoshop「最大值 / 最小值」滤镜的等价物：每个像素取邻域内最大（膨胀）或最小值（腐蚀）。最大值把亮区向外推、吞掉暗处的小点；最小值反过来收亮区、啃掉残留的白边。蒙版精修、去灰尘点、发光底图都用它。">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -88,55 +89,55 @@ window.addEventListener("DOMContentLoaded", function () {
   <p class="lede">形态学的两个基本算子，也是 Photoshop「最大值 / 最小值」滤镜的等价物：每个像素取邻域内最大（膨胀）或最小值（腐蚀）。最大值把亮区向外推、吞掉暗处的小点；最小值反过来收亮区、啃掉残留的白边。蒙版精修、去灰尘点、发光底图都用它。</p>
 </section><div class="article-layout">
   <article class="prose">
-<p>两个方向、四个参数、一份在缓冲自身精度里跑的滑动极值。下面从「GIMP 为什么已经没有 它」讲起，再讲算法、精度、边界，最后是验证方法与实现里踩过的两个坑。</p>
+<p>两个方向、四个参数、一份在缓冲自身精度里跑的滑动极值。下面从「GIMP 为什么已经没有它」讲起，再讲算法、精度、边界，最后是验证方法与实现里踩过的两个坑。</p>
 <pre><code>        ┌─────────────┐               ┌─────────────┐
 输入 ──▶│ 取邻域最大值 │──▶ 亮区外扩   │ 取邻域最小值 │──▶ 亮区收缩
         └─────────────┘               └─────────────┘</code></pre>
-<p>最大值把亮区往外推、吞掉暗处的小点；最小值反过来收亮区、啃掉抠图残留的白边。 蒙版精修、去灰尘点、发光底图、做描边都用它。</p>
+<p>最大值把亮区往外推、吞掉暗处的小点；最小值反过来收亮区、啃掉抠图残留的白边。蒙版精修、去灰尘点、发光底图、做描边都用它。</p>
 <h2 id="gimp-里为什么得自己写">GIMP 里为什么得自己写</h2>
 <p>GIMP 2.10 之前有「滤镜 → 通用 → 膨胀 / 腐蚀」，之后交给 GEGL 的 <code>gegl:dilate</code> / <code>gegl:erode</code>。这两个属于 GEGL 的 <strong>workshop 算子</strong>，官方 Windows 构建没有把它们编进来：</p>
 <pre><code>$ gegl --list-all | grep -E "dilate|erode"      # 空
 $ 查 PDB plug-in-dilate                          # None
 $ strings libgegl-0.4-0.dll | grep gegl:dilate   # 空</code></pre>
 <p>本机 GIMP 3.2.8 上确认三条都为空。剩下的只有 <code>gimp-selection-grow</code> / <code>-shrink</code>，但它们只作用于<strong>选区</strong>，改不了一张蒙版或一个图层的像素。</p>
-<p>所以这个算子不转调任何原生过程，是自己算的——这也是本项目里为数不多的 「不能拿原生当基准」的算子，好在形态学的定义是完全确定的，见下面的验证。</p>
+<p>所以这个算子不转调任何原生过程，是自己算的——这也是本项目里为数不多的「不能拿原生当基准」的算子，好在形态学的定义是完全确定的，见下面的验证。</p>
 <h2 id="参数">参数</h2>
 <div class="table-wrap"><table><thead><tr><th>参数</th><th>范围</th><th>说明</th></tr></thead><tbody><tr><td><code>mode</code></td><td><code>maximum</code> / <code>minimum</code></td><td>最大值（膨胀）/ 最小值（腐蚀）</td></tr><tr><td><code>radius</code></td><td>1–100</td><td>邻域半径<strong>像素</strong>。r=1 即 3×3，边缘向外长一圈</td></tr><tr><td><code>shape</code></td><td><code>square</code> / <code>round</code></td><td>方窗 (±r, ±r)；圆盘 r。对应 PS 的方形度 / 圆度</td></tr><tr><td><code>affect-alpha</code></td><td>布尔，默认关</td><td>关掉时 alpha 原样透传（PS 同样不动图层透明度）</td></tr></tbody></table></div>
-<p><strong>半径语义与 Photoshop 一致</strong>：r 表示检查 <code>(±r, ±r)</code> 的邻域，不是窗口边长。 所以 r=1 得到的正是 3×3，而不是 2×2。</p>
+<p><strong>半径语义与 Photoshop 一致</strong>：r 表示检查 <code>(±r, ±r)</code> 的邻域，不是窗口边长。所以 r=1 得到的正是 3×3，而不是 2×2。</p>
 <p>圆盘结构元用 <code>dx² + dy² ≤ r²</code> 判定，等价于逐行取半宽 <code>⌊√(r²−dy²)⌋</code>：</p>
 <div class="table-wrap"><table><thead><tr><th>r</th><th>dy=0</th><th>dy=±1</th><th>dy=±2</th><th>dy=±3</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>0</td><td>—</td><td>—</td></tr><tr><td>2</td><td>2</td><td>1</td><td>0</td><td>—</td></tr><tr><td>3</td><td>3</td><td>2</td><td>2</td><td>0</td></tr></tbody></table></div>
 <h2 id="算法">算法</h2>
-<p><strong>方窗可分离</strong>：二维方窗的极值 = 先横向取一次、再纵向取一次，两遍都是一维 滑动极值。一维用 <strong>van Herk / Gil-Werman</strong>：按窗口宽度分块，块内先算前缀与 后缀极值，任意一个窗口恰好被「起始处的后缀 + 末端处的前缀」拼满，每像素两次 比较。总复杂度 <strong>O(n)，与半径无关</strong>。</p>
+<p><strong>方窗可分离</strong>：二维方窗的极值 = 先横向取一次、再纵向取一次，两遍都是一维滑动极值。一维用 <strong>van Herk / Gil-Werman</strong>：按窗口宽度分块，块内先算前缀与后缀极值，任意一个窗口恰好被「起始处的后缀 + 末端处的前缀」拼满，每像素两次比较。总复杂度 <strong>O(n)，与半径无关</strong>。</p>
 <p><strong>圆盘不可分离</strong>（每行半宽不同），退化为逐 <code>dy</code> 做横向极值、再纵向累积， <strong>O(n·r)</strong>。半径 100 时的比较次数约为方窗的 100 倍，但极值只有比较没有乘法， 3MP 图仍在秒级。</p>
 <p>实测（3.0 MP，u8 RGB，单线程）：</p>
 <div class="table-wrap"><table><thead><tr><th>形状</th><th>半径</th><th>耗时</th></tr></thead><tbody><tr><td>方窗</td><td>1</td><td>13 ms</td></tr><tr><td>方窗</td><td>100</td><td>43 ms</td></tr><tr><td>圆盘</td><td>10</td><td>63 ms</td></tr><tr><td>圆盘</td><td>100</td><td>1.26 s</td></tr></tbody></table></div>
 <p>方窗 r=1 与 r=100 只差 3 倍，正好印证复杂度与半径无关。</p>
 <h2 id="精度三个类型各展开一份">精度：三个类型各展开一份</h2>
-<p>极值只需要大小关系，但<strong>结果值必须原样搬出来</strong>。所以 <code>maxmin-kernel.h</code> 是一份 模板头文件，被 <code>max-min.c</code> 以不同的 <code>PLANE_T</code> 宏包含三次，生成 u8 / u16 / float32 三份同构代码：</p>
+<p>极值只需要大小关系，但<strong>结果值必须原样搬出来</strong>。所以 <code>maxmin-kernel.h</code> 是一份模板头文件，被 <code>max-min.c</code> 以不同的 <code>PLANE_T</code> 宏包含三次，生成 u8 / u16 / float32 三份同构代码：</p>
 <pre><code class="language-c">#define PLANE_T     guint8
 #define PLANE_BAND  band_u8
 #include "maxmin-kernel.h"</code></pre>
-<p>缓冲是什么精度就在什么精度里比较，中途<strong>不做任何格式转换</strong>。把 u16 读成 float 再写回，个别像素会差 1 码——这里不给它机会。同理不做色彩管理、不做 gamma 换算： PS 的这两个滤镜也是直接对通道值取极值，跟着它的语义走，彩色图上才会得到一样的 偏色。</p>
+<p>缓冲是什么精度就在什么精度里比较，中途<strong>不做任何格式转换</strong>。把 u16 读成 float 再写回，个别像素会差 1 码——这里不给它机会。同理不做色彩管理、不做 gamma 换算： PS 的这两个滤镜也是直接对通道值取极值，跟着它的语义走，彩色图上才会得到一样的偏色。</p>
 <h2 id="边界">边界</h2>
-<p>画布外按<strong>复制边缘像素</strong>处理。对取极值而言，这与「只算窗口内的那部分」<strong>逐位 等价</strong>：补进来的永远是边缘那一列 / 那一行的副本，而那一列本来就在窗口里， 不引入任何新值。所以不像模糊那样会在边缘暗一圈，也不需要额外的边界策略参数。</p>
+<p>画布外按<strong>复制边缘像素</strong>处理。对取极值而言，这与「只算窗口内的那部分」<strong>逐位等价</strong>：补进来的永远是边缘那一列 / 那一行的副本，而那一列本来就在窗口里，不引入任何新值。所以不像模糊那样会在边缘暗一圈，也不需要额外的边界策略参数。</p>
 <h2 id="逐通道">逐通道</h2>
-<p>三个色 / 灰度分量各自独立取极值，<strong>alpha 默认不参与</strong>。这是 PS 的语义：滤镜 不改图层透明度。要连 alpha 一起算，把 <code>affect-alpha</code> 打开。</p>
-<p>彩色图上因此会出现偏色（红蓝交界处冒紫边），这不是 bug，是逐通道运算的必然 结果。要没有偏色就换成单色目标：蒙版、通道、灰度层。</p>
+<p>三个色 / 灰度分量各自独立取极值，<strong>alpha 默认不参与</strong>。这是 PS 的语义：滤镜不改图层透明度。要连 alpha 一起算，把 <code>affect-alpha</code> 打开。</p>
+<p>彩色图上因此会出现偏色（红蓝交界处冒紫边），这不是 bug，是逐通道运算的必然结果。要没有偏色就换成单色目标：蒙版、通道、灰度层。</p>
 <h2 id="正确性验证">正确性验证</h2>
 <p>本机没有可对照的原生实现，所以基准写成 <strong>O(r²) 的四重循环</strong>（<code>tools/check_max_min.py</code> 里的纯 Python <code>brute()</code>）——和 van Herk 是两条完全独立的代码路径：</p>
 <pre><code>python  tools/check_max_min.py   # 在 GIMP 的 python-fu 里跑，见文件头</code></pre>
 <p>27 项，覆盖：</p>
 <ul><li>u8 / u16 / float32 三种缓冲精度，<strong>逐字节 / 逐位相同</strong></li><li>方形与圆形 × 最大值与最小值 × 半径 1 / 2 / 5</li><li>单通道 <code>Y u8</code>（蒙版的主战场）与 RGBA</li><li>alpha 默认不动 / <code>affect-alpha</code> 开</li><li>图边缘（暴力实现同样钳位，两者必须一致）</li><li>高 301 px 的图跨过 128 行的分带边界，验证拼接无接缝</li><li>半径 100 在 9×7 的小图上（窗口比图还大）</li><li>先最小后最大 = 开运算：孤立亮点被抹掉、方块保形</li><li>2000×1500 的性能抽样</li></ul>
-<p>插件层另有 <code>tools/check_max_min_plugin.py</code>（12 项）：过程注册、非破坏滤镜挂载、 蒙版走写像素、图层组拒绝、半径越界被参数校验挡住。</p>
+<p>插件层另有 <code>tools/check_max_min_plugin.py</code>（12 项）：过程注册、非破坏滤镜挂载、蒙版走写像素、图层组拒绝、半径越界被参数校验挡住。</p>
 <h2 id="分带实现的一个坑">分带实现的一个坑</h2>
-<p>输入按 128 行一带读，横向余量 <code>r</code> 列、纵向余量 <code>r</code> 行，四个通道在同一带里一起 算完才写回。<strong>通道循环必须在分带循环内部</strong>：反过来写，后一个通道会用输入重建 整带，把前一个通道的结果覆盖回去——第一版就是这么错的，六项 u8 用例全挂， 单通道（只有一路）反而全过，很容易看漏。</p>
-<p>另一处：列方向的暂存区容量要按 <code>max(pw, ph)</code> 算。只按宽度 <code>pw</code> 分配，在「高瘦」 的分带上会越界写（已踩过一次，表现为跑完若干用例后进程崩掉）。</p><div class="op-dl">
+<p>输入按 128 行一带读，横向余量 <code>r</code> 列、纵向余量 <code>r</code> 行，四个通道在同一带里一起算完才写回。<strong>通道循环必须在分带循环内部</strong>：反过来写，后一个通道会用输入重建整带，把前一个通道的结果覆盖回去——第一版就是这么错的，六项 u8 用例全挂，单通道（只有一路）反而全过，很容易看漏。</p>
+<p>另一处：列方向的暂存区容量要按 <code>max(pw, ph)</code> 算。只按宽度 <code>pw</code> 分配，在「高瘦」的分带上会越界写（已踩过一次，表现为跑完若干用例后进程崩掉）。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>max-min.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>max-min.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/max-min.dll">下载 max-min.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/max-min.so">下载 max-min.so<span class="size">Linux x86_64</span></a></div>
-</div><nav class="pager"><a class="prev" href="dust-scratches.html"><span>上一个</span>Dust &amp; Scratches</a><a class="next" href="reduce-noise.html"><span>下一个</span>Reduce Noise</a></nav>
+</div><nav class="pager"><a class="prev" href="color-lookup.html"><span>上一个</span>Color Lookup</a><a class="next" href="color-mask-select.html"><span>下一个</span>Mask by Color</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
@@ -209,7 +210,7 @@ $ strings libgegl-0.4-0.dll | grep gegl:dilate  # empty</code></pre>
     <p>Windows module <code>max-min.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>max-min.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/max-min.dll">Download max-min.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/max-min.so">Download max-min.so<span class="size">Linux x86_64</span></a></div>
-</div><nav class="pager"><a class="prev" href="dust-scratches.html"><span>Previous</span>Dust &amp; Scratches</a><a class="next" href="reduce-noise.html"><span>Next</span>Reduce Noise</a></nav>
+</div><nav class="pager"><a class="prev" href="color-lookup.html"><span>Previous</span>Color Lookup</a><a class="next" href="color-mask-select.html"><span>Next</span>Mask by Color</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">On this page</p>
@@ -235,7 +236,7 @@ $ strings libgegl-0.4-0.dll | grep gegl:dilate  # empty</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

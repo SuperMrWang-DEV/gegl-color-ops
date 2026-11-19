@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-title-zh="置换滤镜：把焊死的四个旋钮拧开 · gegl-color-ops 博客" data-title-en="Displacement: unbolting four welded-shut knobs · gegl-color-ops blog">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>置换滤镜：把焊死的四个旋钮拧开 · 博客</title>
+<meta name="description" content="GIMP 自带的 gegl:displace 能跑，但它的性格被一行公式写死了。我们重写了一个，顺手把「透明处静默失效」这类坑逐个填掉。" data-desc-zh="GIMP 自带的 gegl:displace 能跑，但它的性格被一行公式写死了。我们重写了一个，顺手把「透明处静默失效」这类坑逐个填掉。" data-desc-en="GIMP&#x27;s own gegl:displace works, but a single line of arithmetic defines its personality. We wrote a replacement and filled in the traps it leaves — starting wit">
+<meta property="og:title" content="置换滤镜：把焊死的四个旋钮拧开 · 博客" data-title-zh="置换滤镜：把焊死的四个旋钮拧开 · gegl-color-ops 博客" data-title-en="Displacement: unbolting four welded-shut knobs · gegl-color-ops blog">
+<meta property="og:description" content="GIMP 自带的 gegl:displace 能跑，但它的性格被一行公式写死了。我们重写了一个，顺手把「透明处静默失效」这类坑逐个填掉。" data-desc-zh="GIMP 自带的 gegl:displace 能跑，但它的性格被一行公式写死了。我们重写了一个，顺手把「透明处静默失效」这类坑逐个填掉。" data-desc-en="GIMP&#x27;s own gegl:displace works, but a single line of arithmetic defines its personality. We wrote a replacement and filled in the traps it leaves — starting wit">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body class="article">
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+<main id="main">
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../blog.html">博客</a></p>
+  <h1>置换滤镜：把焊死的四个旋钮拧开</h1>
+  <div class="meta">
+    <span class="post-date"><time datetime="2026-11-17">2026.11.17</time></span>
+    <span>约 3 分钟</span><span class="tag">置换</span><span class="tag">gegl:displace</span><span class="tag">扭曲</span>
+  </div>
+  <p class="lede">GIMP 自带的 gegl:displace 能跑，但它的性格被一行公式写死了。我们重写了一个，顺手把「透明处静默失效」这类坑逐个填掉。</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>置换（Displace）是那种「一天用不上一次，用上就离不开」的滤镜：水面倒影、玻璃折射、布料褶皱、地形贴图，全靠它。GIMP 里现成有 <code>gegl:displace</code>，能出结果，但每次用它都得绕着走——你得先猜它为什么不按你想的方向动，再去猜它为什么在某个角落整块跳了一下。</p>
+<p>问题不在实现质量，在那个算子的<strong>性格</strong>被一行公式写死了：</p>
+<div class="math-display">$$\Delta = 2 \cdot \text{amount} \cdot (Y' - 0.5) \cdot \alpha$$</div>
+<p><code>Y'</code> 是位移图的亮度，<code>α</code> 是位移图的 alpha。就这一行，决定了它全部的形状。</p>
+<h2 id="一位移图为什么必须中性">一、位移图为什么必须「中性」</h2>
+<p>中点是 0.5，意味着位移图必须是<strong>中性灰</strong>才不会动。这听起来合理，直到你意识到：一张在 GIMP 里随手画的灰度图、一个从别的软件导出的置换贴图，白场往往在 1.0、黑场在 0.0，而你以为的「不动」——如果你的图是 0–1 全黑到全白，等于整张图被 <code>amount</code> 推着走，中间没有停顿点。</p>
+<p>更麻烦的是它把位移<strong>和亮度绑死</strong>。你想让一片区域向右 20 像素、向下 5 像素，就得准备两张对齐的灰度图：一张编码 X，一张编码 Y。两张图只要有一像素的错位，结果就是一片糊。</p>
+<h2 id="二透明处会静默失效">二、透明处会<strong>静默</strong>失效</h2>
+<p>这是最阴的一条。<code>gegl:displace</code> 的 aux 格式是 <code>Y'A float</code>，<code>α</code> 直接乘进位移量。于是：拿一个带透明背景的图层当位移图，透明的地方位移恒等于 0——不报错，不警告，画面上就是那一块没动。</p>
+<p>配上它的 aux iterator 用的是 <code>GEGL_ABYSS_NONE</code>，位移图没覆盖到的区域读出来是 0，于是那里不是「不动」，而是被<strong>整块硬移</strong> <code>−amount</code>。两个坑叠在一起，症状是：画布边缘出现一条莫名其妙的错位，而你怎么调位移图都没用。</p>
+<h2 id="三单位只有像素">三、单位只有像素</h2>
+<p>像素作为单位没错，错在它是<strong>唯一</strong>的。1000 px 宽的图上 <code>amount=20</code> 是 2% 的位移，看起来刚好；同一套参数搬到 4000 px 的图上，同一张图缩放后重跑，效果只剩四分之一。想保持视觉一致，就得每次手工换算。</p>
+<h2 id="四重采样默认双三次">四、重采样默认双三次</h2>
+<p>高对比边缘在双三次插值下会振铃——边缘外侧出现一圈亮边。位移滤镜本来就在「造边」，振铃会被放大成肉眼可见的假轮廓。</p>
+<hr>
+<h2 id="我们的做法">我们的做法</h2>
+<p><code>lb:displace</code> 把这四件事拆成四个参数，默认值按「最不容易踩坑」定。</p>
+<pre class="mermaid">flowchart TD
+  A["位移图：R→X，G→Y（一张 RGBA）"] --&gt; B["三点重映射：black→−1，mid→0，white→+1"]
+  B --&gt; C["× amount-x / amount-y × 单位"]
+  C --&gt; D["源坐标 = 像素中心 + 偏移"]
+  D --&gt; E["采样 input：默认 nohalo"]
+  E --&gt; F["写回原位置"]
+  G["位移图没覆盖到这里"] --&gt; H["原样输出，像素不动"]</pre>
+<p><strong>一张图给两轴。</strong> 矢量场模式下 R 通道给水平、G 通道给垂直，0 是「不动」。再也不用对齐两张图。需要老式的「一张灰度图 + 两个比例」时，切到单通道模式即可。</p>
+<p><strong>三点重映射。</strong> <code>black-point</code> / <code>midpoint</code> / <code>white-point</code> 三个点一起决定映射曲线，中点两侧各自线性归一到 −1..+1。<code>0 / 0.5 / 1</code> 是标准灰图，<code>−1 / 0 / 1</code> 是零中性矢量场（R=0 就是不动），<code>0.2 / 0.4 / 0.6</code> 等于先把位移图加对比度再用。超量程不截断，最多允许超出 ±8 倍，方便做「少数像素位移特别大」的效果。</p>
+<p><strong>单位可换成百分比。</strong> <code>Percent of long edge</code> 下，<code>amount=2</code> 表示长边的 2%——换分辨率不用重调参数，这是批量处理里最省事的一档。</p>
+<p><strong>没覆盖的区域原样输出。</strong> 位移图的 extent 之外，像素原封不动地写回去。这条看起来是细节，实际决定了「用一张小图当局部置换」能不能用。</p>
+<p><strong>默认 nohalo。</strong> 五种采样器都在（最近邻 / 双线性 / 双三次 / nohalo / lohalo），默认挑不振铃的那个。五种越界策略：环绕、重复边缘、透明、黑、白。</p>
+<h2 id="一个容易忽略的坑画布不能变形">一个容易忽略的坑：画布不能变形</h2>
+<p>GEGL 的 composer 默认把 bounding box 取成 input 与 aux 的并集。位移图如果带偏移（比如你把它放在了 (40, 0)），那个偏移会把整个画布撑大——4×4 的图出成 6×4。</p>
+<p>所以 <code>get_bounding_box</code> 必须显式覆盖成输入的范围。这条对 composer 类是通例：<strong>只要 aux 的位置不该影响输出尺寸，就得自己写 bbox。</strong> 同一批里四个邻域算子（锐化、两个降噪、蒙尘）也踩了同一个坑，只不过方向相反：area filter 默认按 pad 外扩，8×8 会输出 22×22，同样得覆盖成输入尺寸。</p>
+<h2 id="自检">自检</h2>
+<p><code>python tools/check_displace.py</code> 11 项，逐条对着上面四个「拧开的旋钮」：</p>
+<ul><li>零位移时逐位恒等（包括带 alpha 的图）</li><li>一张 RGBA 图能同时驱动两轴；单通道模式与「灰度图 + 两个比例」等价</li><li><code>alpha-weight</code> 打开时复刻 <code>gegl:displace</code> 的行为（用来证明默认值确实不同）</li><li>位移图未覆盖区原样输出，边缘不出现硬移</li><li>三种单位换算一致；<code>black / mid / white</code> 压缩后线性度正确</li><li>输出尺寸等于输入尺寸（bbox 没被位移图撑大）</li></ul>
+<p>想直接用：<code>SuperMrWang → Distort → Displace</code>，或者 <code>lb:displace</code> 挂成图层上的非破坏滤镜，滑杆拖起来看。</p><nav class="pager"><a class="prev" href="../blog.html"><span>全部文章</span>回到博客列表</a><a class="next" href="unsharp-mask-and-halos.html"><span>较新</span>锐化为什么会长白边，以及怎么让它不长</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#一位移图为什么必须中性">一、位移图为什么必须「中性」</a></li>
+<li class="l2"><a href="#二透明处会静默失效">二、透明处会静默失效</a></li>
+<li class="l2"><a href="#三单位只有像素">三、单位只有像素</a></li>
+<li class="l2"><a href="#四重采样默认双三次">四、重采样默认双三次</a></li>
+<li class="l2"><a href="#我们的做法">我们的做法</a></li>
+<li class="l2"><a href="#一个容易忽略的坑画布不能变形">一个容易忽略的坑：画布不能变形</a></li>
+<li class="l2"><a href="#自检">自检</a></li></ul>
+</aside>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../blog.html">Blog</a></p>
+  <h1>Displacement: unbolting four welded-shut knobs</h1>
+  <div class="meta">
+    <span class="post-date"><time datetime="2026-11-17">2026.11.17</time></span>
+    <span>2 min read</span><span class="tag">Displace</span><span class="tag">gegl:displace</span><span class="tag">Distort</span>
+  </div>
+  <p class="lede">GIMP's own gegl:displace works, but a single line of arithmetic defines its personality. We wrote a replacement and filled in the traps it leaves — starting with the silent failure wherever the map is transparent.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>Displacement is the filter you use once a month and cannot live without on that day: water reflections, glass refraction, cloth folds, terrain textures. GIMP already ships <code>gegl:displace</code>. It produces output, but every use starts with working around it — first guessing why it moves things in a direction you did not ask for, then guessing why some corner of the canvas jumped in one block.</p>
+<p>The problem is not the quality of the implementation. It is that the operator's whole character is fixed by one line:</p>
+<div class="math-display">$$\Delta = 2 \cdot \text{amount} \cdot (Y' - 0.5) \cdot \alpha$$</div>
+<p><code>Y'</code> is the map's luminance, <code>α</code> its alpha. That line explains everything else.</p>
+<h2 id="1-why-the-map-has-to-be-neutral-grey">1. Why the map has to be neutral grey</h2>
+<p>The midpoint is 0.5, so the map must be neutral grey to mean "do not move". That sounds reasonable until you notice that a greyscale image drawn in a hurry, or a displacement texture exported from another application, usually spans 0.0 to 1.0 — and if your map runs black to white, the whole image is being pushed by <code>amount</code> with no resting point anywhere in it.</p>
+<p>Worse, displacement is welded to luminance. Moving one region 20 px right and 5 px down requires <em>two</em> perfectly aligned greyscale maps, one encoding X, one encoding Y. A single pixel of misalignment between them smears the result.</p>
+<h2 id="2-transparent-areas-fail-silently">2. Transparent areas fail silently</h2>
+<p>This is the nastiest one. The aux format is <code>Y'A float</code>, and <code>α</code> is multiplied straight into the displacement. So a map layer with a transparent background moves nothing wherever it is transparent: no error, no warning — that area simply does not move.</p>
+<p>Together with an aux iterator opened with <code>GEGL_ABYSS_NONE</code>, anything outside the map's extent reads as zero, which does not mean "stay put" but "shift by <code>-amount</code>". Stack the two and the symptom is a mysterious seam along the edge of the canvas that no amount of map editing will remove.</p>
+<h2 id="3-pixels-are-the-only-unit">3. Pixels are the only unit</h2>
+<p>Pixels are a fine unit; being the <em>only</em> unit is not. <code>amount=20</code> on a 1000 px image is a 2% shift and looks right. Run the same settings on a 4000 px image and the effect is a quarter as strong. Keeping the look consistent means converting by hand every time.</p>
+<h2 id="4-bicubic-is-the-default-sampler">4. Bicubic is the default sampler</h2>
+<p>High-contrast edges ring under bicubic interpolation — a bright halo just outside the edge. A displacement filter exists to create edges, so the ringing gets amplified into visible false contours.</p>
+<hr>
+<h2 id="what-we-did-about-it">What we did about it</h2>
+<p><code>lb:displace</code> turns those four items into four parameters, with defaults chosen so that the least surprising thing happens.</p>
+<pre class="mermaid">flowchart TD
+  A["Map: R to X, G to Y (one RGBA image)"] --&gt; B["Three-point remap: black to -1, mid to 0, white to +1"]
+  B --&gt; C["times amount-x / amount-y times unit"]
+  C --&gt; D["Source coordinate = pixel centre + offset"]
+  D --&gt; E["Sample input: nohalo by default"]
+  E --&gt; F["Write back in place"]
+  G["Map does not cover this pixel"] --&gt; H["Pass through untouched"]</pre>
+<p><strong>One image, both axes.</strong> In vector mode the red channel drives X, green drives Y, and zero means "stay". No more aligning two maps. When you want the classic "one greyscale image plus two ratios", switch to single-channel mode.</p>
+<p><strong>Three-point remap.</strong> <code>black-point</code> / <code>midpoint</code> / <code>white-point</code> define the transfer curve; each side of the midpoint is normalised independently onto -1..+1. <code>0 / 0.5 / 1</code> is a plain grey map, <code>-1 / 0 / 1</code> is a zero-centred vector field (R = 0 means stay), <code>0.2 / 0.4 / 0.6</code> is "add contrast to the map first, then use it". Out-of-range values are not clipped — up to eight times over-range is allowed, for the "a few pixels move very far" looks.</p>
+<p><strong>Percentage units.</strong> Under <em>Percent of long edge</em>, <code>amount=2</code> means 2% of the long edge. Changing resolution no longer means retuning, which is what makes batch work bearable.</p>
+<p><strong>Uncovered areas pass through.</strong> Outside the map's extent the input pixel is written back untouched. That sounds like a detail; in practice it decides whether "use a small image as a local displacement" is usable at all.</p>
+<p><strong>Nohalo by default.</strong> All five samplers are available (nearest, bilinear, bicubic, nohalo, lohalo) and the default is the one that does not ring. Five abyss policies too: wrap, clamp, transparent, black, white.</p>
+<h2 id="an-easy-to-miss-trap-the-canvas-must-not-change-size">An easy-to-miss trap: the canvas must not change size</h2>
+<p>A GEGL composer takes its bounding box as the union of input and aux by default. If the map carries an offset — say you placed it at (40, 0) — that offset grows the canvas: a 4×4 image comes out 6×4.</p>
+<p>So <code>get_bounding_box</code> has to be overridden to return the input extent. This is the general rule for composers: <strong>whenever the aux position must not affect output size, write your own bbox.</strong> The same batch of work hit the identical trap, mirrored, on four neighbourhood operators (sharpening, two denoisers, dust): an area filter expands by its pad by default, turning 8×8 into 22×22, and needs the same override.</p>
+<h2 id="self-check">Self-check</h2>
+<p><code>python tools/check_displace.py</code> runs 11 assertions, one line per unbolted knob:</p>
+<ul><li>zero displacement is a bit-exact pass-through, alpha included</li><li>one RGBA map drives both axes; single-channel mode matches "greyscale map plus two ratios"</li><li><code>alpha-weight</code> on reproduces <code>gegl:displace</code>'s behaviour, proving the default differs</li><li>areas outside the map pass through, with no hard shift at the edges</li><li>the three unit settings convert consistently, and the black / mid / white compression is linear</li><li>output size equals input size, so the map did not inflate the canvas</li></ul>
+<p>Try it under <code>SuperMrWang → Distort → Displace</code>, or mount <code>lb:displace</code> on a layer as a non-destructive filter and drag the sliders.</p><nav class="pager"><a class="prev" href="../blog.html"><span>All posts</span>Back to the blog</a><a class="next" href="unsharp-mask-and-halos.html"><span>Newer</span>Why sharpening grows white fringes, and how to stop it</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#1-why-the-map-has-to-be-neutral-grey">1. Why the map has to be neutral grey</a></li>
+<li class="l2"><a href="#2-transparent-areas-fail-silently">2. Transparent areas fail silently</a></li>
+<li class="l2"><a href="#3-pixels-are-the-only-unit">3. Pixels are the only unit</a></li>
+<li class="l2"><a href="#4-bicubic-is-the-default-sampler">4. Bicubic is the default sampler</a></li>
+<li class="l2"><a href="#what-we-did-about-it">What we did about it</a></li>
+<li class="l2"><a href="#an-easy-to-miss-trap-the-canvas-must-not-change-size">An easy-to-miss trap: the canvas must not change size</a></li>
+<li class="l2"><a href="#self-check">Self-check</a></li></ul>
+</aside>
+</div></div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
+    <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
+    <span class="muted">1c0294b</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
+</body>
+</html>

@@ -7,7 +7,7 @@
 <meta name="description" content="HSL 三个分量各自设输入 / 输出黑白场与伽马" data-desc-zh="HSL 三个分量各自设输入 / 输出黑白场与伽马" data-desc-en="HSL 三个分量各自设输入 / 输出黑白场与伽马">
 <meta property="og:title" content="HSL Levels · gegl-color-ops" data-title-zh="HSL Levels · gegl-color-ops" data-title-en="HSL Levels · gegl-color-ops">
 <meta property="og:description" content="HSL 三个分量各自设输入 / 输出黑白场与伽马" data-desc-zh="HSL 三个分量各自设输入 / 输出黑白场与伽马" data-desc-en="HSL 三个分量各自设输入 / 输出黑白场与伽马">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -90,9 +91,9 @@ window.addEventListener("DOMContentLoaded", function () {
   <article class="prose">
 <p>菜单：<code>SuperMrWang → Levels → HSL Levels</code>（Filter 类）</p>
 <h2 id="概述">概述</h2>
-<p>对 HSL 的 H / S / L 三个分量各自做独立的色阶：输入黑场/白场、gamma、 输出下限/上限。和 RGB 色阶相比，它改的是<strong>感知意义上的三个维度</strong>：色相、 饱和度、明度各走各的曲线，互不串扰。</p>
+<p>对 HSL 的 H / S / L 三个分量各自做独立的色阶：输入黑场/白场、gamma、输出下限/上限。和 RGB 色阶相比，它改的是<strong>感知意义上的三个维度</strong>：色相、饱和度、明度各走各的曲线，互不串扰。</p>
 <h2 id="色彩空间">色彩空间</h2>
-<p>直接工作在 babl 的 <code>HSLA float</code> 上，RGB↔HSL 交给 babl——与 GIMP 的 「分解 → HSL」「提取分量 → HSL 饱和度/明度」用同一套转换，算子内部没有 自己写的色彩转换代码。</p>
+<p>直接工作在 babl 的 <code>HSLA float</code> 上，RGB↔HSL 交给 babl——与 GIMP 的「分解 → HSL」「提取分量 → HSL 饱和度/明度」用同一套转换，算子内部没有自己写的色彩转换代码。</p>
 <ul><li>H：0–360°，内部是 babl 的 0–1 归一化值，界面按度数给</li><li>S：0–100%，定义是 <code>S = (max−min) / (1 − |2L−1|)</code>（HSL 的 S，不是 HSV 的）</li><li>L：0–100%，<code>L = (max+min)/2</code></li></ul>
 <div class="math-display">$$z = (h-\text{ia}) \bmod 360,\qquad
 S_{\text{in}} = (\text{ib}-\text{ia}) \bmod 360,\qquad
@@ -111,11 +112,11 @@ S_{\text{out}} = (\text{ob}-\text{oa}) \bmod 360$$</div>
 <h2 id="规则细则">规则细则</h2>
 <ul><li><strong>色相是环形的</strong>，不能像普通通道那样 clamp。做法是把圆在黑场处剪开： 主弧「黑场 → 白场（顺时针）」线性映到输出弧「输出下限 → 输出上限」， 剩下的弧按比例映到剩余的弧长，两段共用 gamma。整圈上连续， 默认参数（0/360 → 0/360，γ=1）逐位还原。</li><li><strong>黑白场重合 = 整圈</strong>：把输入黑白场拉到同一个角度，等于「纯色相旋转 + gamma 环绕」，而不是塌成单色。</li><li><strong>S/L 是普通线性通道</strong>：clamp 到输入范围 → 归一化 → gamma → 映射到输出 范围。输出反向（下限 &gt; 上限）会得到负片式的反相。</li><li><strong>黑白场交叉自动交换</strong>，滑杆拉过头不会算出负区间。</li><li><strong>alpha ≤ 0 的像素原样透传</strong>，色彩不再被映射。</li></ul>
 <h2 id="与-lblab-levels-的关系">与 lb:lab-levels 的关系</h2>
-<p><code>lab-levels</code> 在 CIE Lab 上做，a/b 是两极性通道（gamma 绕中性轴 0 转动）； 这里在 HSL 上做，三个分量都是「单极性」的 0 起量，所以 gamma 语义就是普通 色阶。要按感知亮度调明度用 <code>lab-levels</code> 的 L；要让<strong>某一范围的色相</strong>挪位置、 或者把饱和度按明度分开处理，用这个。</p>
+<p><code>lab-levels</code> 在 CIE Lab 上做，a/b 是两极性通道（gamma 绕中性轴 0 转动）；这里在 HSL 上做，三个分量都是「单极性」的 0 起量，所以 gamma 语义就是普通色阶。要按感知亮度调明度用 <code>lab-levels</code> 的 L；要让<strong>某一范围的色相</strong>挪位置、或者把饱和度按明度分开处理，用这个。</p>
 <h2 id="验证">验证</h2>
 <p><code>python tools/check_color_levels.py hsl</code>（5 项）：</p>
 <div class="table-wrap"><table><thead><tr><th>用例</th><th>判据</th><th>实测</th></tr></thead><tbody><tr><td>恒等（默认参数）</td><td>与源图逐像素 ≤1 码</td><td>最大 0</td></tr><tr><td>饱和度归零</td><td>全图 |R−G|、|G−B| ≤2</td><td>0</td></tr><tr><td>明度归零</td><td>全图最亮通道 ≤12</td><td>0</td></tr><tr><td>公式对拍</td><td>Python 复算同一条链路（弧重映射 + gamma + HSL 往返），逐像素 ≤2 码</td><td>最大 1</td></tr><tr><td>透明像素透传</td><td>alpha=0 行的 RGB 完全不动</td><td>0</td></tr></tbody></table></div>
-<p>公式对拍用的是带 gamma 与交叉黑白场的一组参数（H 30/330 → 0/300，γ=1.4； S 10/90 → 0/100，γ=0.8；L 5/95，γ=1.1），所以环形映射的两段、gamma 方向、 输出量程都被覆盖到了。</p>
+<p>公式对拍用的是带 gamma 与交叉黑白场的一组参数（H 30/330 → 0/300，γ=1.4； S 10/90 → 0/100，γ=0.8；L 5/95，γ=1.1），所以环形映射的两段、gamma 方向、输出量程都被覆盖到了。</p>
 <h2 id="已知事项">已知事项</h2>
 <ul><li>中性色（S=0）的色相没有定义，算子按 H=0 处理；S 归零后 H 怎么调都不影响 画面，这是 HSL 本身的性质。</li><li>8 位图里相邻色相的量化台阶在色相环上约 1.4°，色相曲线拉得很陡时会出现 轻微色带，建议在 16 位/浮点精度下操作。</li></ul><div class="op-dl">
   <div>
@@ -205,7 +206,7 @@ S_{\text{out}} = (\text{ob}-\text{oa}) \bmod 360$$</div>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

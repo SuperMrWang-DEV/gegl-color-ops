@@ -7,7 +7,7 @@
 <meta name="description" content="等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。" data-desc-zh="等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。" data-desc-en="等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。">
 <meta property="og:title" content="Shadows/Highlights · gegl-color-ops" data-title-zh="Shadows/Highlights · gegl-color-ops" data-title-en="Shadows/Highlights · gegl-color-ops">
 <meta property="og:description" content="等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。" data-desc-zh="等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。" data-desc-en="等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -89,10 +90,10 @@ window.addEventListener("DOMContentLoaded", function () {
   <p class="lede">等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按<strong>邻域</strong>亮度分别提亮阴影、压暗高光，而不是只看像素值本身。</p>
 </section><div class="article-layout">
   <article class="prose">
-<p>按黑盒标定得到的 经典图像编辑器的「图像 → 调整 → 阴影/高光」。和另外十几个算子的最大 区别是<strong>它看邻域</strong>：同样一个 128 的像素，周围暗就多提、周围亮就少提，所以不可能简化 成一条 LUT，必须做空间域滤波。</p>
+<p>按黑盒标定得到的 经典图像编辑器的「图像 → 调整 → 阴影/高光」。和另外十几个算子的最大区别是<strong>它看邻域</strong>：同样一个 128 的像素，周围暗就多提、周围亮就少提，所以不可能简化成一条 LUT，必须做空间域滤波。</p>
 <ul><li>GEGL id：<code>lb:shadows-highlights</code></li><li>菜单：<code>Colors → SuperMrWang → Tone → Shadows/Highlights</code></li><li>类型：<code>GeglOperationFilter</code>（空间域，按 192 行一条带处理）</li><li>参数（默认值照抄 经典图像编辑器）：阴影 <code>amount 35 / width 50 / radius 30</code>、高光 <code>0 / 50 / 30</code>、 <code>color-correction 20</code>、<code>midtone-contrast 0</code>、<code>black-clip 0.01</code>、<code>white-clip 0.01</code></li></ul>
 <h2 id="先记一个坑经典图像编辑器的脚本入口不叫-shadowhighlight">先记一个坑：经典图像编辑器的脚本入口不叫 Shadow/Highlight</h2>
-<p>想把经典图像编辑器当 oracle，第一步是能用脚本调起它。<code>Shdw</code>、<code>ShHl</code>、<code>shadowsHighlights</code>、 <code>shadowHighlight</code>、<code>adaptCorrectTones</code> … 13 个 charID 加 8 个 stringID 轮流试， 全部报「命令&lt;未知的&gt;当前不可用」，<code>编辑器进程</code> 和 <code>Required/*.dll</code> 里也搜不到 <code>shadowsHighlights</code> 字样。</p>
+<p>想把经典图像编辑器当 oracle，第一步是能用脚本调起它。<code>Shdw</code>、<code>ShHl</code>、<code>shadowsHighlights</code>、 <code>shadowHighlight</code>、<code>adaptCorrectTones</code> … 13 个 charID 加 8 个 stringID 轮流试，全部报「命令&lt;未知的&gt;当前不可用」，<code>编辑器进程</code> 和 <code>Required/*.dll</code> 里也搜不到 <code>shadowsHighlights</code> 字样。</p>
 <p>真正的入口是 <strong><code>adaptCorrect</code></strong>，类名 <code>adaptCorrectTones</code>：</p>
 <pre><code class="language-javascript">var d = new ActionDescriptor();
 d.putObject(s2t("shadowMode"),    s2t("adaptCorrectTones"), tones(sh));
@@ -134,28 +135,28 @@ u/0.3, &amp; u \le 0.3 \\[4pt]
 \qquad
 y'' = y_2 + k\,(y_2-0.5)\bigl(4y_2(1-y_2)\bigr)^p$$</div>
 <h2 id="两个反直觉的实测结论">两个反直觉的实测结论</h2>
-<p><strong>默认的 0.01% 修剪真的会改变画面。</strong> 一开始用 16 条灰带（16…240）做探针， 首尾两条总被拉到 0/255，误以为是算子串色。实际是 <code>blackClip</code>/<code>whiteClip</code> 的百分比 是<strong>相对直方图</strong>的：探针没覆盖 0 和 255，0.01% 就把最暗那条当成黑场拉下去了。 换成覆盖 0 与 255 的 129 条 ramp 后假象消失；对照组 <code>a100/clip0</code> vs <code>a100/clip01</code> 上黑块 0 vs 7、背景 91 vs 87，差得很清楚。</p>
-<p><strong>半径改的不是模糊宽度，是「邻域里亮像素的占比」。</strong> 阶跃边（左 12 右 240）上， 半径从 0 加到 100，远离边缘的平台值单调 73 → 65，而紧贴亮边的那个像素一直是 48–50。 这说明边缘感知权重把亮邻居的贡献压到 ~12%，所以过渡只有 1–2 像素宽；半径变大只是 把更多亮像素拉进窗口，缓慢抬高 nb。用纯高斯直觉去调 σ 是调不对的。</p>
+<p><strong>默认的 0.01% 修剪真的会改变画面。</strong> 一开始用 16 条灰带（16…240）做探针，首尾两条总被拉到 0/255，误以为是算子串色。实际是 <code>blackClip</code>/<code>whiteClip</code> 的百分比是<strong>相对直方图</strong>的：探针没覆盖 0 和 255，0.01% 就把最暗那条当成黑场拉下去了。换成覆盖 0 与 255 的 129 条 ramp 后假象消失；对照组 <code>a100/clip0</code> vs <code>a100/clip01</code> 上黑块 0 vs 7、背景 91 vs 87，差得很清楚。</p>
+<p><strong>半径改的不是模糊宽度，是「邻域里亮像素的占比」。</strong> 阶跃边（左 12 右 240）上，半径从 0 加到 100，远离边缘的平台值单调 73 → 65，而紧贴亮边的那个像素一直是 48–50。这说明边缘感知权重把亮邻居的贡献压到 ~12%，所以过渡只有 1–2 像素宽；半径变大只是把更多亮像素拉进窗口，缓慢抬高 nb。用纯高斯直觉去调 σ 是调不对的。</p>
 <h2 id="性能">性能</h2>
-<p>平场部分只有 256 项查表，开销全在邻域：17 级 × 4 次高斯。用 192 行条带限制内存， <code>ramp-2.png</code>（25800×160，129 条带）3.2 s，<code>grid-b016.png</code>（2560×2560）4.7 s， 都是含 PNG 编解码的墙钟时间。半径 30 时每像素约 1.4 µs。</p>
+<p>平场部分只有 256 项查表，开销全在邻域：17 级 × 4 次高斯。用 192 行条带限制内存， <code>ramp-2.png</code>（25800×160，129 条带）3.2 s，<code>grid-b016.png</code>（2560×2560）4.7 s，都是含 PNG 编解码的墙钟时间。半径 30 时每像素约 1.4 µs。</p>
 <h2 id="验收">验收</h2>
 <p><code>python tools/check_shadows_highlights.py</code>（<code>--fast</code> 跳过经典图像编辑器对照）：</p>
-<p><strong>一、独立 Python 参考实现 vs 算子</strong>（平场，nb = 自身）。参考实现照上面六步直写， 不复用 C 代码，只共用拟合出来的系数表：</p>
+<p><strong>一、独立 Python 参考实现 vs 算子</strong>（平场，nb = 自身）。参考实现照上面六步直写，不复用 C 代码，只共用拟合出来的系数表：</p>
 <div class="table-wrap"><table><thead><tr><th>检查</th><th>组数</th><th>最大偏差</th></tr></thead><tbody><tr><td>灰阶平场 LUT</td><td>6 组 × 29 级</td><td><strong>0.0 码</strong>（逐点完全一致）</td></tr><tr><td>彩色平场（color-correction +100…−100）</td><td>4 组 × 6 色</td><td><strong>0.0 码</strong></td></tr><tr><td>amount=0 恒等 / 平场与半径无关</td><td>2 项</td><td><strong>0.0 码</strong></td></tr><tr><td>中间调支点 128、默认修剪保留 0 与 255</td><td>2 项</td><td>通过</td></tr></tbody></table></div>
 <p>写这个脚本时抓到过一个真 bug：两个修剪都设 0 时 <code>clip_lo/clip_hi</code> 没初始化， <code>(y−0)/(0−0)</code> 把整图推成纯白。现在 <code>prepare()</code> 里复位成 0/1，除法也加了兜底。</p>
 <p><strong>二、和经典图像编辑器本身</strong>（<code>shadows-highlights-cal/</code>）：</p>
 <div class="table-wrap"><table><thead><tr><th>数据集</th><th>规模</th><th>逐点中位</th><th>最大</th></tr></thead><tbody><tr><td>平场竖带（17 组参数）</td><td>17×129</td><td>0.5 码</td><td><strong>5.7 码</strong>（<code>h_a100_w0</code>）</td></tr><tr><td>二维格点（14 组背景）</td><td>14×256</td><td>1.0 码</td><td><strong>11.1 码</strong>（<code>grid_h_b240</code>）</td></tr></tbody></table></div>
-<p>平场是强项：14/17 组最大 ≤3 码，阴影侧一律 ≤2.6 码。二维格点里 9 组最大 ≤7 码， 中位 1.0。</p>
+<p>平场是强项：14/17 组最大 ≤3 码，阴影侧一律 ≤2.6 码。二维格点里 9 组最大 ≤7 码，中位 1.0。</p>
 <h2 id="已知偏差">已知偏差</h2>
 <ol><li><strong>极端局部对比的二维格点</strong>（20×20 小块压在 99% 面积的极端背景上， <code>bg=16</code> 配亮块、<code>bg=240</code> 配暗块）最大差 11 码。平场对得上、只有这种「邻域和 像素值差 200 码以上」的合成图案对不上，说明邻域核的边缘保持强度还差一点： 实测 经典图像编辑器的 nb 比本算子更贴近像素自身。把 <code>SH_RANGE</code> 从 1.0152 往下调（边缘保持 更强）会让 87% 的点变好但制造出 87 码的爆点；往上调（4.0 / 50，趋近纯高斯） 则单调变差。1.0152 是实测的局部最优值，所以保持原样，这个尾巴留着。</li><li><strong><code>h_a100_w0</code> 的 5.7 码</strong>：色调宽度 0 时遮罩退化成 Beta(1.95, 23) 在最暗一段的 陡壁，插值表按宽度每 5 一档建，宽度 0 正好落在第一个节点上，误差最敏感。</li><li><strong>半径 &gt; 300 没标定</strong>：经典图像编辑器 对话框上限 2500，标定只做到 300，更大半径按同一 σ=1.1424·r 外推。</li><li><code>midtone_contrast</code> 与 <code>color_correction</code> 用的是参考实现的拟合系数，<strong>没有单独做 经典图像编辑器实测</strong>（平场和彩色平场只验证了算子与参考实现一致，不是与经典图像编辑器一致）。</li></ol>
 <h2 id="复现标定">复现标定</h2>
-<p><code>shadows-highlights-cal/</code> 里有全套脚本：<code>apply_cases.jsx</code>（经典图像编辑器 侧执行器）、 <code>run_cases.py</code>（批量跑 + 读结果）、<code>make_ramp.py</code> / <code>make_grid.py</code>（三套探针： 灰阶竖带、二维格点、阶跃边）、<code>compare_op.py</code>（逐点比对）、<code>dump_grid.py</code> / <code>analyze_nb.py</code>（单例残差与邻域反推）、<code>sweep.py</code>（邻域尺度扫参）。</p>
+<p><code>shadows-highlights-cal/</code> 里有全套脚本：<code>apply_cases.jsx</code>（经典图像编辑器 侧执行器）、 <code>run_cases.py</code>（批量跑 + 读结果）、<code>make_ramp.py</code> / <code>make_grid.py</code>（三套探针：灰阶竖带、二维格点、阶跃边）、<code>compare_op.py</code>（逐点比对）、<code>dump_grid.py</code> / <code>analyze_nb.py</code>（单例残差与邻域反推）、<code>sweep.py</code>（邻域尺度扫参）。</p>
 <hr>
 <h2 id="性能2026-11-12-重构">性能（2026-11-12 重构）</h2>
 <p>卡顿的三个根因，全部修掉：</p>
 <ol><li><strong>GEGL 按列并行，margin 随调用次数线性重复</strong>。3M 像素被拆成 12 根 171 宽的 竖条同时跑，每根竖条各带完整的水平 margin——r30 重复 2.4×，r300（margin 1277 px）重复 <strong>17×</strong>。修复：整个 extent 的邻域亮度<strong>只算一次</strong>，缓存成 8 位层级平面（遮罩查表用 <code>lv = lround(clamp(nb)·255)</code>，8 位量化无损）， 各列直接采样。缓存在参数变化（prepare 比较）、输入内容变化（24 行整行 哈希指纹，能察觉下层涂改）、几何变化三种情况下失效。</li><li><strong>黑/白修剪的预扫把整条管线跑两遍</strong>。默认 0.01/0.01 就触发。缓存路径下 预扫改用现成的层级平面，只剩轻量逐像素。</li><li><strong>逐行 <code>gegl_buffer_set</code></strong>。每条 192 行调 192 次写；改为整条/整 ROI 一次写。</li></ol>
-<p>实测（2048×1536，含 PNG 解码 ~1.3s）：默认参数 3.7s → 2.1s；r300 9.8s → 2.1s （净耗时 7.9s → 0.7s，<strong>~11×</strong>）。数值与旧实现<strong>逐位一致</strong>（4 组极端参数下 缓存路径 = 回退路径 = 旧实现三方对拍）。</p>
-<p>超大图或 margin 超预算（<code>SH_CACHE_MAXPX</code> 20MP / <code>SH_CACHE_BUDGET</code>）自动回落 到按条带就地计算；<code>SH_NO_CACHE=1</code> 环境变量可强制走回退路径（调试用）。 条带高度按 margin 自适应（<code>4×margin</code>，192–1024 行），亮度取数分块 （≈32MB/块）控峰值内存。</p><div class="op-dl">
+<p>实测（2048×1536，含 PNG 解码 ~1.3s）：默认参数 3.7s → 2.1s；r300 9.8s → 2.1s （净耗时 7.9s → 0.7s，<strong>~11×</strong>）。数值与旧实现<strong>逐位一致</strong>（4 组极端参数下缓存路径 = 回退路径 = 旧实现三方对拍）。</p>
+<p>超大图或 margin 超预算（<code>SH_CACHE_MAXPX</code> 20MP / <code>SH_CACHE_BUDGET</code>）自动回落到按条带就地计算；<code>SH_NO_CACHE=1</code> 环境变量可强制走回退路径（调试用）。条带高度按 margin 自适应（<code>4×margin</code>，192–1024 行），亮度取数分块（≈32MB/块）控峰值内存。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>shadows-highlights.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>shadows-highlights.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
@@ -283,7 +284,7 @@ y'' = y_2 + k\,(y_2-0.5)\bigl(4y_2(1-y_2)\bigr)^p$$</div>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

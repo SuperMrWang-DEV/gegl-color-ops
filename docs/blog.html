@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-title-zh="博客 · gegl-color-ops" data-title-en="Blog · gegl-color-ops">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>博客 · gegl-color-ops</title>
+<meta name="description" content="GEGL 算子背后的算法笔记：置换、锐化、杂色。" data-desc-zh="GEGL 算子背后的算法笔记：置换、锐化、杂色。" data-desc-en="Notes on the algorithms behind the operators: displacement, sharpening, noise.">
+<meta property="og:title" content="博客 · gegl-color-ops" data-title-zh="博客 · gegl-color-ops" data-title-en="Blog · gegl-color-ops">
+<meta property="og:description" content="GEGL 算子背后的算法笔记：置换、锐化、杂色。" data-desc-zh="GEGL 算子背后的算法笔记：置换、锐化、杂色。" data-desc-en="Notes on the algorithms behind the operators: displacement, sharpening, noise.">
+<link rel="stylesheet" href="assets/style.css?v=5235b3fe7a">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
+    <a href="guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+<main id="main">
+<section class="hero blog-hero">
+  <p class="eyebrow">NOTES</p>
+  <h1><span class="l-zh">写代码的时候<br><span class="grad">顺手想明白的事</span></span><span class="l-en">The things we had to<br><span class="grad">work out properly</span></span></h1>
+  <p class="lede"><span class="l-zh">算子页讲的是「参数是什么、误差多大」，这里讲「为什么最后这么写」：
+     一个滤镜在目标软件里为什么让人别扭、公式在哪一步失真、哪一处看着能用其实一直在
+     偷偷改画布。每篇都对着仓库里的实现和自检脚本写。</span><span class="l-en">The operator pages say what the parameters are and how large the error is.
+     These posts are about why the code ended up the way it did: what makes a filter awkward
+     in the reference editor, where the formula loses fidelity, and which part only looks
+     correct while quietly moving the canvas. Each one is written against the implementation
+     and the self-check scripts in the repository.</span></p>
+  <p class="blog-meta"><span class="l-zh">共 3 篇 · 中英双版</span><span class="l-en">3 posts, both languages</span></p>
+</section><section class="post-list">
+  <article class="post-row">
+    <div class="post-when">
+      <time datetime="2026-11-19">2026.11.19</time>
+      <span class="muted"><span class="l-zh">约 3 分钟</span><span class="l-en">2 min read</span></span>
+    </div>
+    <div class="post-body">
+      <h2><a href="blog/noise-add-reduce-dust.html"><span class="l-zh">噪点三件套：加得进去，也取得出来</span><span class="l-en">The noise trio: easy to add, possible to remove</span></a></h2>
+      <p class="lede"><span class="l-zh">添加杂色、减少杂色、蒙尘与划痕是 PS 里同一组菜单的三件事，但要让它们「能用」，难点全在细节：随机数能不能复现、降噪会不会糊边、孤点会不会自己当选。</span><span class="l-en">Add Noise, Reduce Noise and Dust & Scratches share one Photoshop menu, but making them usable comes down to details: can the random numbers be reproduced, does denoising smear edges, and does an isolated speck elect itself.</span></p>
+      <div class="post-tags"><span class="l-zh"><span class="tag">杂色</span><span class="tag">降噪</span><span class="tag">中值</span></span><span class="l-en"><span class="tag">Noise</span><span class="tag">Denoise</span><span class="tag">Median</span></span></div>
+    </div>
+  </article>
+  <article class="post-row">
+    <div class="post-when">
+      <time datetime="2026-11-18">2026.11.18</time>
+      <span class="muted"><span class="l-zh">约 2 分钟</span><span class="l-en">1 min read</span></span>
+    </div>
+    <div class="post-body">
+      <h2><a href="blog/unsharp-mask-and-halos.html"><span class="l-zh">锐化为什么会长白边，以及怎么让它不长</span><span class="l-en">Why sharpening grows white fringes, and how to stop it</span></a></h2>
+      <p class="lede"><span class="l-zh">USM 的本质是把差值加回去，代价是过冲。PS 用「淡化」和去卷积兜，我们换成一条更便宜的办法：把结果夹回邻域的极值。</span><span class="l-en">Unsharp masking is just adding the difference back, and the bill is overshoot. Photoshop pays it with fading and deconvolution; we pay it with something cheaper — clamping the result to the neighbourhood extremes.</span></p>
+      <div class="post-tags"><span class="l-zh"><span class="tag">锐化</span><span class="tag">USM</span><span class="tag">光晕</span></span><span class="l-en"><span class="tag">Sharpen</span><span class="tag">USM</span><span class="tag">Halos</span></span></div>
+    </div>
+  </article>
+  <article class="post-row">
+    <div class="post-when">
+      <time datetime="2026-11-17">2026.11.17</time>
+      <span class="muted"><span class="l-zh">约 3 分钟</span><span class="l-en">2 min read</span></span>
+    </div>
+    <div class="post-body">
+      <h2><a href="blog/displace-four-welded-knobs.html"><span class="l-zh">置换滤镜：把焊死的四个旋钮拧开</span><span class="l-en">Displacement: unbolting four welded-shut knobs</span></a></h2>
+      <p class="lede"><span class="l-zh">GIMP 自带的 gegl:displace 能跑，但它的性格被一行公式写死了。我们重写了一个，顺手把「透明处静默失效」这类坑逐个填掉。</span><span class="l-en">GIMP's own gegl:displace works, but a single line of arithmetic defines its personality. We wrote a replacement and filled in the traps it leaves — starting with the silent failure wherever the map is transparent.</span></p>
+      <div class="post-tags"><span class="l-zh"><span class="tag">置换</span><span class="tag">gegl:displace</span><span class="tag">扭曲</span></span><span class="l-en"><span class="tag">Displace</span><span class="tag">gegl:displace</span><span class="tag">Distort</span></span></div>
+    </div>
+  </article>
+</section>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
+    <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
+    <span class="muted">1c0294b</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
+</body>
+</html>

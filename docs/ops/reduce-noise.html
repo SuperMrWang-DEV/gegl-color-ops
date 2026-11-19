@@ -7,7 +7,7 @@
 <meta name="description" content="Photoshop「滤镜 → 杂色 → 减少杂色」的等价物：只平均那些「和中心像素差不多」的邻居，差得多的（边缘、细节）不参与。结果是平坦区被磨平、边缘原样保留。" data-desc-zh="Photoshop「滤镜 → 杂色 → 减少杂色」的等价物：只平均那些「和中心像素差不多」的邻居，差得多的（边缘、细节）不参与。结果是平坦区被磨平、边缘原样保留。" data-desc-en="Photoshop「滤镜 → 杂色 → 减少杂色」的等价物：只平均那些「和中心像素差不多」的邻居，差得多的（边缘、细节）不参与。结果是平坦区被磨平、边缘原样保留。">
 <meta property="og:title" content="Reduce Noise · gegl-color-ops" data-title-zh="Reduce Noise · gegl-color-ops" data-title-en="Reduce Noise · gegl-color-ops">
 <meta property="og:description" content="Photoshop「滤镜 → 杂色 → 减少杂色」的等价物：只平均那些「和中心像素差不多」的邻居，差得多的（边缘、细节）不参与。结果是平坦区被磨平、边缘原样保留。" data-desc-zh="Photoshop「滤镜 → 杂色 → 减少杂色」的等价物：只平均那些「和中心像素差不多」的邻居，差得多的（边缘、细节）不参与。结果是平坦区被磨平、边缘原样保留。" data-desc-en="Photoshop「滤镜 → 杂色 → 减少杂色」的等价物：只平均那些「和中心像素差不多」的邻居，差得多的（边缘、细节）不参与。结果是平坦区被磨平、边缘原样保留。">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -78,39 +79,39 @@ window.addEventListener("DOMContentLoaded", function () {
 </header>
 <main id="main">
 <div class="l-zh"><section class="page-head">
-  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 混合与通道</p>
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 杂色</p>
   <h1>Reduce Noise</h1>
   <div class="meta">
     <code>lb:reduce-noise</code>
-    <span class="tag t-blend">混合与通道</span>
+    <span class="tag t-noise">杂色</span>
     <span>AreaFilter</span>
   </div>
   <p class="lede">Photoshop「滤镜 → 杂色 → 减少杂色」的等价物：只平均那些「和中心像素差不多」的邻居，差得多的（边缘、细节）不参与。结果是平坦区被磨平、边缘原样保留。</p>
 </section><div class="article-layout">
   <article class="prose">
 <blockquote><p><code>lb:reduce-noise</code> · 菜单 <strong>SuperMrWang → Noise → Reduce Noise</strong> · 单输入</p></blockquote>
-<p>只平均「和中心差不多」的邻居，差得多的（边缘、细节）不参与。结果是平坦区 被磨平、边缘原样保留——这是 sigma 滤波（Lee 1983），PS「减少杂色」用的 也是这一族。</p>
+<p>只平均「和中心差不多」的邻居，差得多的（边缘、细节）不参与。结果是平坦区被磨平、边缘原样保留——这是 sigma 滤波（Lee 1983），PS「减少杂色」用的也是这一族。</p>
 <h2 id="参数-parameters">参数 / Parameters</h2>
 <div class="table-wrap"><table><thead><tr><th>参数</th><th>范围</th><th>默认</th><th>含义</th></tr></thead><tbody><tr><td><code>strength</code> 强度</td><td>0–100%</td><td>50</td><td>阈值 t = 22% × strength；越大抹得越狠</td></tr><tr><td><code>detail</code> 保留细节</td><td>0–100%</td><td>20</td><td>把 t 最多收窄 80%，保纹理</td></tr><tr><td><code>radius</code> 半径</td><td>1–10</td><td>2</td><td>邻域半径，1 即 3×3</td></tr><tr><td><code>per-channel</code> 每通道</td><td>开 / 关</td><td>关</td><td>关时三通道共用一份权重（色噪点一起消失、色调不变）；开时各算各的</td></tr></tbody></table></div>
 <h2 id="算法">算法</h2>
 <p>对每个像素，取 <code>(2r+1)²</code> 邻域，用通道差的最大值 <code>d</code> 定权重：</p>
 <pre><code>w = max(0, 1 − (d / t)²)
 out = Σ(w·v) / Σw</code></pre>
-<p><code>d &gt; t</code> 的邻居权重为 0，所以边缘另一侧的像素不会把这一侧拉过去——这就是 它不糊边的原因，不需要任何边缘检测。中心像素的 <code>d = 0</code>，权重恒为 1。</p>
-<p><code>per-channel</code> 关闭时，<code>d</code> 取三个通道的最大值，权重只有一份，三个通道共用： 彩色噪点被平均掉，通道之间的比例关系不变（不会出现「降噪后颜色发灰」）。</p>
+<p><code>d &gt; t</code> 的邻居权重为 0，所以边缘另一侧的像素不会把这一侧拉过去——这就是它不糊边的原因，不需要任何边缘检测。中心像素的 <code>d = 0</code>，权重恒为 1。</p>
+<p><code>per-channel</code> 关闭时，<code>d</code> 取三个通道的最大值，权重只有一份，三个通道共用：彩色噪点被平均掉，通道之间的比例关系不变（不会出现「降噪后颜色发灰」）。</p>
 <p><code>strength = 0</code> 时 <code>t = 0</code>，只有完全相同的邻居参与平均，结果就是原图。</p>
 <h2 id="用法-recipes">用法 / Recipes</h2>
 <ul><li><strong>高 ISO 降噪</strong>：<code>strength=60 detail=25 radius=2 per-channel=on</code></li><li><strong>只剩彩色噪点</strong>：<code>strength=80 detail=0 radius=3 per-channel=off</code></li><li><strong>磨皮前置</strong>：<code>strength=40 detail=60 radius=2</code>，随后交给高低频磨皮</li></ul>
 <h2 id="与-photoshop-的差异">与 Photoshop 的差异</h2>
 <div class="table-wrap"><table><thead><tr><th></th><th>PS 减少杂色</th><th><code>lb:reduce-noise</code></th></tr></thead><tbody><tr><td>强度 / 保留细节 / 每通道</td><td>有</td><td>有</td></tr><tr><td>半径</td><td>固定（内部按强度推导）</td><td><strong>可调</strong></td></tr><tr><td>移去 JPEG 伪影</td><td>有</td><td>无（属于 8×8 块检测，另一个算法）</td></tr><tr><td>锐化细节</td><td>有（降噪后回调）</td><td>无（接一个 <code>lb:unsharp-mask</code> 即可）</td></tr></tbody></table></div>
 <h2 id="测试-testing">测试 / Testing</h2>
-<p><code>python tools/check_noise_sharpen.py</code>：强度 0 恒等、噪点标准差降到一半以下、 均值不漂移、硬边不动、α 透传。</p><div class="op-dl">
+<p><code>python tools/check_noise_sharpen.py</code>：强度 0 恒等、噪点标准差降到一半以下、均值不漂移、硬边不动、α 透传。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>reduce-noise.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>reduce-noise.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/reduce-noise.dll">下载 reduce-noise.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/reduce-noise.so">下载 reduce-noise.so<span class="size">Linux x86_64</span></a></div>
-</div><nav class="pager"><a class="prev" href="max-min.html"><span>上一个</span>Maximum / Minimum</a><a class="next" href="unsharp-mask.html"><span>下一个</span>Unsharp Mask / Smart Sharpen</a></nav>
+</div><nav class="pager"><a class="prev" href="add-noise.html"><span>上一个</span>Add Noise</a><a class="next" href="dust-scratches.html"><span>下一个</span>Dust &amp; Scratches</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
@@ -122,11 +123,11 @@ out = Σ(w·v) / Σw</code></pre>
 </aside>
 </div></div>
 <div class="l-en"><section class="page-head">
-  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Blend</p>
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Noise</p>
   <h1>Reduce Noise</h1>
   <div class="meta">
     <code>lb:reduce-noise</code>
-    <span class="tag t-blend">Blend</span>
+    <span class="tag t-noise">Noise</span>
     <span>AreaFilter</span>
   </div>
   <p class="lede">A sigma filter that averages only neighbours close to the centre pixel, so flat areas smooth out and edges stay exactly where they were.</p>
@@ -153,7 +154,7 @@ out = Σ(w·v) / Σw</code></pre>
     <p>Windows module <code>reduce-noise.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>reduce-noise.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/reduce-noise.dll">Download reduce-noise.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/reduce-noise.so">Download reduce-noise.so<span class="size">Linux x86_64</span></a></div>
-</div><nav class="pager"><a class="prev" href="max-min.html"><span>Previous</span>Maximum / Minimum</a><a class="next" href="unsharp-mask.html"><span>Next</span>Unsharp Mask</a></nav>
+</div><nav class="pager"><a class="prev" href="add-noise.html"><span>Previous</span>Add Noise</a><a class="next" href="dust-scratches.html"><span>Next</span>Dust &amp; Scratches</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">On this page</p>
@@ -176,7 +177,7 @@ out = Σ(w·v) / Σw</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

@@ -7,7 +7,7 @@
 <meta name="description" content="HSI 分量曲线工作流的合成器：把「R = 饱和度、G = 强度、B = 色相/360」的数据图还原成真实颜色" data-desc-zh="HSI 分量曲线工作流的合成器：把「R = 饱和度、G = 强度、B = 色相/360」的数据图还原成真实颜色" data-desc-en="HSI 分量曲线工作流的合成器：把「R = 饱和度、G = 强度、B = 色相/360」的数据图还原成真实颜色">
 <meta property="og:title" content="HSI Compose · gegl-color-ops" data-title-zh="HSI Compose · gegl-color-ops" data-title-en="HSI Compose · gegl-color-ops">
 <meta property="og:description" content="HSI 分量曲线工作流的合成器：把「R = 饱和度、G = 强度、B = 色相/360」的数据图还原成真实颜色" data-desc-zh="HSI 分量曲线工作流的合成器：把「R = 饱和度、G = 强度、B = 色相/360」的数据图还原成真实颜色" data-desc-en="HSI 分量曲线工作流的合成器：把「R = 饱和度、G = 强度、B = 色相/360」的数据图还原成真实颜色">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -88,17 +89,17 @@ window.addEventListener("DOMContentLoaded", function () {
   <p class="lede">HSI 分量曲线工作流的合成器：把「R = 饱和度、G = 强度、B = 色相/360」的数据图还原成真实颜色</p>
 </section><div class="article-layout">
   <article class="prose">
-<p><code>lb:hsi-dual</code> 的逆运算：把「<code>R = 饱和度</code>、<code>G = 强度</code>、<code>B = 色相/360</code>」的数据图还原成 真实颜色。alpha 被忽略，输出恒不透明。</p>
+<p><code>lb:hsi-dual</code> 的逆运算：把「<code>R = 饱和度</code>、<code>G = 强度</code>、<code>B = 色相/360</code>」的数据图还原成真实颜色。alpha 被忽略，输出恒不透明。</p>
 <pre><code>(R=S, G=I, B=H/360) ──lb:hsi-compose──&gt; sRGB</code></pre>
 <h2 id="它是怎么算的">它是怎么算的</h2>
 <p>逆变换用 HSI 的<strong>余弦式</strong>，不是 HSV 的线性扇区：</p>
 <pre><code>H  &lt; 120°   B = I(1−S)、R = I[1 + S·cosH / cos(60−H)]、G = 3I − R − B
 H  &lt; 240°   轮转 120°，R 取低值
 其余        轮转 240°，G 取低值</code></pre>
-<p>用 HSV 的扇区公式会在 S 高、I 低时偏几十码——两者在等亮度平面上不是同一组基。 这段代码在 <code>common/color-levels.h</code>（<code>lb_cl_hsi_to_rgb</code>），与 <code>lb:hsi-levels</code> 共用。</p>
+<p>用 HSV 的扇区公式会在 S 高、I 低时偏几十码——两者在等亮度平面上不是同一组基。这段代码在 <code>common/color-levels.h</code>（<code>lb_cl_hsi_to_rgb</code>），与 <code>lb:hsi-levels</code> 共用。</p>
 <h2 id="输入输出">输入输出</h2>
 <div class="table-wrap"><table><thead><tr><th></th><th>格式</th><th>含义</th></tr></thead><tbody><tr><td>input</td><td><code>R'G'B'A float</code></td><td><strong>数值是数据</strong>：<code>lb:hsi-dual</code> 的输出</td></tr><tr><td>output</td><td><code>R'G'B'A float</code></td><td>sRGB 编码值，已裁到 [0,1]</td></tr></tbody></table></div>
-<p>S、I 在转换里会被夹到 [0,1]，色相走 <code>wrap360</code>，RGB 输出裁到 [0,1]——HSI 的色域是 六边形棱锥，S/I 拉到极端时出界只能裁。</p>
+<p>S、I 在转换里会被夹到 [0,1]，色相走 <code>wrap360</code>，RGB 输出裁到 [0,1]——HSI 的色域是六边形棱锥，S/I 拉到极端时出界只能裁。</p>
 <h2 id="注意">注意</h2>
 <ul><li>「R 是饱和度、G 是强度、B 是色相」是<strong>硬约定</strong>：挂到照片上会把像素当 HSI 数据 解释，结果出错但不报错。</li><li>把它和 <code>lb:hsi-levels</code> 区分开：那个是按色阶参数逐分量做 1D 映射，这个是给 「曲线工作流」用的合成器。</li></ul><div class="op-dl">
   <div>
@@ -168,7 +169,7 @@ otherwise   rotate by 240°, G takes the low value</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

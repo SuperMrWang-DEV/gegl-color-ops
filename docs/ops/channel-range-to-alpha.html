@@ -7,7 +7,7 @@
 <meta name="description" content="按通道数值区间（0–255）生成 alpha，实现「混合颜色带」式透明控制" data-desc-zh="按通道数值区间（0–255）生成 alpha，实现「混合颜色带」式透明控制" data-desc-en="按通道数值区间（0–255）生成 alpha，实现「混合颜色带」式透明控制">
 <meta property="og:title" content="Range → Alpha · gegl-color-ops" data-title-zh="Range → Alpha · gegl-color-ops" data-title-en="Range → Alpha · gegl-color-ops">
 <meta property="og:description" content="按通道数值区间（0–255）生成 alpha，实现「混合颜色带」式透明控制" data-desc-zh="按通道数值区间（0–255）生成 alpha，实现「混合颜色带」式透明控制" data-desc-en="按通道数值区间（0–255）生成 alpha，实现「混合颜色带」式透明控制">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -90,7 +91,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <article class="prose">
 <img src="../assets/ops/channel-range-to-alpha/channelrangetoalpha.png" width="700" alt="GEGL操作工具界面">
 <h2 id="算法">算法</h2>
-<p>选一路通道，划出一段「不透明区间」，区间外按线性斜坡淡出——即 经典图像编辑器的 <strong>混合颜色带</strong>（图层样式里的「混合颜色带：灰色」那对滑杆）单独做成算子。</p>
+<p>选一路通道，划出一段「不透明区间」，区间外按线性斜坡淡出——即 经典图像编辑器的<strong>混合颜色带</strong>（图层样式里的「混合颜色带：灰色」那对滑杆）单独做成算子。</p>
 <div class="math-display">$$\alpha(x) = \begin{cases}
 0, &amp; x &lt; l_1 \ \text{或}\ x &gt; r_2 \\[4pt]
 \dfrac{x-l_1}{l_2-l_1}, &amp; l_1 \le x &lt; l_2 \\[10pt]
@@ -100,7 +101,7 @@ window.addEventListener("DOMContentLoaded", function () {
 <p><code>l1 → l2</code> 是阴影侧斜坡，<code>r1 → r2</code> 是高光侧斜坡。两个滑块重合（<code>l1 = l2</code> 或 <code>r1 = r2</code>）就是硬边，不是需要修复的退化情形。</p>
 <h2 id="通道">通道</h2>
 <div class="table-wrap"><table><thead><tr><th><code>channel</code></th><th>映射到 0–255 滑块刻度的量</th></tr></thead><tbody><tr><td><code>red</code> / <code>green</code> / <code>blue</code></td><td>伽马编码值 × 255</td></tr><tr><td><code>gray</code></td><td>0.299 R + 0.587 G + 0.114 B，× 255</td></tr><tr><td><code>lab-l</code></td><td>L*（0…100）归一到 0…255</td></tr><tr><td><code>lab-a</code></td><td>a*（−128…127）归一到 0…255</td></tr><tr><td><code>lab-b</code></td><td>b*（−128…127）归一到 0…255</td></tr></tbody></table></div>
-<p>LAB 在算子内部算（sRGB → XYZ（D65 矩阵）→ L\<em>a\</em>b\*），管线里不用再接转换节点。 滑块按 8 位 0–255 标定，所以算子要求伽马编码的采样值：喂线性光，整个区间会平移。</p>
+<p>LAB 在算子内部算（sRGB → XYZ（D65 矩阵）→ L\<em>a\</em>b\*），管线里不用再接转换节点。滑块按 8 位 0–255 标定，所以算子要求伽马编码的采样值：喂线性光，整个区间会平移。</p>
 <h2 id="行为细节">行为细节</h2>
 <ul><li><strong>滑块重合只表示硬边。</strong> 早先版本会把重合的滑块强行拉开一个最小步长，结果 默认参数（0/0 与 255/255）凭空多出一段羽化带，通道值为 0 的像素不动任何滑块 就变透明。2026-11-12 已修。</li><li>每组滑块先排序再使用，<code>l1 &gt; l2</code> 不会把斜坡反过来。</li><li>alpha ≤ 0 的像素透传；其余情况 alpha 是<strong>乘</strong>进原有 alpha，而不是替换。</li><li>逐像素、无邻域，拖滑杆足够快。</li></ul><div class="op-dl">
   <div>
@@ -108,7 +109,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <p>Windows 模块 <code>channel-range-to-alpha.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>channel-range-to-alpha.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/channel-range-to-alpha.dll">下载 channel-range-to-alpha.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/channel-range-to-alpha.so">下载 channel-range-to-alpha.so<span class="size">Linux x86_64</span></a></div>
-</div><nav class="pager"><a class="prev" href="color-mask-select.html"><span>上一个</span>Mask by Color</a></nav><details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
+</div><nav class="pager"><a class="prev" href="color-mask-select.html"><span>上一个</span>Mask by Color</a><a class="next" href="unsharp-mask.html"><span>下一个</span>Unsharp Mask / Smart Sharpen</a></nav><details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
 <h4 id="linux-原生版系统包安装的gimp">Linux 原生版（系统包安装的GIMP）</h4>
 <pre><code class="language-bash">sh build_linux.sh
 cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
@@ -160,7 +161,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <p>Windows module <code>channel-range-to-alpha.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>channel-range-to-alpha.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/channel-range-to-alpha.dll">Download channel-range-to-alpha.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/channel-range-to-alpha.so">Download channel-range-to-alpha.so<span class="size">Linux x86_64</span></a></div>
-</div><nav class="pager"><a class="prev" href="color-mask-select.html"><span>Previous</span>Mask by Color</a></nav><details class="legacy-intro"><summary>Original plugin docs<span class="muted"> — written when this was a standalone plug-in: the build commands assume the old directory layout and the menu paths have changed. The algorithm notes above supersede it.</span></summary><h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
+</div><nav class="pager"><a class="prev" href="color-mask-select.html"><span>Previous</span>Mask by Color</a><a class="next" href="unsharp-mask.html"><span>Next</span>Unsharp Mask</a></nav><details class="legacy-intro"><summary>Original plugin docs<span class="muted"> — written when this was a standalone plug-in: the build commands assume the old directory layout and the menu paths have changed. The algorithm notes above supersede it.</span></summary><h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
 <h4 id="native-linux-system-installed-gimp">Native Linux (System installed GIMP)</h4>
 <pre><code class="language-bash">sh build_linux.sh
 cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
@@ -194,7 +195,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

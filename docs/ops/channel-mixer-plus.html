@@ -7,7 +7,7 @@
 <meta name="description" content="经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移" data-desc-zh="经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移" data-desc-en="经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移">
 <meta property="og:title" content="Channel Mixer Plus · gegl-color-ops" data-title-zh="Channel Mixer Plus · gegl-color-ops" data-title-en="Channel Mixer Plus · gegl-color-ops">
 <meta property="og:description" content="经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移" data-desc-zh="经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移" data-desc-en="经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -95,13 +96,13 @@ R' &amp;= r_r\,R + r_g\,G + r_b\,B + r_{\text{off}} \\
 G' &amp;= g_r\,R + g_g\,G + g_b\,B + g_{\text{off}} \\
 B' &amp;= b_r\,R + b_g\,G + b_b\,B + b_{\text{off}}
 \end{aligned}$$</div>
-<p>默认是单位矩阵（对角 1、其余 0）、常数全 0，所以什么都不动时算子等于直通。 结果裁到 0..1。增益允许 −2…2，既能加也能减某个通道。</p>
+<p>默认是单位矩阵（对角 1、其余 0）、常数全 0，所以什么都不动时算子等于直通。结果裁到 0..1。增益允许 −2…2，既能加也能减某个通道。</p>
 <h2 id="单色">单色</h2>
-<p><code>monochrome</code> 打开后三路共用一组系数（<code>mono_r</code> / <code>mono_g</code> / <code>mono_b</code>，默认 0.33 / 0.33 / 0.34）加一个 <code>mono_offset</code>，输出灰图——就是经典图像编辑器那个单色勾选框。 此时逐通道矩阵被忽略，两套设置可以共存，来回切换不丢。</p>
+<p><code>monochrome</code> 打开后三路共用一组系数（<code>mono_r</code> / <code>mono_g</code> / <code>mono_b</code>，默认 0.33 / 0.33 / 0.34）加一个 <code>mono_offset</code>，输出灰图——就是经典图像编辑器那个单色勾选框。此时逐通道矩阵被忽略，两套设置可以共存，来回切换不丢。</p>
 <h2 id="参数">参数</h2>
 <div class="table-wrap"><table><thead><tr><th>参数</th><th>默认</th><th>说明</th></tr></thead><tbody><tr><td><code>monochrome</code></td><td>关</td><td>单组系数出灰（经典图像编辑器 单色）</td></tr><tr><td><code>mono_r</code> / <code>mono_g</code> / <code>mono_b</code></td><td>0.33 / 0.33 / 0.34</td><td>单色权重，默认和为 1</td></tr><tr><td><code>mono_offset</code></td><td>0</td><td>单色常数</td></tr><tr><td><code>rr_gain</code> / <code>rg_gain</code> / <code>rb_gain</code></td><td>1 / 0 / 0</td><td>输出 R 取 R / G / B 的权重</td></tr><tr><td><code>gr_gain</code> / <code>gg_gain</code> / <code>gb_gain</code></td><td>0 / 1 / 0</td><td>输出 G 的三个权重</td></tr><tr><td><code>r_offset</code> / <code>g_offset</code> / <code>b_offset</code></td><td>0</td><td>各输出通道的常数项</td></tr></tbody></table></div>
 <h2 id="与-gegl-内置-channel-mixer-的差别">与 GEGL 内置 channel-mixer 的差别</h2>
-<p>GEGL 自带 <code>gegl:channel-mixer</code>，矩阵是一样的，但没有每通道常数，多一个 「保持明度」。本算子补上常数项（就是 经典图像编辑器的「常数」滑杆），去掉保持明度： 加完常数再按亮度缩放，两个方向会互相拉扯。</p>
+<p>GEGL 自带 <code>gegl:channel-mixer</code>，矩阵是一样的，但没有每通道常数，多一个「保持明度」。本算子补上常数项（就是 经典图像编辑器的「常数」滑杆），去掉保持明度：加完常数再按亮度缩放，两个方向会互相拉扯。</p>
 <h2 id="验证">验证</h2>
 <p><code>python tools/check_gamma_domain.py</code>：单位矩阵下算子必须原样通过探针图。</p><div class="op-dl">
   <div>
@@ -206,7 +207,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

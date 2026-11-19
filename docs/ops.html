@@ -7,7 +7,7 @@
 <meta name="description" content="全部算子的清单与一句话说明" data-desc-zh="全部算子的清单与一句话说明" data-desc-en="Every operator with a one-line description: levels, component pairs, tone, colour, blend and mask.">
 <meta property="og:title" content="算子清单 · gegl-color-ops" data-title-zh="算子清单 · gegl-color-ops" data-title-en="Operators · gegl-color-ops">
 <meta property="og:description" content="全部算子的清单与一句话说明" data-desc-zh="全部算子的清单与一句话说明" data-desc-en="Every operator with a one-line description: levels, component pairs, tone, colour, blend and mask.">
-<link rel="stylesheet" href="assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="feed.xml">
 <script>
 (function () {
@@ -29,6 +29,7 @@
   <nav>
     <a href="ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -108,12 +109,7 @@
 <tr><td><a href="ops/channel-mixer-plus.html"><b><span class="l-zh">Channel Mixer Plus</span><span class="l-en">Channel Mixer Plus</span></b></a></td><td><code>lb:channel-mixer-plus</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">经典图像编辑器 通道混合器：每路输出通道由 RGB 三源加权相加，并带通道偏移</span><span class="l-en">The classic editor's Channel Mixer — a 3×3 matrix from R/G/B into…</span></td></tr>
 <tr><td><a href="ops/xyz-multiply.html"><b><span class="l-zh">Photo Filter</span><span class="l-en">Photo Filter</span></b></a></td><td><code>lb:xyz-multiply</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。</span><span class="l-en">The classic editor's Photo Filter, reproduced end to end — colour…</span></td></tr>
 <tr><td><a href="ops/color-lookup.html"><b><span class="l-zh">Color Lookup</span><span class="l-en">Color Lookup</span></b></a></td><td><code>lb:color-lookup</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价于经典图像编辑器「颜色查找」调整图层；强度按 0..1 与原图线性混…</span><span class="l-en">The classic editor's Color Lookup adjustment built on the Adobe Cube…</span></td></tr>
-<tr><td><a href="ops/add-noise.html"><b><span class="l-zh">Add Noise</span><span class="l-en">Add Noise</span></b></a></td><td><code>lb:add-noise</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">Photoshop「滤镜 → 杂色 → 添加杂色」的等价物：给每个像素叠一层随机扰动。加颗粒、做旧、掩盖色带、给渐变加「胶片感」都是它。</span><span class="l-en">Gaussian or uniform noise, monochromatic or per channel, with a seed…</span></td></tr>
-<tr><td><a href="ops/displace.html"><b><span class="l-zh">Displace</span><span class="l-en">Displace</span></b></a></td><td><code>lb:displace</code></td><td class="nowrap"><span class="l-zh">双输入</span><span class="l-en">two inputs</span></td><td><span class="l-zh">按位移图重采样图像。相对 GEGL 自带的 gegl:displace，这里修掉四件事：单张图同时给水平/垂直、位移图不强制乘 alpha…</span><span class="l-en">Resample the image through a displacement map: one RGBA map drives…</span></td></tr>
-<tr><td><a href="ops/dust-scratches.html"><b><span class="l-zh">Dust &amp; Scratches</span><span class="l-en">Dust &amp; Scratches</span></b></a></td><td><code>lb:dust-scratches</code></td><td class="nowrap"><span class="l-zh">AreaFilter</span><span class="l-en">AreaFilter</span></td><td><span class="l-zh">Photoshop「滤镜 → 杂色 → 蒙尘与划痕」的等价物：把与周围差得太远的孤立像素（灰尘、划痕、传感器坏点）用邻域中值替换，同时尽量不…</span><span class="l-en">Replaces isolated specks with the median of the neighbours that are…</span></td></tr>
 <tr><td><a href="ops/max-min.html"><b><span class="l-zh">Maximum / Minimum</span><span class="l-en">Maximum / Minimum</span></b></a></td><td><code>lb:max-min</code></td><td class="nowrap"><span class="l-zh">AreaFilter</span><span class="l-en">AreaFilter</span></td><td><span class="l-zh">形态学的两个基本算子，也是 Photoshop「最大值 / 最小值」滤镜的等价物：每个像素取邻域内最大（膨胀）或最小值（腐蚀）。最大值把亮区…</span><span class="l-en">Morphological dilate and erode — Photoshop's Maximum / Minimum…</span></td></tr>
-<tr><td><a href="ops/reduce-noise.html"><b><span class="l-zh">Reduce Noise</span><span class="l-en">Reduce Noise</span></b></a></td><td><code>lb:reduce-noise</code></td><td class="nowrap"><span class="l-zh">AreaFilter</span><span class="l-en">AreaFilter</span></td><td><span class="l-zh">Photoshop「滤镜 → 杂色 → 减少杂色」的等价物：只平均那些「和中心像素差不多」的邻居，差得多的（边缘、细节）不参与。结果是平坦区…</span><span class="l-en">A sigma filter that averages only neighbours close to the centre…</span></td></tr>
-<tr><td><a href="ops/unsharp-mask.html"><b><span class="l-zh">Unsharp Mask / Smart Sharpen</span><span class="l-en">Unsharp Mask</span></b></a></td><td><code>lb:unsharp-mask</code></td><td class="nowrap"><span class="l-zh">AreaFilter</span><span class="l-en">AreaFilter</span></td><td><span class="l-zh">Photoshop「锐化 → USM 锐化 / 智能锐化」的等价物：用模糊版做参考，把原图与模糊版的差值按百分比加回去。</span><span class="l-en">Sharpen against a blurred copy with the amount, radius and threshold…</span></td></tr>
 </tbody></table></div>
 <h2 id="g-Mask"><span class="tag t-mask"><span class="l-zh">蒙版</span><span class="l-en">Mask</span></span></h2>
 <p class="group-desc"><span class="l-zh">按颜色或数值区间取蒙版：色彩范围、通道区间到 alpha。</span><span class="l-en">Build masks from colour ranges or value intervals: colour range, channel range to alpha.</span></p>
@@ -121,6 +117,26 @@
 <thead><tr><th><span class="l-zh">菜单名</span><span class="l-en">Menu name</span></th><th>GEGL id</th><th><span class="l-zh">类型</span><span class="l-en">Type</span></th><th><span class="l-zh">做什么</span><span class="l-en">What it does</span></th></tr></thead><tbody>
 <tr><td><a href="ops/color-mask-select.html"><b><span class="l-zh">Mask by Color</span><span class="l-en">Mask by Color</span></b></a></td><td><code>lb:color-mask-select</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览</span><span class="l-en">The classic editor's Color Range as a mask operator — colour presets…</span></td></tr>
 <tr><td><a href="ops/channel-range-to-alpha.html"><b><span class="l-zh">Range → Alpha</span><span class="l-en">Range → Alpha</span></b></a></td><td><code>lb:channel-range-to-alpha</code></td><td class="nowrap"><span class="l-zh">逐像素</span><span class="l-en">per-pixel</span></td><td><span class="l-zh">按通道数值区间（0–255）生成 alpha，实现「混合颜色带」式透明控制</span><span class="l-en">Turn a numeric range of one channel into alpha — the classic editor's…</span></td></tr>
+</tbody></table></div>
+<h2 id="g-Sharpen"><span class="tag t-sharpen"><span class="l-zh">锐化</span><span class="l-en">Sharpen</span></span></h2>
+<p class="group-desc"><span class="l-zh">把边缘加陡：PS「锐化 → USM 锐化」的等价物，外加可调的光晕抑制，硬边不再长出白边。</span><span class="l-en">Steepen edges: Photoshop's Unsharp Mask with an adjustable halo suppression, so hard edges stop growing white fringes.</span></p>
+<div class="table-wrap"><table class="op-table">
+<thead><tr><th><span class="l-zh">菜单名</span><span class="l-en">Menu name</span></th><th>GEGL id</th><th><span class="l-zh">类型</span><span class="l-en">Type</span></th><th><span class="l-zh">做什么</span><span class="l-en">What it does</span></th></tr></thead><tbody>
+<tr><td><a href="ops/unsharp-mask.html"><b><span class="l-zh">Unsharp Mask / Smart Sharpen</span><span class="l-en">Unsharp Mask</span></b></a></td><td><code>lb:unsharp-mask</code></td><td class="nowrap"><span class="l-zh">AreaFilter</span><span class="l-en">AreaFilter</span></td><td><span class="l-zh">Photoshop「锐化 → USM 锐化 / 智能锐化」的等价物：用模糊版做参考，把原图与模糊版的差值按百分比加回去。</span><span class="l-en">Sharpen against a blurred copy with the amount, radius and threshold…</span></td></tr>
+</tbody></table></div>
+<h2 id="g-Noise"><span class="tag t-noise"><span class="l-zh">杂色</span><span class="l-en">Noise</span></span></h2>
+<p class="group-desc"><span class="l-zh">颗粒与瑕疵：添加杂色（可复现）、减少杂色（只磨平坦区）、蒙尘与划痕（孤立点用邻域中值换掉）。</span><span class="l-en">Grain and blemishes: add noise (reproducible from a seed), reduce noise (flat areas only), dust & scratches (isolated specks replaced by the median of similar neighbours).</span></p>
+<div class="table-wrap"><table class="op-table">
+<thead><tr><th><span class="l-zh">菜单名</span><span class="l-en">Menu name</span></th><th>GEGL id</th><th><span class="l-zh">类型</span><span class="l-en">Type</span></th><th><span class="l-zh">做什么</span><span class="l-en">What it does</span></th></tr></thead><tbody>
+<tr><td><a href="ops/add-noise.html"><b><span class="l-zh">Add Noise</span><span class="l-en">Add Noise</span></b></a></td><td><code>lb:add-noise</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">Photoshop「滤镜 → 杂色 → 添加杂色」的等价物：给每个像素叠一层随机扰动。加颗粒、做旧、掩盖色带、给渐变加「胶片感」都是它。</span><span class="l-en">Gaussian or uniform noise, monochromatic or per channel, with a seed…</span></td></tr>
+<tr><td><a href="ops/reduce-noise.html"><b><span class="l-zh">Reduce Noise</span><span class="l-en">Reduce Noise</span></b></a></td><td><code>lb:reduce-noise</code></td><td class="nowrap"><span class="l-zh">AreaFilter</span><span class="l-en">AreaFilter</span></td><td><span class="l-zh">Photoshop「滤镜 → 杂色 → 减少杂色」的等价物：只平均那些「和中心像素差不多」的邻居，差得多的（边缘、细节）不参与。结果是平坦区…</span><span class="l-en">A sigma filter that averages only neighbours close to the centre…</span></td></tr>
+<tr><td><a href="ops/dust-scratches.html"><b><span class="l-zh">Dust &amp; Scratches</span><span class="l-en">Dust &amp; Scratches</span></b></a></td><td><code>lb:dust-scratches</code></td><td class="nowrap"><span class="l-zh">AreaFilter</span><span class="l-en">AreaFilter</span></td><td><span class="l-zh">Photoshop「滤镜 → 杂色 → 蒙尘与划痕」的等价物：把与周围差得太远的孤立像素（灰尘、划痕、传感器坏点）用邻域中值替换，同时尽量不…</span><span class="l-en">Replaces isolated specks with the median of the neighbours that are…</span></td></tr>
+</tbody></table></div>
+<h2 id="g-Distort"><span class="tag t-distort"><span class="l-zh">扭曲</span><span class="l-en">Distort</span></span></h2>
+<p class="group-desc"><span class="l-zh">按位移图重采样：一张 RGBA 图同时给 X/Y，单位可换成长边百分比，覆盖不到的区域原样输出。</span><span class="l-en">Resample through a displacement map: one RGBA image drives both axes, the unit can be a percentage of the long edge, and areas the map does not cover pass straight through.</span></p>
+<div class="table-wrap"><table class="op-table">
+<thead><tr><th><span class="l-zh">菜单名</span><span class="l-en">Menu name</span></th><th>GEGL id</th><th><span class="l-zh">类型</span><span class="l-en">Type</span></th><th><span class="l-zh">做什么</span><span class="l-en">What it does</span></th></tr></thead><tbody>
+<tr><td><a href="ops/displace.html"><b><span class="l-zh">Displace</span><span class="l-en">Displace</span></b></a></td><td><code>lb:displace</code></td><td class="nowrap"><span class="l-zh">双输入</span><span class="l-en">two inputs</span></td><td><span class="l-zh">按位移图重采样图像。相对 GEGL 自带的 gegl:displace，这里修掉四件事：单张图同时给水平/垂直、位移图不强制乘 alpha…</span><span class="l-en">Resample the image through a displacement map: one RGBA map drives…</span></td></tr>
 </tbody></table></div>
 </section>
 </main>
@@ -135,7 +151,7 @@
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

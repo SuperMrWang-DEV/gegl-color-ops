@@ -7,7 +7,7 @@
 <meta name="description" content="HSI 三个分量各自设输入 / 输出黑白场与伽马" data-desc-zh="HSI 三个分量各自设输入 / 输出黑白场与伽马" data-desc-en="HSI 三个分量各自设输入 / 输出黑白场与伽马">
 <meta property="og:title" content="HSI Levels · gegl-color-ops" data-title-zh="HSI Levels · gegl-color-ops" data-title-en="HSI Levels · gegl-color-ops">
 <meta property="og:description" content="HSI 三个分量各自设输入 / 输出黑白场与伽马" data-desc-zh="HSI 三个分量各自设输入 / 输出黑白场与伽马" data-desc-en="HSI 三个分量各自设输入 / 输出黑白场与伽马">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -90,7 +91,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <article class="prose">
 <p>菜单：<code>SuperMrWang → Levels → HSI Levels</code>（Filter 类）</p>
 <h2 id="概述">概述</h2>
-<p>对 HSI 的 H / S / I 做独立色阶。HSI 是图像分析里常用的模型：<strong>I 是三通道 均值</strong>，比 HSV 的 max 更接近「这一块有多亮」，S 用 <code>1 − min/I</code> 度量「掺了 多少白」，色相则用余弦定义（与 HSV 的六边形角不是同一个角）。</p>
+<p>对 HSI 的 H / S / I 做独立色阶。HSI 是图像分析里常用的模型：<strong>I 是三通道均值</strong>，比 HSV 的 max 更接近「这一块有多亮」，S 用 <code>1 − min/I</code> 度量「掺了多少白」，色相则用余弦定义（与 HSV 的六边形角不是同一个角）。</p>
 <p>这不是 GIMP/babl 自带的模型，转换在本工程的 <code>common/color-levels.h</code> 里。</p>
 <h2 id="色彩空间">色彩空间</h2>
 <div class="table-wrap"><table><thead><tr><th>分量</th><th>量程</th><th>定义</th></tr></thead><tbody><tr><td>H</td><td>0–360°</td><td><code>cos H = [(R−G)+(R−B)] / (2·√((R−G)²+(R−B)(G−B)))</code>，B&gt;G 时取 <code>360−H</code></td></tr><tr><td>S</td><td>0–100%</td><td><code>S = 1 − min(R,G,B)/I</code>，只掺白不掺黑（掺黑由 I 体现）</td></tr><tr><td>I</td><td>0–100%</td><td><code>I = (R+G+B)/3</code></td></tr></tbody></table></div>
@@ -209,7 +210,7 @@ S_{\text{out}} = (\text{ob}-\text{oa}) \bmod 360$$</div>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

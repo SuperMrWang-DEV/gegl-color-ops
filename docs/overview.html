@@ -7,7 +7,7 @@
 <meta name="description" content="47 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。" data-desc-zh="47 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。" data-desc-en="47 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。">
 <meta property="og:title" content="gegl-color-ops · GIMP 3 色彩算子集" data-title-zh="gegl-color-ops · GIMP 3 色彩算子集" data-title-en="gegl-color-ops · colour operators for GIMP 3">
 <meta property="og:description" content="47 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。" data-desc-zh="47 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。" data-desc-en="47 个 GEGL 色彩算子，供 GIMP 3 使用：色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版。免编译包直接下载。">
-<link rel="stylesheet" href="assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="feed.xml">
 <script>
 (function () {
@@ -29,6 +29,7 @@
   <nav>
     <a href="ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -88,12 +89,14 @@
 </section>
 <section class="ops" id="ops">
   <h2><span class="l-zh">47 个算子</span><span class="l-en">47 operators</span></h2>
-  <p class="section-lede"><span class="l-zh">按「找算子时的念头」分了六组，和 GIMP 菜单里的分组一致——
-     七个色阶收在 Levels 一级目录里，分量家族收在 Component 一级目录里。
-     点任一算子进去看算法、参数与实测误差。</span><span class="l-en">Six groups organised by the question you ask when hunting for an operator,
+  <p class="section-lede"><span class="l-zh">按「找算子时的念头」分了九组，和 GIMP 菜单里的分组一致——
+     七个色阶收在 Levels 一级目录里，分量家族收在 Component 一级目录里，
+     锐化 / 杂色 / 扭曲三组在 2026-11 补齐。
+     点任一算子进去看算法、参数与实测误差。</span><span class="l-en">Nine groups organised by the question you ask when hunting for an operator,
      matching the GIMP menu grouping — the levels family and the component family
-     each sit in their own top-level submenu. Open any operator for its algorithm,
-     parameters and measured error.</span></p>
+     each sit in their own top-level submenu, and Sharpen / Noise / Distort joined
+     them in November 2026. Open any operator for its algorithm, parameters and
+     measured error.</span></p>
 
 <section class="group" id="g-Levels">
   <h3 class="group-title"><span class="tag t-levels"><span class="l-zh">色阶家族</span><span class="l-en">Levels</span></span>
@@ -469,7 +472,7 @@
 
 <section class="group" id="g-Blend">
   <h3 class="group-title"><span class="tag t-blend"><span class="l-zh">混合与通道</span><span class="l-en">Blend</span></span>
-    <span class="group-en"><span class="l-zh">Blend</span><span class="l-en"></span></span><span class="count"><span class="l-zh">11 个</span><span class="l-en">11</span></span></h3>
+    <span class="group-en"><span class="l-zh">Blend</span><span class="l-en"></span></span><span class="count"><span class="l-zh">6 个</span><span class="l-en">6</span></span></h3>
   <p class="group-desc"><span class="l-zh">把两层或多路通道混起来：应用图像、计算、通道混合器、XYZ 正片叠底、颜色查找、灰度转分量。</span><span class="l-en">Mix two layers or several channels: apply image, calculations, channel mixer, XYZ multiply, colour lookup, gray to component.</span></p>
   <div class="cards">
     <a class="card" href="ops/apply-image.html">
@@ -522,36 +525,6 @@
   <p><span class="l-zh">按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价于经典图像编辑器「颜色查找」调整图层；强度按…</span><span class="l-en">The classic editor's Color Lookup adjustment built on the Adobe Cube LUT spec — trilinear…</span></p>
   <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
-    <a class="card" href="ops/add-noise.html">
-  <div class="card-top">
-    <span class="tag t-blend"><span class="l-zh">混合与通道</span><span class="l-en">Blend</span></span>
-    <code>lb:add-noise</code>
-    
-  </div>
-  <h3><span class="l-zh">Add Noise</span><span class="l-en">Add Noise</span></h3>
-  <p><span class="l-zh">Photoshop「滤镜 → 杂色 → 添加杂色」的等价物：给每个像素叠一层随机扰动。加颗粒、做旧、掩盖色带、给渐变…</span><span class="l-en">Gaussian or uniform noise, monochromatic or per channel, with a seed so the grain can be…</span></p>
-  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
-</a>
-    <a class="card" href="ops/displace.html">
-  <div class="card-top">
-    <span class="tag t-blend"><span class="l-zh">混合与通道</span><span class="l-en">Blend</span></span>
-    <code>lb:displace</code>
-    
-  </div>
-  <h3><span class="l-zh">Displace</span><span class="l-en">Displace</span></h3>
-  <p><span class="l-zh">按位移图重采样图像。相对 GEGL 自带的 gegl:displace，这里修掉四件事：单张图同时给水平/垂直、位移…</span><span class="l-en">Resample the image through a displacement map: one RGBA map drives both axes, five edge…</span></p>
-  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
-</a>
-    <a class="card" href="ops/dust-scratches.html">
-  <div class="card-top">
-    <span class="tag t-blend"><span class="l-zh">混合与通道</span><span class="l-en">Blend</span></span>
-    <code>lb:dust-scratches</code>
-    
-  </div>
-  <h3><span class="l-zh">Dust &amp; Scratches</span><span class="l-en">Dust &amp; Scratches</span></h3>
-  <p><span class="l-zh">Photoshop「滤镜 → 杂色 → 蒙尘与划痕」的等价物：把与周围差得太远的孤立像素（灰尘、划痕、传感器坏点）用…</span><span class="l-en">Replaces isolated specks with the median of the neighbours that are within the threshold…</span></p>
-  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
-</a>
     <a class="card" href="ops/max-min.html">
   <div class="card-top">
     <span class="tag t-blend"><span class="l-zh">混合与通道</span><span class="l-en">Blend</span></span>
@@ -560,26 +533,6 @@
   </div>
   <h3><span class="l-zh">Maximum / Minimum</span><span class="l-en">Maximum / Minimum</span></h3>
   <p><span class="l-zh">形态学的两个基本算子，也是 Photoshop「最大值 / 最小值」滤镜的等价物：每个像素取邻域内最大（膨胀）或最小…</span><span class="l-en">Morphological dilate and erode — Photoshop's Maximum / Minimum filter. Grows or shrinks…</span></p>
-  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
-</a>
-    <a class="card" href="ops/reduce-noise.html">
-  <div class="card-top">
-    <span class="tag t-blend"><span class="l-zh">混合与通道</span><span class="l-en">Blend</span></span>
-    <code>lb:reduce-noise</code>
-    
-  </div>
-  <h3><span class="l-zh">Reduce Noise</span><span class="l-en">Reduce Noise</span></h3>
-  <p><span class="l-zh">Photoshop「滤镜 → 杂色 → 减少杂色」的等价物：只平均那些「和中心像素差不多」的邻居，差得多的（边缘、细…</span><span class="l-en">A sigma filter that averages only neighbours close to the centre pixel, so flat areas…</span></p>
-  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
-</a>
-    <a class="card" href="ops/unsharp-mask.html">
-  <div class="card-top">
-    <span class="tag t-blend"><span class="l-zh">混合与通道</span><span class="l-en">Blend</span></span>
-    <code>lb:unsharp-mask</code>
-    
-  </div>
-  <h3><span class="l-zh">Unsharp Mask / Smart Sharpen</span><span class="l-en">Unsharp Mask</span></h3>
-  <p><span class="l-zh">Photoshop「锐化 → USM 锐化 / 智能锐化」的等价物：用模糊版做参考，把原图与模糊版的差值按百分比加回…</span><span class="l-en">Sharpen against a blurred copy with the amount, radius and threshold of Photoshop's…</span></p>
   <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
   </div>
@@ -612,6 +565,80 @@
 </a>
   </div>
 </section>
+
+<section class="group" id="g-Sharpen">
+  <h3 class="group-title"><span class="tag t-sharpen"><span class="l-zh">锐化</span><span class="l-en">Sharpen</span></span>
+    <span class="group-en"><span class="l-zh">Sharpen</span><span class="l-en"></span></span><span class="count"><span class="l-zh">1 个</span><span class="l-en">1</span></span></h3>
+  <p class="group-desc"><span class="l-zh">把边缘加陡：PS「锐化 → USM 锐化」的等价物，外加可调的光晕抑制，硬边不再长出白边。</span><span class="l-en">Steepen edges: Photoshop's Unsharp Mask with an adjustable halo suppression, so hard edges stop growing white fringes.</span></p>
+  <div class="cards">
+    <a class="card" href="ops/unsharp-mask.html">
+  <div class="card-top">
+    <span class="tag t-sharpen"><span class="l-zh">锐化</span><span class="l-en">Sharpen</span></span>
+    <code>lb:unsharp-mask</code>
+    
+  </div>
+  <h3><span class="l-zh">Unsharp Mask / Smart Sharpen</span><span class="l-en">Unsharp Mask</span></h3>
+  <p><span class="l-zh">Photoshop「锐化 → USM 锐化 / 智能锐化」的等价物：用模糊版做参考，把原图与模糊版的差值按百分比加回…</span><span class="l-en">Sharpen against a blurred copy with the amount, radius and threshold of Photoshop's…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
+</a>
+  </div>
+</section>
+
+<section class="group" id="g-Noise">
+  <h3 class="group-title"><span class="tag t-noise"><span class="l-zh">杂色</span><span class="l-en">Noise</span></span>
+    <span class="group-en"><span class="l-zh">Noise</span><span class="l-en"></span></span><span class="count"><span class="l-zh">3 个</span><span class="l-en">3</span></span></h3>
+  <p class="group-desc"><span class="l-zh">颗粒与瑕疵：添加杂色（可复现）、减少杂色（只磨平坦区）、蒙尘与划痕（孤立点用邻域中值换掉）。</span><span class="l-en">Grain and blemishes: add noise (reproducible from a seed), reduce noise (flat areas only), dust & scratches (isolated specks replaced by the median of similar neighbours).</span></p>
+  <div class="cards">
+    <a class="card" href="ops/add-noise.html">
+  <div class="card-top">
+    <span class="tag t-noise"><span class="l-zh">杂色</span><span class="l-en">Noise</span></span>
+    <code>lb:add-noise</code>
+    
+  </div>
+  <h3><span class="l-zh">Add Noise</span><span class="l-en">Add Noise</span></h3>
+  <p><span class="l-zh">Photoshop「滤镜 → 杂色 → 添加杂色」的等价物：给每个像素叠一层随机扰动。加颗粒、做旧、掩盖色带、给渐变…</span><span class="l-en">Gaussian or uniform noise, monochromatic or per channel, with a seed so the grain can be…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
+</a>
+    <a class="card" href="ops/reduce-noise.html">
+  <div class="card-top">
+    <span class="tag t-noise"><span class="l-zh">杂色</span><span class="l-en">Noise</span></span>
+    <code>lb:reduce-noise</code>
+    
+  </div>
+  <h3><span class="l-zh">Reduce Noise</span><span class="l-en">Reduce Noise</span></h3>
+  <p><span class="l-zh">Photoshop「滤镜 → 杂色 → 减少杂色」的等价物：只平均那些「和中心像素差不多」的邻居，差得多的（边缘、细…</span><span class="l-en">A sigma filter that averages only neighbours close to the centre pixel, so flat areas…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
+</a>
+    <a class="card" href="ops/dust-scratches.html">
+  <div class="card-top">
+    <span class="tag t-noise"><span class="l-zh">杂色</span><span class="l-en">Noise</span></span>
+    <code>lb:dust-scratches</code>
+    
+  </div>
+  <h3><span class="l-zh">Dust &amp; Scratches</span><span class="l-en">Dust &amp; Scratches</span></h3>
+  <p><span class="l-zh">Photoshop「滤镜 → 杂色 → 蒙尘与划痕」的等价物：把与周围差得太远的孤立像素（灰尘、划痕、传感器坏点）用…</span><span class="l-en">Replaces isolated specks with the median of the neighbours that are within the threshold…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
+</a>
+  </div>
+</section>
+
+<section class="group" id="g-Distort">
+  <h3 class="group-title"><span class="tag t-distort"><span class="l-zh">扭曲</span><span class="l-en">Distort</span></span>
+    <span class="group-en"><span class="l-zh">Distort</span><span class="l-en"></span></span><span class="count"><span class="l-zh">1 个</span><span class="l-en">1</span></span></h3>
+  <p class="group-desc"><span class="l-zh">按位移图重采样：一张 RGBA 图同时给 X/Y，单位可换成长边百分比，覆盖不到的区域原样输出。</span><span class="l-en">Resample through a displacement map: one RGBA image drives both axes, the unit can be a percentage of the long edge, and areas the map does not cover pass straight through.</span></p>
+  <div class="cards">
+    <a class="card" href="ops/displace.html">
+  <div class="card-top">
+    <span class="tag t-distort"><span class="l-zh">扭曲</span><span class="l-en">Distort</span></span>
+    <code>lb:displace</code>
+    
+  </div>
+  <h3><span class="l-zh">Displace</span><span class="l-en">Displace</span></h3>
+  <p><span class="l-zh">按位移图重采样图像。相对 GEGL 自带的 gegl:displace，这里修掉四件事：单张图同时给水平/垂直、位移…</span><span class="l-en">Resample the image through a displacement map: one RGBA map drives both axes, five edge…</span></p>
+  <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
+</a>
+  </div>
+</section>
 </section><section class="download" id="download">
   <h2><span class="l-zh">下载</span><span class="l-en">Download</span></h2>
   <div class="dl-grid">
@@ -621,7 +648,7 @@
          <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，重启 GIMP 即可。</span><span class="l-en">47 <code>.dll</code> files (2.0 MB). Unpack into
          <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code> and restart GIMP.</span></p>
       <a class="btn primary" href="download/gegl-color-ops-windows-x64.zip">gegl-color-ops-windows-x64.zip</a>
-      <p class="muted small"><span class="l-zh">校验：</span><span class="l-en">Checksum: </span><code>SHA256 580061bcbab72097d0fddd26aee3b1dc…</code></p>
+      <p class="muted small"><span class="l-zh">校验：</span><span class="l-en">Checksum: </span><code>SHA256 ea89b520cb9eb3a199a22e9602ba2410…</code></p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>Linux x86_64</h3></div>
@@ -629,7 +656,7 @@
          <code>~/.local/share/gegl-0.4/plug-ins</code>，重启 GIMP 即可。</span><span class="l-en">47 <code>.so</code> files (0.5 MB). Unpack into
          <code>~/.local/share/gegl-0.4/plug-ins</code> and restart GIMP.</span></p>
       <a class="btn" href="download/gegl-color-ops-linux-x64.zip">gegl-color-ops-linux-x64.zip</a>
-      <p class="muted small"><span class="l-zh">校验：</span><span class="l-en">Checksum: </span><code>SHA256 7ba16710b3ba1879509b85136b3dd5aa…</code></p>
+      <p class="muted small"><span class="l-zh">校验：</span><span class="l-en">Checksum: </span><code>SHA256 1c1879d039919cc7fd0ad8cecbc7cb73…</code></p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3><span class="l-zh">单个算子</span><span class="l-en">A single operator</span></h3></div>
@@ -725,7 +752,7 @@
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

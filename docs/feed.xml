@@ -1,9 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <title>gegl-color-ops · 算子与插件</title>
+  <title>gegl-color-ops · 博客、算子与插件</title>
   <link href="https://superMrwang-dev.github.io/gegl-color-ops/"/>
-  <updated>2026-11-17T00:00:00Z</updated>
+  <updated>2026-11-19T00:00:00Z</updated>
   <id>tag:github.com,2026:gegl-color-ops</id>
+  <entry>
+    <title>博客 · 噪点三件套：加得进去，也取得出来</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/blog/noise-add-reduce-dust.html"/>
+    <id>tag:github.com,2026:post-noise-add-reduce-dust</id>
+    <updated>2026-11-19T00:00:00Z</updated>
+    <summary>添加杂色、减少杂色、蒙尘与划痕是 PS 里同一组菜单的三件事，但要让它们「能用」，难点全在细节：随机数能不能复现、降噪会不会糊边、孤点会不会自己当选。</summary>
+  </entry>
+  <entry>
+    <title>博客 · 锐化为什么会长白边，以及怎么让它不长</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/blog/unsharp-mask-and-halos.html"/>
+    <id>tag:github.com,2026:post-unsharp-mask-and-halos</id>
+    <updated>2026-11-18T00:00:00Z</updated>
+    <summary>USM 的本质是把差值加回去，代价是过冲。PS 用「淡化」和去卷积兜，我们换成一条更便宜的办法：把结果夹回邻域的极值。</summary>
+  </entry>
+  <entry>
+    <title>博客 · 置换滤镜：把焊死的四个旋钮拧开</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/blog/displace-four-welded-knobs.html"/>
+    <id>tag:github.com,2026:post-displace-four-welded-knobs</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>GIMP 自带的 gegl:displace 能跑，但它的性格被一行公式写死了。我们重写了一个，顺手把「透明处静默失效」这类坑逐个填掉。</summary>
+  </entry>
   <entry>
     <title>插件 · 最大 / 最小值（Max / Min）</title>
     <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/max-min.html"/>
@@ -152,6 +173,41 @@
        蒙版转选区），这里一步到位，而且彩色图层也能直接用。</summary>
   </entry>
   <entry>
+    <title>Displace</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/displace/README.md"/>
+    <id>tag:github.com,2026:lb:displace</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>按位移图重采样图像。相对 GEGL 自带的 gegl:displace，这里修掉四件事：单张图同时给水平/垂直、位移图不强制乘 alpha、位移图覆盖不到的区域原样输出而不是硬移、默认用无振铃的采样器。</summary>
+  </entry>
+  <entry>
+    <title>Dust &amp; Scratches</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/dust-scratches/README.md"/>
+    <id>tag:github.com,2026:lb:dust-scratches</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>Photoshop「滤镜 → 杂色 → 蒙尘与划痕」的等价物：把与周围差得太远的孤立像素（灰尘、划痕、传感器坏点）用邻域中值替换，同时尽量不动真实的边缘与细节。</summary>
+  </entry>
+  <entry>
+    <title>Reduce Noise</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/reduce-noise/README.md"/>
+    <id>tag:github.com,2026:lb:reduce-noise</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>Photoshop「滤镜 → 杂色 → 减少杂色」的等价物：只平均那些「和中心像素差不多」的邻居，差得多的（边缘、细节）不参与。结果是平坦区被磨平、边缘原样保留。</summary>
+  </entry>
+  <entry>
+    <title>Add Noise</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/add-noise/README.md"/>
+    <id>tag:github.com,2026:lb:add-noise</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>Photoshop「滤镜 → 杂色 → 添加杂色」的等价物：给每个像素叠一层随机扰动。加颗粒、做旧、掩盖色带、给渐变加「胶片感」都是它。</summary>
+  </entry>
+  <entry>
+    <title>Unsharp Mask / Smart Sharpen</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/unsharp-mask/README.md"/>
+    <id>tag:github.com,2026:lb:unsharp-mask</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>Photoshop「锐化 → USM 锐化 / 智能锐化」的等价物：用模糊版做参考，把原图与模糊版的差值按百分比加回去。</summary>
+  </entry>
+  <entry>
     <title>Range → Alpha</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/channel-range-to-alpha/README.md"/>
     <id>tag:github.com,2026:lb:channel-range-to-alpha</id>
@@ -166,46 +222,11 @@
     <summary>经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览</summary>
   </entry>
   <entry>
-    <title>Unsharp Mask / Smart Sharpen</title>
-    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/unsharp-mask/README.md"/>
-    <id>tag:github.com,2026:lb:unsharp-mask</id>
-    <updated>2026-11-15T00:00:00Z</updated>
-    <summary>Photoshop「锐化 → USM 锐化 / 智能锐化」的等价物：用模糊版做参考，把原图与模糊版的差值按百分比加回去。</summary>
-  </entry>
-  <entry>
-    <title>Reduce Noise</title>
-    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/reduce-noise/README.md"/>
-    <id>tag:github.com,2026:lb:reduce-noise</id>
-    <updated>2026-11-15T00:00:00Z</updated>
-    <summary>Photoshop「滤镜 → 杂色 → 减少杂色」的等价物：只平均那些「和中心像素差不多」的邻居，差得多的（边缘、细节）不参与。结果是平坦区被磨平、边缘原样保留。</summary>
-  </entry>
-  <entry>
     <title>Maximum / Minimum</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/max-min/README.md"/>
     <id>tag:github.com,2026:lb:max-min</id>
     <updated>2026-11-15T00:00:00Z</updated>
     <summary>形态学的两个基本算子，也是 Photoshop「最大值 / 最小值」滤镜的等价物：每个像素取邻域内最大（膨胀）或最小值（腐蚀）。最大值把亮区向外推、吞掉暗处的小点；最小值反过来收亮区、啃掉残留的白边。蒙版精修、去灰尘点、发光底图都用它。</summary>
-  </entry>
-  <entry>
-    <title>Dust &amp; Scratches</title>
-    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/dust-scratches/README.md"/>
-    <id>tag:github.com,2026:lb:dust-scratches</id>
-    <updated>2026-11-15T00:00:00Z</updated>
-    <summary>Photoshop「滤镜 → 杂色 → 蒙尘与划痕」的等价物：把与周围差得太远的孤立像素（灰尘、划痕、传感器坏点）用邻域中值替换，同时尽量不动真实的边缘与细节。</summary>
-  </entry>
-  <entry>
-    <title>Displace</title>
-    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/displace/README.md"/>
-    <id>tag:github.com,2026:lb:displace</id>
-    <updated>2026-11-15T00:00:00Z</updated>
-    <summary>按位移图重采样图像。相对 GEGL 自带的 gegl:displace，这里修掉四件事：单张图同时给水平/垂直、位移图不强制乘 alpha、位移图覆盖不到的区域原样输出而不是硬移、默认用无振铃的采样器。</summary>
-  </entry>
-  <entry>
-    <title>Add Noise</title>
-    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/add-noise/README.md"/>
-    <id>tag:github.com,2026:lb:add-noise</id>
-    <updated>2026-11-15T00:00:00Z</updated>
-    <summary>Photoshop「滤镜 → 杂色 → 添加杂色」的等价物：给每个像素叠一层随机扰动。加颗粒、做旧、掩盖色带、给渐变加「胶片感」都是它。</summary>
   </entry>
   <entry>
     <title>Color Lookup</title>

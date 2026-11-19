@@ -7,7 +7,7 @@
 <meta name="description" content="经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴" data-desc-zh="经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴" data-desc-en="经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴">
 <meta property="og:title" content="Color Balance · gegl-color-ops" data-title-zh="Color Balance · gegl-color-ops" data-title-en="Color Balance · gegl-color-ops">
 <meta property="og:description" content="经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴" data-desc-zh="经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴" data-desc-en="经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -92,24 +93,24 @@ window.addEventListener("DOMContentLoaded", function () {
 <ul><li><strong>不保留明度（默认）</strong>：经典图像编辑器的逐通道曲线，见下面「算法」一节。</li><li><strong>保留明度</strong>：MATLAB 零和矩阵（系数减中位数 → 高光 <code>in/(1−α)</code> → 阴影 <code>(in−α)/(1−α)</code> → 中间调 <code>in^γ</code>），与经典图像编辑器实测最大差 3.0 码，未做改动。</li></ul>
 <hr>
 <h2 id="算法不保留明度">算法（不保留明度）</h2>
-<p>一个通道（C-R 动 R、M-G 动 G、Y-B 动 B）只由自己那条滑杆决定，与其它两个通道无关。 三个色调区间的参数先合并成<strong>一条</strong>曲线：</p>
+<p>一个通道（C-R 动 R、M-G 动 G、Y-B 动 B）只由自己那条滑杆决定，与其它两个通道无关。三个色调区间的参数先合并成<strong>一条</strong>曲线：</p>
 <div class="math-display">$$G = g_{\text{阴影}}\cdot g_{\text{中间调}}\cdot g_{\text{高光}},\qquad
 b = \begin{cases} |s_{\text{阴}}|, &amp; s_{\text{阴}} &lt; 0 \\ 0, &amp; \text{否则} \end{cases},
 \qquad
 W = \begin{cases} 255-s_{\text{高}}, &amp; s_{\text{高}} &gt; 0 \\ 255, &amp; \text{否则} \end{cases}$$</div>
 <div class="math-display">$$u = \frac{v-b}{W-b},\qquad \text{out} = 255\,u^{G}\quad (u \ge H)$$</div>
-<p>近黑端另有一段「趾部」：G &lt; 1 时 u^G 在 0 处斜率无穷，经典图像编辑器 实际是有限斜率起步。 把 [b, h0] 这一段换成三次 Hermite：</p>
+<p>近黑端另有一段「趾部」：G &lt; 1 时 u^G 在 0 处斜率无穷，经典图像编辑器 实际是有限斜率起步。把 [b, h0] 这一段换成三次 Hermite：</p>
 <div class="math-display">$$h_0 = b + H\,(W-b),\qquad
 y_1 = 255\,H^{G},\qquad
 \text{out} = \operatorname{Hermite}\!\left(\frac{v-b}{h_0-b},\ S_u H,\ y_1,\ G\,y_1\right)$$</div>
 <ul><li>指数：中间调 <code>2^(∓s/100)</code>，阴影和高光各只有它的一半 <code>2^(∓s/200)</code>； 算子用实测表（<code>cb-tables.h</code> 的 <code>CB_G</code>），不套公式。</li><li><code>Su</code>（归一化起点斜率）与 <code>H</code>（趾部宽度占比）都<strong>只随复合指数 G 变化</strong>， 与「这个 G 是哪个区间给的」无关：单区间档与组合档落在同一条曲线上（表 <code>CB_TOE</code>）。 G ≥ 0.85 时 H 衰减到 0，趾部自然消失。</li><li>忽略趾部的话，中间调 +100 在 v≈4 处会差 16 码；补上后全档 ≤ 0.3 码。</li></ul>
-<p>参数由 <code>cb-cal</code> 的经典图像编辑器标定得到（经典图像编辑器 26.10、16 位、600 档单区间 + 9 组合）， 完整推导与精度见 <code>../../cb-cal/RESULTS.md</code>。</p>
+<p>参数由 <code>cb-cal</code> 的经典图像编辑器标定得到（经典图像编辑器 26.10、16 位、600 档单区间 + 9 组合），完整推导与精度见 <code>../../cb-cal/RESULTS.md</code>。</p>
 <p><strong>不要手改 <code>cb-tables.h</code></strong>，它由 <code>cb-cal/gen_cb_tables.py</code> 从标定数据生成。</p>
 <p>精度（1024 px 连续斜坡、16 位、全图逐像素）：</p>
 <div class="table-wrap"><table><thead><tr><th>分组</th><th>最大</th><th>中位</th></tr></thead><tbody><tr><td>阴影 ±1…±100</td><td>0.21 码</td><td>0.01 码</td></tr><tr><td>中间调</td><td>0.30 码</td><td>0.00 码</td></tr><tr><td>高光</td><td>0.27 码</td><td>0.00 码</td></tr><tr><td>组合</td><td>0.65 码</td><td>0.06 码</td></tr></tbody></table></div>
 <p>（0.03 码 = 1 个 16 位 LSB）</p>
 <h3 id="与两篇知乎文章的关系">与两篇知乎文章的关系</h3>
-<p>工程早期按下面第 1 篇的「三段独立通道曲线、依次作用」实现，实测下来在高光正向和 阴影负向上偏到 30 码级，组合档更差。本轮重新标定后确认：三段不是依次作用，而是 指数相乘、黑场/白场各取一端的参数合并；单段曲线也不是文章里的 <code>1 − k·s</code> 线性指数。 第 2 篇的零和矩阵（保留明度）与实测吻合，保留原样。</p>
+<p>工程早期按下面第 1 篇的「三段独立通道曲线、依次作用」实现，实测下来在高光正向和阴影负向上偏到 30 码级，组合档更差。本轮重新标定后确认：三段不是依次作用，而是指数相乘、黑场/白场各取一端的参数合并；单段曲线也不是文章里的 <code>1 − k·s</code> 线性指数。第 2 篇的零和矩阵（保留明度）与实测吻合，保留原样。</p>
 <hr>
 <h2 id="参考-references">参考 / References</h2>
 <ol><li>色彩平衡调整图层的本质-背后的数学原理 - 王先生的副业 - 知乎 <a href="https://zhuanlan.zhihu.com/p/679776283" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/679776283</a></li></ol>
@@ -190,7 +191,7 @@ y_1 = 255\,H^{G},\qquad
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

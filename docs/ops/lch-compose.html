@@ -7,7 +7,7 @@
 <meta name="description" content="LCh 分量曲线工作流的合成器：把「R = L/100、G = C/140、B = 色相/360」的数据图还原成真实颜色" data-desc-zh="LCh 分量曲线工作流的合成器：把「R = L/100、G = C/140、B = 色相/360」的数据图还原成真实颜色" data-desc-en="LCh 分量曲线工作流的合成器：把「R = L/100、G = C/140、B = 色相/360」的数据图还原成真实颜色">
 <meta property="og:title" content="LCh Compose · gegl-color-ops" data-title-zh="LCh Compose · gegl-color-ops" data-title-en="LCh Compose · gegl-color-ops">
 <meta property="og:description" content="LCh 分量曲线工作流的合成器：把「R = L/100、G = C/140、B = 色相/360」的数据图还原成真实颜色" data-desc-zh="LCh 分量曲线工作流的合成器：把「R = L/100、G = C/140、B = 色相/360」的数据图还原成真实颜色" data-desc-en="LCh 分量曲线工作流的合成器：把「R = L/100、G = C/140、B = 色相/360」的数据图还原成真实颜色">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -88,7 +89,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <p class="lede">LCh 分量曲线工作流的合成器：把「R = L/100、G = C/140、B = 色相/360」的数据图还原成真实颜色</p>
 </section><div class="article-layout">
   <article class="prose">
-<p>把数据图还原成真实颜色：<code>R = L/100</code>、<code>G = C/140</code>、<code>B = 色相/360</code>，先把它们 乘回物理量（L<em>、C</em>、h），再由 babl 转成 RGB。</p>
+<p>把数据图还原成真实颜色：<code>R = L/100</code>、<code>G = C/140</code>、<code>B = 色相/360</code>，先把它们乘回物理量（L<em>、C</em>、h），再由 babl 转成 RGB。</p>
 <pre><code>(L/100, C/140, h/360) ──lb:lch-compose──&gt; 真实颜色</code></pre>
 <h2 id="输入约定是硬的">输入约定是硬的</h2>
 <p>本算子<strong>无法分辨</strong>输入是一张数据图还是一张普通照片——它一律按「R 是明度、 G 是彩度、B 是色相」解释。挂错地方会把照片当成数据算出一张乱七八糟的图。</p>
@@ -168,7 +169,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

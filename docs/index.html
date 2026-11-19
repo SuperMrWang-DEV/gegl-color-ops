@@ -7,7 +7,7 @@
 <meta name="description" content="GIMP 3 的 47 个 GEGL 色彩算子 + 16 个 Python 插件，Windows 与 Linux 整包直接下载。" data-desc-zh="GIMP 3 的 47 个 GEGL 色彩算子 + 16 个 Python 插件，Windows 与 Linux 整包直接下载。" data-desc-en="GIMP 3 的 47 个 GEGL 色彩算子 + 16 个 Python 插件，Windows 与 Linux 整包直接下载。">
 <meta property="og:title" content="gegl-color-ops · GIMP 3 的 GEGL 算子与插件" data-title-zh="gegl-color-ops · GIMP 3 的 GEGL 算子与插件" data-title-en="gegl-color-ops · GEGL operators and plug-ins for GIMP 3">
 <meta property="og:description" content="GIMP 3 的 47 个 GEGL 色彩算子 + 16 个 Python 插件，Windows 与 Linux 整包直接下载。" data-desc-zh="GIMP 3 的 47 个 GEGL 色彩算子 + 16 个 Python 插件，Windows 与 Linux 整包直接下载。" data-desc-en="GIMP 3 的 47 个 GEGL 色彩算子 + 16 个 Python 插件，Windows 与 Linux 整包直接下载。">
-<link rel="stylesheet" href="assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="feed.xml">
 <script>
 (function () {
@@ -29,6 +29,7 @@
   <nav>
     <a href="ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -53,7 +54,7 @@
   <ul class="facts">
     <li><b>47</b> <span class="l-zh">个算子</span><span class="l-en">operators</span></li>
     <li><b>16</b> <span class="l-zh">个插件</span><span class="l-en">plug-ins</span></li>
-    <li><b>6</b> <span class="l-zh">个分组</span><span class="l-en">groups</span></li>
+    <li><b>9</b> <span class="l-zh">个分组</span><span class="l-en">groups</span></li>
     <li><b>0</b> <span class="l-zh">依赖 · 免编译</span><span class="l-en">deps · prebuilt</span></li>
   </ul>
 </section>
@@ -63,13 +64,15 @@
     <h2><span class="l-zh">GEGL 算子</span><span class="l-en">GEGL operators</span></h2>
     <p class="door-lead"><span class="l-zh">47 个单文件 C 模块，一个模块一个滤镜。
      色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版生成都在里面，按
-     <b>Levels / Component / Tone / Color / Blend / Mask</b> 六组排在顶层菜单下。</span><span class="l-en">47 single-file C modules, one filter each. Levels, colour balance,
-     vibrance, white balance, channel mixing and mask building, arranged in six groups —
-     <b>Levels / Component / Tone / Color / Blend / Mask</b> — under one top-level menu.</span></p>
+     <b>Levels / Component / Tone / Color / Blend / Mask / Sharpen / Noise / Distort</b> 九组排在顶层菜单下。</span><span class="l-en">47 single-file C modules, one filter each. Levels, colour balance,
+     vibrance, white balance, channel mixing, mask building, sharpening, noise and
+     displacement, arranged in nine groups —
+     <b>Levels / Component / Tone / Color / Blend / Mask / Sharpen / Noise / Distort</b> —
+     under one top-level menu.</span></p>
     <div class="door-meta">
       <span><b>47</b> <span class="l-zh">个 Windows 模块</span><span class="l-en">Windows modules</span></span>
       <span><b>47</b> <span class="l-zh">个 Linux 模块</span><span class="l-en">Linux modules</span></span>
-      <span><b>6</b> <span class="l-zh">个分组</span><span class="l-en">groups</span></span>
+      <span><b>9</b> <span class="l-zh">个分组</span><span class="l-en">groups</span></span>
     </div>
     <div class="door-dl"><a class="dl-link" href="download/gegl-color-ops-windows-x64.zip">
         <span class="os"><span class="l-zh">Windows x64</span><span class="l-en">Windows x64</span></span>
@@ -143,6 +146,30 @@ Linux    ~/.config/GIMP/3.x/plug-ins</code></pre>
      <a href="overview.html">完整总览</a>。</span><span class="l-en">Won't install, missing from the menu, name clashes — see the
      <a href="guide.html">install guide</a>. Algorithm provenance, error tables and the
      long version live in the <a href="overview.html">full overview</a>.</span></p>
+</section><section class="blog-teaser">
+  <div class="teaser-head">
+    <p class="eyebrow">03 · NOTES</p>
+    <h2><span class="l-zh">博客</span><span class="l-en">Blog</span></h2>
+    <p class="teaser-sub"><span class="l-zh">算法背后的取舍，中英双版</span><span class="l-en">The trade-offs behind the maths, in both languages</span></p>
+    <a class="teaser-all" href="blog.html"><span class="l-zh">全部 3 篇</span><span class="l-en">All 3 posts</span> <span aria-hidden="true">→</span></a>
+  </div>
+  <div class="teaser-grid">
+    <a class="teaser-card" href="blog/noise-add-reduce-dust.html">
+      <time datetime="2026-11-19">2026.11.19</time>
+      <h3><span class="l-zh">噪点三件套：加得进去，也取得出来</span><span class="l-en">The noise trio: easy to add, possible to remove</span></h3>
+      <p><span class="l-zh">添加杂色、减少杂色、蒙尘与划痕是 PS 里同一组菜单的三件事，但要让它们「能用」，难点全在细节：随机数能不能复现、降噪会不会糊边、孤点会不会自己当选。</span><span class="l-en">Add Noise, Reduce Noise and Dust &amp; Scratches share one Photoshop menu, but making them usable comes down to details: can the random numbers be reproduced, does denoising smear edges, and does an isolated speck elect itself.</span></p>
+    </a>
+    <a class="teaser-card" href="blog/unsharp-mask-and-halos.html">
+      <time datetime="2026-11-18">2026.11.18</time>
+      <h3><span class="l-zh">锐化为什么会长白边，以及怎么让它不长</span><span class="l-en">Why sharpening grows white fringes, and how to stop it</span></h3>
+      <p><span class="l-zh">USM 的本质是把差值加回去，代价是过冲。PS 用「淡化」和去卷积兜，我们换成一条更便宜的办法：把结果夹回邻域的极值。</span><span class="l-en">Unsharp masking is just adding the difference back, and the bill is overshoot. Photoshop pays it with fading and deconvolution; we pay it with something cheaper — clamping the result to the neighbourhood extremes.</span></p>
+    </a>
+    <a class="teaser-card" href="blog/displace-four-welded-knobs.html">
+      <time datetime="2026-11-17">2026.11.17</time>
+      <h3><span class="l-zh">置换滤镜：把焊死的四个旋钮拧开</span><span class="l-en">Displacement: unbolting four welded-shut knobs</span></h3>
+      <p><span class="l-zh">GIMP 自带的 gegl:displace 能跑，但它的性格被一行公式写死了。我们重写了一个，顺手把「透明处静默失效」这类坑逐个填掉。</span><span class="l-en">GIMP&#x27;s own gegl:displace works, but a single line of arithmetic defines its personality. We wrote a replacement and filled in the traps it leaves — starting with the silent failure wherever the map is transparent.</span></p>
+    </a>
+  </div>
 </section><section class="provenance home-prov" id="provenance">
   <div class="prov-head">
     <p class="eyebrow"><span class="l-zh">来源 · 版权 · 商标</span><span class="l-en">Provenance · copyright · trademarks</span></p>
@@ -182,7 +209,7 @@ Linux    ~/.config/GIMP/3.x/plug-ins</code></pre>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

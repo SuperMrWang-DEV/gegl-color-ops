@@ -7,7 +7,7 @@
 <meta name="description" content="经典图像编辑器 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）" data-desc-zh="经典图像编辑器 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）" data-desc-en="经典图像编辑器 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）">
 <meta property="og:title" content="Exposure EV · gegl-color-ops" data-title-zh="Exposure EV · gegl-color-ops" data-title-en="Exposure EV · gegl-color-ops">
 <meta property="og:description" content="经典图像编辑器 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）" data-desc-zh="经典图像编辑器 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）" data-desc-en="经典图像编辑器 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -89,13 +90,13 @@ window.addEventListener("DOMContentLoaded", function () {
 </section><div class="article-layout">
   <article class="prose">
 <h2 id="两条公式按输入精度自动选路">两条公式，按输入精度自动选路</h2>
-<p><code>precision</code> 属性：<code>auto</code>（默认）/ <code>encoded</code>（强制 8 位）/ <code>linear</code>（强制 32 位）。 auto 读输入 pad 的源格式：整数格式（<code>u8</code> / <code>u16</code>）走分支一，浮点格式 （<code>float</code> / <code>half</code> / <code>double</code>）走分支二。16 位图同样是伽马编码，所以和 8 位共用 分支一。</p>
+<p><code>precision</code> 属性：<code>auto</code>（默认）/ <code>encoded</code>（强制 8 位）/ <code>linear</code>（强制 32 位）。 auto 读输入 pad 的源格式：整数格式（<code>u8</code> / <code>u16</code>）走分支一，浮点格式（<code>float</code> / <code>half</code> / <code>double</code>）走分支二。16 位图同样是伽马编码，所以和 8 位共用分支一。</p>
 <h3 id="分支一整数格式srgb-伽马编码值">分支一：整数格式（sRGB 伽马编码值）</h3>
 <pre><code>v1 = min(c · 2^(EV/2.2), 1)
 v2 = clamp(v1^2.2 + offset, 0, 1)^(1/2.2)
 v3 = v2^(1/gamma)</code></pre>
 <p>在伽马域乘 <code>2^(EV/2.2)</code> 与线性光乘 <code>2^EV</code> 完全等价，省掉两次幂运算；<code>offset</code> 是线性光下的量，所以中间解一次 2.2、加完再编码回去。</p>
-<p><strong><code>min(…, 1)</code> 不能省。</strong> 先切高光再叠 offset，负 offset 才能把过曝区拉回来； 漏掉这步，<code>EV&gt;0</code> 配负 offset 会把整片亮区顶成死白。旧版实现漏了这一行。</p>
+<p><strong><code>min(…, 1)</code> 不能省。</strong> 先切高光再叠 offset，负 offset 才能把过曝区拉回来；漏掉这步，<code>EV&gt;0</code> 配负 offset 会把整片亮区顶成死白。旧版实现漏了这一行。</p>
 <h3 id="分支二浮点格式线性光">分支二：浮点格式（线性光）</h3>
 <pre><code>v1 = c · 2^EV + offset
 v2 = clamp(v1, 0, ∞)^(1/gamma)</code></pre>
@@ -106,15 +107,15 @@ v2 = clamp(v1, 0, ∞)^(1/gamma)</code></pre>
 <p>12 组参数（EV −3…+2、offset ±0.15、gamma 0.45…2.2）× 64 级灰阶：</p>
 <ul><li>分支一对拍 Java <code>exposureChannel</code>：最大 <strong>0.00 码</strong></li><li>分支二对拍 Java <code>exposureChannel2</code>：最大 <strong>0.00 码</strong></li><li>整数 PNG 输入下 <code>auto</code> 与 <code>encoded</code> 逐像素完全相同（0 处不同）</li><li>浮点 EXR 输入下 <code>auto</code> 与 <code>linear</code> 完全相同，与 <code>encoded</code> 在 2944 个像素上不同 —— 说明 auto 真的切了分支，而不只是多了个开关</li></ul>
 <h2 id="算法">算法</h2>
-<p>同一套 EV 与 offset，按输入精度分两条路径。<code>precision=auto</code> 读输入 pad 的格式： 整数格式（<code>u8</code> / <code>u16</code>）走编码域，浮点格式（<code>float</code> / <code>half</code> / <code>double</code>）走线性域； 16 位图同样是伽马编码的，和 8 位同路。</p>
-<p><strong>整数格式（sRGB 编码值）</strong>：先在编码域乘 <span class="math">$2^{EV/2.2}$</span>（等价于线性域乘 <span class="math">$2^{EV}$</span>， 但省掉两次幂运算），再解码、加线性域的 offset、编码回去：</p>
+<p>同一套 EV 与 offset，按输入精度分两条路径。<code>precision=auto</code> 读输入 pad 的格式：整数格式（<code>u8</code> / <code>u16</code>）走编码域，浮点格式（<code>float</code> / <code>half</code> / <code>double</code>）走线性域； 16 位图同样是伽马编码的，和 8 位同路。</p>
+<p><strong>整数格式（sRGB 编码值）</strong>：先在编码域乘 <span class="math">$2^{EV/2.2}$</span>（等价于线性域乘 <span class="math">$2^{EV}$</span>，但省掉两次幂运算），再解码、加线性域的 offset、编码回去：</p>
 <div class="math-display">$$v_1 = \min\!\left(c\cdot 2^{EV/2.2},\ 1\right),\qquad
 v_2 = \operatorname{clamp}\!\left(v_1^{2.2} + o,\ 0,\ 1\right)^{1/2.2},\qquad
 v_3 = v_2^{\,1/\gamma}$$</div>
-<p>那个 <span class="math">$\min(\cdot,1)$</span> 不能省：先裁高光、再加 offset，负 offset 才能把过曝的高光拉回来； 去掉它，<span class="math">$EV&gt;0$</span> 配负 offset 会把整片亮部推成纯白。</p>
+<p>那个 <span class="math">$\min(\cdot,1)$</span> 不能省：先裁高光、再加 offset，负 offset 才能把过曝的高光拉回来；去掉它，<span class="math">$EV&gt;0$</span> 配负 offset 会把整片亮部推成纯白。</p>
 <p><strong>浮点格式（线性光）</strong>：输入已是线性，只需一次乘法与一次加法：</p>
 <div class="math-display">$$v_1 = c\cdot 2^{EV} + o,\qquad v_2 = \bigl(\max(v_1,\,0)\bigr)^{1/\gamma}$$</div>
-<p>只夹下界、不夹上界：32 位图允许 HDR，裁到 <span class="math">$0..1$</span> 会把高光压平；但负值必须夹， 否则 <code>pow</code> 会返回 NaN。</p><div class="op-dl">
+<p>只夹下界、不夹上界：32 位图允许 HDR，裁到 <span class="math">$0..1$</span> 会把高光压平；但负值必须夹，否则 <code>pow</code> 会返回 NaN。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>lb-exposure.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>lb-exposure.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
@@ -212,7 +213,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

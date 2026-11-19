@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-title-zh="锐化为什么会长白边，以及怎么让它不长 · gegl-color-ops 博客" data-title-en="Why sharpening grows white fringes, and how to stop it · gegl-color-ops blog">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>锐化为什么会长白边，以及怎么让它不长 · 博客</title>
+<meta name="description" content="USM 的本质是把差值加回去，代价是过冲。PS 用「淡化」和去卷积兜，我们换成一条更便宜的办法：把结果夹回邻域的极值。" data-desc-zh="USM 的本质是把差值加回去，代价是过冲。PS 用「淡化」和去卷积兜，我们换成一条更便宜的办法：把结果夹回邻域的极值。" data-desc-en="Unsharp masking is just adding the difference back, and the bill is overshoot. Photoshop pays it with fading and deconvolution; we pay it with something cheaper">
+<meta property="og:title" content="锐化为什么会长白边，以及怎么让它不长 · 博客" data-title-zh="锐化为什么会长白边，以及怎么让它不长 · gegl-color-ops 博客" data-title-en="Why sharpening grows white fringes, and how to stop it · gegl-color-ops blog">
+<meta property="og:description" content="USM 的本质是把差值加回去，代价是过冲。PS 用「淡化」和去卷积兜，我们换成一条更便宜的办法：把结果夹回邻域的极值。" data-desc-zh="USM 的本质是把差值加回去，代价是过冲。PS 用「淡化」和去卷积兜，我们换成一条更便宜的办法：把结果夹回邻域的极值。" data-desc-en="Unsharp masking is just adding the difference back, and the bill is overshoot. Photoshop pays it with fading and deconvolution; we pay it with something cheaper">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body class="article">
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+<main id="main">
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../blog.html">博客</a></p>
+  <h1>锐化为什么会长白边，以及怎么让它不长</h1>
+  <div class="meta">
+    <span class="post-date"><time datetime="2026-11-18">2026.11.18</time></span>
+    <span>约 2 分钟</span><span class="tag">锐化</span><span class="tag">USM</span><span class="tag">光晕</span>
+  </div>
+  <p class="lede">USM 的本质是把差值加回去，代价是过冲。PS 用「淡化」和去卷积兜，我们换成一条更便宜的办法：把结果夹回邻域的极值。</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>USM（Unsharp Mask）的名字来自暗房：拿一张模糊过的负片当遮罩，原片减掉它，边缘就浮出来了。数字版是同一件事，写成一行：</p>
+<div class="math-display">$$\text{out} = v + a \cdot (v - \text{blur}(v))$$</div>
+<p><code>a</code> 是数量，<code>blur</code> 的半径决定「多宽的边缘才算边缘」。差值越大越锐，问题也就出在差值上。</p>
+<h2 id="过冲白边是从哪来的">过冲：白边是从哪来的</h2>
+<p>理想阶跃边：左边 0，右边 1。模糊之后，边缘两侧各出现一段过渡，比如左边紧邻的像素被抬到 0.15，右边紧邻的被压到 0.85。</p>
+<p>于是：</p>
+<div class="table-wrap"><table><thead><tr><th>位置</th><th>原值 <code>v</code></th><th>模糊 <code>blur</code></th><th><code>v − blur</code></th><th><code>a=1</code> 时的输出</th></tr></thead><tbody><tr><td>暗侧紧邻</td><td>0.00</td><td>0.15</td><td>−0.15</td><td><strong>−0.15</strong></td></tr><tr><td>亮侧紧邻</td><td>1.00</td><td>0.85</td><td>+0.15</td><td><strong>1.15</strong></td></tr></tbody></table></div>
+<p>差值加回去，暗侧被推到 0 以下、亮侧被推到 1 以上。8 位缓冲会把它们夹回 0 和 1，看起来「只是变硬了一点」；但只要这一层用浮点缓冲、或者叠了混合模式，超出的部分就会真的显示出来——暗侧一条黑边、亮侧一条白边。这就是 fringe（光晕）。</p>
+<p>数量越大、半径越大，过冲越明显。所以「锐化过头」在画面上最典型的症状不是「太锐」，而是<strong>边缘发亮、发脏</strong>。</p>
+<h2 id="三条常见的补法">三条常见的补法</h2>
+<ol><li><strong>阈值</strong>。差值小于 <code>threshold/255</code> 的像素原样输出。它防的是噪点被放大， 对真正的强边一点用都没有——强边的差值恰恰最大。</li><li><strong>淡化高光/阴影</strong>。PS 智能锐化里的那两个滑杆：亮部少锐一点、暗部少锐一点。 方向对，但它是全局的，会把真正需要锐化的中间调也一起收力。</li><li><strong>去卷积</strong>。PS 智能锐化的「移去镜头模糊」是盲反卷积，从根上减少过冲， 代价是慢，而且对参数敏感。</li></ol>
+<h2 id="我们的第四条把结果夹回邻域极值">我们的第四条：把结果夹回邻域极值</h2>
+<p>对每个像素，取<strong>原图</strong> 3×3 邻域的 <code>[lo, hi]</code>，把锐化结果夹进去，再按 <code>fringe</code> （0–100%）与未夹版本混合：</p>
+<div class="math-display">$$\text{out} = (1-f)\cdot\big(v + a\,d\big) + f\cdot \mathrm{clamp}\big(v + a\,d,\; lo,\; hi\big)$$</div>
+<p>它为什么有效，看两个极端就清楚了：</p>
+<ul><li><strong>硬边</strong>：3×3 邻域里本来就有 0 也有 1，<code>[lo, hi] = [0, 1]</code>，夹取等于什么都没做—— 而硬边本来也没法更陡，所以这里是<strong>不锐化</strong>，正好。</li><li><strong>软边</strong>：过渡带的邻域极值就是过渡的两端，夹取把结果压在端点之间， 过渡被压陡，但绝不越过端点。</li></ul>
+<p>所以 <code>fringe=100</code> 时，这张图在数学上<strong>不可能</strong>多出白边或黑边。代价是高光的微弱溢出（比如镜面反光那一小撮过曝）会被一起压平——想要 PS 那种「亮部发光」的观感，把 <code>fringe</code> 调到 30–50，留一点过冲。</p>
+<h2 id="大半径怎么办">大半径怎么办</h2>
+<p>小半径（σ ≤ 4）用真高斯核，可分离卷积，代价与半径成正比。但「局部对比 / 清澈感」那种用法半径会到 15 甚至 50，<code>O(n·σ)</code> 在 4000 万像素上就慢了。</p>
+<p>大半径退化成<strong>三次盒式模糊串联</strong>：三次盒式的方差是 <code>3·((2r+1)²−1)/12</code>，反解半径</p>
+<div class="math-display">$$r = \frac{\sqrt{4\sigma^2 + 1} - 1}{2}$$</div>
+<p>代价与半径无关（<code>O(n)</code>，每像素固定几次加减），而 σ ≥ 4 时它与真高斯的分歧已经小于 1/255 —— 在 8 位输出上量不出来，16 位上也只是最后一两位。</p>
+<h2 id="参数怎么选">参数怎么选</h2>
+<div class="table-wrap"><table><thead><tr><th>目的</th><th>radius</th><th>amount</th><th>threshold</th><th>fringe</th></tr></thead><tbody><tr><td>纹理锐化</td><td>1.0</td><td>120%</td><td>3</td><td>100</td></tr><tr><td>局部对比（清澈感）</td><td>15</td><td>40%</td><td>0</td><td>60</td></tr><tr><td>缩图前最后一刀</td><td>0.8</td><td>90%</td><td>2</td><td>100</td></tr></tbody></table></div>
+<p>顺序上，<strong>先降噪再锐化</strong>。USM 会把噪点当边缘放大，而 <code>lb:reduce-noise</code> 恰好只磨平坦区、不动边缘，两者是配套的。</p>
+<h2 id="自检">自检</h2>
+<p><code>python tools/check_noise_sharpen.py</code> 里跟锐化有关的几项：</p>
+<ul><li><code>amount=0</code> 与 <code>threshold=255</code> 时逐位恒等；</li><li>开 / 关光晕抑制，对比硬边两侧的过冲：<code>fringe=100</code> 时过冲必须为 0；</li><li>软边过渡的级数变少（确实变陡了），且结果不越过两端；</li><li>硬边在完全抑制时与输入相同；</li><li>alpha 原样透传。</li></ul>
+<p>菜单在 <code>SuperMrWang → Sharpen → Unsharp Mask</code>。</p><nav class="pager"><a class="prev" href="../blog.html"><span>全部文章</span>回到博客列表</a><a class="next" href="noise-add-reduce-dust.html"><span>较新</span>噪点三件套：加得进去，也取得出来</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#过冲白边是从哪来的">过冲：白边是从哪来的</a></li>
+<li class="l2"><a href="#三条常见的补法">三条常见的补法</a></li>
+<li class="l2"><a href="#我们的第四条把结果夹回邻域极值">我们的第四条：把结果夹回邻域极值</a></li>
+<li class="l2"><a href="#大半径怎么办">大半径怎么办</a></li>
+<li class="l2"><a href="#参数怎么选">参数怎么选</a></li>
+<li class="l2"><a href="#自检">自检</a></li></ul>
+</aside>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../blog.html">Blog</a></p>
+  <h1>Why sharpening grows white fringes, and how to stop it</h1>
+  <div class="meta">
+    <span class="post-date"><time datetime="2026-11-18">2026.11.18</time></span>
+    <span>1 min read</span><span class="tag">Sharpen</span><span class="tag">USM</span><span class="tag">Halos</span>
+  </div>
+  <p class="lede">Unsharp masking is just adding the difference back, and the bill is overshoot. Photoshop pays it with fading and deconvolution; we pay it with something cheaper — clamping the result to the neighbourhood extremes.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>Unsharp masking comes from the darkroom: a blurred negative serves as a mask, the original is subtracted from it, and edges float up. The digital version is the same idea in one line:</p>
+<div class="math-display">$$\text{out} = v + a \cdot (v - \text{blur}(v))$$</div>
+<p><code>a</code> is the amount; the blur radius decides what counts as an edge. The larger the difference, the sharper — and that difference is exactly where the trouble lives.</p>
+<h2 id="overshoot-where-the-fringe-comes-from">Overshoot: where the fringe comes from</h2>
+<p>Take an ideal step edge: 0 on the left, 1 on the right. After blurring, both sides have a transition; say the pixel just left of the edge is lifted to 0.15 and the one just right of it is pulled down to 0.85.</p>
+<div class="table-wrap"><table><thead><tr><th>Position</th><th><code>v</code></th><th><code>blur</code></th><th><code>v − blur</code></th><th>output at <code>a=1</code></th></tr></thead><tbody><tr><td>dark side</td><td>0.00</td><td>0.15</td><td>−0.15</td><td><strong>−0.15</strong></td></tr><tr><td>bright side</td><td>1.00</td><td>0.85</td><td>+0.15</td><td><strong>1.15</strong></td></tr></tbody></table></div>
+<p>Adding the difference back pushes the dark side below zero and the bright side above one. An 8-bit buffer clamps both, so it merely looks harder. But on a float buffer, or through a blend mode, the excess is real: a dark line on one side, a bright line on the other. That is the fringe.</p>
+<p>The larger the amount and the radius, the bigger the overshoot. So the classic symptom of over-sharpening is not "too sharp" — it is <strong>edges that glow and look dirty</strong>.</p>
+<h2 id="three-usual-remedies">Three usual remedies</h2>
+<ol><li><strong>Threshold.</strong> Pixels whose difference is below <code>threshold/255</code> pass through untouched. This stops noise being amplified, and does nothing at all for a genuine hard edge — where the difference is largest.</li><li><strong>Fade highlights / shadows.</strong> The two sliders in Photoshop's Smart Sharpen. Right direction, but global: it also lets go of the midtones that most need sharpening.</li><li><strong>Deconvolution.</strong> "Remove lens blur" is blind deconvolution. It attacks overshoot at the root, at the cost of speed and sensitivity to its parameters.</li></ol>
+<h2 id="our-fourth-clamp-to-the-neighbourhood-extremes">Our fourth: clamp to the neighbourhood extremes</h2>
+<p>For each pixel, take <code>[lo, hi]</code> over the <strong>original</strong> 3×3 neighbourhood, clamp the sharpened value into it, then blend with the unclamped version by <code>fringe</code> (0–100%):</p>
+<div class="math-display">$$\text{out} = (1-f)\cdot\big(v + a\,d\big) + f\cdot \mathrm{clamp}\big(v + a\,d,\; lo,\; hi\big)$$</div>
+<p>Two extremes explain why it works:</p>
+<ul><li><strong>Hard edge</strong>: the 3×3 neighbourhood already contains both 0 and 1, so <code>[lo, hi] = [0, 1]</code> and the clamp does nothing — and a hard edge cannot get any steeper anyway, so "nothing" is exactly right.</li><li><strong>Soft edge</strong>: the extremes are the two ends of the transition, so the clamped result is pressed towards the ends, never past them. The ramp gets steeper; it never overshoots.</li></ul>
+<p>With <code>fringe=100</code> the result <strong>cannot</strong> gain a bright or dark fringe. The cost is that genuine highlight spill — that small blown specular patch — is flattened too. For the Photoshop "glowing highlights" look, set <code>fringe</code> to 30–50 and keep a little overshoot.</p>
+<h2 id="large-radii">Large radii</h2>
+<p>Small radii (σ ≤ 4) use a true Gaussian, separable, cost proportional to the radius. But the local-contrast / clarity style wants radius 15, sometimes 50, and <code>O(n·σ)</code> on forty megapixels is slow.</p>
+<p>Large radii fall back to <strong>three chained box blurs</strong>. Three boxes have variance <code>3·((2r+1)²−1)/12</code>, so the radius is</p>
+<div class="math-display">$$r = \frac{\sqrt{4\sigma^2 + 1} - 1}{2}$$</div>
+<p>The cost is independent of the radius (<code>O(n)</code>, a fixed handful of adds per pixel), and at σ ≥ 4 the difference from a true Gaussian is below 1/255 — unmeasurable on 8-bit output, and the last bit or two at 16-bit.</p>
+<h2 id="choosing-parameters">Choosing parameters</h2>
+<div class="table-wrap"><table><thead><tr><th>Goal</th><th>radius</th><th>amount</th><th>threshold</th><th>fringe</th></tr></thead><tbody><tr><td>Texture sharpening</td><td>1.0</td><td>120%</td><td>3</td><td>100</td></tr><tr><td>Local contrast / clarity</td><td>15</td><td>40%</td><td>0</td><td>60</td></tr><tr><td>Last pass before downscaling</td><td>0.8</td><td>90%</td><td>2</td><td>100</td></tr></tbody></table></div>
+<p>Order matters: <strong>denoise first, sharpen second</strong>. USM treats noise as edges; <code>lb:reduce-noise</code> smooths only flat areas and leaves edges alone, so the two belong together.</p>
+<h2 id="self-check">Self-check</h2>
+<p>The sharpening assertions in <code>python tools/check_noise_sharpen.py</code>:</p>
+<ul><li><code>amount=0</code> and <code>threshold=255</code> are bit-exact identities;</li><li>with halo suppression on and off, compare overshoot on both sides of a hard edge: at <code>fringe=100</code> it must be zero;</li><li>a soft edge ends up with fewer steps (it really did get steeper) without crossing its ends;</li><li>a hard edge is unchanged under full suppression;</li><li>alpha passes through untouched.</li></ul>
+<p>The menu entry is <code>SuperMrWang → Sharpen → Unsharp Mask</code>.</p><nav class="pager"><a class="prev" href="../blog.html"><span>All posts</span>Back to the blog</a><a class="next" href="noise-add-reduce-dust.html"><span>Newer</span>The noise trio: easy to add, possible to remove</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#overshoot-where-the-fringe-comes-from">Overshoot: where the fringe comes from</a></li>
+<li class="l2"><a href="#three-usual-remedies">Three usual remedies</a></li>
+<li class="l2"><a href="#our-fourth-clamp-to-the-neighbourhood-extremes">Our fourth: clamp to the neighbourhood extremes</a></li>
+<li class="l2"><a href="#large-radii">Large radii</a></li>
+<li class="l2"><a href="#choosing-parameters">Choosing parameters</a></li>
+<li class="l2"><a href="#self-check">Self-check</a></li></ul>
+</aside>
+</div></div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
+    <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
+    <span class="muted">1c0294b</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
+</body>
+</html>

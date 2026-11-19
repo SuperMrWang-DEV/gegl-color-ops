@@ -7,7 +7,7 @@
 <meta name="description" content="经典图像编辑器 匹配颜色：把另一张图（或另一层）的 Lab* 统计量迁移到本层" data-desc-zh="经典图像编辑器 匹配颜色：把另一张图（或另一层）的 Lab* 统计量迁移到本层" data-desc-en="经典图像编辑器 匹配颜色：把另一张图（或另一层）的 Lab* 统计量迁移到本层">
 <meta property="og:title" content="Match Color · gegl-color-ops" data-title-zh="Match Color · gegl-color-ops" data-title-en="Match Color · gegl-color-ops">
 <meta property="og:description" content="经典图像编辑器 匹配颜色：把另一张图（或另一层）的 Lab* 统计量迁移到本层" data-desc-zh="经典图像编辑器 匹配颜色：把另一张图（或另一层）的 Lab* 统计量迁移到本层" data-desc-en="经典图像编辑器 匹配颜色：把另一张图（或另一层）的 Lab* 统计量迁移到本层">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -89,18 +90,18 @@ window.addEventListener("DOMContentLoaded", function () {
   <p class="lede">经典图像编辑器 匹配颜色：把另一张图（或另一层）的 L<em>a</em>b* 统计量迁移到本层</p>
 </section><div class="article-layout">
   <article class="prose">
-<p>经典图像编辑器的「图像 → 调整 → 匹配颜色」的复刻：把<strong>另一张图 / 另一个图层</strong>的 颜色统计量迁移到本层。默认的「统计」方法就是 经典图像编辑器 的行为（Reinhard 等 2001 年的 L\<em>a\</em>b\* 均值-方差仿射迁移）；另外两档是公开文献里成熟、比它更好用的 算法，做成了 <code>method</code> 下拉框。</p>
+<p>经典图像编辑器的「图像 → 调整 → 匹配颜色」的复刻：把<strong>另一张图 / 另一个图层</strong>的颜色统计量迁移到本层。默认的「统计」方法就是 经典图像编辑器 的行为（Reinhard 等 2001 年的 L\<em>a\</em>b\* 均值-方差仿射迁移）；另外两档是公开文献里成熟、比它更好用的算法，做成了 <code>method</code> 下拉框。</p>
 <h2 id="模型">模型</h2>
 <p>工作在 CIELAB（D50）里，<code>method</code> 三选一。</p>
 <p><strong>① 统计（<code>stats</code>，默认）</strong>——逐通道均值/标准差仿射映射，与 经典图像编辑器 一致：</p>
 <div class="math-display">$$\text{out} = \bigl(v-\mu_t\bigr)\cdot\frac{\sigma_s}{\sigma_t} + \mu_s$$</div>
-<p><strong>② Monge-Kantorovich（<code>mkl</code>）</strong>——把 L/a/b 当成一个三维分布，用完整协方差解线性 最优传输：</p>
+<p><strong>② Monge-Kantorovich（<code>mkl</code>）</strong>——把 L/a/b 当成一个三维分布，用完整协方差解线性最优传输：</p>
 <div class="math-display">$$\text{out} = T\bigl((v-\mu_t)\oslash S\bigr)\odot S + \mu_s,
 \qquad T\,\Sigma_t T^{\mathsf T} = \Sigma_s$$</div>
-<p><code>S = diag(100, 128, 128)</code> 是通道尺度：L 的量程和 a/b 差一倍多，不归一化的话 L 的 方差会压过色度，传输度量就歪了。T 有闭式解（Pitié &amp; Kokaram, CVMP 2007）：</p>
+<p><code>S = diag(100, 128, 128)</code> 是通道尺度：L 的量程和 a/b 差一倍多，不归一化的话 L 的方差会压过色度，传输度量就歪了。T 有闭式解（Pitié &amp; Kokaram, CVMP 2007）：</p>
 <div class="math-display">$$T = \Sigma_t^{-1/2}\left(\Sigma_t^{1/2}\Sigma_s\Sigma_t^{1/2}\right)^{1/2}\Sigma_t^{-1/2}$$</div>
-<p>在满足 <code>T Σt Tᵀ = Σs</code> 的所有线性映射里，它是传输代价（Wasserstein-2）最小的那个。 差别在于：逐通道方法等于硬性假设 L/a/b 互不相关，而真实图像里三者强相关——所以 逐通道缩放会把「同一种颜色」沿某条通道撕开，出现色斑和空洞；MKL 不会。</p>
-<p><strong>③ MKL + 直方图（<code>mklhist</code>）</strong>——先做 ②，再对每个通道做一次 CDF 匹配（256 桶 LUT），把残差分布拉到来源的直方图上。线性映射够不到的色调尾部由它补齐，代价是 原图的层次会被参考图替换得更多、极端情况下偏平。</p>
+<p>在满足 <code>T Σt Tᵀ = Σs</code> 的所有线性映射里，它是传输代价（Wasserstein-2）最小的那个。差别在于：逐通道方法等于硬性假设 L/a/b 互不相关，而真实图像里三者强相关——所以逐通道缩放会把「同一种颜色」沿某条通道撕开，出现色斑和空洞；MKL 不会。</p>
+<p><strong>③ MKL + 直方图（<code>mklhist</code>）</strong>——先做 ②，再对每个通道做一次 CDF 匹配（256 桶 LUT），把残差分布拉到来源的直方图上。线性映射够不到的色调尾部由它补齐，代价是原图的层次会被参考图替换得更多、极端情况下偏平。</p>
 <pre class="mermaid">flowchart TD
   A["input 层 + aux 层（CIELAB D50）"] --&gt; B["整层扫描：sum / sum² / 交叉积&lt;br/&gt;得 μ, σ, 3×3 协方差"]
   B --&gt; C["缓存到 operation 实例&lt;br/&gt;键 = 源节点 + extent + 层级"]
@@ -111,15 +112,15 @@ window.addEventListener("DOMContentLoaded", function () {
   D2 --&gt; E
   D3 --&gt; E</pre>
 <div class="table-wrap"><table><thead><tr><th>method</th><th>需要的统计量</th><th>与 经典图像编辑器 的关系</th><th>什么时候用</th></tr></thead><tbody><tr><td><code>stats</code></td><td>6 个数（μ、σ）</td><td><strong>就是它的行为</strong></td><td>复刻 PS、两图本来接近</td></tr><tr><td><code>mkl</code></td><td>6 + 9 个数（含协方差）</td><td>更准：多用了通道相关性</td><td>大幅调色、跨图借色，怕色斑</td></tr><tr><td><code>mklhist</code></td><td>同上 + 两张直方图</td><td>更狠：连色调分布一起搬</td><td>就是要参考图那个调子</td></tr></tbody></table></div>
-<p>统计量对<strong>整层</strong>计算（经典图像编辑器 亦然），来源是 <code>aux</code> pad 接的图层；没接 aux 时 来源退化为本层自身，恒等映射。</p>
+<p>统计量对<strong>整层</strong>计算（经典图像编辑器 亦然），来源是 <code>aux</code> pad 接的图层；没接 aux 时来源退化为本层自身，恒等映射。</p>
 <h2 id="与-经典图像编辑器的滑杆对应">与 经典图像编辑器的滑杆对应</h2>
 <div class="table-wrap"><table><thead><tr><th>经典图像编辑器</th><th>这里</th><th>语义（模型对齐，非逐码标定）</th></tr></thead><tbody><tr><td>亮度 Luminance（1–200，默认 100）</td><td><code>luminance</code></td><td>只缩放 L 的映射量：<code>k = 滑杆/100</code>，映射按 <code>lerp(1, ratio, k)</code> 收敛。100=精确匹配，200=双倍修正，1=几乎不动</td></tr><tr><td>颜色强度 Color Intensity（默认 100）</td><td><code>color-intensity</code></td><td>同上，只作用于 a/b</td></tr><tr><td>渐隐 Fade（0–100）</td><td><code>fade</code></td><td>整体映射量乘 <code>(1 − fade/100)</code>；等价 经典图像编辑器的「编辑 → 渐隐」</td></tr><tr><td>中和 Neutralize</td><td><code>neutralize</code></td><td>输出的 a/b 均值强制为 0（去色偏），L 照常；来源仍提供对比度</td></tr></tbody></table></div>
 <p>三种方法共用这四个滑杆：映射量都是「向原值 lerp」，所以滑杆的语义不随方法改变。 <code>mklhist</code> 的直方图那一步也乘同一个量（先算完整映射，再按 k 混回原值）。</p>
-<blockquote><p>经典图像编辑器 2025 的匹配颜色<strong>没有脚本接口</strong>（对话框没有 DOM API，<code>Mk</code>/<code>matchColor</code> 均被拒），拿不到实测基准点，所以这里是模型对齐而非黑盒标定——与色阶的 处理方式一致，README 如实声明。</p></blockquote>
+<blockquote><p>经典图像编辑器 2025 的匹配颜色<strong>没有脚本接口</strong>（对话框没有 DOM API，<code>Mk</code>/<code>matchColor</code> 均被拒），拿不到实测基准点，所以这里是模型对齐而非黑盒标定——与色阶的处理方式一致，README 如实声明。</p></blockquote>
 <h2 id="不是直方图匹配">不是直方图匹配</h2>
 <p>常有「经典图像编辑器的匹配颜色其实是直方图规定化」的说法，实测与逆向复刻都不是：</p>
 <ul><li>经典图像编辑器 读的是<strong>六个数字</strong>：L、a、b 各自的均值与标准差。映射是仿射的， 同一通道内所有像素共用一条直线的斜率与截距——直方图只会被整体拉伸、平移、 削顶，不会被改写成参考图的形状；</li><li>直方图匹配（直方图规定化 / CDF 匹配）逐通道求累积分布的反函数 <code>v' = CDF_s⁻¹(CDF_t(v))</code>，输出的直方图<strong>与参考图几乎逐箱相同</strong>，原图的层次 关系被参考图替换；</li><li>一条自己能验的判据：拿线性灰阶（0→255 均匀渐变）去匹配任意参考图。仿射映射 的结果仍是线性渐变，只在两端被削平；CDF 匹配的结果会带上参考图的色调分布形状， 出现压缩与台阶；</li><li>三个滑杆的语义也只在统计模型下成立：亮度/颜色强度按 <code>lerp(1, ratio, k)</code> 收敛、 渐隐按比例回混——直方图匹配没有「比例」可调，只能改 CDF 的幂次，或者与结果按 比例混合。</li></ul>
-<p>另一种做法是 Lab 三通道各做一次 CDF 匹配，更贴参考图的整体调子，代价是原图的 明暗结构被替换、容易发平。本算子的默认方法保持与 经典图像编辑器 一致的统计迁移， 那条 CDF 路线做成了可选的 <code>mklhist</code>（建在 MKL 之上，而不是替代它）。</p>
+<p>另一种做法是 Lab 三通道各做一次 CDF 匹配，更贴参考图的整体调子，代价是原图的明暗结构被替换、容易发平。本算子的默认方法保持与 经典图像编辑器 一致的统计迁移，那条 CDF 路线做成了可选的 <code>mklhist</code>（建在 MKL 之上，而不是替代它）。</p>
 <h2 id="全局统计-逐块渲染">全局统计 × 逐块渲染</h2>
 <p>GEGL 的 process 每次只拿一小块，而均值/方差必须对整层算。做法：</p>
 <ul><li>首次 <code>process</code> 时整层扫一遍 input 与 aux（Lab 域，攒 sum/sum²），缓存在 operation 实例上（互斥锁保护，键 = 源节点 + extent + 层级）；</li><li>键里<strong>不放缓冲指针</strong>：GEGL 每次重新求值都会给 pad 换一块缓存缓冲，指针必然 变，拿它做键等于永远不命中——4 MP 的图拖一下滑杆就整层重扫两遍，约 1 秒；</li><li>后续块直接复用缓存，<strong>预览拖滑杆不会反复重算</strong>（4 MP：首次 0.12 s，之后 每次 0.02 s）；</li><li>来源图层内容变了（非破坏预览场景）勾一次「重算统计 / Refresh stats」， 重算完自动复位。</li><li><strong>缓存对象本身的创建也要串行</strong>：GEGL 用多个线程并行跑不同的块，首帧时它们 都会看到「还没有缓存」，各自 <code>g_new0</code> 一份再挂到实例上，而挂载函数会 <code>free</code> 掉上一份——先创建的那个线程随后在已释放的内存上加锁、读模型， 拿到 <code>n = 0</code> 的垃圾模型就走「原样输出」。表现就是<strong>画面上若干块根本没被 转换</strong>（看着像「一半没转过来」），严重时直接崩溃。所以创建段用一把全局 锁串起来，锁内二次检查。</li></ul>
@@ -130,8 +131,8 @@ window.addEventListener("DOMContentLoaded", function () {
 "D:/fastsoftware/GIMP 3/bin/gimp-console-3.2.exe" -i -c -d -f \
     --batch-interpreter=python-fu-eval \
     -b "exec(open(r'&lt;repo&gt;/tools/check_match_color.py').read())" --quit</code></pre>
-<p>30 项：恒等、均值迁移、方差缩放、亮度/颜色强度滑杆两端、渐隐 50/100、 中和（含输出均值 ≈0 断言）、aux 透明洞不进统计、目标透明像素 alpha 保留、 100 行跨块一致、无 aux 恒等、极端映射不越界。</p>
-<p><code>mkl</code> / <code>mklhist</code> 另有 13 项，验的是「映射该有的性质」而不是重抄矩阵运算： MKL 之后输出均值、标准差、相关系数必须等于来源；<code>mklhist</code> 之后各通道的 10/25/50/75/90% 分位必须贴着来源；两者在 aux=自身、渐隐 100 时都必须恒等； 纯色层（奇异协方差）必须安全退回且不出 NaN。期望值由 Python 镜像模型算出， Lab 读数直接取自 babl（与算子同一转换路径，不循环论证）。</p><div class="op-dl">
+<p>30 项：恒等、均值迁移、方差缩放、亮度/颜色强度滑杆两端、渐隐 50/100、中和（含输出均值 ≈0 断言）、aux 透明洞不进统计、目标透明像素 alpha 保留、 100 行跨块一致、无 aux 恒等、极端映射不越界。</p>
+<p><code>mkl</code> / <code>mklhist</code> 另有 13 项，验的是「映射该有的性质」而不是重抄矩阵运算： MKL 之后输出均值、标准差、相关系数必须等于来源；<code>mklhist</code> 之后各通道的 10/25/50/75/90% 分位必须贴着来源；两者在 aux=自身、渐隐 100 时都必须恒等；纯色层（奇异协方差）必须安全退回且不出 NaN。期望值由 Python 镜像模型算出， Lab 读数直接取自 babl（与算子同一转换路径，不循环论证）。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>match-color.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>match-color.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
@@ -233,7 +234,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

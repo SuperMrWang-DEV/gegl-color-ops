@@ -7,7 +7,7 @@
 <meta name="description" content="自然饱和度：提升低饱和区，抑制高饱和与肤色，不破坏色相" data-desc-zh="自然饱和度：提升低饱和区，抑制高饱和与肤色，不破坏色相" data-desc-en="自然饱和度：提升低饱和区，抑制高饱和与肤色，不破坏色相">
 <meta property="og:title" content="Natural Saturation · gegl-color-ops" data-title-zh="Natural Saturation · gegl-color-ops" data-title-en="Vibrance (Lab) · gegl-color-ops">
 <meta property="og:description" content="自然饱和度：提升低饱和区，抑制高饱和与肤色，不破坏色相" data-desc-zh="自然饱和度：提升低饱和区，抑制高饱和与肤色，不破坏色相" data-desc-en="自然饱和度：提升低饱和区，抑制高饱和与肤色，不破坏色相">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -92,8 +93,8 @@ window.addEventListener("DOMContentLoaded", function () {
 <p>在 LAB（D65）空间处理，工作于线性 sRGB，自动跟随输入色彩空间。</p>
 <p><strong>蒙版结构</strong> <span class="math">$M = M_{\text{chroma}}(C^*)\times M_{\text{skin}}(h)\times M_{\text{gamut}}$</span></p>
 <ul><li><span class="math">$M_{\text{chroma}} = \dfrac{1}{1+\alpha\,(C^*/50)^{1.3}}$</span>：读<strong>源图</strong>色度 <span class="math">$C^*$</span>，色度越高增益越低； 指数 1.3 让 C*&gt;60 掉得比纯双曲线更快。与 Saturation 滑杆互不影响。</li><li><code>M_skin</code>：LAB 色相 55° 附近（橙/肤色带）、色度 8–80 区间时降权， 用 smoothstep 软窗，边界无硬边。强度由 <code>Skin Protection</code>（默认 0.7）控制，0 = 关闭。</li><li><code>M_gamut</code>：色度沿<strong>原色相、原明度</strong>放大后，若超出 sRGB 色域，按 5 步二分收敛 到色域边界内的最大值。色相与明度恒不变，替代逐通道硬裁剪（硬裁剪会扭色相）。</li></ul>
-<p><code>vibrance</code> 滑杆（±50 UI 范围）等效于低饱和区 C* 的最大 ×2（+50）/ ×3（+100）放大； 全局 <code>Saturation</code> 是独立的线性色度乘法，与蒙版无关。</p>
-<p>实测（10 个标准色块，vibrance=+50）：色相偏移 ≤0.7°（旧版最高 10.2°）； 肤色增幅 1.16–1.18×（旧版 1.47–1.55×）；低饱和区 1.76–2.00×。 vibrance=0 且 saturation=1 时输出与输入逐字节一致。</p><div class="op-dl">
+<p><code>vibrance</code> 滑杆（±50 UI 范围）等效于低饱和区 C* 的最大 ×2（+50）/ ×3（+100）放大；全局 <code>Saturation</code> 是独立的线性色度乘法，与蒙版无关。</p>
+<p>实测（10 个标准色块，vibrance=+50）：色相偏移 ≤0.7°（旧版最高 10.2°）；肤色增幅 1.16–1.18×（旧版 1.47–1.55×）；低饱和区 1.76–2.00×。 vibrance=0 且 saturation=1 时输出与输入逐字节一致。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>vibrance-hyper.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>vibrance-hyper.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
@@ -176,7 +177,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

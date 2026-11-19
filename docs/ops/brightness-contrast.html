@@ -7,7 +7,7 @@
 <meta name="description" content="复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面" data-desc-zh="复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面" data-desc-en="复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面">
 <meta property="og:title" content="Brightness/Contrast · gegl-color-ops" data-title-zh="Brightness/Contrast · gegl-color-ops" data-title-en="Brightness/Contrast · gegl-color-ops">
 <meta property="og:description" content="复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面" data-desc-zh="复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面" data-desc-en="复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -88,7 +89,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <p class="lede">复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面</p>
 </section><div class="article-layout">
   <article class="prose">
-<p>按黑盒标定得到的 经典图像编辑器的「亮度/对比度」，<strong>新版与旧版（对话框里的「使用旧版」）两套行为都在里面</strong>。 同一张标定图分别过经典图像编辑器26.10 和本算子，逐像素对比见文末「验收」。</p>
+<p>按黑盒标定得到的 经典图像编辑器的「亮度/对比度」，<strong>新版与旧版（对话框里的「使用旧版」）两套行为都在里面</strong>。同一张标定图分别过经典图像编辑器26.10 和本算子，逐像素对比见文末「验收」。</p>
 <ul><li>GEGL id：<code>lb:brightness-contrast</code></li><li>菜单：<code>Colors → SuperMrWang → Tone → Brightness/Contrast</code></li><li>类型：<code>GeglOperationPointFilter</code>（逐像素，无邻域）</li><li>参数：<code>brightness</code>（−150…150）、<code>contrast</code>（−50…100）、<code>legacy</code>（默认关＝新版）</li></ul>
 <h2 id="先看一条结论它就是一条逐通道相同的-lut">先看一条结论：它就是一条逐通道相同的 LUT</h2>
 <p>标定图里放了灰阶 ramp、反向 ramp、R/G/B 单通道 ramp 和全色相环，实测：</p>
@@ -105,13 +106,13 @@ window.addEventListener("DOMContentLoaded", function () {
 \bigl(1,\ b'\bigr), &amp; c = 0
 \end{cases}$$</div>
 <p><span class="math">$K$</span> 的两种写法 <span class="math">$1/(1-c/100)$</span> 与 <span class="math">$1+c/100$</span> 实测吻合到 <span class="math">$10^{-4}$</span>。</p>
-<p><strong>对比度的支点不是 128 而是 89.00</strong>（= 255 × 0.349），这是旧版最反直觉的一处： c=50、b=0 时 128 → 167，中灰会被推亮。这一点用 31 条曲线做公共不动点最小二乘得到， 不同 c 之间一致性在 ±0.03 码内。</p>
-<p>新版没有闭式，用两张一维表：亮度族 61 档（b 步长 5）、对比度族 31 档（c 步长 5）， 每档一条 255 点曲线，参数方向与 x 方向都线性插值。表由 <code>tools/gen_bc_tables.py</code> 从 <code>bc-cal/bc_model.json</code> 生成，算子不手抄常数。</p>
+<p><strong>对比度的支点不是 128 而是 89.00</strong>（= 255 × 0.349），这是旧版最反直觉的一处： c=50、b=0 时 128 → 167，中灰会被推亮。这一点用 31 条曲线做公共不动点最小二乘得到，不同 c 之间一致性在 ±0.03 码内。</p>
+<p>新版没有闭式，用两张一维表：亮度族 61 档（b 步长 5）、对比度族 31 档（c 步长 5），每档一条 255 点曲线，参数方向与 x 方向都线性插值。表由 <code>tools/gen_bc_tables.py</code> 从 <code>bc-cal/bc_model.json</code> 生成，算子不手抄常数。</p>
 <h2 id="为什么新版要查表">为什么新版要查表</h2>
 <p>新版亮度的低值段是<strong>严格的线性</strong>：<code>f(x) = k·x</code>，其中 <code>k = exp(0.00630126·b)</code> （b=+50 → 1.3705，b=+100 → 1.8782，b=−150 → 0.3887，61 档对数残差 8e-5）。</p>
 <p>后来把结构拆开了（见 <code>bc-cal/RESULTS.md</code> 第五节之二）：</p>
 <ul><li><strong>b&gt;0</strong>：线性一直延伸到 <code>k·x ≈ 128</code>，之后接一段<strong>三次肩部</strong>，切线连续，末端收在 (255, 255)。b ≤ 100 时这段拟合残差只有 0.03 码；b&gt;100 时三次不够（b=150 差 3 码）， 四次降到 0.7 码。</li><li><strong>b&lt;0</strong>：不是三次，而是<strong>正向曲线的反函数</strong>（<code>f₋ᵦ = fᵦ⁻¹</code>，平均误差 0.01 码）。 所以「b&lt;0 在中高段上拱」只是同一条压缩曲线翻过来看，没有第二套机制。</li></ul>
-<p>闭式版本在 <code>bc-cal/bc_compact.py</code>（每档只存 4 个数，负向求逆）。算子仍然保留实测表， 原因只有一个：最靠近白的十几个像素处正向斜率只有 0.02，求逆会放大 50 倍，闭式在那里 有 3 码误差，而实测表是 0 码。表由 <code>tools/gen_bc_tables.py</code> 从 <code>bc-cal/bc_model.json</code> 生成，算子不手抄常数。</p>
+<p>闭式版本在 <code>bc-cal/bc_compact.py</code>（每档只存 4 个数，负向求逆）。算子仍然保留实测表，原因只有一个：最靠近白的十几个像素处正向斜率只有 0.02，求逆会放大 50 倍，闭式在那里有 3 码误差，而实测表是 0 码。表由 <code>tools/gen_bc_tables.py</code> 从 <code>bc-cal/bc_model.json</code> 生成，算子不手抄常数。</p>
 <h2 id="性能">性能</h2>
 <p>b、c 对整张图是常量，所以整条复合曲线在 <code>prepare()</code> 里折成一张 256 项 LUT， <code>process()</code> 每个通道只剩一次查表 + 一次 lerp。全图 256×192 渲染约 0.2 s（含 PNG 编解码）。</p>
 <h2 id="验收">验收</h2>
@@ -121,7 +122,7 @@ window.addEventListener("DOMContentLoaded", function () {
 <h2 id="已知偏差">已知偏差</h2>
 <ol><li><strong>旧版 c=100</strong>：经典图像编辑器 在支点 x=89 上输出 159（K 发散时 <code>0×∞</code> 的产物），本算子按极限 输出 0/255。只影响恰好等于 89 的那一列像素，其余全部一致（95% 分位 0 码）。</li><li><strong>新版的 255 特例</strong>：b&lt;0 时实测 254 照曲线走（b=−150 时 214），255 却原样保留 255 —— 单纯白保护（b&gt;0 时曲线本来就自然收在 255，不需要这条）。本算子照抄这一行为； 不想要可以在上游 <code>bc_ref.py</code> 里去掉。</li><li>参数取非整数时（例如 b=7、c=43）误差会升到 0.6 码左右，因为表按步长 5 建。 要更细就把 <code>bc-cal/batch_bc2.jsx</code> 的步长改小重跑。</li></ol>
 <h2 id="与-lbhue-saturation-lbexposure-的关系">与 <code>lb:hue-saturation</code> / <code>lb:exposure</code> 的关系</h2>
-<p>那个是把亮度当 HSL 的 L 或 EV 处理，卷的是色彩模型；这个只忠实复刻 经典图像编辑器的两条曲线。 需要"和经典图像编辑器对得上"就用这个，需要"调得好看"用别的。</p><div class="op-dl">
+<p>那个是把亮度当 HSL 的 L 或 EV 处理，卷的是色彩模型；这个只忠实复刻 经典图像编辑器的两条曲线。需要"和经典图像编辑器对得上"就用这个，需要"调得好看"用别的。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>lb-brightness-contrast.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>lb-brightness-contrast.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
@@ -215,7 +216,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

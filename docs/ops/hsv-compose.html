@@ -7,7 +7,7 @@
 <meta name="description" content="HSV 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色" data-desc-zh="HSV 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色" data-desc-en="HSV 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色">
 <meta property="og:title" content="HSV Compose · gegl-color-ops" data-title-zh="HSV Compose · gegl-color-ops" data-title-en="HSV Compose · gegl-color-ops">
 <meta property="og:description" content="HSV 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色" data-desc-zh="HSV 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色" data-desc-en="HSV 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -88,14 +89,14 @@ window.addEventListener("DOMContentLoaded", function () {
   <p class="lede">HSV 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色</p>
 </section><div class="article-layout">
   <article class="prose">
-<p>把数据图还原成真实颜色：<code>R = 饱和度</code>、<code>G = 明度</code>、<code>B = 色相/360</code>（都是 0…1）， 按 HSV 定义算出 RGB。</p>
+<p>把数据图还原成真实颜色：<code>R = 饱和度</code>、<code>G = 明度</code>、<code>B = 色相/360</code>（都是 0…1），按 HSV 定义算出 RGB。</p>
 <pre><code>(R=S, G=V, B=H/360) ──lb:hsv-compose──&gt; 真实颜色</code></pre>
 <h2 id="输入约定是硬的">输入约定是硬的</h2>
 <p>本算子<strong>无法分辨</strong>输入是一张数据图还是一张普通照片——它一律按「R 是饱和度、 G 是明度、B 是色相」解释。挂错地方会把照片当成数据算出一张乱七八糟的图。</p>
 <p>正常用法是紧跟在 <code>lb:hsv-dual</code> 之后（中间夹三条曲线）：</p>
 <pre><code>lb:hsv-dual → S 曲线(红) → V 曲线(绿) → H 曲线(蓝) → lb:hsv-compose</code></pre>
 <h2 id="为什么不用hsv-分量混合模式">为什么不用「HSV 分量混合模式」</h2>
-<p>GIMP 的 <code>HSV Hue / HSV Saturation / HSV Value</code> 三个模式合起来也能改 HSV，但每层 只看得见一个分量：色相层换了角度，它保留的仍是下层的 S、V——对 HSV 来说这恰好 就是「只改色相」，所以旧版能用。代价是三层、每层要先把分量抽成灰度、曲完再编码 成「携带该分量」的颜色，8 位图上还得靠组内浮点缓冲才不偏色。</p>
+<p>GIMP 的 <code>HSV Hue / HSV Saturation / HSV Value</code> 三个模式合起来也能改 HSV，但每层只看得见一个分量：色相层换了角度，它保留的仍是下层的 S、V——对 HSV 来说这恰好就是「只改色相」，所以旧版能用。代价是三层、每层要先把分量抽成灰度、曲完再编码成「携带该分量」的颜色，8 位图上还得靠组内浮点缓冲才不偏色。</p>
 <p>一次合成没有这个包袱：三个分量在同一条管线里，算完就是最终颜色。</p>
 <h2 id="实测">实测</h2>
 <ul><li><code>dual → compose</code> 恒等往返：32 位浮点 <strong>0.0002 码</strong>，8 位 <strong>0.49 码</strong>。</li><li>在完整插件里（<code>tools/check_hsv_split.py</code> 33 项）：改 S 曲线后结果的 V 与色相 偏差 <strong>&amp;lt; 0.001 码</strong>。</li></ul>
@@ -170,7 +171,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

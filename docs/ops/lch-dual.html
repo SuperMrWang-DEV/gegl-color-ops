@@ -7,7 +7,7 @@
 <meta name="description" content="LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L、G = 彩度 C、B = 色相/360」的数据图，一张图同时携带三个分量" data-desc-zh="LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L、G = 彩度 C、B = 色相/360」的数据图，一张图同时携带三个分量" data-desc-en="LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L、G = 彩度 C、B = 色相/360」的数据图，一张图同时携带三个分量">
 <meta property="og:title" content="LCh Dual Extract · gegl-color-ops" data-title-zh="LCh Dual Extract · gegl-color-ops" data-title-en="LCh Dual Extract · gegl-color-ops">
 <meta property="og:description" content="LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L、G = 彩度 C、B = 色相/360」的数据图，一张图同时携带三个分量" data-desc-zh="LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L、G = 彩度 C、B = 色相/360」的数据图，一张图同时携带三个分量" data-desc-en="LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L、G = 彩度 C、B = 色相/360」的数据图，一张图同时携带三个分量">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -97,11 +98,11 @@ window.addEventListener("DOMContentLoaded", function () {
                           ▼
                     lb:lch-compose  ──&gt; 真实颜色</code></pre>
 <h2 id="为什么是极坐标">为什么是极坐标</h2>
-<p>Lab 的 <code>a</code>、<code>b</code> 是直角坐标：<code>C² = a² + b²</code>、<code>h = atan2(b, a)</code>。一条一维曲线改 a， 彩度和色相都跟着变——画面上看就是「整体偏色」。想「只加彩度」「只转色相」， 就得先在极坐标里表达，那正是本算子做的事。</p>
-<p>转成 (L, C, h) 之后，三条曲线各自独立，再由 <code>lb:lch-compose</code> 一起算回颜色。 <code>LCh Split (Curves)</code> 的旧版用三张分量层 + 三个 LCh 混合模式，还要把分量值编码成 「混合模式读得出来的颜色」（色相层得造等 L<em>、等 C</em> 的色相圆）；一层写法把这些 全部省掉。</p>
+<p>Lab 的 <code>a</code>、<code>b</code> 是直角坐标：<code>C² = a² + b²</code>、<code>h = atan2(b, a)</code>。一条一维曲线改 a，彩度和色相都跟着变——画面上看就是「整体偏色」。想「只加彩度」「只转色相」，就得先在极坐标里表达，那正是本算子做的事。</p>
+<p>转成 (L, C, h) 之后，三条曲线各自独立，再由 <code>lb:lch-compose</code> 一起算回颜色。 <code>LCh Split (Curves)</code> 的旧版用三张分量层 + 三个 LCh 混合模式，还要把分量值编码成「混合模式读得出来的颜色」（色相层得造等 L<em>、等 C</em> 的色相圆）；一层写法把这些全部省掉。</p>
 <h2 id="量程实测标定babl-d50">量程（实测标定，babl D50）</h2>
 <div class="table-wrap"><table><thead><tr><th>分量</th><th>babl 单位</th><th>数据图</th></tr></thead><tbody><tr><td>L*</td><td>0…100</td><td><code>L/100</code></td></tr><tr><td>C*</td><td>0…约 133.8（sRGB 全色域）</td><td><code>C/140</code></td></tr><tr><td>h</td><td>0…360°</td><td><code>h/360</code></td></tr></tbody></table></div>
-<p>彩度取 140 而不是 135：sRGB 最饱和的点是纯蓝，<code>C*≈133.8</code>，留一点余量让整圈都 装得下。8 位图上 1 码 ≈ 0.55 个 C* 单位，往返量化误差仍在 0.5 码内。</p>
+<p>彩度取 140 而不是 135：sRGB 最饱和的点是纯蓝，<code>C*≈133.8</code>，留一点余量让整圈都装得下。8 位图上 1 码 ≈ 0.55 个 C* 单位，往返量化误差仍在 0.5 码内。</p>
 <h2 id="实测">实测</h2>
 <p><code>tools/check_lch_split.py</code> 里 <code>dual → compose</code> 恒等往返：32 位浮点 <strong>0.0005 码</strong>， 8 位 <strong>0.49 码</strong>。中性灰（C=0）的色相在 babl 侧无定义，算子把非有限值折成 0。</p>
 <h2 id="注意">注意</h2>
@@ -180,7 +181,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

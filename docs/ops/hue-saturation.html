@@ -7,7 +7,7 @@
 <meta name="description" content="全局或按红/黄/绿/青/蓝/品红六个色相区间调整色相、饱和度、明度" data-desc-zh="全局或按红/黄/绿/青/蓝/品红六个色相区间调整色相、饱和度、明度" data-desc-en="全局或按红/黄/绿/青/蓝/品红六个色相区间调整色相、饱和度、明度">
 <meta property="og:title" content="Hue/Saturation · gegl-color-ops" data-title-zh="Hue/Saturation · gegl-color-ops" data-title-en="Hue/Saturation · gegl-color-ops">
 <meta property="og:description" content="全局或按红/黄/绿/青/蓝/品红六个色相区间调整色相、饱和度、明度" data-desc-zh="全局或按红/黄/绿/青/蓝/品红六个色相区间调整色相、饱和度、明度" data-desc-en="全局或按红/黄/绿/青/蓝/品红六个色相区间调整色相、饱和度、明度">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -88,7 +89,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <p class="lede">全局或按红/黄/绿/青/蓝/品红六个色相区间调整色相、饱和度、明度</p>
 </section><div class="article-layout">
   <article class="prose">
-<p>仿 GIMP「色相-饱和度」滤镜的 GEGL point filter，在 <strong>HSL</strong> 空间逐像素调整， 工作于感知（非线性）RGB 格式 <code>R~G~B~A float</code>，自动跟随源色彩空间。</p>
+<p>仿 GIMP「色相-饱和度」滤镜的 GEGL point filter，在 <strong>HSL</strong> 空间逐像素调整，工作于感知（非线性）RGB 格式 <code>R~G~B~A float</code>，自动跟随源色彩空间。</p>
 <h2 id="功能">功能</h2>
 <ul><li><strong>主控</strong>：<code>hue</code>（度数 ±180）、<code>saturation</code>（±1，加法）、<code>lightness</code>（±1，加法）</li><li><strong>六个色相区间</strong>（红/黄/绿/青/蓝/品红，中心各相隔 60°）各自拥有独立的 <code>*-hue / *-saturation / *-lightness</code>，按三角形权重与主控叠加</li><li><strong><code>overlap</code></strong>（0–1）：区间宽度 = 60° × (1 + overlap)。默认 0 = 六个区间恰好铺满色环、 区间中心获得 100% 设定；调大则相邻区间互相渗透（柔和但峰值强度按权重比例稀释）</li><li>灰阶像素（S &lt; 1e-5）不染色：色相/饱和度调整被跳过，仅应用明度</li><li>全零参数时直接 memcpy 透传（含 alpha），HDR 超范围值按 [0,1] 截断后计算</li></ul>
 <h2 id="算法">算法</h2>
@@ -109,7 +110,7 @@ eval gcc -shared -I. -O2 -Wall wb-hue-saturation.c \
 gegl --info wb:hue-saturation
 gegl test-in.png -o out.png -- wb:hue-saturation hue=45 green-saturation=-0.5</code></pre>
 <h2 id="安装到-gimp-3">安装到 GIMP 3</h2>
-<p>把 <code>wb-hue-saturation.dll</code> 拷入 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins\</code> 后<strong>重启 GIMP</strong>， 用 <code>/</code> 打开 Search Actions 搜索 "Hue-Saturation (WB)"，滤镜以非破坏性 fx 形式挂在图层上。</p>
+<p>把 <code>wb-hue-saturation.dll</code> 拷入 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins\</code> 后<strong>重启 GIMP</strong>，用 <code>/</code> 打开 Search Actions 搜索 "Hue-Saturation (WB)"，滤镜以非破坏性 fx 形式挂在图层上。</p>
 <h2 id="在-gimp-3-python-中调用">在 GIMP 3 Python 中调用</h2>
 <pre><code class="language-python">from gi.repository import Gimp, Gegl
 
@@ -203,7 +204,7 @@ drawable.merge_filter(filter)             # non-destructive; Gimp.displays_flush
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

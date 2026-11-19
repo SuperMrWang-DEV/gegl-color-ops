@@ -7,7 +7,7 @@
 <meta name="description" content="经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色" data-desc-zh="经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色" data-desc-en="经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色">
 <meta property="og:title" content="Black &amp; White · gegl-color-ops" data-title-zh="Black &amp; White · gegl-color-ops" data-title-en="Black &amp; White · gegl-color-ops">
 <meta property="og:description" content="经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色" data-desc-zh="经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色" data-desc-en="经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -89,10 +90,10 @@ window.addEventListener("DOMContentLoaded", function () {
 </section><div class="article-layout">
   <article class="prose">
 <h2 id="算法">算法</h2>
-<p>六个色相滑杆（红 / 黄 / 绿 / 青 / 蓝 / 品红）决定每种颜色对灰度的贡献， 结果还可以着色——就是 经典图像编辑器的「黑白」对话框：把蓝拉低压暗天空，把黄推高提亮肤色， 其余部分不受影响。</p>
-<p>逐像素把三通道排序成 <span class="math">$v_{\max} \ge v_{\text{mid}} \ge v_{\min}$</span>，用到两个权重： <strong>最大值通道</strong>的色相滑杆，以及夹在中间的那根滑杆（红+绿用黄、绿+蓝用青、蓝+红用品红）：</p>
+<p>六个色相滑杆（红 / 黄 / 绿 / 青 / 蓝 / 品红）决定每种颜色对灰度的贡献，结果还可以着色——就是 经典图像编辑器的「黑白」对话框：把蓝拉低压暗天空，把黄推高提亮肤色，其余部分不受影响。</p>
+<p>逐像素把三通道排序成 <span class="math">$v_{\max} \ge v_{\text{mid}} \ge v_{\min}$</span>，用到两个权重：<strong>最大值通道</strong>的色相滑杆，以及夹在中间的那根滑杆（红+绿用黄、绿+蓝用青、蓝+红用品红）：</p>
 <div class="math-display">$$g = (v_{\max}-v_{\text{mid}})\,w_{\max} + (v_{\text{mid}}-v_{\min})\,w_{\text{夹色}} + v_{\min}$$</div>
-<p>滑块量程 −200…300 与经典图像编辑器界面一致，默认值 （红 40、黄 60、绿 40、青 60、蓝 20、品红 80）取自 经典图像编辑器。</p>
+<p>滑块量程 −200…300 与经典图像编辑器界面一致，默认值（红 40、黄 60、绿 40、青 60、蓝 20、品红 80）取自 经典图像编辑器。</p>
 <h3 id="着色">着色</h3>
 <p>着色走的是经典图像编辑器自己的算法（18 组色相 × 饱和度黑盒标定，逐码吻合，见 <code>bw-cal/RESULTS.md</code>），<strong>不是</strong>「灰度 × 颜色」的乘法。记着色 <span class="math">$t=(t_R,t_G,t_B)$</span>， NTSC 亮度 <span class="math">$L = 0.3\,t_R + 0.59\,t_G + 0.11\,t_B$</span>（编码域），每个输出通道：</p>
 <div class="math-display">$$\text{out}_{ch} = \begin{cases}
@@ -100,7 +101,7 @@ window.addEventListener("DOMContentLoaded", function () {
 g + t_{ch} - L, &amp; \text{其余} \quad \text{（中段）} \\[8pt]
 1-(t_{\max}-t_{ch})\cdot \dfrac{1-g}{\,t_{\max}-L\,}, &amp; g \ge 1-(t_{\max}-L) \quad \text{（顶部）}
 \end{cases}$$</div>
-<p>再按强度滑杆往灰度回插：<span class="math">$\text{out}_{ch} \leftarrow g + (\text{out}_{ch}-g)\cdot s$</span>。 三段在断点处连续，顶/底两段精确过白/黑端点，所以着色后整幅图的明暗层次不会塌掉。</p>
+<p>再按强度滑杆往灰度回插：<span class="math">$\text{out}_{ch} \leftarrow g + (\text{out}_{ch}-g)\cdot s$</span>。三段在断点处连续，顶/底两段精确过白/黑端点，所以着色后整幅图的明暗层次不会塌掉。</p>
 <pre class="mermaid">flowchart TD
   A["像素 r, g, b&lt;br/&gt;排序成 max / mid / min"] --&gt; B["按 max–mid 的通道组合&lt;br/&gt;取「最大值色相」+「夹色」两根滑杆"]
   B --&gt; C["g = (max−mid)·w₁ + (mid−min)·w₂ + min"]
@@ -215,7 +216,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

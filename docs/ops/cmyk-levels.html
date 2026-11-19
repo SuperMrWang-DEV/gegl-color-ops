@@ -7,7 +7,7 @@
 <meta name="description" content="CMYK 四个分量各自设输入 / 输出黑白场与伽马" data-desc-zh="CMYK 四个分量各自设输入 / 输出黑白场与伽马" data-desc-en="CMYK 四个分量各自设输入 / 输出黑白场与伽马">
 <meta property="og:title" content="CMYK Levels · gegl-color-ops" data-title-zh="CMYK Levels · gegl-color-ops" data-title-en="CMYK Levels · gegl-color-ops">
 <meta property="og:description" content="CMYK 四个分量各自设输入 / 输出黑白场与伽马" data-desc-zh="CMYK 四个分量各自设输入 / 输出黑白场与伽马" data-desc-en="CMYK 四个分量各自设输入 / 输出黑白场与伽马">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -90,12 +91,12 @@ window.addEventListener("DOMContentLoaded", function () {
   <article class="prose">
 <p>菜单：<code>SuperMrWang → Levels → CMYK Levels</code>（Filter 类）</p>
 <h2 id="概述">概述</h2>
-<p>对 C / M / Y / K 四个印版各自做独立色阶：墨量黑场、白场、gamma、输出上下限。 想做「K 版单独压暗中间调」「只给青版加反差」这类分色调整时用它。</p>
+<p>对 C / M / Y / K 四个印版各自做独立色阶：墨量黑场、白场、gamma、输出上下限。想做「K 版单独压暗中间调」「只给青版加反差」这类分色调整时用它。</p>
 <h2 id="色彩空间">色彩空间</h2>
 <p>工作在 babl 的 <code>CMYKA float</code> 上，RGB↔CMYK 由 babl 完成，与 GIMP 「分解 → CMYK」同一套转换。</p>
 <p><strong>这不是 ICC 分色。</strong> babl 的 CMYK 带黑版生成（GCR/UCR 意义上的），实测：</p>
 <div class="table-wrap"><table><thead><tr><th>RGB</th><th>C</th><th>M</th><th>Y</th><th>K</th></tr></thead><tbody><tr><td>中性灰 0.5</td><td>0</td><td>0</td><td>0</td><td>78.6%</td></tr><tr><td>(0.8, 0.45, 0.2)</td><td>0</td><td>71.7%</td><td>94.5%</td><td>39.6%</td></tr><tr><td>纯红</td><td>0</td><td>100%</td><td>100%</td><td>0</td></tr></tbody></table></div>
-<p>所以 K 不是 <code>1−max(R,G,B)</code>（灰 0.5 时那是 50%，这里是 78.6%）。要按印前 特性文件（SWOP/FOGRA 等）分色，得走 ICC 流程，本算子只提供「设备无关的 babl 分色 + 分版色阶」。</p>
+<p>所以 K 不是 <code>1−max(R,G,B)</code>（灰 0.5 时那是 50%，这里是 78.6%）。要按印前特性文件（SWOP/FOGRA 等）分色，得走 ICC 流程，本算子只提供「设备无关的 babl 分色 + 分版色阶」。</p>
 <div class="math-display">$$u = \operatorname{clamp}\!\left(\frac{x-x_{\text{lo}}}{x_{\text{hi}}-x_{\text{lo}}},\,0,\,1\right),
 \qquad
 \text{out} = o_{\text{lo}} + u^{1/\gamma}\,\bigl(o_{\text{hi}}-o_{\text{lo}}\bigr)$$</div>
@@ -105,7 +106,7 @@ window.addEventListener("DOMContentLoaded", function () {
 <h2 id="验证">验证</h2>
 <p><code>python tools/check_color_levels.py cmyk</code>（3 项）：</p>
 <div class="table-wrap"><table><thead><tr><th>用例</th><th>判据</th><th>实测</th></tr></thead><tbody><tr><td>恒等（默认参数）</td><td>与源图逐像素 ≤1 码</td><td>最大 0</td></tr><tr><td>C/M/Y 归零</td><td>全图中性（|R−G|、|G−B| ≤2）</td><td>0</td></tr><tr><td>K 拉满</td><td>全图最亮通道 ≤12</td><td>0</td></tr></tbody></table></div>
-<p>恒等 0 码说明 RGB→CMYK→RGB 这条 babl 往返在默认参数下不漂；后两条验证 「某个版归零/拉满必须产生可预期的画面」——也就是说色阶确实作用在对应的 印版上，没有错位。</p>
+<p>恒等 0 码说明 RGB→CMYK→RGB 这条 babl 往返在默认参数下不漂；后两条验证「某个版归零/拉满必须产生可预期的画面」——也就是说色阶确实作用在对应的印版上，没有错位。</p>
 <h2 id="已知事项">已知事项</h2>
 <ul><li>babl 的 CMYK 是<strong>没有纸白与油墨特性</strong>的简化分色，同一组 RGB 换算出的 墨量与实际印刷无关；它适合「按版做局部调整」这类操作，不适合当作打样数值。</li><li>CMYK 色域比 sRGB 小，来回转换会在饱和色上产生裁切（尤其纯绿/纯蓝）。</li><li>8 位/16 位模式下墨量量化台阶比 RGB 粗，重压 K 曲线时容易出现断层。</li></ul><div class="op-dl">
   <div>
@@ -183,7 +184,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

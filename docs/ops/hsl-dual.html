@@ -7,7 +7,7 @@
 <meta name="description" content="HSL 分量曲线工作流的提取器：把一张图拆成「R = HSL 饱和度、G = HSL 明度、B = 色相/360」的数据图，一张图同时携带三个分量" data-desc-zh="HSL 分量曲线工作流的提取器：把一张图拆成「R = HSL 饱和度、G = HSL 明度、B = 色相/360」的数据图，一张图同时携带三个分量" data-desc-en="HSL 分量曲线工作流的提取器：把一张图拆成「R = HSL 饱和度、G = HSL 明度、B = 色相/360」的数据图，一张图同时携带三个分量">
 <meta property="og:title" content="HSL Dual Extract · gegl-color-ops" data-title-zh="HSL Dual Extract · gegl-color-ops" data-title-en="HSL Dual Extract · gegl-color-ops">
 <meta property="og:description" content="HSL 分量曲线工作流的提取器：把一张图拆成「R = HSL 饱和度、G = HSL 明度、B = 色相/360」的数据图，一张图同时携带三个分量" data-desc-zh="HSL 分量曲线工作流的提取器：把一张图拆成「R = HSL 饱和度、G = HSL 明度、B = 色相/360」的数据图，一张图同时携带三个分量" data-desc-en="HSL 分量曲线工作流的提取器：把一张图拆成「R = HSL 饱和度、G = HSL 明度、B = 色相/360」的数据图，一张图同时携带三个分量">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -88,7 +89,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <p class="lede">HSL 分量曲线工作流的提取器：把一张图拆成「R = HSL 饱和度、G = HSL 明度、B = 色相/360」的数据图，一张图同时携带三个分量</p>
 </section><div class="article-layout">
   <article class="prose">
-<p>把一张图打包成<strong>一张数据图</strong>：<code>R = HSL 饱和度</code>、<code>G = HSL 明度</code>、<code>B = 色相/360</code>， 全部 0…1。alpha 恒为 1。</p>
+<p>把一张图打包成<strong>一张数据图</strong>：<code>R = HSL 饱和度</code>、<code>G = HSL 明度</code>、<code>B = 色相/360</code>，全部 0…1。alpha 恒为 1。</p>
 <pre><code>原图 ──lb:hsl-dual──&gt; (R=S, G=L, B=H/360)
                           │
                     ┌─────┴─────┐
@@ -99,14 +100,14 @@ window.addEventListener("DOMContentLoaded", function () {
 <h2 id="为什么要把-s-和-l-塞进同一张图">为什么要把 S 和 L 塞进同一张图</h2>
 <p>HSL 的饱和度与明度是耦合的：</p>
 <pre><code>C = (1 − |2L − 1|)·S        V = L + C/2        S_hsv = C/V</code></pre>
-<p>想把 HSL 的 (S, L) 精确换回 HSV 的 (S, V)，编码器必须<strong>同时</strong>读到这两个值。分成 两张灰度图的话，每张只有自己的分量，两条互相独立的 1D 曲线表达不了这个二元映射 ——只在「只动其中一个、另一个恒定」时才碰巧正确。</p>
-<p>塞进一张图后，两条曲线各挂一个通道（红、绿），再由 <code>lb:hsl-compose</code> 一起读，就 精确了。这就是 <code>HSL Split (Curves)</code> 用它当第一道滤镜的原因。</p>
+<p>想把 HSL 的 (S, L) 精确换回 HSV 的 (S, V)，编码器必须<strong>同时</strong>读到这两个值。分成两张灰度图的话，每张只有自己的分量，两条互相独立的 1D 曲线表达不了这个二元映射——只在「只动其中一个、另一个恒定」时才碰巧正确。</p>
+<p>塞进一张图后，两条曲线各挂一个通道（红、绿），再由 <code>lb:hsl-compose</code> 一起读，就精确了。这就是 <code>HSL Split (Curves)</code> 用它当第一道滤镜的原因。</p>
 <h2 id="输入输出">输入输出</h2>
 <div class="table-wrap"><table><thead><tr><th></th><th>格式</th><th>含义</th></tr></thead><tbody><tr><td>input</td><td><code>R'G'B'A float</code></td><td>滤镜栈的编码域缓冲，与 <code>component-extract</code> 同域</td></tr><tr><td>output</td><td><code>R'G'B'A float</code></td><td><strong>数值是数据不是颜色</strong>：0.6 / 0.5 / 0.583 = S 60%、L 50%、色相 210°</td></tr></tbody></table></div>
-<p>转换由 babl 的 <code>HSLA float</code> 完成，与 GIMP 自己的 HSL（<code>component-extract</code> 的 <code>hsl-s</code> / <code>hsl-l</code>）同一口径；本算子只做通道重排。babl 的输出本来就是 0…1 归一化 （<code>h/360</code>、<code>s</code>、<code>l</code>），不需要再缩放。</p>
+<p>转换由 babl 的 <code>HSLA float</code> 完成，与 GIMP 自己的 HSL（<code>component-extract</code> 的 <code>hsl-s</code> / <code>hsl-l</code>）同一口径；本算子只做通道重排。babl 的输出本来就是 0…1 归一化（<code>h/360</code>、<code>s</code>、<code>l</code>），不需要再缩放。</p>
 <p>alpha 恒写 1：分量层必须不透明，透明度交给组蒙版（半透明的混合层会按 alpha 做 lerp 而不是纯替换）。</p>
 <h2 id="实测">实测</h2>
-<p><code>tools/check_hsl_split.py</code> 里 <code>dual → compose</code> 恒等往返：32 位浮点图 <strong>0.0002 码</strong>， 8 位图 ≤ 1 码（只剩量化）。无色像素（S = 0）的色相在 babl 侧无定义，算子把非有限 值折成 0，不会把 NaN 漏进缓冲。</p>
+<p><code>tools/check_hsl_split.py</code> 里 <code>dual → compose</code> 恒等往返：32 位浮点图 <strong>0.0002 码</strong>， 8 位图 ≤ 1 码（只剩量化）。无色像素（S = 0）的色相在 babl 侧无定义，算子把非有限值折成 0，不会把 NaN 漏进缓冲。</p>
 <h2 id="注意">注意</h2>
 <ul><li>输出是数据图，<strong>不要直接看它当照片</strong>：它看起来是某种奇怪的彩色，这是正常的。</li><li>它和 <code>lb:hsl-compose</code> 是配对使用的。只装一个没有意义。</li></ul><div class="op-dl">
   <div>
@@ -185,7 +186,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>

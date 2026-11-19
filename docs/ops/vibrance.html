@@ -7,7 +7,7 @@
 <meta name="description" content="按 经典图像编辑器「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱和主动收手、红带（肤色）额外保护、浅色少给一点，色相与明度不动" data-desc-zh="按 经典图像编辑器「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱和主动收手、红带（肤色）额外保护、浅色少给一点，色相与明度不动" data-desc-en="按 经典图像编辑器「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱和主动收手、红带（肤色）额外保护、浅色少给一点，色相与明度不动">
 <meta property="og:title" content="Vibrance · gegl-color-ops" data-title-zh="Vibrance · gegl-color-ops" data-title-en="Vibrance · gegl-color-ops">
 <meta property="og:description" content="按 经典图像编辑器「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱和主动收手、红带（肤色）额外保护、浅色少给一点，色相与明度不动" data-desc-zh="按 经典图像编辑器「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱和主动收手、红带（肤色）额外保护、浅色少给一点，色相与明度不动" data-desc-en="按 经典图像编辑器「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱和主动收手、红带（肤色）额外保护、浅色少给一点，色相与明度不动">
-<link rel="stylesheet" href="../assets/style.css?v=e5483bde3c">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -67,6 +67,7 @@ window.addEventListener("DOMContentLoaded", function () {
   <nav>
     <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
     <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
     <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
@@ -88,10 +89,10 @@ window.addEventListener("DOMContentLoaded", function () {
   <p class="lede">按 经典图像编辑器「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱和主动收手、红带（肤色）额外保护、浅色少给一点，色相与明度不动</p>
 </section><div class="article-layout">
   <article class="prose">
-<p>按黑盒标定得到的 经典图像编辑器的「自然饱和度」，不是凭经验的近似。同一张标定图分别过 经典图像编辑器 26.10 和本算子，像素级逐位对比见文末「验收」。</p>
+<p>按黑盒标定得到的 经典图像编辑器的「自然饱和度」，不是凭经验的近似。同一张标定图分别过经典图像编辑器 26.10 和本算子，像素级逐位对比见文末「验收」。</p>
 <ul><li>GEGL id：<code>lb:vibrance</code></li><li>菜单：<code>Colors → SuperMrWang → Color → Vibrance</code></li><li>类型：<code>GeglOperationPointFilter</code>（逐像素，无邻域）</li><li>参数：<code>vibrance</code>（−100…100）、<code>protect_reds</code>、<code>compensate_lightness</code></li></ul>
 <h2 id="只管-vibrance色温色调不在这里">只管 Vibrance，色温色调不在这里</h2>
-<p>经典图像编辑器 2026（27.0）把自然饱和度图层改名成「色彩与自然饱和度」，多出<strong>色温 / 色调</strong>两个 滑块，动作上就是<strong>先一层白平衡、再走原来的 Vibrance</strong>。</p>
+<p>经典图像编辑器 2026（27.0）把自然饱和度图层改名成「色彩与自然饱和度」，多出<strong>色温 / 色调</strong>两个滑块，动作上就是<strong>先一层白平衡、再走原来的 Vibrance</strong>。</p>
 <p>本工程不把这两段揉进一个算子：色温 / 色调由独立的 <code>lb:color-temperature-tint</code> 负责， <code>lb:vibrance</code> 只做 Vibrance 本身。想复刻「色彩与自然饱和度」，按顺序叠两层即可：</p>
 <pre><code>图层 / 滤镜栈：  色温色调（lb:color-temperature-tint）  →  Vibrance（lb:vibrance）</code></pre>
 <p>要 2025 的纯 Vibrance，把底下那层删掉就是。这样拆的好处：</p>
@@ -102,22 +103,22 @@ window.addEventListener("DOMContentLoaded", function () {
 <div class="table-wrap"><table><thead><tr><th>项</th><th>含义</th><th>数据来源</th></tr></thead><tbody><tr><td><code>A(v)</code>、<code>p(v)</code>、<code>q(v)</code></td><td>幅度与两端曲率，随 v 逐档查表</td><td>16 位 / 步长 5 标定，20 档</td></tr><tr><td><code>r(H,S,v)</code></td><td>红带（离红色 40° 以内）的额外压制；26°–40° 线性过渡出去</td><td>同 v 下 H0 与 H120 的比值</td></tr><tr><td><code>c(L)</code></td><td>亮度修正：浅色少给（L=80 只有 0.72 倍，L=20 有 1.39 倍）</td><td>E 段 L 阶梯</td></tr></tbody></table></div>
 <p>RGB 重建：保持 max 不动，其余通道按 <span class="math">$S'/S$</span> 缩放：</p>
 <div class="math-display">$$\text{out}_{ch} = m_x - \bigl(m_x - c_{ch}\bigr)\frac{S'}{S}$$</div>
-<p>—— <code>out = mx − (mx − c)·S'/S</code>。 因为 <code>mx − mn = S·mx</code>，当 <code>S' ≤ 1</code> 时最小通道恰好落在 <code>[0, mx]</code>，<strong>数学上不会越界</strong>， 不需要任何裁剪或色域收敛。</p>
-<p>负方向（v&lt;0）是<strong>另一套机制</strong>，不是正向的镜像：实测结果是 S 降、V 也会跟着降， 而且没有色相项，所以直接用两张表（<code>S'</code> 与 <code>V'/V</code>），同样按 (v, S) 双线性插值。</p>
-<p>参数表在 <code>vibrance-tables.h</code> 里，由 <code>tools/gen_vibrance_tables.py</code> 从 <code>vibrance-cal/vibrance_model.json</code> 生成 —— 要改数值请改上游 JSON 再重新生成， 不要手抄。</p>
+<p>—— <code>out = mx − (mx − c)·S'/S</code>。因为 <code>mx − mn = S·mx</code>，当 <code>S' ≤ 1</code> 时最小通道恰好落在 <code>[0, mx]</code>，<strong>数学上不会越界</strong>，不需要任何裁剪或色域收敛。</p>
+<p>负方向（v&lt;0）是<strong>另一套机制</strong>，不是正向的镜像：实测结果是 S 降、V 也会跟着降，而且没有色相项，所以直接用两张表（<code>S'</code> 与 <code>V'/V</code>），同样按 (v, S) 双线性插值。</p>
+<p>参数表在 <code>vibrance-tables.h</code> 里，由 <code>tools/gen_vibrance_tables.py</code> 从 <code>vibrance-cal/vibrance_model.json</code> 生成 —— 要改数值请改上游 JSON 再重新生成，不要手抄。</p>
 <h2 id="性能">性能</h2>
-<p><code>v</code> 对整张图是常量，所以每条随 v 变化的曲线都在 <code>prepare()</code> 里先折叠成一行 （11 个采样点），<code>process()</code> 只剩一维查表和两次 <code>powf</code>。全图 1080×880 的标定图 用 gegl CLI 渲染约 0.2 s（含 PNG 编解码）。</p>
+<p><code>v</code> 对整张图是常量，所以每条随 v 变化的曲线都在 <code>prepare()</code> 里先折叠成一行（11 个采样点），<code>process()</code> 只剩一维查表和两次 <code>powf</code>。全图 1080×880 的标定图用 gegl CLI 渲染约 0.2 s（含 PNG 编解码）。</p>
 <h2 id="验收">验收</h2>
-<p><code>python tools/check_vibrance_ps.py</code> —— 用 gegl CLI 渲染标定图，和 经典图像编辑器的真实导出 逐像素比（0–255 码，量化本身就有 ±0.5）：</p>
+<p><code>python tools/check_vibrance_ps.py</code> —— 用 gegl CLI 渲染标定图，和 经典图像编辑器的真实导出逐像素比（0–255 码，量化本身就有 ±0.5）：</p>
 <div class="table-wrap"><table><thead><tr><th>v</th><th>中位</th><th>95%</th><th>最大</th><th>平均</th><th>与经典图像编辑器完全一致</th></tr></thead><tbody><tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0.00</td><td>100%</td></tr><tr><td>+60</td><td>0</td><td>4</td><td>7</td><td>0.83</td><td>63.5%</td></tr><tr><td>+100</td><td>0</td><td>8</td><td>15</td><td>1.58</td><td>68.1%</td></tr><tr><td>−60</td><td>0</td><td>5</td><td>17</td><td>0.82</td><td>65.1%</td></tr><tr><td>−100</td><td>0</td><td>7</td><td>30</td><td>1.10</td><td>61.9%</td></tr></tbody></table></div>
 <p><code>v=0</code> 逐位相同，说明色彩管线（线性↔编码往返）没有偷偷改像素。C 实现与 <code>vibrance-cal/vibrance_ref.py</code> 的 Python 参考实现逐像素一致（差 ≤1 码，纯舍入）。</p>
-<p>两层叠加的「色彩与自然饱和度」组合验收（对经典图像编辑器2026 实测）与色温色调本身的精度， 见 <code>ops/color-temperature-tint/README.md</code> —— 那里有 v/t/n 七组参数的中位/p90/p99/最大 偏差，以及色温 ≤ −50 且色调 ≥ +38 对角线上经典图像编辑器硬裁切造成的已知偏差。</p>
+<p>两层叠加的「色彩与自然饱和度」组合验收（对经典图像编辑器2026 实测）与色温色调本身的精度，见 <code>ops/color-temperature-tint/README.md</code> —— 那里有 v/t/n 七组参数的中位/p90/p99/最大偏差，以及色温 ≤ −50 且色调 ≥ +38 对角线上经典图像编辑器硬裁切造成的已知偏差。</p>
 <h2 id="已知偏差">已知偏差</h2>
-<p>拟合残差只在采样点上成立（A 段 ΔS 残差 0.41 pp @ v=+100），整图上的大头在两处 <strong>标定维度没覆盖到</strong>的地方：</p>
+<p>拟合残差只在采样点上成立（A 段 ΔS 残差 0.41 pp @ v=+100），整图上的大头在两处<strong>标定维度没覆盖到</strong>的地方：</p>
 <ol><li><strong>红带里 H≈17° 的橙/肤色（B 段，L62）</strong>：<code>r</code> 只按 H0 拟合，H17 处经典图像编辑器压得更狠。 v=+60 时该段中位偏差 2.9 码、v=+100 时 8.4 码（最大 14.8）。</li><li><strong>负方向在浅色上的明度变化（E 段）</strong>：<code>V'/V</code> 表只在 L=50 上拟合，L=80 时 经典图像编辑器 实际压得比表里小得多（该处最大偏差 29 码，sRGB 下是肉眼可见的变暗）。</li></ol>
-<p>这两处都不是实现问题，是模型维度不够（色相只有 6 个采样点、明度 5 档）。要补， 方向是做 probe v2：L×S 网格 + 5° 色相细扫，然后重拟合 <code>r(H,S,v)</code> 与负向的 <code>V'(S,L,v)</code>。</p>
+<p>这两处都不是实现问题，是模型维度不够（色相只有 6 个采样点、明度 5 档）。要补，方向是做 probe v2：L×S 网格 + 5° 色相细扫，然后重拟合 <code>r(H,S,v)</code> 与负向的 <code>V'(S,L,v)</code>。</p>
 <h2 id="与-lbvibrance-hyper-的关系">与 <code>lb:vibrance-hyper</code> 的关系</h2>
-<p><code>vibrance-hyper</code> 是 LAB 域的<strong>外观建模</strong>（色度双曲蒙版 + 肤色窗 + 色域收敛）， 调出来的手感好、参数可解释，但不保证和经典图像编辑器数值一致。 <code>vibrance</code> 是<strong>数值复刻</strong>：和经典图像编辑器对得上，但没有可调的艺术性参数。 两个并存，按需要选。</p><div class="op-dl">
+<p><code>vibrance-hyper</code> 是 LAB 域的<strong>外观建模</strong>（色度双曲蒙版 + 肤色窗 + 色域收敛），调出来的手感好、参数可解释，但不保证和经典图像编辑器数值一致。 <code>vibrance</code> 是<strong>数值复刻</strong>：和经典图像编辑器对得上，但没有可调的艺术性参数。两个并存，按需要选。</p><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
     <p>Windows 模块 <code>vibrance.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>vibrance.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
@@ -205,7 +206,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">f1d4662</span>
+    <span class="muted">1c0294b</span>
   </div>
 </footer>
 <script>
