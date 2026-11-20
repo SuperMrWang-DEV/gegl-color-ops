@@ -304,8 +304,9 @@ class ComfyClient(object):
         except urllib.error.URLError as exc:
             raise ComfyError(
                 "连不上 ComfyUI（%s）：%s\n"
-                "先启动服务（Windows 双击 D:\\ComfyUI\\start-comfyui.bat），"
-                "再确认浏览器能打开 %s/system_stats。"
+                "  · 装过：双击安装目录里的 start-comfyui.bat 起服务\n"
+                "  · 没装：先跑 tools\\setup-ai.bat（一键装，约 5 GB 下载）\n"
+                "然后确认浏览器能打开 %s/system_stats。"
                 % (self.server, exc.reason, self.server))
         except OSError as exc:                     # 超时（socket.timeout 也走这里）
             raise ComfyError("等 ComfyUI 响应超时（%s，%.0f 秒）：%s"
