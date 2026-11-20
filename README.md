@@ -523,10 +523,52 @@ alpha 都有回滚。与算子版本的区别是**一次性应用**——想随�
   （开关 `noise_mask` 都不改像素），`VAEEncode` 只吐糊团；工作流走普通 SD1.5 +
   `VAEEncodeForInpaint`。
 
-**效果取决于底模**：SD1.5 在 512 见方、几十像素的小面积上表现稳定（补一块草地、
-去掉小物件、换掉一个瓶子），**大面积重绘或要求具体物体时会糊、会留环**——那是
-模型能力问题，不是插件的链路问题。要更好的效果，在 ComfyUI 里换成 SDXL /
-Flux 的 inpaint 工作流，改 `build_inpaint_workflow()` 即可（节点图就那九个）。
+**一键装环境**（Windows，`tools/setup-ai.bat` 双击即可）：
+
+```bat
+tools\setup-ai.bat                      :: 装到 %USERPROFILE%\SuperMrWang-AI，默认 SDXL
+tools\setup-ai.bat --model sd15         :: 体积小一半、速度快约 3 倍
+tools\setup-ai.bat --dir D://lb-ai       :: 换目录（需要 ~16 GB 空闲）
+tools\setup-ai.bat --cpu                :: 没有 N 卡：能跑，一张 512² 要 1~3 分钟
+tools\setup-ai.bat --verify             :: 只体检已装好的环境
+```
+
+它自己下载一份嵌入式 Python（不碰系统环境），再装 torch cu128、ComfyUI 和一份
+底模，最后起服务自检一遍。**为什么不是一个 zip**：torch 的 CUDA 轮子 2.5 GB、
+底模 2~7 GB，打进包里既过不了分发许可，也没人愿意下一个 10 GB 的安装包。
+普通 PyPI 包走清华源（`LB_PYPI_MIRROR` 可改），CUDA 轮子只能走官方源。
+
+三个坑写进了脚本，改的时候别绕回去：
+
+- `torch` / `torchvision` / `torchaudio` 要从 `requirements.txt` 里**整行**剔掉，
+  否则会按 requirements 的版本号重装成 CPU 版。但只能剔这三行——用
+  `grep -v "^torch"` 会把 `torchsde` 一起删掉，缺依赖直接起不来。
+- 嵌入式 Python 要先改 `python312._pth`（加 `Lib\site-packages` 和 `import site`），
+  否则 pip 装完 import 不到任何东西。
+- `.bat` 里不能有嵌套 `if (...)` 块配 `>=`：cmd 会把 `>` 当重定向，报
+  `... was unexpected at this time`。全用 `goto`。
+
+**换模型**：把 `.safetensors` 丢进 `<安装目录>\ComfyUI\models\checkpoints\`，
+重启服务即可。插件按文件名认家族：带 `xl` / `sdxl` 的按 **1024** 长边送图，其余
+按 **512**；裁切框先缩放到这个尺寸、回来再缩回原尺寸贴（`detect_family()` /
+`work_scale()`，倍率限制在 0.25×–4×）。所以「换模型」不需要改代码，只需要一份
+文件。
+
+实测（RTX 3070 Ti 8 GB，同一张图、同一个蒙版）：
+
+| 底模 | 体积 | 送图尺寸 | 单次耗时 | 表现 |
+|---|---|---|---|---|
+| SD1.5 fp16 | 2.1 GB | 512 | 5.7 s | 小面积补背景稳；大面积会糊成色块 |
+| SDXL base 1.0 | 6.9 GB | 856×1024 | 17.5 s | 能画出木纹/陶盆这类材质，颜色更听提示词；但**上下文一致性**仍会崩（见下） |
+
+**「换大模型」能解决的和你以为的不一样。** 实拍图上去掉一只苹果，SD1.5 给的是
+一团糊，SDXL 给的是一块**纹理清楚、方向不对**的木头——清晰度上去了，但它不理解
+桌面的透视和光照方向，边缘还会留一圈可见的圆。这是 SD 系列 inpaint 的固有短板
+（蒙版区被当作独立小图重绘），不是链路问题。真要「看不出来」，得往三个方向走：
+蒙版画准 + `grow` 给足上下文、`denoise` 降到 0.6~0.8 保留原结构、或者换
+Flux.1-Fill 这类**专门为 inpaint 训练**的模型（12B，8 GB 显存要走 GGUF Q4 +
+分块 offload，单张 1~3 分钟；注意它的许可**禁止商用**）。
+
 
 回归（两套，都不需要显卡）：
 

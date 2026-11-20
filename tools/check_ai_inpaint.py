@@ -149,6 +149,45 @@ def test_align():
            x <= x1 and y <= y1 and x + w >= x2 and y + h >= y2)
 
 
+# ---- 3b. 底模家族 / 工作分辨率 ------------------------------------------------
+
+def test_family():
+    print("\n底模家族与工作分辨率")
+    cases = [
+        ("v1-5-pruned-emaonly-fp16.safetensors", "sd15", 512),
+        ("sd_xl_base_1.0.safetensors", "sdxl", 1024),
+        ("SDXL/anything-v3.safetensors", "sdxl", 1024),
+        ("juggernautXL_v9.safetensors", "sdxl", 1024),
+        ("dreamshaper_8.safetensors", "sd15", 512),
+        ("", "sd15", 512),
+        (None, "sd15", 512),
+    ]
+    for name, fam, target in cases:
+        ok("detect_family(%r) == %s" % (name, fam),
+           ai_client.detect_family(name) == fam, ai_client.detect_family(name))
+        ok("family_target(%r) == %d" % (name, target),
+           ai_client.family_target(name) == target, ai_client.family_target(name))
+
+    # 裁切框 → 送模型时的倍率：长边要贴近 target，但不能无限放大/缩小
+    scale_cases = [
+        # work_scale 返回的是**倍率**，不是目标像素
+        ((432, 392), 512, 512 / 432),    # 小框喂 SD1.5：长边放大到 512
+        ((1024, 1024), 512, 0.5),        # 大框喂 SD1.5：缩一半
+        ((432, 392), 1024, 1024 / 432),  # 小框喂 SDXL：长边放大到 1024
+        ((200, 192), 1024, 4.0),         # 太小：撞 SCALE_MAX，不无限放大
+        ((4000, 3000), 512, 0.25),       # 太大：撞 SCALE_MIN
+    ]
+    for (w, h), target, want in scale_cases:
+        got = ai_client.work_scale(w, h, target)
+        ok("work_scale(%d,%d,%d) = %.2f" % (w, h, target, got),
+           abs(got - want) < 0.01, "want %.2f" % want)
+        # 缩放后的长边必须能对上 target（撞 clamp 的情况除外）
+        long_after = max(w, h) * got
+        ok("  → 长边 %.0f %s %d" % (long_after, "≈" if long_after == target else "≠", target),
+           long_after == target or got in (ai_client.SCALE_MIN, ai_client.SCALE_MAX),
+           "%dx%d" % (w * got, h * got))
+
+
 # ---- 4. 工作流 --------------------------------------------------------------
 
 def test_workflow():
@@ -301,6 +340,7 @@ def main():
     test_mask()
     test_align()
     test_workflow()
+    test_family()
     test_end_to_end()
     test_errors()
     test_plugin_source()

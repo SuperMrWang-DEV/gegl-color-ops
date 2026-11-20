@@ -87,12 +87,21 @@ CONTEXT_PAD = 32
 # ---- PDB 小工具 / PDB helpers ----------------------------------------------
 
 def _pdb(name, **props):
-    """按名调用 PDB 过程 / call a PDB procedure by name"""
+    """按名调用 PDB 过程 / call a PDB procedure by name
+
+    proc.run() 不抛异常——失败只是把状态塞在返回值第 0 位，不看就等于静默
+    失败（2026-11-20 踩过：layer-scale 参数名写错，缩放没做，贴回去整块错位）。
+    """
     proc = Gimp.get_pdb().lookup_procedure(name)
     cfg = proc.create_config()
     for k, v in props.items():
         cfg.set_property(k, v)
-    return proc.run(cfg)
+    res = proc.run(cfg)
+    status = res.index(0)
+    if status != Gimp.PDBStatusType.SUCCESS:
+        err = res.index(1) if len(res) > 1 else None
+        raise RuntimeError("%s: %s" % (name, getattr(err, "message", err)))
+    return res
 
 
 # ---- 读像素 / read pixels ---------------------------------------------------
@@ -139,6 +148,54 @@ def selection_box(image):
     return x1, y1, x2, y2
 
 
+# ---- 缩放 / resize ----------------------------------------------------------
+# 底模有它自己的舒适分辨率（SD1.5 ≈ 512、SDXL ≈ 1024），裁切框大小由用户选区
+# 决定，两者一般对不上。送模型前把这块缩放到目标长边，回来再缩回原尺寸贴。
+#
+# 走 GIMP 自己的重采样（gimp-layer-scale）而不是在 Python 里逐像素插值：
+# 512² 的单精度插值在 Python 里要 1~2 秒，而这里只是内存里一次 C 调用。
+
+def _scale_rgba(data, w, h, nw, nh):
+    """把一块 RGBA 8 位紧排像素缩放到 nw×nh，返回同格式字节。"""
+    if (w, h) == (nw, nh):
+        return data
+    tmp = Gimp.Image.new(w, h, Gimp.ImageBaseType.RGB)
+    try:
+        layer = Gimp.Layer.new(tmp, "lb-scale", w, h,
+                               Gimp.ImageType.RGBA_IMAGE, 100.0,
+                               Gimp.LayerMode.NORMAL)
+        tmp.insert_layer(layer, None, 0)
+        # 直接往 shadow buffer 里灌：比建选区再 fill 少绕两圈，颜色也确定
+        shadow = layer.get_shadow_buffer()
+        shadow.set(Gegl.Rectangle.new(0, 0, w, h), "R'G'B'A u8", data)
+        shadow.flush()
+        layer.merge_shadow(True)
+        if (w, h) != (nw, nh):
+            # PDB 的参数名是连字符（new-width），写成 new_width 会报
+            # "Calling error"——GObject 属性名和 PDB 参数名不是一回事
+            _pdb('gimp-layer-scale', layer=layer,
+                 **{'new-width': int(nw), 'new-height': int(nh),
+                    'local-origin': False})
+        return read_region(layer, 0, 0, nw, nh)
+    finally:
+        # 不收尾 GIMP 会在日志里报「插件漏出了图像」
+        tmp.delete()
+
+
+def _scale_gray(data, w, h, nw, nh):
+    """单通道灰度（选区内 255 / 外 0）缩放。借用 RGBA 通道跑同一条重采样。"""
+    if (w, h) == (nw, nh):
+        return data
+    # 切片赋值是 C 级 memcpy，比逐像素循环快两个数量级（1024² 差 200ms）
+    rgba = bytearray(w * h * 4)
+    rgba[0::4] = data
+    rgba[1::4] = data
+    rgba[2::4] = data
+    rgba[3::4] = b"\xff" * (w * h)
+    out = _scale_rgba(bytes(rgba), w, h, nw, nh)
+    return bytes(out[0::4])
+
+
 # ---- 裁切框 / crop rect -----------------------------------------------------
 
 def crop_rect(image, box, grow=8, pad=CONTEXT_PAD):
@@ -173,12 +230,15 @@ def paste_result(image, drawable, png_path, rect, mask_channel):
                                  Gio.File.new_for_path(png_path))
     if layer is None:
         raise RuntimeError(_("Could not read the inpainting result (%s)") % png_path)
-    if (layer.get_width(), layer.get_height()) != (w, h):
-        _pdb('gimp-layer-scale', layer=layer, new_width=w, new_height=h,
-             local_origin=False)
     layer.set_name(RESULT_LAYER)
     pos = image.get_item_position(drawable)
+    # 先插进图像再缩放：file_load_layer 返回的图层还没归属任何图像，此时
+    # gimp-layer-scale 会报 "cannot be used because it has not been added to an
+    # image"（2026-11-20）
     image.insert_layer(layer, None, pos)
+    if (layer.get_width(), layer.get_height()) != (w, h):
+        _pdb('gimp-layer-scale', layer=layer,
+             **{'new-width': w, 'new-height': h, 'local-origin': False})
     layer.set_offsets(x, y)
 
     if mask_channel is not None:
@@ -193,10 +253,12 @@ def paste_result(image, drawable, png_path, rect, mask_channel):
 def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
                server="", checkpoint="", steps=25, cfg=7.5, seed=-1,
                denoise=1.0, grow=8, grow_mask_by=8, feather=4.0,
-               timeout=600.0, keep_mask=True, client=None, on_tick=None):
+               timeout=600.0, keep_mask=True, scale=0.0, client=None,
+               on_tick=None):
     """选区 → AI 重绘 → 新图层。返回 (layer, info)。
 
     client 参数是给回归脚本塞 mock 用的；正常情况留空，按 server 现建一个。
+    scale 是送给模型前的缩放倍率；0 = 按底模自动算（SD1.5→512、SDXL→1024）。
     """
     if ai_client is None:
         raise RuntimeError(_("plugin/_shared/ai_client.py is missing: install the _shared "
@@ -242,14 +304,24 @@ def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
         mask_channel = _pdb('gimp-selection-save', image=image).index(1)
         mask_channel.set_name(MASK_CHANNEL)
 
-        # 4) 交给 ComfyUI
+        # 4) 缩放到这个底模的舒适长边，再交给 ComfyUI
         if client is None:
             client = ai_client.ComfyClient(server, timeout=min(timeout, 60.0))
+        checkpoint = checkpoint or client.first_checkpoint()
+        target = ai_client.family_target(checkpoint)
+        factor = float(scale) if float(scale) > 0 else ai_client.work_scale(w, h, target)
+        ww = max(ai_client.SIZE_ALIGN,
+                 int(round(w * factor)) // ai_client.SIZE_ALIGN * ai_client.SIZE_ALIGN)
+        hh = max(ai_client.SIZE_ALIGN,
+                 int(round(h * factor)) // ai_client.SIZE_ALIGN * ai_client.SIZE_ALIGN)
+        src_work = _scale_rgba(src, w, h, ww, hh)
+        gray_work = _scale_gray(gray, w, h, ww, hh)
+
         seed = ai_client.random_seed() if int(seed) < 0 else int(seed)
         blob, info = ai_client.inpaint(
             client,
-            ai_client.rgba_png(w, h, src),
-            ai_client.mask_png(w, h, gray),
+            ai_client.rgba_png(ww, hh, src_work),
+            ai_client.mask_png(ww, hh, gray_work),
             prompt.strip(), negative=negative or "", checkpoint=checkpoint,
             steps=int(steps), cfg=float(cfg), seed=seed,
             denoise=float(denoise), grow_mask_by=int(grow_mask_by),
@@ -261,6 +333,9 @@ def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
         result = paste_result(image, drawable, png_path, rect, mask_channel)
         info["rect"] = rect
         info["seed"] = seed
+        info["checkpoint"] = checkpoint
+        info["work_size"] = (ww, hh)
+        info["scale"] = factor
 
         _pdb('gimp-selection-none', image=image)
         if not keep_mask and mask_channel is not None:
@@ -358,6 +433,11 @@ class AiInpaintPlugin(Gimp.PlugIn):
             "keep-mask", _("Keep mask channel"),
             _("Keep the 'AI Mask' channel so the result can be re-masked later"),
             True, GObject.ParamFlags.READWRITE)
+        procedure.add_double_argument(
+            "scale", _("Working scale"),
+            _("0 = fit the model's native size (SD1.5 512, SDXL 1024); "
+              "1.0 = send the crop unchanged"),
+            0.0, 4.0, 0.0, GObject.ParamFlags.READWRITE)
         return procedure
 
     def run(self, procedure, run_mode, image, drawables, config, data):
@@ -379,7 +459,8 @@ class AiInpaintPlugin(Gimp.PlugIn):
                        config.get_property('grow-mask-by'),
                        config.get_property('feather'),
                        config.get_property('timeout'),
-                       config.get_property('keep-mask'))
+                       config.get_property('keep-mask'),
+                       config.get_property('scale'))
             return procedure.new_return_values(
                 Gimp.PDBStatusType.SUCCESS, GLib.Error())
         except Exception as exc:

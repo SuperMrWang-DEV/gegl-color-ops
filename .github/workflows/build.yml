@@ -53,6 +53,14 @@ jobs:
           # 裁切框对齐 8、工作流结构、三类错误提示文案。
           python3 tools/check_ai_inpaint.py -v
 
+      - name: 安装脚本冒烟（不联网、不装东西）
+        run: |
+          # setup_ai.py 只在 Windows 上真装，但「能不能 import / 参数表是否完整 /
+          # 模型表有没有写坏」这些在任何平台都能守，免得改崩了用户才发现。
+          python3 -m py_compile tools/setup_ai.py
+          python3 tools/setup_ai.py --help > /dev/null
+          python3 -c "import sys; sys.path.insert(0, 'tools'); import setup_ai as S; assert set(S.MODELS) == {'sd15', 'sdxl'}, S.MODELS; assert all(m['urls'] and m['bytes'] > 1 << 30 and m['name'].endswith('.safetensors') for m in S.MODELS.values()); print('setup_ai models ok')"
+
       - name: 编译全部算子
         run: |
           meson setup build-meson --buildtype=release

@@ -39,6 +39,45 @@ ENV_SERVER = "LB_COMFY_URL"
 # 回来的图比请求的小一圈，贴回画布就错位。所有尺寸都对齐到这个数。
 SIZE_ALIGN = 8
 
+# ---- 底模家族 ---------------------------------------------------------------
+# 不同家族的「舒适分辨率」差很多：SD1.5 在 512 最稳，喂 1024 会长出双头；
+# SDXL 反过来，喂 512 出来的人脸全是糊的。裁切框必须缩放到这个尺寸附近再送，
+# 回来再缩回原尺寸贴回——这是「换更大的模型」能不能用起来的关键。
+#
+# 名字里带 xl / sdxl 的按 SDXL 算。SD3 / Flux 走的是别的节点图，不在这个表里。
+FAMILY_TARGET = {
+    "sd15": 512,
+    "sdxl": 1024,
+}
+
+# 缩放倍率的上下限：小选区放大太多会把周围上下文拉变形，大选区缩小太多
+# 又会丢掉原图的边缘细节，所以两头都留个闸。
+SCALE_MIN = 0.25
+SCALE_MAX = 4.0
+
+
+def detect_family(checkpoint):
+    """按文件名猜底模家族：'sd15' 或 'sdxl'。认不出来就当 SD1.5。"""
+    name = (checkpoint or "").lower()
+    if "xl" in name or "sdxl" in name:
+        return "sdxl"
+    return "sd15"
+
+
+def family_target(checkpoint):
+    """这个底模的舒适长边（像素）。"""
+    return FAMILY_TARGET.get(detect_family(checkpoint), 512)
+
+
+def work_scale(w, h, target):
+    """裁切框 → 送给模型时的缩放倍率（把长边对到 target）。
+
+    限制在 [SCALE_MIN, SCALE_MAX]，两头都不至于把画面拉烂。
+    """
+    long_edge = max(int(w), int(h), 1)
+    scale = float(target) / long_edge
+    return max(SCALE_MIN, min(SCALE_MAX, scale))
+
 
 class ComfyError(RuntimeError):
     """连不上 / 工作流报错 / 超时，统一一类；文案直接拿来给用户看。"""

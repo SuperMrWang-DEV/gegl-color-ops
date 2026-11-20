@@ -2078,3 +2078,12 @@ msgstr "读不回重绘结果（%s）"
 #: plugin/ai-inpaint/ai-inpaint.py
 msgid "plugin/_shared/ai_client.py is missing: install the _shared folder next to the plug-in"
 msgstr "缺少 plugin/_shared/ai_client.py：安装时要把 _shared 一起放进 GIMP 插件目录"
+
+# ---- plugin/ai-inpaint：工作分辨率（2026-11-20） ----
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Working scale"
+msgstr "工作尺寸缩放"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "0 = fit the model's native size (SD1.5 512, SDXL 1024); 1.0 = send the crop unchanged"
+msgstr "0＝自动贴合底模的原生尺寸（SD1.5 为 512、SDXL 为 1024）；1.0＝按裁切框原样送出"
