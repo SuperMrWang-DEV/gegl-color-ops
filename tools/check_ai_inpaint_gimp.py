@@ -188,6 +188,32 @@ try:
     except RuntimeError as exc:
         msg = str(exc).lower()
         check("提示词为空 → 报错", "prompt" in msg or "提示词" in msg, msg[:28])
+        # 报错要说清「写结果，不是写要删的东西」，否则用户下次还是这么填
+        check("空提示词的报错教了怎么写",
+              "result" in msg or "结果" in msg, msg[:40])
+
+    # 中文提示词必须拦下来：SD1.5/SDXL 的文本编码器只认英文，中文等于噪声。
+    # 这是「画出来跟图完全不搭」的头号原因，静默送下去只会让用户以为模型不行。
+    for bad in ("把瓶子去掉", "空桌子", "かわいい"):
+        try:
+            mod.ai_inpaint(img4, l4, bad, client=client)
+            check("中文/日文提示词 → 报错（%s）" % bad, False, "居然跑通了")
+        except RuntimeError as exc:
+            msg = str(exc).lower()
+            check("中文/日文提示词 → 报错（%s）" % bad,
+                  "english" in msg or "英文" in msg, msg[:30])
+
+    # 反过来：正常英文不能误伤（含全角标点以外的 ASCII 标点、数字、连字符）
+    try:
+        check("英文提示词不被误拦",
+              mod._check_prompt("Empty wooden table, 35mm, soft-daylight") != "")
+    except Exception as exc:
+        check("英文提示词不被误拦", False, str(exc)[:40])
+
+    # 默认值必须是空：预填一句通用文案，点确定的人就会得到一块无关的色块
+    check("DEFAULT_PROMPT 为空（不预填内容）", mod.DEFAULT_PROMPT == "",
+          repr(mod.DEFAULT_PROMPT))
+
     # GIMP 会把没删掉的图像当成「插件漏出来的」报到日志里，收尾清干净
     for im in (img, img2, img3, img4):
         im.delete()

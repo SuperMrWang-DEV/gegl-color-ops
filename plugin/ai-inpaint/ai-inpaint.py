@@ -34,6 +34,7 @@
  ==========================================================================="""
 
 import os
+import re
 import sys
 import tempfile
 
@@ -76,8 +77,37 @@ except Exception as _exc:          # 没带 _shared/ai_client.py 的裸装情况
 MASK_CHANNEL = "AI Mask"
 RESULT_LAYER = "AI Inpaint"
 
-DEFAULT_PROMPT = "clean background, seamless, photorealistic, sharp focus"
+# 提示词**故意留空**：以前这里预填了一句 "clean background, seamless…"，
+# 结果点菜单直接确定的人会得到一块跟画面毫无关系的干净色块——AI 老老实实
+# 画了「干净背景」，只是没人要。现在空着，不填就报错说清楚怎么填。
+DEFAULT_PROMPT = ""
 DEFAULT_NEGATIVE = "blurry, low quality, watermark, text, deformed"
+
+# SD1.5 / SDXL 的文本编码器只认英文（OpenCLIP，词表里没有汉字）。中文提示词
+# 会被切成一片未知 token，等价于「随机重绘」——这是「画出来的东西跟图完全不
+# 搭」最常见的原因，比模型能力问题的概率高得多，所以直接拦下来。
+_CJK_RE = re.compile("[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff"
+                     "\uac00-\ud7af\uf900-\ufaff\uff00-\uffef]")
+
+
+def _check_prompt(prompt):
+    """空 / 中文的提示词都不往下走，当场说清楚要写成什么样。"""
+    text = (prompt or "").strip()
+    if not text:
+        raise RuntimeError(
+            _("The prompt is empty — this box is what the AI paints, so it "
+              "must say what should appear. Describe the RESULT, not the thing "
+              "you want gone: to erase a bottle, write \"empty wooden table, "
+              "wood grain\" instead of \"remove the bottle\"."))
+    if _CJK_RE.search(text):
+        raise RuntimeError(
+            _("The prompt contains Chinese/Japanese/Korean characters. SD1.5 "
+              "and SDXL can only read English — anything else is treated as "
+              "random noise, which is why the result looked unrelated to your "
+              "picture. Write it in English, e.g. \"empty wooden table, wood "
+              "grain, soft daylight\", and put what you want removed into the "
+              "negative prompt."))
+    return text
 
 # 周边带多少像素一起送进模型：只给一条缝的话，模型接不上左右两边的纹理和
 # 光线；给一圈上下文，重绘处的颜色/光照才对得上。
@@ -263,9 +293,7 @@ def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
     if ai_client is None:
         raise RuntimeError(_("plugin/_shared/ai_client.py is missing: install the _shared "
                              "folder next to the plug-in"))
-    if not prompt or not prompt.strip():
-        raise RuntimeError(_("The prompt is empty: describe what should appear "
-                        "(English works best)"))
+    prompt = _check_prompt(prompt)
 
     box = selection_box(image)
     if box is None:
@@ -384,12 +412,14 @@ class AiInpaintPlugin(Gimp.PlugIn):
             name)
 
         procedure.add_string_argument(
-            "prompt", _("Prompt"),
-            _("What should appear in the selection (English works best)"),
+            "prompt", _("Prompt — what the selection should become (English, required)"),
+            _("Describe the RESULT, not the thing to delete: to remove a bottle "
+              "write \"empty wooden table, wood grain\" rather than \"remove the "
+              "bottle\". SD models only read English."),
             DEFAULT_PROMPT, GObject.ParamFlags.READWRITE)
         procedure.add_string_argument(
             "negative", _("Negative prompt"),
-            _("What to keep out of the result"),
+            _("What must not appear — put the thing you are deleting here"),
             DEFAULT_NEGATIVE, GObject.ParamFlags.READWRITE)
         procedure.add_string_argument(
             "server", _("ComfyUI address"),

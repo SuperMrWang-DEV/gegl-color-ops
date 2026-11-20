@@ -2087,3 +2087,28 @@ msgstr "工作尺寸缩放"
 #: plugin/ai-inpaint/ai-inpaint.py
 msgid "0 = fit the model's native size (SD1.5 512, SDXL 1024); 1.0 = send the crop unchanged"
 msgstr "0＝自动贴合底模的原生尺寸（SD1.5 为 512、SDXL 为 1024）；1.0＝按裁切框原样送出"
+
+# ---- plugin/ai-inpaint：提示词改为必填 + 拦中文（2026-11-20） ----
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Describe the RESULT, not the thing to delete: to remove a bottle write "empty wooden table, wood grain" rather than "remove the bottle". SD models only read English."
+msgstr "描述**结果**，不是要删掉的东西：去掉一个瓶子要写「empty wooden table, wood grain」，而不是「remove the bottle」。SD 模型只认英文。"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Feather radius of the layer mask used when pasting back"
+msgstr "贴回时图层蒙版的羽化半径"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Prompt — what the selection should become (English, required)"
+msgstr "提示词 —— 选区内要变成什么（英文，必填）"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "The prompt contains Chinese/Japanese/Korean characters. SD1.5 and SDXL can only read English — anything else is treated as random noise, which is why the result looked unrelated to your picture. Write it in English, e.g. "empty wooden table, wood grain, soft daylight", and put what you want removed into the negative prompt."
+msgstr "提示词里有中文/日文/韩文字符。SD1.5 和 SDXL 只认英文，其他文字会被当成随机噪声——这就是结果跟你的图对不上的原因。请改成英文，例如「empty wooden table, wood grain, soft daylight」；想删掉的东西写进反向提示词。"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "The prompt is empty — this box is what the AI paints, so it must say what should appear. Describe the RESULT, not the thing you want gone: to erase a bottle, write "empty wooden table, wood grain" instead of "remove the bottle"."
+msgstr "提示词是空的——这一栏就是 AI 要画的内容，必须写清楚。描述**结果**，不要描述要删的东西：去掉一个瓶子写「empty wooden table, wood grain」，而不是「remove the bottle」。"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "What must not appear — put the thing you are deleting here"
+msgstr "不该出现的东西——想删掉的对象写在这里"
