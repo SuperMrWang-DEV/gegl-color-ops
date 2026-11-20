@@ -46,6 +46,13 @@ jobs:
           # 命令行照跑、自检照绿，但在 GIMP 里根本找不到（2026-11-20 踩过）。
           python3 tools/check_menu.py
 
+      - name: 校验 AI 重绘的 HTTP / PNG 链路（mock ComfyUI，不需要显卡）
+        run: |
+          # 插件本体跑在 GIMP 里（另一套 check 需要 gimp-console），但「上传 → 排队
+          # → 轮询 → 取图」这一半是纯标准库，mock 服务就能守：mask 的 alpha 约定、
+          # 裁切框对齐 8、工作流结构、三类错误提示文案。
+          python3 tools/check_ai_inpaint.py -v
+
       - name: 编译全部算子
         run: |
           meson setup build-meson --buildtype=release

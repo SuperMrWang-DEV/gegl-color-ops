@@ -484,6 +484,70 @@ alpha 都有回滚。与算子版本的区别是**一次性应用**——想随�
 亮度匹配、开关行为、报错路径；直方图期望值按 255·enc_srgb(v) 刻度
 换算，跑在 gimp-console 的 python-fu-eval 里）。
 
+### Python 插件：plugin/ai-inpaint（AI 局部重绘）
+
+**选区 + 一句提示词 → 本机 ComfyUI 重画 → 贴回成带蒙版的新图层**。框住想改的
+地方，跑 **SuperMrWang → AI → AI Inpaint**，选区内换成 AI 重绘的像素，边界靠
+羽化过的选区蒙版过渡，原图那层不动。
+
+需要的东西：
+
+1. 本机跑着 ComfyUI（默认 `http://127.0.0.1:8188`，可用环境变量
+   `LB_COMFY_URL` 或对话框里的「ComfyUI address」盖掉）；
+2. `models/checkpoints/` 里有一份 SD1.5 底模。自动挑底模时会**优先挑名字里不带
+   `inpaint` 的**——9 通道的 inpaint 专用模型在 `VAEEncodeForInpaint` 这条路上
+   不认提示词，只会把蒙版区抹平。
+
+流程（`ai_inpaint()` 是模块级函数，`tools/check_ai_inpaint_gimp.py` 直接调它做回归）：
+
+1. 选区外扩 `grow` 像素，外接框再带一圈 `CONTEXT_PAD`（32px）上下文；
+2. 裁切框宽高对齐到 8 的整数倍，并按画布夹紧；
+3. 从**可见合成**（`Gimp.Layer.new_from_visible`）读这块像素——图层比画布小、
+   带偏移时，界外取到的是下面的图层，不是黑色；
+4. 选区存成蒙版 PNG 交给 ComfyUI，等 `/history` 报完成；
+5. 结果 PNG 读回成图层，插在原图层正上方、偏移对回裁切框原点；羽化后的选区
+   存成 `AI Mask` 通道，同时用作图层蒙版（`keep-mask` 关掉就只留蒙版不收通道）。
+
+对话框参数：`prompt` / `negative` / `server` / `checkpoint` / `steps`(25) /
+`cfg`(7.5) / `seed`(-1=每次随机) / `denoise`(1.0) / `grow`(8) /
+`grow-mask-by`(8) / `feather`(4) / `timeout`(600s) / `keep-mask`。
+
+**三个坑**（都写进了代码注释，改的时候别绕回去）：
+
+- **蒙版方向**：ComfyUI 的 `LoadImage` 用 **alpha 倒推** mask（`mask = 1 - alpha`），
+  所以「白＝要重绘」必须写成**透明**。直接送一张白底黑区的灰度图，得到的是全 0
+  的 mask，跑完像素纹丝不动（2026-11-20 踩过）。`ai_client.mask_png()` 负责这件事。
+- **对齐到 8**：VAE 是 8× 下采样，裁切框宽高不是 8 的倍数时 ComfyUI 会截断，
+  回来的图比请求的小一圈，贴回去整体错位。`ai_client.align_rect()` 负责这件事。
+- **别用 inpaint 专用底模**：`InpaintModelConditioning` 在 ComfyUI v0.46 上不生效
+  （开关 `noise_mask` 都不改像素），`VAEEncode` 只吐糊团；工作流走普通 SD1.5 +
+  `VAEEncodeForInpaint`。
+
+**效果取决于底模**：SD1.5 在 512 见方、几十像素的小面积上表现稳定（补一块草地、
+去掉小物件、换掉一个瓶子），**大面积重绘或要求具体物体时会糊、会留环**——那是
+模型能力问题，不是插件的链路问题。要更好的效果，在 ComfyUI 里换成 SDXL /
+Flux 的 inpaint 工作流，改 `build_inpaint_workflow()` 即可（节点图就那九个）。
+
+回归（两套，都不需要显卡）：
+
+```bash
+python tools/check_ai_inpaint.py            # HTTP + PNG 那一半，对着 tools/mock_comfy.py
+"D:/fastsoftware/GIMP 3/bin/gimp-console-3.2.exe" -i -c -d -f \
+    --batch-interpreter=python-fu-eval \
+    -b "exec(open(r'<repo>/tools/check_ai_inpaint_gimp.py', encoding='utf-8').read())" --quit
+```
+
+`tools/mock_comfy.py` 也能单独起一个假服务（不带参数就监听 8188），想在没有模型
+的机器上点一遍菜单时用：
+
+```bash
+python tools/mock_comfy.py --port 8188        # 重绘结果 = 蒙版区填成固定蓝色
+```
+
+**AI Inpaint 不在 47 个算子里**：它是 Python 插件，不编进 GEGL 模块，也不需要
+`./build.sh`。`./install-plugin.sh` 会把 `plugin/ai-inpaint/` 和它依赖的
+`plugin/_shared/` 一起装到 GIMP 用户插件目录。
+
 ## 命名与代码风格约定
 
 改代码时请沿用下面几条，`python tools/normalize_headers.py --write` 可自动重排文件头。
@@ -757,6 +821,7 @@ SuperMrWang → Levels    → <算子>   （7 个色阶）
 SuperMrWang → Component → <算子>   （10 个 dual / compose + 灰度转分量）
 SuperMrWang → Tone / Color / Blend / Mask → <算子>
 SuperMrWang → Sharpen / Noise / Distort → <算子>
+SuperMrWang → AI        → AI Inpaint   （Python 插件，不在 47 个算子里）
 ```
 
 47 个算子按「找算子时的念头」分九组，避免一个子菜单里平铺二十多项：
@@ -826,6 +891,7 @@ python tools/compare_native.py              # 诊断：十二向转换 vs GIMP �
 python tools/normalize_headers.py           # 预览文件头/命名重排，加 --write 落盘
 python tools/set_menu_group.py --check      # 核对菜分组映射表与 ops 目录是否一一对应
 python tools/check_menu.py                  # 每个算子都有 id / menu-path / menu-label，且路径与分组表一致
+python tools/check_ai_inpaint.py            # AI 重绘的 HTTP/PNG 链路（对着 mock ComfyUI，不需要显卡）
 python tools/make_dist.py                   # 把 build/ 整理成 dist/（含 manifest + 校验和）
 ./tools/check-linux.sh                      # 在 Linux/WSL 里验证 .so 能加载并渲染（不开 GIMP）
 python tools/git_push_api.py --dry-run      # 推送兜底：github.com:443 不通时改走 Git Data API

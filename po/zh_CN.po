@@ -1937,3 +1937,144 @@ msgstr "USM 锐化"
 msgid "Sharpens against a blurred copy with the amount, radius and threshold of Photoshop's Unsharp Mask, plus a halo suppression stage that clamps the result to the 3×3 neighbourhood so hard edges do not grow white fringes."
 msgstr "对比模糊副本做锐化，数量、半径、阈值与 Photoshop 的 USM 一致；另加一级光晕抑制，把结果夹到 3×3 邻域，硬边不会长出白边。"
 
+
+# ---- plugin/ai-inpaint（2026-11-20） ----
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "AI Inpaint"
+msgstr "AI 局部重绘"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "AI Inpaint: repaint the selection with a local ComfyUI / Stable Diffusion and paste the result back as a masked layer"
+msgstr "AI 局部重绘：用本机 ComfyUI / Stable Diffusion 重画选区，再贴回成带蒙版的新图层"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Selection + prompt -> ComfyUI inpaint -> new layer with a feathered selection mask. Requires a running ComfyUI (default http://127.0.0.1:8188)."
+msgstr "选区 + 提示词 → ComfyUI 重绘 → 带羽化蒙版的新图层。需要 ComfyUI 在跑（默认 http://127.0.0.1:8188）。"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Prompt"
+msgstr "提示词"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "What should appear in the selection (English works best)"
+msgstr "选区内想出现什么（英文效果最好）"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Negative prompt"
+msgstr "反向提示词"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "What to keep out of the result"
+msgstr "不想出现在结果里的东西"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "ComfyUI address"
+msgstr "ComfyUI 地址"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Empty = $LB_COMFY_URL, else http://127.0.0.1:8188"
+msgstr "留空＝用 $LB_COMFY_URL，否则 http://127.0.0.1:8188"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Checkpoint"
+msgstr "底模"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Model file name; empty picks the first one ComfyUI offers"
+msgstr "底模文件名；留空用 ComfyUI 里的第一个（会跳过 inpaint 专用模型）"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Steps"
+msgstr "步数"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Sampling steps (25 is a good default)"
+msgstr "采样步数（25 是不错的默认值）"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "CFG"
+msgstr "CFG"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Prompt guidance strength"
+msgstr "提示词强度"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Seed"
+msgstr "随机种子"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Random seed; -1 picks a new one each run"
+msgstr "随机种子；-1 表示每次换一个"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Denoise"
+msgstr "重绘幅度"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "1.0 fully repaints the masked area, lower keeps more of it"
+msgstr "1.0 完全重绘蒙版区，调小则保留更多原像素"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Grow mask"
+msgstr "蒙版外扩"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Pixels to expand the selection before sending (softens seams)"
+msgstr "送出前把选区外扩多少像素（接缝更柔和）"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Model mask grow"
+msgstr "模型蒙版外扩"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Extra pixels the model may touch (8 px = 1 latent cell; bigger = fewer seams, more drift)"
+msgstr "模型可触及的额外像素（8 像素＝1 个 latent 格；越大接缝越少、越容易跑偏）"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Timeout (s)"
+msgstr "超时（秒）"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "How long to wait for ComfyUI before giving up"
+msgstr "等 ComfyUI 多久算超时"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Keep mask channel"
+msgstr "保留蒙版通道"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Keep the 'AI Mask' channel so the result can be re-masked later"
+msgstr "保留「AI Mask」通道，之后还能重新取蒙版"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "No image or no layer selected"
+msgstr "没有图像或没有选中图层"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "No selection"
+msgstr "当前没有选区"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Make a selection first: frame what you want repainted (a rough one is fine — grow/feather cleans up the edges)."
+msgstr "先建一个选区再跑这个插件：框住想重画的地方（粗糙没关系，grow / feather 会收拾边缘）。"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "The prompt is empty: describe what should appear (English works best)"
+msgstr "提示词是空的：写一句想画成什么（英文效果最好）"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Failed to read layer pixels: expected %d bytes, got %d"
+msgstr "读取图层像素失败：期望 %d 字节，收到 %d"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Failed to read the selection buffer: expected %d bytes, got %d"
+msgstr "读取选区缓冲失败：期望 %d 字节，收到 %d"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Could not read the inpainting result (%s)"
+msgstr "读不回重绘结果（%s）"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "plugin/_shared/ai_client.py is missing: install the _shared folder next to the plug-in"
+msgstr "缺少 plugin/_shared/ai_client.py：安装时要把 _shared 一起放进 GIMP 插件目录"
