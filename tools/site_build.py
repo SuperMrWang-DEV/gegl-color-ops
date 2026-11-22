@@ -674,7 +674,7 @@ def group_section(g, ops):
 # --------------------------------------------------------------------------
 
 def build_home(ops, stats, version, posts=None):
-    """主页：两个方框 —— 算子一个、插件一个，各自带 Windows / Linux 整包。"""
+    """主页：两个方框 —— 算子一个、插件一个，各自带 Windows / Linux / macOS 整包。"""
     n_live = sum(1 for o in ops if not o.get("deprecated"))
     n_groups = len(SMG.GROUPS)
     n_plug = len(PLUGIN_SPECS)
@@ -707,10 +707,11 @@ def build_home(ops, stats, version, posts=None):
                     "%d 个 .dylib · %s MB" % (stats["mac_files"], stats["zip_mac_mb"]),
                     "%d .dylib · %s MB" % (stats["mac_files"], stats["zip_mac_mb"]))
     else:
-        mac_dl = dl("%s/tree/dist/mac/dist/macos-arm64" % REPO, "macOS arm64",
+        # 还没合并 macOS 产物：指向 Actions，那里每次 push 都会编一份 artifact
+        mac_dl = dl("%s/actions/workflows/build.yml" % REPO, "macOS arm64",
                     "macOS arm64",
-                    "暂无预编译包，用 dist_mac.sh 自编",
-                    "no prebuilt yet — run dist_mac.sh")
+                    "待合并 · 可从 Actions 下载",
+                    "pending — grab it from Actions")
 
     pwin_dl = dl("download/" + pw["name"], "Windows x64", "Windows x64",
                  "%d 个 .py · %d 个模块 · %s MB" % (pw.get("py", n_plug), pw.get("mods", 0),
@@ -723,6 +724,20 @@ def build_home(ops, stats, version, posts=None):
                  "%d .py · %d modules · %s MB" % (pl.get("py", n_plug), pl.get("mods", 0),
                                                   pl.get("mb", 0)),
                  missing=True) if pl else ""
+
+    pm = pb.get("macos-arm64") or {}
+    if pm:
+        pmac_dl = dl("download/" + pm["name"], "macOS arm64", "macOS arm64",
+                     "%d 个 .py · %d 个模块 · %s MB" % (pm.get("py", n_plug),
+                                                     pm.get("mods", 0), pm.get("mb", 0)),
+                     "%d .py · %d modules · %s MB" % (pm.get("py", n_plug),
+                                                      pm.get("mods", 0), pm.get("mb", 0)))
+    else:
+        # 还没合并 macOS 产物时不能装作有包：给一条去 dist/mac 分支的路
+        pmac_dl = dl("%s/actions/workflows/build.yml" % REPO, "macOS arm64",
+                     "macOS arm64",
+                     ".py 跨平台，模块等 Mac 产物",
+                     "portable .py — modules pending")
 
     ops_miss = ""
     if miss:
@@ -799,7 +814,7 @@ def build_home(ops, stats, version, posts=None):
       <span><b>3</b> <span class="l-zh">组磨皮</span><span class="l-en">retouching sets</span></span>
       <span><b>2</b> <span class="l-zh">处入口</span><span class="l-en">menu entries</span></span>
     </div>
-    <div class="door-dl">{pwin_dl}{plin_dl}</div>
+    <div class="door-dl">{pwin_dl}{plin_dl}{pmac_dl}</div>
     {pmiss}
     <div class="door-foot">
       <a href="plugins.html"><span class="l-zh">看全部 {p} 个插件</span><span class="l-en">Browse all {p}</span> <span aria-hidden="true">→</span></a>
@@ -810,33 +825,43 @@ def build_home(ops, stats, version, posts=None):
                      win=stats["win_files"], lin=stats["linux_files"],
                      mac=stats["mac_files"],
                      win_dl=win_dl, lin_dl=lin_dl, mac_dl=mac_dl, miss=ops_miss,
-                     pwin_dl=pwin_dl, plin_dl=plin_dl, pmiss=plug_miss)
+                     pwin_dl=pwin_dl, plin_dl=plin_dl, pmac_dl=pmac_dl,
+                     pmiss=plug_miss)
 
     quick = """<section class="quick">
   <h2><span class="l-zh">两个目录，三个动作</span><span class="l-en">Two directories, three moves</span></h2>
   <ol class="quick-list">
     <li>
       <h3><span class="l-zh">模块进 GEGL</span><span class="l-en">Modules into GEGL</span></h3>
-      <p><span class="l-zh">解压后把 <code>.dll</code> / <code>.so</code> 整个扔进 GEGL 的模块目录，<code>locale/</code> 也一起放（中文语言包，不放就只有英文）。</span><span class="l-en">Unpack and drop every <code>.dll</code> / <code>.so</code> into GEGL's module directory — together with <code>locale/</code>, the Chinese catalogue.</span></p>
+      <p><span class="l-zh">解压后把 <code>.dll</code> / <code>.so</code> / <code>.dylib</code> 整个扔进 GEGL 的模块目录，<code>locale/</code> 也一起放（中文语言包，不放就只有英文）。</span><span class="l-en">Unpack and drop every <code>.dll</code> / <code>.so</code> / <code>.dylib</code> into GEGL's module directory — together with <code>locale/</code>, the Chinese catalogue.</span></p>
       <pre><code>Windows  %LOCALAPPDATA%\\gegl-0.4\\plug-ins
-Linux    ~/.local/share/gegl-0.4/plug-ins</code></pre>
+Linux    ~/.local/share/gegl-0.4/plug-ins
+macOS    ~/Library/Application Support/gegl-0.4/plug-ins</code></pre>
     </li>
     <li>
       <h3><span class="l-zh">.py 进 GIMP</span><span class="l-en">Scripts into GIMP</span></h3>
       <p><span class="l-zh">插件包里的 <code>.py</code> 放进 GIMP 的插件目录，两处都要放，缺一个就报「找不到过程」；<code>_shared/</code> 与 <code>locale/</code> 跟 <code>.py</code> 放同一层。</span><span class="l-en">The plug-in bundle's <code>.py</code> files go into GIMP's plug-in directory. Both places — miss one and the procedure won't be found. Keep <code>_shared/</code> and <code>locale/</code> at that same level.</span></p>
       <pre><code>Windows  %APPDATA%\\GIMP\\3.x\\plug-ins
-Linux    ~/.config/GIMP/3.x/plug-ins</code></pre>
+Linux    ~/.config/GIMP/3.x/plug-ins
+macOS    ~/Library/Application Support/GIMP/3.x/plug-ins</code></pre>
     </li>
     <li>
       <h3><span class="l-zh">重启 GIMP</span><span class="l-en">Restart GIMP</span></h3>
       <p><span class="l-zh">完全退出再打开，菜单栏顶层就有 <b>SuperMrWang</b>（和「颜色」「图层」平级）。</span><span class="l-en">Quit completely and reopen: <b>SuperMrWang</b> is now a top-level menu, a sibling of Colors and Layer.</span></p>
     </li>
   </ol>
-  <p class="note"><span class="l-zh">装不上、菜单里看不到、和 GIMP 自带算子重名——排错写在
+  <p class="note"><span class="l-zh">macOS 包是 <b>arm64</b>（Apple Silicon）的，Intel Mac 要
+     <code>brew install gegl &amp;&amp; ./build.sh</code> 自编；Homebrew 版 GIMP 与官方版读同一个
+     目录，GEGL 0.4.60+ 在 macOS 只认 <code>.dylib</code> 不认 <code>.so</code>。
+     装不上、菜单里看不到、和 GIMP 自带算子重名——排错写在
      <a href="guide.html">安装指南</a>；算法来源、误差表与三轮安装说明在
-     <a href="overview.html">完整总览</a>。</span><span class="l-en">Won't install, missing from the menu, name clashes — see the
-     <a href="guide.html">install guide</a>. Algorithm provenance, error tables and the
-     long version live in the <a href="overview.html">full overview</a>.</span></p>
+     <a href="overview.html">完整总览</a>。</span><span class="l-en">The macOS bundle is <b>arm64</b> (Apple Silicon); on an Intel Mac build
+     your own with <code>brew install gegl &amp;&amp; ./build.sh</code>. Homebrew and
+     official GIMP read the same directory, and GEGL 0.4.60+ on macOS loads
+     <code>.dylib</code>, never <code>.so</code>. Won't install, missing from the menu,
+     name clashes — see the <a href="guide.html">install guide</a>. Algorithm
+     provenance, error tables and the long version live in the
+     <a href="overview.html">full overview</a>.</span></p>
 </section>"""
 
     prov_short = """<section class="provenance home-prov" id="provenance">
@@ -899,7 +924,7 @@ Linux    ~/.config/GIMP/3.x/plug-ins</code></pre>
     return page("gegl-color-ops · GIMP 3 的 GEGL 算子与插件",
                 top + quick + blog_teaser + prov_short, body_class="home",
                 desc="GIMP 3 的 %d 个 GEGL 色彩算子 + %d 个 Python 插件，"
-                     "Windows 与 Linux 整包直接下载。" % (n_live, n_plug),
+                     "Windows / Linux / macOS 整包直接下载。" % (n_live, n_plug),
                 titles=("gegl-color-ops · GIMP 3 的 GEGL 算子与插件",
                         "gegl-color-ops · GEGL operators and plug-ins for GIMP 3"))
 
@@ -922,7 +947,7 @@ def build_overview(ops, stats, version):
      fx filter.</span>
      {dep}</p>
   <div class="cta">
-    <a class="btn primary" href="#download"><span class="l-zh">下载 Windows 包</span><span class="l-en">Download the Windows bundle</span><span class="size">{size} MB</span></a>
+    <a class="btn primary" href="#download"><span class="l-zh">下载预编译包</span><span class="l-en">Download a prebuilt bundle</span><span class="size">Win {size} MB</span></a>
     <a class="btn" href="#ops"><span class="l-zh">浏览 {n} 个算子</span><span class="l-en">Browse the {n} operators</span></a>
     <a class="btn ghost" href="guide.html"><span class="l-zh">怎么装</span><span class="l-en">How to install</span></a>
   </div>
@@ -939,8 +964,10 @@ def build_overview(ops, stats, version):
   <ol class="step-list">
     <li>
       <h3><span class="l-zh">解开压缩包</span><span class="l-en">Unpack the archive</span></h3>
-      <p><span class="l-zh">把 {files} 个 <code>.dll</code> 放进 GEGL 的用户插件目录，目录不存在就自己建一个：</span><span class="l-en">Drop the {files} <code>.dll</code> files into GEGL's user plug-in directory — create it if it doesn't exist:</span></p>
-      <pre><code>%LOCALAPPDATA%\\gegl-0.4\\plug-ins</code></pre>
+      <p><span class="l-zh">把包里的模块（Windows <code>.dll</code> / Linux <code>.so</code> / macOS <code>.dylib</code>）放进 GEGL 的用户插件目录，目录不存在就自己建一个：</span><span class="l-en">Drop the modules (Windows <code>.dll</code>, Linux <code>.so</code>, macOS <code>.dylib</code>) into GEGL's user plug-in directory — create it if it doesn't exist:</span></p>
+      <pre><code>Windows  %LOCALAPPDATA%\\gegl-0.4\\plug-ins
+Linux    ~/.local/share/gegl-0.4/plug-ins
+macOS    ~/Library/Application Support/gegl-0.4/plug-ins</code></pre>
     </li>
     <li>
       <h3><span class="l-zh">重启 GIMP</span><span class="l-en">Restart GIMP</span></h3>
@@ -2468,37 +2495,51 @@ GPL-3.0-or-later
 
 
 def build_plugin_bundle(out_dir):
-    """插件整包：全部 .py 一次装齐，外加它们内部依赖的模块，两个平台各一个。
-    .py 是纯 Python、跨平台通用，所以两个包里的 plugins/ 完全一样，只有
-    modules-* 目录不同。"""
-    win_src = os.path.join(ROOT, "dist", "windows-x64")
-    lin_src = os.path.join(ROOT, "dist", "linux-x64")
+    """插件整包：全部 .py 一次装齐，外加它们内部依赖的模块，每个平台一个。
+    .py 是纯 Python、跨平台通用，所以各包里的 plugins/ 完全一样，只有
+    modules-* 目录不同。macOS 那份要等 dist/macos-arm64/ 里有 .dylib 才出——
+    那目录由另一台 Apple Silicon 机器推 dist/mac 分支，没合进来就整个跳过。"""
     need = sorted({m for sp in PLUGIN_SPECS for m in (sp.get("ops") or [])})
+    ext_of = {"windows-x64": "dll", "linux-x64": "so", "macos-arm64": "dylib"}
+    src_of = {plat: os.path.join(ROOT, "dist", plat) for plat in ext_of}
     mods_of = {
-        "windows-x64": [m + ".dll" for m in need
-                        if os.path.exists(os.path.join(win_src, m + ".dll"))],
-        "linux-x64": [m + ".so" for m in need
-                      if os.path.exists(os.path.join(lin_src, m + ".so"))],
+        plat: [m + "." + ext for m in need
+               if os.path.exists(os.path.join(src_of[plat], m + "." + ext))]
+        for plat, ext in ext_of.items()
     }
-    src_of = {"windows-x64": win_src, "linux-x64": lin_src}
-    lin_absent = [m for m in need
-                  if not os.path.exists(os.path.join(lin_src, m + ".so"))]
+    # macOS 还没合进来就丢掉整个条目，别在下载页挂一个 0 模块的空包
+    if not mods_of["macos-arm64"]:
+        del mods_of["macos-arm64"]
+        del src_of["macos-arm64"]
+    absent_of = {plat: [m for m in need if m + "." + ext_of[plat] not in mods]
+                 for plat, mods in mods_of.items()}
 
     out = {}
     for plat, mods in mods_of.items():
-        miss = lin_absent if plat == "linux-x64" else []
+        miss = absent_of[plat]
         miss_note = ""
-        if miss:
+        if miss and plat == "linux-x64":
             miss_note = (
                 "\n注意：%d 个分量模块（各色空间的 dual / compose）还没进预编译包，\n"
                 "这个包里不含：\n    %s\n"
                 "受影响的是五个 * Split (Curves) 插件；其余插件在 Linux 上开箱可用。\n"
                 "要用它们，在源码目录跑 ./build.sh 自己编一份（Windows 端是齐的）。\n"
                 % (len(miss), "、".join(miss)))
-        gimp_dir = ("%APPDATA%\\GIMP\\3.x\\plug-ins\\" if plat == "windows-x64"
-                    else "~/.config/GIMP/3.x/plug-ins/")
-        gegl_dir = ("%LOCALAPPDATA%\\gegl-0.4\\plug-ins" if plat == "windows-x64"
-                    else "~/.local/share/gegl-0.4/plug-ins")
+        elif miss:
+            miss_note = (
+                "\n注意：本机 dist/macos-arm64/ 里还缺 %d 个分量模块，这个包里不含：\n"
+                "    %s\n五个 * Split (Curves) 插件需要它们，其余插件不受影响。\n"
+                % (len(miss), "、".join(miss)))
+        if plat == "windows-x64":
+            gimp_dir = "%APPDATA%\\GIMP\\3.x\\plug-ins\\"
+            gegl_dir = "%LOCALAPPDATA%\\gegl-0.4\\plug-ins"
+        elif plat == "macos-arm64":
+            # macOS 的 GIMP 3 用 Application Support；GEGL 的模块目录也是同一层
+            gimp_dir = "~/Library/Application Support/GIMP/3.x/plug-ins/"
+            gegl_dir = "~/Library/Application Support/gegl-0.4/plug-ins"
+        else:
+            gimp_dir = "~/.config/GIMP/3.x/plug-ins/"
+            gegl_dir = "~/.local/share/gegl-0.4/plug-ins"
         readme = """gegl-color-ops · Python 插件整包（{plat}）
 =================================================
 

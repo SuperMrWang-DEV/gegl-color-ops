@@ -807,6 +807,9 @@ brew install gegl
 ```
 
 开发机取 macOS 产物：`git fetch origin && git merge origin/dist/mac --no-ff`（只带进那一个目录）。
+合并之后重跑 `python tools/site_build.py`，主页与下载页会自动多出 macOS 的算子整包、
+插件整包和每个算子页的 `.dylib` 直链；没合并时那两处退回「从 Actions 下」的提示，
+构建不报错。
 
 三条必须守的规则，破一条就会出事：
 

@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>gegl-color-ops · GIMP 3 的 GEGL 算子与插件</title>
-<meta name="description" content="GIMP 3 的 47 个 GEGL 色彩算子 + 16 个 Python 插件，Windows 与 Linux 整包直接下载。" data-desc-zh="GIMP 3 的 47 个 GEGL 色彩算子 + 16 个 Python 插件，Windows 与 Linux 整包直接下载。" data-desc-en="GIMP 3 的 47 个 GEGL 色彩算子 + 16 个 Python 插件，Windows 与 Linux 整包直接下载。">
+<meta name="description" content="GIMP 3 的 47 个 GEGL 色彩算子 + 16 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-zh="GIMP 3 的 47 个 GEGL 色彩算子 + 16 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-en="GIMP 3 的 47 个 GEGL 色彩算子 + 16 个 Python 插件，Windows / Linux / macOS 整包直接下载。">
 <meta property="og:title" content="gegl-color-ops · GIMP 3 的 GEGL 算子与插件" data-title-zh="gegl-color-ops · GIMP 3 的 GEGL 算子与插件" data-title-en="gegl-color-ops · GEGL operators and plug-ins for GIMP 3">
-<meta property="og:description" content="GIMP 3 的 47 个 GEGL 色彩算子 + 16 个 Python 插件，Windows 与 Linux 整包直接下载。" data-desc-zh="GIMP 3 的 47 个 GEGL 色彩算子 + 16 个 Python 插件，Windows 与 Linux 整包直接下载。" data-desc-en="GIMP 3 的 47 个 GEGL 色彩算子 + 16 个 Python 插件，Windows 与 Linux 整包直接下载。">
+<meta property="og:description" content="GIMP 3 的 47 个 GEGL 色彩算子 + 16 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-zh="GIMP 3 的 47 个 GEGL 色彩算子 + 16 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-en="GIMP 3 的 47 个 GEGL 色彩算子 + 16 个 Python 插件，Windows / Linux / macOS 整包直接下载。">
 <link rel="stylesheet" href="assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="feed.xml">
 <script>
@@ -83,9 +83,9 @@
         <span class="os"><span class="l-zh">Linux x86_64</span><span class="l-en">Linux x86_64</span></span>
         <span class="meta"><span class="l-zh">47 个 .so · 0.5 MB</span><span class="l-en">47 .so · 0.5 MB</span></span>
         <span class="arrow" aria-hidden="true">↓</span>
-      </a><a class="dl-link" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/tree/dist/mac/dist/macos-arm64">
+      </a><a class="dl-link" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/actions/workflows/build.yml">
         <span class="os"><span class="l-zh">macOS arm64</span><span class="l-en">macOS arm64</span></span>
-        <span class="meta"><span class="l-zh">暂无预编译包，用 dist_mac.sh 自编</span><span class="l-en">no prebuilt yet — run dist_mac.sh</span></span>
+        <span class="meta"><span class="l-zh">待合并 · 可从 Actions 下载</span><span class="l-en">pending — grab it from Actions</span></span>
         <span class="arrow" aria-hidden="true">↓</span>
       </a></div>
     
@@ -118,6 +118,10 @@
         <span class="os"><span class="l-zh">Linux x86_64</span><span class="l-en">Linux x86_64</span></span>
         <span class="meta"><span class="l-zh">16 个 .py · 13 个模块 · 0.2 MB</span><span class="l-en">16 .py · 13 modules · 0.2 MB</span></span>
         <span class="arrow" aria-hidden="true">↓</span>
+      </a><a class="dl-link" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/actions/workflows/build.yml">
+        <span class="os"><span class="l-zh">macOS arm64</span><span class="l-en">macOS arm64</span></span>
+        <span class="meta"><span class="l-zh">.py 跨平台，模块等 Mac 产物</span><span class="l-en">portable .py — modules pending</span></span>
+        <span class="arrow" aria-hidden="true">↓</span>
       </a></div>
     
     <div class="door-foot">
@@ -131,26 +135,35 @@
   <ol class="quick-list">
     <li>
       <h3><span class="l-zh">模块进 GEGL</span><span class="l-en">Modules into GEGL</span></h3>
-      <p><span class="l-zh">解压后把 <code>.dll</code> / <code>.so</code> 整个扔进 GEGL 的模块目录，<code>locale/</code> 也一起放（中文语言包，不放就只有英文）。</span><span class="l-en">Unpack and drop every <code>.dll</code> / <code>.so</code> into GEGL's module directory — together with <code>locale/</code>, the Chinese catalogue.</span></p>
+      <p><span class="l-zh">解压后把 <code>.dll</code> / <code>.so</code> / <code>.dylib</code> 整个扔进 GEGL 的模块目录，<code>locale/</code> 也一起放（中文语言包，不放就只有英文）。</span><span class="l-en">Unpack and drop every <code>.dll</code> / <code>.so</code> / <code>.dylib</code> into GEGL's module directory — together with <code>locale/</code>, the Chinese catalogue.</span></p>
       <pre><code>Windows  %LOCALAPPDATA%\gegl-0.4\plug-ins
-Linux    ~/.local/share/gegl-0.4/plug-ins</code></pre>
+Linux    ~/.local/share/gegl-0.4/plug-ins
+macOS    ~/Library/Application Support/gegl-0.4/plug-ins</code></pre>
     </li>
     <li>
       <h3><span class="l-zh">.py 进 GIMP</span><span class="l-en">Scripts into GIMP</span></h3>
       <p><span class="l-zh">插件包里的 <code>.py</code> 放进 GIMP 的插件目录，两处都要放，缺一个就报「找不到过程」；<code>_shared/</code> 与 <code>locale/</code> 跟 <code>.py</code> 放同一层。</span><span class="l-en">The plug-in bundle's <code>.py</code> files go into GIMP's plug-in directory. Both places — miss one and the procedure won't be found. Keep <code>_shared/</code> and <code>locale/</code> at that same level.</span></p>
       <pre><code>Windows  %APPDATA%\GIMP\3.x\plug-ins
-Linux    ~/.config/GIMP/3.x/plug-ins</code></pre>
+Linux    ~/.config/GIMP/3.x/plug-ins
+macOS    ~/Library/Application Support/GIMP/3.x/plug-ins</code></pre>
     </li>
     <li>
       <h3><span class="l-zh">重启 GIMP</span><span class="l-en">Restart GIMP</span></h3>
       <p><span class="l-zh">完全退出再打开，菜单栏顶层就有 <b>SuperMrWang</b>（和「颜色」「图层」平级）。</span><span class="l-en">Quit completely and reopen: <b>SuperMrWang</b> is now a top-level menu, a sibling of Colors and Layer.</span></p>
     </li>
   </ol>
-  <p class="note"><span class="l-zh">装不上、菜单里看不到、和 GIMP 自带算子重名——排错写在
+  <p class="note"><span class="l-zh">macOS 包是 <b>arm64</b>（Apple Silicon）的，Intel Mac 要
+     <code>brew install gegl &amp;&amp; ./build.sh</code> 自编；Homebrew 版 GIMP 与官方版读同一个
+     目录，GEGL 0.4.60+ 在 macOS 只认 <code>.dylib</code> 不认 <code>.so</code>。
+     装不上、菜单里看不到、和 GIMP 自带算子重名——排错写在
      <a href="guide.html">安装指南</a>；算法来源、误差表与三轮安装说明在
-     <a href="overview.html">完整总览</a>。</span><span class="l-en">Won't install, missing from the menu, name clashes — see the
-     <a href="guide.html">install guide</a>. Algorithm provenance, error tables and the
-     long version live in the <a href="overview.html">full overview</a>.</span></p>
+     <a href="overview.html">完整总览</a>。</span><span class="l-en">The macOS bundle is <b>arm64</b> (Apple Silicon); on an Intel Mac build
+     your own with <code>brew install gegl &amp;&amp; ./build.sh</code>. Homebrew and
+     official GIMP read the same directory, and GEGL 0.4.60+ on macOS loads
+     <code>.dylib</code>, never <code>.so</code>. Won't install, missing from the menu,
+     name clashes — see the <a href="guide.html">install guide</a>. Algorithm
+     provenance, error tables and the long version live in the
+     <a href="overview.html">full overview</a>.</span></p>
 </section><section class="blog-teaser">
   <div class="teaser-head">
     <p class="eyebrow">03 · NOTES</p>
@@ -214,7 +227,7 @@ Linux    ~/.config/GIMP/3.x/plug-ins</code></pre>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">065b70d</span>
+    <span class="muted">37d8128</span>
   </div>
 </footer>
 <script>

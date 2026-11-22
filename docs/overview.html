@@ -50,7 +50,7 @@
      fx filter.</span>
      </p>
   <div class="cta">
-    <a class="btn primary" href="#download"><span class="l-zh">下载 Windows 包</span><span class="l-en">Download the Windows bundle</span><span class="size">2.0 MB</span></a>
+    <a class="btn primary" href="#download"><span class="l-zh">下载预编译包</span><span class="l-en">Download a prebuilt bundle</span><span class="size">Win 2.0 MB</span></a>
     <a class="btn" href="#ops"><span class="l-zh">浏览 47 个算子</span><span class="l-en">Browse the 47 operators</span></a>
     <a class="btn ghost" href="guide.html"><span class="l-zh">怎么装</span><span class="l-en">How to install</span></a>
   </div>
@@ -65,8 +65,10 @@
   <ol class="step-list">
     <li>
       <h3><span class="l-zh">解开压缩包</span><span class="l-en">Unpack the archive</span></h3>
-      <p><span class="l-zh">把 47 个 <code>.dll</code> 放进 GEGL 的用户插件目录，目录不存在就自己建一个：</span><span class="l-en">Drop the 47 <code>.dll</code> files into GEGL's user plug-in directory — create it if it doesn't exist:</span></p>
-      <pre><code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code></pre>
+      <p><span class="l-zh">把包里的模块（Windows <code>.dll</code> / Linux <code>.so</code> / macOS <code>.dylib</code>）放进 GEGL 的用户插件目录，目录不存在就自己建一个：</span><span class="l-en">Drop the modules (Windows <code>.dll</code>, Linux <code>.so</code>, macOS <code>.dylib</code>) into GEGL's user plug-in directory — create it if it doesn't exist:</span></p>
+      <pre><code>Windows  %LOCALAPPDATA%\gegl-0.4\plug-ins
+Linux    ~/.local/share/gegl-0.4/plug-ins
+macOS    ~/Library/Application Support/gegl-0.4/plug-ins</code></pre>
     </li>
     <li>
       <h3><span class="l-zh">重启 GIMP</span><span class="l-en">Restart GIMP</span></h3>
@@ -764,7 +766,7 @@
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">065b70d</span>
+    <span class="muted">37d8128</span>
   </div>
 </footer>
 <script>
