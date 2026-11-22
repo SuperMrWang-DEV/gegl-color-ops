@@ -4235,7 +4235,7 @@ msgid "Load result as selection"
 msgstr ""
 
 #: plugin/blend/blend.py:669
-#: plugin/convert/convert.py:580
+#: plugin/convert/convert.py:662
 msgid "No image"
 msgstr ""
 
@@ -4378,7 +4378,7 @@ msgid "No channel named \"%s\"."
 msgstr ""
 
 #: plugin/channel-to-mask/channel-to-mask.py:109
-#: plugin/convert/convert.py:157
+#: plugin/convert/convert.py:158
 msgid "This image has no channels yet; create one in the Channels dock first."
 msgstr ""
 
@@ -4391,7 +4391,7 @@ msgid "No layer selected."
 msgstr ""
 
 #: plugin/channel-to-mask/channel-to-mask.py:141
-#: plugin/convert/convert.py:300
+#: plugin/convert/convert.py:301
 msgid "A layer group has no pixels and cannot take a mask; merge the group first."
 msgstr ""
 
@@ -4511,199 +4511,211 @@ msgstr ""
 msgid "A custom Color Range dialog: the mode picks which controls exist, and each mode starts at its own default (highlights 192, shadows 64, midtones 64/192). The mask lands in the layer alpha."
 msgstr ""
 
-#: plugin/convert/convert.py:159
+#: plugin/convert/convert.py:160
 msgid "Click the channel to use in the Channels dock and run again (available: %s)."
 msgstr ""
 
-#: plugin/convert/convert.py:178
+#: plugin/convert/convert.py:179
 msgid "Nothing selected: select the target layer(s) in the Layers dock and run it from there."
 msgstr ""
 
-#: plugin/convert/convert.py:189
+#: plugin/convert/convert.py:190
 msgid "The selected layer has no layer mask."
 msgstr ""
 
-#: plugin/convert/convert.py:227
+#: plugin/convert/convert.py:228
 msgid "This image has no paths yet; draw one with the path tool first."
 msgstr ""
 
-#: plugin/convert/convert.py:229
+#: plugin/convert/convert.py:230
 msgid "Click the path to use in the Paths dock and run again (available: %s)."
 msgstr ""
 
-#: plugin/convert/convert.py:274
+#: plugin/convert/convert.py:275
 msgid "There is no selection to trace."
 msgstr ""
 
-#: plugin/convert/convert.py:278
+#: plugin/convert/convert.py:279
 msgid "The native tracer produced no path; the selection is too small."
 msgstr ""
 
-#: plugin/convert/convert.py:436
-msgid "This path encloses no area to fill; check that it has at least one stroke."
+#: plugin/convert/convert.py:455
+msgid "GIMP could not rasterise the vector layer \"%s\"."
 msgstr ""
 
-#: plugin/convert/convert.py:448
-msgid "Filling the path failed; the image may be in a mode that cannot take a new RGBA layer."
-msgstr ""
-
-#: plugin/convert/convert.py:460
-msgid "Take the channel selected in the Channels dock and turn it into the pixel selection."
-msgstr ""
-
-#: plugin/convert/convert.py:462
-msgid "Channel to selection: turns the channel selected in the Channels dock into a pixel selection."
-msgstr ""
-
-#: plugin/convert/convert.py:466
-msgid "Save the current selection as a new channel."
-msgstr ""
-
-#: plugin/convert/convert.py:467
-msgid "Selection to channel: saves the current selection as a new channel."
-msgstr ""
-
-#: plugin/convert/convert.py:471
-msgid "Use the selected channel's grey levels as a layer mask on every selected layer."
-msgstr ""
-
-#: plugin/convert/convert.py:473
-msgid "Channel to mask: uses the selected channel's grey as the mask of the selected layer."
-msgstr ""
-
-#: plugin/convert/convert.py:477
-msgid "Turn the selected layer's layer mask into a new channel."
-msgstr ""
-
-#: plugin/convert/convert.py:478
-msgid "Mask to channel: turns the selected layer's mask into a new channel."
-msgstr ""
-
-#: plugin/convert/convert.py:482
-msgid "Use the current selection as a layer mask on every selected layer."
-msgstr ""
-
-#: plugin/convert/convert.py:483
-msgid "Selection to mask: attaches the current selection as the mask of the selected layer."
-msgstr ""
-
-#: plugin/convert/convert.py:487
-msgid "Turn the selected layer's layer mask into the pixel selection."
-msgstr ""
-
-#: plugin/convert/convert.py:488
-msgid "Mask to selection: turns the selected layer's mask into a pixel selection."
-msgstr ""
-
-#: plugin/convert/convert.py:494
-msgid "Turn the selected path into the pixel selection."
-msgstr ""
-
-#: plugin/convert/convert.py:495
-msgid "Path to selection: turns the path selected in the Paths dock into a pixel selection."
-msgstr ""
-
-#: plugin/convert/convert.py:499
-msgid "Trace the current selection into a new path (the native Select > To Path geometry, with a readable name)."
-msgstr ""
-
-#: plugin/convert/convert.py:501
-msgid "Selection to path: traces the current selection into a new path (same geometry as the native To Path)."
-msgstr ""
-
-#: plugin/convert/convert.py:505
-msgid "Rasterise the selected path into a new channel."
-msgstr ""
-
-#: plugin/convert/convert.py:506
-msgid "Path to channel: rasterises the selected path into a new channel."
-msgstr ""
-
-#: plugin/convert/convert.py:510
-msgid "Trace the selected channel's 50% contour into a new path."
-msgstr ""
-
-#: plugin/convert/convert.py:511
-msgid "Channel to path: traces the 50% contour of the selected channel into a new path."
+#: plugin/convert/convert.py:459
+msgid "The vector layer \"%s\" renders to nothing; nothing to rasterise."
 msgstr ""
 
 #: plugin/convert/convert.py:515
-msgid "Rasterise the selected path into a layer mask on every selected layer."
+msgid "This path encloses no area to fill; check that it has at least one stroke."
 msgstr ""
 
-#: plugin/convert/convert.py:517
-msgid "Path to mask: rasterises the selected path into the mask of the selected layer."
+#: plugin/convert/convert.py:527
+msgid "Filling the path failed; the image may be in a mode that cannot take a new RGBA layer."
 msgstr ""
 
-#: plugin/convert/convert.py:521
-msgid "Trace the selected layer's mask into a new path."
+#: plugin/convert/convert.py:539
+msgid "Take the channel selected in the Channels dock and turn it into the pixel selection."
 msgstr ""
 
-#: plugin/convert/convert.py:522
-msgid "Mask to path: traces the outline of the selected layer's mask into a new path."
+#: plugin/convert/convert.py:541
+msgid "Channel to selection: turns the channel selected in the Channels dock into a pixel selection."
 msgstr ""
 
-#: plugin/convert/convert.py:530
-msgid "Rasterise the selected path into a new pixel layer, filled with the foreground colour."
+#: plugin/convert/convert.py:545
+msgid "Save the current selection as a new channel."
 msgstr ""
 
-#: plugin/convert/convert.py:532
-msgid "Path to bitmap: rasterises the path into a new pixel layer (filled with the foreground colour), cropped to the path."
+#: plugin/convert/convert.py:546
+msgid "Selection to channel: saves the current selection as a new channel."
+msgstr ""
+
+#: plugin/convert/convert.py:550
+msgid "Use the selected channel's grey levels as a layer mask on every selected layer."
+msgstr ""
+
+#: plugin/convert/convert.py:552
+msgid "Channel to mask: uses the selected channel's grey as the mask of the selected layer."
+msgstr ""
+
+#: plugin/convert/convert.py:556
+msgid "Turn the selected layer's layer mask into a new channel."
+msgstr ""
+
+#: plugin/convert/convert.py:557
+msgid "Mask to channel: turns the selected layer's mask into a new channel."
+msgstr ""
+
+#: plugin/convert/convert.py:561
+msgid "Use the current selection as a layer mask on every selected layer."
+msgstr ""
+
+#: plugin/convert/convert.py:562
+msgid "Selection to mask: attaches the current selection as the mask of the selected layer."
+msgstr ""
+
+#: plugin/convert/convert.py:566
+msgid "Turn the selected layer's layer mask into the pixel selection."
+msgstr ""
+
+#: plugin/convert/convert.py:567
+msgid "Mask to selection: turns the selected layer's mask into a pixel selection."
+msgstr ""
+
+#: plugin/convert/convert.py:573
+msgid "Turn the selected path into the pixel selection."
+msgstr ""
+
+#: plugin/convert/convert.py:574
+msgid "Path to selection: turns the path selected in the Paths dock into a pixel selection."
+msgstr ""
+
+#: plugin/convert/convert.py:578
+msgid "Trace the current selection into a new path (the native Select > To Path geometry, with a readable name)."
+msgstr ""
+
+#: plugin/convert/convert.py:580
+msgid "Selection to path: traces the current selection into a new path (same geometry as the native To Path)."
+msgstr ""
+
+#: plugin/convert/convert.py:584
+msgid "Rasterise the selected path into a new channel."
+msgstr ""
+
+#: plugin/convert/convert.py:585
+msgid "Path to channel: rasterises the selected path into a new channel."
 msgstr ""
 
 #: plugin/convert/convert.py:589
+msgid "Trace the selected channel's 50% contour into a new path."
+msgstr ""
+
+#: plugin/convert/convert.py:590
+msgid "Channel to path: traces the 50% contour of the selected channel into a new path."
+msgstr ""
+
+#: plugin/convert/convert.py:594
+msgid "Rasterise the selected path into a layer mask on every selected layer."
+msgstr ""
+
+#: plugin/convert/convert.py:596
+msgid "Path to mask: rasterises the selected path into the mask of the selected layer."
+msgstr ""
+
+#: plugin/convert/convert.py:600
+msgid "Trace the selected layer's mask into a new path."
+msgstr ""
+
+#: plugin/convert/convert.py:601
+msgid "Mask to path: traces the outline of the selected layer's mask into a new path."
+msgstr ""
+
+#: plugin/convert/convert.py:609
+msgid "A vector layer (GIMP 3.2) is rasterised with its own fill and stroke and replaces that layer; a bare path becomes a new layer filled with the foreground colour."
+msgstr ""
+
+#: plugin/convert/convert.py:612
+msgid "Path to bitmap: a vector layer is rasterised as it looks and replaces itself; a bare path becomes a new layer filled with the foreground colour, cropped to the path."
+msgstr ""
+
+#: plugin/convert/convert.py:671
 msgid "Channel \"%s\" to selection"
 msgstr ""
 
-#: plugin/convert/convert.py:592
+#: plugin/convert/convert.py:674
 msgid "Selection to channel \"%s\""
 msgstr ""
 
-#: plugin/convert/convert.py:595
+#: plugin/convert/convert.py:677
 msgid "Channel \"%s\" to the mask of %d layer(s)"
 msgstr ""
 
-#: plugin/convert/convert.py:599
+#: plugin/convert/convert.py:681
 msgid "Mask to channel \"%s\""
 msgstr ""
 
-#: plugin/convert/convert.py:602
+#: plugin/convert/convert.py:684
 msgid "Selection to the mask of %d layer(s)"
 msgstr ""
 
-#: plugin/convert/convert.py:605
+#: plugin/convert/convert.py:687
 msgid "Mask \"%s\" to selection"
 msgstr ""
 
-#: plugin/convert/convert.py:608
+#: plugin/convert/convert.py:690
 msgid "Path \"%s\" to selection"
 msgstr ""
 
-#: plugin/convert/convert.py:611
+#: plugin/convert/convert.py:693
 msgid "Selection to path \"%s\""
 msgstr ""
 
-#: plugin/convert/convert.py:614
+#: plugin/convert/convert.py:696
 msgid "Path \"%s\" to channel \"%s\""
 msgstr ""
 
-#: plugin/convert/convert.py:618
+#: plugin/convert/convert.py:700
 msgid "Channel \"%s\" to path \"%s\""
 msgstr ""
 
-#: plugin/convert/convert.py:622
+#: plugin/convert/convert.py:704
 msgid "Path \"%s\" to the mask of %d layer(s)"
 msgstr ""
 
-#: plugin/convert/convert.py:626
+#: plugin/convert/convert.py:708
 msgid "Mask \"%s\" to path \"%s\""
 msgstr ""
 
-#: plugin/convert/convert.py:630
-msgid "Path \"%s\" rasterised into layer \"%s\""
+#: plugin/convert/convert.py:713
+msgid "Vector layer \"%s\" rasterised into a pixel layer (its own fill and stroke, the vector layer is replaced)"
 msgstr ""
 
-#: plugin/convert/convert.py:633
+#: plugin/convert/convert.py:717
+msgid "Path \"%s\" rasterised into layer \"%s\" (filled with the foreground colour)"
+msgstr ""
+
+#: plugin/convert/convert.py:721
 msgid "Unknown direction"
 msgstr ""
 

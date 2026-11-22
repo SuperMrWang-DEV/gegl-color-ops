@@ -635,6 +635,52 @@ def run():
     check("两层都在", [len(img.get_layers())], [3])
     img.delete()
 
+    # 矢量图层（GIMP 3.2 的 GimpVectorLayer）：以前这里会按前景色另造一层，
+    # 结果是「白底黑边的图形变成黑块 + 画面上多出一层」。现在必须用它自己的
+    # 填充与描边，并且原地替换——图层数不变、名字接上、位置不变。
+    print("\n[24] 矢量图层 → 位图（用它自己的填充/描边，原地替换）")
+    vproc = Gimp.get_pdb().lookup_procedure('gimp-vector-layer-new')
+    if vproc is None:
+        print("    跳过：这个 GIMP 没有矢量图层（3.2+ 才有）")
+    else:
+        def rgba_at(item, x, y):
+            raw = item.get_buffer().get(Gegl.Rectangle.new(x, y, 1, 1), 1.0,
+                                        "R'G'B'A u8", Gegl.AbyssPolicy.NONE)
+            return list(bytes(bytearray(raw)))
+
+        blue = Gegl.Color()
+        blue.set_rgba(0.2, 0.4, 0.8, 1.0)
+        Gimp.context_set_foreground(blue)         # 前景色 = 蓝，用来证明没被用上
+
+        img, layer = new_doc()
+        vpath = path_to_rect(img, layer, 2, 2, 12, 12)
+        vcfg = vproc.create_config()
+        vcfg.set_property('image', img)
+        vcfg.set_property('path', vpath)
+        vl = vproc.run(vcfg).index(1)
+        img.insert_layer(vl, None, 0)
+        img.set_selected_layers([vl])
+
+        # 参照：矢量图层自己的渲染缓存。插件必须逐位等于它——「用它的填充与描边」
+        # 这句话只有这样才验得实；比对某个像素猜颜色，抗锯齿一掺就说不清了。
+        n_before = len(img.get_layers())
+        vname = vl.get_name()
+        vl.rasterize()
+        vref = dump(vl)
+        vsrc, ours = mod.path_to_bitmap(img, [vl])
+        check("矢量图层走替换分支（没有路径源）", [vsrc is None], [True])
+        check("图层数不变（不留第二层）", [len(img.get_layers())], [n_before])
+        check("名字原样接上", [ours.get_name()], [vname])
+        check("结果是普通像素图层",
+              [ours.is_vector_layer(), isinstance(ours, Gimp.Layer)], [False, True])
+        mid = rgba_at(ours, ours.get_width() // 2, ours.get_height() // 2)
+        check("内部是矢量图层自己的填充（白色，不是前景蓝）",
+              mid, [255, 255, 255, 255], tol=0)
+        check("整层与矢量图层自己的渲染逐位一致", [dump(ours) == vref], [True])
+        check("路径还留着（几何资源不删）",
+              [len(img.get_paths()) >= 1], [True])
+        img.delete()
+
 
 try:
     run()

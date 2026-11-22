@@ -78,7 +78,8 @@ import sys
 
 import gi
 gi.require_version('Gimp', '3.0')
-from gi.repository import Gimp, GLib, GObject
+gi.require_version('Gegl', '0.4')
+from gi.repository import Gimp, Gegl, GLib, GObject
 
 
 def _N_(message):
@@ -374,7 +375,9 @@ def mask_to_selection(image, drawables):
 # ---- 带路径的六个方向 / the six path directions ----------------------------
 # 路径和位图之间没有直连的原生过程，一律经选区这一站：
 # · 位图 → 路径   先 select-item，再 plug-in-sel2path（原生 To Path 的那一步）
-# · 路径 → 位图   只有 select-item 一步，后面的存通道 / 挂蒙版照旧
+# · 路径 → 通道/蒙版   只有 select-item 一步，后面的存通道 / 挂蒙版照旧
+# · 路径/矢量图层 → 位图   见 path_to_bitmap：矢量图层按自己的渲染替换原层，
+#                          裸路径才走「选区内填前景色」
 # 经选区就意味着跟着原生的数值语义走，也意味着灰度会被压成 0.5 等值线。
 
 def path_to_selection(image, drawables=None):
@@ -410,23 +413,99 @@ def path_to_mask(image, drawables):
     return path, apply_selection_mask(image, drawables)
 
 
+def _is_vector_layer(item):
+    """GIMP 3.2 的矢量图层（GimpVectorLayer）。Path 也是 Item，所以要判方法
+    是否存在再调，不能只 isinstance。"""
+    return hasattr(item, 'is_vector_layer') and item.is_vector_layer()
+
+
+def pick_vector_layer(image, drawables=None):
+    """有没有矢量图层被点中/选中。顺序和 pick_path 一致：上下文 → 路径面板 →
+    图层面板。矢量图层是 3.2 才有的东西，老版本这里永远返回 None。"""
+    buckets = (list(drawables or []),
+               list(image.get_selected_paths()),
+               list(image.get_selected_layers()))
+    for bucket in buckets:
+        for item in bucket:
+            if _is_vector_layer(item):
+                return item
+    return None
+
+
+def vector_layer_to_bitmap(image, vl):
+    """矢量图层 → 像素图层：用它**自己的**填充与描边，原地替换，不多留一层。
+
+    GIMP 3.2 没有「把矢量图层降级成普通图层」的 API：`rasterize()` 只是把当前
+    渲染算进缓存（图层类型仍是矢量），`Layer.flatten()` 也不改类型。所以这里
+    rasterize 之后把缓存整块读出来，写进一张同尺寸的 RGBA 图层，再把矢量图层
+    删掉——结果就是「一张位图，长得和原来一模一样」，不是另开一张黑图盖上去。
+
+    There is no API to demote a vector layer to a plain one in GIMP 3.2:
+    rasterize() only refreshes the render cache (the type stays vector). So
+    read that cache into an RGBA layer of the same size, then delete the
+    vector layer — one layer, same look, no foreground-colour fill."""
+    name = vl.get_name()
+    # rasterize() 是「刷新缓存」，已经刷过就直接返回 False——那不是失败。第二次
+    # 运行时别炸，只有连缓存都没有才算真的失败。
+    # rasterize() refreshes the cache and returns False when there is nothing
+    # to do; only a layer with no cache at all is an actual failure.
+    if not vl.rasterize() and not (hasattr(vl, 'is_rasterized')
+                                   and vl.is_rasterized()):
+        raise RuntimeError(
+            _("GIMP could not rasterise the vector layer \"%s\".") % name)
+    w, h = vl.get_width(), vl.get_height()
+    if w <= 0 or h <= 0:
+        raise RuntimeError(
+            _("The vector layer \"%s\" renders to nothing; nothing to "
+              "rasterise.") % name)
+
+    off = vl.get_offsets()
+    opacity, mode = vl.get_opacity(), vl.get_mode()
+    raw = vl.get_buffer().get(Gegl.Rectangle.new(0, 0, w, h), 1.0,
+                              "R'G'B'A u8", Gegl.AbyssPolicy.NONE)
+
+    parent = vl.get_parent()
+    siblings = parent.get_children() if parent is not None else image.get_layers()
+    try:
+        pos = list(siblings).index(vl)
+    except ValueError:
+        pos = 0
+
+    # 先摘掉矢量图层再建位图层：`Item.delete()` 对图层返回 False（那是给浮动选中/
+    # 资源用的），图层要走 `image.remove_layer()`。顺序反过来的话，同名新图层会被
+    # GIMP 挤成「X #1」——用户就是想让同一张图变成位图，名字该原样接上。
+    # 路径本身留着（那是几何资源），删掉反而会丢用户的描线。
+    image.remove_layer(vl)
+
+    layer = Gimp.Layer.new(image, name, w, h, Gimp.ImageType.RGBA_IMAGE,
+                           opacity, mode)
+    image.insert_layer(layer, parent, pos)
+    layer.set_offsets(off.offset_x, off.offset_y)
+    layer.get_buffer().set(Gegl.Rectangle.new(0, 0, w, h), "R'G'B'A u8",
+                           bytes(bytearray(raw)))
+    return layer
+
+
 def path_to_bitmap(image, drawables=None):
-    """路径 → 像素图层：真·栅格化，一步出可编辑的位图。
+    """矢量 → 像素，两种来源分开处理。
 
-    路径在 GIMP 里只存几何，没有填充色、没有线宽，所以「栅格化」必须替它挑
-    一种落笔方式。这里用**前景色填充路径内部**，和原生「编辑 → 用前景色填充
-    路径」同义（原生那条内部也是先转选区再填，边缘同样是一像素过渡），这也
-    是「矢量图形 → 位图」最常见的那个意思。要的是线稿（描边）而不是实心形状
-    时，用原生「编辑 → 描边路径」，本插件不管那条。
+    · 点中的是**矢量图层**（GIMP 3.2）：用它自己的填充与描边渲染成一张同尺寸
+      位图，替换掉矢量图层，只留一层。以前这里会无视它的颜色、按前景色另造一
+      层，于是「白底黑边」的矢量图形变成了黑块，画面上还多出一层。
+    · 点中的是**裸路径**：路径在 GIMP 里只存几何，没有填充色、没有线宽，所以
+      「栅格化」必须替它挑一种落笔方式。这里用**前景色填充路径内部**，和原生
+      「编辑 → 用前景色填充路径」同义（原生那条内部也是先转选区再填，边缘同样
+      是一像素过渡）。要线稿而不是实心形状时，用原生「编辑 → 描边路径」。
 
-    新图层只做路径外接框那么大、偏移对回原位，不铺满整个画布：栅格化一个
-    24×24 的图标不该顺手生成一张 4000×3000 的空图层。
+    裸路径这条新图层只做路径外接框那么大、偏移对回原位，不铺满整个画布。
 
-    The path is a shape, not a brush: rasterising it here means filling its
+    The path is a shape, not a brush: rasterising a bare path means filling its
     interior with the foreground colour — the same thing the native
-    "Edit > Fill with foreground colour" does on a path, with the same
-    one-pixel edge falloff. The new layer is cropped to the path's bounding
-    box and offset back into place."""
+    "Edit > Fill with foreground colour" does on a path."""
+    vl = pick_vector_layer(image, drawables)
+    if vl is not None:
+        return None, vector_layer_to_bitmap(image, vl)
+
     path = pick_path(image, drawables)
     image.select_item(Gimp.ChannelOps.REPLACE, path)
 
@@ -527,9 +606,12 @@ DIRECTIONS = [
     ('lb-plugin-conv-path-to-bitmap',
      'Path to Bitmap',
      'path-to-bitmap',
-     _("Rasterise the selected path into a new pixel layer, filled with the "
-       "foreground colour."),
-     _("Path to bitmap: rasterises the path into a new pixel layer (filled with the foreground colour), cropped to the path.")),
+     _("A vector layer (GIMP 3.2) is rasterised with its own fill and stroke "
+       "and replaces that layer; a bare path becomes a new layer filled with "
+       "the foreground colour."),
+     _("Path to bitmap: a vector layer is rasterised as it looks and replaces "
+       "itself; a bare path becomes a new layer filled with the foreground "
+       "colour, cropped to the path.")),
 ]
 
 BY_KEY = dict((d[2], d) for d in DIRECTIONS)
@@ -627,8 +709,14 @@ class ConvertPlugin(Gimp.PlugIn):
                                                      dst.get_name())
             elif key == 'path-to-bitmap':
                 src, dst = path_to_bitmap(image, drawables)
-                note = _("Path \"%s\" rasterised into layer \"%s\"") % (
-                    src.get_name(), dst.get_name())
+                if src is None:
+                    note = _("Vector layer \"%s\" rasterised into a pixel layer "
+                             "(its own fill and stroke, the vector layer is "
+                             "replaced)") % dst.get_name()
+                else:
+                    note = _("Path \"%s\" rasterised into layer \"%s\" (filled "
+                             "with the foreground colour)") % (
+                                 src.get_name(), dst.get_name())
             else:
                 raise RuntimeError(_("Unknown direction"))
         except Exception as exc:

@@ -775,7 +775,7 @@ PLUGIN_EN["channel-to-mask"] = dict(
 
 PLUGIN_EN["convert"] = dict(
     lede="""Channels, selections, layer masks and paths, converted in every direction: twelve
-   menu items, each one click and done — no parameter dialog. Natively these paths are spread
+   menu items plus <b>Path to Bitmap</b>, each one click and done — no parameter dialog. Natively these paths are spread
    across four places, and <b>mask → channel does not exist at all</b>; it takes a detour
    through the selection in two steps. A path is a <b>lossy stop</b>: it carries geometry and
    no alpha, so anything going into a path is traced along the 50% contour.""",
@@ -821,6 +821,9 @@ PLUGIN_EN["convert"] = dict(
          box and offset back into place, so rasterising a 24×24 icon does not also hand you a
          4000×3000 empty layer. For outlines rather than solid shapes, use the native
          "Edit > Stroke Path".</p>
+      <p>A <b>vector layer</b> (GIMP 3.2) is the other case: it carries its own fill colour,
+         stroke colour and width, so it is rasterised <b>as it looks</b> and replaces that
+         layer — one layer in, one layer out, no foreground-colour copy stacked on top.</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>The source is always "current"</h3></div>

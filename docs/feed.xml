@@ -37,12 +37,12 @@
        所以这里用的是本项目自己的算</summary>
   </entry>
   <entry>
-    <title>插件 · Convert（通道 / 选区 / 蒙版 / 路径 十二向转换）</title>
+    <title>插件 · Convert（十二向互转 + 路径转位图）</title>
     <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/convert.html"/>
     <id>tag:github.com,2026:plugin-convert</id>
     <updated>2026-11-17T00:00:00Z</updated>
     <summary>通道、选区、蒙版、路径四者两两互转，十二个方向各占一个菜单项，点下去
-       直接执行、不弹参数框。原生菜单里这些路分散在四处，而且「蒙版 → 通道」
+       直接执行、不弹参数框；另外一条 Path to Bitmap 把路径或矢量图层落成像素。原生菜单里这些路分散在四处，而且「蒙版 → 通道」
        「通道 → 路径」这类根本没有直连，只能绕选区两步走。路径这一站是有损闸门：
        它只有几何、没有 alpha，位图进路径时按 50% 等值线取轮廓。</summary>
   </entry>

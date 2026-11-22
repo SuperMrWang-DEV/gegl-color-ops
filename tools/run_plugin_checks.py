@@ -35,14 +35,18 @@ SUITES = [
     ("check_ai_inpaint", "python"),
     ("check_retouch_ai", "python"),
     ("check_plugin_dialogs", "gimp"),
+    ("check_convert", "gimp"),
     ("check_ai_inpaint_gimp", "gimp"),
     ("check_retouch_ai_gimp", "gimp"),
 ]
 
+# (正则, 语义)。语义有两种：'pass/total' 两个数都要对上，'pass/fail' 只要求
+# 失败数为 0。各脚本的收尾提示是历史包袱，与其统一改一堆脚本，不如在这里认。
 COUNT_RE = [
-    re.compile(r"(\d+)/(\d+)\s*通过"),           # 「168/168 通过」
-    re.compile(r"（(\d+)\s*条断言）"),            # check_plugin_dialogs
-    re.compile(r"：(\d+)\s*条断言"),              # check_retouch_ai
+    (re.compile(r"(\d+)/(\d+)\s*通过"), "pass/total"),      # 「168/168 通过」
+    (re.compile(r"通过\s*(\d+)\s*项，失败\s*(\d+)\s*项"), "pass/fail"),
+    (re.compile(r"（(\d+)\s*条断言）"), "one"),              # check_plugin_dialogs
+    (re.compile(r"：(\d+)\s*条断言"), "one"),                # check_retouch_ai
 ]
 
 
@@ -99,16 +103,22 @@ def run_suite(name, kind, gimp):
         tail = "\n".join(out.strip().splitlines()[-6:])
         return None, "退出码 %d，最后几行：\n%s" % (proc.returncode, tail)
 
-    for pat in COUNT_RE:
+    for pat, kind in COUNT_RE:
         m = pat.search(out)
-        if m:
-            if len(m.groups()) == 2:
-                passed, total = int(m.group(1)), int(m.group(2))
-                if passed != total:
-                    tail = "\n".join(out.strip().splitlines()[-6:])
-                    return None, "只过了 %d/%d：\n%s" % (passed, total, tail)
-                return total, "%.0f s" % dt
+        if not m:
+            continue
+        if kind == "one":
             return int(m.group(1)), "%.0f s" % dt
+        first, second = int(m.group(1)), int(m.group(2))
+        if kind == "pass/fail":
+            if second:
+                tail = "\n".join(out.strip().splitlines()[-6:])
+                return None, "失败了 %d 条：\n%s" % (second, tail)
+            return first, "%.0f s" % dt
+        if first != second:
+            tail = "\n".join(out.strip().splitlines()[-6:])
+            return None, "只过了 %d/%d：\n%s" % (first, second, tail)
+        return second, "%.0f s" % dt
 
     tail = "\n".join(out.strip().splitlines()[-6:])
     return None, "输出里找不到断言条数（脚本改了收尾提示？）：\n%s" % tail

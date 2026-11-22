@@ -2124,24 +2124,12 @@ msgid "No image"
 msgstr "没有图像"
 
 #: plugin/convert/convert.py
-msgid "Path \"%s\" rasterised into layer \"%s\""
-msgstr "路径「%s」已栅格化为图层「%s」"
-
-#: plugin/convert/convert.py
-msgid "Path to bitmap: rasterises the path into a new pixel layer (filled with the foreground colour), cropped to the path."
-msgstr "路径转位图：把路径栅格化为新像素图层（用前景色填充），并裁到路径范围。"
-
-#: plugin/convert/convert.py
 msgid "Rasterise the selected path into a layer mask on every selected layer."
 msgstr "把选中路径栅格化为每个选中图层的图层蒙版。"
 
 #: plugin/convert/convert.py
 msgid "Rasterise the selected path into a new channel."
 msgstr "把选中路径栅格化为新通道。"
-
-#: plugin/convert/convert.py
-msgid "Rasterise the selected path into a new pixel layer, filled with the foreground colour."
-msgstr "把选中路径栅格化为新像素图层，用前景色填充。"
 
 #: plugin/convert/convert.py
 msgid "Save the current selection as a new channel."
@@ -2606,3 +2594,27 @@ msgstr "缺少 plugin/_shared/ai_client.py —— 重装插件时把 _shared 目
 #: plugin/ai-inpaint/ai-inpaint.py
 msgid "The selection is outside the image"
 msgstr "选区在画布之外"
+
+#: plugin/convert/convert.py
+msgid "GIMP could not rasterise the vector layer \"%s\"."
+msgstr "GIMP 没能把矢量图层「%s」渲染成位图。"
+
+#: plugin/convert/convert.py
+msgid "The vector layer \"%s\" renders to nothing; nothing to rasterise."
+msgstr "矢量图层「%s」渲染出来是空的，没有可栅格化的内容。"
+
+#: plugin/convert/convert.py
+msgid "Vector layer \"%s\" rasterised into a pixel layer (its own fill and stroke, the vector layer is replaced)"
+msgstr "矢量图层「%s」已按它自己的填充与描边栅格化为像素图层（原矢量图层被替换）"
+
+#: plugin/convert/convert.py
+msgid "Path \"%s\" rasterised into layer \"%s\" (filled with the foreground colour)"
+msgstr "路径「%s」已栅格化为图层「%s」（用前景色填充）"
+
+#: plugin/convert/convert.py
+msgid "A vector layer (GIMP 3.2) is rasterised with its own fill and stroke and replaces that layer; a bare path becomes a new layer filled with the foreground colour."
+msgstr "矢量图层（GIMP 3.2）按它自己的填充与描边渲染，并替换掉那一层；裸路径则新建一层，用前景色填充。"
+
+#: plugin/convert/convert.py
+msgid "Path to bitmap: a vector layer is rasterised as it looks and replaces itself; a bare path becomes a new layer filled with the foreground colour, cropped to the path."
+msgstr "路径转位图：矢量图层按它显示的样子栅格化并替换自身；裸路径新建一层、用前景色填充，并裁到路径范围。"

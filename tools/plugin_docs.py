@@ -1118,17 +1118,17 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
         key='convert',
         slug='convert',
         native_only=True,   # 只做原生路径的顺手封装，不含新算法
-        title='Convert（通道 / 选区 / 蒙版 / 路径 十二向转换）',
+        title='Convert（十二向互转 + 路径转位图）',
         tag=('转换', 't-mask'),
-        count='十二个方向',
+        count='十二向 + 位图',
         area='图层转换',
-        menu='SuperMrWang → Convert → 十二项',
-        menus=['SuperMrWang → Convert → 十二项，按目标命名',
+        menu='SuperMrWang → Convert → 十三项',
+        menus=['SuperMrWang → Convert → 十三项，按目标命名',
                '图层右键 → SuperMrWang → Convert',
                '通道右键 / 路径右键 → SuperMrWang → Convert'],
-        pdb='lb-plugin-conv-* 十二个过程，全部零参数',
+        pdb='lb-plugin-conv-* 十三个过程，全部零参数',
         lede="""通道、选区、蒙版、路径四者两两互转，十二个方向各占一个菜单项，点下去
-       直接执行、不弹参数框。原生菜单里这些路分散在四处，而且「蒙版 → 通道」
+       直接执行、不弹参数框；另外一条 <b>Path to Bitmap</b> 把路径或矢量图层落成像素。原生菜单里这些路分散在四处，而且「蒙版 → 通道」
        「通道 → 路径」这类根本没有直连，只能绕选区两步走。路径这一站是<b>有损闸门</b>：
        它只有几何、没有 alpha，位图进路径时按 50% 等值线取轮廓。""",
         body="""<div class="dl-grid">
@@ -1158,7 +1158,7 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
         <li><b>Channel to Path</b> · 通道 → 路径</li>
         <li><b>Path to Mask</b> · 路径 → 图层蒙版</li>
         <li><b>Mask to Path</b> · 图层蒙版 → 路径</li>
-        <li><b>Path to Bitmap</b> · 路径 → 像素图层（前景色填充，裁到路径）</li>
+        <li><b>Path to Bitmap</b> · 路径 / 矢量图层 → 像素图层（矢量图层用它自己的填充与描边原地替换；裸路径按前景色填充）</li>
       </ul>
       <p>没有省略号的菜单项就是<b>点一下直接跑</b>：源全从上下文取，不需要在对话框里
          再选一遍。</p>
@@ -1221,7 +1221,9 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
      缺源时会明确说缺什么（没选通道 / 没蒙版 / 没路径 / 图层组没有像素），不会静默什么都不做。
      <b>路径这一站有损</b>：羽化、渐变、抗锯齿的边缘在「位图 → 路径」时会被压成硬边界，
      这是路径只有几何、没有 alpha 决定的，原生 To Path 同样如此。反过来「路径 → 位图」
-     不丢任何东西，栅格化出来就是干净的硬边。</p>""",
+     不丢任何东西，栅格化出来就是干净的硬边。<b>矢量图层</b>（GIMP 3.2）是另一条路：
+     它自己有填充色、描边色和线宽，所以按它<b>自己的样子</b>渲染成位图，替换掉原来那一层，
+     不会再额外盖一张前景色的图上去。</p>""",
     ),
     dict(
         key='max-min',
@@ -1351,8 +1353,8 @@ BRIEF = {
                        "多选图层一次挂齐，可反相。",
     "max-min": "形态学的最大值（膨胀）与最小值（腐蚀）：扩边、收边、去亮点暗点，"
                "半径 1–100、方形或圆盘可选。",
-    "convert": "通道、选区、蒙版、路径四者两两互转，十二个方向各一个菜单项，点一下就完事，"
-               "不弹参数框。",
+    "convert": "通道、选区、蒙版、路径四者两两互转，十二个方向各一个菜单项、点一下"
+               "就完事，不弹参数框；另加一条路径 / 矢量图层转位图。",
 }
 
 TAG_EN = {"曲线": "Curves", "磨皮": "Retouching", "选区": "Selection",
@@ -1497,7 +1499,7 @@ DEPS_NOTE = {
     "channel": "不依赖任何自研算子：直接读图层字节，只调 GIMP 自己的通道 PDB。",
     "split": "不依赖任何自研算子：读一次图层数据后按分量切片，只调 GIMP 自己的通道 PDB。",
     "channel-to-mask": "不依赖任何自研算子：只读通道像素、只调 GIMP 自己的蒙版 PDB。",
-    "convert": "不依赖任何自研算子：十二个方向都只调 GIMP 自己的通道、选区、蒙版、路径 PDB。",
+    "convert": "不依赖任何自研算子：十二个方向都只调 GIMP 自己的通道、选区、蒙版、路径 PDB（位图那条读的是图层自己的渲染）。",
     "ai-frequency": "只用 GIMP 自带的 <code>gegl:gaussian-blur</code> 与 "
                     "<code>gegl:high-pass</code>，不需要额外的算子模块。但要 "
                     "<code>plugin/_shared/</code> 里的 <code>retouch_prep.py</code>、"
