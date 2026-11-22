@@ -35,6 +35,10 @@ import zlib
 DEFAULT_SERVER = "http://127.0.0.1:8188"
 ENV_SERVER = "LB_COMFY_URL"
 
+# 「自动挑底模」时优先用这个（填 ComfyUI 里显示的完整文件名）。用户装了十来个
+# 模型、又不想每次都去高级版下拉里选时，把它写进环境变量最省事。
+ENV_CKPT = "LB_COMFY_CKPT"
+
 # ComfyUI 的 VAE 是 8× 下采样：宽高不是 8 的倍数时 latent 会截断，
 # 回来的图比请求的小一圈，贴回画布就错位。所有尺寸都对齐到这个数。
 SIZE_ALIGN = 8
@@ -84,6 +88,21 @@ def work_scale(w, h, target):
     long_edge = max(int(w), int(h), 1)
     scale = float(target) / long_edge
     return max(SCALE_MIN, min(SCALE_MAX, scale))
+
+
+def checkpoint_note(name):
+    """给下拉框用的短标注：家族 + 舒适分辨率；inpaint 专用模型单独点出来。
+
+    用户装了一堆模型时，光看文件名分不出哪个是 SD1.5、哪个是 SDXL，更看不出
+    哪个是「inpaint 专用、在 VAEEncodeForInpaint 这条路上认不出提示词」。这行
+    文字就是为了在选之前就说清楚，而不是选完才发现画出来是一团糊。
+    """
+    name = name or ""
+    if "inpaint" in name.lower():
+        return "%s（inpaint 专用 · 不认提示词，别选）" % name
+    fam = detect_family(name)
+    return "%s（%s · %d）" % (name, "SDXL" if fam == "sdxl" else "SD1.5",
+                             FAMILY_TARGET.get(fam, 512))
 
 
 class ComfyError(RuntimeError):
@@ -472,7 +491,7 @@ class ComfyClient(object):
             return []
 
     def first_checkpoint(self):
-        """自动挑一个底模：**优先普通底模**，跳过 inpaint 专用模型。
+        """自动挑一个底模：环境变量 > **优先普通底模**（跳过 inpaint 专用）。
 
         9 通道的 inpaint 底模（sd-v1.5-inpainting 那一类）在 ComfyUI 的
         VAEEncodeForInpaint 工作流下不认提示词：实测只把蒙版区抹平，画不出你要
@@ -480,6 +499,9 @@ class ComfyClient(object):
         所以按名字让开；真的只剩 inpaint 模型时也不拦着。
         Prefer a plain checkpoint: 9-channel inpaint models ignore the prompt
         on the VAEEncodeForInpaint path.
+
+        环境变量 LB_COMFY_CKPT 可以点名要哪个（装了多个模型、又懒得每次去
+        高级版下拉里选的人用得上）；名字对不上就退回自动挑，不报错。
         """
         names = self.checkpoints()
         if not names:
@@ -487,6 +509,11 @@ class ComfyClient(object):
                 "ComfyUI 里没有可用的底模（checkpoints 目录是空的）。\n"
                 "把 SD1.5 的 .safetensors 放进 D:\\ComfyUI\\ComfyUI\\models\\"
                 "checkpoints\\ 后重启服务。")
+        want = (os.environ.get(ENV_CKPT) or "").strip()
+        if want:
+            for n in names:
+                if n == want or os.path.basename(n) == os.path.basename(want):
+                    return n
         plain = [n for n in names if "inpaint" not in n.lower()]
         return (plain or names)[0]
 

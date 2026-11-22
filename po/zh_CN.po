@@ -2486,3 +2486,123 @@ msgstr "把灰层收进一个穿透组。"
 #: plugin/ai-neutral-grey/ai-neutral-grey.py
 msgid "The grey layer is no longer flat 128: it already pushes the skin toward the reference. Paint white / black at 5–15% to finish, or #808080 to take a correction back."
 msgstr "灰层不再是平的 128：它已经在把皮肤往参考图上推。用 5–15% 的白 / 黑画笔收尾，或用 #808080 把某块改回不动。"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "AI Environment…"
+msgstr "AI 环境…"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "AI Environment: install / start ComfyUI, list checkpoints"
+msgstr "AI 环境：安装 / 启动 ComfyUI，查看底模清单"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Shows whether ComfyUI answers, which models it offers, and the buttons to install it once or start it. Changes nothing in the image."
+msgstr "显示 ComfyUI 通不通、有哪些底模，并给出「装一次」「启动」两个按钮。不动图。"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "This build of GIMP has no GTK — start ComfyUI from start-comfyui.bat instead."
+msgstr "这个 GIMP 不带 GTK，请直接运行 start-comfyui.bat 启动 ComfyUI。"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "SuperMrWang AI — ComfyUI"
+msgstr "SuperMrWang AI — ComfyUI"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Start ComfyUI"
+msgstr "启动 ComfyUI"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "One-click install…"
+msgstr "一键安装…"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Model folder"
+msgstr "模型目录"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Refresh"
+msgstr "刷新"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "ComfyUI: online (v%s)"
+msgstr "ComfyUI：已连接（v%s）"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Checkpoints: %d"
+msgstr "底模：%d 个"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Checkpoints: none — put a .safetensors into models\\checkpoints and restart ComfyUI"
+msgstr "底模：一个都没有 —— 把 .safetensors 放进 models\\checkpoints，再重启 ComfyUI"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "ComfyUI: not reachable — %s"
+msgstr "ComfyUI：连不上 —— %s"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Start it with the button below (first time: install)."
+msgstr "用下面的按钮启动它（第一次用先点「一键安装」）。"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Environment: %s"
+msgstr "环境目录：%s"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "  (found the source but no start script — run setup-ai.bat once)"
+msgstr "  （找到了源码但没有启动脚本，跑一次 setup-ai.bat 就会生成）"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Environment: not found — click \"One-click install\" (about 10 GB, one time)"
+msgstr "环境目录：没找到 —— 点「一键安装」（约 10 GB，只跑一次）"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Installer: not shipped with this copy — get setup-ai.bat from the plug-in pack's ai-setup folder"
+msgstr "安装器：这份拷贝里没带 —— 从插件包的 ai-setup 目录拿 setup-ai.bat"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Starting… wait 10–30 s, then press Refresh. Keep its console window open while using the AI features."
+msgstr "正在启动… 等 10~30 秒后点「刷新」。用 AI 功能期间别关那个控制台窗口。"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Could not start ComfyUI — no start-comfyui.bat found. Run the one-click install first."
+msgstr "启动失败：没找到 start-comfyui.bat。请先点「一键安装」。"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "The installer runs in its own console window (about 10 GB, one time). When it finishes, come back and press Start ComfyUI."
+msgstr "安装器会在自己的控制台窗口里跑（约 10 GB，只跑一次）。跑完回来点「启动 ComfyUI」。"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Installer not found next to the plug-in. Download setup-ai.bat + setup_ai.py from the plug-in pack (ai-setup folder)."
+msgstr "插件旁边没找到安装器。请从插件包的 ai-setup 目录取 setup-ai.bat 和 setup_ai.py。"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "ComfyUI is not installed yet — click One-click install first."
+msgstr "ComfyUI 还没装 —— 先点「一键安装」。"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Model folder: %s"
+msgstr "模型目录：%s"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Empty / Automatic picks the first model that is not an inpaint-only one. Add more models with the \"AI Environment\" menu entry."
+msgstr "留空 / 自动：挑第一个不是 inpaint 专用的底模。要多几个模型就用「AI 环境…」那个菜单项。"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "Automatic (recommended)"
+msgstr "自动（推荐）"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "First model that is not an inpaint-only one"
+msgstr "第一个不是 inpaint 专用的底模"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "From this ComfyUI installation"
+msgstr "这台 ComfyUI 上装着的底模"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "plugin/_shared/ai_client.py is missing — reinstall the plug-in with the _shared folder"
+msgstr "缺少 plugin/_shared/ai_client.py —— 重装插件时把 _shared 目录一起放进去"
+
+#: plugin/ai-inpaint/ai-inpaint.py
+msgid "The selection is outside the image"
+msgstr "选区在画布之外"

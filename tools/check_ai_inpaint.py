@@ -401,7 +401,50 @@ def test_prompt_tools():
     ok("词表规模够用", len(prompt_tools._ZH) >= 200, "%d 条" % len(prompt_tools._ZH))
 
 
-# ---- 7. 插件源码静态检查 ----------------------------------------------------
+# ---- 7b. AI 环境入口 / 底模清单 --------------------------------------------
+
+def test_env_entry():
+    print("\nAI 环境入口与底模清单")
+    # 下拉里的标注：用户装一堆模型时，光看文件名分不出家族和「不认提示词」的
+    ok("标注认出 SDXL", "SDXL" in ai_client.checkpoint_note(
+        "juggernautXL_v9.safetensors"))
+    ok("标注认出 SD1.5", "SD1.5" in ai_client.checkpoint_note(
+        "dreamshaper_8.safetensors"))
+    ok("标注点出 inpaint 专用",
+       "inpaint" in ai_client.checkpoint_note("sd-v1-5-inpainting.ckpt"))
+
+    # LB_COMFY_CKPT 优先；名字对不上就退回自动挑（不报错）
+    with mock_comfy.start_mock() as srv:
+        client = ai_client.ComfyClient(srv.url, timeout=5, poll=0.05)
+        old = os.environ.get(ai_client.ENV_CKPT)
+        try:
+            os.environ[ai_client.ENV_CKPT] = mock_comfy.CHECKPOINT
+            ok("环境变量点名的底模被采用",
+               client.first_checkpoint() == mock_comfy.CHECKPOINT)
+            os.environ[ai_client.ENV_CKPT] = "not-there.safetensors"
+            ok("环境变量写错 → 退回自动挑",
+               client.first_checkpoint() == mock_comfy.CHECKPOINT)
+        finally:
+            if old is None:
+                os.environ.pop(ai_client.ENV_CKPT, None)
+            else:
+                os.environ[ai_client.ENV_CKPT] = old
+
+    src = open(os.path.join(ROOT, "plugin", "ai-inpaint", "ai-inpaint.py"),
+               encoding="utf-8").read()
+    ok("注册了 AI 环境过程", "lb-plugin-ai-env" in src)
+    ok("AI 环境挂了菜单项", 'set_menu_label(_("AI Environment…"))' in src)
+    # 非交互必须安静：headless 回归会遍历所有过程，弹模态框 = 挂死
+    ok("非交互模式不弹环境对话框",
+       "if run_mode == Gimp.RunMode.INTERACTIVE:" in src)
+    # 安装器要跟着插件走，否则下载包用户点了也找不到
+    ok("安装器有 ai-setup 候选路径", '"ai-setup"' in src)
+    ok("底模是下拉（不是只能手打文件名）",
+       'add_choice_argument(\n                "checkpoint"' in src or
+       '"checkpoint", _("Checkpoint"), help_text, choice' in src)
+
+
+# ---- 8. 插件源码静态检查 ----------------------------------------------------
 
 def test_plugin_source():
     print("\n插件源码")
@@ -464,6 +507,7 @@ def main():
     test_end_to_end()
     test_errors()
     test_prompt_tools()
+    test_env_entry()
     test_plugin_source()
     print("\n%d/%d 通过" % (PASS, PASS + FAIL))
     return 1 if FAIL else 0

@@ -574,12 +574,13 @@ python 的退出码 + `if errorlevel 1 set EXTRA=--cpu`，稳定得多。
 地方，跑 **SuperMrWang → AI → AI Inpaint…**，选区内换成 AI 重绘的像素，边界靠
 羽化过的选区蒙版过渡，原图那层不动。
 
-菜单下有两个入口，同一个实现：
+菜单下有三个入口，前两个是同一个实现：
 
 | 菜单项 | 问你的东西 | 什么时候用 |
 | --- | --- | --- |
 | **AI Inpaint…** | 画什么（`prompt`）+ 画什么主体（`preset` 下拉）+ 不要什么（`negative`） | 日常。三个框，其余参数用默认值 |
-| **AI Inpaint (Advanced)…** | 上面三项 + `server` / `checkpoint` / `steps` / `cfg` / `seed` / `denoise` / `grow` / `grow-mask-by` / `feather` / `timeout` / `keep-mask` / `scale` | 要复现同一张结果、要调步数或降 `denoise` 保结构 |
+| **AI Inpaint (Advanced)…** | 上面三项 + `server` / `checkpoint`（下拉）/ `steps` / `cfg` / `seed` / `denoise` / `grow` / `grow-mask-by` / `feather` / `timeout` / `keep-mask` / `scale` | 要复现同一张结果、要挑底模、要调步数或降 `denoise` 保结构 |
+| **AI Environment…** | 不问你，直接报状态（连上没、版本、有哪些底模）+ 四个按钮 | 第一次装 ComfyUI、服务没起、想换模型 |
 
 为什么拆两个：GIMP 的参数对话框是一次性把参数全铺开的，没法折叠。十几个采样
 参数一摆，真正要填的那个框就被埋掉了——用起来像「只能重绘、不能指定画什么」。
@@ -677,6 +678,26 @@ tools\setup-ai.bat --cpu                :: 没有 N 卡：能跑，一张 512² 
 tools\setup-ai.bat --verify             :: 只体检已装好的环境
 ```
 
+**装了插件的人不用去找这个 bat**：菜单里 **SuperMrWang → AI → AI Environment…**
+就是它的图形入口（`lb-plugin-ai-env`，零参数，不改图）。对话框开出来先做体检，
+再给四个按钮：
+
+| 按钮 | 干什么 |
+| --- | --- |
+| **Start ComfyUI** | 用 `start-comfyui.bat` 起服务（新开一个控制台窗口，关掉窗口就停服务） |
+| **One-click install…** | 跑 `setup-ai.bat`（首次约 10 GB，一个窗口里跑完，跑完回来点 Start） |
+| **Model folder** | 打开 `<安装目录>\ComfyUI\models\checkpoints`，往里丢模型最省事 |
+| **Refresh** | 重新探一次：连上了没、版本、有哪些底模 |
+
+上面那一块是**实时状态**：连不上会写清是「服务没开」还是「压根没装」，模型清单
+会按家族和「不认提示词」标出来（`checkpoint_note()`）。做这个入口的原因是：
+拿到单支插件包的人只有一个 zip，既不知道仓库在哪、也不会去开终端翻 `tools/`。
+
+安装器跟着插件走：`install-plugin.sh` 会把 `tools/setup-ai.bat` + `setup_ai.py`
+复制成 `plug-ins/ai-setup/`，插件按 `<插件目录>/ai-setup/`、`../ai-setup/`、
+`../../tools/` 依次找（`find_installer()`）。没有 Windows 桌面时
+（`os.startfile` 不可用）只报路径，不假装成功。
+
 它自己下载一份嵌入式 Python（不碰系统环境），再装 torch cu128、ComfyUI 和一份
 底模，最后起服务自检一遍。**为什么不是一个 zip**：torch 的 CUDA 轮子 2.5 GB、
 底模 2~7 GB，打进包里既过不了分发许可，也没人愿意下一个 10 GB 的安装包。
@@ -697,6 +718,28 @@ tools\setup-ai.bat --verify             :: 只体检已装好的环境
 按 **512**；裁切框先缩放到这个尺寸、回来再缩回原尺寸贴（`detect_family()` /
 `work_scale()`，倍率限制在 0.25×–4×）。所以「换模型」不需要改代码，只需要一份
 文件。
+
+**多个模型时怎么选**（高级版的 `checkpoint` 是下拉，不是手打文件名）：
+
+1. **自动（推荐）** —— 默认值 `auto`。按名字排序挑第一个**不带 `inpaint`** 的
+   模型：9 通道 inpaint 专用模型在 `VAEEncodeForInpaint` 上不认提示词，只会把
+   蒙版区抹平，所以自动挑会让开它们（`first_checkpoint()`）。
+2. **点名要哪个** —— 下拉里的候选项是**当场问 ComfyUI 要的**
+   （`/object_info/CheckpointLoaderSimple`），每项后面标着家族和舒适尺寸：
+   `juggernautXL_v9.safetensors（SDXL · 1024）`、
+   `dreamshaper_8.safetensors（SD1.5 · 512）`、
+   `sd-v1-5-inpainting.ckpt（inpaint 专用 · 不认提示词，别选）`。
+   选谁就用谁，`family_target()` 据此决定送 1024 还是 512。
+3. **不想每次选** —— 环境变量 `LB_COMFY_CKPT` 写完整文件名，自动挑就固定用它；
+   名字对不上时安静退回自动挑，不报错。
+
+下拉是在**注册菜单时**建的，所以有个前提：GIMP 启动那一刻 ComfyUI 得在跑。
+没跑（或 1.5 秒没回）就退回老文本框，让用户手写文件名——**绝不让连不上服务
+这件事拖慢 GIMP 启动**。换个模型/刚开了服务，重开 GIMP 即可刷新列表。
+
+**为什么不把「自动」做得更聪明**（比如按显存挑模型）：ComfyUI 的 `/object_info`
+不给模型大小和显存需求，SDXL 也可能只有 2 GB 的特化版；按名字猜比让用户选更
+容易错，所以只做「跳过 inpaint 专用」这一条确定无害的规则。
 
 实测（RTX 3070 Ti 8 GB，同一张图、同一个蒙版）：
 

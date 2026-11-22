@@ -34,7 +34,7 @@ msgid "Use one value for all three channels, giving grey grain instead of colour
 msgstr ""
 
 #: ops/add-noise/add-noise.c:56
-#: plugin/ai-inpaint/ai-inpaint.py:520
+#: plugin/ai-inpaint/ai-inpaint.py:840
 msgid "Seed"
 msgstr ""
 
@@ -124,7 +124,7 @@ msgid "Which channel of the main input receives the blend"
 msgstr ""
 
 #: ops/apply-image/apply-image.c:115
-#: plugin/alpha-curves/alpha-curves.py:250
+#: plugin/alpha-curves/alpha-curves.py:252
 #: plugin/blend/blend.py:795
 msgid "Source channel"
 msgstr ""
@@ -366,9 +366,9 @@ msgstr ""
 #: ops/color-mask-select/color-mask-select.c:75
 #: ops/displace/displace.c:53
 #: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:33
-#: plugin/alpha-curves/alpha-curves.py:86
+#: plugin/alpha-curves/alpha-curves.py:88
 #: plugin/blend/blend.py:593
-#: plugin/color-range/color-range.py:83
+#: plugin/color-range/color-range.py:85
 msgid "Red"
 msgstr ""
 
@@ -379,9 +379,9 @@ msgstr ""
 #: ops/color-mask-select/color-mask-select.c:76
 #: ops/displace/displace.c:54
 #: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:45
-#: plugin/alpha-curves/alpha-curves.py:87
+#: plugin/alpha-curves/alpha-curves.py:89
 #: plugin/blend/blend.py:593
-#: plugin/color-range/color-range.py:85
+#: plugin/color-range/color-range.py:87
 msgid "Green"
 msgstr ""
 
@@ -392,9 +392,9 @@ msgstr ""
 #: ops/color-mask-select/color-mask-select.c:77
 #: ops/displace/displace.c:55
 #: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:57
-#: plugin/alpha-curves/alpha-curves.py:88
+#: plugin/alpha-curves/alpha-curves.py:90
 #: plugin/blend/blend.py:594
-#: plugin/color-range/color-range.py:87
+#: plugin/color-range/color-range.py:89
 msgid "Blue"
 msgstr ""
 
@@ -680,7 +680,7 @@ msgid "Mix RGB channels with independent offsets, classic-style monochrome grays
 msgstr ""
 
 #: ops/channel-range-to-alpha/channel-range-to-alpha.c:27
-#: plugin/layer-to-selection/layer-to-selection.py:282
+#: plugin/layer-to-selection/layer-to-selection.py:284
 msgid "Channel"
 msgstr ""
 
@@ -1327,34 +1327,34 @@ msgstr ""
 
 #: ops/color-mask-select/color-mask-select.c:78
 #: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:51
-#: plugin/color-range/color-range.py:86
+#: plugin/color-range/color-range.py:88
 msgid "Cyan"
 msgstr ""
 
 #: ops/color-mask-select/color-mask-select.c:79
 #: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:63
-#: plugin/color-range/color-range.py:88
+#: plugin/color-range/color-range.py:90
 msgid "Magenta"
 msgstr ""
 
 #: ops/color-mask-select/color-mask-select.c:80
 #: ops/rgb-domain-grayscale/rgb-domain-grayscale.c:39
-#: plugin/color-range/color-range.py:84
+#: plugin/color-range/color-range.py:86
 msgid "Yellow"
 msgstr ""
 
 #: ops/color-mask-select/color-mask-select.c:81
-#: plugin/color-range/color-range.py:89
+#: plugin/color-range/color-range.py:91
 msgid "Highlights"
 msgstr ""
 
 #: ops/color-mask-select/color-mask-select.c:82
-#: plugin/color-range/color-range.py:90
+#: plugin/color-range/color-range.py:92
 msgid "Shadows"
 msgstr ""
 
 #: ops/color-mask-select/color-mask-select.c:83
-#: plugin/color-range/color-range.py:91
+#: plugin/color-range/color-range.py:93
 msgid "Midtones"
 msgstr ""
 
@@ -1419,9 +1419,9 @@ msgid "Upper edge of the Midtones band"
 msgstr ""
 
 #: ops/color-mask-select/color-mask-select.c:124
-#: plugin/ai-inpaint/ai-inpaint.py:536
-#: plugin/color-range/color-range.py:264
-#: plugin/sky-replace/sky-replace.py:228
+#: plugin/ai-inpaint/ai-inpaint.py:856
+#: plugin/color-range/color-range.py:266
+#: plugin/sky-replace/sky-replace.py:230
 msgid "Feather"
 msgstr ""
 
@@ -1434,12 +1434,12 @@ msgid "Pixels whose chroma (saturation times value) is below this never match a 
 msgstr ""
 
 #: ops/color-mask-select/color-mask-select.c:135
-#: plugin/channel-to-mask/channel-to-mask.py:203
-#: plugin/color-range/color-range.py:269
-#: plugin/gray-mask/gray-mask.py:192
-#: plugin/gray-mask/gray-mask.py:203
-#: plugin/layer-to-channel/layer-to-channel.py:283
-#: plugin/layer-to-selection/layer-to-selection.py:286
+#: plugin/channel-to-mask/channel-to-mask.py:205
+#: plugin/color-range/color-range.py:271
+#: plugin/gray-mask/gray-mask.py:194
+#: plugin/gray-mask/gray-mask.py:205
+#: plugin/layer-to-channel/layer-to-channel.py:285
+#: plugin/layer-to-selection/layer-to-selection.py:288
 msgid "Invert"
 msgstr ""
 
@@ -1677,7 +1677,7 @@ msgstr ""
 #: ops/max-min/max-min.c:63
 #: ops/reduce-noise/reduce-noise.c:46
 #: ops/unsharp-mask/unsharp-mask.c:37
-#: plugin/max-min/max-min.py:228
+#: plugin/max-min/max-min.py:230
 msgid "Radius"
 msgstr ""
 
@@ -1687,7 +1687,7 @@ msgstr ""
 
 #: ops/dust-scratches/dust-scratches.c:41
 #: ops/unsharp-mask/unsharp-mask.c:51
-#: plugin/sky-replace/sky-replace.py:220
+#: plugin/sky-replace/sky-replace.py:222
 msgid "Threshold"
 msgstr ""
 
@@ -1755,7 +1755,7 @@ msgstr ""
 
 #: ops/gray-to-component/gray-to-component.c:84
 #: ops/max-min/max-min.c:48
-#: plugin/max-min/max-min.py:224
+#: plugin/max-min/max-min.py:226
 msgid "Mode"
 msgstr ""
 
@@ -3024,7 +3024,7 @@ msgid "Maximum takes the brightest pixel in the neighbourhood, so bright areas g
 msgstr ""
 
 #: ops/max-min/max-min.c:58
-#: plugin/max-min/max-min.py:237
+#: plugin/max-min/max-min.py:239
 msgid "Shape"
 msgstr ""
 
@@ -3062,12 +3062,12 @@ msgid "Minimum (erode)"
 msgstr ""
 
 #: ops/max-min/max-min.c:54
-#: plugin/max-min/max-min.py:168
+#: plugin/max-min/max-min.py:170
 msgid "Square"
 msgstr ""
 
 #: ops/max-min/max-min.c:55
-#: plugin/max-min/max-min.py:168
+#: plugin/max-min/max-min.py:170
 msgid "Round"
 msgstr ""
 
@@ -3409,18 +3409,18 @@ msgid "Mask buffer size does not match the layer"
 msgstr ""
 
 #: plugin/_shared/retouch_prep.py:287
-#: plugin/dodge-burn/dodge-burn.py:127
-#: plugin/frequency-separation/frequency-separation.py:135
+#: plugin/dodge-burn/dodge-burn.py:129
+#: plugin/frequency-separation/frequency-separation.py:137
 msgid "0 · alpha"
 msgstr ""
 
 #: plugin/_shared/retouch_prep.py:303
-#: plugin/frequency-separation/frequency-separation.py:150
+#: plugin/frequency-separation/frequency-separation.py:152
 msgid "Gaussian blur (low frequency)"
 msgstr ""
 
 #: plugin/_shared/retouch_prep.py:314
-#: plugin/frequency-separation/frequency-separation.py:160
+#: plugin/frequency-separation/frequency-separation.py:162
 msgid "High pass (high frequency)"
 msgstr ""
 
@@ -3440,612 +3440,736 @@ msgstr ""
 msgid "\nOnly the selection was pre-worked; everything outside it is untouched."
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:69
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:111
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:71
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:113
 msgid "Dodge & Burn (AI prep)"
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:77
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:75
-#: plugin/alpha-curves/alpha-curves.py:182
-#: plugin/color-range/color-range.py:181
-#: plugin/dodge-burn/dodge-burn.py:174
-#: plugin/neutral-grey/neutral-grey.py:150
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:79
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:77
+#: plugin/alpha-curves/alpha-curves.py:184
+#: plugin/color-range/color-range.py:183
+#: plugin/dodge-burn/dodge-burn.py:176
+#: plugin/neutral-grey/neutral-grey.py:152
 msgid "Nothing to work on: no layer."
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:80
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:78
-#: plugin/alpha-curves/alpha-curves.py:185
-#: plugin/dodge-burn/dodge-burn.py:177
-#: plugin/neutral-grey/neutral-grey.py:153
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:82
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:80
+#: plugin/alpha-curves/alpha-curves.py:187
+#: plugin/dodge-burn/dodge-burn.py:179
+#: plugin/neutral-grey/neutral-grey.py:155
 msgid "A layer group has no pixels of its own; pick a raster layer (right-click the group, then Merge Group)."
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:116
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:118
 msgid "1 · Dodge (pre-painted)"
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:116
-#: plugin/dodge-burn/dodge-burn.py:202
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:118
+#: plugin/dodge-burn/dodge-burn.py:204
 msgid "1 · Dodge curve"
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:117
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:119
 msgid "2 · Burn (pre-painted)"
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:117
-#: plugin/dodge-burn/dodge-burn.py:203
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:119
+#: plugin/dodge-burn/dodge-burn.py:205
 msgid "2 · Burn curve"
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:146
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:141
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:144
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:148
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:143
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:146
 msgid "AI reference (ComfyUI, low denoise)"
-msgstr ""
-
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:147
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:142
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:145
-msgid "Local reference (blurred, no ComfyUI)"
 msgstr ""
 
 #: plugin/ai-dodge-burn/ai-dodge-burn.py:149
 #: plugin/ai-frequency-separation/ai-frequency-separation.py:144
 #: plugin/ai-neutral-grey/ai-neutral-grey.py:147
+msgid "Local reference (blurred, no ComfyUI)"
+msgstr ""
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:151
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:146
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:149
 msgid "Reference from"
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:150
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:148
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:152
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:150
 msgid "\"AI\" sends the layer through ComfyUI at low denoise; \"Local\" blurs a downscaled copy. AI falls back to Local when ComfyUI is not running."
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:156
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:151
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:154
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:158
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:153
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:156
 msgid "Reference from (ai / local)"
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:157
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:152
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:155
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:159
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:154
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:157
 msgid "ai = ComfyUI, local = blurred copy"
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:181
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:183
 msgid "Dodge & Burn (AI prep): the usual dodge and burn curve layers, but their masks come pre-painted from a reference retouch — white where the reference is brighter (dodge) or darker (burn). You open a file with the dodging already started."
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:185
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:187
 msgid "Dodge & burn with masks pre-painted from an AI reference"
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:188
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:183
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:186
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:190
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:185
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:188
 msgid "What the retouch should look like"
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:189
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:184
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:187
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:191
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:186
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:189
 msgid "Only used by the AI reference. Leave empty for \"clean natural skin\"."
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:193
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:195
 msgid "Curve strength (%)"
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:194
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:196
 msgid "How far each curve lifts or lowers the midtones: 12 means 0.12 at 0.5."
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:197
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:199
 msgid "Pre-paint amount (%)"
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:198
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:200
 msgid "How much of the measured difference is painted in already. 70 leaves the last 30% for your brush; 100 hands the whole correction over."
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:202
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:196
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:204
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:198
 msgid "Reference radius (px, local only)"
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:203
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:197
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:205
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:199
 msgid "Cutoff of the local low-pass reference; ignored by the AI reference."
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:206
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:193
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:200
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:208
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:195
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:202
 msgid "AI denoise"
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:207
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:201
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:209
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:203
 msgid "How far ComfyUI may move the pixels: 0.2 barely touches them, 0.5 starts changing features."
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:211
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:198
-#: plugin/ai-inpaint/ai-inpaint.py:506
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:205
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:213
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:200
+#: plugin/ai-inpaint/ai-inpaint.py:829
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:207
 msgid "ComfyUI address"
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:212
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:199
-#: plugin/ai-inpaint/ai-inpaint.py:507
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:206
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:214
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:201
+#: plugin/ai-inpaint/ai-inpaint.py:830
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:208
 msgid "Empty = $LB_COMFY_URL, else http://127.0.0.1:8188"
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:215
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:202
-#: plugin/ai-inpaint/ai-inpaint.py:510
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:209
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:217
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:204
+#: plugin/ai-inpaint/ai-inpaint.py:744
+#: plugin/ai-inpaint/ai-inpaint.py:750
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:211
 msgid "Checkpoint"
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:216
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:203
-#: plugin/ai-inpaint/ai-inpaint.py:511
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:210
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:218
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:205
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:212
 msgid "Model file name; empty picks the first one ComfyUI offers"
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:219
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:206
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:213
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:221
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:208
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:215
 msgid "AI steps"
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:219
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:206
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:213
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:221
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:208
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:215
 msgid "Sampling steps for the reference pass"
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:222
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:209
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:216
-#: plugin/dodge-burn/dodge-burn.py:270
-#: plugin/frequency-separation/frequency-separation.py:269
-#: plugin/hsi-split-curves/hsi-split-curves.py:323
-#: plugin/hsl-split-curves/hsl-split-curves.py:544
-#: plugin/hsv-split-curves/hsv-split-curves.py:554
-#: plugin/lab-split-curves/lab-split-curves.py:601
-#: plugin/lch-split-curves/lch-split-curves.py:730
-#: plugin/neutral-grey/neutral-grey.py:237
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:224
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:211
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:218
+#: plugin/dodge-burn/dodge-burn.py:272
+#: plugin/frequency-separation/frequency-separation.py:271
+#: plugin/hsi-split-curves/hsi-split-curves.py:325
+#: plugin/hsl-split-curves/hsl-split-curves.py:546
+#: plugin/hsv-split-curves/hsv-split-curves.py:556
+#: plugin/lab-split-curves/lab-split-curves.py:603
+#: plugin/lch-split-curves/lch-split-curves.py:732
+#: plugin/neutral-grey/neutral-grey.py:239
 msgid "Put in a layer group"
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:223
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:225
 msgid "Puts both curve layers into a pass-through group."
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:231
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:219
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:225
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:233
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:221
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:227
 msgid "plugin/_shared/retouch_prep.py is missing: install the _shared folder next to the plug-in"
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:236
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:224
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:230
-#: plugin/dodge-burn/dodge-burn.py:277
-#: plugin/frequency-separation/frequency-separation.py:276
-#: plugin/neutral-grey/neutral-grey.py:244
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:238
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:226
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:232
+#: plugin/dodge-burn/dodge-burn.py:279
+#: plugin/frequency-separation/frequency-separation.py:278
+#: plugin/neutral-grey/neutral-grey.py:246
 msgid "Select exactly one layer."
 msgstr ""
 
-#: plugin/ai-dodge-burn/ai-dodge-burn.py:254
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:259
 msgid "The dodge and burn masks are already painted where the reference differs from your layer. Click a mask and paint more white with a soft brush to finish; #000000 takes a stroke back."
 msgstr ""
 
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:74
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:108
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:76
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:110
 msgid "Frequency Separation (AI prep)"
 msgstr ""
 
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:82
-#: plugin/frequency-separation/frequency-separation.py:175
-#: plugin/hsi-split-curves/hsi-split-curves.py:232
-#: plugin/hsl-split-curves/hsl-split-curves.py:350
-#: plugin/hsl-split-curves/hsl-split-curves.py:431
-#: plugin/hsl-split-curves/hsl-split-curves.py:501
-#: plugin/hsv-split-curves/hsv-split-curves.py:379
-#: plugin/lab-split-curves/lab-split-curves.py:406
-#: plugin/lab-split-curves/lab-split-curves.py:488
-#: plugin/lab-split-curves/lab-split-curves.py:558
-#: plugin/lch-split-curves/lch-split-curves.py:536
-#: plugin/lch-split-curves/lch-split-curves.py:617
-#: plugin/lch-split-curves/lch-split-curves.py:687
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:84
+#: plugin/frequency-separation/frequency-separation.py:177
+#: plugin/hsi-split-curves/hsi-split-curves.py:234
+#: plugin/hsl-split-curves/hsl-split-curves.py:352
+#: plugin/hsl-split-curves/hsl-split-curves.py:433
+#: plugin/hsl-split-curves/hsl-split-curves.py:503
+#: plugin/hsv-split-curves/hsv-split-curves.py:381
+#: plugin/lab-split-curves/lab-split-curves.py:408
+#: plugin/lab-split-curves/lab-split-curves.py:490
+#: plugin/lab-split-curves/lab-split-curves.py:560
+#: plugin/lch-split-curves/lch-split-curves.py:538
+#: plugin/lch-split-curves/lch-split-curves.py:619
+#: plugin/lch-split-curves/lch-split-curves.py:689
 msgid "Nothing to split: no layer."
 msgstr ""
 
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:85
-#: plugin/frequency-separation/frequency-separation.py:178
-#: plugin/hsi-split-curves/hsi-split-curves.py:235
-#: plugin/hsl-split-curves/hsl-split-curves.py:353
-#: plugin/hsl-split-curves/hsl-split-curves.py:434
-#: plugin/hsl-split-curves/hsl-split-curves.py:504
-#: plugin/hsv-split-curves/hsv-split-curves.py:382
-#: plugin/lab-split-curves/lab-split-curves.py:409
-#: plugin/lab-split-curves/lab-split-curves.py:491
-#: plugin/lab-split-curves/lab-split-curves.py:561
-#: plugin/lch-split-curves/lch-split-curves.py:539
-#: plugin/lch-split-curves/lch-split-curves.py:620
-#: plugin/lch-split-curves/lch-split-curves.py:690
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:87
+#: plugin/frequency-separation/frequency-separation.py:180
+#: plugin/hsi-split-curves/hsi-split-curves.py:237
+#: plugin/hsl-split-curves/hsl-split-curves.py:355
+#: plugin/hsl-split-curves/hsl-split-curves.py:436
+#: plugin/hsl-split-curves/hsl-split-curves.py:506
+#: plugin/hsv-split-curves/hsv-split-curves.py:384
+#: plugin/lab-split-curves/lab-split-curves.py:411
+#: plugin/lab-split-curves/lab-split-curves.py:493
+#: plugin/lab-split-curves/lab-split-curves.py:563
+#: plugin/lch-split-curves/lch-split-curves.py:541
+#: plugin/lch-split-curves/lch-split-curves.py:622
+#: plugin/lch-split-curves/lch-split-curves.py:692
 msgid "A layer group cannot be split; pick a raster layer first (right-click the group, then Merge Group)."
 msgstr ""
 
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:112
-#: plugin/frequency-separation/frequency-separation.py:202
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:114
+#: plugin/frequency-separation/frequency-separation.py:204
 msgid "1 · Low frequency (tone)"
 msgstr ""
 
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:117
-#: plugin/frequency-separation/frequency-separation.py:210
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:119
+#: plugin/frequency-separation/frequency-separation.py:212
 msgid "2 · High frequency (detail)"
 msgstr ""
 
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:145
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:147
 msgid "\"AI\" sends the layer through ComfyUI at low denoise; \"Local\" blurs a downscaled copy instead. AI falls back to Local when ComfyUI is not running."
 msgstr ""
 
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:176
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:178
 msgid "Frequency Separation (AI prep): builds the usual low/high frequency pair, but the pixels come from a reference that was already retouched — a low-denoise ComfyUI pass or a blurred copy. The composite is that reference, so you open a file with the work already started."
 msgstr ""
 
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:180
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:182
 msgid "Low/high frequency pair built on a pre-retouched reference"
 msgstr ""
 
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:188
-#: plugin/frequency-separation/frequency-separation.py:265
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:190
+#: plugin/frequency-separation/frequency-separation.py:267
 msgid "Split radius (px)"
 msgstr ""
 
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:189
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:191
 msgid "Standard deviation of the low-frequency blur; also the cutoff between tone and texture."
 msgstr ""
 
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:194
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:196
 msgid "How far ComfyUI may move the pixels: 0.2 barely touches them, 0.5 starts changing features. Ignored by the local reference."
 msgstr ""
 
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:210
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:212
 msgid "Puts both layers into a pass-through group; turn it off to stack them directly above the original layer."
 msgstr ""
 
-#: plugin/ai-frequency-separation/ai-frequency-separation.py:241
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:246
 msgid "The low layer already has the reference's tone, the high layer its texture: refine on the high layer, adjust colour on the low one. Hide the group to compare with the original."
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:113
+#: plugin/ai-inpaint/ai-inpaint.py:133
 msgid "Some words in the prompt are not in the built-in Chinese dictionary: %s. SD models only read English — rephrase with common words, or write that part in English."
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:118
-#: plugin/ai-inpaint/ai-inpaint.py:127
+#: plugin/ai-inpaint/ai-inpaint.py:138
+#: plugin/ai-inpaint/ai-inpaint.py:147
 msgid "The prompt is empty — this box is what the AI paints, so it must say what should appear. Describe the RESULT, not the thing you want gone: to erase a bottle, write \"empty wooden table, wood grain\" instead of \"remove the bottle\"."
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:133
+#: plugin/ai-inpaint/ai-inpaint.py:153
 msgid "The prompt contains Chinese/Japanese/Korean characters. SD1.5 and SDXL can only read English — anything else is treated as random noise, which is why the result looked unrelated to your picture. Write it in English, e.g. \"empty wooden table, wood grain, soft daylight\", and put what you want removed into the negative prompt."
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:180
+#: plugin/ai-inpaint/ai-inpaint.py:200
 msgid "Failed to read layer pixels: expected %d bytes, got %d"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:189
+#: plugin/ai-inpaint/ai-inpaint.py:209
 msgid "No selection"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:194
+#: plugin/ai-inpaint/ai-inpaint.py:214
 msgid "Failed to read the selection buffer: expected %d bytes, got %d"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:291
+#: plugin/ai-inpaint/ai-inpaint.py:311
 msgid "Could not read the inpainting result (%s)"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:325
+#: plugin/ai-inpaint/ai-inpaint.py:345
 msgid "plugin/_shared/ai_client.py is missing: install the _shared folder next to the plug-in"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:334
+#: plugin/ai-inpaint/ai-inpaint.py:354
 msgid "Make a selection first: frame what you want repainted (a rough one is fine — grow/feather cleans up the edges)."
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:351
+#: plugin/ai-inpaint/ai-inpaint.py:375
 msgid "AI Inpaint"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:444
-msgid "What to paint"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:445
-msgid "Pick a subject and the prompt starts from it — the prompt box then only needs the details (colour, pose, surroundings)"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:450
-msgid "What to paint (none / cat / dog / person / flower / tree / coffee / food / car)"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:452
-msgid "Leave empty for none"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:473
-msgid "Prompt — what the selection should become"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:474
-msgid "Describe the RESULT. Chinese is fine for common words (the plug-in translates them); SD itself only reads English. To remove a bottle, write \"empty wooden table, wood grain\" rather than \"remove the bottle\"."
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:481
-msgid "Negative prompt"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:482
-msgid "What must not appear — put the thing you are deleting here"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:487
-msgid "AI Inpaint (Advanced)…"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:489
-msgid "AI Inpaint (Advanced): every sampling and blending knob"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:490
-msgid "Selection + prompt -> ComfyUI inpaint -> new layer with a feathered selection mask. Exposes steps/CFG/seed/denoise/mask grow/feather/working scale."
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:495
-msgid "AI Inpaint…"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:497
-msgid "AI Inpaint: frame the area, say what should be there, done"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:498
-msgid "Selection + prompt -> ComfyUI inpaint -> new layer. Only asks what to paint; the sampling settings use good defaults. Use \"AI Inpaint (Advanced)\" to change them."
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:514
-msgid "Steps"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:514
-msgid "Sampling steps (25 is a good default)"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:517
-msgid "CFG"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:517
-msgid "Prompt guidance strength"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:520
-msgid "Random seed; -1 picks a new one each run"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:523
-msgid "Denoise"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:524
-msgid "1.0 fully repaints the masked area, lower keeps more of it"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:527
-msgid "Grow mask"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:528
-msgid "Pixels to expand the selection before sending (softens seams)"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:531
-msgid "Model mask grow"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:532
-msgid "Extra pixels the model may touch (8 px = 1 latent cell; bigger = fewer seams, more drift)"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:537
-msgid "Feather radius of the layer mask used when pasting back"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:540
-msgid "Timeout (s)"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:541
-msgid "How long to wait for ComfyUI before giving up"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:544
-msgid "Keep mask channel"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:545
-msgid "Keep the 'AI Mask' channel so the result can be re-masked later"
-msgstr ""
-
-#: plugin/ai-inpaint/ai-inpaint.py:548
-msgid "Working scale"
+#: plugin/ai-inpaint/ai-inpaint.py:384
+msgid "The selection is outside the image"
 msgstr ""
 
 #: plugin/ai-inpaint/ai-inpaint.py:549
+msgid "plugin/_shared/ai_client.py is missing — reinstall the plug-in with the _shared folder"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:555
+msgid "ComfyUI: online (v%s)"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:558
+msgid "Checkpoints: %d"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:564
+msgid "Checkpoints: none — put a .safetensors into models\\checkpoints and restart ComfyUI"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:567
+msgid "ComfyUI: not reachable — %s"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:569
+msgid "Start it with the button below (first time: install)."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:573
+msgid "Environment: %s"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:575
+msgid "  (found the source but no start script — run setup-ai.bat once)"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:578
+msgid "Environment: not found — click \"One-click install\" (about 10 GB, one time)"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:582
+msgid "Installer: not shipped with this copy — get setup-ai.bat from the plug-in pack's ai-setup folder"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:594
+msgid "This build of GIMP has no GTK — start ComfyUI from start-comfyui.bat instead."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:599
+msgid "SuperMrWang AI — ComfyUI"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:601
+msgid "_Close"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:602
+msgid "Start ComfyUI"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:603
+msgid "One-click install…"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:604
+msgid "Model folder"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:605
+msgid "Refresh"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:640
+msgid "Starting… wait 10–30 s, then press Refresh. Keep its console window open while using the AI features."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:644
+msgid "Could not start ComfyUI — no start-comfyui.bat found. Run the one-click install first."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:649
+msgid "The installer runs in its own console window (about 10 GB, one time). When it finishes, come back and press Start ComfyUI."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:653
+msgid "Installer not found next to the plug-in. Download setup-ai.bat + setup_ai.py from the plug-in pack (ai-setup folder)."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:659
+msgid "ComfyUI is not installed yet — click One-click install first."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:665
+msgid "Model folder: %s"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:685
+msgid "What to paint"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:686
+msgid "Pick a subject and the prompt starts from it — the prompt box then only needs the details (colour, pose, surroundings)"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:691
+msgid "What to paint (none / cat / dog / person / flower / tree / coffee / food / car)"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:693
+msgid "Leave empty for none"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:730
+msgid "Empty / Automatic picks the first model that is not an inpaint-only one. Add more models with the \"AI Environment\" menu entry."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:737
+msgid "Automatic (recommended)"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:738
+msgid "First model that is not an inpaint-only one"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:742
+msgid "From this ComfyUI installation"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:771
+msgid "AI Environment…"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:773
+msgid "AI Environment: install / start ComfyUI, list checkpoints"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:774
+msgid "Shows whether ComfyUI answers, which models it offers, and the buttons to install it once or start it. Changes nothing in the image."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:789
+msgid "Prompt — what the selection should become"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:790
+msgid "Describe the RESULT. Chinese is fine for common words (the plug-in translates them); SD itself only reads English. To remove a bottle, write \"empty wooden table, wood grain\" rather than \"remove the bottle\". Keep the selection tight around the thing you are painting — the model scales what it draws to fill the mask."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:799
+msgid "Negative prompt"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:800
+msgid "What must not appear — put the thing you are deleting here"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:805
+msgid "AI Inpaint (Advanced)…"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:807
+msgid "AI Inpaint (Advanced): every sampling and blending knob"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:808
+msgid "Selection + prompt -> ComfyUI inpaint -> new layer with a feathered selection mask. Exposes steps/CFG/seed/denoise/mask grow/feather/working scale."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:813
+msgid "AI Inpaint…"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:815
+msgid "AI Inpaint: frame the area, say what should be there, done"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:816
+msgid "Selection + prompt -> ComfyUI inpaint -> new layer. Only asks what to paint; the sampling settings use good defaults. Use \"AI Inpaint (Advanced)\" to change them."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:834
+msgid "Steps"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:834
+msgid "Sampling steps (25 is a good default)"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:837
+msgid "CFG"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:837
+msgid "Prompt guidance strength"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:840
+msgid "Random seed; -1 picks a new one each run"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:843
+msgid "Denoise"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:844
+msgid "1.0 fully repaints the masked area, lower keeps more of it"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:847
+msgid "Grow mask"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:848
+msgid "Pixels to expand the selection before sending (softens seams)"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:851
+msgid "Model mask grow"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:852
+msgid "Extra pixels the model may touch (8 px = 1 latent cell; bigger = fewer seams, more drift)"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:857
+msgid "Feather radius of the layer mask used when pasting back"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:860
+msgid "Timeout (s)"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:861
+msgid "How long to wait for ComfyUI before giving up"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:864
+msgid "Keep mask channel"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:865
+msgid "Keep the 'AI Mask' channel so the result can be re-masked later"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:868
+msgid "Working scale"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:869
 msgid "0 = fit the model's native size (SD1.5 512, SDXL 1024); 1.0 = send the crop unchanged"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:557
-#: plugin/alpha-curves/alpha-curves.py:274
-#: plugin/channel-to-mask/channel-to-mask.py:212
-#: plugin/color-range/color-range.py:499
-#: plugin/hsi-split-curves/hsi-split-curves.py:332
-#: plugin/hsl-split-curves/hsl-split-curves.py:553
-#: plugin/hsv-split-curves/hsv-split-curves.py:563
-#: plugin/lab-split-curves/lab-split-curves.py:610
-#: plugin/layer-to-channel/layer-to-channel.py:295
-#: plugin/layer-to-selection/layer-to-selection.py:299
-#: plugin/lch-split-curves/lch-split-curves.py:739
+#: plugin/ai-inpaint/ai-inpaint.py:877
+#: plugin/alpha-curves/alpha-curves.py:276
+#: plugin/channel-to-mask/channel-to-mask.py:214
+#: plugin/color-range/color-range.py:501
+#: plugin/hsi-split-curves/hsi-split-curves.py:334
+#: plugin/hsl-split-curves/hsl-split-curves.py:555
+#: plugin/hsv-split-curves/hsv-split-curves.py:565
+#: plugin/lab-split-curves/lab-split-curves.py:612
+#: plugin/layer-to-channel/layer-to-channel.py:297
+#: plugin/layer-to-selection/layer-to-selection.py:301
+#: plugin/lch-split-curves/lch-split-curves.py:741
 msgid "No image or no layer selected"
 msgstr ""
 
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:67
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:113
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:69
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:115
 msgid "Neutral Grey (AI prep)"
 msgstr ""
 
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:117
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:119
 msgid "1 · Neutral grey (pre-corrected)"
 msgstr ""
 
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:179
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:181
 msgid "Neutral Grey (AI prep): a 50% grey Soft Light layer whose pixels are already shifted toward a reference retouch, so the dodging and burning is partly done when the file opens. White brush lightens, black darkens, #808080 erases."
 msgstr ""
 
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:183
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:185
 msgid "Soft Light grey layer pre-corrected from an AI reference"
 msgstr ""
 
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:191
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:193
 msgid "Pre-correct amount (%)"
 msgstr ""
 
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:192
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:194
 msgid "How much of the measured difference is baked into the grey layer. 70 leaves the last 30% for your brush."
 msgstr ""
 
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:217
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:219
 msgid "Puts the grey layer into a pass-through group."
 msgstr ""
 
-#: plugin/ai-neutral-grey/ai-neutral-grey.py:247
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:252
 msgid "The grey layer is no longer flat 128: it already pushes the skin toward the reference. Paint white / black at 5–15% to finish, or #808080 to take a correction back."
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:85
+#: plugin/alpha-curves/alpha-curves.py:87
 msgid "Gray（0.299R + 0.587G + 0.114B）"
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:89
+#: plugin/alpha-curves/alpha-curves.py:91
 msgid "LAB L (lightness)"
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:90
+#: plugin/alpha-curves/alpha-curves.py:92
 msgid "LAB A (green-magenta)"
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:91
+#: plugin/alpha-curves/alpha-curves.py:93
 msgid "LAB B (blue-yellow)"
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:92
+#: plugin/alpha-curves/alpha-curves.py:94
 msgid "Alpha (adjust existing opacity only)"
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:140
+#: plugin/alpha-curves/alpha-curves.py:142
 msgid "1 · Channel to alpha"
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:154
+#: plugin/alpha-curves/alpha-curves.py:156
 msgid "2 · Alpha curve"
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:170
+#: plugin/alpha-curves/alpha-curves.py:172
 msgid "The lb:channel-range-to-alpha operation is missing, so the channel cannot be written into alpha. Install the module from dist/, or set the source channel to alpha to attach the curve alone."
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:210
+#: plugin/alpha-curves/alpha-curves.py:212
 msgid "Two filters (channel to alpha, alpha curve)"
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:211
+#: plugin/alpha-curves/alpha-curves.py:213
 msgid "One alpha curve"
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:236
+#: plugin/alpha-curves/alpha-curves.py:238
 msgid "Alpha Curves"
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:241
+#: plugin/alpha-curves/alpha-curves.py:243
 msgid "Attaches an editable curve to alpha: first writes the chosen colour channel into alpha, then chains a gimp:curves with channel = Alpha. Both are non-destructive filters and the curve can take any shape, which is far more flexible than the four sliders of Range to Alpha."
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:242
+#: plugin/alpha-curves/alpha-curves.py:244
 msgid "Curve the alpha channel: copy a colour channel into alpha, then put an editable curve on it. Non-destructive; the curve can be any shape, unlike the linear ramps of Range to Alpha."
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:251
+#: plugin/alpha-curves/alpha-curves.py:253
 msgid "Which channel decides the opacity; alpha adjusts the existing opacity only."
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:255
+#: plugin/alpha-curves/alpha-curves.py:257
 msgid "auto"
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:256
+#: plugin/alpha-curves/alpha-curves.py:258
 msgid "Flat-top curve: 0 / 128 / 255 all sit at the top, drag it down to shape it."
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:257
+#: plugin/alpha-curves/alpha-curves.py:259
 msgid "flat (flat top)"
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:258
+#: plugin/alpha-curves/alpha-curves.py:260
 msgid "All three control points sit at 255, so alpha starts fully opaque; drag them down yourself."
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:259
+#: plugin/alpha-curves/alpha-curves.py:261
 msgid "band (blend band)"
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:260
+#: plugin/alpha-curves/alpha-curves.py:262
 msgid "Transparent at both ends and opaque in the middle, with a smooth bend."
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:261
+#: plugin/alpha-curves/alpha-curves.py:263
 msgid "identity"
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:262
+#: plugin/alpha-curves/alpha-curves.py:264
 msgid "A 45° line: alpha equals the channel value exactly; drag the points yourself."
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:263
+#: plugin/alpha-curves/alpha-curves.py:265
 msgid "soft (S-curve)"
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:264
+#: plugin/alpha-curves/alpha-curves.py:266
 msgid "Sampled from smoothstep: flat at both ends and steep in the middle, monotonic."
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:266
+#: plugin/alpha-curves/alpha-curves.py:268
 msgid "Initial curve"
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:266
+#: plugin/alpha-curves/alpha-curves.py:268
 msgid "Shape the curve starts with when it is attached; change it freely afterwards."
 msgstr ""
 
@@ -4100,8 +4224,8 @@ msgstr ""
 
 #: plugin/blend/blend.py:643
 #: plugin/blend/blend.py:891
-#: plugin/color-range/color-range.py:335
-#: plugin/color-range/color-range.py:348
+#: plugin/color-range/color-range.py:337
+#: plugin/color-range/color-range.py:350
 msgid "Range"
 msgstr ""
 
@@ -4111,7 +4235,7 @@ msgid "Load result as selection"
 msgstr ""
 
 #: plugin/blend/blend.py:669
-#: plugin/convert/convert.py:578
+#: plugin/convert/convert.py:580
 msgid "No image"
 msgstr ""
 
@@ -4249,1092 +4373,1092 @@ msgstr ""
 msgid "Also load the computed grey as the image selection"
 msgstr ""
 
-#: plugin/channel-to-mask/channel-to-mask.py:92
+#: plugin/channel-to-mask/channel-to-mask.py:94
 msgid "No channel named \"%s\"."
 msgstr ""
 
-#: plugin/channel-to-mask/channel-to-mask.py:107
-#: plugin/convert/convert.py:155
+#: plugin/channel-to-mask/channel-to-mask.py:109
+#: plugin/convert/convert.py:157
 msgid "This image has no channels yet; create one in the Channels dock first."
 msgstr ""
 
-#: plugin/channel-to-mask/channel-to-mask.py:110
+#: plugin/channel-to-mask/channel-to-mask.py:112
 msgid "Click the channel to use in the Channels dock and run again (available: %s), or fill in a channel name."
 msgstr ""
 
-#: plugin/channel-to-mask/channel-to-mask.py:137
+#: plugin/channel-to-mask/channel-to-mask.py:139
 msgid "No layer selected."
 msgstr ""
 
-#: plugin/channel-to-mask/channel-to-mask.py:139
-#: plugin/convert/convert.py:298
+#: plugin/channel-to-mask/channel-to-mask.py:141
+#: plugin/convert/convert.py:300
 msgid "A layer group has no pixels and cannot take a mask; merge the group first."
 msgstr ""
 
-#: plugin/channel-to-mask/channel-to-mask.py:181
+#: plugin/channel-to-mask/channel-to-mask.py:183
 msgid "Channel to Mask..."
 msgstr ""
 
-#: plugin/channel-to-mask/channel-to-mask.py:188
+#: plugin/channel-to-mask/channel-to-mask.py:190
 msgid "Channel to Mask: take a channel (the one selected in the Channels dock, or one you name) and use its grey levels as a layer mask on the selected layer(s). Black hides, white shows, mid grey is partial. Results match GIMP's own channel-to-selection-to-mask route exactly; layers that already have a mask get a fresh one built the same way."
 msgstr ""
 
-#: plugin/channel-to-mask/channel-to-mask.py:194
+#: plugin/channel-to-mask/channel-to-mask.py:196
 msgid "One click 'channel -> layer mask' for every selected layer. Grey levels become mask strength; invert flips black and white. The reverse of Layer to Channel."
 msgstr ""
 
-#: plugin/channel-to-mask/channel-to-mask.py:199
-#: plugin/gray-mask/gray-mask.py:206
-#: plugin/layer-to-channel/layer-to-channel.py:286
+#: plugin/channel-to-mask/channel-to-mask.py:201
+#: plugin/gray-mask/gray-mask.py:208
+#: plugin/layer-to-channel/layer-to-channel.py:288
 msgid "Channel name"
 msgstr ""
 
-#: plugin/channel-to-mask/channel-to-mask.py:200
+#: plugin/channel-to-mask/channel-to-mask.py:202
 msgid "Empty = the channel currently selected in the Channels dock"
 msgstr ""
 
-#: plugin/channel-to-mask/channel-to-mask.py:204
+#: plugin/channel-to-mask/channel-to-mask.py:206
 msgid "Swap black and white: mask by the channel's complement"
 msgstr ""
 
-#: plugin/channel-to-mask/channel-to-mask.py:224
+#: plugin/channel-to-mask/channel-to-mask.py:229
 msgid "Nothing selected but layers."
 msgstr ""
 
-#: plugin/channel-to-mask/channel-to-mask.py:232
+#: plugin/channel-to-mask/channel-to-mask.py:237
 msgid "Masked %d layer(s) with channel \\u201c%s\\u201d%s"
 msgstr ""
 
-#: plugin/channel-to-mask/channel-to-mask.py:234
+#: plugin/channel-to-mask/channel-to-mask.py:239
 msgid " (inverted)"
 msgstr ""
 
-#: plugin/color-range/color-range.py:92
-#: plugin/color-range/color-range.py:326
+#: plugin/color-range/color-range.py:94
+#: plugin/color-range/color-range.py:328
 msgid "Picked colour"
 msgstr ""
 
-#: plugin/color-range/color-range.py:170
+#: plugin/color-range/color-range.py:172
 msgid "The lb:color-mask-select operation (the pixel engine behind Color Range) is missing. Install the operator package from dist/, or build it with ./build.sh."
 msgstr ""
 
-#: plugin/color-range/color-range.py:184
+#: plugin/color-range/color-range.py:186
 msgid "A layer group has no pixels of its own; pick a raster layer."
 msgstr ""
 
-#: plugin/color-range/color-range.py:193
-#: plugin/color-range/color-range.py:218
-#: plugin/color-range/color-range.py:483
+#: plugin/color-range/color-range.py:195
+#: plugin/color-range/color-range.py:220
+#: plugin/color-range/color-range.py:485
 msgid "Color Range"
 msgstr ""
 
-#: plugin/color-range/color-range.py:226
+#: plugin/color-range/color-range.py:228
 msgid "Cancel"
 msgstr ""
 
-#: plugin/color-range/color-range.py:227
+#: plugin/color-range/color-range.py:229
 msgid "OK"
 msgstr ""
 
-#: plugin/color-range/color-range.py:236
+#: plugin/color-range/color-range.py:238
 msgid "Selection"
 msgstr ""
 
-#: plugin/color-range/color-range.py:270
+#: plugin/color-range/color-range.py:272
 msgid "Red overlay preview"
 msgstr ""
 
-#: plugin/color-range/color-range.py:279
+#: plugin/color-range/color-range.py:281
 msgid "<small>On OK the mask is written into the layer alpha (the red overlay is preview only and is never baked in).</small>"
 msgstr ""
 
-#: plugin/color-range/color-range.py:315
-#: plugin/color-range/color-range.py:339
-#: plugin/color-range/color-range.py:352
-#: plugin/color-range/color-range.py:369
+#: plugin/color-range/color-range.py:317
+#: plugin/color-range/color-range.py:341
+#: plugin/color-range/color-range.py:354
+#: plugin/color-range/color-range.py:371
 msgid "Color tolerance"
 msgstr ""
 
-#: plugin/color-range/color-range.py:330
+#: plugin/color-range/color-range.py:332
 msgid "Minimum chroma"
 msgstr ""
 
-#: plugin/color-range/color-range.py:343
+#: plugin/color-range/color-range.py:345
 msgid "<small>Luminance at or above this value counts as highlights; below it is the transition band.</small>"
 msgstr ""
 
-#: plugin/color-range/color-range.py:356
+#: plugin/color-range/color-range.py:358
 msgid "<small>Luminance at or below this value counts as shadows; above it is the transition band.</small>"
 msgstr ""
 
-#: plugin/color-range/color-range.py:361
+#: plugin/color-range/color-range.py:363
 msgid "Range low"
 msgstr ""
 
-#: plugin/color-range/color-range.py:365
+#: plugin/color-range/color-range.py:367
 msgid "Range high"
 msgstr ""
 
-#: plugin/color-range/color-range.py:428
+#: plugin/color-range/color-range.py:430
 msgid "Color Range (preview)"
 msgstr ""
 
-#: plugin/color-range/color-range.py:488
+#: plugin/color-range/color-range.py:490
 msgid "The custom dialog for Color Range: pick a colour type and only that type's parameters stay visible, each mode keeping its own defaults (highlights 192, shadows 64, midtones 64/192). On OK the mask is written into the layer alpha."
 msgstr ""
 
-#: plugin/color-range/color-range.py:489
+#: plugin/color-range/color-range.py:491
 msgid "A custom Color Range dialog: the mode picks which controls exist, and each mode starts at its own default (highlights 192, shadows 64, midtones 64/192). The mask lands in the layer alpha."
 msgstr ""
 
-#: plugin/convert/convert.py:157
+#: plugin/convert/convert.py:159
 msgid "Click the channel to use in the Channels dock and run again (available: %s)."
 msgstr ""
 
-#: plugin/convert/convert.py:176
+#: plugin/convert/convert.py:178
 msgid "Nothing selected: select the target layer(s) in the Layers dock and run it from there."
 msgstr ""
 
-#: plugin/convert/convert.py:187
+#: plugin/convert/convert.py:189
 msgid "The selected layer has no layer mask."
 msgstr ""
 
-#: plugin/convert/convert.py:225
+#: plugin/convert/convert.py:227
 msgid "This image has no paths yet; draw one with the path tool first."
 msgstr ""
 
-#: plugin/convert/convert.py:227
+#: plugin/convert/convert.py:229
 msgid "Click the path to use in the Paths dock and run again (available: %s)."
 msgstr ""
 
-#: plugin/convert/convert.py:272
+#: plugin/convert/convert.py:274
 msgid "There is no selection to trace."
 msgstr ""
 
-#: plugin/convert/convert.py:276
+#: plugin/convert/convert.py:278
 msgid "The native tracer produced no path; the selection is too small."
 msgstr ""
 
-#: plugin/convert/convert.py:434
+#: plugin/convert/convert.py:436
 msgid "This path encloses no area to fill; check that it has at least one stroke."
 msgstr ""
 
-#: plugin/convert/convert.py:446
+#: plugin/convert/convert.py:448
 msgid "Filling the path failed; the image may be in a mode that cannot take a new RGBA layer."
 msgstr ""
 
-#: plugin/convert/convert.py:458
+#: plugin/convert/convert.py:460
 msgid "Take the channel selected in the Channels dock and turn it into the pixel selection."
 msgstr ""
 
-#: plugin/convert/convert.py:460
+#: plugin/convert/convert.py:462
 msgid "Channel to selection: turns the channel selected in the Channels dock into a pixel selection."
 msgstr ""
 
-#: plugin/convert/convert.py:464
+#: plugin/convert/convert.py:466
 msgid "Save the current selection as a new channel."
 msgstr ""
 
-#: plugin/convert/convert.py:465
+#: plugin/convert/convert.py:467
 msgid "Selection to channel: saves the current selection as a new channel."
 msgstr ""
 
-#: plugin/convert/convert.py:469
+#: plugin/convert/convert.py:471
 msgid "Use the selected channel's grey levels as a layer mask on every selected layer."
 msgstr ""
 
-#: plugin/convert/convert.py:471
+#: plugin/convert/convert.py:473
 msgid "Channel to mask: uses the selected channel's grey as the mask of the selected layer."
 msgstr ""
 
-#: plugin/convert/convert.py:475
+#: plugin/convert/convert.py:477
 msgid "Turn the selected layer's layer mask into a new channel."
 msgstr ""
 
-#: plugin/convert/convert.py:476
+#: plugin/convert/convert.py:478
 msgid "Mask to channel: turns the selected layer's mask into a new channel."
 msgstr ""
 
-#: plugin/convert/convert.py:480
+#: plugin/convert/convert.py:482
 msgid "Use the current selection as a layer mask on every selected layer."
 msgstr ""
 
-#: plugin/convert/convert.py:481
+#: plugin/convert/convert.py:483
 msgid "Selection to mask: attaches the current selection as the mask of the selected layer."
 msgstr ""
 
-#: plugin/convert/convert.py:485
+#: plugin/convert/convert.py:487
 msgid "Turn the selected layer's layer mask into the pixel selection."
 msgstr ""
 
-#: plugin/convert/convert.py:486
+#: plugin/convert/convert.py:488
 msgid "Mask to selection: turns the selected layer's mask into a pixel selection."
 msgstr ""
 
-#: plugin/convert/convert.py:492
+#: plugin/convert/convert.py:494
 msgid "Turn the selected path into the pixel selection."
 msgstr ""
 
-#: plugin/convert/convert.py:493
+#: plugin/convert/convert.py:495
 msgid "Path to selection: turns the path selected in the Paths dock into a pixel selection."
 msgstr ""
 
-#: plugin/convert/convert.py:497
+#: plugin/convert/convert.py:499
 msgid "Trace the current selection into a new path (the native Select > To Path geometry, with a readable name)."
 msgstr ""
 
-#: plugin/convert/convert.py:499
+#: plugin/convert/convert.py:501
 msgid "Selection to path: traces the current selection into a new path (same geometry as the native To Path)."
 msgstr ""
 
-#: plugin/convert/convert.py:503
+#: plugin/convert/convert.py:505
 msgid "Rasterise the selected path into a new channel."
 msgstr ""
 
-#: plugin/convert/convert.py:504
+#: plugin/convert/convert.py:506
 msgid "Path to channel: rasterises the selected path into a new channel."
 msgstr ""
 
-#: plugin/convert/convert.py:508
+#: plugin/convert/convert.py:510
 msgid "Trace the selected channel's 50% contour into a new path."
 msgstr ""
 
-#: plugin/convert/convert.py:509
+#: plugin/convert/convert.py:511
 msgid "Channel to path: traces the 50% contour of the selected channel into a new path."
 msgstr ""
 
-#: plugin/convert/convert.py:513
+#: plugin/convert/convert.py:515
 msgid "Rasterise the selected path into a layer mask on every selected layer."
 msgstr ""
 
-#: plugin/convert/convert.py:515
+#: plugin/convert/convert.py:517
 msgid "Path to mask: rasterises the selected path into the mask of the selected layer."
 msgstr ""
 
-#: plugin/convert/convert.py:519
+#: plugin/convert/convert.py:521
 msgid "Trace the selected layer's mask into a new path."
 msgstr ""
 
-#: plugin/convert/convert.py:520
+#: plugin/convert/convert.py:522
 msgid "Mask to path: traces the outline of the selected layer's mask into a new path."
 msgstr ""
 
-#: plugin/convert/convert.py:528
+#: plugin/convert/convert.py:530
 msgid "Rasterise the selected path into a new pixel layer, filled with the foreground colour."
 msgstr ""
 
-#: plugin/convert/convert.py:530
+#: plugin/convert/convert.py:532
 msgid "Path to bitmap: rasterises the path into a new pixel layer (filled with the foreground colour), cropped to the path."
 msgstr ""
 
-#: plugin/convert/convert.py:584
+#: plugin/convert/convert.py:589
 msgid "Channel \"%s\" to selection"
 msgstr ""
 
-#: plugin/convert/convert.py:587
+#: plugin/convert/convert.py:592
 msgid "Selection to channel \"%s\""
 msgstr ""
 
-#: plugin/convert/convert.py:590
+#: plugin/convert/convert.py:595
 msgid "Channel \"%s\" to the mask of %d layer(s)"
 msgstr ""
 
-#: plugin/convert/convert.py:594
+#: plugin/convert/convert.py:599
 msgid "Mask to channel \"%s\""
 msgstr ""
 
-#: plugin/convert/convert.py:597
+#: plugin/convert/convert.py:602
 msgid "Selection to the mask of %d layer(s)"
 msgstr ""
 
-#: plugin/convert/convert.py:600
+#: plugin/convert/convert.py:605
 msgid "Mask \"%s\" to selection"
 msgstr ""
 
-#: plugin/convert/convert.py:603
+#: plugin/convert/convert.py:608
 msgid "Path \"%s\" to selection"
 msgstr ""
 
-#: plugin/convert/convert.py:606
+#: plugin/convert/convert.py:611
 msgid "Selection to path \"%s\""
 msgstr ""
 
-#: plugin/convert/convert.py:609
+#: plugin/convert/convert.py:614
 msgid "Path \"%s\" to channel \"%s\""
 msgstr ""
 
-#: plugin/convert/convert.py:613
+#: plugin/convert/convert.py:618
 msgid "Channel \"%s\" to path \"%s\""
 msgstr ""
 
-#: plugin/convert/convert.py:617
+#: plugin/convert/convert.py:622
 msgid "Path \"%s\" to the mask of %d layer(s)"
 msgstr ""
 
-#: plugin/convert/convert.py:621
+#: plugin/convert/convert.py:626
 msgid "Mask \"%s\" to path \"%s\""
 msgstr ""
 
-#: plugin/convert/convert.py:625
+#: plugin/convert/convert.py:630
 msgid "Path \"%s\" rasterised into layer \"%s\""
 msgstr ""
 
-#: plugin/convert/convert.py:628
+#: plugin/convert/convert.py:633
 msgid "Unknown direction"
 msgstr ""
 
-#: plugin/dodge-burn/dodge-burn.py:196
-#: plugin/dodge-burn/dodge-burn.py:256
+#: plugin/dodge-burn/dodge-burn.py:198
+#: plugin/dodge-burn/dodge-burn.py:258
 msgid "Dodge & Burn"
 msgstr ""
 
-#: plugin/dodge-burn/dodge-burn.py:202
+#: plugin/dodge-burn/dodge-burn.py:204
 msgid "1 · Dodge (black mask)"
 msgstr ""
 
-#: plugin/dodge-burn/dodge-burn.py:202
+#: plugin/dodge-burn/dodge-burn.py:204
 msgid "Paint white to dodge"
 msgstr ""
 
-#: plugin/dodge-burn/dodge-burn.py:203
+#: plugin/dodge-burn/dodge-burn.py:205
 msgid "2 · Burn (black mask)"
 msgstr ""
 
-#: plugin/dodge-burn/dodge-burn.py:203
+#: plugin/dodge-burn/dodge-burn.py:205
 msgid "Paint white to burn"
 msgstr ""
 
-#: plugin/dodge-burn/dodge-burn.py:229
+#: plugin/dodge-burn/dodge-burn.py:231
 msgid "Dodge & Burn is set up: a dodge and a burn layer, each with its own curve and a fully black mask, so the image is currently identical to the original. Click one layer's mask and paint with a soft white brush (opacity 10–20%%): painting on the dodge layer lightens, on the burn layer darkens. Strength %g%% (lifts/lowers by %.2f at 0.5)."
 msgstr ""
 
-#: plugin/dodge-burn/dodge-burn.py:231
-#: plugin/frequency-separation/frequency-separation.py:230
-#: plugin/hsi-split-curves/hsi-split-curves.py:288
-#: plugin/hsl-split-curves/hsl-split-curves.py:417
-#: plugin/hsl-split-curves/hsl-split-curves.py:487
-#: plugin/hsv-split-curves/hsv-split-curves.py:442
-#: plugin/hsv-split-curves/hsv-split-curves.py:511
-#: plugin/lab-split-curves/lab-split-curves.py:474
-#: plugin/lab-split-curves/lab-split-curves.py:544
-#: plugin/lch-split-curves/lch-split-curves.py:673
-#: plugin/neutral-grey/neutral-grey.py:203
+#: plugin/dodge-burn/dodge-burn.py:233
+#: plugin/frequency-separation/frequency-separation.py:232
+#: plugin/hsi-split-curves/hsi-split-curves.py:290
+#: plugin/hsl-split-curves/hsl-split-curves.py:419
+#: plugin/hsl-split-curves/hsl-split-curves.py:489
+#: plugin/hsv-split-curves/hsv-split-curves.py:444
+#: plugin/hsv-split-curves/hsv-split-curves.py:513
+#: plugin/lab-split-curves/lab-split-curves.py:476
+#: plugin/lab-split-curves/lab-split-curves.py:546
+#: plugin/lch-split-curves/lch-split-curves.py:675
+#: plugin/neutral-grey/neutral-grey.py:205
 msgid "\n(This image has transparency, so the layers went into a group automatically: the group mask preserves it.)"
 msgstr ""
 
-#: plugin/dodge-burn/dodge-burn.py:261
+#: plugin/dodge-burn/dodge-burn.py:263
 msgid "Dodge & Burn: creates a dodge and a burn curve layer, both with a fully black mask. Paint with a soft white brush on a mask and only what you paint gets lighter or darker; everywhere else stays pixel-identical to the original."
 msgstr ""
 
-#: plugin/dodge-burn/dodge-burn.py:262
+#: plugin/dodge-burn/dodge-burn.py:264
 msgid "Dodge & burn stack: a lighten curve and a darken curve on black masks. Paint white on a mask to dodge or burn; untouched pixels stay identical to the original."
 msgstr ""
 
-#: plugin/dodge-burn/dodge-burn.py:266
+#: plugin/dodge-burn/dodge-burn.py:268
 msgid "Strength (%)"
 msgstr ""
 
-#: plugin/dodge-burn/dodge-burn.py:267
+#: plugin/dodge-burn/dodge-burn.py:269
 msgid "How far the curve lifts or lowers the midtones: 12 means 0.12 at 0.5 (about 30 levels)."
 msgstr ""
 
-#: plugin/dodge-burn/dodge-burn.py:271
+#: plugin/dodge-burn/dodge-burn.py:273
 msgid "Puts both layers into a pass-through group named Dodge & Burn; turn it off to stack them directly above the original layer."
 msgstr ""
 
-#: plugin/frequency-separation/frequency-separation.py:197
-#: plugin/frequency-separation/frequency-separation.py:255
+#: plugin/frequency-separation/frequency-separation.py:199
+#: plugin/frequency-separation/frequency-separation.py:257
 msgid "Frequency Separation"
 msgstr ""
 
-#: plugin/frequency-separation/frequency-separation.py:228
+#: plugin/frequency-separation/frequency-separation.py:230
 msgid "Frequency Separation is set up: a low-frequency layer (gaussian blur %g px, carries tone and colour) and a high-frequency layer (grain merge, carries pores and blemishes). Hide the original layer and the two still reproduce it. To change the strength, change the blur radius of the low-frequency layer."
 msgstr ""
 
-#: plugin/frequency-separation/frequency-separation.py:260
+#: plugin/frequency-separation/frequency-separation.py:262
 msgid "Frequency Separation: creates a low-frequency layer (gaussian blur, carries tone and colour) and a high-frequency layer (grain merge, carries detail and texture) in one go; with identity settings the composite is the original. Smooth colour on the low layer and retouch detail on the high layer without disturbing each other."
 msgstr ""
 
-#: plugin/frequency-separation/frequency-separation.py:261
+#: plugin/frequency-separation/frequency-separation.py:263
 msgid "Frequency separation: one click builds a blurred low-frequency layer (tone/colour) and a high-pass high-frequency layer (detail) that recombine to the original."
 msgstr ""
 
-#: plugin/frequency-separation/frequency-separation.py:266
+#: plugin/frequency-separation/frequency-separation.py:268
 msgid "Standard deviation of the gaussian blur. Larger pushes more into the low frequency and leaves less detail in the high one."
 msgstr ""
 
-#: plugin/frequency-separation/frequency-separation.py:270
+#: plugin/frequency-separation/frequency-separation.py:272
 msgid "Puts both layers into a pass-through group named Frequency Separation; turn it off to stack them directly above the original layer."
 msgstr ""
 
-#: plugin/gray-mask/gray-mask.py:181
+#: plugin/gray-mask/gray-mask.py:183
 msgid "Grayscale Layer to Selection: turn the active layer's grayscale content into the current selection"
 msgstr ""
 
-#: plugin/gray-mask/gray-mask.py:183
+#: plugin/gray-mask/gray-mask.py:185
 msgid "One-click 'grayscale layer -> selection' (mask-copy + mask-to-selection fused)."
 msgstr ""
 
-#: plugin/gray-mask/gray-mask.py:185
+#: plugin/gray-mask/gray-mask.py:187
 msgid "Grayscale Layer to Selection"
 msgstr ""
 
-#: plugin/gray-mask/gray-mask.py:188
-#: plugin/layer-to-selection/layer-to-selection.py:290
+#: plugin/gray-mask/gray-mask.py:190
+#: plugin/layer-to-selection/layer-to-selection.py:292
 msgid "Combine"
 msgstr ""
 
-#: plugin/gray-mask/gray-mask.py:189
-#: plugin/layer-to-selection/layer-to-selection.py:291
+#: plugin/gray-mask/gray-mask.py:191
+#: plugin/layer-to-selection/layer-to-selection.py:293
 msgid "0 Replace, 1 Add, 2 Subtract, 3 Intersect"
 msgstr ""
 
-#: plugin/gray-mask/gray-mask.py:193
+#: plugin/gray-mask/gray-mask.py:195
 msgid "Select the black side instead of the white side"
 msgstr ""
 
-#: plugin/gray-mask/gray-mask.py:197
+#: plugin/gray-mask/gray-mask.py:199
 msgid "Grayscale Layer to Channel: copy the active layer's grayscale content into a new alpha channel"
 msgstr ""
 
-#: plugin/gray-mask/gray-mask.py:199
+#: plugin/gray-mask/gray-mask.py:201
 msgid "One-click 'grayscale layer -> channel'."
 msgstr ""
 
-#: plugin/gray-mask/gray-mask.py:200
+#: plugin/gray-mask/gray-mask.py:202
 msgid "Grayscale Layer to Channel"
 msgstr ""
 
-#: plugin/gray-mask/gray-mask.py:203
-#: plugin/layer-to-channel/layer-to-channel.py:283
+#: plugin/gray-mask/gray-mask.py:205
+#: plugin/layer-to-channel/layer-to-channel.py:285
 msgid "Invert the channel content"
 msgstr ""
 
-#: plugin/gray-mask/gray-mask.py:207
-#: plugin/layer-to-channel/layer-to-channel.py:287
+#: plugin/gray-mask/gray-mask.py:209
+#: plugin/layer-to-channel/layer-to-channel.py:289
 msgid "Empty = use the layer name"
 msgstr ""
 
-#: plugin/gray-mask/gray-mask.py:215
-#: plugin/sky-replace/sky-replace.py:245
+#: plugin/gray-mask/gray-mask.py:217
+#: plugin/sky-replace/sky-replace.py:247
 msgid "No image or no active layer"
 msgstr ""
 
-#: plugin/hsi-split-curves/hsi-split-curves.py:168
+#: plugin/hsi-split-curves/hsi-split-curves.py:170
 msgid "Required operations are missing: %s. They are essential for exact HSI fitting (I and S have no counterpart among GIMP's component blend modes and can only be computed together). Install this repository's GEGL operations hsi-dual / hsi-compose (./install.sh) and restart GIMP."
 msgstr ""
 
-#: plugin/hsi-split-curves/hsi-split-curves.py:256
+#: plugin/hsi-split-curves/hsi-split-curves.py:258
 msgid "HSI split"
 msgstr ""
 
-#: plugin/hsi-split-curves/hsi-split-curves.py:261
+#: plugin/hsi-split-curves/hsi-split-curves.py:263
 msgid "1 · HSI S/I/H"
 msgstr ""
 
-#: plugin/hsi-split-curves/hsi-split-curves.py:265
-#: plugin/hsl-split-curves/hsl-split-curves.py:384
-#: plugin/hsl-split-curves/hsl-split-curves.py:464
-#: plugin/hsv-split-curves/hsv-split-curves.py:488
-#: plugin/lab-split-curves/lab-split-curves.py:440
-#: plugin/lab-split-curves/lab-split-curves.py:521
-#: plugin/lch-split-curves/lch-split-curves.py:650
+#: plugin/hsi-split-curves/hsi-split-curves.py:267
+#: plugin/hsl-split-curves/hsl-split-curves.py:386
+#: plugin/hsl-split-curves/hsl-split-curves.py:466
+#: plugin/hsv-split-curves/hsv-split-curves.py:490
+#: plugin/lab-split-curves/lab-split-curves.py:442
+#: plugin/lab-split-curves/lab-split-curves.py:523
+#: plugin/lch-split-curves/lch-split-curves.py:652
 msgid "1 · decompose"
 msgstr ""
 
-#: plugin/hsi-split-curves/hsi-split-curves.py:266
-#: plugin/hsl-split-curves/hsl-split-curves.py:385
-#: plugin/hsl-split-curves/hsl-split-curves.py:465
-#: plugin/hsv-split-curves/hsv-split-curves.py:489
+#: plugin/hsi-split-curves/hsi-split-curves.py:268
+#: plugin/hsl-split-curves/hsl-split-curves.py:387
+#: plugin/hsl-split-curves/hsl-split-curves.py:467
+#: plugin/hsv-split-curves/hsv-split-curves.py:491
 msgid "2 · S curve"
 msgstr ""
 
-#: plugin/hsi-split-curves/hsi-split-curves.py:268
-msgid "3 · I curve"
-msgstr ""
-
 #: plugin/hsi-split-curves/hsi-split-curves.py:270
-#: plugin/hsl-split-curves/hsl-split-curves.py:469
-#: plugin/hsv-split-curves/hsv-split-curves.py:493
-msgid "4 · H curve"
+msgid "3 · I curve"
 msgstr ""
 
 #: plugin/hsi-split-curves/hsi-split-curves.py:272
 #: plugin/hsl-split-curves/hsl-split-curves.py:471
 #: plugin/hsv-split-curves/hsv-split-curves.py:495
-#: plugin/lab-split-curves/lab-split-curves.py:528
-#: plugin/lch-split-curves/lch-split-curves.py:657
+msgid "4 · H curve"
+msgstr ""
+
+#: plugin/hsi-split-curves/hsi-split-curves.py:274
+#: plugin/hsl-split-curves/hsl-split-curves.py:473
+#: plugin/hsv-split-curves/hsv-split-curves.py:497
+#: plugin/lab-split-curves/lab-split-curves.py:530
+#: plugin/lch-split-curves/lch-split-curves.py:659
 msgid "5 · compose"
 msgstr ""
 
-#: plugin/hsi-split-curves/hsi-split-curves.py:285
+#: plugin/hsi-split-curves/hsi-split-curves.py:287
 msgid "HSI layers created: %s. The S curve lives in \"2 · S curve\" (red channel), the I curve in \"3 · I curve\" (green channel) and the hue curve in \"4 · H curve\" (blue channel). Hide the original layer; this one reproduces it on its own."
 msgstr ""
 
-#: plugin/hsi-split-curves/hsi-split-curves.py:313
+#: plugin/hsi-split-curves/hsi-split-curves.py:315
 msgid "HSI Split (Curves) · %s"
 msgstr ""
 
-#: plugin/hsi-split-curves/hsi-split-curves.py:313
-#: plugin/hsl-split-curves/hsl-split-curves.py:530
-#: plugin/hsv-split-curves/hsv-split-curves.py:539
-#: plugin/lab-split-curves/lab-split-curves.py:587
-#: plugin/lch-split-curves/lch-split-curves.py:716
+#: plugin/hsi-split-curves/hsi-split-curves.py:315
+#: plugin/hsl-split-curves/hsl-split-curves.py:532
+#: plugin/hsv-split-curves/hsv-split-curves.py:541
+#: plugin/lab-split-curves/lab-split-curves.py:589
+#: plugin/lch-split-curves/lch-split-curves.py:718
 msgid "single"
 msgstr ""
 
-#: plugin/hsi-split-curves/hsi-split-curves.py:318
+#: plugin/hsi-split-curves/hsi-split-curves.py:320
 msgid "Adjust curves in HSI space: builds a three-channel data image (red = saturation, green = intensity, blue = hue) with one curve per component. Identity curves reproduce the original exactly, and editing a curve only moves that HSI component."
 msgstr ""
 
-#: plugin/hsi-split-curves/hsi-split-curves.py:319
+#: plugin/hsi-split-curves/hsi-split-curves.py:321
 msgid "Curve HSI itself. One data layer (R = saturation, G = intensity, B = hue/360) with three curves; identity curves reproduce the image exactly. Needs lb:hsi-dual and lb:hsi-compose."
 msgstr ""
 
-#: plugin/hsi-split-curves/hsi-split-curves.py:324
+#: plugin/hsi-split-curves/hsi-split-curves.py:326
 msgid "Puts this layer into a pass-through group named HSI split; turn it off to stack it directly above the original layer."
 msgstr ""
 
-#: plugin/hsl-split-curves/hsl-split-curves.py:284
+#: plugin/hsl-split-curves/hsl-split-curves.py:286
 msgid "Required operations are missing: %s. They are essential for exact HSL fitting (S and L must be computed together and cannot be replaced by a 1D curve). Install this repository's GEGL operations hsl-dual / hsl-compose (./install.sh) and restart GIMP."
 msgstr ""
 
-#: plugin/hsl-split-curves/hsl-split-curves.py:374
-#: plugin/hsl-split-curves/hsl-split-curves.py:455
+#: plugin/hsl-split-curves/hsl-split-curves.py:376
+#: plugin/hsl-split-curves/hsl-split-curves.py:457
 msgid "HSL split"
 msgstr ""
 
-#: plugin/hsl-split-curves/hsl-split-curves.py:380
+#: plugin/hsl-split-curves/hsl-split-curves.py:382
 msgid "1 · S / L"
 msgstr ""
 
-#: plugin/hsl-split-curves/hsl-split-curves.py:387
-#: plugin/hsl-split-curves/hsl-split-curves.py:467
+#: plugin/hsl-split-curves/hsl-split-curves.py:389
+#: plugin/hsl-split-curves/hsl-split-curves.py:469
 msgid "3 · L curve"
 msgstr ""
 
-#: plugin/hsl-split-curves/hsl-split-curves.py:389
-#: plugin/lab-split-curves/lab-split-curves.py:445
+#: plugin/hsl-split-curves/hsl-split-curves.py:391
+#: plugin/lab-split-curves/lab-split-curves.py:447
 msgid "4 · compose"
 msgstr ""
 
-#: plugin/hsl-split-curves/hsl-split-curves.py:393
+#: plugin/hsl-split-curves/hsl-split-curves.py:395
 msgid "2 · Hue"
 msgstr ""
 
-#: plugin/hsl-split-curves/hsl-split-curves.py:397
+#: plugin/hsl-split-curves/hsl-split-curves.py:399
 msgid "1 · hue"
 msgstr ""
 
-#: plugin/hsl-split-curves/hsl-split-curves.py:399
+#: plugin/hsl-split-curves/hsl-split-curves.py:401
 msgid "2 · H curve"
 msgstr ""
 
-#: plugin/hsl-split-curves/hsl-split-curves.py:401
-#: plugin/hsv-split-curves/hsv-split-curves.py:371
-#: plugin/lab-split-curves/lab-split-curves.py:458
-#: plugin/lch-split-curves/lch-split-curves.py:394
+#: plugin/hsl-split-curves/hsl-split-curves.py:403
+#: plugin/hsv-split-curves/hsv-split-curves.py:373
+#: plugin/lab-split-curves/lab-split-curves.py:460
+#: plugin/lch-split-curves/lch-split-curves.py:396
 msgid "3 · encode"
 msgstr ""
 
-#: plugin/hsl-split-curves/hsl-split-curves.py:414
+#: plugin/hsl-split-curves/hsl-split-curves.py:416
 msgid "HSL component layers created: %s. The S curve lives in \"2 · S curve\" (red channel), the L curve in \"3 · L curve\" (green channel) and the hue curve in the Hue layer's \"2 · H curve\". Hide the original layers; these two reproduce it on their own."
 msgstr ""
 
-#: plugin/hsl-split-curves/hsl-split-curves.py:460
+#: plugin/hsl-split-curves/hsl-split-curves.py:462
 msgid "1 · HSL S/L/H"
 msgstr ""
 
-#: plugin/hsl-split-curves/hsl-split-curves.py:484
+#: plugin/hsl-split-curves/hsl-split-curves.py:486
 msgid "HSL layers created: %s. The S curve lives in \"2 · S curve\" (red channel), the L curve in \"3 · L curve\" (green channel) and the hue curve in \"4 · H curve\" (blue channel). Hide the original layer; this one reproduces it on its own."
 msgstr ""
 
-#: plugin/hsl-split-curves/hsl-split-curves.py:530
+#: plugin/hsl-split-curves/hsl-split-curves.py:532
 msgid "HSL Split (Curves) · %s"
 msgstr ""
 
-#: plugin/hsl-split-curves/hsl-split-curves.py:530
-#: plugin/hsv-split-curves/hsv-split-curves.py:539
-#: plugin/lab-split-curves/lab-split-curves.py:587
-#: plugin/lch-split-curves/lch-split-curves.py:716
+#: plugin/hsl-split-curves/hsl-split-curves.py:532
+#: plugin/hsv-split-curves/hsv-split-curves.py:541
+#: plugin/lab-split-curves/lab-split-curves.py:589
+#: plugin/lch-split-curves/lch-split-curves.py:718
 msgid "multi"
 msgstr ""
 
-#: plugin/hsl-split-curves/hsl-split-curves.py:535
+#: plugin/hsl-split-curves/hsl-split-curves.py:537
 msgid "Adjust curves in HSL space: multi mode splits the layer into component layers, attaches one curve to each and stacks them back with GIMP's native component blend modes, so every layer can be switched off separately. Identity curves reproduce the original exactly."
 msgstr ""
 
-#: plugin/hsl-split-curves/hsl-split-curves.py:536
+#: plugin/hsl-split-curves/hsl-split-curves.py:538
 msgid "Curve HSL itself, multi mode: the old component-layer stack on GIMP's native blend modes, one switch per layer."
 msgstr ""
 
-#: plugin/hsl-split-curves/hsl-split-curves.py:539
+#: plugin/hsl-split-curves/hsl-split-curves.py:541
 msgid "Adjust curves in HSL space: single mode packs the three components into one data image, one curve per channel, then an operation decodes it back to colour. Identity curves reproduce the original exactly; one layer, five filters."
 msgstr ""
 
-#: plugin/hsl-split-curves/hsl-split-curves.py:540
+#: plugin/hsl-split-curves/hsl-split-curves.py:542
 msgid "Curve HSL itself, single mode: one packed data layer with three curves; identity reproduces the image exactly."
 msgstr ""
 
-#: plugin/hsl-split-curves/hsl-split-curves.py:545
+#: plugin/hsl-split-curves/hsl-split-curves.py:547
 msgid "Puts this layer into a pass-through group named HSL split; turn it off to stack it directly above the original layer."
 msgstr ""
 
-#: plugin/hsv-split-curves/hsv-split-curves.py:213
+#: plugin/hsv-split-curves/hsv-split-curves.py:215
 msgid "Required operations are missing: %s. They are essential for exact HSV fitting (all three components must be evaluated in the same data image). Install this repository's GEGL operations hsv-dual / hsv-compose (./install.sh) and restart GIMP."
 msgstr ""
 
-#: plugin/hsv-split-curves/hsv-split-curves.py:361
-#: plugin/lch-split-curves/lch-split-curves.py:374
+#: plugin/hsv-split-curves/hsv-split-curves.py:363
+#: plugin/lch-split-curves/lch-split-curves.py:376
 msgid "1 · extract"
 msgstr ""
 
-#: plugin/hsv-split-curves/hsv-split-curves.py:367
-#: plugin/lch-split-curves/lch-split-curves.py:389
+#: plugin/hsv-split-curves/hsv-split-curves.py:369
+#: plugin/lch-split-curves/lch-split-curves.py:391
 msgid "2 · curve"
 msgstr ""
 
-#: plugin/hsv-split-curves/hsv-split-curves.py:410
-#: plugin/hsv-split-curves/hsv-split-curves.py:479
+#: plugin/hsv-split-curves/hsv-split-curves.py:412
+#: plugin/hsv-split-curves/hsv-split-curves.py:481
 msgid "HSV split"
 msgstr ""
 
-#: plugin/hsv-split-curves/hsv-split-curves.py:419
-#: plugin/lch-split-curves/lch-split-curves.py:574
+#: plugin/hsv-split-curves/hsv-split-curves.py:421
+#: plugin/lch-split-curves/lch-split-curves.py:576
 msgid "1 · Hue"
 msgstr ""
 
-#: plugin/hsv-split-curves/hsv-split-curves.py:422
+#: plugin/hsv-split-curves/hsv-split-curves.py:424
 msgid "2 · Saturation"
 msgstr ""
 
-#: plugin/hsv-split-curves/hsv-split-curves.py:425
+#: plugin/hsv-split-curves/hsv-split-curves.py:427
 msgid "3 · Value"
 msgstr ""
 
-#: plugin/hsv-split-curves/hsv-split-curves.py:439
+#: plugin/hsv-split-curves/hsv-split-curves.py:441
 msgid "HSV component layers created (multi mode): %s. Editing each layer's \"2 · curve\" adjusts that component; leave the encode step alone. Every layer can be switched off separately. Hide the original layer; these three stack back on their own."
 msgstr ""
 
-#: plugin/hsv-split-curves/hsv-split-curves.py:484
+#: plugin/hsv-split-curves/hsv-split-curves.py:486
 msgid "1 · HSV S/V/H"
 msgstr ""
 
-#: plugin/hsv-split-curves/hsv-split-curves.py:491
+#: plugin/hsv-split-curves/hsv-split-curves.py:493
 msgid "3 · V curve"
 msgstr ""
 
-#: plugin/hsv-split-curves/hsv-split-curves.py:508
+#: plugin/hsv-split-curves/hsv-split-curves.py:510
 msgid "HSV layers created: %s. The S curve lives in \"2 · S curve\" (red channel), the V curve in \"3 · V curve\" (green channel) and the hue curve in \"4 · H curve\" (blue channel). Hide the original layer; this one reproduces it on its own."
 msgstr ""
 
-#: plugin/hsv-split-curves/hsv-split-curves.py:539
+#: plugin/hsv-split-curves/hsv-split-curves.py:541
 msgid "HSV Split (Curves) · %s"
 msgstr ""
 
-#: plugin/hsv-split-curves/hsv-split-curves.py:544
+#: plugin/hsv-split-curves/hsv-split-curves.py:546
 msgid "Adjust curves in HSV space: multi mode splits the layer into component layers, attaches one curve to each and stacks them back with GIMP's native component blend modes, so every layer can be switched off separately. Identity curves reproduce the original exactly."
 msgstr ""
 
-#: plugin/hsv-split-curves/hsv-split-curves.py:545
+#: plugin/hsv-split-curves/hsv-split-curves.py:547
 msgid "Curve HSV itself, multi mode: the old component-layer stack on GIMP's native blend modes, one switch per layer."
 msgstr ""
 
-#: plugin/hsv-split-curves/hsv-split-curves.py:548
+#: plugin/hsv-split-curves/hsv-split-curves.py:550
 msgid "Adjust curves in HSV space: single mode packs the three components into one data image, one curve per channel, then an operation decodes it back to colour. Identity curves reproduce the original exactly; one layer, five filters."
 msgstr ""
 
-#: plugin/hsv-split-curves/hsv-split-curves.py:549
+#: plugin/hsv-split-curves/hsv-split-curves.py:551
 msgid "Curve HSV itself, single mode: one packed data layer with three curves; identity reproduces the image exactly."
 msgstr ""
 
-#: plugin/hsv-split-curves/hsv-split-curves.py:555
+#: plugin/hsv-split-curves/hsv-split-curves.py:557
 msgid "Puts the result into a pass-through group named HSV split; turn it off to stack it directly above the original layer."
 msgstr ""
 
-#: plugin/lab-split-curves/lab-split-curves.py:340
+#: plugin/lab-split-curves/lab-split-curves.py:342
 msgid "Required operations are missing: %s. They are essential for exact Lab fitting (a and b must be computed together and cannot be replaced by a 1D curve). Install this repository's GEGL operations lab-dual / lab-compose (./install.sh) and restart GIMP."
 msgstr ""
 
-#: plugin/lab-split-curves/lab-split-curves.py:430
-#: plugin/lab-split-curves/lab-split-curves.py:512
+#: plugin/lab-split-curves/lab-split-curves.py:432
+#: plugin/lab-split-curves/lab-split-curves.py:514
 msgid "Lab split"
 msgstr ""
 
-#: plugin/lab-split-curves/lab-split-curves.py:436
+#: plugin/lab-split-curves/lab-split-curves.py:438
 msgid "1 · a / b"
-msgstr ""
-
-#: plugin/lab-split-curves/lab-split-curves.py:441
-#: plugin/lab-split-curves/lab-split-curves.py:522
-msgid "2 · a curve"
 msgstr ""
 
 #: plugin/lab-split-curves/lab-split-curves.py:443
 #: plugin/lab-split-curves/lab-split-curves.py:524
+msgid "2 · a curve"
+msgstr ""
+
+#: plugin/lab-split-curves/lab-split-curves.py:445
+#: plugin/lab-split-curves/lab-split-curves.py:526
 msgid "3 · b curve"
 msgstr ""
 
-#: plugin/lab-split-curves/lab-split-curves.py:450
+#: plugin/lab-split-curves/lab-split-curves.py:452
 msgid "2 · L"
 msgstr ""
 
-#: plugin/lab-split-curves/lab-split-curves.py:454
+#: plugin/lab-split-curves/lab-split-curves.py:456
 msgid "1 · lightness"
 msgstr ""
 
-#: plugin/lab-split-curves/lab-split-curves.py:456
-#: plugin/lch-split-curves/lch-split-curves.py:651
+#: plugin/lab-split-curves/lab-split-curves.py:458
+#: plugin/lch-split-curves/lch-split-curves.py:653
 msgid "2 · L curve"
 msgstr ""
 
-#: plugin/lab-split-curves/lab-split-curves.py:471
+#: plugin/lab-split-curves/lab-split-curves.py:473
 msgid "Lab component layers created: %s. The a curve lives in \"2 · a curve\" (red channel), the b curve in \"3 · b curve\" (green channel) and the lightness curve in the L layer's \"2 · L curve\". Hide the original layers; these two reproduce it on their own."
 msgstr ""
 
-#: plugin/lab-split-curves/lab-split-curves.py:517
+#: plugin/lab-split-curves/lab-split-curves.py:519
 msgid "1 · Lab a/b/L"
 msgstr ""
 
-#: plugin/lab-split-curves/lab-split-curves.py:526
+#: plugin/lab-split-curves/lab-split-curves.py:528
 msgid "4 · L curve"
 msgstr ""
 
-#: plugin/lab-split-curves/lab-split-curves.py:541
+#: plugin/lab-split-curves/lab-split-curves.py:543
 msgid "Lab layers created: %s. The a curve lives in \"2 · a curve\" (red channel), the b curve in \"3 · b curve\" (green channel) and the L curve in \"4 · L curve\" (blue channel). Hide the original layer; this one reproduces it on its own."
 msgstr ""
 
-#: plugin/lab-split-curves/lab-split-curves.py:587
+#: plugin/lab-split-curves/lab-split-curves.py:589
 msgid "Lab Split (Curves) · %s"
 msgstr ""
 
-#: plugin/lab-split-curves/lab-split-curves.py:592
+#: plugin/lab-split-curves/lab-split-curves.py:594
 msgid "Adjust curves in Lab space: multi mode splits the layer into component layers, attaches one curve to each and stacks them back with GIMP's native component blend modes, so every layer can be switched off separately. Identity curves reproduce the original exactly."
 msgstr ""
 
-#: plugin/lab-split-curves/lab-split-curves.py:593
+#: plugin/lab-split-curves/lab-split-curves.py:595
 msgid "Curve Lab itself, multi mode: the old component-layer stack on GIMP's native blend modes, one switch per layer."
 msgstr ""
 
-#: plugin/lab-split-curves/lab-split-curves.py:596
+#: plugin/lab-split-curves/lab-split-curves.py:598
 msgid "Adjust curves in Lab space: single mode packs the three components into one data image, one curve per channel, then an operation decodes it back to colour. Identity curves reproduce the original exactly; one layer, five filters."
 msgstr ""
 
-#: plugin/lab-split-curves/lab-split-curves.py:597
+#: plugin/lab-split-curves/lab-split-curves.py:599
 msgid "Curve Lab itself, single mode: one packed data layer with three curves; identity reproduces the image exactly."
 msgstr ""
 
-#: plugin/lab-split-curves/lab-split-curves.py:602
+#: plugin/lab-split-curves/lab-split-curves.py:604
 msgid "Puts this layer into a pass-through group named Lab split; turn it off to stack it directly above the original layer."
 msgstr ""
 
-#: plugin/layer-to-channel/layer-to-channel.py:165
-#: plugin/layer-to-selection/layer-to-selection.py:163
+#: plugin/layer-to-channel/layer-to-channel.py:167
+#: plugin/layer-to-selection/layer-to-selection.py:165
 msgid "A layer group cannot be converted directly; right-click it and Merge Layer Group first."
 msgstr ""
 
-#: plugin/layer-to-channel/layer-to-channel.py:245
+#: plugin/layer-to-channel/layer-to-channel.py:247
 msgid "Channel \\u201c%s\\u201d created from the grey levels of \\u201c%s\\u201d"
 msgstr ""
 
-#: plugin/layer-to-channel/layer-to-channel.py:270
+#: plugin/layer-to-channel/layer-to-channel.py:272
 msgid "Layer to Channel"
 msgstr ""
 
-#: plugin/layer-to-channel/layer-to-channel.py:276
+#: plugin/layer-to-channel/layer-to-channel.py:278
 msgid "Layer to Channel: turn the clicked layer into a new alpha channel. Colour layers are first converted to greyscale (luminosity); grey layers are used as they are, and those grey levels become the channel values."
 msgstr ""
 
-#: plugin/layer-to-channel/layer-to-channel.py:280
+#: plugin/layer-to-channel/layer-to-channel.py:282
 msgid "One click 'any layer -> channel'. Always grayscale: black = not selected, white = fully selected."
 msgstr ""
 
-#: plugin/layer-to-selection/layer-to-selection.py:271
+#: plugin/layer-to-selection/layer-to-selection.py:273
 msgid "Layer to Selection"
 msgstr ""
 
-#: plugin/layer-to-selection/layer-to-selection.py:277
+#: plugin/layer-to-selection/layer-to-selection.py:279
 msgid "Layer to Selection: turn the clicked layer into the current selection (Gray/R/G/B/Alpha, invert, four combine modes)"
 msgstr ""
 
-#: plugin/layer-to-selection/layer-to-selection.py:279
+#: plugin/layer-to-selection/layer-to-selection.py:281
 msgid "One click 'any layer -> selection', no copy/paste detour."
 msgstr ""
 
-#: plugin/layer-to-selection/layer-to-selection.py:283
+#: plugin/layer-to-selection/layer-to-selection.py:285
 msgid "0 Gray (luminosity), 1 Red, 2 Green, 3 Blue, 4 Alpha"
 msgstr ""
 
-#: plugin/layer-to-selection/layer-to-selection.py:287
+#: plugin/layer-to-selection/layer-to-selection.py:289
 msgid "Select the dark side instead of the bright side"
 msgstr ""
 
-#: plugin/lch-split-curves/lch-split-curves.py:386
+#: plugin/lch-split-curves/lch-split-curves.py:388
 msgid "2 · scale (×1.52)"
 msgstr ""
 
-#: plugin/lch-split-curves/lch-split-curves.py:389
+#: plugin/lch-split-curves/lch-split-curves.py:391
 msgid "3 · curve"
 msgstr ""
 
-#: plugin/lch-split-curves/lch-split-curves.py:394
+#: plugin/lch-split-curves/lch-split-curves.py:396
 msgid "4 · encode"
 msgstr ""
 
-#: plugin/lch-split-curves/lch-split-curves.py:522
+#: plugin/lch-split-curves/lch-split-curves.py:524
 msgid "Required operations are missing: %s. They are essential for exact LCh fitting (all three components must be evaluated in the same data image). Install this repository's GEGL operations lch-dual / lch-compose (./install.sh) and restart GIMP."
 msgstr ""
 
-#: plugin/lch-split-curves/lch-split-curves.py:564
-#: plugin/lch-split-curves/lch-split-curves.py:641
+#: plugin/lch-split-curves/lch-split-curves.py:566
+#: plugin/lch-split-curves/lch-split-curves.py:643
 msgid "LCh split"
 msgstr ""
 
-#: plugin/lch-split-curves/lch-split-curves.py:580
+#: plugin/lch-split-curves/lch-split-curves.py:582
 msgid "2 · Chroma"
 msgstr ""
 
-#: plugin/lch-split-curves/lch-split-curves.py:586
+#: plugin/lch-split-curves/lch-split-curves.py:588
 msgid "3 · Lightness"
 msgstr ""
 
-#: plugin/lch-split-curves/lch-split-curves.py:601
+#: plugin/lch-split-curves/lch-split-curves.py:603
 msgid "LCh component layers created: %s. Editing each layer's \"curve\" adjusts that component; leave encode alone."
 msgstr ""
 
-#: plugin/lch-split-curves/lch-split-curves.py:603
+#: plugin/lch-split-curves/lch-split-curves.py:605
 msgid "\n(8-bit images must sit in a group: ungrouped, each layer quantises separately and the hue drifts by a few levels.)"
 msgstr ""
 
-#: plugin/lch-split-curves/lch-split-curves.py:646
+#: plugin/lch-split-curves/lch-split-curves.py:648
 msgid "1 · LCh L/C/h"
 msgstr ""
 
-#: plugin/lch-split-curves/lch-split-curves.py:653
+#: plugin/lch-split-curves/lch-split-curves.py:655
 msgid "3 · C curve"
 msgstr ""
 
-#: plugin/lch-split-curves/lch-split-curves.py:655
+#: plugin/lch-split-curves/lch-split-curves.py:657
 msgid "4 · h curve"
 msgstr ""
 
-#: plugin/lch-split-curves/lch-split-curves.py:670
+#: plugin/lch-split-curves/lch-split-curves.py:672
 msgid "LCh layers created: %s. The L curve lives in \"2 · L curve\" (red channel), the chroma curve in \"3 · C curve\" (green channel) and the hue curve in \"4 · h curve\" (blue channel). Hide the original layer; this one reproduces it on its own."
 msgstr ""
 
-#: plugin/lch-split-curves/lch-split-curves.py:716
+#: plugin/lch-split-curves/lch-split-curves.py:718
 msgid "LCh Split (Curves) · %s"
 msgstr ""
 
-#: plugin/lch-split-curves/lch-split-curves.py:721
+#: plugin/lch-split-curves/lch-split-curves.py:723
 msgid "Adjust curves in LCh space: multi mode splits the layer into component layers, attaches one curve to each and stacks them back with GIMP's native component blend modes, so every layer can be switched off separately. Identity curves reproduce the original exactly."
 msgstr ""
 
-#: plugin/lch-split-curves/lch-split-curves.py:722
+#: plugin/lch-split-curves/lch-split-curves.py:724
 msgid "Curve LCh itself, multi mode: the old component-layer stack on GIMP's native blend modes, one switch per layer."
 msgstr ""
 
-#: plugin/lch-split-curves/lch-split-curves.py:725
+#: plugin/lch-split-curves/lch-split-curves.py:727
 msgid "Adjust curves in LCh space: single mode packs the three components into one data image, one curve per channel, then an operation decodes it back to colour. Identity curves reproduce the original exactly; one layer, five filters."
 msgstr ""
 
-#: plugin/lch-split-curves/lch-split-curves.py:726
+#: plugin/lch-split-curves/lch-split-curves.py:728
 msgid "Curve LCh itself, single mode: one packed data layer with three curves; identity reproduces the image exactly."
 msgstr ""
 
-#: plugin/lch-split-curves/lch-split-curves.py:731
+#: plugin/lch-split-curves/lch-split-curves.py:733
 msgid "Puts this layer into a pass-through group named LCh split; turn it off to stack it directly above the original layer."
 msgstr ""
 
-#: plugin/max-min/max-min.py:71
+#: plugin/max-min/max-min.py:73
 msgid "Maximum (dilate: bright areas grow)"
 msgstr ""
 
-#: plugin/max-min/max-min.py:72
+#: plugin/max-min/max-min.py:74
 msgid "Minimum (erode: bright areas shrink)"
 msgstr ""
 
-#: plugin/max-min/max-min.py:76
+#: plugin/max-min/max-min.py:78
 msgid "Square ((±r, ±r) window)"
 msgstr ""
 
-#: plugin/max-min/max-min.py:77
+#: plugin/max-min/max-min.py:79
 msgid "Round (disc of radius r)"
 msgstr ""
 
-#: plugin/max-min/max-min.py:128
+#: plugin/max-min/max-min.py:130
 msgid "The lb:max-min operation is missing; install the module from dist/ first."
 msgstr ""
 
-#: plugin/max-min/max-min.py:142
+#: plugin/max-min/max-min.py:144
 msgid "Nothing to work on: no drawable."
 msgstr ""
 
-#: plugin/max-min/max-min.py:145
+#: plugin/max-min/max-min.py:147
 msgid "A layer group has no pixels of its own; pick a raster layer or its mask."
 msgstr ""
 
-#: plugin/max-min/max-min.py:149
+#: plugin/max-min/max-min.py:151
 msgid "Maximum"
 msgstr ""
 
-#: plugin/max-min/max-min.py:149
+#: plugin/max-min/max-min.py:151
 msgid "Minimum"
 msgstr ""
 
-#: plugin/max-min/max-min.py:180
+#: plugin/max-min/max-min.py:182
 msgid "mask"
 msgstr ""
 
-#: plugin/max-min/max-min.py:181
+#: plugin/max-min/max-min.py:183
 msgid "channel"
 msgstr ""
 
-#: plugin/max-min/max-min.py:206
+#: plugin/max-min/max-min.py:208
 msgid "Maximum / Minimum..."
 msgstr ""
 
-#: plugin/max-min/max-min.py:211
+#: plugin/max-min/max-min.py:213
 msgid "Morphological maximum (dilate) and minimum (erode): each pixel takes the largest or smallest value in its neighbourhood. Maximum grows the edges and removes dark specks; minimum shrinks them and removes bright specks. Attached as a non-destructive filter on layers; written into pixels on masks and channels."
 msgstr ""
 
-#: plugin/max-min/max-min.py:216
+#: plugin/max-min/max-min.py:218
 msgid "Morphological maximum (dilate) and minimum (erode) over a square or round neighbourhood, attached as a non-destructive drawable filter."
 msgstr ""
 
-#: plugin/max-min/max-min.py:224
+#: plugin/max-min/max-min.py:226
 msgid "Maximum is dilate, minimum is erode."
 msgstr ""
 
-#: plugin/max-min/max-min.py:229
+#: plugin/max-min/max-min.py:231
 msgid "Neighbourhood radius in pixels. r=1 is a 3×3 window and grows the edge outward by one pixel."
 msgstr ""
 
-#: plugin/max-min/max-min.py:238
+#: plugin/max-min/max-min.py:240
 msgid "Square is a square window; round is a disc (Photoshop's Preserve: Squareness / Roundness)."
 msgstr ""
 
-#: plugin/max-min/max-min.py:243
+#: plugin/max-min/max-min.py:245
 msgid "Affect alpha"
 msgstr ""
 
-#: plugin/max-min/max-min.py:244
+#: plugin/max-min/max-min.py:246
 msgid "Leave off to keep alpha untouched (Photoshop does not change layer opacity either)."
 msgstr ""
 
-#: plugin/max-min/max-min.py:253
+#: plugin/max-min/max-min.py:255
 msgid "Select a layer or one of its masks."
 msgstr ""
 
-#: plugin/neutral-grey/neutral-grey.py:178
-#: plugin/neutral-grey/neutral-grey.py:228
+#: plugin/neutral-grey/neutral-grey.py:180
+#: plugin/neutral-grey/neutral-grey.py:230
 msgid "Neutral Grey"
 msgstr ""
 
-#: plugin/neutral-grey/neutral-grey.py:184
+#: plugin/neutral-grey/neutral-grey.py:186
 msgid "1 · Neutral grey (white dodges, black burns)"
 msgstr ""
 
-#: plugin/neutral-grey/neutral-grey.py:201
+#: plugin/neutral-grey/neutral-grey.py:203
 msgid "Neutral Grey is set up: a 50% grey soft-light layer that currently leaves the image identical. Click the layer and paint with a soft brush (opacity 5–15%): white lightens, black darkens, and #808080 paints over the overshoot."
 msgstr ""
 
-#: plugin/neutral-grey/neutral-grey.py:233
+#: plugin/neutral-grey/neutral-grey.py:235
 msgid "Neutral Grey: adds a 50% grey soft-light layer that is pixel-identical to the original when untouched. Paint white to lighten and black to darken, going over the skin until it evens out."
 msgstr ""
 
-#: plugin/neutral-grey/neutral-grey.py:234
+#: plugin/neutral-grey/neutral-grey.py:236
 msgid "Neutral grey dodge & burn: a 50% grey Soft Light layer, identity on the backdrop; paint white to lighten, black to darken."
 msgstr ""
 
-#: plugin/neutral-grey/neutral-grey.py:238
+#: plugin/neutral-grey/neutral-grey.py:240
 msgid "Puts the grey layer into a pass-through group named Neutral Grey; turn it off to stack it directly above the original layer."
 msgstr ""
 
-#: plugin/sky-replace/sky-replace.py:206
+#: plugin/sky-replace/sky-replace.py:208
 msgid "Sky Replace"
 msgstr ""
 
-#: plugin/sky-replace/sky-replace.py:209
+#: plugin/sky-replace/sky-replace.py:211
 msgid "Sky Replace: flood-select the sky from the top edge, insert a sky image below the photo layer and mask it with the selection"
 msgstr ""
 
-#: plugin/sky-replace/sky-replace.py:211
+#: plugin/sky-replace/sky-replace.py:213
 msgid "One-click sky replacement (classic flood-fill segmentation, cover scaling, brightness matching, selection as layer mask)."
 msgstr ""
 
-#: plugin/sky-replace/sky-replace.py:215
+#: plugin/sky-replace/sky-replace.py:217
 msgid "Sky image"
 msgstr ""
 
-#: plugin/sky-replace/sky-replace.py:216
+#: plugin/sky-replace/sky-replace.py:218
 msgid "New sky picture; it is scaled to cover the canvas"
 msgstr ""
 
-#: plugin/sky-replace/sky-replace.py:221
+#: plugin/sky-replace/sky-replace.py:223
 msgid "Flood-fill sample threshold (0..0.5)"
 msgstr ""
 
-#: plugin/sky-replace/sky-replace.py:224
+#: plugin/sky-replace/sky-replace.py:226
 msgid "Edge shift"
 msgstr ""
 
-#: plugin/sky-replace/sky-replace.py:225
+#: plugin/sky-replace/sky-replace.py:227
 msgid "Positive shrinks the sky mask by n px, negative grows it"
 msgstr ""
 
-#: plugin/sky-replace/sky-replace.py:229
+#: plugin/sky-replace/sky-replace.py:231
 msgid "Feather radius of the sky mask"
 msgstr ""
 
-#: plugin/sky-replace/sky-replace.py:232
+#: plugin/sky-replace/sky-replace.py:234
 msgid "Match brightness"
 msgstr ""
 
-#: plugin/sky-replace/sky-replace.py:233
+#: plugin/sky-replace/sky-replace.py:235
 msgid "Gamma-match the new sky brightness to the old sky region"
 msgstr ""
 
-#: plugin/sky-replace/sky-replace.py:236
+#: plugin/sky-replace/sky-replace.py:238
 msgid "Save mask channel"
 msgstr ""
 
-#: plugin/sky-replace/sky-replace.py:237
+#: plugin/sky-replace/sky-replace.py:239
 msgid "Keep the sky mask as a 'Sky Mask' channel for refinement"
 msgstr ""
 
-#: plugin/split-channels/split-channels.py:302
+#: plugin/split-channels/split-channels.py:304
 msgid "Split Channels"
 msgstr ""
 
-#: plugin/split-channels/split-channels.py:308
+#: plugin/split-channels/split-channels.py:310
 msgid "Split Channels: store each component of the layer as its own channel (R / G / B / Alpha; grayscale images yield Gray). The source layer is hidden afterwards so it stays available as a reference."
 msgstr ""
 
-#: plugin/split-channels/split-channels.py:312
+#: plugin/split-channels/split-channels.py:314
 msgid "One click 'one layer -> per-component channels', no manual channel-by-channel copy/paste."
 msgstr ""
 
-#: plugin/split-channels/split-channels.py:315
+#: plugin/split-channels/split-channels.py:317
 msgid "Include Alpha"
 msgstr ""
 
-#: plugin/split-channels/split-channels.py:316
+#: plugin/split-channels/split-channels.py:318
 msgid "Also store the transparency as a channel (only when the layer has one)"
 msgstr ""
 
-#: plugin/split-channels/split-channels.py:320
+#: plugin/split-channels/split-channels.py:322
 msgid "Hide source layer"
 msgstr ""
 
-#: plugin/split-channels/split-channels.py:321
+#: plugin/split-channels/split-channels.py:323
 msgid "Hide the original layer after splitting so the canvas shows you the result"
 msgstr ""
 
-#: plugin/split-channels/split-channels.py:325
+#: plugin/split-channels/split-channels.py:327
 msgid "Name prefix"
 msgstr ""
 
-#: plugin/split-channels/split-channels.py:326
+#: plugin/split-channels/split-channels.py:328
 msgid "Empty = use the layer name; channels become \"<prefix> R\", \"<prefix> G\", ..."
 msgstr ""

@@ -100,7 +100,7 @@ def test_runtime():
     """
     GimpUi.init("lb-dialog-check")
     pdb = Gimp.get_pdb()
-    registered = skipped = 0
+    registered = skipped = no_args = 0
     for name, path, src in plugin_sources():
         for pname in sorted(set(re.findall(
                 r"lb-plugin-[a-z0-9]+(?:-[a-z0-9]+)*", src))):
@@ -111,6 +111,12 @@ def test_runtime():
             registered += 1
             try:
                 cfg = proc.create_config()
+                # 零参数的命令（如 ai-inpaint 的「AI Environment…」）本来就不该
+                # 弹参数框——它自己开 Gtk 对话框做别的事。这类过程跳过去，
+                # 否则「控件数 > 0」永远是假的。
+                if not list(cfg.list_properties()):
+                    no_args += 1
+                    continue
                 dlg = GimpUi.ProcedureDialog.new(proc, cfg, "check")
                 GimpUi.window_set_transient(dlg)
                 dlg.fill()
@@ -135,7 +141,7 @@ def test_runtime():
         print("（PDB 里没有 lb-plugin-* —— 插件没装，跳过动态检查）")
         return
     ok("至少检查到 10 个过程（说明装上了）", registered >= 10,
-       "实际 %d，未装 %d" % (registered, skipped))
+       "实际 %d，未装 %d，零参数 %d" % (registered, skipped, no_args))
 
 
 def test_helper():

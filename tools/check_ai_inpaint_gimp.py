@@ -300,6 +300,23 @@ try:
         check("高级版读到了 scale", args[15] == 1.0, str(args[15]))
         check("高级版 keep-mask=off 传下去", args[14] is False, str(args[14]))
 
+    # 底模下拉：真的建成了 Gimp.Choice（不是退回文本框）才会「挑值」——给一个
+    # 不在清单里的名字，Choice 会把它拉回默认的 auto；普通字符串参数则原样收下。
+    # 这比「源码里出现了 add_choice_argument」有力得多：参数类型被降级的时
+    # 候源码看着完全正常，只有真设一次值才看得出来。
+    proc = Gimp.get_pdb().lookup_procedure(mod.PROC_ADVANCED)
+    if proc is not None:
+        cfg = proc.create_config()
+        default = cfg.get_property("checkpoint")
+        cfg.set_property("checkpoint", "definitely-not-a-model.safetensors")
+        check("底模是下拉（乱写的名字被拒回默认值）",
+              cfg.get_property("checkpoint") == default,
+              "default=%r got=%r" % (default, cfg.get_property("checkpoint")))
+        check("底模默认是 auto", default in ("auto", ""), repr(default))
+
+        env_proc = Gimp.get_pdb().lookup_procedure(mod.PROC_ENV)
+        check("注册了 AI 环境过程", env_proc is not None)
+
     # GIMP 会把没删掉的图像当成「插件漏出来的」报到日志里，收尾清干净
     for im in (img, img2, img3, img4):
         im.delete()

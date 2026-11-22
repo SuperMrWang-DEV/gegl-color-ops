@@ -52,6 +52,14 @@ if [ -d "$ROOT/locale" ]; then
   cp -r "$ROOT/locale/." "$DST/plug-ins/locale/"
   echo "· 已复制翻译目录（$(ls "$ROOT/locale" | tr '\n' ' ')）"
 fi
+
+# 一键装 ComfyUI 的安装器：插件里「AI 环境…」这个菜单项按 <插件目录>/ai-setup/
+# 找它，找不到就只能让用户自己去翻仓库。所以安装时一定跟着拷过去。
+if [ -f "$ROOT/tools/setup-ai.bat" ] && [ -f "$ROOT/tools/setup_ai.py" ]; then
+  mkdir -p "$DST/plug-ins/ai-setup"
+  cp "$ROOT/tools/setup-ai.bat" "$ROOT/tools/setup_ai.py" "$DST/plug-ins/ai-setup/"
+  echo "· 已复制 AI 安装器 → $DST/plug-ins/ai-setup/（菜单 SuperMrWang → AI → AI Environment）"
+fi
 echo "· 重启 GIMP 后生效（菜单栏顶层多一个 SuperMrWang，与「颜色」「图层」平级）："
 echo "    SuperMrWang → Convert    图层 → 选区 / 通道 / 一次拆出 R·G·B·Alpha（原始像素，彩色按亮度）"
 echo "                             Channel / Selection / Mask / Path 十二向互转（零参数，点一下直接跑）"
@@ -60,6 +68,8 @@ echo "                             Channel to Mask（通道 → 图层蒙版）"
 echo "                             最大值 / 最小值（膨胀 / 腐蚀，半径 1–100，蒙版扩边收边）"
 echo "    SuperMrWang → Blend      应用图像 / 计算"
 echo "    SuperMrWang → AI         AI Inpaint（选区 + 提示词 → 本机 ComfyUI 重绘，需要 ComfyUI 在跑）"
+echo "                             AI Inpaint (Advanced)（全参数，含底模下拉）"
+echo "                             AI Environment（一键装 / 启动 ComfyUI，看模型清单）"
 echo "    SuperMrWang → Retouch    HSV·HSL·Lab·LCh·HSI Split + 高低频/双曲线/中性灰磨皮"
 echo "                             再各加一个「（AI 预修）」入口：结构 + 预修一起给"
 echo "    图层右键 → SuperMrWang → Convert / Mask / Retouch   与上面同样的分组，只留单层能用的"

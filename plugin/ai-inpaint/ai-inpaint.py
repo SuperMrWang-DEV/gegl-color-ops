@@ -52,6 +52,13 @@ from gi.repository import Gimp, GLib, GObject, Gio
 
 from gi.repository import Gegl
 
+# 「AI 环境」那个对话框要 Gtk；拿不到就只报一句话，不影响重绘本身
+try:
+    gi.require_version('Gtk', '3.0')
+    from gi.repository import Gtk
+except Exception:                  # pragma: no cover - 只在不带 Gtk 的构建里
+    Gtk = None
+
 
 def _N_(message):
     return message
@@ -460,6 +467,207 @@ def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
 
 PROC_QUICK = 'lb-plugin-ai-inpaint'
 PROC_ADVANCED = 'lb-plugin-ai-inpaint-advanced'
+PROC_ENV = 'lb-plugin-ai-env'
+
+
+# ---- AI 环境 / environment helper -------------------------------------------
+# 第三个入口：装 ComfyUI、启动 ComfyUI、看模型列表。为什么放在插件里而不是
+# 只在 README 里写一句「去跑 tools/setup-ai.bat」：下载单支插件的人拿到的是
+# 一个 zip，他既不知道仓库在哪，也不会去开终端。菜单里点一下最省事。
+#
+# 这三个动作都**不改动 GIMP 里的图**，所以它们跟选区、提示词都没关系。
+
+ENV_HOME = "LB_COMFY_HOME"
+_START_BAT = "start-comfyui.bat"
+_SETUP_BAT = "setup-ai.bat"
+
+
+def _here():
+    return _os.path.dirname(_os.path.abspath(__file__))
+
+
+def find_installer():
+    """setup-ai.bat 在哪。下载包装在 <插件目录>/ai-setup/，源码树在 tools/。"""
+    here = _here()
+    cands = [
+        _os.path.join(here, "ai-setup", _SETUP_BAT),          # 单插件包 / 整包
+        _os.path.join(here, "setup", _SETUP_BAT),             # 开发目录
+        _os.path.normpath(_os.path.join(here, "..", "ai-setup", _SETUP_BAT)),
+        _os.path.normpath(_os.path.join(here, "..", "..", "tools", _SETUP_BAT)),
+    ]
+    for c in cands:
+        if _os.path.exists(c):
+            return c
+    return None
+
+
+def candidate_homes():
+    """ComfyUI 可能装在哪：环境变量 → setup 的默认目录 → 常见位置。"""
+    homes = []
+    env = (_os.environ.get(ENV_HOME) or "").strip().strip('"')
+    if env:
+        homes.append(env)
+    home = _os.path.expanduser("~")
+    homes += [_os.path.join(home, "SuperMrWang-AI"),
+              _os.path.join(home, "ComfyUI"),
+              "C:/ComfyUI", "D:/ComfyUI"]
+    return homes
+
+
+def find_runtime():
+    """返回 (环境根目录, start-comfyui.bat 或 None)；都没找到就 (None, None)。"""
+    for root in candidate_homes():
+        if not _os.path.isdir(root):
+            continue
+        for cand in (_os.path.join(root, _START_BAT),
+                     _os.path.join(root, "ComfyUI", _START_BAT)):
+            if _os.path.exists(cand):
+                return root, cand
+        if _os.path.exists(_os.path.join(root, "ComfyUI", "main.py")):
+            return root, None       # 有源码没启动脚本：仍算装过
+        if _os.path.exists(_os.path.join(root, "main.py")):
+            return root, None
+    return None, None
+
+
+def _open_path(path):
+    """用系统默认方式打开一个文件/目录（Windows: os.startfile）。"""
+    if _os.name != "nt":
+        return False
+    try:
+        _os.startfile(path)                       # noqa: S606  (Windows only)
+        return True
+    except Exception:
+        return False
+
+
+def env_report(server=""):
+    """AI 环境对话框里要显示的几行字。连不上也要说清楚为什么、下一步做什么。"""
+    lines = []
+    names = []
+    if ai_client is None:
+        lines.append(_("plugin/_shared/ai_client.py is missing — reinstall the "
+                       "plug-in with the _shared folder"))
+    else:
+        client = ai_client.ComfyClient(server, timeout=1.5)
+        probe = client.probe()
+        if probe["ok"]:
+            lines.append(_("ComfyUI: online (v%s)") % (probe["version"] or "?"))
+            names = _available_checkpoints()
+            if names:
+                lines.append(_("Checkpoints: %d") % len(names))
+                for n in names[:8]:
+                    lines.append("    " + ai_client.checkpoint_note(n))
+                if len(names) > 8:
+                    lines.append("    …")
+            else:
+                lines.append(_("Checkpoints: none — put a .safetensors into "
+                               "models\\checkpoints and restart ComfyUI"))
+        else:
+            lines.append(_("ComfyUI: not reachable — %s")
+                         % probe["error"].splitlines()[0])
+            lines.append(_("Start it with the button below (first time: install)."))
+
+    root, start_bat = find_runtime()
+    if root:
+        lines.append(_("Environment: %s") % root)
+        if start_bat is None:
+            lines.append(_("  (found the source but no start script — run "
+                           "setup-ai.bat once)"))
+    else:
+        lines.append(_("Environment: not found — click \"One-click install\" "
+                       "(about 10 GB, one time)"))
+    inst = find_installer()
+    if inst is None:
+        lines.append(_("Installer: not shipped with this copy — get "
+                       "setup-ai.bat from the plug-in pack's ai-setup folder"))
+    return lines, names, root, start_bat, inst
+
+
+def run_env_dialog(server=""):
+    """菜单里的「AI 环境…」：显示状态 + 三个按钮（启动 / 安装 / 模型目录）。
+
+    对话框是**非模态循环**：点完「启动」不关闭，等十几秒点「刷新」就能看到
+    在线状态和模型清单——用户第一次装的时候最需要的正是这个反馈。
+    """
+    if Gtk is None:
+        Gimp.message(_("This build of GIMP has no GTK — start ComfyUI from "
+                       "start-comfyui.bat instead."))
+        return
+
+    dlg = Gtk.Dialog.new()
+    dlg.set_title(_("SuperMrWang AI — ComfyUI"))
+    dlg.set_default_size(560, 360)
+    dlg.add_button(_("_Close"), Gtk.ResponseType.CLOSE)
+    b_start = dlg.add_button(_("Start ComfyUI"), 1)
+    b_install = dlg.add_button(_("One-click install…"), 2)
+    b_folder = dlg.add_button(_("Model folder"), 3)
+    b_refresh = dlg.add_button(_("Refresh"), 4)
+
+    box = dlg.get_content_area()
+    box.set_border_width(12)
+    box.set_spacing(8)
+
+    hint = Gtk.Label.new("")
+    hint.set_halign(Gtk.Align.START)
+    hint.set_line_wrap(True)
+    lbl = Gtk.Label.new("")
+    lbl.set_halign(Gtk.Align.START)
+    lbl.set_line_wrap(True)
+    lbl.set_selectable(True)          # 路径能选中复制，比让人照着敲强
+    lbl.set_xalign(0.0)
+    box.add(hint)
+    box.add(lbl)
+
+    def refresh(msg=""):
+        lines, _names, root, start_bat, inst = env_report(server)
+        lbl.set_markup("<tt>%s</tt>" % GLib.markup_escape_text("\n".join(lines)))
+        b_start.set_sensitive(bool(start_bat))
+        b_install.set_sensitive(bool(inst))
+        hint.set_markup(GLib.markup_escape_text(msg) if msg else "")
+
+    refresh()
+    box.show_all()
+
+    while True:
+        resp = dlg.run()
+        if resp in (Gtk.ResponseType.CLOSE, Gtk.ResponseType.DELETE_EVENT,
+                    Gtk.ResponseType.NONE):
+            break
+        if resp == 1:                                  # 启动
+            _lines, _n, root, start_bat, _i = env_report(server)
+            if start_bat and _open_path(start_bat):
+                refresh(_("Starting… wait 10–30 s, then press Refresh. "
+                          "Keep its console window open while using the AI "
+                          "features."))
+            else:
+                Gimp.message(_("Could not start ComfyUI — no start-comfyui.bat "
+                               "found. Run the one-click install first."))
+        elif resp == 2:                                # 一键安装
+            inst = find_installer()
+            if inst and _open_path(inst):
+                refresh(_("The installer runs in its own console window "
+                          "(about 10 GB, one time). When it finishes, come back "
+                          "and press Start ComfyUI."))
+            else:
+                Gimp.message(_("Installer not found next to the plug-in. "
+                               "Download setup-ai.bat + setup_ai.py from the "
+                               "plug-in pack (ai-setup folder)."))
+        elif resp == 3:                                # 模型目录
+            root = find_runtime()[0]
+            if not root:
+                Gimp.message(_("ComfyUI is not installed yet — click "
+                               "One-click install first."))
+            else:
+                cand = _os.path.join(root, "ComfyUI", "models", "checkpoints")
+                target = cand if _os.path.isdir(cand) else root
+                if not _open_path(target):
+                    Gimp.message(_("Model folder: %s") % target)
+        refresh()
+        dlg.show_all()
+
+    dlg.destroy()
+
 
 
 def _add_preset_argument(procedure):
@@ -485,15 +693,91 @@ def _add_preset_argument(procedure):
             _("Leave empty for none"), "none", GObject.ParamFlags.READWRITE)
 
 
+AUTO_CKPT = "auto"
+
+
+def _ckpt_value(value):
+    """下拉里的 auto / 空 → 空串，让 ai_client 自己挑。"""
+    if not value or value == AUTO_CKPT:
+        return ""
+    return str(value)
+
+
+def _available_checkpoints(timeout=1.5):
+    """问 ComfyUI 有哪些底模；连不上就空表（不抛异常）。
+
+    超时给得很短：这个函数在 GIMP **注册菜单时**就要跑，卡住等于整个 GIMP 启动
+    卡住。本机端口没开时连接是立刻被拒的（毫秒级），1.5 秒只是兜底——只有
+    「ComfyUI 进程在、但卡死了」才会真等满。
+    """
+    if ai_client is None:
+        return []
+    try:
+        names = ai_client.ComfyClient(timeout=timeout).checkpoints()
+    except Exception:                  # 连不上 / 返回结构不对：都当没有
+        return []
+    return names
+
+
+def _add_checkpoint_argument(procedure):
+    """底模下拉：装了几个模型就在列表里选。
+
+    为什么不只留「自动」：自动挑的是**按名字排序后第一个非 inpaint 模型**，
+    装了十个模型的人永远轮不到自己想用的那个。ComfyUI 在跑就把清单列出来；
+    没跑（或回复慢）就退回老文本框，让用户手写文件名——绝不让注册菜单这一步
+    因为连不上服务而变慢或报错。
+    """
+    help_text = _("Empty / Automatic picks the first model that is not an "
+                  "inpaint-only one. Add more models with the "
+                  "\"AI Environment\" menu entry.")
+    names = _available_checkpoints()
+    if names:
+        try:
+            choice = Gimp.Choice.new()
+            choice.add(AUTO_CKPT, 0, _("Automatic (recommended)"),
+                       _("First model that is not an inpaint-only one"))
+            for idx, name in enumerate(names, 1):
+                # nick 必须是**存进配置**的那个字符串本身（就是文件名）
+                choice.add(name, idx, ai_client.checkpoint_note(name),
+                           _("From this ComfyUI installation"))
+            procedure.add_choice_argument(
+                "checkpoint", _("Checkpoint"), help_text, choice, AUTO_CKPT,
+                GObject.ParamFlags.READWRITE)
+            return
+        except Exception:              # 名字里有奇怪字符等：退回文本框
+            pass
+    procedure.add_string_argument(
+        "checkpoint", _("Checkpoint"), help_text, "",
+        GObject.ParamFlags.READWRITE)
+
+
 class AiInpaintPlugin(Gimp.PlugIn):
 
     def do_set_i18n(self, procname):
         return True, 'gegl-color-ops', None
 
     def do_query_procedures(self):
-        return [PROC_QUICK, PROC_ADVANCED]
+        return [PROC_QUICK, PROC_ADVANCED, PROC_ENV]
 
     def do_create_procedure(self, name):
+        if name == PROC_ENV:
+            # 无参数：它不对图做任何事，只是「装/起 ComfyUI + 看模型清单」。
+            # 挂成 ImageProcedure 是为了菜单里走同一套 <Image> 路径——GIMP 对
+            # 无图过程挂 <Image> 菜单的支持不统一，别赌。
+            procedure = Gimp.ImageProcedure.new(
+                self, name, Gimp.PDBProcType.PLUGIN, self.run_env, None)
+            procedure.set_image_types("*")
+            procedure.set_attribution("SuperMrWang", "SuperMrWang", "2026")
+            procedure.set_menu_label(_("AI Environment…"))
+            procedure.set_documentation(
+                _("AI Environment: install / start ComfyUI, list checkpoints"),
+                _("Shows whether ComfyUI answers, which models it offers, and "
+                  "the buttons to install it once or start it. Changes nothing "
+                  "in the image."),
+                name)
+            procedure.add_menu_path("<Image>/SuperMrWang/AI")
+            return procedure
+
         procedure = Gimp.ImageProcedure.new(
             self, name, Gimp.PDBProcType.PLUGIN, self.run, None)
         procedure.set_image_types("RGB*")
@@ -545,10 +829,7 @@ class AiInpaintPlugin(Gimp.PlugIn):
             "server", _("ComfyUI address"),
             _("Empty = $LB_COMFY_URL, else http://127.0.0.1:8188"),
             "", GObject.ParamFlags.READWRITE)
-        procedure.add_string_argument(
-            "checkpoint", _("Checkpoint"),
-            _("Model file name; empty picks the first one ComfyUI offers"),
-            "", GObject.ParamFlags.READWRITE)
+        _add_checkpoint_argument(procedure)
         procedure.add_int_argument(
             "steps", _("Steps"), _("Sampling steps (25 is a good default)"),
             1, 150, 25, GObject.ParamFlags.READWRITE)
@@ -612,7 +893,7 @@ class AiInpaintPlugin(Gimp.PlugIn):
                        config.get_property('prompt') or "",
                        config.get_property('negative') or "",
                        prop('server', ""),
-                       prop('checkpoint', ""),
+                       _ckpt_value(prop('checkpoint', "")),
                        prop('steps', 25),
                        prop('cfg', 7.5),
                        prop('seed', -1),
@@ -630,6 +911,17 @@ class AiInpaintPlugin(Gimp.PlugIn):
             Gimp.message("ai-inpaint: %s" % exc)
             return procedure.new_return_values(
                 Gimp.PDBStatusType.EXECUTION_ERROR, GLib.Error(str(exc)))
+
+    def run_env(self, procedure, run_mode, image, drawables, config, data):
+        """「AI 环境…」：交互模式弹对话框；批处理只回报状态，不弹模态框。
+
+        非交互必须安静——回归脚本会在 headless GIMP 里遍历所有过程，弹一个
+        modal 对话框就等于把脚本挂死。
+        """
+        if run_mode == Gimp.RunMode.INTERACTIVE:
+            run_env_dialog()
+        return procedure.new_return_values(
+            Gimp.PDBStatusType.SUCCESS, GLib.Error())
 
 
 if __name__ == '__main__':
