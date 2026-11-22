@@ -355,30 +355,69 @@ def install_model(comfy, key):
 
 
 def write_launcher(root, variant):
+    """写一个「双击就能起」的启动器。
+
+    两件事必须做对，否则用户看到的就是「窗口一闪就关」：
+
+    1. **没有显卡时自动加 --cpu**。torch 在 import 阶段就会因为
+       `torch.cuda.current_device()` 抛 RuntimeError: No CUDA GPUs are
+       available，ComfyUI 根本走不到起服务那一步。显卡被 Windows 停用
+       （设备管理器里 Code 43）时也长这样，用户完全看不出是自己显卡的问题。
+    2. **bat 里一个中文都不放**。cmd 在 chcp 65001 下是按字节偏移回读批处理
+       文件的，中文行会漂移：实测 `for /f` 之后的行会被截断成
+       “'xx' 不是内部或外部命令”，连 `goto` 标签之后的行也会被吞掉。
+       所以中文提示一律写进 launcher.md，需要时用 `type` 原样打出来——
+       `type` 只搬字节，不解析。
+
+    CPU 版和 GPU 版只差一行探测：CPU 版直接 `set EXTRA=--cpu`。
+    """
     bat = os.path.join(root, "start-comfyui.bat")
     port = 8188
+    probe = ("set EXTRA=\n"
+             '"%~dp0py\\python.exe" -c "import torch,sys;'
+             'sys.exit(0 if torch.cuda.is_available() else 1)" >nul 2>nul\n'
+             "if errorlevel 1 set EXTRA=--cpu")
+    if variant == "cpu":
+        probe = "set EXTRA=--cpu"
+
     body = """@echo off
 chcp 65001 >nul
 title ComfyUI (SuperMrWang AI)
 set HF_ENDPOINT=https://hf-mirror.com
 set PYTHONIOENCODING=utf-8
 cd /d "%%~dp0ComfyUI"
+%s
 echo.
-echo   ComfyUI  http://127.0.0.1:%d
-echo   保持这个窗口开着；关掉窗口 = 停止服务。
+echo   ComfyUI  http://127.0.0.1:%d   %%EXTRA%%
+if exist "%%~dp0launcher.md" type "%%~dp0launcher.md"
 echo.
-"%%~dp0py\\python.exe" main.py --listen 127.0.0.1 --port %d --disable-auto-launch %%*
+echo   Keep this window open. Closing it stops the server.
 echo.
-echo   服务已停止。
+"%%~dp0py\\python.exe" main.py --listen 127.0.0.1 --port %d --disable-auto-launch %%EXTRA%% %%*
+echo.
+echo   Server stopped.
 pause
-""" % (port, port)
+""" % (probe, port, port)
     with open(bat, "w", encoding="utf-8", newline="\r\n") as fh:
         fh.write(body)
 
-    # CPU 版多一行提示：GPU 缺席时用户会以为是装坏了
+    note = os.path.join(root, "launcher.md")
     if variant == "cpu":
-        with open(bat, "a", encoding="utf-8", newline="\r\n") as fh:
-            fh.write("\r\nrem CPU 模式：一张 512x512 大约 1-3 分钟\r\n")
+        text = (
+            "  [CPU 版]\n"
+            "  这套环境用 CPU 跑：一张 512 长边约 1-3 分钟，慢但不报错。\n")
+    else:
+        text = (
+            "  [上面如果显示 --cpu]\n"
+            "  PyTorch 没看到可用显卡，这次 ComfyUI 用 CPU 启动。\n"
+            "  一张 512 长边约 1-3 分钟，慢一些，但参考图照样能生成。\n"
+            "\n"
+            "  [显卡没被认到怎么办]\n"
+            "  设备管理器 → 显示适配器，看 NVIDIA 那张卡是不是标着 Code 43。\n"
+            "  是的话：先重启；重启无效就重装 NVIDIA 驱动\n"
+            "  （官网 Game Ready，安装时选「自定义 → 执行清洁安装」）。\n")
+    with open(note, "w", encoding="utf-8", newline="\r\n") as fh:
+        fh.write(text)
     return bat
 
 

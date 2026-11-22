@@ -302,12 +302,7 @@ class ComfyClient(object):
             body = exc.read() if hasattr(exc, "read") else b""
             raise ComfyError(_describe_http_error(self.server, path, exc.code, body))
         except urllib.error.URLError as exc:
-            raise ComfyError(
-                "连不上 ComfyUI（%s）：%s\n"
-                "  · 装过：双击安装目录里的 start-comfyui.bat 起服务\n"
-                "  · 没装：先跑 tools\\setup-ai.bat（一键装，约 5 GB 下载）\n"
-                "然后确认浏览器能打开 %s/system_stats。"
-                % (self.server, exc.reason, self.server))
+            raise ComfyError(_conn_message(self.server, exc))
         except OSError as exc:                     # 超时（socket.timeout 也走这里）
             raise ComfyError("等 ComfyUI 响应超时（%s，%.0f 秒）：%s"
                              % (path, tmo, exc))
@@ -334,7 +329,7 @@ class ComfyClient(object):
             raise ComfyError(_describe_http_error(self.server, "/upload/image",
                                                   exc.code, body))
         except (urllib.error.URLError, OSError) as exc:
-            raise ComfyError("上传图片到 ComfyUI 失败（%s）：%s" % (self.server, exc))
+            raise ComfyError(_conn_message(self.server, exc))
 
     # ---- 查询 ----
     def stats(self):
@@ -437,6 +432,24 @@ class ComfyClient(object):
 
 
 # ---- 错误文案 ---------------------------------------------------------------
+
+def _conn_message(server, exc):
+    """连不上 ComfyUI 时给用户看的完整提示。
+
+    只写「连不上」没有用：最常见的是服务没开，其次是显卡被 Windows 停用了
+    （设备管理器里 Code 43，ComfyUI 会在 import 阶段就崩，窗口一闪就关）。
+    这两件事的处理办法完全不同，所以分条写出来。
+    """
+    return ("连不上 ComfyUI（%s）：%s\n"
+            "  · 服务没开：双击 ComfyUI 目录里的 start-comfyui.bat，等窗口里出现\n"
+            "    \"To see the GUI go to\" 之后再重跑本插件。\n"
+            "  · 窗口一闪就关：多半是显卡被 Windows 停用了（设备管理器里 Code 43）。\n"
+            "    新版 start-comfyui.bat 探测到没有显卡会自动改用 CPU 启动，\n"
+            "    慢一些，但参考图照样能生成。\n"
+            "  · 没装过：先跑 tools\\setup-ai.bat（一键装，约 5 GB 下载）。\n"
+            "  最后确认浏览器能打开 %s/system_stats。"
+            % (server, getattr(exc, "reason", exc), server))
+
 
 def _loads(body, path):
     text = body.decode("utf-8", "replace") if isinstance(body, bytes) else str(body)

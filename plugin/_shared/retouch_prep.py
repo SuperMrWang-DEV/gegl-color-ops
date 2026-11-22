@@ -462,7 +462,9 @@ def prepare(image, base, source="ai", radius=8.0, denoise=0.35, prompt="",
             notes.append("ai")
         except Exception as exc:
             used = "local"
-            fallback = str(exc).split("\n")[0][:200]
+            # 整段留着：连不上的原因后面跟着「下一步怎么做」，只取第一行会把
+            # 最有用的那几行（服务没开 / 一闪就关 = 显卡 Code 43）切掉。
+            fallback = str(exc).strip()[:600]
             notes.append("fallback")
             ref = local_reference(data, w, h, radius)
     else:

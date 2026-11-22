@@ -538,6 +538,32 @@ python tools/check_retouch_ai.py          # 87 条：数学 / 柔光反解 / img
 gimp-console -b "exec(open('tools/check_retouch_ai_gimp.py').read())"
 ```
 
+### ComfyUI 起不来 / AI 那一路没反应
+
+三个症状，一个根因链条，从下往上查：
+
+| 现象 | 真正的原因 | 怎么办 |
+| --- | --- | --- |
+| 插件跑完提示「ComfyUI was not reachable」，出来的是本地参考 | 8188 上没人监听 | 先起 ComfyUI，等窗口里出现 `To see the GUI go to` 再跑插件 |
+| 双击 `start-comfyui.bat`，窗口一闪就关 | 显卡没被驱动认到：torch 在 import 阶段就抛 `RuntimeError: No CUDA GPUs are available`，ComfyUI 走不到「起服务」那一步 | 新版启动脚本探测不到显卡会自动加 `--cpu`；慢一些，但参考图照样能生成 |
+| 上面那条报错对应的设备管理器里，显卡标着 **Code 43** | Windows 把这个设备停了（`CM_PROB_FAILED_POST_START`），重启也没用 | 重装 NVIDIA 驱动（官网 Game Ready，安装时选「自定义 → 执行清洁安装」）。这是系统层问题，插件改不了 |
+
+一行自查：
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8188/system_stats   # 200 才算活
+```
+
+插件不会静默失败：`source=ai` 但连不上时退回本地参考，并把「下一步做什么」
+写进状态消息（服务没开 / 一闪就关多半是 Code 43 / 没装过），不是只丢一个
+`URLError`。
+
+**启动脚本里一个中文都别放。** cmd 在 `chcp 65001` 下是按字节偏移回读批处理
+文件的，中文行会让偏移漂移：实测 `for /f` 之后的中文行会被截断成
+「`'xx'` 不是内部或外部命令」，`goto` 标签之后的行会被整个吞掉，最后表现成
+「脚本跑到一半没了」。所以 `start-comfyui.bat` 里全 ASCII，中文提示写在旁边
+的 txt / md 里，用 `type` 原样打出来——`type` 只搬字节，不解析。
+
 ### Python 插件：plugin/ai-inpaint（AI 局部重绘）
 
 **选区 + 一句提示词 → 本机 ComfyUI 重画 → 贴回成带蒙版的新图层**。框住想改的
