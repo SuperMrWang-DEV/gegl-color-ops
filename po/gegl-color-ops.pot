@@ -34,6 +34,7 @@ msgid "Use one value for all three channels, giving grey grain instead of colour
 msgstr ""
 
 #: ops/add-noise/add-noise.c:56
+#: plugin/ai-inpaint/ai-inpaint.py:518
 msgid "Seed"
 msgstr ""
 
@@ -42,6 +43,7 @@ msgid "Same seed and same image always give the same noise, so a look can be rep
 msgstr ""
 
 #: ops/add-noise/add-noise.c:177
+#: ops/add-noise/add-noise.c:182
 msgid "Add Noise"
 msgstr ""
 
@@ -1417,6 +1419,7 @@ msgid "Upper edge of the Midtones band"
 msgstr ""
 
 #: ops/color-mask-select/color-mask-select.c:124
+#: plugin/ai-inpaint/ai-inpaint.py:534
 #: plugin/color-range/color-range.py:264
 #: plugin/sky-replace/sky-replace.py:228
 msgid "Feather"
@@ -1693,6 +1696,7 @@ msgid "Neighbours that differ from the centre pixel by more than this many level
 msgstr ""
 
 #: ops/dust-scratches/dust-scratches.c:226
+#: ops/dust-scratches/dust-scratches.c:233
 msgid "Dust & Scratches"
 msgstr ""
 
@@ -3041,6 +3045,7 @@ msgid "Whether alpha takes part in the extremum. Off by default: Photoshop does 
 msgstr ""
 
 #: ops/max-min/max-min.c:278
+#: ops/max-min/max-min.c:285
 msgid "Maximum / Minimum"
 msgstr ""
 
@@ -3091,6 +3096,7 @@ msgid "Off: the three channels share one weight set, so colour speckle disappear
 msgstr ""
 
 #: ops/reduce-noise/reduce-noise.c:215
+#: ops/reduce-noise/reduce-noise.c:222
 msgid "Reduce Noise"
 msgstr ""
 
@@ -3265,6 +3271,7 @@ msgid "Clamp the sharpened value to the 3×3 neighbourhood of the original, in p
 msgstr ""
 
 #: ops/unsharp-mask/unsharp-mask.c:388
+#: ops/unsharp-mask/unsharp-mask.c:395
 msgid "Unsharp Mask"
 msgstr ""
 
@@ -3389,6 +3396,205 @@ msgstr ""
 msgid "the classic editor's Photo Filter: filter colour multiplied in XYZ space, with density and preserve-luminosity"
 msgstr ""
 
+#: plugin/ai-inpaint/ai-inpaint.py:111
+msgid "Some words in the prompt are not in the built-in Chinese dictionary: %s. SD models only read English — rephrase with common words, or write that part in English."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:116
+#: plugin/ai-inpaint/ai-inpaint.py:125
+msgid "The prompt is empty — this box is what the AI paints, so it must say what should appear. Describe the RESULT, not the thing you want gone: to erase a bottle, write \"empty wooden table, wood grain\" instead of \"remove the bottle\"."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:131
+msgid "The prompt contains Chinese/Japanese/Korean characters. SD1.5 and SDXL can only read English — anything else is treated as random noise, which is why the result looked unrelated to your picture. Write it in English, e.g. \"empty wooden table, wood grain, soft daylight\", and put what you want removed into the negative prompt."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:178
+msgid "Failed to read layer pixels: expected %d bytes, got %d"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:187
+msgid "No selection"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:192
+msgid "Failed to read the selection buffer: expected %d bytes, got %d"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:289
+msgid "Could not read the inpainting result (%s)"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:323
+msgid "plugin/_shared/ai_client.py is missing: install the _shared folder next to the plug-in"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:332
+msgid "Make a selection first: frame what you want repainted (a rough one is fine — grow/feather cleans up the edges)."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:349
+msgid "AI Inpaint"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:442
+msgid "What to paint"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:443
+msgid "Pick a subject and the prompt starts from it — the prompt box then only needs the details (colour, pose, surroundings)"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:448
+msgid "What to paint (none / cat / dog / person / flower / tree / coffee / food / car)"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:450
+msgid "Leave empty for none"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:471
+msgid "Prompt — what the selection should become"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:472
+msgid "Describe the RESULT. Chinese is fine for common words (the plug-in translates them); SD itself only reads English. To remove a bottle, write \"empty wooden table, wood grain\" rather than \"remove the bottle\"."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:479
+msgid "Negative prompt"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:480
+msgid "What must not appear — put the thing you are deleting here"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:485
+msgid "AI Inpaint (Advanced)…"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:487
+msgid "AI Inpaint (Advanced): every sampling and blending knob"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:488
+msgid "Selection + prompt -> ComfyUI inpaint -> new layer with a feathered selection mask. Exposes steps/CFG/seed/denoise/mask grow/feather/working scale."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:493
+msgid "AI Inpaint…"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:495
+msgid "AI Inpaint: frame the area, say what should be there, done"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:496
+msgid "Selection + prompt -> ComfyUI inpaint -> new layer. Only asks what to paint; the sampling settings use good defaults. Use \"AI Inpaint (Advanced)\" to change them."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:504
+msgid "ComfyUI address"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:505
+msgid "Empty = $LB_COMFY_URL, else http://127.0.0.1:8188"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:508
+msgid "Checkpoint"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:509
+msgid "Model file name; empty picks the first one ComfyUI offers"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:512
+msgid "Steps"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:512
+msgid "Sampling steps (25 is a good default)"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:515
+msgid "CFG"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:515
+msgid "Prompt guidance strength"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:518
+msgid "Random seed; -1 picks a new one each run"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:521
+msgid "Denoise"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:522
+msgid "1.0 fully repaints the masked area, lower keeps more of it"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:525
+msgid "Grow mask"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:526
+msgid "Pixels to expand the selection before sending (softens seams)"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:529
+msgid "Model mask grow"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:530
+msgid "Extra pixels the model may touch (8 px = 1 latent cell; bigger = fewer seams, more drift)"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:535
+msgid "Feather radius of the layer mask used when pasting back"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:538
+msgid "Timeout (s)"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:539
+msgid "How long to wait for ComfyUI before giving up"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:542
+msgid "Keep mask channel"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:543
+msgid "Keep the 'AI Mask' channel so the result can be re-masked later"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:546
+msgid "Working scale"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:547
+msgid "0 = fit the model's native size (SD1.5 512, SDXL 1024); 1.0 = send the crop unchanged"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:555
+#: plugin/alpha-curves/alpha-curves.py:274
+#: plugin/channel-to-mask/channel-to-mask.py:212
+#: plugin/color-range/color-range.py:499
+#: plugin/hsi-split-curves/hsi-split-curves.py:332
+#: plugin/hsl-split-curves/hsl-split-curves.py:553
+#: plugin/hsv-split-curves/hsv-split-curves.py:563
+#: plugin/lab-split-curves/lab-split-curves.py:610
+#: plugin/layer-to-channel/layer-to-channel.py:295
+#: plugin/layer-to-selection/layer-to-selection.py:299
+#: plugin/lch-split-curves/lch-split-curves.py:739
+msgid "No image or no layer selected"
+msgstr ""
+
 #: plugin/alpha-curves/alpha-curves.py:85
 msgid "Gray（0.299R + 0.587G + 0.114B）"
 msgstr ""
@@ -3506,19 +3712,6 @@ msgstr ""
 msgid "Shape the curve starts with when it is attached; change it freely afterwards."
 msgstr ""
 
-#: plugin/alpha-curves/alpha-curves.py:274
-#: plugin/channel-to-mask/channel-to-mask.py:212
-#: plugin/color-range/color-range.py:499
-#: plugin/hsi-split-curves/hsi-split-curves.py:332
-#: plugin/hsl-split-curves/hsl-split-curves.py:553
-#: plugin/hsv-split-curves/hsv-split-curves.py:563
-#: plugin/lab-split-curves/lab-split-curves.py:610
-#: plugin/layer-to-channel/layer-to-channel.py:295
-#: plugin/layer-to-selection/layer-to-selection.py:299
-#: plugin/lch-split-curves/lch-split-curves.py:739
-msgid "No image or no layer selected"
-msgstr ""
-
 #: plugin/blend/blend.py:326
 msgid "No source layer"
 msgstr ""
@@ -3581,7 +3774,7 @@ msgid "Load result as selection"
 msgstr ""
 
 #: plugin/blend/blend.py:669
-#: plugin/convert/convert.py:528
+#: plugin/convert/convert.py:578
 msgid "No image"
 msgstr ""
 
@@ -3885,151 +4078,171 @@ msgstr ""
 msgid "The native tracer produced no path; the selection is too small."
 msgstr ""
 
-#: plugin/convert/convert.py:418
-msgid "Take the channel selected in the Channels dock and turn it into the pixel selection."
-msgstr ""
-
-#: plugin/convert/convert.py:420
-msgid "Channel to selection: turns the channel selected in the Channels dock into a pixel selection."
-msgstr ""
-
-#: plugin/convert/convert.py:424
-msgid "Save the current selection as a new channel."
-msgstr ""
-
-#: plugin/convert/convert.py:425
-msgid "Selection to channel: saves the current selection as a new channel."
-msgstr ""
-
-#: plugin/convert/convert.py:429
-msgid "Use the selected channel's grey levels as a layer mask on every selected layer."
-msgstr ""
-
-#: plugin/convert/convert.py:431
-msgid "Channel to mask: uses the selected channel's grey as the mask of the selected layer."
-msgstr ""
-
-#: plugin/convert/convert.py:435
-msgid "Turn the selected layer's layer mask into a new channel."
-msgstr ""
-
-#: plugin/convert/convert.py:436
-msgid "Mask to channel: turns the selected layer's mask into a new channel."
-msgstr ""
-
-#: plugin/convert/convert.py:440
-msgid "Use the current selection as a layer mask on every selected layer."
-msgstr ""
-
-#: plugin/convert/convert.py:441
-msgid "Selection to mask: attaches the current selection as the mask of the selected layer."
-msgstr ""
-
-#: plugin/convert/convert.py:445
-msgid "Turn the selected layer's layer mask into the pixel selection."
+#: plugin/convert/convert.py:434
+msgid "This path encloses no area to fill; check that it has at least one stroke."
 msgstr ""
 
 #: plugin/convert/convert.py:446
-msgid "Mask to selection: turns the selected layer's mask into a pixel selection."
+msgid "Filling the path failed; the image may be in a mode that cannot take a new RGBA layer."
 msgstr ""
 
-#: plugin/convert/convert.py:452
-msgid "Turn the selected path into the pixel selection."
+#: plugin/convert/convert.py:458
+msgid "Take the channel selected in the Channels dock and turn it into the pixel selection."
 msgstr ""
 
-#: plugin/convert/convert.py:453
-msgid "Path to selection: turns the path selected in the Paths dock into a pixel selection."
-msgstr ""
-
-#: plugin/convert/convert.py:457
-msgid "Trace the current selection into a new path (the native Select > To Path geometry, with a readable name)."
-msgstr ""
-
-#: plugin/convert/convert.py:459
-msgid "Selection to path: traces the current selection into a new path (same geometry as the native To Path)."
-msgstr ""
-
-#: plugin/convert/convert.py:463
-msgid "Rasterise the selected path into a new channel."
+#: plugin/convert/convert.py:460
+msgid "Channel to selection: turns the channel selected in the Channels dock into a pixel selection."
 msgstr ""
 
 #: plugin/convert/convert.py:464
-msgid "Path to channel: rasterises the selected path into a new channel."
+msgid "Save the current selection as a new channel."
 msgstr ""
 
-#: plugin/convert/convert.py:468
-msgid "Trace the selected channel's 50% contour into a new path."
+#: plugin/convert/convert.py:465
+msgid "Selection to channel: saves the current selection as a new channel."
 msgstr ""
 
 #: plugin/convert/convert.py:469
-msgid "Channel to path: traces the 50% contour of the selected channel into a new path."
+msgid "Use the selected channel's grey levels as a layer mask on every selected layer."
 msgstr ""
 
-#: plugin/convert/convert.py:473
-msgid "Rasterise the selected path into a layer mask on every selected layer."
+#: plugin/convert/convert.py:471
+msgid "Channel to mask: uses the selected channel's grey as the mask of the selected layer."
 msgstr ""
 
 #: plugin/convert/convert.py:475
-msgid "Path to mask: rasterises the selected path into the mask of the selected layer."
+msgid "Turn the selected layer's layer mask into a new channel."
 msgstr ""
 
-#: plugin/convert/convert.py:479
-msgid "Trace the selected layer's mask into a new path."
+#: plugin/convert/convert.py:476
+msgid "Mask to channel: turns the selected layer's mask into a new channel."
 msgstr ""
 
 #: plugin/convert/convert.py:480
+msgid "Use the current selection as a layer mask on every selected layer."
+msgstr ""
+
+#: plugin/convert/convert.py:481
+msgid "Selection to mask: attaches the current selection as the mask of the selected layer."
+msgstr ""
+
+#: plugin/convert/convert.py:485
+msgid "Turn the selected layer's layer mask into the pixel selection."
+msgstr ""
+
+#: plugin/convert/convert.py:486
+msgid "Mask to selection: turns the selected layer's mask into a pixel selection."
+msgstr ""
+
+#: plugin/convert/convert.py:492
+msgid "Turn the selected path into the pixel selection."
+msgstr ""
+
+#: plugin/convert/convert.py:493
+msgid "Path to selection: turns the path selected in the Paths dock into a pixel selection."
+msgstr ""
+
+#: plugin/convert/convert.py:497
+msgid "Trace the current selection into a new path (the native Select > To Path geometry, with a readable name)."
+msgstr ""
+
+#: plugin/convert/convert.py:499
+msgid "Selection to path: traces the current selection into a new path (same geometry as the native To Path)."
+msgstr ""
+
+#: plugin/convert/convert.py:503
+msgid "Rasterise the selected path into a new channel."
+msgstr ""
+
+#: plugin/convert/convert.py:504
+msgid "Path to channel: rasterises the selected path into a new channel."
+msgstr ""
+
+#: plugin/convert/convert.py:508
+msgid "Trace the selected channel's 50% contour into a new path."
+msgstr ""
+
+#: plugin/convert/convert.py:509
+msgid "Channel to path: traces the 50% contour of the selected channel into a new path."
+msgstr ""
+
+#: plugin/convert/convert.py:513
+msgid "Rasterise the selected path into a layer mask on every selected layer."
+msgstr ""
+
+#: plugin/convert/convert.py:515
+msgid "Path to mask: rasterises the selected path into the mask of the selected layer."
+msgstr ""
+
+#: plugin/convert/convert.py:519
+msgid "Trace the selected layer's mask into a new path."
+msgstr ""
+
+#: plugin/convert/convert.py:520
 msgid "Mask to path: traces the outline of the selected layer's mask into a new path."
 msgstr ""
 
-#: plugin/convert/convert.py:534
+#: plugin/convert/convert.py:528
+msgid "Rasterise the selected path into a new pixel layer, filled with the foreground colour."
+msgstr ""
+
+#: plugin/convert/convert.py:530
+msgid "Path to bitmap: rasterises the path into a new pixel layer (filled with the foreground colour), cropped to the path."
+msgstr ""
+
+#: plugin/convert/convert.py:584
 msgid "Channel \"%s\" to selection"
 msgstr ""
 
-#: plugin/convert/convert.py:537
+#: plugin/convert/convert.py:587
 msgid "Selection to channel \"%s\""
 msgstr ""
 
-#: plugin/convert/convert.py:540
+#: plugin/convert/convert.py:590
 msgid "Channel \"%s\" to the mask of %d layer(s)"
 msgstr ""
 
-#: plugin/convert/convert.py:544
+#: plugin/convert/convert.py:594
 msgid "Mask to channel \"%s\""
 msgstr ""
 
-#: plugin/convert/convert.py:547
+#: plugin/convert/convert.py:597
 msgid "Selection to the mask of %d layer(s)"
 msgstr ""
 
-#: plugin/convert/convert.py:550
+#: plugin/convert/convert.py:600
 msgid "Mask \"%s\" to selection"
 msgstr ""
 
-#: plugin/convert/convert.py:553
+#: plugin/convert/convert.py:603
 msgid "Path \"%s\" to selection"
 msgstr ""
 
-#: plugin/convert/convert.py:556
+#: plugin/convert/convert.py:606
 msgid "Selection to path \"%s\""
 msgstr ""
 
-#: plugin/convert/convert.py:559
+#: plugin/convert/convert.py:609
 msgid "Path \"%s\" to channel \"%s\""
 msgstr ""
 
-#: plugin/convert/convert.py:563
+#: plugin/convert/convert.py:613
 msgid "Channel \"%s\" to path \"%s\""
 msgstr ""
 
-#: plugin/convert/convert.py:567
+#: plugin/convert/convert.py:617
 msgid "Path \"%s\" to the mask of %d layer(s)"
 msgstr ""
 
-#: plugin/convert/convert.py:571
+#: plugin/convert/convert.py:621
 msgid "Mask \"%s\" to path \"%s\""
 msgstr ""
 
-#: plugin/convert/convert.py:574
+#: plugin/convert/convert.py:625
+msgid "Path \"%s\" rasterised into layer \"%s\""
+msgstr ""
+
+#: plugin/convert/convert.py:628
 msgid "Unknown direction"
 msgstr ""
 

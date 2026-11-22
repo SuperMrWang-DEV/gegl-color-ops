@@ -28,6 +28,7 @@ sys.path.insert(0, os.path.join(ROOT, "plugin", "_shared"))
 
 import ai_client  # noqa: E402
 import mock_comfy  # noqa: E402
+import prompt_tools  # noqa: E402
 
 VERBOSE = "-v" in sys.argv
 PASS = FAIL = 0
@@ -291,6 +292,60 @@ def test_errors():
             ok("节点校验失败 → 报出节点与原因", False, "居然成功了")
 
 
+# ---- 6.5 提示词：中文能不能直接用 --------------------------------------------
+
+def test_prompt_tools():
+    """用户脑子里的话是中文（「画一只小猫」），这层要是漏了，前面全白搭。"""
+    print("\n提示词翻译与预设")
+
+    ok("「画一只小猫」→ 英文",
+       prompt_tools.to_english("画一只小猫")[0] == "small kitten",
+       prompt_tools.to_english("画一只小猫")[0])
+
+    # 数量词 / 方位词要丢掉，不能变成 "a small kitten sitting on table" 里的杂词
+    got = prompt_tools.to_english("一只小猫坐在木质桌子上")[0]
+    ok("数量词与虚词被丢掉", "一只" not in got and "的" not in got, got)
+    ok("多字词没被切碎（猫 / 桌子）", "kitten" in got and "table" in got, got)
+
+    # 最长匹配：油画 → oil painting，不能被拆成 oil + 画
+    ok("最长匹配（油画）",
+       prompt_tools.to_english("油画")[0] == "oil painting",
+       prompt_tools.to_english("油画")[0])
+
+    # 半中半英：英文段原样保留
+    got = prompt_tools.to_english("一只小猫, soft bokeh, 35mm")[0]
+    ok("中英混写保留英文段", "soft bokeh" in got and "35mm" in got, got)
+
+    # 没收录的词必须点名报错，不能静默丢掉（丢掉就等于随机重绘）
+    try:
+        prompt_tools.to_english("嘎嘎嘎嘎的怪兽")
+        ok("未收录词报错", False, "居然放过了")
+    except ValueError as exc:
+        ok("未收录词报错", "还没收进" in str(exc), str(exc)[:40])
+        ok("报错里点名了那个词", "嘎" in str(exc), str(exc)[:40])
+
+    # 负面提示词走宽松模式：一个生词不能废掉整段
+    neg = prompt_tools.polish_negative("模糊，低质量，嘎嘎嘎")
+    ok("负面提示词容忍生词", neg == "blurry low quality", neg)
+
+    # 预设打底 + 提示词补细节
+    ok("预设能单独出活", prompt_tools.compose("", "cat").startswith("a small cat"),
+       prompt_tools.compose("", "cat"))
+    both = prompt_tools.compose("戴着一顶帽子", "cat")
+    ok("预设 + 细节拼在一起",
+       both.startswith("a small cat") and both.endswith("wearing hat"), both)
+    ok("none 预设不塞东西", prompt_tools.compose("空的木桌", "none") == "empty wooden table",
+       prompt_tools.compose("空的木桌", "none"))
+    ok("未知预设 id 当 none 处理", prompt_tools.compose("", "no-such") == "",
+       prompt_tools.compose("", "no-such"))
+
+    # 词表必须干净：重复键会被后者覆盖，改一个翻不动另一个
+    zhs = [pid for pid, _l, _p in prompt_tools.PRESETS]
+    ok("预设 id 不重复", len(zhs) == len(set(zhs)), str(zhs))
+    ok("预设都带英文标签", all(l.strip() for _i, l, _p in prompt_tools.PRESETS))
+    ok("词表规模够用", len(prompt_tools._ZH) >= 200, "%d 条" % len(prompt_tools._ZH))
+
+
 # ---- 7. 插件源码静态检查 ----------------------------------------------------
 
 def test_plugin_source():
@@ -329,7 +384,8 @@ def test_plugin_source():
     # 参数名对不对得上：add_*_argument("x") 与 config.get_property('x') 必须同名。
     # 拼错了不会报错——只会静默拿到默认值，人在菜单里改半天没反应。
     declared = set(re.findall(r'add_\w+_argument\(\s*"([A-Za-z0-9-]+)"', src))
-    used = set(re.findall(r"get_property\('([A-Za-z0-9-]+)'\)", src))
+    # 简版过程用 prop('x', default) 兜默认值，取参数的两种写法都要认
+    used = set(re.findall(r"(?:get_property|prop)\('([A-Za-z0-9-]+)'", src))
     ok("每个参数都被 run() 取到", declared == used,
        "只在 add 里: %s / 只在 get 里: %s"
        % (sorted(declared - used), sorted(used - declared)))
@@ -343,6 +399,7 @@ def main():
     test_family()
     test_end_to_end()
     test_errors()
+    test_prompt_tools()
     test_plugin_source()
     print("\n%d/%d 通过" % (PASS, PASS + FAIL))
     return 1 if FAIL else 0

@@ -10,10 +10,12 @@
            Inpaint a selection with a local ComfyUI (Stable Diffusion) and
            come back with a new masked layer, in one click.
 
- menu      SuperMrWang → AI → AI Inpaint
+ menu      SuperMrWang → AI → AI Inpaint…（简版：只问画什么）
+           SuperMrWang → AI → AI Inpaint (Advanced)…（全参数）
 
  usage     1. 先建选区（选区可以粗糙，边缘由 grow / feather 收拾）；
-           2. 跑本插件，填提示词；
+           2. 跑本插件，填提示词——常用词可以直接写中文（prompt_tools
+              会翻成英文），或者在下拉里选个主体；
            3. 需要 ComfyUI 在跑（默认 http://127.0.0.1:8188，见 README）。
 
  requirements
@@ -71,6 +73,11 @@ except Exception as _exc:          # 没带 _shared/ai_client.py 的裸装情况
     ai_client = None
     _AI_IMPORT_ERROR = _exc
 
+try:
+    import prompt_tools
+except Exception:                  # 没带 prompt_tools.py：只用英文，不影响其他功能
+    prompt_tools = None
+
 
 # ---- 常量 -------------------------------------------------------------------
 
@@ -90,9 +97,31 @@ _CJK_RE = re.compile("[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff"
                      "\uac00-\ud7af\uf900-\ufaff\uff00-\uffef]")
 
 
-def _check_prompt(prompt):
-    """空 / 中文的提示词都不往下走，当场说清楚要写成什么样。"""
+def _check_prompt(prompt, preset="none"):
+    """空提示词不往下走；中文先翻成英文再判断。
+
+    以前这里是一刀切「有汉字就报错」——技术上正确，用起来很糟：用户脑子里
+    的话就是「画一只小猫」。现在 prompt_tools 有一张常用词表，能翻的直接翻；
+    翻不掉的词点名报出来，绝不把半截中文静默送进模型（那等于随机重绘）。
+    """
     text = (prompt or "").strip()
+    if prompt_tools is not None:
+        try:
+            final = prompt_tools.compose(text, preset)
+        except ValueError as exc:
+            raise RuntimeError(
+                _("Some words in the prompt are not in the built-in Chinese "
+                  "dictionary: %s. SD models only read English — rephrase with "
+                  "common words, or write that part in English.") % str(exc))
+        if not final:
+            raise RuntimeError(
+                _("The prompt is empty — this box is what the AI paints, so it "
+                  "must say what should appear. Describe the RESULT, not the thing "
+                  "you want gone: to erase a bottle, write \"empty wooden table, "
+                  "wood grain\" instead of \"remove the bottle\"."))
+        return final
+
+    # 没有 prompt_tools（裸装）：退回老规则，至少不静默送中文
     if not text:
         raise RuntimeError(
             _("The prompt is empty — this box is what the AI paints, so it "
@@ -284,16 +313,20 @@ def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
                server="", checkpoint="", steps=25, cfg=7.5, seed=-1,
                denoise=1.0, grow=8, grow_mask_by=8, feather=4.0,
                timeout=600.0, keep_mask=True, scale=0.0, client=None,
-               on_tick=None):
+               on_tick=None, preset="none"):
     """选区 → AI 重绘 → 新图层。返回 (layer, info)。
 
     client 参数是给回归脚本塞 mock 用的；正常情况留空，按 server 现建一个。
     scale 是送给模型前的缩放倍率；0 = 按底模自动算（SD1.5→512、SDXL→1024）。
+    preset 是「菜里先放一份主料」：选「小猫」就相当于提示词前面带上
+    "a small cat, fluffy fur, detailed eyes"，用户写的细节再接在后面。
     """
     if ai_client is None:
         raise RuntimeError(_("plugin/_shared/ai_client.py is missing: install the _shared "
                              "folder next to the plug-in"))
-    prompt = _check_prompt(prompt)
+    prompt = _check_prompt(prompt, preset)
+    if prompt_tools is not None and negative:
+        negative = prompt_tools.polish_negative(negative)
 
     box = selection_box(image)
     if box is None:
@@ -385,6 +418,39 @@ def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
 
 
 # ---- 程序包装 / procedure wrapper ------------------------------------------
+# 两个入口，同一个实现：
+#   AI Inpaint…            只问「画什么」——提示词 + 常见主体下拉。大多数时候
+#                          只该看到这两个框，而不是十几个采样参数。
+#   AI Inpaint (Advanced)… 老入口，steps/cfg/seed/grow/feather 全在。
+# 为什么要拆：GIMP 的参数对话框是一次性铺开所有参数的，没法折叠。参数一多，
+# 真正的那个输入框就被埋掉了——用户会以为「只能重绘，不能指定画什么」。
+
+PROC_QUICK = 'lb-plugin-ai-inpaint'
+PROC_ADVANCED = 'lb-plugin-ai-inpaint-advanced'
+
+
+def _add_preset_argument(procedure):
+    """主体下拉。Gimp.Choice 造不出来（老版本绑定）就退回字符串参数。"""
+    if prompt_tools is None:
+        return
+    try:
+        choice = Gimp.Choice.new()
+        for idx, (pid, label, _prompt) in enumerate(prompt_tools.PRESETS):
+            # gimp_choice_add(choice, nick, id, label, help)：id 是整数、nick
+            # 才是配置里存的那个字符串。参数给错只会在运行时抛 TypeError，
+            # 静默退化成文本框——界面上看不出区别，只是下拉没了。
+            choice.add(pid, idx, _(label), "")   # help 不能给 None，会 TypeError
+        procedure.add_choice_argument(
+            "preset", _("What to paint"),
+            _("Pick a subject and the prompt starts from it — the prompt box "
+              "then only needs the details (colour, pose, surroundings)"),
+            choice, "none", GObject.ParamFlags.READWRITE)
+    except Exception:
+        procedure.add_string_argument(
+            "preset", _("What to paint (none / cat / dog / person / flower / "
+                        "tree / coffee / food / car)"),
+            _("Leave empty for none"), "none", GObject.ParamFlags.READWRITE)
+
 
 class AiInpaintPlugin(Gimp.PlugIn):
 
@@ -392,7 +458,7 @@ class AiInpaintPlugin(Gimp.PlugIn):
         return True, 'gegl-color-ops', None
 
     def do_query_procedures(self):
-        return ['lb-plugin-ai-inpaint']
+        return [PROC_QUICK, PROC_ADVANCED]
 
     def do_create_procedure(self, name):
         procedure = Gimp.ImageProcedure.new(
@@ -401,26 +467,41 @@ class AiInpaintPlugin(Gimp.PlugIn):
         procedure.set_sensitivity_mask(Gimp.ProcedureSensitivityMask.DRAWABLE |
                                        Gimp.ProcedureSensitivityMask.DRAWABLES)
         procedure.set_attribution("SuperMrWang", "SuperMrWang", "2026")
-        procedure.set_menu_label(_("AI Inpaint"))
         procedure.add_menu_path("<Image>/SuperMrWang/AI")
-        procedure.set_documentation(
-            _("AI Inpaint: repaint the selection with a local ComfyUI / "
-              "Stable Diffusion and paste the result back as a masked layer"),
-            _("Selection + prompt -> ComfyUI inpaint -> new layer with a "
-              "feathered selection mask. Requires a running ComfyUI "
-              "(default http://127.0.0.1:8188)."),
-            name)
 
         procedure.add_string_argument(
-            "prompt", _("Prompt — what the selection should become (English, required)"),
-            _("Describe the RESULT, not the thing to delete: to remove a bottle "
-              "write \"empty wooden table, wood grain\" rather than \"remove the "
-              "bottle\". SD models only read English."),
+            "prompt", _("Prompt — what the selection should become"),
+            _("Describe the RESULT. Chinese is fine for common words (the "
+              "plug-in translates them); SD itself only reads English. To "
+              "remove a bottle, write \"empty wooden table, wood grain\" "
+              "rather than \"remove the bottle\"."),
             DEFAULT_PROMPT, GObject.ParamFlags.READWRITE)
+        _add_preset_argument(procedure)
         procedure.add_string_argument(
             "negative", _("Negative prompt"),
             _("What must not appear — put the thing you are deleting here"),
             DEFAULT_NEGATIVE, GObject.ParamFlags.READWRITE)
+
+        if name == PROC_ADVANCED:
+            self._add_advanced_arguments(procedure)
+            procedure.set_menu_label(_("AI Inpaint (Advanced)…"))
+            procedure.set_documentation(
+                _("AI Inpaint (Advanced): every sampling and blending knob"),
+                _("Selection + prompt -> ComfyUI inpaint -> new layer with a "
+                  "feathered selection mask. Exposes steps/CFG/seed/denoise/"
+                  "mask grow/feather/working scale."),
+                name)
+        else:
+            procedure.set_menu_label(_("AI Inpaint…"))
+            procedure.set_documentation(
+                _("AI Inpaint: frame the area, say what should be there, done"),
+                _("Selection + prompt -> ComfyUI inpaint -> new layer. Only "
+                  "asks what to paint; the sampling settings use good "
+                  "defaults. Use \"AI Inpaint (Advanced)\" to change them."),
+                name)
+        return procedure
+
+    def _add_advanced_arguments(self, procedure):
         procedure.add_string_argument(
             "server", _("ComfyUI address"),
             _("Empty = $LB_COMFY_URL, else http://127.0.0.1:8188"),
@@ -468,29 +549,39 @@ class AiInpaintPlugin(Gimp.PlugIn):
             _("0 = fit the model's native size (SD1.5 512, SDXL 1024); "
               "1.0 = send the crop unchanged"),
             0.0, 4.0, 0.0, GObject.ParamFlags.READWRITE)
-        return procedure
 
     def run(self, procedure, run_mode, image, drawables, config, data):
         if image is None or not drawables:
             return procedure.new_return_values(
                 Gimp.PDBStatusType.CALLING_ERROR,
                 GLib.Error(_("No image or no layer selected")))
+        adv = procedure.get_name() == PROC_ADVANCED
+
+        def prop(key, fallback):
+            # 简版没有这些参数，get_property 会返回 NULL，直接喂给 ai_inpaint
+            # 会 TypeError，所以统一在门口兜一次默认值
+            if not adv:
+                return fallback
+            value = config.get_property(key)
+            return fallback if value is None else value
+
         try:
             ai_inpaint(image, drawables[0],
-                       config.get_property('prompt'),
-                       config.get_property('negative'),
-                       config.get_property('server'),
-                       config.get_property('checkpoint'),
-                       config.get_property('steps'),
-                       config.get_property('cfg'),
-                       config.get_property('seed'),
-                       config.get_property('denoise'),
-                       config.get_property('grow'),
-                       config.get_property('grow-mask-by'),
-                       config.get_property('feather'),
-                       config.get_property('timeout'),
-                       config.get_property('keep-mask'),
-                       config.get_property('scale'))
+                       config.get_property('prompt') or "",
+                       config.get_property('negative') or "",
+                       prop('server', ""),
+                       prop('checkpoint', ""),
+                       prop('steps', 25),
+                       prop('cfg', 7.5),
+                       prop('seed', -1),
+                       prop('denoise', 1.0),
+                       prop('grow', 8),
+                       prop('grow-mask-by', 8),
+                       prop('feather', 4.0),
+                       prop('timeout', 600),
+                       prop('keep-mask', True),
+                       prop('scale', 0.0),
+                       preset=config.get_property('preset') or "none")
             return procedure.new_return_values(
                 Gimp.PDBStatusType.SUCCESS, GLib.Error())
         except Exception as exc:

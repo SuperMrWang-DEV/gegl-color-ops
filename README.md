@@ -498,8 +498,19 @@ alpha 都有回滚。与算子版本的区别是**一次性应用**——想随�
 ### Python 插件：plugin/ai-inpaint（AI 局部重绘）
 
 **选区 + 一句提示词 → 本机 ComfyUI 重画 → 贴回成带蒙版的新图层**。框住想改的
-地方，跑 **SuperMrWang → AI → AI Inpaint**，选区内换成 AI 重绘的像素，边界靠
+地方，跑 **SuperMrWang → AI → AI Inpaint…**，选区内换成 AI 重绘的像素，边界靠
 羽化过的选区蒙版过渡，原图那层不动。
+
+菜单下有两个入口，同一个实现：
+
+| 菜单项 | 问你的东西 | 什么时候用 |
+| --- | --- | --- |
+| **AI Inpaint…** | 画什么（`prompt`）+ 画什么主体（`preset` 下拉）+ 不要什么（`negative`） | 日常。三个框，其余参数用默认值 |
+| **AI Inpaint (Advanced)…** | 上面三项 + `server` / `checkpoint` / `steps` / `cfg` / `seed` / `denoise` / `grow` / `grow-mask-by` / `feather` / `timeout` / `keep-mask` / `scale` | 要复现同一张结果、要调步数或降 `denoise` 保结构 |
+
+为什么拆两个：GIMP 的参数对话框是一次性把参数全铺开的，没法折叠。十几个采样
+参数一摆，真正要填的那个框就被埋掉了——用起来像「只能重绘、不能指定画什么」。
+简版只留「画什么 / 画哪个主体 / 不要什么」。
 
 需要的东西：
 
@@ -519,22 +530,30 @@ alpha 都有回滚。与算子版本的区别是**一次性应用**——想随�
 5. 结果 PNG 读回成图层，插在原图层正上方、偏移对回裁切框原点；羽化后的选区
    存成 `AI Mask` 通道，同时用作图层蒙版（`keep-mask` 关掉就只留蒙版不收通道）。
 
-对话框参数：`prompt` / `negative` / `server` / `checkpoint` / `steps`(25) /
-`cfg`(7.5) / `seed`(-1=每次随机) / `denoise`(1.0) / `grow`(8) /
-`grow-mask-by`(8) / `feather`(4) / `timeout`(600s) / `keep-mask`。
+高级版参数：`prompt` / `preset` / `negative` / `server` / `checkpoint` /
+`steps`(25) / `cfg`(7.5) / `seed`(-1=每次随机) / `denoise`(1.0) / `grow`(8) /
+`grow-mask-by`(8) / `feather`(4) / `timeout`(600s) / `keep-mask` / `scale`(0=按底模)。
 
 ### 提示词怎么写（这是最影响效果的一件事）
 
-**`prompt` 默认是空的，而且必须填英文** —— 两句话都不许省，因为省下任何一句的
-后果都是「AI 画了个跟你的图完全不搭的东西」：
+**`prompt` 默认是空的**——不能预填一句通用文案，否则点确定的人会得到一块跟画面
+毫无关系的色块。填的时候记住两件事：
 
 1. **写「这里应该是什么」，不要写「把什么去掉」。** 想去掉一个瓶子，写
    `empty wooden table, wood grain`，别写 `remove the bottle` —— 模型没有
    「删除」这个概念，它只会照着你的字面画。要删的东西放进 `negative`
    （`bottle, glass`），它才是「别出现」的那一栏。
-2. **只用英文。** SD1.5 / SDXL 的文本编码器是 OpenCLIP，词表里没有汉字；中文会
-   被切成一片未知 token，等于**随机重绘**。插件现在会直接拦下来报错
-   （`_check_prompt()`），而不是默默给你一张废图。
+2. **中文可以直接写。** SD 的文本编码器是 OpenCLIP，词表里没有汉字，中文送进去
+   等于**随机重绘**；所以插件在中间加了一层 `plugin/_shared/prompt_tools.py`：
+   450 条常用词的中英对照，按最长匹配换掉（`画一只小猫` → `small kitten`，
+   `一只小猫坐在木质桌子上` → `small kitten sitting on wooden table`）。换不掉
+   的词会**点名报错**（`这些词还没收进中文词表：赛博朋克`），不会把半截中文静默
+   送下去。日文/韩文不在表里，仍然会被拦。
+3. **懒得写就选 `preset`。** 「画什么主体」是一个真正的下拉框：小猫 / 小狗 /
+   人 / 花 / 树 / 咖啡 / 食物 / 汽车。选了「小猫」就相当于提示词前面自动带上
+   `a small cat, fluffy fur, detailed eyes`，你在 `prompt` 里补细节就行
+   （`戴着一顶帽子` → `a small cat, fluffy fur, detailed eyes, wearing hat`）。
+   只选主体、`prompt` 留空也能跑。
 
 以前的默认值是一句 `clean background, seamless, photorealistic, sharp focus`，
 结果点开菜单直接点确定的人（很正常的行为）会得到一块跟画面毫无关系的干净色块，
@@ -606,10 +625,12 @@ Flux.1-Fill 这类**专门为 inpaint 训练**的模型（12B，8 GB 显存要�
 回归（两套，都不需要显卡）：
 
 ```bash
-python tools/check_ai_inpaint.py            # HTTP + PNG 那一半，对着 tools/mock_comfy.py
+# 116 条：PNG 编解码、蒙版方向、对齐、工作流、mock 端到端、中文词表与预设
+python tools/check_ai_inpaint.py
 "D:/fastsoftware/GIMP 3/bin/gimp-console-3.2.exe" -i -c -d -f \
     --batch-interpreter=python-fu-eval \
     -b "exec(open(r'<repo>/tools/check_ai_inpaint_gimp.py', encoding='utf-8').read())" --quit
+# 43 条：真 GIMP 里的选区→蒙版→贴回、中文/预设提示词、简版与高级版的参数装配
 ```
 
 `tools/mock_comfy.py` 也能单独起一个假服务（不带参数就监听 8188），想在没有模型
@@ -896,7 +917,8 @@ SuperMrWang → Levels    → <算子>   （7 个色阶）
 SuperMrWang → Component → <算子>   （10 个 dual / compose + 灰度转分量）
 SuperMrWang → Tone / Color / Blend / Mask → <算子>
 SuperMrWang → Sharpen / Noise / Distort → <算子>
-SuperMrWang → AI        → AI Inpaint   （Python 插件，不在 47 个算子里）
+SuperMrWang → AI        → AI Inpaint… / AI Inpaint (Advanced)…
+                          （Python 插件，不在 47 个算子里）
 ```
 
 47 个算子按「找算子时的念头」分九组，避免一个子菜单里平铺二十多项：

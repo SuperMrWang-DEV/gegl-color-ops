@@ -192,16 +192,40 @@ try:
         check("空提示词的报错教了怎么写",
               "result" in msg or "结果" in msg, msg[:40])
 
-    # 中文提示词必须拦下来：SD1.5/SDXL 的文本编码器只认英文，中文等于噪声。
-    # 这是「画出来跟图完全不搭」的头号原因，静默送下去只会让用户以为模型不行。
-    for bad in ("把瓶子去掉", "空桌子", "かわいい"):
+    # 中文提示词：常用词现在直接翻成英文（用户脑子里的话就是「画一只小猫」），
+    # 翻不掉的词才报错点名——绝不能把半截中文静默送进模型（那等于随机重绘）。
+    try:
+        got = mod._check_prompt("画一只小猫")
+        check("中文提示词被翻成英文", got == "small kitten", got)
+    except Exception as exc:
+        check("中文提示词被翻成英文", False, str(exc)[:40])
+
+    try:
+        mod._check_prompt("嘎嘎嘎的怪兽")
+        check("翻不掉的中文 → 报错", False, "居然放过了")
+    except RuntimeError as exc:
+        check("翻不掉的中文 → 报错", "嘎" in str(exc) or "dictionary" in str(exc),
+              str(exc)[:36])
+
+    # 日文/韩文压根不在词表里，仍然要拦（真实原因是编码器不认，不是我们懒）
+    for bad in ("かわいい", "귀여운"):
         try:
-            mod.ai_inpaint(img4, l4, bad, client=client)
-            check("中文/日文提示词 → 报错（%s）" % bad, False, "居然跑通了")
+            mod._check_prompt(bad)
+            check("日文/韩文提示词 → 报错（%s）" % bad, False, "居然跑通了")
         except RuntimeError as exc:
-            msg = str(exc).lower()
-            check("中文/日文提示词 → 报错（%s）" % bad,
-                  "english" in msg or "英文" in msg, msg[:30])
+            check("日文/韩文提示词 → 报错（%s）" % bad,
+                  "dictionary" in str(exc) or "英文" in str(exc), str(exc)[:30])
+
+    # 预设：选了「小猫」，提示词可以只写细节，也可以完全空着
+    got = mod._check_prompt("", "cat")
+    check("预设能单独出提示词", got.startswith("a small cat"), got)
+    got = mod._check_prompt("戴着一顶帽子", "cat")
+    check("预设 + 中文细节", got.startswith("a small cat") and "hat" in got, got)
+    try:
+        mod._check_prompt("", "none")
+        check("空提示词 + 无预设 → 报错", False, "居然跑通了")
+    except RuntimeError as exc:
+        check("空提示词 + 无预设 → 报错", "prompt" in str(exc).lower(), str(exc)[:28])
 
     # 反过来：正常英文不能误伤（含全角标点以外的 ASCII 标点、数字、连字符）
     try:
@@ -213,6 +237,68 @@ try:
     # 默认值必须是空：预填一句通用文案，点确定的人就会得到一块无关的色块
     check("DEFAULT_PROMPT 为空（不预填内容）", mod.DEFAULT_PROMPT == "",
           repr(mod.DEFAULT_PROMPT))
+
+    # ---------------- 5. 两个入口的参数装配 ----------------
+    # 简版只声明了 prompt / preset / negative，run() 里却要拼出完整参数表：
+    # 少兜一个默认值就是 TypeError，用户看到的是「点菜单直接报错」。
+    class _FakeProc(object):
+        def __init__(self, name):
+            self._name = name
+        def get_name(self):
+            return self._name
+        def new_return_values(self, status, err):
+            return (status, err)
+
+    class _FakeCfg(object):
+        def __init__(self, d):
+            self._d = d
+        def get_property(self, key):
+            return self._d.get(key)
+
+    def _wire(name, cfg_dict):
+        seen = []
+
+        def fake_inpaint(*a, **kw):
+            seen.append((a, kw))
+            return None, {}
+
+        orig = mod.ai_inpaint
+        mod.ai_inpaint = fake_inpaint
+        try:
+            status, _err = mod.AiInpaintPlugin.run(
+                object(), _FakeProc(name), Gimp.RunMode.NONINTERACTIVE,
+                object(), [object()], _FakeCfg(cfg_dict), None)
+        finally:
+            mod.ai_inpaint = orig
+        return status, seen
+
+    st, seen = _wire(mod.PROC_QUICK,
+                     {"prompt": "一只小猫", "preset": "cat", "negative": None})
+    check("简版能跑通（没声明的参数走默认值）",
+          st == Gimp.PDBStatusType.SUCCESS and len(seen) == 1, str(st))
+    if seen:
+        args, kw = seen[0]
+        check("简版把 prompt 原样递下去", args[2] == "一只小猫", repr(args[2]))
+        check("简版把 preset 递给实现", kw.get("preset") == "cat", str(kw.get("preset")))
+        check("简版 negative 空 → 空串（不是 None）", args[3] == "", repr(args[3]))
+        check("简版 steps 默认 25", args[6] == 25, str(args[6]))
+        check("简版 keep-mask 默认 True", args[14] is True, str(args[14]))
+        check("简版 scale 默认 0", args[15] == 0.0, str(args[15]))
+
+    st, seen = _wire(mod.PROC_ADVANCED,
+                     {"prompt": "empty table", "preset": "none", "negative": "text",
+                      "server": "http://x:1", "checkpoint": "m.ckpt", "steps": 9,
+                      "cfg": 5.5, "seed": 42, "denoise": 0.6, "grow": 2,
+                      "grow-mask-by": 4, "feather": 1.5, "timeout": 90,
+                      "keep-mask": False, "scale": 1.0})
+    check("高级版能跑通", st == Gimp.PDBStatusType.SUCCESS and len(seen) == 1, str(st))
+    if seen:
+        args, kw = seen[0]
+        check("高级版读到了 steps", args[6] == 9, str(args[6]))
+        check("高级版读到了 checkpoint", args[5] == "m.ckpt", str(args[5]))
+        check("高级版读到了 seed", args[8] == 42, str(args[8]))
+        check("高级版读到了 scale", args[15] == 1.0, str(args[15]))
+        check("高级版 keep-mask=off 传下去", args[14] is False, str(args[14]))
 
     # GIMP 会把没删掉的图像当成「插件漏出来的」报到日志里，收尾清干净
     for im in (img, img2, img3, img4):
