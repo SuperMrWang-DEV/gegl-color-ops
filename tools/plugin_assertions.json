@@ -1,0 +1,12 @@
+{
+  "note": "由 tools/run_plugin_checks.py 生成，勿手改。站点构建读 total。",
+  "generated": "2026-11-23 02:22:58",
+  "suites": {
+    "check_ai_inpaint": 168,
+    "check_retouch_ai": 87,
+    "check_plugin_dialogs": 145,
+    "check_ai_inpaint_gimp": 46,
+    "check_retouch_ai_gimp": 67
+  },
+  "total": 513
+}

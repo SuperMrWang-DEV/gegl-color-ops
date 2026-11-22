@@ -770,6 +770,7 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
     ),
     dict(
         key='ai-frequency',
+        ai_comfy=True,
         slug='ai-frequency-separation',
         title='高低频磨皮（AI 预修）',
         tag=('磨皮', 't-tone'),
@@ -831,6 +832,7 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
     ),
     dict(
         key='ai-dodge',
+        ai_comfy=True,
         slug='ai-dodge-burn',
         title='双曲线磨皮（AI 预修）',
         tag=('磨皮', 't-tone'),
@@ -888,6 +890,7 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
     ),
     dict(
         key='ai-grey',
+        ai_comfy=True,
         slug='ai-neutral-grey',
         title='中性灰磨皮（AI 预修）',
         tag=('磨皮', 't-tone'),

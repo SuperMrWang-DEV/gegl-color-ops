@@ -17,7 +17,7 @@
        暗多少」反解成柔光需要的灰度，直接写进灰层。打开文件就是已经做过一轮
        中性灰、肤色被拉平了一截的状态。" data-desc-en="That 50% grey Soft Light layer is no longer flat 128: the plug-in solves
    the soft-light formula backwards for the ref">
-<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
+<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <script>
 (function () {
@@ -116,6 +116,14 @@
          <code>group</code>。</p>
     </div>
   </div>
+<div class="dl-grid solo"><div class="dl" id="zh-sec-6">
+  <div class="dl-head"><h3>前提：本机有个 ComfyUI</h3><span class="pill">只有 AI 参考要</span></div>
+  <p>「AI 参考」这条路是跟本机的 <b>ComfyUI</b> 讲 HTTP 的。还没装？
+     <b>SuperMrWang → AI → AI 环境…</b> 里有一键安装（约 10 GB，无人值守）和启动
+     两个按钮，整个流程见 <a href="ai-inpaint.html">AI 局部重绘</a> 那一页。</p>
+  <p class="muted small">服务没开也不会失败：自动退回本地参考，并在提示里说明原因。
+     结构照出，只是少掉 AI 那一步。</p>
+</div></div>
 
 <section class="download" id="zh-download">
   <h2>下载这一个</h2>
@@ -136,7 +144,7 @@
     <p class="toc-title">本页目录</p>
     <ul>
       <li><a href="#zh-overview">概览</a></li>
-<li><a href="#zh-sec-1">生成的结构</a></li><li><a href="#zh-sec-2">它是像素，不是蒙版</a></li><li><a href="#zh-sec-3">预校正多少</a></li><li><a href="#zh-sec-4">接着怎么修</a></li><li><a href="#zh-sec-5">实测</a></li>
+<li><a href="#zh-sec-1">生成的结构</a></li><li><a href="#zh-sec-2">它是像素，不是蒙版</a></li><li><a href="#zh-sec-3">预校正多少</a></li><li><a href="#zh-sec-4">接着怎么修</a></li><li><a href="#zh-sec-5">实测</a></li><li><a href="#zh-sec-6">前提：本机有个 ComfyUI</a></li>
       <li><a href="#zh-download">下载</a></li>
     </ul>
   </aside>
@@ -214,6 +222,16 @@
          <code>group</code>.</p>
     </div>
   </div>
+<div class="dl-grid solo"><div class="dl" id="en-sec-6">
+  <div class="dl-head"><h3>Prerequisite: a local ComfyUI</h3><span class="pill">AI reference only</span></div>
+  <p>The <b>AI reference</b> path talks to a local <b>ComfyUI</b> over HTTP. Not
+     installed yet? <b>SuperMrWang → AI → AI Environment…</b> has a one-click installer
+     (about 10 GB, unattended) and a start button; the whole flow is on the
+     <a href="ai-inpaint.html">AI Inpaint</a> page.</p>
+  <p class="muted small">If the server is down this plug-in does not fail: it falls back
+     to the local reference automatically and says why in the message. You still get the
+     two-layer structure, just without the AI pass.</p>
+</div></div>
 
 <section class="download" id="en-download">
   <h2>Download this one</h2>
@@ -235,7 +253,7 @@
     <p class="toc-title">On this page</p>
     <ul>
       <li><a href="#en-overview">Overview</a></li>
-<li><a href="#en-sec-1">What it builds</a></li><li><a href="#en-sec-2">Pixels, not a mask</a></li><li><a href="#en-sec-3">How much is pre-corrected</a></li><li><a href="#en-sec-4">Finishing it</a></li><li><a href="#en-sec-5">Measured</a></li>
+<li><a href="#en-sec-1">What it builds</a></li><li><a href="#en-sec-2">Pixels, not a mask</a></li><li><a href="#en-sec-3">How much is pre-corrected</a></li><li><a href="#en-sec-4">Finishing it</a></li><li><a href="#en-sec-5">Measured</a></li><li><a href="#en-sec-6">Prerequisite: a local ComfyUI</a></li>
       <li><a href="#en-download">Download</a></li>
     </ul>
   </aside>
@@ -256,7 +274,7 @@
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">2739b76</span>
+    <span class="muted">deaa9f7</span>
   </div>
 </footer>
 <script>

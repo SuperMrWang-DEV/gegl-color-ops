@@ -53,9 +53,12 @@ import ai_client                                     # noqa: E402  (插件已把
 import mock_comfy                                     # noqa: E402
 
 FAIL = []
+OK = 0
 
 
 def check(label, cond, detail=""):
+    global OK
+    OK += 1
     print("%-46s %-34s %s" % (label, detail, "OK" if cond else "FAIL"))
     if not cond:
         FAIL.append(label)
@@ -323,4 +326,5 @@ try:
 finally:
     srv.stop()
 
-print("\n%s" % ("全部通过" if not FAIL else "失败：%s" % ", ".join(FAIL)))
+print("\n%s" % ("全部通过（%d 条断言）" % OK if not FAIL
+                    else "失败 %d / %d：%s" % (len(FAIL), OK, ", ".join(FAIL))))

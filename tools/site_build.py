@@ -46,6 +46,7 @@ SRC = os.path.join(HERE, "site")
 sys.path.insert(0, HERE)
 from md2html import convert, inline, plain     # noqa: E402
 import set_menu_group as SMG                   # noqa: E402  分组只有这一处数据源
+import run_plugin_checks as RPC                # noqa: E402  断言条数的唯一来源
 
 REPO = "https://github.com/SuperMrWang-DEV/gegl-color-ops"
 SITE = "https://superMrwang-dev.github.io/gegl-color-ops"  # GitHub Pages
@@ -2762,6 +2763,19 @@ def build_plugins(version, stats=None):
     mask = [p for p in PD.PAGES if p["area"] == "Mask"]
 
     n_plug = len(PD.PAGES)
+
+    # 断言条数从 tools/plugin_assertions.json 求和，那个文件由
+    # tools/run_plugin_checks.py 真实跑一遍写出来。以前这里是手写的（503 → 671），
+    # 加了测试没人记得改数字，页面上就会长期挂着一个作废的数目——所以这里只做
+    # 「读 + 核对新鲜度」，过期就打警告、显示占位符，不猜。
+    _assert = RPC.read_json()
+    _why = RPC.stale_reason(_assert)
+    if _why:
+        print("· 警告：断言统计不可信（%s）；插件总览页的条数显示为 —，"
+              "跑一次 python tools/run_plugin_checks.py 即可" % _why)
+        n_assert = "—"
+    else:
+        n_assert = str(_assert["total"])
     body = """<section class="page-head">
   <p class="eyebrow"><a href="index.html">{home}</a> / {plugs}</p>
   <h1>{h1}</h1>
@@ -2793,7 +2807,8 @@ def build_plugins(version, stats=None):
                "AI one needs a local <b>ComfyUI</b> — and it ships its own installer."),
         f1=t("<b>%d</b> 个插件" % n_plug, "<b>%d</b> plug-ins" % n_plug),
         f2=t("<b>%d</b> 个 PDB 过程" % n_plug, "<b>%d</b> PDB procedures" % n_plug),
-        f3=t("<b>671</b> 条回归断言", "<b>671</b> regression assertions"),
+        f3=t("<b>%s</b> 条插件回归断言" % n_assert,
+             "<b>%s</b> plug-in regression assertions" % n_assert),
         f4=t("<b>0</b> 编译 · 纯 Python", "<b>0</b> to compile · pure Python"),
         note=t("安装：<code>bash install-plugin.sh</code> 一次装齐，或从各自的页面"
                "单独下某一个 <code>.zip</code>；细节见 "
@@ -3026,6 +3041,31 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
             "这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——"
             "组没有自己的像素，会直接报错并提示先合并。")
 
+        # 三支「AI 预修」磨皮都要连 ComfyUI，但正文讲的是磨皮结构，不适合在里面
+        # 扯安装。统一在正文末尾挂一小节，指向 AI 环境那个菜单入口（页面数据里
+        # ai_comfy=True 的才挂）。补边那句是它们和 AI 重绘的共同前提，写一遍即可。
+        comfy_note = ""
+        if p.get("ai_comfy"):
+            comfy_note = ("""\n<div class="dl-grid solo"><div class="dl">
+  <div class="dl-head"><h3>Prerequisite: a local ComfyUI</h3><span class="pill">AI reference only</span></div>
+  <p>The <b>AI reference</b> path talks to a local <b>ComfyUI</b> over HTTP. Not
+     installed yet? <b>SuperMrWang → AI → AI Environment…</b> has a one-click installer
+     (about 10 GB, unattended) and a start button; the whole flow is on the
+     <a href="ai-inpaint.html">AI Inpaint</a> page.</p>
+  <p class="muted small">If the server is down this plug-in does not fail: it falls back
+     to the local reference automatically and says why in the message. You still get the
+     two-layer structure, just without the AI pass.</p>
+</div></div>""" if en_ else """\n<div class="dl-grid solo"><div class="dl">
+  <div class="dl-head"><h3>前提：本机有个 ComfyUI</h3><span class="pill">只有 AI 参考要</span></div>
+  <p>「AI 参考」这条路是跟本机的 <b>ComfyUI</b> 讲 HTTP 的。还没装？
+     <b>SuperMrWang → AI → AI 环境…</b> 里有一键安装（约 10 GB，无人值守）和启动
+     两个按钮，整个流程见 <a href="ai-inpaint.html">AI 局部重绘</a> 那一页。</p>
+  <p class="muted small">服务没开也不会失败：自动退回本地参考，并在提示里说明原因。
+     结构照出，只是少掉 AI 那一步。</p>
+</div></div>""")
+
+        body_txt = (p.get("body_en") or p["body"]) if en_ else p["body"]
+
         spec = """<dl class="spec" id="%s-overview">
   <dt>%s</dt>
   <dd><ul class="menu-list">%s</ul><p>%s</p></dd>
@@ -3042,7 +3082,7 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
            "Dependencies" if en_ else "依赖", dep_html)
 
         arts, secs = _mark_plugin_sections(
-            spec + "\n" + ((p.get("body_en") or p["body"]) if en_ else p["body"]), lang)
+            spec + "\n" + body_txt + comfy_note, lang)
         toc_li = "".join('<li><a href="#%s">%s</a></li>' % (i, html.escape(t))
                          for i, t in secs)
 

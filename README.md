@@ -1206,13 +1206,19 @@ python tools/set_menu_group.py --check      # 核对菜分组映射表与 ops �
 python tools/check_menu.py                  # 每个算子都有 id / menu-path / menu-label，且路径与分组表一致
 python tools/check_ai_inpaint.py            # AI 重绘的 HTTP/PNG 链路（对着 mock ComfyUI，不需要显卡）
 # 下面三条要在真 GIMP 里跑（插件已装好）；用 gimp-console，不用开界面
-gimp-console -b "exec(open('tools/check_plugin_dialogs.py').read())"   # 每个插件都能弹出参数框（143 条）
+gimp-console -b "exec(open('tools/check_plugin_dialogs.py').read())"   # 每个插件都能弹出参数框（145 条）
 gimp-console -b "exec(open('tools/check_retouch_ai_gimp.py').read())"  # 磨皮三支：结构 / 预涂蒙版 / 灰层 / 选区
 gimp-console -b "exec(open('tools/check_ai_inpaint_gimp.py').read())"  # AI 重绘的落位与蒙版
+python tools/run_plugin_checks.py           # 上面五条一次跑完，把条数写进 tools/plugin_assertions.json
+python tools/run_plugin_checks.py --check   # 只核对：json 是不是比脚本旧了（站点构建会自动喊）
 python tools/make_dist.py                   # 把 build/ 整理成 dist/（含 manifest + 校验和）
 ./tools/check-linux.sh                      # 在 Linux/WSL 里验证 .so 能加载并渲染（不开 GIMP）
 python tools/git_push_api.py --dry-run      # 推送兜底：github.com:443 不通时改走 Git Data API
 ```
+
+站点插件总览上那个「N 条回归断言」不再是手写数字：`run_plugin_checks.py` 真实跑一遍
+写 `tools/plugin_assertions.json`，`site_build.py` 读出来求和；某个脚本比 json 新
+（也就是改了测试没重跑）时构建会打印警告、页面显示 `—`，而不是继续挂着作废的数目。
 
 `smoke.sh` 只保证"不崩、有输出"；`check_gamma_domain.py` 用纯色小图对期望值
 （黑白纯红 102、曝光 +1EV → 176、通道混合器恒等/R←G/单色等），并且**逐像素核对整张图**

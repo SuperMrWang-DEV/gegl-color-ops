@@ -63,9 +63,12 @@ import retouch_prep as RP                            # noqa: E402
 import mock_comfy                                     # noqa: E402
 
 FAIL = []
+OK = 0
 
 
 def check(label, cond, detail=""):
+    global OK
+    OK += 1
     print("%-46s %-34s %s" % (label, detail, "OK" if cond else "FAIL"))
     if not cond:
         FAIL.append(label)
@@ -452,9 +455,9 @@ def main():
     test_ai_path()
     test_errors()
     if FAIL:
-        print("\n失败 %d 条：\n  %s" % (len(FAIL), "\n  ".join(FAIL)))
+        print("\n失败 %d / %d 条：\n  %s" % (len(FAIL), OK, "\n  ".join(FAIL)))
     else:
-        print("\n全部通过")
+        print("\n全部通过（%d 条断言）" % OK)
 
 
 main()
