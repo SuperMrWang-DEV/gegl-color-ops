@@ -648,7 +648,7 @@
          <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，重启 GIMP 即可。</span><span class="l-en">47 <code>.dll</code> files (2.0 MB). Unpack into
          <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code> and restart GIMP.</span></p>
       <a class="btn primary" href="download/gegl-color-ops-windows-x64.zip">gegl-color-ops-windows-x64.zip</a>
-      <p class="muted small"><span class="l-zh">校验：</span><span class="l-en">Checksum: </span><code>SHA256 8684eaf4872a92de8486b8ae8f7c1916…</code></p>
+      <p class="muted small"><span class="l-zh">校验：</span><span class="l-en">Checksum: </span><code>SHA256 2578156c36878296493d5a7b95adfca4…</code></p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>Linux x86_64</h3></div>
@@ -656,18 +656,30 @@
          <code>~/.local/share/gegl-0.4/plug-ins</code>，重启 GIMP 即可。</span><span class="l-en">47 <code>.so</code> files (0.5 MB). Unpack into
          <code>~/.local/share/gegl-0.4/plug-ins</code> and restart GIMP.</span></p>
       <a class="btn" href="download/gegl-color-ops-linux-x64.zip">gegl-color-ops-linux-x64.zip</a>
-      <p class="muted small"><span class="l-zh">校验：</span><span class="l-en">Checksum: </span><code>SHA256 25ff7e34a299ad36ae07ae37dc0a91d5…</code></p>
+      <p class="muted small"><span class="l-zh">校验：</span><span class="l-en">Checksum: </span><code>SHA256 d91a1065f93b31527f46e3adefd5fdbb…</code></p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>macOS arm64</h3></div>
+      <p><span class="l-zh">预编译包还没合并进来。macOS 产物由一台 Apple Silicon 机器编译，
+         跑 <code>./tools/dist_mac.sh</code> 后推到 <code>dist/mac</code> 分支；也可以自己
+         <code>brew install gegl &amp;&amp; ./build.sh</code>。</span><span class="l-en">No bundle merged in yet. macOS builds come from a separate Apple Silicon
+         machine: run <code>./tools/dist_mac.sh</code>, which pushes to the
+         <code>dist/mac</code> branch. Or build your own with
+         <code>brew install gegl &amp;&amp; ./build.sh</code>.</span></p>
+      <a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/tree/dist/mac/dist/macos-arm64"><span class="l-zh">看 macOS 目录</span><span class="l-en">Browse the macOS directory</span></a>
     </div>
     <div class="dl">
       <div class="dl-head"><h3><span class="l-zh">单个算子</span><span class="l-en">A single operator</span></h3></div>
       <p><span class="l-zh">只想试一个？每个算子的文章页底部有它自己的模块直链。模块之间
          互不依赖（只链接 GIMP 自带的 GEGL 与 babl），下一个就是完整的。
          也可以从仓库里挑：<code>dist/windows-x64/&lt;名字&gt;.dll</code>、
-         <code>dist/linux-x64/&lt;名字&gt;.so</code>。</span><span class="l-en">Just one? Every operator page links its own module at the bottom.
+         <code>dist/linux-x64/&lt;名字&gt;.so</code>、
+         <code>dist/macos-arm64/&lt;名字&gt;.dylib</code>。</span><span class="l-en">Just one? Every operator page links its own module at the bottom.
          Modules never depend on each other here — only on the GEGL and babl that
          ship with GIMP — so one file is complete. Or pick from the repo:
          <code>dist/windows-x64/&lt;name&gt;.dll</code>,
-         <code>dist/linux-x64/&lt;name&gt;.so</code>.</span></p>
+         <code>dist/linux-x64/&lt;name&gt;.so</code>,
+         <code>dist/macos-arm64/&lt;name&gt;.dylib</code>.</span></p>
       <a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/tree/main/dist/windows-x64"><span class="l-zh">浏览模块列表</span><span class="l-en">Browse the module list</span></a>
     </div>
     <div class="dl">
@@ -752,7 +764,7 @@
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">bc09609</span>
+    <span class="muted">065b70d</span>
   </div>
 </footer>
 <script>

@@ -61,6 +61,8 @@ jobs:
           python3 tools/setup_ai.py --help > /dev/null
           python3 -c "import sys; sys.path.insert(0, 'tools'); import setup_ai as S; assert set(S.MODELS) == {'sd15', 'sdxl'}, S.MODELS; assert all(m['urls'] and m['bytes'] > 1 << 30 and m['name'].endswith('.safetensors') for m in S.MODELS.values()); print('setup_ai models ok')"
 
+
+
       - name: 编译全部算子
         run: |
           meson setup build-meson --buildtype=release
@@ -92,6 +94,16 @@ jobs:
 
       - name: 验证 .so 能被 GEGL 加载并渲染
         run: ./tools/check-linux.sh
+
+      - name: 校验产物脚本（dist_mac.sh / make_dist.py）
+        run: |
+          # dist_mac.sh 只在 macOS 上真跑，但语法错、变量拼错在任何平台都能守；
+          # make_dist.py 在「本机没编这个平台」时必须跳过而不是清空 dist/，否则
+          # Mac 一提交就把 Windows/Linux 那两份产物删掉。
+          bash -n tools/dist_mac.sh
+          python3 -m py_compile tools/make_dist.py
+          python3 tools/make_dist.py --check
+          echo "· 产物脚本检查通过"
 
       - name: 上传 Linux 包
         uses: actions/upload-artifact@v4

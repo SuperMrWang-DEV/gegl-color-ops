@@ -14,7 +14,7 @@ GCC、MSYS2、meson 那一套。内容与当前分支的源码同步（`tools/ma
 |---|---|---|
 | Windows x64 | [`windows-x64/`](windows-x64) 里的 41 个 `.dll` | `%LOCALAPPDATA%\gegl-0.4\plug-ins` |
 | Linux x86_64 | [`linux-x64/`](linux-x64) 里的 29 个 `.so` | `~/.local/share/gegl-0.4/plug-ins` |
-| macOS (Apple Silicon) | 本目录暂无，见下方「macOS 怎么拿」 | `~/Library/Application Support/gegl-0.4/plug-ins` |
+| macOS arm64 | [`macos-arm64/`](macos-arm64) 里的 `.dylib`（由另一台 Apple Silicon 机器编，推 `dist/mac` 分支） | `~/Library/Application Support/gegl-0.4/plug-ins` |
 
 > **两端产物同源**：Windows 由本机 MSYS2 交叉编译，Linux 由 GitHub Actions 的
 > `ubuntu-latest` 编出后取回，模块名与 `manifest.csv` 一一对应。
@@ -34,11 +34,21 @@ GCC、MSYS2、meson 那一套。内容与当前分支的源码同步（`tools/ma
 
 ## macOS 怎么拿
 
-macOS 包由 GitHub Actions 在 Apple Silicon 云机器（`macos-15`）上编译：仓库
-**每次 push 都会构建**，产物以 artifact 形式挂在 Actions 运行页
-（`macos-arm64`，与算子总数同步，当前 32 个 `.dylib`）——GitHub 上打开 Actions → 选最新一次 run →
-Artifacts 里下载。装了 Homebrew GIMP 的用户把这些 `.dylib` 放到
+两条路，产物同源：
+
+1. **[`macos-arm64/`](macos-arm64)**（推荐）——直接点开下载，跟另外两个平台一样。
+   这些 `.dylib` 由一台 Apple Silicon Mac 跑 `./tools/dist_mac.sh` 编出，提交到
+   `dist/mac` 分支后合并进 main。
+2. **GitHub Actions artifact**——每次 push 都会在 `macos-15` 上构建一份
+   （名字 `macos-arm64`，90 天过期，要登录才能下）。仓库还没合并 macOS 那一份
+   时用它兜底。
+
+装了 Homebrew GIMP 的用户把这些 `.dylib` 放到
 `~/Library/Application Support/gegl-0.4/plug-ins` 即可。
+
+> **为什么 macOS 单独走一条分支**：二进制冲突没法 merge，只能整份选一边。
+> 让 Mac 只写 `dist/macos-arm64/`、只推 `dist/mac`，开发机的 main 就不会被两个
+> 平台的产物互相搅动。开发机要用 macOS 产物：`git merge origin/dist/mac --no-ff`。
 
 注意：**macOS 上 GEGL 0.4.60+ 只加载 `.dylib`**（GEGL 自己的模块扫描写死了
 平台后缀，`.so` 会被静默跳过；Linux 上仍是 `.so`）。build.sh 按平台输出正确

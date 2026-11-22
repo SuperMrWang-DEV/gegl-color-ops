@@ -788,6 +788,38 @@ meson setup build-meson && ninja -C build-meson
 1. `-I<算子目录>` 必须存在——`gegl-op.h` 会通过 `GEGL_OP_C_SOURCE` 把该 `.c` 自身再包含一次；
 2. `GEGL_OP_C_SOURCE` 的文件名必须与磁盘上真实文件名**完全一致**，否则编译报找不到文件。
 
+## 三台机器的分工（产物怎么合流）
+
+代码只在一台机器上写，三份二进制各自有归属目录，**互不覆盖**：
+
+| 产物 | 谁编 | 落在 | 推到 |
+|---|---|---|---|
+| Windows x64 `.dll` | 开发机（MSYS2 gcc） | `dist/windows-x64/` | `main` |
+| Linux x86_64 `.so` | GitHub Actions（meson） | `dist/linux-x64/` | CI artifact，人工取回 |
+| macOS arm64 `.dylib` | 一台 Apple Silicon Mac | `dist/macos-arm64/` | `dist/mac` 分支 |
+
+在 Mac 上出那一份：
+
+```bash
+brew install gegl
+./tools/dist_mac.sh              # pull --rebase → build.sh → make_dist → 只提交本平台 → 推 dist/mac
+./tools/dist_mac.sh --dry-run    # 只看看会提交什么
+```
+
+开发机取 macOS 产物：`git fetch origin && git merge origin/dist/mac --no-ff`（只带进那一个目录）。
+
+三条必须守的规则，破一条就会出事：
+
+1. **谁都不许写别人的目录**。二进制冲突**没法 merge**，只能整份选一边，一不小心
+   就把另一平台攒齐的产物覆盖掉。`tools/make_dist.py` 只在 `build/` 里有该平台产物
+   时才动那个目录，没有就跳过——所以同一个脚本在 Windows 上跑不会碰 `dist/macos-arm64`。
+2. **生成清单前必须先 `git pull --rebase`**。`dist/manifest.csv` 和
+   `dist/SHA256SUMS.txt` 是三个平台共用的，清单按「磁盘上现有文件」重算；不先同步
+   就没有另外两个平台的行，一提交就把它们抹掉。`dist_mac.sh` 把 pull 放在第一步就是
+   为了这个。
+3. **macOS 产物走 `dist/mac` 分支，不直接进 main**。main 的提交序列只跟代码走，
+   产物按需合进来，历史干净、review 也看得清。
+
 ## 安装
 
 ```bash

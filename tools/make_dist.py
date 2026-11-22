@@ -8,7 +8,9 @@
 --sums 用于「只换了其中一个模块」的场景：把新 DLL 单独放进去后重算校验和，
 不必让整批二进制因为 PE 时间戳变化而全部进 diff。
 
-dist/ 里只放"用户拿去就能用"的二进制：每个算子的 GEGL 模块（.dll / .so）。
+dist/ 里只放"用户拿去就能用"的二进制：每个算子的 GEGL 模块
+（.dll / .so / .dylib）。哪个平台在 build/ 里没有产物就跳过哪个平台，
+不会清空 dist/ 下已有的文件——所以 Mac 能给 Windows 这台机器补 macOS 那一份。
 带 .disabled 标记的算子（应用图像 / 计算）不参与，所以不会出现在包里。
 """
 import hashlib
@@ -22,7 +24,9 @@ DIST = os.path.join(ROOT, "dist")
 BUILD = os.path.join(ROOT, "build")
 
 # 平台目录名 -> 扩展名
-PLATFORMS = [("windows-x64", "dll"), ("linux-x64", "so")]
+# macOS 由另一台机器（Apple Silicon）编译后推上来，见 tools/dist_mac.sh；
+# 这台机器上没有 .dylib 时这一段会被跳过，不会清掉 dist/macos-arm64。
+PLATFORMS = [("windows-x64", "dll"), ("linux-x64", "so"), ("macos-arm64", "dylib")]
 
 
 def ops_meta():
@@ -56,11 +60,18 @@ def sha256(path):
 
 
 def write_manifest(meta):
-    """按 dist/ 里现有的文件重算 manifest.csv + SHA256SUMS.txt。"""
+    """按 dist/ 里现有的文件重算 manifest.csv + SHA256SUMS.txt。
+
+    走 --sums 时（只重算，不复制）某个平台目录可能还不存在——比如在 Windows
+    上跑，dist/macos-arm64 还没被 Mac 推上来。跳过而不是崩，否则这条路单平台
+    就没法用了。
+    """
     lines = ["platform,file,op_id,title,bytes,sha256"]
     sums = []
     for plat, ext in PLATFORMS:
         out = os.path.join(DIST, plat)
+        if not os.path.isdir(out):
+            continue
         for f in sorted(os.listdir(out)):
             if not f.endswith("." + ext):
                 continue
@@ -97,14 +108,22 @@ def main():
 
     for plat, ext in PLATFORMS:
         out = os.path.join(DIST, plat)
-        os.makedirs(out, exist_ok=True)
+        if not check:
+            os.makedirs(out, exist_ok=True)
         # 只收源码表里的模块：build/ 可能残留已 .disabled 的旧产物，
         # 全量复制会把它们又塞回包里。
         stems = {m["stem"] for m in meta}
-        built = sorted(f for f in os.listdir(BUILD)
+        # build/ 可能还不存在（刚 clone、还没编过），这时当作"本机没产物"
+        built = sorted(f for f in (os.listdir(BUILD) if os.path.isdir(BUILD) else [])
                        if f.endswith("." + ext) and os.path.splitext(f)[0] in stems)
         if check:
-            have = sorted(f for f in os.listdir(out) if f.endswith("." + ext))
+            have = sorted(f for f in os.listdir(out) if f.endswith("." + ext)) \
+                if os.path.isdir(out) else []
+            if not built:
+                # 本机没编这个平台就无从比对：跳过，别把另一台机器的成果判成错
+                print("· %-12s 跳过：本机没有 .%s 产物（dist 里现有 %d 个）"
+                      % (plat, ext, len(have)))
+                continue
             if built != have:
                 print("✗ %s 不一致：build=%d 个，dist=%d 个" % (plat, len(built), len(have)))
                 print("  仅 build 有：%s" % (set(built) - set(have) or "无"))
@@ -116,7 +135,8 @@ def main():
         # 本平台在 build/ 里没产物（最常见：在 Windows 上跑，build/ 只有 .dll），
         # 这时绝不能清空 dist/ —— 否则会静默删掉另一平台好不容易攒齐的产物。
         if not built:
-            kept = len([f for f in os.listdir(out) if f.endswith("." + ext)])
+            kept = len([f for f in os.listdir(out) if f.endswith("." + ext)]) \
+                if os.path.isdir(out) else 0
             print("· %s 跳过：build/ 里没有 .%s 产物，dist/%s 保持原样（%d 个）"
                   % (plat, ext, plat, kept))
             summary.append((plat, kept))
@@ -124,7 +144,8 @@ def main():
 
         # 覆盖前先看 dist/ 里有没有 build/ 中不存在的文件，默认拒绝执行。
         # （9 个 vs 29 个这种缩水，基本都是拿错平台的 build/ 目录，不是真的要删模块。）
-        have = sorted(f for f in os.listdir(out) if f.endswith("." + ext))
+        have = sorted(f for f in os.listdir(out) if f.endswith("." + ext)) \
+            if os.path.isdir(out) else []
         dropped = sorted(set(have) - set(built))
         if dropped and not force:
             print("✗ %s：dist/ 里有 %d 个文件在 build/ 中不存在，默认不覆盖："
@@ -133,7 +154,7 @@ def main():
             print("  确认要删就加 --force。")
             return 1
 
-        for f in os.listdir(out):
+        for f in (os.listdir(out) if os.path.isdir(out) else []):
             if f.endswith("." + ext):
                 os.remove(os.path.join(out, f))
         for f in built:

@@ -51,6 +51,8 @@ REPO = "https://github.com/SuperMrWang-DEV/gegl-color-ops"
 SITE = "https://superMrwang-dev.github.io/gegl-color-ops"  # GitHub Pages
 RAW = REPO + "/raw/main/dist/windows-x64"
 LIN_RAW = REPO + "/raw/main/dist/linux-x64"
+# macOS 的 .dylib 由另一台机器推到 dist/mac 分支；合并进 main 之后这里的直链才有效
+MAC_RAW = REPO + "/raw/main/dist/macos-arm64"
 
 # 算子页的英文版按目录名放这里，每个文件开头一小段 front matter（name / blurb）。
 # README 里那些 `## English` 是旧插件的安装说明，不是当前算法的翻译，不能用。
@@ -296,7 +298,8 @@ def load_ops():
         # GEGL 内置算子的 GType 撞名，源文件改成了 lb-*.c，产物也叫 lb-*.dll
         for cand in ("%s" % op["dir"], "lb-%s" % op["dir"]):
             if (os.path.exists(os.path.join(DIST, "windows-x64", cand + ".dll")) or
-                os.path.exists(os.path.join(DIST, "linux-x64", cand + ".so"))):
+                os.path.exists(os.path.join(DIST, "linux-x64", cand + ".so")) or
+                os.path.exists(os.path.join(DIST, "macos-arm64", cand + ".dylib"))):
                 op["module"] = cand
                 break
         else:
@@ -306,6 +309,8 @@ def load_ops():
             os.path.join(DIST, "windows-x64", op["module"] + ".dll"))
         op["has_so"] = os.path.exists(
             os.path.join(DIST, "linux-x64", op["module"] + ".so"))
+        op["has_dylib"] = os.path.exists(
+            os.path.join(DIST, "macos-arm64", op["module"] + ".dylib"))
 
     order = {g: i for i, g in enumerate(SMG.GROUPS)}
     ops.sort(key=lambda o: (order.get(o["group"], 9), o["order"], o["menu"]))
@@ -697,6 +702,16 @@ def build_home(ops, stats, version, posts=None):
         lin_dl = dl("%s/tree/main/dist/linux-x64" % REPO, "Linux x86_64", "Linux x86_64",
                     "暂无预编译包，用 build.sh 自编", "no prebuilt yet — use build.sh")
 
+    if stats.get("zip_mac_name"):
+        mac_dl = dl("download/" + stats["zip_mac_name"], "macOS arm64", "macOS arm64",
+                    "%d 个 .dylib · %s MB" % (stats["mac_files"], stats["zip_mac_mb"]),
+                    "%d .dylib · %s MB" % (stats["mac_files"], stats["zip_mac_mb"]))
+    else:
+        mac_dl = dl("%s/tree/dist/mac/dist/macos-arm64" % REPO, "macOS arm64",
+                    "macOS arm64",
+                    "暂无预编译包，用 dist_mac.sh 自编",
+                    "no prebuilt yet — run dist_mac.sh")
+
     pwin_dl = dl("download/" + pw["name"], "Windows x64", "Windows x64",
                  "%d 个 .py · %d 个模块 · %s MB" % (pw.get("py", n_plug), pw.get("mods", 0),
                                                  pw.get("mb", 0)),
@@ -758,9 +773,10 @@ def build_home(ops, stats, version, posts=None):
     <div class="door-meta">
       <span><b>{win}</b> <span class="l-zh">个 Windows 模块</span><span class="l-en">Windows modules</span></span>
       <span><b>{lin}</b> <span class="l-zh">个 Linux 模块</span><span class="l-en">Linux modules</span></span>
+      <span><b>{mac}</b> <span class="l-zh">个 macOS 模块</span><span class="l-en">macOS modules</span></span>
       <span><b>{g}</b> <span class="l-zh">个分组</span><span class="l-en">groups</span></span>
     </div>
-    <div class="door-dl">{win_dl}{lin_dl}</div>
+    <div class="door-dl">{win_dl}{lin_dl}{mac_dl}</div>
     {miss}
     <div class="door-foot">
       <a href="ops.html"><span class="l-zh">看全部 {n} 个算子</span><span class="l-en">Browse all {n}</span> <span aria-hidden="true">→</span></a>
@@ -792,7 +808,8 @@ def build_home(ops, stats, version, posts=None):
   </article>
 </section>""".format(n=n_live, p=n_plug, g=n_groups,
                      win=stats["win_files"], lin=stats["linux_files"],
-                     win_dl=win_dl, lin_dl=lin_dl, miss=ops_miss,
+                     mac=stats["mac_files"],
+                     win_dl=win_dl, lin_dl=lin_dl, mac_dl=mac_dl, miss=ops_miss,
                      pwin_dl=pwin_dl, plin_dl=plin_dl, pmiss=plug_miss)
 
     quick = """<section class="quick">
@@ -967,6 +984,26 @@ def build_overview(ops, stats, version):
         lin_body = """<p><span class="l-zh">暂时没有预编译包，跑 <code>./build.sh</code> 自己编（需要 GEGL 开发头文件）。</span><span class="l-en">No prebuilt bundle yet — build your own with <code>./build.sh</code> (needs GEGL development headers).</span></p>
       <a class="btn" href="{repo}/tree/main/dist/linux-x64"><span class="l-zh">看 Linux 目录</span><span class="l-en">Browse the Linux directory</span></a>""".format(repo=REPO)
 
+    if stats.get("zip_mac_name"):
+        mac_body = """<p><span class="l-zh">{mac} 个 <code>.dylib</code>（{msize} MB），Apple Silicon 专用。解到
+         <code>~/Library/Application Support/gegl-0.4/plug-ins</code>，重启 GIMP 即可
+         （GEGL 0.4.60+ 在 macOS 只认 <code>.dylib</code>，不是 <code>.so</code>）。</span><span class="l-en">{mac} <code>.dylib</code> files ({msize} MB), Apple Silicon only. Unpack into
+         <code>~/Library/Application Support/gegl-0.4/plug-ins</code> and restart GIMP
+         (GEGL 0.4.60+ on macOS loads <code>.dylib</code>, not <code>.so</code>).</span></p>
+      <a class="btn" href="download/{mzip}">gegl-color-ops-macos-arm64.zip</a>
+      <p class="muted small">{chk}<code>SHA256 {msha}</code></p>""".format(
+            mac=stats["mac_files"], msize=stats["zip_mac_mb"],
+            mzip=stats["zip_mac_name"], msha=stats["zip_mac_sha"][:32] + "…",
+            chk=t("校验：", "Checksum: "))
+    else:
+        mac_body = """<p><span class="l-zh">预编译包还没合并进来。macOS 产物由一台 Apple Silicon 机器编译，
+         跑 <code>./tools/dist_mac.sh</code> 后推到 <code>dist/mac</code> 分支；也可以自己
+         <code>brew install gegl &amp;&amp; ./build.sh</code>。</span><span class="l-en">No bundle merged in yet. macOS builds come from a separate Apple Silicon
+         machine: run <code>./tools/dist_mac.sh</code>, which pushes to the
+         <code>dist/mac</code> branch. Or build your own with
+         <code>brew install gegl &amp;&amp; ./build.sh</code>.</span></p>
+      <a class="btn" href="{repo}/tree/dist/mac/dist/macos-arm64"><span class="l-zh">看 macOS 目录</span><span class="l-en">Browse the macOS directory</span></a>""".format(repo=REPO)
+
     download = """<section class="download" id="download">
   <h2><span class="l-zh">下载</span><span class="l-en">Download</span></h2>
   <div class="dl-grid">
@@ -983,15 +1020,21 @@ def build_overview(ops, stats, version):
       {lin_body}
     </div>
     <div class="dl">
+      <div class="dl-head"><h3>macOS arm64</h3></div>
+      {mac_body}
+    </div>
+    <div class="dl">
       <div class="dl-head"><h3>{single}</h3></div>
       <p><span class="l-zh">只想试一个？每个算子的文章页底部有它自己的模块直链。模块之间
          互不依赖（只链接 GIMP 自带的 GEGL 与 babl），下一个就是完整的。
          也可以从仓库里挑：<code>dist/windows-x64/&lt;名字&gt;.dll</code>、
-         <code>dist/linux-x64/&lt;名字&gt;.so</code>。</span><span class="l-en">Just one? Every operator page links its own module at the bottom.
+         <code>dist/linux-x64/&lt;名字&gt;.so</code>、
+         <code>dist/macos-arm64/&lt;名字&gt;.dylib</code>。</span><span class="l-en">Just one? Every operator page links its own module at the bottom.
          Modules never depend on each other here — only on the GEGL and babl that
          ship with GIMP — so one file is complete. Or pick from the repo:
          <code>dist/windows-x64/&lt;name&gt;.dll</code>,
-         <code>dist/linux-x64/&lt;name&gt;.so</code>.</span></p>
+         <code>dist/linux-x64/&lt;name&gt;.so</code>,
+         <code>dist/macos-arm64/&lt;name&gt;.dylib</code>.</span></p>
       <a class="btn ghost" href="{repo}/tree/main/dist/windows-x64">{browse}</a>
     </div>
     <div class="dl">
@@ -1011,6 +1054,7 @@ def build_overview(ops, stats, version):
      Building from source via <code>./build.sh</code> or meson is on the same page.</span></p>
 </section>""".format(n=stats["win_files"], size=stats["zip_mb"], zip=stats["zip_name"],
                      sha=stats["zip_sha"][:32] + "…", lin_body=lin_body,
+                     mac_body=mac_body,
                      repo=REPO, chk=t("校验：", "Checksum: "),
                      rec=t("推荐", "Recommended"),
                      single=t("单个算子", "A single operator"),
@@ -1326,6 +1370,16 @@ def download_html(op, lang):
         btns.append('<a class="btn ghost" href="%s/%s.so">%s %s.so'
                     '<span class="size">Linux x86_64</span></a>'
                     % (LIN_RAW, f, "Download" if en else "下载", f))
+    if op["has_dylib"]:
+        if en:
+            lines.append('macOS module <code>%s.dylib</code>, drop it into '
+                         '<code>~/Library/Application Support/gegl-0.4/plug-ins</code>' % f)
+        else:
+            lines.append('macOS 模块 <code>%s.dylib</code>，放进 '
+                         '<code>~/Library/Application Support/gegl-0.4/plug-ins</code>' % f)
+        btns.append('<a class="btn ghost" href="%s/%s.dylib">%s %s.dylib'
+                    '<span class="size">macOS arm64</span></a>'
+                    % (MAC_RAW, f, "Download" if en else "下载", f))
     if not lines:
         lines.append('This module is not in the prebuilt bundle yet — build it with '
                      '<code>./build.sh</code>' if en else
@@ -2909,9 +2963,14 @@ def collect_stats():
     lin = os.path.join(DIST, "linux-x64")
     sos = sorted(f for f in os.listdir(lin) if f.endswith(".so")) if os.path.isdir(lin) else []
     missing = sorted({d[:-4] for d in dlls} - {s[:-3] for s in sos})
+    # macOS：另一台机器推到 dist/mac 分支，合并进来后 dist/ 里才有，缺了不影响构建
+    mac = os.path.join(DIST, "macos-arm64")
+    dylibs = sorted(f for f in os.listdir(mac) if f.endswith(".dylib")) \
+        if os.path.isdir(mac) else []
     return {"win_files": len(dlls), "dlls": dlls, "win_dir": win,
             "linux_files": len(sos), "sos": sos, "linux_dir": lin,
-            "linux_missing": missing}
+            "linux_missing": missing,
+            "mac_files": len(dylibs), "dylibs": dylibs, "mac_dir": mac}
 
 
 # 打包用固定时间戳：同一批文件重复打包应当得到同一个 zip，
@@ -3032,6 +3091,32 @@ GPL-3.0-or-later
         lpath, lsha, lsize = _zip_one(out_dir, lname, stats["sos"], stats["linux_dir"], lin_readme)
         stats.update(zip_linux_name=lname, zip_linux_sha=lsha, zip_linux_mb=lsize)
 
+    if stats["dylibs"]:
+        mac_readme = """gegl-color-ops · macOS arm64 免编译包（Apple Silicon）
+====================================================
+
+把这些 .dylib 全部放进：
+    ~/Library/Application Support/gegl-0.4/plug-ins
+
+（Homebrew 装的 GIMP 用同一个目录；Intel Mac 不适用，这一包是 arm64 的。）
+
+然后完全退出 GIMP 再打开。菜单位置：
+    菜单栏顶层的 SuperMrWang（和「颜色」「图层」平级）
+
+验证是否加载成功：
+    gegl --info lb:hsl-levels
+
+共 {n} 个模块，针对 libgegl-0.4 编译（GEGL 0.4.60+ 在 macOS 只认 .dylib）。
+列表见同目录 manifest.csv，校验和见 SHA256SUMS.txt。
+源码与算法说明：{repo}
+
+GPL-3.0-or-later
+""".format(n=len(stats["dylibs"]), repo=REPO)
+        mname = "gegl-color-ops-macos-arm64.zip"
+        mpath, msha, msize = _zip_one(out_dir, mname, stats["dylibs"],
+                                      stats["mac_dir"], mac_readme)
+        stats.update(zip_mac_name=mname, zip_mac_sha=msha, zip_mac_mb=msize)
+
     return path
 
 
@@ -3125,6 +3210,9 @@ def main():
     if stats.get("zip_linux_name"):
         print("           docs/download/%s（%d 个模块）"
               % (stats["zip_linux_name"], stats["linux_files"]))
+    if stats.get("zip_mac_name"):
+        print("           docs/download/%s（%d 个模块）"
+              % (stats["zip_mac_name"], stats["mac_files"]))
     for d in (stats.get("plugin_zips") or {}).values():
         print("           docs/download/%s（GIMP 3 Python 插件）" % d["name"])
     for plat, d in (stats.get("plugin_bundle") or {}).items():
