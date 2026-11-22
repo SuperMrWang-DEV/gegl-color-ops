@@ -79,7 +79,7 @@
 </dl>
 <div class="dl-grid">
     <div class="dl" id="zh-sec-1">
-      <div class="dl-head"><h3>为什么值得单独做</h3><span class="pill">十二条路散在四处</span></div>
+      <div class="dl-head"><h3>为什么值得单独做</h3><span class="pill">十三条路，散在四处</span></div>
       <p>原生要办同一件事，得记住三套路径：<b>选择</b>菜单里存通道、<b>通道右键</b>转选区、
          <b>图层面板右键 → 添加图层蒙版</b>再在弹窗里挑类型。同一类操作放在三个地方，
          方向还是反的。</p>
@@ -90,7 +90,7 @@
          现在这些全在同一个子菜单里，按目标命名。</p>
     </div>
     <div class="dl" id="zh-sec-2">
-      <div class="dl-head"><h3>十二个方向</h3><span class="pill">全零参数</span></div>
+      <div class="dl-head"><h3>十三个方向</h3><span class="pill">全零参数</span></div>
       <ul class="deps">
         <li><b>Channel to Selection</b> · 通道 → 选区</li>
         <li><b>Selection to Channel</b> · 选区 → 通道</li>
@@ -104,9 +104,15 @@
         <li><b>Channel to Path</b> · 通道 → 路径</li>
         <li><b>Path to Mask</b> · 路径 → 图层蒙版</li>
         <li><b>Mask to Path</b> · 图层蒙版 → 路径</li>
+        <li><b>Path to Bitmap</b> · 路径 → 像素图层（前景色填充，裁到路径）</li>
       </ul>
       <p>没有省略号的菜单项就是<b>点一下直接跑</b>：源全从上下文取，不需要在对话框里
          再选一遍。</p>
+      <p>最后一条和前面十二条不一样：前面都是 GIMP 内部几种对象之间倒腾，<b>Path to
+         Bitmap</b> 是唯一一条把几何真正落成像素的——路径在 GIMP 里只存几何、没有填充色和
+         线宽，所以替它选了「用前景色填内部」这一种落笔方式（与原生「编辑 → 用前景色填充
+         路径」同义）。新图层只做路径外接框那么大、偏移对回原位，栅格化一个 24×24 的图标
+         不会顺手生成一张 4000×3000 的空图层。要线稿（描边）就用原生「编辑 → 描边路径」。</p>
     </div>
     <div class="dl" id="zh-sec-3">
       <div class="dl-head"><h3>源永远是「当前」</h3></div>
@@ -169,7 +175,7 @@
     <div class="dl-head"><h3>十二项</h3><span class="pill">.py · 免编译</span></div>
     <p>包里是一个 <code>.py</code>、一份安装说明，以及 <code>_shared/</code> 与 <code>locale/</code>。整包解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，但界面只有英文。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-convert.zip">下载 十二项</a>
-    <p class="muted small">31.2 KB · 校验：<code>SHA256 06c2f620dde7f28b0282338323592d4d…</code></p>
+    <p class="muted small">33.6 KB · 校验：<code>SHA256 3032a1770f08229e674a0f4d52815430…</code></p>
   </div>
 </section>
 
@@ -182,7 +188,7 @@
     <p class="toc-title">本页目录</p>
     <ul>
       <li><a href="#zh-overview">概览</a></li>
-<li><a href="#zh-sec-1">为什么值得单独做</a></li><li><a href="#zh-sec-2">十二个方向</a></li><li><a href="#zh-sec-3">源永远是「当前」</a></li><li><a href="#zh-sec-4">结果与原生逐位一致</a></li><li><a href="#zh-sec-5">为什么单步看着不对</a></li><li><a href="#zh-sec-6">和 Channel to Mask 的关系</a></li>
+<li><a href="#zh-sec-1">为什么值得单独做</a></li><li><a href="#zh-sec-2">十三个方向</a></li><li><a href="#zh-sec-3">源永远是「当前」</a></li><li><a href="#zh-sec-4">结果与原生逐位一致</a></li><li><a href="#zh-sec-5">为什么单步看着不对</a></li><li><a href="#zh-sec-6">和 Channel to Mask 的关系</a></li>
       <li><a href="#zh-download">下载</a></li>
     </ul>
   </aside>
@@ -236,7 +242,7 @@
          submenu, named by destination.</p>
     </div>
     <div class="dl" id="en-sec-2">
-      <div class="dl-head"><h3>Twelve directions</h3><span class="pill">zero arguments</span></div>
+      <div class="dl-head"><h3>Thirteen directions</h3><span class="pill">zero arguments</span></div>
       <ul class="deps">
         <li><b>Channel to Selection</b></li>
         <li><b>Selection to Channel</b></li>
@@ -250,9 +256,18 @@
         <li><b>Channel to Path</b></li>
         <li><b>Path to Mask</b></li>
         <li><b>Mask to Path</b></li>
+        <li><b>Path to Bitmap</b> — rasterise to a pixel layer</li>
       </ul>
       <p>A menu item without an ellipsis <b>runs immediately</b>: the source is read from the
          context, so there is nothing to pick in a dialog.</p>
+      <p>The last one is different from the other twelve. All of those shuffle objects inside
+         GIMP; <b>Path to Bitmap</b> is the only one that turns geometry into pixels. A path
+         carries no fill colour and no line width, so rasterising it here means filling its
+         interior with the foreground colour — the same thing the native "Edit > Fill with
+         foreground colour" does on a path. The new layer is cropped to the path's bounding
+         box and offset back into place, so rasterising a 24×24 icon does not also hand you a
+         4000×3000 empty layer. For outlines rather than solid shapes, use the native
+         "Edit > Stroke Path".</p>
     </div>
     <div class="dl" id="en-sec-3">
       <div class="dl-head"><h3>The source is always "current"</h3></div>
@@ -324,7 +339,7 @@
     <div class="dl-head"><h3>Convert</h3><span class="pill">.py · no compile</span></div>
     <p>The archive holds a single <code>.py</code>, an install note and the <code>_shared/</code> + <code>locale/</code> pair. Unpack all of it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register. Without <code>_shared/</code> and <code>locale/</code> it still runs, but only in English.</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-convert.zip">Download Convert</a>
-    <p class="muted small">31.2 KB · checksum: <code>SHA256 06c2f620dde7f28b0282338323592d4d…</code></p>
+    <p class="muted small">33.6 KB · checksum: <code>SHA256 3032a1770f08229e674a0f4d52815430…</code></p>
   </div>
 </section>
 
@@ -338,7 +353,7 @@
     <p class="toc-title">On this page</p>
     <ul>
       <li><a href="#en-overview">Overview</a></li>
-<li><a href="#en-sec-1">Why it needs its own entry</a></li><li><a href="#en-sec-2">Twelve directions</a></li><li><a href="#en-sec-3">The source is always &quot;current&quot;</a></li><li><a href="#en-sec-4">Bit-for-bit with native</a></li><li><a href="#en-sec-5">Why single steps look wrong</a></li><li><a href="#en-sec-6">Relation to Channel to Mask</a></li>
+<li><a href="#en-sec-1">Why it needs its own entry</a></li><li><a href="#en-sec-2">Thirteen directions</a></li><li><a href="#en-sec-3">The source is always &quot;current&quot;</a></li><li><a href="#en-sec-4">Bit-for-bit with native</a></li><li><a href="#en-sec-5">Why single steps look wrong</a></li><li><a href="#en-sec-6">Relation to Channel to Mask</a></li>
       <li><a href="#en-download">Download</a></li>
     </ul>
   </aside>
@@ -359,7 +374,7 @@
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">eb2e8e0</span>
+    <span class="muted">bc09609</span>
   </div>
 </footer>
 <script>
