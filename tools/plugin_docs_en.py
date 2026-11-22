@@ -1134,3 +1134,161 @@ PLUGIN_EN["ai-grey"] = dict(
   </div>""",
 )
 
+
+PLUGIN_EN["ai-inpaint"] = dict(
+    lede="""Frame an area, write one line of prompt, and your own <b>ComfyUI</b>
+   (Stable Diffusion) does the rest: the plug-in crops the selection plus a ring of
+   context, sends it with a mask, waits for the answer and pastes it back as a new layer.
+   No account, no upload — 1024×512 comes back in about 9 seconds on a local GPU.""",
+    body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>What one click does</h3><span class="pill">five steps</span></div>
+      <ol class="steps">
+        <li>Grow the selection by <code>grow</code> (8 px by default, hides the seam) and take
+            its bounding box plus context;</li>
+        <li>Align the crop to <b>8</b> — the VAE downsamples 8×, and a crop that is not a
+            multiple comes back truncated and pastes out of place — then pad the aspect
+            ratio to <b>≤ 2:1</b> (see “four traps” below);</li>
+        <li>Read those pixels from the <b>visible composite</b> (a layer smaller than the
+            canvas gives you the layer below, not black) and post them with a mask PNG;</li>
+        <li>Poll <code>/history</code> until the job is done;</li>
+        <li>Load the result as a new layer directly above the original, offset back to where
+            it came from, masked by the feathered selection.</li>
+      </ol>
+      <pre><code>AI Inpaint            new layer · feathered layer mask
+  └─ original layer     untouched, toggle it to compare
+
+With keep-mask on, an "AI Mask" channel is kept as well,
+so you can re-limit the area later.</code></pre>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Keep the selection tight</h3><span class="pill">the usual trap</span></div>
+      <p>Whatever the mask covers is what gets repainted — the model has no idea how big a
+         pair of glasses should be on a face. Frame the whole forehead-to-cheek band and you
+         get glasses covering half the head. Frame the strip where they belong, 8–16 px of
+         slack on each side is plenty.</p>
+      <p>The edges do not need to be precise: <code>grow</code> expands the mask and
+         <code>feather</code> (4 px by default) blends the pasted result back in.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Three boxes</h3><span class="pill">that is the simple version</span></div>
+      <p><b>Prompt — what should be there.</b> Describe the <b>result</b>, not the action:
+         to remove a bottle write <code>empty wooden table, wood grain</code>, not
+         <code>remove the bottle</code>. Common Chinese words are fine — the plug-in
+         translates them first; SD itself only reads English, so raw Chinese is just noise
+         to it.</p>
+      <p><b>What to paint (preset) — a subject drop-down.</b>Cat / dog / person / flower /
+         tree / coffee / food / car. Pick one and the prompt only needs the details
+         (colour, pose, surroundings).</p>
+      <p><b>Negative prompt — what must not appear.</b>The default already leans photo:
+         <code>illustration, cartoon, flat graphic, poster, vector art, cgi</code>. This is a
+         retouching plug-in, so the model is told not to drift into vector art; change the
+         line if you want a stylised result.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>The parameter dialog</h3></div>
+      <p>GIMP 3 does not build a dialog for a plug-in — the plug-in has to. This one calls
+         <code>_shared/lb_dialog.py</code> from <code>run()</code>: interactive runs get a
+         dialog, cancel really cancels, and batch runs or “last values” pass straight
+         through instead of silently running with defaults.</p>
+      <p class="muted small">Every plug-in in this project learned it the hard way: without a
+         dialog of your own, every parameter is invisible and the defaults always win.</p>
+    </div>
+  </div>
+
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>What the advanced version adds</h3><span class="pill">change on demand</span></div>
+    <div class="table-wrap"><table class="op-table">
+      <thead><tr><th>Parameter</th><th>Default</th><th>When to touch it</th></tr></thead>
+      <tbody>
+        <tr><td><code>server</code></td><td>empty</td>
+            <td>ComfyUI is not on 127.0.0.1:8188; empty reads <code>$LB_COMFY_URL</code></td></tr>
+        <tr><td><code>checkpoint</code></td><td>automatic</td>
+            <td>Dropdown filled by asking ComfyUI; “automatic” is the first non-inpaint model</td></tr>
+        <tr><td><code>steps</code></td><td>25</td>
+            <td>More for finer texture; little gain past 25–30</td></tr>
+        <tr><td><code>cfg</code></td><td>7.5</td>
+            <td>How literally to follow the prompt. Too high goes hard and repeats shapes</td></tr>
+        <tr><td><code>seed</code></td><td>-1</td>
+            <td>To reproduce a result, paste the seed from the previous run's message</td></tr>
+        <tr><td><code>denoise</code></td><td>1.0</td>
+            <td><b>Keep 1.0 when adding something new</b>; lower only to keep the structure</td></tr>
+        <tr><td><code>grow</code></td><td>8</td>
+            <td>How far to expand the selection before sending — raise it if a seam shows</td></tr>
+        <tr><td><code>grow-mask-by</code></td><td>8</td>
+            <td>Extra pixels the model may touch (8 px = one latent cell); more = fewer seams, more drift</td></tr>
+        <tr><td><code>feather</code></td><td>4</td>
+            <td>Feather radius of the layer mask used when pasting back</td></tr>
+        <tr><td><code>timeout</code></td><td>600</td>
+            <td>How long to wait for ComfyUI; raise it for CPU fallback on big images</td></tr>
+        <tr><td><code>keep-mask</code></td><td>on</td>
+            <td>Keep the “AI Mask” channel, or turn it off for a clean result</td></tr>
+        <tr><td><code>scale</code></td><td>0</td>
+            <td>0 = send at the model's comfy size (SD1.5 512 / SDXL 1024); 1.0 = send as is</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Four traps</h3><span class="pill">all worked around</span></div>
+      <p><b>1. The mask is inverted.</b>ComfyUI's <code>LoadImage</code> derives the mask
+         from alpha (<code>mask = 1 - alpha</code>), so “repaint here” has to be
+         <b>transparent</b>. Send a grey image and you get an all-zero mask — the run finishes
+         and not one pixel moves.</p>
+      <p><b>2. Align to 8.</b>A crop whose sides are not multiples of 8 gets truncated, comes
+         back smaller than requested and pastes out of place.</p>
+      <p><b>3. Inpaint-only checkpoints ignore the prompt.</b>A 9-channel model on
+         ComfyUI's <code>VAEEncodeForInpaint</code> path only flattens the masked area and
+         leaves a pale rim. The workflow uses a plain checkpoint, and the dropdown labels
+         inpaint-only models so you can avoid them.</p>
+      <p><b>4. Aspect ratio.</b>SD only draws well near the ratios it was trained on. A
+         1024×400 (2.56:1) strip across the eyes makes SDXL fall back to flat poster art — a
+         prompt of <code>sunglasses</code> came back as a green board with repeated white
+         arrows. <code>plan_canvas_rect()</code> pads to ≤ 2:1 first, growing into real
+         pixels where the image allows and only replicating edges at the border; that ring is
+         masked out when pasting back.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>AI Environment</h3><span class="pill">no ComfyUI yet?</span></div>
+      <p><b>AI Environment…</b> opens with the state: reachable or not, which version, how
+         many checkpoints — and four buttons: <b>Start ComfyUI</b>, <b>One-click install…</b>
+         (about 10 GB the first time: embedded Python + torch cu128 + ComfyUI + one
+         checkpoint), <b>Model folder</b> (opens <code>models\\checkpoints</code>),
+         <b>Refresh</b>.</p>
+      <p>The status line tells “not running” apart from “not installed” instead of just
+         saying “cannot connect”. The installer ships with the plug-in, in the
+         <code>ai-setup/</code> folder of the zip.</p>
+      <p class="muted small">Why not one big zip: torch's CUDA wheels are 2.5 GB and a
+         checkpoint 2–7 GB — that fails distribution licensing and nobody wants a 10 GB
+         download.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Measured</h3><span class="pill">check_ai_inpaint*.py</span></div>
+      <p><code>tools/check_ai_inpaint.py</code> runs <b>168 assertions</b> against a local
+         mock service (no GPU needed): mask direction, 8× alignment, canvas padding, scale
+         limits, checkpoint family detection, workflow nodes and wiring, Chinese-to-English
+         prompt handling, failure paths.</p>
+      <p><code>tools/check_ai_inpaint_gimp.py</code> runs the procedure inside real GIMP 3.2:
+         selection → prompt → new layer, mask and channel, and a bogus checkpoint name being
+         rejected by the dropdown.</p>
+      <p>Speed (RTX 3070 Ti, SDXL, 25 steps, 1024×512): <b>8.7 s</b>. The same size on CPU
+         fallback is <b>94 s</b> (measured at 384×256) — it works, but not for batches.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Requirements</h3></div>
+      <p>A running ComfyUI and one checkpoint. The plug-in uses only the standard library
+         over HTTP — no Python dependencies; the HTTP and PNG code lives in
+         <code>plugin/_shared/ai_client.py</code>, and the regression suite swaps the real
+         service for <code>tools/mock_comfy.py</code>.</p>
+      <p>Chinese UI is complete for this plug-in: menus, the parameter dialog and the status
+         messages are all translated in <code>po/zh_CN.po</code>.</p>
+    </div>
+  </div>""",
+)

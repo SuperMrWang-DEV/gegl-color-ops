@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-title-zh="AI 局部重绘 · Python 插件 · gegl-color-ops" data-title-en="AI 局部重绘 · Python plug-ins · gegl-color-ops">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 局部重绘 · Python 插件 · gegl-color-ops</title>
+<meta name="description" content="框一块地方，写一句提示词，剩下的交给本机 ComfyUI（Stable Diffusion）：
+       插件把选区连同周围上下文裁下来、连蒙版一起送过去，等画完再把结果当新图层贴回原位。
+       不需要联网，不需要账号，一张 1" data-desc-zh="框一块地方，写一句提示词，剩下的交给本机 ComfyUI（Stable Diffusion）：
+       插件把选区连同周围上下文裁下来、连蒙版一起送过去，等画完再把结果当新图层贴回原位。
+       不需要联网，不需要账号，一张 1" data-desc-en="Frame an area, write one line of prompt, and your own ComfyUI
+   (Stable Diffusion) does the rest: the plug-in crops the">
+<meta property="og:title" content="AI 局部重绘 · Python 插件 · gegl-color-ops" data-title-zh="AI 局部重绘 · Python 插件 · gegl-color-ops" data-title-en="AI 局部重绘 · Python plug-ins · gegl-color-ops">
+<meta property="og:description" content="框一块地方，写一句提示词，剩下的交给本机 ComfyUI（Stable Diffusion）：
+       插件把选区连同周围上下文裁下来、连蒙版一起送过去，等画完再把结果当新图层贴回原位。
+       不需要联网，不需要账号，一张 1" data-desc-zh="框一块地方，写一句提示词，剩下的交给本机 ComfyUI（Stable Diffusion）：
+       插件把选区连同周围上下文裁下来、连蒙版一起送过去，等画完再把结果当新图层贴回原位。
+       不需要联网，不需要账号，一张 1" data-desc-en="Frame an area, write one line of prompt, and your own ComfyUI
+   (Stable Diffusion) does the rest: the plug-in crops the">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+<main id="main">
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> /
+    <a href="../plugins.html">插件</a> / AI</p>
+  <h1>AI 局部重绘</h1>
+  <div class="meta">
+    <code>plugin/ai-inpaint</code>
+    <span class="tag t-noise">AI</span>
+    <span>AI</span>
+  </div>
+  <p class="lede">框一块地方，写一句提示词，剩下的交给本机 <b>ComfyUI</b>（Stable Diffusion）：
+       插件把选区连同周围上下文裁下来、连蒙版一起送过去，等画完再把结果当新图层贴回原位。
+       不需要联网，不需要账号，一张 1024×512 的图在本机显卡上约 9 秒。</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="zh-overview">
+  <dt>菜单位置</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → AI → AI Inpaint…（简版：只问画什么）</li><li>SuperMrWang → AI → AI Inpaint (Advanced)…（全参数）</li><li>SuperMrWang → AI → AI Environment…（装 / 起 ComfyUI，看底模）</li></ul><p>处理对象是<b>当前选区</b>：先框出要改的地方，插件把这块连同周围一圈裁下来交给 ComfyUI，回来的图当新图层贴回原位，羽化过的选区做图层蒙版。没有选区它不会乱猜，会直接提示先框一块。</p></dd>
+  <dt>脚本调用</dt>
+  <dd><code class="pdb">lb-plugin-ai-inpaint(
+    image, drawables, prompt, preset, negative)
+lb-plugin-ai-inpaint-advanced(
+    image, drawables, prompt, preset, negative,
+    server, checkpoint, steps, cfg, seed, denoise,
+    grow, grow-mask-by, feather, timeout, keep-mask, scale)
+lb-plugin-ai-env(image)</code><p>标准 PDB 过程，参数留空走默认值。</p></dd>
+  <dt>依赖</dt>
+  <dd><p>不依赖任何自研算子，也不用编译：像素由你自己那台 ComfyUI 里的 Stable Diffusion 画，插件只负责裁图、发 HTTP、贴回。需要 <code>plugin/_shared/</code> 里的 <code>ai_client.py</code> 与 <code>prompt_tools.py</code>（下载包里带上了），以及一个在跑的 ComfyUI——没有的话菜单里的 <b>AI 环境…</b> 可以一键装、一键起，安装器就在这个包的 <code>ai-setup/</code> 目录里。</p></dd>
+</dl>
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-1">
+      <div class="dl-head"><h3>一次点击做了什么</h3><span class="pill">五步</span></div>
+      <ol class="steps">
+        <li>选区外扩 <code>grow</code>（默认 8 px，收拾接缝），外接框再带一圈上下文；</li>
+        <li>裁切框宽高对齐到 <b>8</b>——VAE 是 8× 下采样，不对齐回来就错位；长宽比补到
+            <b>≤ 2:1</b>，见下面「四个坑」；</li>
+        <li>从<b>可见合成</b>读这块像素（图层比画布小时取到的是下面图层，不是黑），
+            连同蒙版 PNG 发给 ComfyUI；</li>
+        <li>轮询 <code>/history</code> 等它画完；</li>
+        <li>结果读回成新图层，插在原图层正上方、偏移对回原地，羽化选区做图层蒙版。</li>
+      </ol>
+      <pre><code>AI Inpaint            新图层 · 带羽化图层蒙版
+  └─ 原图层             不动，随时关掉对比
+
+keep-mask 打开时，另存一条 "AI Mask" 通道，
+以后想重新限定范围可以直接拿来用。</code></pre>
+    </div>
+    <div class="dl" id="zh-sec-2">
+      <div class="dl-head"><h3>选区要紧</h3><span class="pill">最容易踩</span></div>
+      <p>蒙版盖住多少，模型就重画多少——它没有「这副眼镜戴在脸上该多大」的尺度概念。
+         框满整个额头到脸颊，出来的就是一副盖住半张脸的巨大墨镜。贴着目标该在的位置
+         框一条，上下各留 8~16 px 就够。</p>
+      <p>边缘不用抠准：<code>grow</code> 会把选区外扩，<code>feather</code>（默认 4 px）
+         管贴回时的过渡。真要精确形状，先在选区上做好再跑。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-3">
+      <div class="dl-head"><h3>三个框</h3><span class="pill">简版只有这些</span></div>
+      <p><b>Prompt —— 这里该变成什么。</b>写<b>结果</b>，不写动作：要去掉一只瓶子，写
+         <code>empty wooden table, wood grain</code>，别写 <code>remove the bottle</code>。
+         常用词可以直接写中文，<code>prompt_tools</code> 翻成英文再送（SD 本身只读英文，
+         中文提示词在它那里等于噪声）。</p>
+      <p><b>What to paint（preset）—— 主体下拉。</b>猫 / 狗 / 人 / 花 / 树 / 咖啡 /
+         食物 / 车。选了以后提示词只补细节（颜色、姿态、环境）。</p>
+      <p><b>Negative prompt —— 不要什么。</b>默认已把画风压向照片：
+         <code>illustration, cartoon, flat graphic, poster, vector art, cgi</code>。
+         这是修图插件，先让模型别往矢量插画跑；想要画风自己改这一栏。</p>
+    </div>
+    <div class="dl" id="zh-sec-4">
+      <div class="dl-head"><h3>参数框</h3></div>
+      <p>GIMP 3 不会替插件生成参数对话框，得插件自己建。这一支在 <code>run()</code> 里
+         调 <code>_shared/lb_dialog.py</code>：交互模式弹框、取消就是取消，
+         批处理与「上次的值」直接放行，不再偷偷按默认值跑一遍。</p>
+      <p class="muted small">这一课上过的不止这一支：不自己建框，参数就全部隐形，
+         永远按默认值执行。</p>
+    </div>
+  </div>
+
+  <div class="dl" id="zh-sec-5">
+    <div class="dl-head"><h3>高级版多出来的参数</h3><span class="pill">按需改，不是都得填</span></div>
+    <div class="table-wrap"><table class="op-table">
+      <thead><tr><th>参数</th><th>默认</th><th>什么时候动它</th></tr></thead>
+      <tbody>
+        <tr><td><code>server</code></td><td>空</td>
+            <td>ComfyUI 不在 127.0.0.1:8188 时填；空则读 <code>$LB_COMFY_URL</code></td></tr>
+        <tr><td><code>checkpoint</code></td><td>自动</td>
+            <td>下拉，选项当场问 ComfyUI 要；「自动」= 第一个非 inpaint 专用底模</td></tr>
+        <tr><td><code>steps</code></td><td>25</td>
+            <td>要更细的质感往上加，25–30 之后收益很小</td></tr>
+        <tr><td><code>cfg</code></td><td>7.5</td>
+            <td>听不听话。太高会硬、出现重复图形；太低会飘</td></tr>
+        <tr><td><code>seed</code></td><td>-1</td>
+            <td>想复现同一张：把上一次日志里的种子填进来</td></tr>
+        <tr><td><code>denoise</code></td><td>1.0</td>
+            <td><b>加新物体保持 1.0</b>；只在「保留原结构、轻度改写」时降</td></tr>
+        <tr><td><code>grow</code></td><td>8</td>
+            <td>选区外扩多少像素再送。接缝明显就加大</td></tr>
+        <tr><td><code>grow-mask-by</code></td><td>8</td>
+            <td>模型可动的额外像素，8 px = 一个 latent 格；越大接缝越少、漂移越多</td></tr>
+        <tr><td><code>feather</code></td><td>4</td>
+            <td>贴回时图层蒙版的羽化半径</td></tr>
+        <tr><td><code>timeout</code></td><td>600</td>
+            <td>等 ComfyUI 的上限。CPU 兜底跑大图时往上调</td></tr>
+        <tr><td><code>keep-mask</code></td><td>开</td>
+            <td>要不要留 "AI Mask" 通道；只想要干净结果就关掉</td></tr>
+        <tr><td><code>scale</code></td><td>0</td>
+            <td>0 = 按底模的舒适尺寸送（SD1.5 512 / SDXL 1024）；1.0 = 原样送</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-6">
+      <div class="dl-head"><h3>四个坑</h3><span class="pill">都在代码里绕开了</span></div>
+      <p><b>1. 蒙版方向是反的。</b>ComfyUI 的 <code>LoadImage</code> 用 alpha 倒推蒙版
+         （<code>mask = 1 - alpha</code>），所以「要重绘」必须写成<b>透明</b>。直接送灰度图
+         会得到全 0 蒙版，跑完像素纹丝不动。</p>
+      <p><b>2. 8× 对齐。</b>裁剪框宽高不是 8 的倍数就会被截断，回来的图比请求的小，
+         贴回去整块错位。</p>
+      <p><b>3. inpaint 专用底模不认提示词。</b>9 通道模型在 ComfyUI 的
+         <code>VAEEncodeForInpaint</code> 路径上只会把蒙版区抹平，边界还留一圈淡影。
+         工作流走普通底模，下拉里也把 inpaint 专用模型单独标出来。</p>
+      <p><b>4. 画幅比例。</b>SD 只在自己训练过的比例附近画得对。选区是眼睛那样一条
+         1024×400（2.56:1）时，SDXL 会把整块画成平涂海报——一句
+         <code>sunglasses</code> 出来是一块绿底配重复白色箭头。
+         <code>plan_canvas_rect()</code> 一律先补到 ≤ 2:1：优先往画面里长真实像素，
+         画面到边了才复制边缘，补出来的那圈贴回时被蒙版挡住。</p>
+    </div>
+    <div class="dl" id="zh-sec-7">
+      <div class="dl-head"><h3>AI 环境</h3><span class="pill">没装 ComfyUI？</span></div>
+      <p><b>AI Environment…</b> 打开先报状态：连不连得上、什么版本、几个底模；四个按钮——
+         <b>Start ComfyUI</b> 起服务、<b>One-click install…</b> 首次装环境（约 10 GB：
+         嵌入式 Python + torch cu128 + ComfyUI + 一份底模）、<b>Model folder</b> 直接打开
+         <code>models\checkpoints</code>、<b>Refresh</b> 重新探测。</p>
+      <p>状态区会区分「服务没开」和「根本没装」，不会只甩一句「连不上」。安装器随插件
+         走（包里的 <code>ai-setup/</code>），不需要另外去找。</p>
+      <p class="muted small">为什么不是一个 zip：torch 的 CUDA 轮子 2.5 GB、底模 2~7 GB，
+         打进包里既过不了分发许可，也没人愿意下 10 GB 的安装包。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-8">
+      <div class="dl-head"><h3>实测</h3><span class="pill">check_ai_inpaint*.py</span></div>
+      <p><code>tools/check_ai_inpaint.py</code> <b>168 条</b>断言跑在本地 mock 服务上
+         （不需要显卡）：蒙版方向、8× 对齐、画布补边、缩放倍率上下限、底模家族判定、
+         工作流节点与连线、提示词中英转换、失败退路。</p>
+      <p><code>tools/check_ai_inpaint_gimp.py</code> 在真实 GIMP 3.2 里把过程跑一遍：
+         选区 → 提示词 → 新图层、蒙版与通道、乱填的底模名被下拉拒回。</p>
+      <p>速度（RTX 3070 Ti，SDXL，25 步，1024×512）：<b>8.7 秒</b>。同一尺寸走 CPU
+         兜底是 <b>94 秒</b>（384×256 实测），能跑但不适合批量。</p>
+    </div>
+    <div class="dl" id="zh-sec-9">
+      <div class="dl-head"><h3>前提</h3></div>
+      <p>一个在跑的 ComfyUI + 一份底模。插件只用标准库发 HTTP，不装任何 Python 依赖；
+         HTTP 与 PNG 编解码都在 <code>plugin/_shared/ai_client.py</code> 里，
+         回归测试用 <code>tools/mock_comfy.py</code> 顶替真服务。</p>
+      <p>中文界面的人不用记参数名：<code>po/zh_CN.po</code> 里这些标签都翻过，
+         菜单、参数框、状态提示都是中文。</p>
+    </div>
+  </div>
+
+<section class="download" id="zh-download">
+  <h2>下载这一个</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>AI Inpaint…</h3><span class="pill">.py · 免编译</span></div>
+    <p>包里是一个 <code>.py</code>、一份安装说明，以及 <code>_shared/</code> 与 <code>locale/</code>。整包解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，但界面只有英文。</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-ai-inpaint.zip">下载 AI Inpaint…</a>
+    <p class="muted small">78.2 KB · 校验：<code>SHA256 e35c2f42a5d324ac061135ff506a0cbf…</code></p>
+  </div>
+</section>
+
+
+  </article>
+  <aside class="toc">
+    <p class="toc-title">本页目录</p>
+    <ul>
+      <li><a href="#zh-overview">概览</a></li>
+<li><a href="#zh-sec-1">一次点击做了什么</a></li><li><a href="#zh-sec-2">选区要紧</a></li><li><a href="#zh-sec-3">三个框</a></li><li><a href="#zh-sec-4">参数框</a></li><li><a href="#zh-sec-5">高级版多出来的参数</a></li><li><a href="#zh-sec-6">四个坑</a></li><li><a href="#zh-sec-7">AI 环境</a></li><li><a href="#zh-sec-8">实测</a></li><li><a href="#zh-sec-9">前提</a></li>
+      <li><a href="#zh-download">下载</a></li>
+    </ul>
+  </aside>
+</div>
+<nav class="pager">
+  <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
+  <a class="prev" href="neutral-grey.html"><span>上一篇</span>中性灰磨皮</a><a class="next" href="ai-frequency-separation.html"><span>下一篇</span>高低频磨皮（AI 预修）</a>
+</nav></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> /
+    <a href="../plugins.html">Plug-ins</a> / AI</p>
+  <h1>AI Inpaint</h1>
+  <div class="meta">
+    <code>plugin/ai-inpaint</code>
+    <span class="tag t-noise">AI</span>
+    <span>AI</span>
+  </div>
+  <p class="lede">Frame an area, write one line of prompt, and your own <b>ComfyUI</b>
+   (Stable Diffusion) does the rest: the plug-in crops the selection plus a ring of
+   context, sends it with a mask, waits for the answer and pastes it back as a new layer.
+   No account, no upload — 1024×512 comes back in about 9 seconds on a local GPU.</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="en-overview">
+  <dt>Menu location</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → AI → AI Inpaint… (three boxes)</li><li>SuperMrWang → AI → AI Inpaint (Advanced)… (every knob)</li><li>SuperMrWang → AI → AI Environment… (install / start ComfyUI)</li></ul><p>It works on <b>the current selection</b>: frame what should change and the plug-in crops that area plus a ring of context, sends it to ComfyUI, then pastes the answer back as a new layer masked by your feathered selection. With no selection it says so instead of guessing.</p></dd>
+  <dt>Scripting</dt>
+  <dd><code class="pdb">lb-plugin-ai-inpaint(
+    image, drawables, prompt, preset, negative)
+lb-plugin-ai-inpaint-advanced(
+    image, drawables, prompt, preset, negative,
+    server, checkpoint, steps, cfg, seed, denoise,
+    grow, grow-mask-by, feather, timeout, keep-mask, scale)
+lb-plugin-ai-env(image)</code><p>A standard PDB procedure; leave an argument empty to take its default.</p></dd>
+  <dt>Dependencies</dt>
+  <dd><p>No operator modules and nothing to compile: the pixels are painted by Stable Diffusion inside your own ComfyUI, and the plug-in only crops, posts over HTTP and pastes back. It needs <code>ai_client.py</code> and <code>prompt_tools.py</code> from <code>plugin/_shared/</code> (inside the download) plus a running ComfyUI — if there is none, the <b>AI Environment…</b> menu entry installs and starts one, and the installer ships in the <code>ai-setup/</code> folder of this zip.</p></dd>
+</dl>
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-1">
+      <div class="dl-head"><h3>What one click does</h3><span class="pill">five steps</span></div>
+      <ol class="steps">
+        <li>Grow the selection by <code>grow</code> (8 px by default, hides the seam) and take
+            its bounding box plus context;</li>
+        <li>Align the crop to <b>8</b> — the VAE downsamples 8×, and a crop that is not a
+            multiple comes back truncated and pastes out of place — then pad the aspect
+            ratio to <b>≤ 2:1</b> (see “four traps” below);</li>
+        <li>Read those pixels from the <b>visible composite</b> (a layer smaller than the
+            canvas gives you the layer below, not black) and post them with a mask PNG;</li>
+        <li>Poll <code>/history</code> until the job is done;</li>
+        <li>Load the result as a new layer directly above the original, offset back to where
+            it came from, masked by the feathered selection.</li>
+      </ol>
+      <pre><code>AI Inpaint            new layer · feathered layer mask
+  └─ original layer     untouched, toggle it to compare
+
+With keep-mask on, an "AI Mask" channel is kept as well,
+so you can re-limit the area later.</code></pre>
+    </div>
+    <div class="dl" id="en-sec-2">
+      <div class="dl-head"><h3>Keep the selection tight</h3><span class="pill">the usual trap</span></div>
+      <p>Whatever the mask covers is what gets repainted — the model has no idea how big a
+         pair of glasses should be on a face. Frame the whole forehead-to-cheek band and you
+         get glasses covering half the head. Frame the strip where they belong, 8–16 px of
+         slack on each side is plenty.</p>
+      <p>The edges do not need to be precise: <code>grow</code> expands the mask and
+         <code>feather</code> (4 px by default) blends the pasted result back in.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-3">
+      <div class="dl-head"><h3>Three boxes</h3><span class="pill">that is the simple version</span></div>
+      <p><b>Prompt — what should be there.</b> Describe the <b>result</b>, not the action:
+         to remove a bottle write <code>empty wooden table, wood grain</code>, not
+         <code>remove the bottle</code>. Common Chinese words are fine — the plug-in
+         translates them first; SD itself only reads English, so raw Chinese is just noise
+         to it.</p>
+      <p><b>What to paint (preset) — a subject drop-down.</b>Cat / dog / person / flower /
+         tree / coffee / food / car. Pick one and the prompt only needs the details
+         (colour, pose, surroundings).</p>
+      <p><b>Negative prompt — what must not appear.</b>The default already leans photo:
+         <code>illustration, cartoon, flat graphic, poster, vector art, cgi</code>. This is a
+         retouching plug-in, so the model is told not to drift into vector art; change the
+         line if you want a stylised result.</p>
+    </div>
+    <div class="dl" id="en-sec-4">
+      <div class="dl-head"><h3>The parameter dialog</h3></div>
+      <p>GIMP 3 does not build a dialog for a plug-in — the plug-in has to. This one calls
+         <code>_shared/lb_dialog.py</code> from <code>run()</code>: interactive runs get a
+         dialog, cancel really cancels, and batch runs or “last values” pass straight
+         through instead of silently running with defaults.</p>
+      <p class="muted small">Every plug-in in this project learned it the hard way: without a
+         dialog of your own, every parameter is invisible and the defaults always win.</p>
+    </div>
+  </div>
+
+  <div class="dl" id="en-sec-5">
+    <div class="dl-head"><h3>What the advanced version adds</h3><span class="pill">change on demand</span></div>
+    <div class="table-wrap"><table class="op-table">
+      <thead><tr><th>Parameter</th><th>Default</th><th>When to touch it</th></tr></thead>
+      <tbody>
+        <tr><td><code>server</code></td><td>empty</td>
+            <td>ComfyUI is not on 127.0.0.1:8188; empty reads <code>$LB_COMFY_URL</code></td></tr>
+        <tr><td><code>checkpoint</code></td><td>automatic</td>
+            <td>Dropdown filled by asking ComfyUI; “automatic” is the first non-inpaint model</td></tr>
+        <tr><td><code>steps</code></td><td>25</td>
+            <td>More for finer texture; little gain past 25–30</td></tr>
+        <tr><td><code>cfg</code></td><td>7.5</td>
+            <td>How literally to follow the prompt. Too high goes hard and repeats shapes</td></tr>
+        <tr><td><code>seed</code></td><td>-1</td>
+            <td>To reproduce a result, paste the seed from the previous run's message</td></tr>
+        <tr><td><code>denoise</code></td><td>1.0</td>
+            <td><b>Keep 1.0 when adding something new</b>; lower only to keep the structure</td></tr>
+        <tr><td><code>grow</code></td><td>8</td>
+            <td>How far to expand the selection before sending — raise it if a seam shows</td></tr>
+        <tr><td><code>grow-mask-by</code></td><td>8</td>
+            <td>Extra pixels the model may touch (8 px = one latent cell); more = fewer seams, more drift</td></tr>
+        <tr><td><code>feather</code></td><td>4</td>
+            <td>Feather radius of the layer mask used when pasting back</td></tr>
+        <tr><td><code>timeout</code></td><td>600</td>
+            <td>How long to wait for ComfyUI; raise it for CPU fallback on big images</td></tr>
+        <tr><td><code>keep-mask</code></td><td>on</td>
+            <td>Keep the “AI Mask” channel, or turn it off for a clean result</td></tr>
+        <tr><td><code>scale</code></td><td>0</td>
+            <td>0 = send at the model's comfy size (SD1.5 512 / SDXL 1024); 1.0 = send as is</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-6">
+      <div class="dl-head"><h3>Four traps</h3><span class="pill">all worked around</span></div>
+      <p><b>1. The mask is inverted.</b>ComfyUI's <code>LoadImage</code> derives the mask
+         from alpha (<code>mask = 1 - alpha</code>), so “repaint here” has to be
+         <b>transparent</b>. Send a grey image and you get an all-zero mask — the run finishes
+         and not one pixel moves.</p>
+      <p><b>2. Align to 8.</b>A crop whose sides are not multiples of 8 gets truncated, comes
+         back smaller than requested and pastes out of place.</p>
+      <p><b>3. Inpaint-only checkpoints ignore the prompt.</b>A 9-channel model on
+         ComfyUI's <code>VAEEncodeForInpaint</code> path only flattens the masked area and
+         leaves a pale rim. The workflow uses a plain checkpoint, and the dropdown labels
+         inpaint-only models so you can avoid them.</p>
+      <p><b>4. Aspect ratio.</b>SD only draws well near the ratios it was trained on. A
+         1024×400 (2.56:1) strip across the eyes makes SDXL fall back to flat poster art — a
+         prompt of <code>sunglasses</code> came back as a green board with repeated white
+         arrows. <code>plan_canvas_rect()</code> pads to ≤ 2:1 first, growing into real
+         pixels where the image allows and only replicating edges at the border; that ring is
+         masked out when pasting back.</p>
+    </div>
+    <div class="dl" id="en-sec-7">
+      <div class="dl-head"><h3>AI Environment</h3><span class="pill">no ComfyUI yet?</span></div>
+      <p><b>AI Environment…</b> opens with the state: reachable or not, which version, how
+         many checkpoints — and four buttons: <b>Start ComfyUI</b>, <b>One-click install…</b>
+         (about 10 GB the first time: embedded Python + torch cu128 + ComfyUI + one
+         checkpoint), <b>Model folder</b> (opens <code>models\checkpoints</code>),
+         <b>Refresh</b>.</p>
+      <p>The status line tells “not running” apart from “not installed” instead of just
+         saying “cannot connect”. The installer ships with the plug-in, in the
+         <code>ai-setup/</code> folder of the zip.</p>
+      <p class="muted small">Why not one big zip: torch's CUDA wheels are 2.5 GB and a
+         checkpoint 2–7 GB — that fails distribution licensing and nobody wants a 10 GB
+         download.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-8">
+      <div class="dl-head"><h3>Measured</h3><span class="pill">check_ai_inpaint*.py</span></div>
+      <p><code>tools/check_ai_inpaint.py</code> runs <b>168 assertions</b> against a local
+         mock service (no GPU needed): mask direction, 8× alignment, canvas padding, scale
+         limits, checkpoint family detection, workflow nodes and wiring, Chinese-to-English
+         prompt handling, failure paths.</p>
+      <p><code>tools/check_ai_inpaint_gimp.py</code> runs the procedure inside real GIMP 3.2:
+         selection → prompt → new layer, mask and channel, and a bogus checkpoint name being
+         rejected by the dropdown.</p>
+      <p>Speed (RTX 3070 Ti, SDXL, 25 steps, 1024×512): <b>8.7 s</b>. The same size on CPU
+         fallback is <b>94 s</b> (measured at 384×256) — it works, but not for batches.</p>
+    </div>
+    <div class="dl" id="en-sec-9">
+      <div class="dl-head"><h3>Requirements</h3></div>
+      <p>A running ComfyUI and one checkpoint. The plug-in uses only the standard library
+         over HTTP — no Python dependencies; the HTTP and PNG code lives in
+         <code>plugin/_shared/ai_client.py</code>, and the regression suite swaps the real
+         service for <code>tools/mock_comfy.py</code>.</p>
+      <p>Chinese UI is complete for this plug-in: menus, the parameter dialog and the status
+         messages are all translated in <code>po/zh_CN.po</code>.</p>
+    </div>
+  </div>
+
+<section class="download" id="en-download">
+  <h2>Download this one</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>AI Inpaint</h3><span class="pill">.py · no compile</span></div>
+    <p>The archive holds a single <code>.py</code>, an install note and the <code>_shared/</code> + <code>locale/</code> pair. Unpack all of it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register. Without <code>_shared/</code> and <code>locale/</code> it still runs, but only in English.</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-ai-inpaint.zip">Download AI Inpaint</a>
+    <p class="muted small">78.2 KB · checksum: <code>SHA256 e35c2f42a5d324ac061135ff506a0cbf…</code></p>
+  </div>
+</section>
+
+
+  </article>
+  <aside class="toc">
+    <p class="toc-title">On this page</p>
+    <ul>
+      <li><a href="#en-overview">Overview</a></li>
+<li><a href="#en-sec-1">What one click does</a></li><li><a href="#en-sec-2">Keep the selection tight</a></li><li><a href="#en-sec-3">Three boxes</a></li><li><a href="#en-sec-4">The parameter dialog</a></li><li><a href="#en-sec-5">What the advanced version adds</a></li><li><a href="#en-sec-6">Four traps</a></li><li><a href="#en-sec-7">AI Environment</a></li><li><a href="#en-sec-8">Measured</a></li><li><a href="#en-sec-9">Requirements</a></li>
+      <li><a href="#en-download">Download</a></li>
+    </ul>
+  </aside>
+</div>
+<nav class="pager">
+  <a href="../plugins.html"><span>Back to</span>All plug-ins</a>
+  <a class="prev" href="neutral-grey.html"><span>Previous</span>Neutral Grey</a><a class="next" href="ai-frequency-separation.html"><span>Next</span>Frequency Separation (AI prep)</a>
+</nav></div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
+    <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
+    <span class="muted">2739b76</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
+</body>
+</html>

@@ -82,6 +82,11 @@
      即 <code>plug-ins/_shared/</code> 与 <code>plug-ins/locale/</code>。
      少了 <code>lb_dialog.py</code> 不会报错，但点菜单会直接用默认值跑、
      不弹参数框。</p>
+  <p>只有 <b>AI 局部重绘</b>还要额外一样东西：本机的 ComfyUI。它的下载包里带
+     <code>ai-setup/</code>，双击一次 <code>setup-ai.bat</code> 就把 ComfyUI、torch
+     和一份底模装好（约 10 GB，无人值守）；之后在
+     <a href="plugins/ai-inpaint.html">SuperMrWang → AI → AI Environment…</a>
+     里点 Start ComfyUI。其余插件不需要它。</p>
 
   <h2 id="lang">界面语言</h2>
   <p>翻译跟着 <b>GIMP 的界面语言</b>走，不跟操作系统走：</p>
@@ -264,6 +269,11 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
      and <code>plug-ins/locale/</code>. Without <code>lb_dialog.py</code> nothing
      errors out, but the menu entry runs with defaults and never shows its
      parameter dialog.</p>
+  <p>Only <b>AI Inpaint</b> needs one more thing: a local ComfyUI. Its zip carries an
+     <code>ai-setup/</code> folder — run <code>setup-ai.bat</code> once and it installs
+     ComfyUI, torch and one checkpoint (~10 GB, unattended); afterwards press Start
+     ComfyUI in <a href="plugins/ai-inpaint.html">SuperMrWang → AI → AI Environment…</a>.
+     No other plug-in needs it.</p>
 
   <h2 id="lang">Interface language</h2>
   <p>The translation follows <b>GIMP's interface language</b>, not the operating
@@ -441,7 +451,7 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">d8c5c20</span>
+    <span class="muted">2739b76</span>
   </div>
 </footer>
 <script>

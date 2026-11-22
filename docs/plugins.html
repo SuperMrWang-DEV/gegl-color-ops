@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Python 插件 · gegl-color-ops</title>
-<meta name="description" content="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮——免编译，解压即用" data-desc-zh="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮——免编译，解压即用" data-desc-en="19 compile-free GIMP 3 plug-ins: layer to selection or channel, HSV / LCh / HSL / Lab / HSI component curves, frequency separation, dodge &amp; burn, neutral grey.">
+<meta name="description" content="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮，AI 局部重绘——免编译，解压即用" data-desc-zh="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮，AI 局部重绘——免编译，解压即用" data-desc-en="20 compile-free GIMP 3 plug-ins: layer to selection or channel, HSV / LCh / HSL / Lab / HSI component curves, frequency separation, dodge &amp; burn, neutral grey, AI inpaint.">
 <meta property="og:title" content="Python 插件 · gegl-color-ops" data-title-zh="Python 插件 · gegl-color-ops" data-title-en="Python plug-ins · gegl-color-ops">
-<meta property="og:description" content="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮——免编译，解压即用" data-desc-zh="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮——免编译，解压即用" data-desc-en="19 compile-free GIMP 3 plug-ins: layer to selection or channel, HSV / LCh / HSL / Lab / HSI component curves, frequency separation, dodge &amp; burn, neutral grey.">
+<meta property="og:description" content="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮，AI 局部重绘——免编译，解压即用" data-desc-zh="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮，AI 局部重绘——免编译，解压即用" data-desc-en="20 compile-free GIMP 3 plug-ins: layer to selection or channel, HSV / LCh / HSL / Lab / HSI component curves, frequency separation, dodge &amp; burn, neutral grey, AI inpaint.">
 <link rel="stylesheet" href="assets/style.css?v=5235b3fe7a">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="feed.xml">
 <script>
@@ -42,17 +42,26 @@
 <main id="main">
 <section class="page-head">
   <p class="eyebrow"><a href="index.html"><span class="l-zh">首页</span><span class="l-en">Home</span></a> / <span class="l-zh">Python 插件</span><span class="l-en">Python plug-ins</span></p>
-  <h1><span class="l-zh">19 个 Python 插件</span><span class="l-en">19 Python plug-ins</span></h1>
-  <p class="lede"><span class="l-zh">免编译的 GIMP 3 插件，装进 <code>plug-ins</code> 目录、重启即用。两处入口：菜单栏顶层的 <b>SuperMrWang</b>（全部都在），以及<b>图层右键 → SuperMrWang</b>。</span><span class="l-en">Compile-free GIMP 3 plug-ins: drop them into the <code>plug-ins</code> folder and restart. Two entry points: the top-level <b>SuperMrWang</b> menu (all of them) and <b>layer right-click → SuperMrWang</b>.</span></p>
+  <h1><span class="l-zh">20 个 Python 插件</span><span class="l-en">20 Python plug-ins</span></h1>
+  <p class="lede"><span class="l-zh">免编译的 GIMP 3 插件，装进 <code>plug-ins</code> 目录、重启即用。两处入口：菜单栏顶层的 <b>SuperMrWang</b>（全部都在），以及<b>图层右键 → SuperMrWang</b>。只有 AI 那一支要额外起一个本机的 <b>ComfyUI</b>——没装的话它自己带着安装器。</span><span class="l-en">Compile-free GIMP 3 plug-ins: drop them into the <code>plug-ins</code> folder and restart. Two entry points: the top-level <b>SuperMrWang</b> menu (all of them) and <b>layer right-click → SuperMrWang</b>. Only the AI one needs a local <b>ComfyUI</b> — and it ships its own installer.</span></p>
   <ul class="facts">
-    <li><span class="l-zh"><b>19</b> 个插件</span><span class="l-en"><b>19</b> plug-ins</span></li>
-    <li><span class="l-zh"><b>19</b> 个 PDB 过程</span><span class="l-en"><b>19</b> PDB procedures</span></li>
-    <li><span class="l-zh"><b>503</b> 条回归断言</span><span class="l-en"><b>503</b> regression assertions</span></li>
+    <li><span class="l-zh"><b>20</b> 个插件</span><span class="l-en"><b>20</b> plug-ins</span></li>
+    <li><span class="l-zh"><b>20</b> 个 PDB 过程</span><span class="l-en"><b>20</b> PDB procedures</span></li>
+    <li><span class="l-zh"><b>671</b> 条回归断言</span><span class="l-en"><b>671</b> regression assertions</span></li>
     <li><span class="l-zh"><b>0</b> 编译 · 纯 Python</span><span class="l-en"><b>0</b> to compile · pure Python</span></li>
   </ul>
 </section>
 
 <div class="prose wide">
+<h2 id="g-ai" class="plug-group"><span class="tag t-noise"><span class="l-zh">AI</span><span class="l-en">AI</span></span>
+    <span class="count"><span class="l-zh">1 个</span><span class="l-en">1</span></span></h2>
+  <p class="group-desc"><span class="l-zh">把选区交给本机的 Stable Diffusion 重画，外加装 / 起 ComfyUI 的入口。</span><span class="l-en">Hands a selection to Stable Diffusion on your own machine, plus the entry that installs and starts ComfyUI.</span></p>
+  <div class="table-wrap"><table class="op-table plug-table">
+    <thead><tr><th><span class="l-zh">插件</span><span class="l-en">Plug-in</span></th><th>PDB</th><th><span class="l-zh">类型</span><span class="l-en">Type</span></th><th><span class="l-zh">做什么</span><span class="l-en">What it does</span></th></tr></thead>
+    <tbody>
+    <tr><td><a href="plugins/ai-inpaint.html"><b><span class="l-zh">AI 局部重绘</span><span class="l-en">AI Inpaint</span></b></a></td><td><code>lb-plugin-ai-inpaint</code></td><td class="nowrap"><span class="l-zh">AI</span><span class="l-en">AI</span></td><td><span class="l-zh">框一块地方、写一句提示词，交给本机 ComfyUI 重画，结果当新图层贴回原位。</span><span class="l-en">Frame an area, write what should be there, and a local ComfyUI redraws it — the answer comes back as a new masked layer.</span></td></tr>
+    </tbody>
+  </table></div>
 <h2 id="g-shortcut" class="plug-group"><span class="tag t-color"><span class="l-zh">Retouch</span><span class="l-en">Retouch</span></span>
     <span class="count"><span class="l-zh">11 个</span><span class="l-en">11</span></span></h2>
   <p class="group-desc"><span class="l-zh">五条分量曲线、三个磨皮：把一串手工步骤压成一次点击。</span><span class="l-en">Five component-curve plug-ins and three retouching ones: a chain of manual steps collapsed into one click.</span></p>
@@ -110,7 +119,7 @@
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">d8c5c20</span>
+    <span class="muted">2739b76</span>
   </div>
 </footer>
 <script>

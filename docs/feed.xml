@@ -106,6 +106,15 @@
        零开始。</summary>
   </entry>
   <entry>
+    <title>插件 · AI 局部重绘</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/ai-inpaint.html"/>
+    <id>tag:github.com,2026:plugin-ai-inpaint</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>框一块地方，写一句提示词，剩下的交给本机 ComfyUI（Stable Diffusion）：
+       插件把选区连同周围上下文裁下来、连蒙版一起送过去，等画完再把结果当新图层贴回原位。
+       不需要联网，不需要账号，一张 1024×512 的图在本机显卡上约 9 秒。</summary>
+  </entry>
+  <entry>
     <title>插件 · 中性灰磨皮</title>
     <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/neutral-grey.html"/>
     <id>tag:github.com,2026:plugin-neutral-grey</id>

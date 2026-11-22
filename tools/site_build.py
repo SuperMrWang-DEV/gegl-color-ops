@@ -1846,6 +1846,11 @@ def build_guide(version, stats):
      即 <code>plug-ins/_shared/</code> 与 <code>plug-ins/locale/</code>。
      少了 <code>lb_dialog.py</code> 不会报错，但点菜单会直接用默认值跑、
      不弹参数框。</p>
+  <p>只有 <b>AI 局部重绘</b>还要额外一样东西：本机的 ComfyUI。它的下载包里带
+     <code>ai-setup/</code>，双击一次 <code>setup-ai.bat</code> 就把 ComfyUI、torch
+     和一份底模装好（约 10 GB，无人值守）；之后在
+     <a href="plugins/ai-inpaint.html">SuperMrWang → AI → AI Environment…</a>
+     里点 Start ComfyUI。其余插件不需要它。</p>
 
   <h2 id="lang">界面语言</h2>
   <p>翻译跟着 <b>GIMP 的界面语言</b>走，不跟操作系统走：</p>
@@ -2029,6 +2034,11 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
      and <code>plug-ins/locale/</code>. Without <code>lb_dialog.py</code> nothing
      errors out, but the menu entry runs with defaults and never shows its
      parameter dialog.</p>
+  <p>Only <b>AI Inpaint</b> needs one more thing: a local ComfyUI. Its zip carries an
+     <code>ai-setup/</code> folder — run <code>setup-ai.bat</code> once and it installs
+     ComfyUI, torch and one checkpoint (~10 GB, unattended); afterwards press Start
+     ComfyUI in <a href="plugins/ai-inpaint.html">SuperMrWang → AI → AI Environment…</a>.
+     No other plug-in needs it.</p>
 
   <h2 id="lang">Interface language</h2>
   <p>The translation follows <b>GIMP's interface language</b>, not the operating
@@ -2325,6 +2335,24 @@ PLUGIN_SPECS = [
              desc="中性灰磨皮：加一张 50% 灰的柔光层，恒等时与原图逐像素相同。"
                   "白色画笔提亮、黑色画笔压暗，反复涂抹把皮肤推平。",
              pdb="lb-plugin-neutral-grey(image, drawables, group)"),
+        dict(key="ai-inpaint", ops=[],
+             name="gegl-color-ops-plugin-ai-inpaint.zip",
+             src_dir=os.path.join(ROOT, "plugin", "ai-inpaint"),
+             py="ai-inpaint.py",
+             menu="AI 局部重绘 (AI Inpaint)",
+             menus="    SuperMrWang → AI → AI Inpaint…（简版：只问画什么）\n"
+                   "    SuperMrWang → AI → AI Inpaint (Advanced)…（全参数）\n"
+                   "    SuperMrWang → AI → AI Environment…（装 / 起 ComfyUI，看底模）",
+             desc="AI 局部重绘：框一块地方、写一句提示词，交给本机 ComfyUI（Stable "
+                  "Diffusion）重画，结果当新图层贴回原位，羽化选区做图层蒙版。同包还带"
+                  "一个「AI 环境」入口：没装 ComfyUI 的人可以从那里一键装、一键起。",
+             shared=["ai_client.py", "prompt_tools.py"],
+             setup=True,
+             pdb="lb-plugin-ai-inpaint(image, drawables, prompt, preset, negative)\n"
+                 "lb-plugin-ai-inpaint-advanced(image, drawables, prompt, preset,\n"
+                 "    negative, server, checkpoint, steps, cfg, seed, denoise, grow,\n"
+                 "    grow-mask-by, feather, timeout, keep-mask, scale)\n"
+                 "lb-plugin-ai-env(image)"),
         dict(key="ai-frequency", ops=[],
              name="gegl-color-ops-plugin-ai-frequency-separation.zip",
              src_dir=os.path.join(ROOT, "plugin", "ai-frequency-separation"),
@@ -2530,10 +2558,25 @@ GPL-3.0-or-later
 GPL-3.0-or-later
 """.format(py=sp["py"], desc=sp["desc"], menus=sp["menus"],
            pdb=sp["pdb"], repo=REPO)
+        if sp.get("setup"):
+            # AI 插件要靠一个在跑的 ComfyUI；安装器一起发，别让用户去仓库里找
+            readme += """
+-------------------------------------------------------------
+这个插件要一个在跑的 ComfyUI 才干活。包里的 ai-setup\\ 就是安装器：
+
+    ai-setup\\setup-ai.bat    双击跑，无人值守装好嵌入式 Python + torch(CUDA)
+                              + ComfyUI + 一份底模（约 10 GB，只跑一次）
+    ai-setup\\setup_ai.py     它的实现，不用手点
+
+装的位置默认是 %USERPROFILE%\\SuperMrWang-AI（可用 --dir 换盘）。
+装完之后在 GIMP 里走  SuperMrWang → AI → AI Environment…，
+点 Start ComfyUI 起服务；那个控制台窗口关掉就等于停服务。
+
+没有 NVIDIA 显卡也能跑（--cpu 兜底），只是慢两个数量级。
+"""
         path = os.path.join(out_dir, sp["name"])
         with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
-            _zip_add_file(z, os.path.join(sp["src_dir"], sp["py"]), sp["py"])
-            # 这几支插件除了 lb_i18n，还要 retouch_prep / ai_client 这些共享模块；
+            _zip_add_file(z, os.path.join(sp["src_dir"], sp["py"]), sp["py"])            # 这几支插件除了 lb_i18n，还要 retouch_prep / ai_client 这些共享模块；
             # 不一起打进去，用户解压出来点菜单只会得到一个 ImportError
             # lb_dialog.py 是每个插件都要的（参数对话框），不管它有没有别的依赖
             for shared_py in ["lb_dialog.py"] + (sp.get("shared") or []):
@@ -2545,6 +2588,8 @@ GPL-3.0-or-later
             for f in lin_so:
                 _zip_add_file(z, os.path.join(lin_src, f),
                               "modules-linux-x64/" + f)
+            if sp.get("setup"):
+                _zip_add_setup(z, "ai-setup/")
             _zip_add_i18n(z, "")
             _zip_add_text(z, "安装说明.txt", readme)
         zips[sp["key"]] = {"name": sp["name"], "sha": _sha256_file(path),
@@ -2622,10 +2667,17 @@ def build_plugin_bundle(out_dir):
 放好之后完全退出 GIMP 再打开（关窗口不算）。两个目录都只在启动时扫描。
 
 菜单位置：菜单栏顶层的 SuperMrWang（和「颜色」「图层」平级）
+    SuperMrWang → AI        AI Inpaint（简版 / 高级版）、AI Environment（装/起 ComfyUI）
     SuperMrWang → Retouch   五个分量曲线 + 高低频 / 双曲线 / 中性灰磨皮
     SuperMrWang → Mask       Alpha Curves
     SuperMrWang → Convert    Layer to Selection / Layer to Channel / Split Channels
     图层右键 → SuperMrWang   同上全部
+
+AI 局部重绘还要一个在跑的 ComfyUI。没装的话：
+  1) 双击 plugins\\ai-setup\\setup-ai.bat 跑一次（装嵌入式 Python + torch +
+     ComfyUI + 一份底模，约 10 GB，无人值守）；
+  2) 之后在 GIMP 里走 SuperMrWang → AI → AI Environment…，点 Start ComfyUI。
+那个控制台窗口关掉就等于停服务，用 AI 功能期间别关。
 {miss_note}
 插件清单：
 {listing}
@@ -2654,6 +2706,10 @@ GPL-3.0-or-later
                                      for f in (sp.get("shared") or [])}):
                 _zip_add_file(z, os.path.join(ROOT, "plugin", "_shared", shared_py),
                               "plugins/_shared/" + shared_py)
+            # AI 重绘那支要 ComfyUI；安装器放在 plugins/ai-setup/，
+            # 插件按「同级 ai-setup」找得到（find_installer 的第二个候选路径）
+            if any(sp.get("setup") for sp in PLUGIN_SPECS):
+                _zip_add_setup(z, "plugins/ai-setup/")
             _zip_add_text(z, "安装说明.txt", readme)
         out[plat] = {"name": name, "sha": _sha256_file(path),
                      "mb": round(os.path.getsize(path) / (1024 * 1024), 1),
@@ -2700,6 +2756,7 @@ def build_plugins(version, stats=None):
                              th4=t("做什么", "What it does"),
                              rows=rows)
 
+    ai = [p for p in PD.PAGES if p["area"] == "AI"]
     shortcut = [p for p in PD.PAGES if p["area"].startswith("Retouch")]
     convert = [p for p in PD.PAGES if p["area"] == "图层转换"]
     mask = [p for p in PD.PAGES if p["area"] == "Mask"]
@@ -2718,6 +2775,7 @@ def build_plugins(version, stats=None):
 </section>
 
 <div class="prose wide">
+{ai}
 {shortcut}
 {convert}
 {mask}
@@ -2727,13 +2785,15 @@ def build_plugins(version, stats=None):
         h1=t("%d 个 Python 插件" % n_plug, "%d Python plug-ins" % n_plug),
         lede=t("免编译的 GIMP 3 插件，装进 <code>plug-ins</code> 目录、重启即用。"
                "两处入口：菜单栏顶层的 <b>SuperMrWang</b>（全部都在），以及"
-               "<b>图层右键 → SuperMrWang</b>。",
+               "<b>图层右键 → SuperMrWang</b>。只有 AI 那一支要额外起一个本机的 "
+               "<b>ComfyUI</b>——没装的话它自己带着安装器。",
                "Compile-free GIMP 3 plug-ins: drop them into the <code>plug-ins</code> "
                "folder and restart. Two entry points: the top-level <b>SuperMrWang</b> "
-               "menu (all of them) and <b>layer right-click → SuperMrWang</b>."),
+               "menu (all of them) and <b>layer right-click → SuperMrWang</b>. Only the "
+               "AI one needs a local <b>ComfyUI</b> — and it ships its own installer."),
         f1=t("<b>%d</b> 个插件" % n_plug, "<b>%d</b> plug-ins" % n_plug),
         f2=t("<b>%d</b> 个 PDB 过程" % n_plug, "<b>%d</b> PDB procedures" % n_plug),
-        f3=t("<b>503</b> 条回归断言", "<b>503</b> regression assertions"),
+        f3=t("<b>671</b> 条回归断言", "<b>671</b> regression assertions"),
         f4=t("<b>0</b> 编译 · 纯 Python", "<b>0</b> to compile · pure Python"),
         note=t("安装：<code>bash install-plugin.sh</code> 一次装齐，或从各自的页面"
                "单独下某一个 <code>.zip</code>；细节见 "
@@ -2741,6 +2801,11 @@ def build_plugins(version, stats=None):
                "Install: <code>bash install-plugin.sh</code> puts them all in place, "
                "or download a single <code>.zip</code> from its own page — details in "
                "the <a href=\"guide.html\">install guide</a>."),
+        ai=group("ai", "AI", "t-noise",
+                 "把选区交给本机的 Stable Diffusion 重画，外加装 / 起 ComfyUI 的入口。",
+                 ai, tag_en="AI",
+                 desc_en="Hands a selection to Stable Diffusion on your own machine, "
+                         "plus the entry that installs and starts ComfyUI."),
         shortcut=group("shortcut", "Retouch", "t-color",
                        "五条分量曲线、三个磨皮：把一串手工步骤压成一次点击。",
                        shortcut, tag_en="Retouch",
@@ -2761,11 +2826,12 @@ def build_plugins(version, stats=None):
     return page("Python 插件 · gegl-color-ops", body,
                 desc="GIMP 3 Python 插件：图层转选区 / Alpha 通道，"
                      "HSV / LCh / HSL / Lab / HSI 分量分层曲线，"
-                     "高低频 / 双曲线 / 中性灰磨皮——免编译，解压即用",
+                     "高低频 / 双曲线 / 中性灰磨皮，AI 局部重绘——免编译，解压即用",
                 titles=("Python 插件 · gegl-color-ops", "Python plug-ins · gegl-color-ops"),
                 desc_en="%d compile-free GIMP 3 plug-ins: layer to selection or "
                         "channel, HSV / LCh / HSL / Lab / HSI component curves, "
-                        "frequency separation, dodge & burn, neutral grey." % n_plug)
+                        "frequency separation, dodge & burn, neutral grey, AI inpaint."
+                        % n_plug)
 
 
 # 有几个插件的全部价值在于「把原生操作收成一次点击」，不新增任何像素算法。
@@ -2882,6 +2948,17 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
                             "<code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。"
                             "少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，"
                             "但界面只有英文。")
+            if p.get("setup"):
+                if en_:
+                    note += (" It also carries <code>ai-setup/</code>: run "
+                             "<code>setup-ai.bat</code> once and it installs ComfyUI, "
+                             "torch and one checkpoint (~10 GB, unattended); after that "
+                             "the <b>AI Environment…</b> menu entry starts the server.")
+                else:
+                    note += (" 包里另外带 <code>ai-setup/</code>：双击一次 "
+                             "<code>setup-ai.bat</code>，它把 ComfyUI、torch 和一份底模"
+                             "装好（约 10 GB，无人值守）；之后用 <b>AI 环境…</b> 菜单项"
+                             "起服务。")
             if absent:
                 if en_:
                     note += (" The Linux side of %s is not in the prebuilt bundle yet; if you "
@@ -2934,6 +3011,21 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
         if not p.get("native_only"):
             native = ""
 
+        if p.get("no_code_note"):
+            # AI 重绘不讲「码」，整段省掉
+            note_code = ""
+
+        # 菜单块下面那句注解：多数插件是「对当前这一个图层」，AI 重绘是「对当前选区」，
+        # 页面数据里可以覆盖（spec_note / spec_note_en）
+        layer_note = ((p.get("spec_note_en") or p.get("spec_note")) if en_
+                      else p.get("spec_note")) or (
+            "These are all the same action, applied to <b>the one layer you have "
+            "selected</b>. Layer groups do not work — a group has no pixels of its own, "
+            "so the plug-in stops with an explicit error and asks you to merge first."
+            if en_ else
+            "这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——"
+            "组没有自己的像素，会直接报错并提示先合并。")
+
         spec = """<dl class="spec" id="%s-overview">
   <dt>%s</dt>
   <dd><ul class="menu-list">%s</ul><p>%s</p></dd>
@@ -2943,12 +3035,7 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
   <dd>%s</dd>
 </dl>""" % (lang,
            "Menu location" if en_ else "菜单位置", menu_html,
-           ("These are all the same action, applied to <b>the one layer you have "
-            "selected</b>. Layer groups do not work — a group has no pixels of its own, "
-            "so the plug-in stops with an explicit error and asks you to merge first."
-            if en_ else
-            "这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——"
-            "组没有自己的像素，会直接报错并提示先合并。"),
+           layer_note,
            "Scripting" if en_ else "脚本调用", p["pdb"],
            "A standard PDB procedure; leave an argument empty to take its default."
            if en_ else "标准 PDB 过程，参数留空走默认值。",
@@ -3099,6 +3186,15 @@ def _zip_add_i18n(z, prefix):
         if os.path.exists(mo):
             _zip_add_file(z, mo, "%slocale/%s/LC_MESSAGES/gegl-color-ops.mo"
                           % (prefix, lang))
+
+def _zip_add_setup(z, prefix):
+    """AI 插件的安装器：setup-ai.bat 双击用，setup_ai.py 是它的实现。
+    两个都必须在，否则「一键安装」按钮点下去只能报找不到脚本。"""
+    for name in ("setup-ai.bat", "setup_ai.py"):
+        src = os.path.join(ROOT, "tools", name)
+        if os.path.exists(src):
+            _zip_add_file(z, src, prefix + name)
+
 
 def _zip_add_file(z, path, arcname):
     info = zipfile.ZipInfo(arcname, date_time=ZIP_EPOCH)
@@ -3352,6 +3448,29 @@ def main():
     else:
         print("· 站内链接自检通过：%d 个页面无死链 / %d pages, 0 broken links"
               % (n_pages, n_pages))
+
+    # 构建后自检二：每个插件包必须自洽——.py、它 import 的 _shared 模块，
+    # 还有 AI 那支的安装器（ai-setup/）都得在包里。少一样的话，用户解压完
+    # 点菜单只会得到一个 ImportError 或「找不到 setup-ai.bat」，而这里全是绿的。
+    bad = []
+    for sp in PLUGIN_SPECS:
+        with zipfile.ZipFile(os.path.join(DOCS, "download", sp["name"])) as z:
+            names = set(z.namelist())
+        need = [sp["py"]] + ["_shared/" + f for f in
+                             ["lb_i18n.py", "lb_dialog.py"] + (sp.get("shared") or [])]
+        if sp.get("setup"):
+            need += ["ai-setup/setup-ai.bat", "ai-setup/setup_ai.py"]
+        for n in need:
+            if n not in names:
+                bad.append("%s 缺少 %s" % (sp["name"], n))
+    if bad:
+        print("· 插件包自检失败 %d 条 / %d incomplete plug-in zips："
+              % (len(bad), len(bad)))
+        for b in bad:
+            print("    " + b)
+    else:
+        print("· 插件包自检通过：%d 个包都带齐 .py / _shared / 安装器"
+              % len(PLUGIN_SPECS))
 
     if serve:
         import http.server

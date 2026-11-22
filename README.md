@@ -779,6 +779,12 @@ python tools/mock_comfy.py --port 8188        # 重绘结果 = 蒙版区填成�
 `./build.sh`。`./install-plugin.sh` 会把 `plugin/ai-inpaint/` 和它依赖的
 `plugin/_shared/` 一起装到 GIMP 用户插件目录。
 
+站点上现在有它自己的页面与单独下载包（`docs/plugins/ai-inpaint.html`、
+`docs/download/gegl-color-ops-plugin-ai-inpaint.zip`），包里额外带一个
+`ai-setup/`：`setup-ai.bat` + `setup_ai.py`。没有 ComfyUI 的人下这一个包就有
+插件和安装器，不用回仓库翻。整包里同样带 `plugins/ai-setup/`。这条规格靠
+`PLUGIN_SPECS` 的 `setup=True` 打开（`site_build._zip_add_setup()` 负责塞文件）。
+
 ## 命名与代码风格约定
 
 改代码时请沿用下面几条，`python tools/normalize_headers.py --write` 可自动重排文件头。
@@ -1125,7 +1131,7 @@ SuperMrWang → Levels    → <算子>   （7 个色阶）
 SuperMrWang → Component → <算子>   （10 个 dual / compose + 灰度转分量）
 SuperMrWang → Tone / Color / Blend / Mask → <算子>
 SuperMrWang → Sharpen / Noise / Distort → <算子>
-SuperMrWang → AI        → AI Inpaint… / AI Inpaint (Advanced)…
+SuperMrWang → AI        → AI Inpaint… / AI Inpaint (Advanced)… / AI Environment…
 SuperMrWang → Retouch   → 高低频 / 双曲线 / 中性灰磨皮
                           各自再加一个「（AI 预修）」入口
                           （以上都是 Python 插件，不在 47 个算子里）

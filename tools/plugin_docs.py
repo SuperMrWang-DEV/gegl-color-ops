@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""十五个 Python 插件的页面数据。
+"""Python 插件的页面数据（每支一条，条数由 plugins.html 自己数）。
 
 plugins.html 的卡片与 plugins/<slug>.html 的文章正文都从这里来，改一处两边
 一起变；正文来源是各插件源码与回归实测，数字都在 tools/check_*.py 里可复现。
@@ -605,6 +605,170 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
   </div>""",
     ),
     dict(
+        key='ai-inpaint',
+        slug='ai-inpaint',
+        title='AI 局部重绘',
+        tag=('AI', 't-noise'),
+        count='选区 + 提示词',
+        menu='SuperMrWang → AI → AI Inpaint…',
+        menus=['SuperMrWang → AI → AI Inpaint…（简版：只问画什么）',
+               'SuperMrWang → AI → AI Inpaint (Advanced)…（全参数）',
+               'SuperMrWang → AI → AI Environment…（装 / 起 ComfyUI，看底模）'],
+        menus_en=['SuperMrWang → AI → AI Inpaint… (three boxes)',
+                  'SuperMrWang → AI → AI Inpaint (Advanced)… (every knob)',
+                  'SuperMrWang → AI → AI Environment… (install / start ComfyUI)'],
+        pdb='lb-plugin-ai-inpaint(\n    image, drawables, prompt, preset, negative)\n'
+            'lb-plugin-ai-inpaint-advanced(\n    image, drawables, prompt, preset, negative,\n'
+            '    server, checkpoint, steps, cfg, seed, denoise,\n'
+            '    grow, grow-mask-by, feather, timeout, keep-mask, scale)\n'
+            'lb-plugin-ai-env(image)',
+        spec_note="处理对象是<b>当前选区</b>：先框出要改的地方，插件把这块连同周围一圈"
+                  "裁下来交给 ComfyUI，回来的图当新图层贴回原位，羽化过的选区做图层蒙版。"
+                  "没有选区它不会乱猜，会直接提示先框一块。",
+        spec_note_en="It works on <b>the current selection</b>: frame what should change and "
+                     "the plug-in crops that area plus a ring of context, sends it to "
+                     "ComfyUI, then pastes the answer back as a new layer masked by your "
+                     "feathered selection. With no selection it says so instead of guessing.",
+        no_code_note=True,
+        lede="""框一块地方，写一句提示词，剩下的交给本机 <b>ComfyUI</b>（Stable Diffusion）：
+       插件把选区连同周围上下文裁下来、连蒙版一起送过去，等画完再把结果当新图层贴回原位。
+       不需要联网，不需要账号，一张 1024×512 的图在本机显卡上约 9 秒。""",
+        body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>一次点击做了什么</h3><span class="pill">五步</span></div>
+      <ol class="steps">
+        <li>选区外扩 <code>grow</code>（默认 8 px，收拾接缝），外接框再带一圈上下文；</li>
+        <li>裁切框宽高对齐到 <b>8</b>——VAE 是 8× 下采样，不对齐回来就错位；长宽比补到
+            <b>≤ 2:1</b>，见下面「四个坑」；</li>
+        <li>从<b>可见合成</b>读这块像素（图层比画布小时取到的是下面图层，不是黑），
+            连同蒙版 PNG 发给 ComfyUI；</li>
+        <li>轮询 <code>/history</code> 等它画完；</li>
+        <li>结果读回成新图层，插在原图层正上方、偏移对回原地，羽化选区做图层蒙版。</li>
+      </ol>
+      <pre><code>AI Inpaint            新图层 · 带羽化图层蒙版
+  └─ 原图层             不动，随时关掉对比
+
+keep-mask 打开时，另存一条 "AI Mask" 通道，
+以后想重新限定范围可以直接拿来用。</code></pre>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>选区要紧</h3><span class="pill">最容易踩</span></div>
+      <p>蒙版盖住多少，模型就重画多少——它没有「这副眼镜戴在脸上该多大」的尺度概念。
+         框满整个额头到脸颊，出来的就是一副盖住半张脸的巨大墨镜。贴着目标该在的位置
+         框一条，上下各留 8~16 px 就够。</p>
+      <p>边缘不用抠准：<code>grow</code> 会把选区外扩，<code>feather</code>（默认 4 px）
+         管贴回时的过渡。真要精确形状，先在选区上做好再跑。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>三个框</h3><span class="pill">简版只有这些</span></div>
+      <p><b>Prompt —— 这里该变成什么。</b>写<b>结果</b>，不写动作：要去掉一只瓶子，写
+         <code>empty wooden table, wood grain</code>，别写 <code>remove the bottle</code>。
+         常用词可以直接写中文，<code>prompt_tools</code> 翻成英文再送（SD 本身只读英文，
+         中文提示词在它那里等于噪声）。</p>
+      <p><b>What to paint（preset）—— 主体下拉。</b>猫 / 狗 / 人 / 花 / 树 / 咖啡 /
+         食物 / 车。选了以后提示词只补细节（颜色、姿态、环境）。</p>
+      <p><b>Negative prompt —— 不要什么。</b>默认已把画风压向照片：
+         <code>illustration, cartoon, flat graphic, poster, vector art, cgi</code>。
+         这是修图插件，先让模型别往矢量插画跑；想要画风自己改这一栏。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>参数框</h3></div>
+      <p>GIMP 3 不会替插件生成参数对话框，得插件自己建。这一支在 <code>run()</code> 里
+         调 <code>_shared/lb_dialog.py</code>：交互模式弹框、取消就是取消，
+         批处理与「上次的值」直接放行，不再偷偷按默认值跑一遍。</p>
+      <p class="muted small">这一课上过的不止这一支：不自己建框，参数就全部隐形，
+         永远按默认值执行。</p>
+    </div>
+  </div>
+
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>高级版多出来的参数</h3><span class="pill">按需改，不是都得填</span></div>
+    <div class="table-wrap"><table class="op-table">
+      <thead><tr><th>参数</th><th>默认</th><th>什么时候动它</th></tr></thead>
+      <tbody>
+        <tr><td><code>server</code></td><td>空</td>
+            <td>ComfyUI 不在 127.0.0.1:8188 时填；空则读 <code>$LB_COMFY_URL</code></td></tr>
+        <tr><td><code>checkpoint</code></td><td>自动</td>
+            <td>下拉，选项当场问 ComfyUI 要；「自动」= 第一个非 inpaint 专用底模</td></tr>
+        <tr><td><code>steps</code></td><td>25</td>
+            <td>要更细的质感往上加，25–30 之后收益很小</td></tr>
+        <tr><td><code>cfg</code></td><td>7.5</td>
+            <td>听不听话。太高会硬、出现重复图形；太低会飘</td></tr>
+        <tr><td><code>seed</code></td><td>-1</td>
+            <td>想复现同一张：把上一次日志里的种子填进来</td></tr>
+        <tr><td><code>denoise</code></td><td>1.0</td>
+            <td><b>加新物体保持 1.0</b>；只在「保留原结构、轻度改写」时降</td></tr>
+        <tr><td><code>grow</code></td><td>8</td>
+            <td>选区外扩多少像素再送。接缝明显就加大</td></tr>
+        <tr><td><code>grow-mask-by</code></td><td>8</td>
+            <td>模型可动的额外像素，8 px = 一个 latent 格；越大接缝越少、漂移越多</td></tr>
+        <tr><td><code>feather</code></td><td>4</td>
+            <td>贴回时图层蒙版的羽化半径</td></tr>
+        <tr><td><code>timeout</code></td><td>600</td>
+            <td>等 ComfyUI 的上限。CPU 兜底跑大图时往上调</td></tr>
+        <tr><td><code>keep-mask</code></td><td>开</td>
+            <td>要不要留 "AI Mask" 通道；只想要干净结果就关掉</td></tr>
+        <tr><td><code>scale</code></td><td>0</td>
+            <td>0 = 按底模的舒适尺寸送（SD1.5 512 / SDXL 1024）；1.0 = 原样送</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>四个坑</h3><span class="pill">都在代码里绕开了</span></div>
+      <p><b>1. 蒙版方向是反的。</b>ComfyUI 的 <code>LoadImage</code> 用 alpha 倒推蒙版
+         （<code>mask = 1 - alpha</code>），所以「要重绘」必须写成<b>透明</b>。直接送灰度图
+         会得到全 0 蒙版，跑完像素纹丝不动。</p>
+      <p><b>2. 8× 对齐。</b>裁剪框宽高不是 8 的倍数就会被截断，回来的图比请求的小，
+         贴回去整块错位。</p>
+      <p><b>3. inpaint 专用底模不认提示词。</b>9 通道模型在 ComfyUI 的
+         <code>VAEEncodeForInpaint</code> 路径上只会把蒙版区抹平，边界还留一圈淡影。
+         工作流走普通底模，下拉里也把 inpaint 专用模型单独标出来。</p>
+      <p><b>4. 画幅比例。</b>SD 只在自己训练过的比例附近画得对。选区是眼睛那样一条
+         1024×400（2.56:1）时，SDXL 会把整块画成平涂海报——一句
+         <code>sunglasses</code> 出来是一块绿底配重复白色箭头。
+         <code>plan_canvas_rect()</code> 一律先补到 ≤ 2:1：优先往画面里长真实像素，
+         画面到边了才复制边缘，补出来的那圈贴回时被蒙版挡住。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>AI 环境</h3><span class="pill">没装 ComfyUI？</span></div>
+      <p><b>AI Environment…</b> 打开先报状态：连不连得上、什么版本、几个底模；四个按钮——
+         <b>Start ComfyUI</b> 起服务、<b>One-click install…</b> 首次装环境（约 10 GB：
+         嵌入式 Python + torch cu128 + ComfyUI + 一份底模）、<b>Model folder</b> 直接打开
+         <code>models\\checkpoints</code>、<b>Refresh</b> 重新探测。</p>
+      <p>状态区会区分「服务没开」和「根本没装」，不会只甩一句「连不上」。安装器随插件
+         走（包里的 <code>ai-setup/</code>），不需要另外去找。</p>
+      <p class="muted small">为什么不是一个 zip：torch 的 CUDA 轮子 2.5 GB、底模 2~7 GB，
+         打进包里既过不了分发许可，也没人愿意下 10 GB 的安装包。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>实测</h3><span class="pill">check_ai_inpaint*.py</span></div>
+      <p><code>tools/check_ai_inpaint.py</code> <b>168 条</b>断言跑在本地 mock 服务上
+         （不需要显卡）：蒙版方向、8× 对齐、画布补边、缩放倍率上下限、底模家族判定、
+         工作流节点与连线、提示词中英转换、失败退路。</p>
+      <p><code>tools/check_ai_inpaint_gimp.py</code> 在真实 GIMP 3.2 里把过程跑一遍：
+         选区 → 提示词 → 新图层、蒙版与通道、乱填的底模名被下拉拒回。</p>
+      <p>速度（RTX 3070 Ti，SDXL，25 步，1024×512）：<b>8.7 秒</b>。同一尺寸走 CPU
+         兜底是 <b>94 秒</b>（384×256 实测），能跑但不适合批量。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>前提</h3></div>
+      <p>一个在跑的 ComfyUI + 一份底模。插件只用标准库发 HTTP，不装任何 Python 依赖；
+         HTTP 与 PNG 编解码都在 <code>plugin/_shared/ai_client.py</code> 里，
+         回归测试用 <code>tools/mock_comfy.py</code> 顶替真服务。</p>
+      <p>中文界面的人不用记参数名：<code>po/zh_CN.po</code> 里这些标签都翻过，
+         菜单、参数框、状态提示都是中文。</p>
+    </div>
+  </div>""",
+    ),
+    dict(
         key='ai-frequency',
         slug='ai-frequency-separation',
         title='高低频磨皮（AI 预修）',
@@ -1172,6 +1336,7 @@ BRIEF = {
     "frequency": "低频管影调、高频管细节，叠起来就是原图；半径决定分界。",
     "dodge": "提亮 / 压暗两条曲线压在黑蒙版下：涂到哪里动哪里。",
     "grey": "一层 50% 灰、柔光下恒等；白笔提亮、黑笔压暗、灰盖回去。",
+    "ai-inpaint": "框一块地方、写一句提示词，交给本机 ComfyUI 重画，结果当新图层贴回原位。",
     "ai-frequency": "结构同高低频，两层的内容换成一张已经修过一遍的参考图。",
     "ai-dodge": "两条曲线的蒙版按参考图的差值预先涂好七成，打开就能继续补。",
     "ai-grey": "灰层不再是平的 128：按参考图反解出偏移，已做一轮中性灰。",
@@ -1188,9 +1353,10 @@ BRIEF = {
 }
 
 TAG_EN = {"曲线": "Curves", "磨皮": "Retouching", "选区": "Selection",
-          "通道": "Channels", "蒙版": "Mask", "转换": "Convert"}
+          "通道": "Channels", "蒙版": "Mask", "转换": "Convert", "AI": "AI"}
 
 TITLE_EN = {
+    "ai-inpaint": "AI Inpaint",
     "frequency": "Frequency Separation",
     "ai-frequency": "Frequency Separation (AI prep)",
     "ai-dodge": "Dodge & Burn (AI prep)",
@@ -1225,6 +1391,8 @@ BRIEF_EN = {
              "paint where you want them.",
     "grey": "A 50% grey layer is identity under soft light: white brush lightens, "
             "black darkens, grey paints it back.",
+    "ai-inpaint": "Frame an area, write what should be there, and a local ComfyUI "
+                  "redraws it — the answer comes back as a new masked layer.",
     "ai-frequency": "Same structure as Frequency Separation, but both layers carry a "
                      "reference that was already retouched once.",
     "ai-dodge": "Both curve masks come pre-painted to 70% of the measured difference, "
@@ -1244,9 +1412,18 @@ BRIEF_EN = {
                 "menu items with no dialog.",
 }
 
-AREA_EN = {"图层转换": "Convert", "Mask": "Mask", "Retouch 修饰": "Retouch"}
+AREA_EN = {"图层转换": "Convert", "Mask": "Mask", "Retouch 修饰": "Retouch",
+           "AI": "AI"}
 
 DEPS_NOTE_EN = {
+    "ai-inpaint": "No operator modules and nothing to compile: the pixels are painted "
+                  "by Stable Diffusion inside your own ComfyUI, and the plug-in only "
+                  "crops, posts over HTTP and pastes back. It needs "
+                  "<code>ai_client.py</code> and <code>prompt_tools.py</code> from "
+                  "<code>plugin/_shared/</code> (inside the download) plus a running "
+                  "ComfyUI — if there is none, the <b>AI Environment…</b> menu entry "
+                  "installs and starts one, and the installer ships in the "
+                  "<code>ai-setup/</code> folder of this zip.",
     "ai-frequency": "Only GIMP's own <code>gegl:gaussian-blur</code> and "
                     "<code>gegl:high-pass</code> — no extra operator modules. It does "
                     "need <code>retouch_prep.py</code>, <code>retouch_math.py</code> "
@@ -1278,10 +1455,12 @@ DEPS_NOTE_EN = {
 
 AREA = {"selection": "图层转换", "channel": "图层转换", "split": "图层转换",
         "convert": "图层转换",
+        "ai-inpaint": "AI",
         "alpha-curves": "Mask", "color-range": "Mask",
         "channel-to-mask": "Mask", "max-min": "Mask"}
 
 DEPS = {
+    "ai-inpaint": [],
     "hsv": ["lb:hsv-dual", "lb:hsv-compose", "gimp:curves"],
     "lch": ["lb:lch-dual", "lb:lch-compose", "gimp:curves"],
     "hsl": ["lb:hsl-dual", "lb:hsl-compose", "gimp:curves"],
@@ -1302,6 +1481,12 @@ DEPS = {
 }
 
 DEPS_NOTE = {
+    "ai-inpaint": "不依赖任何自研算子，也不用编译：像素由你自己那台 ComfyUI 里的 "
+                  "Stable Diffusion 画，插件只负责裁图、发 HTTP、贴回。需要 "
+                  "<code>plugin/_shared/</code> 里的 <code>ai_client.py</code> 与 "
+                  "<code>prompt_tools.py</code>（下载包里带上了），以及一个在跑的 "
+                  "ComfyUI——没有的话菜单里的 <b>AI 环境…</b> 可以一键装、一键起，"
+                  "安装器就在这个包的 <code>ai-setup/</code> 目录里。",
     "grey": "不依赖任何自研算子：只往缓冲区里写像素，用 GIMP 自己的柔光混合模式。"
             "装了插件就能用。",
     "selection": "不依赖任何自研算子：直接读图层字节（array 的 C 级切片，"
