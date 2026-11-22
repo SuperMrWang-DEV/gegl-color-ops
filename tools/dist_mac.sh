@@ -82,7 +82,9 @@ else
   say "· 跳过编译（--no-build）"
 fi
 
-built=$(ls build/*.dylib 2>/dev/null | wc -l | tr -d ' ')
+# || true：没有 .dylib 时 ls 返回 2，set -e + pipefail 会让整个赋值静默退出，
+# 那样就看不到下面那句「编译没成功？」的提示了
+built=$(ls build/*.dylib 2>/dev/null | wc -l | tr -d ' ' || true)
 say "· build/ 里有 $built 个 .dylib"
 [ "$built" -gt 0 ] || { echo "✗ build/ 里没有 .dylib，编译没成功？" >&2; exit 1; }
 
@@ -100,8 +102,10 @@ if git diff --cached --quiet; then
   exit 0
 fi
 
-n=$(ls "dist/$PLAT"/*.dylib 2>/dev/null | wc -l | tr -d ' ')
-sample=$(ls "dist/$PLAT"/*.dylib 2>/dev/null | head -1 | xargs -n1 basename | sed 's/\.dylib$//')
+n=$(ls "dist/$PLAT"/*.dylib 2>/dev/null | wc -l | tr -d ' ' || true)
+sample=$(ls "dist/$PLAT"/*.dylib 2>/dev/null | head -1 | xargs -n1 basename 2>/dev/null \
+         | sed 's/\.dylib$//' || true)
+[ -n "$sample" ] || sample="none"
 
 say ""
 say "· 将要提交："
