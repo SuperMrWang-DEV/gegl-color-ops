@@ -64,6 +64,8 @@ for _cand in (os.path.join(_HERE, '_shared'),
         break
 from lb_i18n import _           # noqa: E402  自有 gettext 域 + 语言取自 GLib
 
+import lb_dialog as _dialog
+
 OP = 'lb:max-min'
 
 
@@ -251,6 +253,9 @@ class MaxMinPlugin(Gimp.PlugIn):
             return procedure.new_return_values(
                 Gimp.PDBStatusType.CALLING_ERROR,
                 GLib.Error(_("Select a layer or one of its masks.")))
+        if not _dialog.run_dialog(procedure, run_mode, config):
+            return procedure.new_return_values(
+                Gimp.PDBStatusType.CANCEL, None)
         try:
             max_min(image, drawables[0],
                     config.get_property('mode') or 'maximum',

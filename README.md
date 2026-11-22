@@ -930,8 +930,8 @@ GEGL_PATH="$PWD/build;/d/fastsoftware/GIMP 3/lib/gegl-0.4" gegl in.png -o out.pn
 说明只是回落到英文，不会报错，所以很容易被当成「没做多语言」。
 
 Python 插件是**另一套目录**（GIMP 自己的 `plug-ins/`，不是 GEGL 那个）：除 `.py`
-之外还要有 `_shared/`（`lb_i18n.py`，翻译取值模块）和 `locale/`，三者放在同一层。
-单个插件包与整包的 `安装说明.txt` 里都写了这一步。
+之外还要有 `_shared/`（`lb_i18n.py` 翻译取值、`lb_dialog.py` 参数对话框）和
+`locale/`，三者放在同一层。单个插件包与整包的 `安装说明.txt` 里都写了这一步。
 
 ### 界面语言
 
@@ -948,6 +948,44 @@ LB_LOCALEDIR=/path/to/locale gimp  # 直接指定语言包目录
 标记，所以切语言后它不会自己失效，菜单会停在旧语言。删掉
 `%APPDATA%\GIMP\3.x\pluginrc`（Linux `~/.config/GIMP/3.x/pluginrc`）再启动即可。
 算子不受影响——它们每次启动都重新取。
+
+## 插件的参数对话框要自己弹
+
+**GIMP 3 不会自动给插件生成参数对话框。** 参数用 `add_*_argument` 注册得再完整、
+过程也挂在菜单上，只要 `run()` 里没有自己建 `GimpUi.ProcedureDialog` 再 `run()`，
+点菜单就是**用默认值直接开跑**——用户看不到任何输入框。
+
+这个 bug 特别阴：菜单在、PDB 里查得到、插件也确实「工作」（用默认值），
+只有「所有可调参数」这一层被悄悄吃掉了。2026-11-22 就是这样：22 支 Python 插件
+全都有这个问题，直到 AI 局部重绘因为默认提示词是空串，才把它暴露成
+「提示词是空的」这句报错。
+
+正确写法（三行，已经在 `plugin/_shared/lb_dialog.py` 里封装成 `run_dialog`）：
+
+```python
+if run_mode == Gimp.RunMode.INTERACTIVE:
+    dialog = GimpUi.ProcedureDialog.new(procedure, config, title)
+    GimpUi.window_set_transient(dialog)
+    dialog.fill()
+    if not dialog.run():
+        return procedure.new_return_values(Gimp.PDBStatusType.CANCEL, None)
+    dialog.destroy()
+```
+
+几条规矩：
+
+- **只在 `INTERACTIVE` 弹**。`WITH_LAST_VALS`（重复上次）和 `NONINTERACTIVE`
+  （批处理）再弹框就是骚扰甚至卡死回归脚本。
+- **取消要返回 `CANCEL`**，别让用户点了「取消」还照样跑一遍。
+- **弹不出来不能让插件失败**：`lb_dialog` 兜底退回默认值并打一条消息。
+- 对话框标题按 Pango 标记解析，菜单名里的 `&` 要转义，否则标题解析失败。
+  助手已经 `markup_escape_text` 过了。
+- 参数本身由 GIMP 按类型生成控件，但 `GimpParamCoreObjectArray`（`drawables`）
+  会报 `non supported type` 警告——那本来就不该让人填，忽略。
+
+回归：`tools/check_plugin_dialogs.py` 把每支插件的源码断言 + 真的用
+`GimpUi.ProcedureDialog` 把控件建一遍。**只断言源码里出现 `add_menu_path` 那种
+写法是不够的**——本轮和上次「菜单消失」都是这么漏过去的。
 
 ## 多语言（gettext）
 
@@ -1104,6 +1142,10 @@ python tools/normalize_headers.py           # 预览文件头/命名重排，加
 python tools/set_menu_group.py --check      # 核对菜分组映射表与 ops 目录是否一一对应
 python tools/check_menu.py                  # 每个算子都有 id / menu-path / menu-label，且路径与分组表一致
 python tools/check_ai_inpaint.py            # AI 重绘的 HTTP/PNG 链路（对着 mock ComfyUI，不需要显卡）
+# 下面三条要在真 GIMP 里跑（插件已装好）；用 gimp-console，不用开界面
+gimp-console -b "exec(open('tools/check_plugin_dialogs.py').read())"   # 每个插件都能弹出参数框（106 条）
+gimp-console -b "exec(open('tools/check_retouch_ai_gimp.py').read())"  # 磨皮三支：结构 / 预涂蒙版 / 灰层 / 选区
+gimp-console -b "exec(open('tools/check_ai_inpaint_gimp.py').read())"  # AI 重绘的落位与蒙版
 python tools/make_dist.py                   # 把 build/ 整理成 dist/（含 manifest + 校验和）
 ./tools/check-linux.sh                      # 在 Linux/WSL 里验证 .so 能加载并渲染（不开 GIMP）
 python tools/git_push_api.py --dry-run      # 推送兜底：github.com:443 不通时改走 Git Data API

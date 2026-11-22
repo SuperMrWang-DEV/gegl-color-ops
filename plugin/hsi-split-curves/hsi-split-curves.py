@@ -91,6 +91,8 @@ except Exception:                  # helper 不在：保持可用，只是不翻
     def _(message):
         return GLib.dgettext(None, message)
 
+import lb_dialog as _dialog
+
 
 # 精确适配用的两个算子（本仓库 ops/hsi-dual、ops/hsi-compose）
 DUAL_OP = "lb:hsi-dual"
@@ -330,6 +332,9 @@ class HsiSplitPlugin(Gimp.PlugIn):
             return procedure.new_return_values(
                 Gimp.PDBStatusType.CALLING_ERROR,
                 GLib.Error(_("No image or no layer selected")))
+        if not _dialog.run_dialog(procedure, run_mode, config):
+            return procedure.new_return_values(
+                Gimp.PDBStatusType.CANCEL, None)
         try:
             split_hsi(image, drawables[0], config.get_property('group'))
             return procedure.new_return_values(

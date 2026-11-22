@@ -203,7 +203,10 @@ def test_registration():
               all(k in args for k in ("prompt", "source", "group", "steps")),
               args)
         label = proc.get_menu_label() or ""
-        check("%s 菜单标签带 AI prep" % key, "AI prep" in label, label)
+        # 标签会跟着 GIMP 界面语言翻译：中文界面下是「…（AI 预修）」，
+        # 英文界面下才是 "(AI prep)"。只认英文的断言在中文 GIMP 里必红。
+        check("%s 菜单标签标明是 AI 预修版" % key,
+              ("AI prep" in label) or ("AI 预修" in label), label)
         cfg = proc.create_config()
         check("%s source 默认 ai" % key, cfg.get_property("source") == "ai",
               cfg.get_property("source"))

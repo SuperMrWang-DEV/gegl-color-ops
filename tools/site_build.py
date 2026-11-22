@@ -1841,8 +1841,11 @@ def build_guide(version, stats):
      最终是 <code>plug-ins/locale/zh_CN/LC_MESSAGES/gegl-color-ops.mo</code>。
      漏了它不会报错：算子照常工作，只是菜单名和参数说明回落到英文。</p>
   <p>Python 插件包同理：GIMP 的插件目录里除了 <code>.py</code>，还要有
-     <code>_shared/</code>（翻译取值模块）和 <code>locale/</code>（语言包），
-     即 <code>plug-ins/_shared/lb_i18n.py</code> 与 <code>plug-ins/locale/</code>。</p>
+     <code>_shared/</code>（翻译取值 <code>lb_i18n.py</code> + 参数对话框
+     <code>lb_dialog.py</code>）和 <code>locale/</code>（语言包），
+     即 <code>plug-ins/_shared/</code> 与 <code>plug-ins/locale/</code>。
+     少了 <code>lb_dialog.py</code> 不会报错，但点菜单会直接用默认值跑、
+     不弹参数框。</p>
 
   <h2 id="lang">界面语言</h2>
   <p>翻译跟着 <b>GIMP 的界面语言</b>走，不跟操作系统走：</p>
@@ -2020,9 +2023,12 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
      if you drop it: the operators still work, the menu names and parameter blurbs just
      fall back to English.</p>
   <p>Same for the Python plug-in archives: next to the <code>.py</code> files GIMP's
-     plug-in folder needs <code>_shared/</code> (the lookup helper) and
-     <code>locale/</code> (the catalogue), i.e. <code>plug-ins/_shared/lb_i18n.py</code>
-     and <code>plug-ins/locale/</code>.</p>
+     plug-in folder needs <code>_shared/</code> (the translation lookup
+     <code>lb_i18n.py</code> plus the dialog helper <code>lb_dialog.py</code>) and
+     <code>locale/</code> (the catalogue), i.e. <code>plug-ins/_shared/</code>
+     and <code>plug-ins/locale/</code>. Without <code>lb_dialog.py</code> nothing
+     errors out, but the menu entry runs with defaults and never shows its
+     parameter dialog.</p>
 
   <h2 id="lang">Interface language</h2>
   <p>The translation follows <b>GIMP's interface language</b>, not the operating
@@ -2494,8 +2500,9 @@ GPL-3.0-or-later
 """.format(py=sp["py"], desc=sp["desc"], menus=sp["menus"], pdb=sp["pdb"],
            repo=REPO, listing="\n".join(listing), extra=extra,
            stem=os.path.splitext(sp["py"])[0],
-           shared_list="\n".join("    _shared/" + f for f in ["lb_i18n.py"] +
-                                  (sp.get("shared") or [])),
+           shared_list="\n".join("    _shared/" + f
+                                 for f in ["lb_i18n.py", "lb_dialog.py"] +
+                                 (sp.get("shared") or [])),
            lin_hint=lin_hint)
         else:
             readme = """gegl-color-ops · {py}（GIMP 3 Python 插件）
@@ -2528,7 +2535,8 @@ GPL-3.0-or-later
             _zip_add_file(z, os.path.join(sp["src_dir"], sp["py"]), sp["py"])
             # 这几支插件除了 lb_i18n，还要 retouch_prep / ai_client 这些共享模块；
             # 不一起打进去，用户解压出来点菜单只会得到一个 ImportError
-            for shared_py in (sp.get("shared") or []):
+            # lb_dialog.py 是每个插件都要的（参数对话框），不管它有没有别的依赖
+            for shared_py in ["lb_dialog.py"] + (sp.get("shared") or []):
                 _zip_add_file(z, os.path.join(ROOT, "plugin", "_shared", shared_py),
                               "_shared/" + shared_py)
             for f in win_dll:
@@ -2603,9 +2611,10 @@ def build_plugin_bundle(out_dir):
   1) plugins/ 里的**全部内容**  →  GIMP 的用户插件目录
         {gimp_dir}
      不只是 .py：_shared/ 和 locale/ 也要一起放进去
-     （最终成为 plug-ins\\_shared\\lb_i18n.py 与 plug-ins\\locale\\zh_CN\\…）。
-     _shared 是翻译取值模块，locale 是中文语言包；少了它们插件照常跑，
-     但界面文案只能是英文。
+     （最终成为 plug-ins\\_shared\\ 与 plug-ins\\locale\\zh_CN\\…）。
+     _shared 里是翻译取值模块 lb_i18n.py 和参数对话框 lb_dialog.py，
+     locale 是中文语言包；少了 lb_i18n/locale 只是文案变英文，
+     少了 lb_dialog 则点菜单不弹参数框、直接按默认值跑。
 
   2) modules-{plat}/ 里的模块  →  GEGL 的模块目录（注意不是上面那个）
         {gegl_dir}
@@ -2641,7 +2650,7 @@ GPL-3.0-or-later
             _zip_add_i18n(z, "plugins/")
             # 插件要 import 的共享模块：整包里也必须有，否则「装了整包、点菜单
             # 报 ImportError」——AI 磨皮这三支就靠 retouch_prep / ai_client
-            for shared_py in sorted({f for sp in PLUGIN_SPECS
+            for shared_py in sorted({"lb_dialog.py"} | {f for sp in PLUGIN_SPECS
                                      for f in (sp.get("shared") or [])}):
                 _zip_add_file(z, os.path.join(ROOT, "plugin", "_shared", shared_py),
                               "plugins/_shared/" + shared_py)

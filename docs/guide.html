@@ -77,8 +77,11 @@
      最终是 <code>plug-ins/locale/zh_CN/LC_MESSAGES/gegl-color-ops.mo</code>。
      漏了它不会报错：算子照常工作，只是菜单名和参数说明回落到英文。</p>
   <p>Python 插件包同理：GIMP 的插件目录里除了 <code>.py</code>，还要有
-     <code>_shared/</code>（翻译取值模块）和 <code>locale/</code>（语言包），
-     即 <code>plug-ins/_shared/lb_i18n.py</code> 与 <code>plug-ins/locale/</code>。</p>
+     <code>_shared/</code>（翻译取值 <code>lb_i18n.py</code> + 参数对话框
+     <code>lb_dialog.py</code>）和 <code>locale/</code>（语言包），
+     即 <code>plug-ins/_shared/</code> 与 <code>plug-ins/locale/</code>。
+     少了 <code>lb_dialog.py</code> 不会报错，但点菜单会直接用默认值跑、
+     不弹参数框。</p>
 
   <h2 id="lang">界面语言</h2>
   <p>翻译跟着 <b>GIMP 的界面语言</b>走，不跟操作系统走：</p>
@@ -255,9 +258,12 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
      if you drop it: the operators still work, the menu names and parameter blurbs just
      fall back to English.</p>
   <p>Same for the Python plug-in archives: next to the <code>.py</code> files GIMP's
-     plug-in folder needs <code>_shared/</code> (the lookup helper) and
-     <code>locale/</code> (the catalogue), i.e. <code>plug-ins/_shared/lb_i18n.py</code>
-     and <code>plug-ins/locale/</code>.</p>
+     plug-in folder needs <code>_shared/</code> (the translation lookup
+     <code>lb_i18n.py</code> plus the dialog helper <code>lb_dialog.py</code>) and
+     <code>locale/</code> (the catalogue), i.e. <code>plug-ins/_shared/</code>
+     and <code>plug-ins/locale/</code>. Without <code>lb_dialog.py</code> nothing
+     errors out, but the menu entry runs with defaults and never shows its
+     parameter dialog.</p>
 
   <h2 id="lang">Interface language</h2>
   <p>The translation follows <b>GIMP's interface language</b>, not the operating
@@ -435,7 +441,7 @@ meson setup build-meson &amp;&amp; ninja -C build-meson</code></pre>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">685e089</span>
+    <span class="muted">d8c5c20</span>
   </div>
 </footer>
 <script>

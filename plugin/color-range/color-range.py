@@ -65,6 +65,8 @@ except Exception:                  # helper 不在：保持可用，只是不翻
     def _(message):
         return GLib.dgettext(None, message)
 
+import lb_dialog as _dialog
+
 
 # ---- 模式表 / the mode table -------------------------------------------------
 #
@@ -497,6 +499,9 @@ class ColorRangePlugin(Gimp.PlugIn):
             return procedure.new_return_values(
                 Gimp.PDBStatusType.CALLING_ERROR,
                 GLib.Error(_("No image or no layer selected")))
+        if not _dialog.run_dialog(procedure, run_mode, config):
+            return procedure.new_return_values(
+                Gimp.PDBStatusType.CANCEL, None)
         layer = drawables[0]
         try:
             if run_mode == Gimp.RunMode.INTERACTIVE:

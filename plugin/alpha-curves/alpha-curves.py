@@ -80,6 +80,8 @@ except Exception:                  # helper 不在：保持可用，只是不翻
     def _(message):
         return GLib.dgettext(None, message)
 
+import lb_dialog as _dialog
+
 
 CHANNELS = [
     ('gray', _("Gray（0.299R + 0.587G + 0.114B）")),
@@ -272,6 +274,9 @@ class AlphaCurvesPlugin(Gimp.PlugIn):
             return procedure.new_return_values(
                 Gimp.PDBStatusType.CALLING_ERROR,
                 GLib.Error(_("No image or no layer selected")))
+        if not _dialog.run_dialog(procedure, run_mode, config):
+            return procedure.new_return_values(
+                Gimp.PDBStatusType.CANCEL, None)
         try:
             alpha_curves(image, drawables[0],
                          config.get_property('channel') or 'gray',

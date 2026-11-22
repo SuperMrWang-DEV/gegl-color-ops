@@ -59,6 +59,8 @@ except Exception:                  # helper 不在：保持可用，只是不翻
     def _(message):
         return GLib.dgettext(None, message)
 
+import lb_dialog as _dialog
+
 
 # ---- 通道常量 / channel ids ------------------------------------------------
 # 与 GEGL 侧的 LB_CH_*、layer-to-channel 的 CH_* 同序，方便脚本里互通
@@ -333,6 +335,9 @@ class SplitChannelsPlugin(Gimp.PlugIn):
             return procedure.new_return_values(
                 Gimp.PDBStatusType.CALLING_ERROR,
                 GLib.Error(_('No image or no layer selected')))
+        if not _dialog.run_dialog(procedure, run_mode, config):
+            return procedure.new_return_values(
+                Gimp.PDBStatusType.CANCEL, None)
         try:
             split_channels(image, drawables[0],
                            config.get_property('include-alpha'),

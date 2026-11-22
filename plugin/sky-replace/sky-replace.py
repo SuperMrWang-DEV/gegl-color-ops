@@ -51,6 +51,8 @@ except Exception:                  # helper 不在：保持可用，只是不翻
     def _(message):
         return GLib.dgettext(None, message)
 
+import lb_dialog as _dialog
+
 
 # ---- 核心逻辑（模块级，供回归脚本直接调用） ---------------------------------
 
@@ -243,6 +245,9 @@ class SkyReplacePlugin(Gimp.PlugIn):
             return procedure.new_return_values(
                 Gimp.PDBStatusType.CALLING_ERROR,
                 GLib.Error(_("No image or no active layer")))
+        if not _dialog.run_dialog(procedure, run_mode, config):
+            return procedure.new_return_values(
+                Gimp.PDBStatusType.CANCEL, None)
         try:
             sky_replace(image, drawables[0],
                         config.get_property('sky-file'),

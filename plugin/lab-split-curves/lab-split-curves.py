@@ -111,6 +111,8 @@ except Exception:                  # helper 不在：保持可用，只是不翻
     def _(message):
         return GLib.dgettext(None, message)
 
+import lb_dialog as _dialog
+
 
 # 精确适配用的两个算子（本仓库 ops/lab-dual、ops/lab-compose）
 DUAL_OP = "lb:lab-dual"
@@ -608,6 +610,9 @@ class LabSplitPlugin(Gimp.PlugIn):
             return procedure.new_return_values(
                 Gimp.PDBStatusType.CALLING_ERROR,
                 GLib.Error(_("No image or no layer selected")))
+        if not _dialog.run_dialog(procedure, run_mode, config):
+            return procedure.new_return_values(
+                Gimp.PDBStatusType.CANCEL, None)
         try:
             split_lab(image, drawables[0],
                        'multi' if procedure.get_name().endswith('-multi') else 'single',

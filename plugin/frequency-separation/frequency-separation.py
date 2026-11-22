@@ -75,6 +75,8 @@ except Exception:                  # helper 不在：保持可用，只是不翻
     def _(message):
         return GLib.dgettext(None, message)
 
+import lb_dialog as _dialog
+
 
 BLUR_OP = "gegl:gaussian-blur"
 HIGHPASS_OP = "gegl:high-pass"
@@ -274,6 +276,9 @@ class FrequencySeparationPlugin(Gimp.PlugIn):
     def run(self, procedure, run_mode, image, drawables, config, data):
         if len(drawables) != 1:
             raise RuntimeError(_("Select exactly one layer."))
+        if not _dialog.run_dialog(procedure, run_mode, config):
+            return procedure.new_return_values(
+                Gimp.PDBStatusType.CANCEL, None)
         separate(image, drawables[0],
                  config.get_property("radius"),
                  config.get_property("group"))

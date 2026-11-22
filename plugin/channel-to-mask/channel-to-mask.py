@@ -63,6 +63,8 @@ except Exception:                  # helper 不在：保持可用，只是不翻
     def _(message):
         return GLib.dgettext(None, message)
 
+import lb_dialog as _dialog
+
 
 # ---- PDB 小工具 / PDB helpers ----------------------------------------------
 
@@ -210,6 +212,9 @@ class ChannelToMaskPlugin(Gimp.PlugIn):
             return procedure.new_return_values(
                 Gimp.PDBStatusType.CALLING_ERROR,
                 GLib.Error(_("No image or no layer selected")))
+        if not _dialog.run_dialog(procedure, run_mode, config):
+            return procedure.new_return_values(
+                Gimp.PDBStatusType.CANCEL, None)
 
         name = config.get_property('channel-name')
         invert = config.get_property('invert')
