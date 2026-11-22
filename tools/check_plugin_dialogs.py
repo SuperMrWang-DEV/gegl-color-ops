@@ -30,7 +30,7 @@ import gi
 gi.require_version('Gimp', '3.0')
 gi.require_version('GimpUi', '3.0')
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gimp, GimpUi
+from gi.repository import Gimp, GimpUi, GObject
 
 FAIL = []
 OK = 0
@@ -116,6 +116,17 @@ def test_runtime():
                 dlg.fill()
                 kids = dlg.get_content_area().get_children()
                 ok("%s 对话框有控件" % pname, len(kids) > 0, "%d 个" % len(kids))
+                # 光有标签不算：每个文本类参数都得有真正能操作的东西
+                # （普通参数是 LabelEntry 输入框，Choice 参数是 StringComboBox 下拉）。
+                # 用 get_widget 按参数名取——比数控件个数准，能定位到具体哪个参数没渲染。
+                missing = []
+                for prop in cfg.list_properties():
+                    if prop.value_type.name != "gchararray":
+                        continue
+                    w = dlg.get_widget(prop.name, GObject.TYPE_STRING)
+                    if w is None:
+                        missing.append(prop.name)
+                ok("%s 文本参数都有控件" % pname, not missing, "缺：" + ",".join(missing))
                 dlg.destroy()
             except Exception as exc:
                 ok("%s 对话框能建出来" % pname, False,

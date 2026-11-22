@@ -1143,7 +1143,7 @@ python tools/set_menu_group.py --check      # 核对菜分组映射表与 ops �
 python tools/check_menu.py                  # 每个算子都有 id / menu-path / menu-label，且路径与分组表一致
 python tools/check_ai_inpaint.py            # AI 重绘的 HTTP/PNG 链路（对着 mock ComfyUI，不需要显卡）
 # 下面三条要在真 GIMP 里跑（插件已装好）；用 gimp-console，不用开界面
-gimp-console -b "exec(open('tools/check_plugin_dialogs.py').read())"   # 每个插件都能弹出参数框（106 条）
+gimp-console -b "exec(open('tools/check_plugin_dialogs.py').read())"   # 每个插件都能弹出参数框（143 条）
 gimp-console -b "exec(open('tools/check_retouch_ai_gimp.py').read())"  # 磨皮三支：结构 / 预涂蒙版 / 灰层 / 选区
 gimp-console -b "exec(open('tools/check_ai_inpaint_gimp.py').read())"  # AI 重绘的落位与蒙版
 python tools/make_dist.py                   # 把 build/ 整理成 dist/（含 manifest + 校验和）
