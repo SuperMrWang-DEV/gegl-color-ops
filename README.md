@@ -564,6 +564,10 @@ curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8188/system_stats   # 
 「脚本跑到一半没了」。所以 `start-comfyui.bat` 里全 ASCII，中文提示写在旁边
 的 txt / md 里，用 `type` 原样打出来——`type` 只搬字节，不解析。
 
+取探测结果也别用 `for /f`：实测同一个 `python -c` 手动跑返回 `1`，
+`for /f` 却什么都没抓到，于是显卡好好的也被判成「没有显卡」。改成
+python 的退出码 + `if errorlevel 1 set EXTRA=--cpu`，稳定得多。
+
 ### Python 插件：plugin/ai-inpaint（AI 局部重绘）
 
 **选区 + 一句提示词 → 本机 ComfyUI 重画 → 贴回成带蒙版的新图层**。框住想改的
@@ -580,6 +584,11 @@ curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8188/system_stats   # 
 为什么拆两个：GIMP 的参数对话框是一次性把参数全铺开的，没法折叠。十几个采样
 参数一摆，真正要填的那个框就被埋掉了——用起来像「只能重绘、不能指定画什么」。
 简版只留「画什么 / 画哪个主体 / 不要什么」。
+
+**注册顺序有个坑**：`add_menu_path()` 必须写在 `set_menu_label()` 之后。反过来
+写，GIMP 会静默把菜单路径丢掉——PDB 里查得到过程、插件看着像装好了，但菜单里
+什么都没有（`pluginrc` 里那条 `menu-path` 数会写成 0）。拆简版/高级版那次就是
+把顺序写反了，AI 菜单整轮不见。`tools/check_ai_inpaint.py` 现在盯着这条。
 
 需要的东西：
 

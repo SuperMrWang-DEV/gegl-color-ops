@@ -467,7 +467,6 @@ class AiInpaintPlugin(Gimp.PlugIn):
         procedure.set_sensitivity_mask(Gimp.ProcedureSensitivityMask.DRAWABLE |
                                        Gimp.ProcedureSensitivityMask.DRAWABLES)
         procedure.set_attribution("SuperMrWang", "SuperMrWang", "2026")
-        procedure.add_menu_path("<Image>/SuperMrWang/AI")
 
         procedure.add_string_argument(
             "prompt", _("Prompt — what the selection should become"),
@@ -499,6 +498,11 @@ class AiInpaintPlugin(Gimp.PlugIn):
                   "asks what to paint; the sampling settings use good "
                   "defaults. Use \"AI Inpaint (Advanced)\" to change them."),
                 name)
+        # add_menu_path 必须在 set_menu_label 之后：GIMP 会把「先挂菜单、后设
+        # 标签」的路径直接丢掉（pluginrc 里 menu-path 数会写成 0），菜单里
+        # 就整个没有这一项。065b70d 拆简版/高级版时把顺序调换过，AI 菜单
+        # 因此消失了一整轮。
+        procedure.add_menu_path("<Image>/SuperMrWang/AI")
         return procedure
 
     def _add_advanced_arguments(self, procedure):

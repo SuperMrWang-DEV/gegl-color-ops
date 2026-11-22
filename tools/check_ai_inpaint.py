@@ -369,6 +369,14 @@ def test_plugin_source():
         has_proc = "lb-plugin-" in src
         ok("%s 注册了菜单" % rel, has_menu)
         ok("%s 有 lb-plugin- 过程名" % rel, has_proc)
+        # add_menu_path 必须写在 set_menu_label 之后。GIMP 会把「先挂菜单、
+        # 后设标签」的路径静默丢掉：PDB 里查得到过程，pluginrc 里 menu-path
+        # 数却是 0，菜单里什么都看不到。065b70d 就这么让 AI 菜单消失了一轮，
+        # 而当时「源码里有 SuperMrWang/AI 这个字符串」的断言照样是绿的。
+        if has_menu and "set_menu_label(" in src:
+            ok("%s 菜单挂在标签之后" % rel,
+               src.index("add_menu_path(") > src.index("set_menu_label("),
+               "先 set_menu_label 再 add_menu_path")
 
     path = os.path.join(ROOT, "plugin", "ai-inpaint", "ai-inpaint.py")
     src = open(path, encoding="utf-8").read()
