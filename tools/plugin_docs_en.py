@@ -974,3 +974,163 @@ PLUGIN_EN["max-min"] = dict(
      plus band seams and a radius larger than the image) and
      <code>check_max_min_plugin.py</code> (12 checks: PDB, filter attachment, mask baking,
      error branches).</p>""")
+
+PLUGIN_EN["ai-frequency"] = dict(
+    lede="""The structure is exactly the same as Frequency Separation — the pixels are
+   not. Both layers carry a <b>reference that was already retouched once</b>: a low-denoise
+   ComfyUI pass, or a locally blurred copy. You open a file where the colour is already
+   evened out and most blemishes are gone, and finish on top.""",
+    body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>What it builds</h3><span class="pill">same as the original</span></div>
+      <pre><code>Frequency Separation (AI prep)   group · pass-through (masked when the source has alpha)
+  ├─ 2 · High frequency (detail) grain merge + high pass
+  ├─ 1 · Low frequency (tone)    normal + gaussian blur
+  └─ the original layer (untouched, safe to hide)</code></pre>
+      <p>The composite equals the <b>reference</b>, not the original — that is the
+         pre-work. Toggle the group to compare, or hold <kbd>Shift</kbd> and click its eye.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Where the reference comes from</h3><span class="pill">source</span></div>
+      <p><b>AI</b>: the whole layer goes through ComfyUI at <code>denoise 0.35</code>. It
+         knows this is skin — blemishes, redness and blotches flatten out while features
+         and edges stay. <b>Local</b>: downscale-then-upscale as a low-pass, milliseconds
+         and no dependencies.</p>
+      <p>If ComfyUI is not reachable the plug-in falls back to the local reference and says
+         so in the message, instead of throwing a wall of errors.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Selections</h3></div>
+      <p>With a selection active, only that area is replaced by the reference; everything
+         outside stays pixel-identical to your layer. All three AI retouching plug-ins
+         behave this way.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Finishing it</h3></div>
+      <ol class="steps">
+        <li><b>High layer</b>: clone or heal the blemishes that are left.</li>
+        <li><b>Low layer</b>: brush a little more evenness where you want it; sample
+            neighbouring colour to undo.</li>
+        <li><b>Radius</b> is the cutoff: start at 4–8 px on a 1024-px image. Both layers
+            share the radius — change them together or the stack no longer rebuilds the
+            reference.</li>
+      </ol>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Measured</h3><span class="pill">check_retouch_ai*.py</span></div>
+      <p>Structure, blend modes and filters match the original plug-in item for item. On
+         the soft-blob test image the local reference leaves <b>≤ 6 levels</b> of high-pass
+         residue (the original image is used as the control). When the reference equals the
+         original (the mock returns it unchanged) nothing is flattened.</p>
+      <p class="muted small">Arguments: <code>source</code> (ai / local),
+         <code>radius</code> 0.2–100 px, <code>denoise</code> 0.05–0.9,
+         <code>prompt</code>, <code>server</code> / <code>checkpoint</code> /
+         <code>steps</code>, <code>group</code>.</p>
+    </div>
+  </div>""",
+)
+
+PLUGIN_EN["ai-dodge"] = dict(
+    lede="""Still two curves, one lightening and one darkening — but <b>the masks are no
+   longer black</b>. The plug-in measures how far the reference sits above or below your
+   layer, turns that into mask density and paints 70% of it for you.""",
+    body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>What it builds</h3><span class="pill">pre-painted masks</span></div>
+      <pre><code>Dodge &amp; Burn (AI prep)   group · pass-through
+  ├─ 2 · Burn (pre-painted)  normal + darken curve + painted mask
+  ├─ 1 · Dodge (pre-painted) normal + lighten curve + painted mask
+  └─ the original layer (untouched)</code></pre>
+      <p>Areas darker than the reference land in the dodge mask, brighter ones in the burn
+         mask; flat areas and the background stay black and take no part.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Density is per pixel, not global</h3></div>
+      <p>The curve is <code>x + d·4x(1−x)</code>: pinned at both ends, strongest in the
+         middle. Lifting by 0.06 needs mask 0.5 at mid-grey and a much denser mask in the
+         shadows, so the density is solved from each pixel's own value.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Why only 70%</h3><span class="pill">prepaint</span></div>
+      <p>A full correction usually overshoots — the reference has its own error. 70% leaves
+         the last part to your brush; set 100% to hand it all over, 30% for a hint, 0% for
+         the original plug-in (two black masks).</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Finishing it</h3></div>
+      <ol class="steps">
+        <li>Click a layer's <b>mask thumbnail</b>, pick a soft white brush at 10–20%.</li>
+        <li>Paint more where it is not there yet; black takes a stroke back, or lower
+            <code>prepaint</code> and run again.</li>
+        <li><kbd>Alt</kbd>-click the mask thumbnail to look at the mask alone.</li>
+      </ol>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Measured</h3><span class="pill">check_retouch_ai*.py</span></div>
+      <p>On the soft-blob test image the dark blob lands at ≈ <b>116</b> in the dodge mask
+         and the bright one at ≈ <b>129</b> in the burn mask, with zero at the crossover;
+         <code>prepaint=0</code> gives two fully black masks, exactly like the original
+         plug-in, and everything outside a selection stays 0.</p>
+      <p class="muted small">Arguments: <code>source</code>, <code>amount</code> 1–40%,
+         <code>prepaint</code> 0–100%, <code>radius</code> (local reference),
+         <code>denoise</code>, <code>prompt</code>, <code>group</code>.</p>
+    </div>
+  </div>""",
+)
+
+PLUGIN_EN["ai-grey"] = dict(
+    lede="""That 50% grey Soft Light layer is <b>no longer flat 128</b>: the plug-in solves
+   the soft-light formula backwards for the reference and writes the result into the
+   layer. You open a file where one neutral-grey pass is already done.""",
+    body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>What it builds</h3><span class="pill">128 ± offset</span></div>
+      <pre><code>Neutral Grey (AI prep)          group · pass-through
+  └─ 1 · Neutral grey (pre-corrected)  soft light + 128±offset pixels
+     └─ the original layer (untouched)</code></pre>
+      <p>Every pixel is an analytic solution: <code>out = x + (2g−1)·…</code> inverted for
+         g, not a guess.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Pixels, not a mask</h3></div>
+      <p>So erasers, fills, gradients and paste all work — it takes more abuse than the
+         dodge &amp; burn version. The price: overshooting can only be undone with
+         <code>#808080</code>, whereas the curve version just paints its mask black.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>How much is pre-corrected</h3><span class="pill">prepaint 70%</span></div>
+      <p>70% by default: shadows land above 128 (lightened), highlights below 128
+         (darkened), flat background at 128. 0% gives the original flat grey layer.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Finishing it</h3></div>
+      <ol class="steps">
+        <li>Select the grey layer, soft brush at 5–15%: white lightens, black darkens.</li>
+        <li>Overshot? Set the foreground to <code>#808080</code> and paint it back — that
+            means "do nothing here".</li>
+        <li>Too strong overall? Hide the group, change <code>prepaint</code> and run again;
+            your original layer never moved.</li>
+      </ol>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Measured</h3><span class="pill">check_retouch_ai.py</span></div>
+      <p>Feeding the grey layer back through the soft-light formula reproduces the
+         reference within <b>≤ 1 level</b> across six combinations of base value and delta,
+         in both directions. On the blob image: <b>162</b> on the dark blob, <b>97</b> on
+         the bright one, <b>128</b> on the background; <code>prepaint=0</code> is flat 128.</p>
+      <p class="muted small">Arguments: <code>source</code>, <code>prepaint</code> 0–100%,
+         <code>radius</code> (local reference), <code>denoise</code>, <code>prompt</code>,
+         <code>group</code>.</p>
+    </div>
+  </div>""",
+)
+

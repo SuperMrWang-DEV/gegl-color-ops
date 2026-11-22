@@ -2286,3 +2286,203 @@ msgstr "一盘食物"
 #: plugin/_shared/prompt_tools.py
 msgid "A car"
 msgstr "一辆汽车"
+
+#: plugin/_shared/retouch_prep.py
+msgid "Could not read the layer: expected %d bytes, got %d"
+msgstr "读不到图层像素：应有 %d 字节，实际 %d"
+
+#: plugin/_shared/retouch_prep.py
+msgid "Pixel buffer size does not match the layer"
+msgstr "像素缓冲区尺寸与图层不一致"
+
+#: plugin/_shared/retouch_prep.py
+msgid "Mask buffer size does not match the layer"
+msgstr "蒙版缓冲区尺寸与图层不一致"
+
+#: plugin/_shared/retouch_prep.py
+msgid "0 · alpha"
+msgstr "0 · alpha"
+
+#: plugin/_shared/retouch_prep.py
+msgid "AI reference from ComfyUI (%s, denoise %s, %s s)"
+msgstr "参考图来自 ComfyUI（%s，denoise %s，用时 %s 秒）"
+
+#: plugin/_shared/retouch_prep.py
+msgid "Local reference (no ComfyUI)"
+msgstr "参考图来自本地模糊（没连 ComfyUI）"
+
+#: plugin/_shared/retouch_prep.py
+msgid "\nComfyUI was not reachable, so the local reference was used instead: %s"
+msgstr "\n连不上 ComfyUI，已改用本地参考：%s"
+
+#: plugin/_shared/retouch_prep.py
+msgid "\nOnly the selection was pre-worked; everything outside it is untouched."
+msgstr "\n只预修了选区内，选区外一个像素都没动。"
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py
+msgid "Dodge & Burn (AI prep)"
+msgstr "双曲线磨皮（AI 预修）"
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py
+msgid "1 · Dodge (pre-painted)"
+msgstr "1 · 提亮（已预涂）"
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py
+msgid "2 · Burn (pre-painted)"
+msgstr "2 · 压暗（已预涂）"
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py
+msgid "AI reference (ComfyUI, low denoise)"
+msgstr "AI 参考（ComfyUI 低重绘）"
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py
+msgid "Local reference (blurred, no ComfyUI)"
+msgstr "本地参考（模糊，不连 ComfyUI）"
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py
+msgid "Reference from"
+msgstr "参考图来源"
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py
+msgid "\"AI\" sends the layer through ComfyUI at low denoise; \"Local\" blurs a downscaled copy. AI falls back to Local when ComfyUI is not running."
+msgstr "「AI」把整层交给 ComfyUI 低重绘；「本地」用降采样模糊顶替。ComfyUI 没在跑时 AI 会自动退回本地。"
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py
+msgid "Reference from (ai / local)"
+msgstr "参考图来源（ai / local）"
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py
+msgid "ai = ComfyUI, local = blurred copy"
+msgstr "ai = ComfyUI，local = 本地模糊"
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py
+msgid "Dodge & Burn (AI prep): the usual dodge and burn curve layers, but their masks come pre-painted from a reference retouch — white where the reference is brighter (dodge) or darker (burn). You open a file with the dodging already started."
+msgstr "双曲线磨皮（AI 预修）：还是提亮 / 压暗两条曲线层，但蒙版已按参考图预涂——参考更亮的地方落在提亮蒙版、更暗的落在压暗蒙版。打开文件时已经打过一轮双曲线。"
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py
+msgid "Dodge & burn with masks pre-painted from an AI reference"
+msgstr "蒙版按 AI 参考预涂好的双曲线磨皮"
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py
+msgid "What the retouch should look like"
+msgstr "想要修成什么样"
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py
+msgid "Only used by the AI reference. Leave empty for \"clean natural skin\"."
+msgstr "只对 AI 参考生效。留空＝clean natural skin。"
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py
+msgid "Curve strength (%)"
+msgstr "曲线强度（%）"
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py
+msgid "How far each curve lifts or lowers the midtones: 12 means 0.12 at 0.5."
+msgstr "曲线在中间调偏离对角线多远：12 表示 0.5 处抬 0.12。"
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py
+msgid "Pre-paint amount (%)"
+msgstr "预涂比例（%）"
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py
+msgid "How much of the measured difference is painted in already. 70 leaves the last 30% for your brush; 100 hands the whole correction over."
+msgstr "测量出的差值先涂掉多少。70 留给画笔最后 30%；100 等于完全交给参考图。"
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py
+msgid "Reference radius (px, local only)"
+msgstr "参考半径（px，仅本地）"
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py
+msgid "Cutoff of the local low-pass reference; ignored by the AI reference."
+msgstr "本地低通参考的截止半径；AI 参考不看这个值。"
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py
+msgid "AI denoise"
+msgstr "AI 重绘幅度（denoise）"
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py
+msgid "How far ComfyUI may move the pixels: 0.2 barely touches them, 0.5 starts changing features."
+msgstr "ComfyUI 能改动多少：0.2 几乎不动，0.5 开始改五官。"
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py
+msgid "AI steps"
+msgstr "AI 采样步数"
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py
+msgid "Sampling steps for the reference pass"
+msgstr "生成参考图时的采样步数"
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py
+msgid "Puts both curve layers into a pass-through group."
+msgstr "把两条曲线层收进一个穿透组。"
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py
+msgid "plugin/_shared/retouch_prep.py is missing: install the _shared folder next to the plug-in"
+msgstr "缺少 plugin/_shared/retouch_prep.py：把 _shared 目录装在插件旁边"
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py
+msgid "The dodge and burn masks are already painted where the reference differs from your layer. Click a mask and paint more white with a soft brush to finish; #000000 takes a stroke back."
+msgstr "参考图与原图有差异的地方，提亮 / 压暗蒙版已经预涂好了。点中蒙版、用白色柔边画笔补几笔就完事；涂多了用黑色盖回去。"
+
+#: plugin/ai-frequency-separation/ai-frequency-separation.py
+msgid "Frequency Separation (AI prep)"
+msgstr "高低频磨皮（AI 预修）"
+
+#: plugin/ai-frequency-separation/ai-frequency-separation.py
+msgid "\"AI\" sends the layer through ComfyUI at low denoise; \"Local\" blurs a downscaled copy instead. AI falls back to Local when ComfyUI is not running."
+msgstr "「AI」把整层交给 ComfyUI 低重绘；「本地」改用降采样模糊。ComfyUI 没在跑时 AI 会自动退回本地。"
+
+#: plugin/ai-frequency-separation/ai-frequency-separation.py
+msgid "Frequency Separation (AI prep): builds the usual low/high frequency pair, but the pixels come from a reference that was already retouched — a low-denoise ComfyUI pass or a blurred copy. The composite is that reference, so you open a file with the work already started."
+msgstr "高低频磨皮（AI 预修）：还是那对低频 / 高频层，但内容来自一张已经修过一遍的参考图——ComfyUI 低重绘，或本地模糊。合成结果就是那张参考图，所以打开文件时工作已经开始了。"
+
+#: plugin/ai-frequency-separation/ai-frequency-separation.py
+msgid "Low/high frequency pair built on a pre-retouched reference"
+msgstr "按预修过的参考图搭的高低频对"
+
+#: plugin/ai-frequency-separation/ai-frequency-separation.py
+msgid "Standard deviation of the low-frequency blur; also the cutoff between tone and texture."
+msgstr "低频模糊的标准差，同时是影调与质感的分界。"
+
+#: plugin/ai-frequency-separation/ai-frequency-separation.py
+msgid "How far ComfyUI may move the pixels: 0.2 barely touches them, 0.5 starts changing features. Ignored by the local reference."
+msgstr "ComfyUI 能改动多少：0.2 几乎不动，0.5 开始改五官。本地参考不看这个值。"
+
+#: plugin/ai-frequency-separation/ai-frequency-separation.py
+msgid "Puts both layers into a pass-through group; turn it off to stack them directly above the original layer."
+msgstr "把两层收进穿透组；关掉就直接叠在原图层上方。"
+
+#: plugin/ai-frequency-separation/ai-frequency-separation.py
+msgid "The low layer already has the reference's tone, the high layer its texture: refine on the high layer, adjust colour on the low one. Hide the group to compare with the original."
+msgstr "低频层已经是参考图的影调、高频层是它的质感：细节在高频层补，颜色在低频层调。想和原图对比就把组关掉。"
+
+#: plugin/ai-neutral-grey/ai-neutral-grey.py
+msgid "Neutral Grey (AI prep)"
+msgstr "中性灰磨皮（AI 预修）"
+
+#: plugin/ai-neutral-grey/ai-neutral-grey.py
+msgid "1 · Neutral grey (pre-corrected)"
+msgstr "1 · 中性灰（已预校正）"
+
+#: plugin/ai-neutral-grey/ai-neutral-grey.py
+msgid "Neutral Grey (AI prep): a 50% grey Soft Light layer whose pixels are already shifted toward a reference retouch, so the dodging and burning is partly done when the file opens. White brush lightens, black darkens, #808080 erases."
+msgstr "中性灰磨皮（AI 预修）：50% 灰的柔光层，但像素已经朝参考图偏移过——打开文件时中性灰已经做了一部分。白笔提亮、黑笔压暗、#808080 擦回去。"
+
+#: plugin/ai-neutral-grey/ai-neutral-grey.py
+msgid "Soft Light grey layer pre-corrected from an AI reference"
+msgstr "按 AI 参考预校正过的柔光灰层"
+
+#: plugin/ai-neutral-grey/ai-neutral-grey.py
+msgid "Pre-correct amount (%)"
+msgstr "预校正比例（%）"
+
+#: plugin/ai-neutral-grey/ai-neutral-grey.py
+msgid "How much of the measured difference is baked into the grey layer. 70 leaves the last 30% for your brush."
+msgstr "测量出的差值有多少直接写进灰层。70 留给画笔最后 30%。"
+
+#: plugin/ai-neutral-grey/ai-neutral-grey.py
+msgid "Puts the grey layer into a pass-through group."
+msgstr "把灰层收进一个穿透组。"
+
+#: plugin/ai-neutral-grey/ai-neutral-grey.py
+msgid "The grey layer is no longer flat 128: it already pushes the skin toward the reference. Paint white / black at 5–15% to finish, or #808080 to take a correction back."
+msgstr "灰层不再是平的 128：它已经在把皮肤往参考图上推。用 5–15% 的白 / 黑画笔收尾，或用 #808080 把某块改回不动。"

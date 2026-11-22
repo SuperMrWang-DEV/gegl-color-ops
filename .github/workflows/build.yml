@@ -53,6 +53,13 @@ jobs:
           # 裁切框对齐 8、工作流结构、三类错误提示文案。
           python3 tools/check_ai_inpaint.py -v
 
+      - name: 校验三支 AI 磨皮的预修数学与 img2img 工作流
+        run: |
+          # 磨皮预修最容易错的是「差值 → 蒙版 / 灰层」那几行公式：写反了插件照跑，
+          # 只是把脸越修越花。这些函数不依赖 gi，CI 上直接跑；剪贴板里那套
+          # 「灰层代回柔光公式」的往返断言是这支插件的全部正确性。
+          python3 tools/check_retouch_ai.py
+
       - name: 安装脚本冒烟（不联网、不装东西）
         run: |
           # setup_ai.py 只在 Windows 上真装，但「能不能 import / 参数表是否完整 /

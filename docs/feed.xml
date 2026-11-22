@@ -78,6 +78,34 @@
        可以随便画的 alpha 曲线。两条都是非破坏滤镜。</summary>
   </entry>
   <entry>
+    <title>插件 · 中性灰磨皮（AI 预修）</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/ai-neutral-grey.html"/>
+    <id>tag:github.com,2026:plugin-ai-neutral-grey</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>那张 50% 灰的柔光层不再是平的 128：插件把「参考图比原图亮多少 /
+       暗多少」反解成柔光需要的灰度，直接写进灰层。打开文件就是已经做过一轮
+       中性灰、肤色被拉平了一截的状态。</summary>
+  </entry>
+  <entry>
+    <title>插件 · 双曲线磨皮（AI 预修）</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/ai-dodge-burn.html"/>
+    <id>tag:github.com,2026:plugin-ai-dodge-burn</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>还是提亮 / 压暗两条曲线层，区别是蒙版已经不是全黑：插件先把参考
+       图和原图的亮度差算出来，折成蒙版浓度，预先涂上七成。打开文件就是「已经
+       打过一轮双曲线」的状态。</summary>
+  </entry>
+  <entry>
+    <title>插件 · 高低频磨皮（AI 预修）</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/ai-frequency-separation.html"/>
+    <id>tag:github.com,2026:plugin-ai-frequency-separation</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>结构和「高低频磨皮」一模一样，只有内容换了人做：两层用的不是原图，
+       而是一张已经修过一遍的参考图——AI 低重绘，或本地降采样模糊。所以
+       打开文件时色块已经铺平、痘印已经淡掉，接着在高频层补几笔就行，不必从
+       零开始。</summary>
+  </entry>
+  <entry>
     <title>插件 · 中性灰磨皮</title>
     <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/neutral-grey.html"/>
     <id>tag:github.com,2026:plugin-neutral-grey</id>

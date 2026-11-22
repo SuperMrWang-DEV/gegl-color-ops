@@ -2319,6 +2319,48 @@ PLUGIN_SPECS = [
              desc="中性灰磨皮：加一张 50% 灰的柔光层，恒等时与原图逐像素相同。"
                   "白色画笔提亮、黑色画笔压暗，反复涂抹把皮肤推平。",
              pdb="lb-plugin-neutral-grey(image, drawables, group)"),
+        dict(key="ai-frequency", ops=[],
+             name="gegl-color-ops-plugin-ai-frequency-separation.zip",
+             src_dir=os.path.join(ROOT, "plugin", "ai-frequency-separation"),
+             py="ai-frequency-separation.py",
+             menu="高低频磨皮（AI 预修）(Frequency Separation, AI prep)",
+             menus="    SuperMrWang → Retouch → 高低频磨皮（AI 预修）\n"
+                   "    图层右键 → SuperMrWang → Retouch → 高低频磨皮（AI 预修）",
+             desc="高低频磨皮（AI 预修）：结构和原版一样，但两层的内容是一张已经"
+                  "修过一遍的参考图（ComfyUI 低重绘，或本地降采样低通），合成结果"
+                  "就是那张参考图——打开文件时色块已铺平、痘印已淡掉。",
+             shared=["retouch_prep.py", "retouch_math.py", "ai_client.py",
+                     "prompt_tools.py"],
+             pdb="lb-plugin-ai-frequency-separation(image, drawables, prompt, source, "
+                 "radius, denoise, server, checkpoint, steps, group)"),
+        dict(key="ai-dodge", ops=[],
+             name="gegl-color-ops-plugin-ai-dodge-burn.zip",
+             src_dir=os.path.join(ROOT, "plugin", "ai-dodge-burn"),
+             py="ai-dodge-burn.py",
+             menu="双曲线磨皮（AI 预修）(Dodge & Burn, AI prep)",
+             menus="    SuperMrWang → Retouch → 双曲线磨皮（AI 预修）\n"
+                   "    图层右键 → SuperMrWang → Retouch → 双曲线磨皮（AI 预修）",
+             desc="双曲线磨皮（AI 预修）：提亮 / 压暗两条曲线的蒙版按「参考图与原图"
+                  "的亮度差」预先涂好七成，浓度按每个像素自己的亮度反算。打开就能"
+                  "接着补几笔。",
+             shared=["retouch_prep.py", "retouch_math.py", "ai_client.py",
+                     "prompt_tools.py"],
+             pdb="lb-plugin-ai-dodge-burn(image, drawables, prompt, source, amount, "
+                 "prepaint, radius, denoise, server, checkpoint, steps, group)"),
+        dict(key="ai-grey", ops=[],
+             name="gegl-color-ops-plugin-ai-neutral-grey.zip",
+             src_dir=os.path.join(ROOT, "plugin", "ai-neutral-grey"),
+             py="ai-neutral-grey.py",
+             menu="中性灰磨皮（AI 预修）(Neutral Grey, AI prep)",
+             menus="    SuperMrWang → Retouch → 中性灰磨皮（AI 预修）\n"
+                   "    图层右键 → SuperMrWang → Retouch → 中性灰磨皮（AI 预修）",
+             desc="中性灰磨皮（AI 预修）：那张 50% 灰的柔光层不再是平的 128——按参考图"
+                  "反解出每个像素该有的灰度，已做一轮中性灰。白笔继续提亮、黑笔压暗、"
+                  "#808080 擦回去。",
+             shared=["retouch_prep.py", "retouch_math.py", "ai_client.py",
+                     "prompt_tools.py"],
+             pdb="lb-plugin-ai-neutral-grey(image, drawables, prompt, source, prepaint, "
+                 "radius, denoise, server, checkpoint, steps, group)"),
         dict(key="alpha-curves", ops=["channel-range-to-alpha"],
              name="gegl-color-ops-plugin-alpha-curves.zip",
              src_dir=os.path.join(ROOT, "plugin", "alpha-curves"),
@@ -2434,6 +2476,9 @@ def build_plugin_zips(out_dir):
 
   三处都放好之后，完全退出 GIMP 再打开（不是关窗口）。这些目录都只在启动时扫描。
 
+  这个包还带了插件自己要 import 的共享模块（一起放进 plug-ins\\_shared\\）：
+{shared_list}
+
 包里附带的模块（{py} 的内部依赖，不用另外去下载）：
 {listing}
 {extra}
@@ -2449,6 +2494,8 @@ GPL-3.0-or-later
 """.format(py=sp["py"], desc=sp["desc"], menus=sp["menus"], pdb=sp["pdb"],
            repo=REPO, listing="\n".join(listing), extra=extra,
            stem=os.path.splitext(sp["py"])[0],
+           shared_list="\n".join("    _shared/" + f for f in ["lb_i18n.py"] +
+                                  (sp.get("shared") or [])),
            lin_hint=lin_hint)
         else:
             readme = """gegl-color-ops · {py}（GIMP 3 Python 插件）
@@ -2479,6 +2526,11 @@ GPL-3.0-or-later
         path = os.path.join(out_dir, sp["name"])
         with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
             _zip_add_file(z, os.path.join(sp["src_dir"], sp["py"]), sp["py"])
+            # 这几支插件除了 lb_i18n，还要 retouch_prep / ai_client 这些共享模块；
+            # 不一起打进去，用户解压出来点菜单只会得到一个 ImportError
+            for shared_py in (sp.get("shared") or []):
+                _zip_add_file(z, os.path.join(ROOT, "plugin", "_shared", shared_py),
+                              "_shared/" + shared_py)
             for f in win_dll:
                 _zip_add_file(z, os.path.join(win_src, f),
                               "modules-windows-x64/" + f)
@@ -2587,6 +2639,12 @@ GPL-3.0-or-later
                 _zip_add_file(z, os.path.join(src_of[plat], f),
                               "modules-%s/%s" % (plat, f))
             _zip_add_i18n(z, "plugins/")
+            # 插件要 import 的共享模块：整包里也必须有，否则「装了整包、点菜单
+            # 报 ImportError」——AI 磨皮这三支就靠 retouch_prep / ai_client
+            for shared_py in sorted({f for sp in PLUGIN_SPECS
+                                     for f in (sp.get("shared") or [])}):
+                _zip_add_file(z, os.path.join(ROOT, "plugin", "_shared", shared_py),
+                              "plugins/_shared/" + shared_py)
             _zip_add_text(z, "安装说明.txt", readme)
         out[plat] = {"name": name, "sha": _sha256_file(path),
                      "mb": round(os.path.getsize(path) / (1024 * 1024), 1),

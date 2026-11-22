@@ -34,7 +34,7 @@ msgid "Use one value for all three channels, giving grey grain instead of colour
 msgstr ""
 
 #: ops/add-noise/add-noise.c:56
-#: plugin/ai-inpaint/ai-inpaint.py:518
+#: plugin/ai-inpaint/ai-inpaint.py:520
 msgid "Seed"
 msgstr ""
 
@@ -1419,7 +1419,7 @@ msgid "Upper edge of the Midtones band"
 msgstr ""
 
 #: ops/color-mask-select/color-mask-select.c:124
-#: plugin/ai-inpaint/ai-inpaint.py:534
+#: plugin/ai-inpaint/ai-inpaint.py:536
 #: plugin/color-range/color-range.py:264
 #: plugin/sky-replace/sky-replace.py:228
 msgid "Feather"
@@ -3396,192 +3396,509 @@ msgstr ""
 msgid "the classic editor's Photo Filter: filter colour multiplied in XYZ space, with density and preserve-luminosity"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:111
-msgid "Some words in the prompt are not in the built-in Chinese dictionary: %s. SD models only read English — rephrase with common words, or write that part in English."
+#: plugin/_shared/retouch_prep.py:85
+msgid "Could not read the layer: expected %d bytes, got %d"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:116
-#: plugin/ai-inpaint/ai-inpaint.py:125
-msgid "The prompt is empty — this box is what the AI paints, so it must say what should appear. Describe the RESULT, not the thing you want gone: to erase a bottle, write \"empty wooden table, wood grain\" instead of \"remove the bottle\"."
+#: plugin/_shared/retouch_prep.py:94
+msgid "Pixel buffer size does not match the layer"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:131
-msgid "The prompt contains Chinese/Japanese/Korean characters. SD1.5 and SDXL can only read English — anything else is treated as random noise, which is why the result looked unrelated to your picture. Write it in English, e.g. \"empty wooden table, wood grain, soft daylight\", and put what you want removed into the negative prompt."
+#: plugin/_shared/retouch_prep.py:108
+msgid "Mask buffer size does not match the layer"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:178
-msgid "Failed to read layer pixels: expected %d bytes, got %d"
+#: plugin/_shared/retouch_prep.py:287
+#: plugin/dodge-burn/dodge-burn.py:127
+#: plugin/frequency-separation/frequency-separation.py:135
+msgid "0 · alpha"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:187
-msgid "No selection"
+#: plugin/_shared/retouch_prep.py:303
+#: plugin/frequency-separation/frequency-separation.py:150
+msgid "Gaussian blur (low frequency)"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:192
-msgid "Failed to read the selection buffer: expected %d bytes, got %d"
+#: plugin/_shared/retouch_prep.py:314
+#: plugin/frequency-separation/frequency-separation.py:160
+msgid "High pass (high frequency)"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:289
-msgid "Could not read the inpainting result (%s)"
+#: plugin/_shared/retouch_prep.py:416
+msgid "AI reference from ComfyUI (%s, denoise %s, %s s)"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:323
-msgid "plugin/_shared/ai_client.py is missing: install the _shared folder next to the plug-in"
+#: plugin/_shared/retouch_prep.py:420
+msgid "Local reference (no ComfyUI)"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:332
-msgid "Make a selection first: frame what you want repainted (a rough one is fine — grow/feather cleans up the edges)."
+#: plugin/_shared/retouch_prep.py:422
+msgid "\nComfyUI was not reachable, so the local reference was used instead: %s"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:349
-msgid "AI Inpaint"
+#: plugin/_shared/retouch_prep.py:424
+msgid "\nOnly the selection was pre-worked; everything outside it is untouched."
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:442
-msgid "What to paint"
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:69
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:111
+msgid "Dodge & Burn (AI prep)"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:443
-msgid "Pick a subject and the prompt starts from it — the prompt box then only needs the details (colour, pose, surroundings)"
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:77
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:75
+#: plugin/alpha-curves/alpha-curves.py:182
+#: plugin/color-range/color-range.py:181
+#: plugin/dodge-burn/dodge-burn.py:174
+#: plugin/neutral-grey/neutral-grey.py:150
+msgid "Nothing to work on: no layer."
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:448
-msgid "What to paint (none / cat / dog / person / flower / tree / coffee / food / car)"
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:80
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:78
+#: plugin/alpha-curves/alpha-curves.py:185
+#: plugin/dodge-burn/dodge-burn.py:177
+#: plugin/neutral-grey/neutral-grey.py:153
+msgid "A layer group has no pixels of its own; pick a raster layer (right-click the group, then Merge Group)."
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:450
-msgid "Leave empty for none"
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:116
+msgid "1 · Dodge (pre-painted)"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:471
-msgid "Prompt — what the selection should become"
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:116
+#: plugin/dodge-burn/dodge-burn.py:202
+msgid "1 · Dodge curve"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:472
-msgid "Describe the RESULT. Chinese is fine for common words (the plug-in translates them); SD itself only reads English. To remove a bottle, write \"empty wooden table, wood grain\" rather than \"remove the bottle\"."
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:117
+msgid "2 · Burn (pre-painted)"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:479
-msgid "Negative prompt"
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:117
+#: plugin/dodge-burn/dodge-burn.py:203
+msgid "2 · Burn curve"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:480
-msgid "What must not appear — put the thing you are deleting here"
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:146
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:141
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:144
+msgid "AI reference (ComfyUI, low denoise)"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:485
-msgid "AI Inpaint (Advanced)…"
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:147
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:142
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:145
+msgid "Local reference (blurred, no ComfyUI)"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:487
-msgid "AI Inpaint (Advanced): every sampling and blending knob"
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:149
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:144
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:147
+msgid "Reference from"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:488
-msgid "Selection + prompt -> ComfyUI inpaint -> new layer with a feathered selection mask. Exposes steps/CFG/seed/denoise/mask grow/feather/working scale."
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:150
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:148
+msgid "\"AI\" sends the layer through ComfyUI at low denoise; \"Local\" blurs a downscaled copy. AI falls back to Local when ComfyUI is not running."
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:493
-msgid "AI Inpaint…"
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:156
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:151
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:154
+msgid "Reference from (ai / local)"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:495
-msgid "AI Inpaint: frame the area, say what should be there, done"
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:157
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:152
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:155
+msgid "ai = ComfyUI, local = blurred copy"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:496
-msgid "Selection + prompt -> ComfyUI inpaint -> new layer. Only asks what to paint; the sampling settings use good defaults. Use \"AI Inpaint (Advanced)\" to change them."
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:181
+msgid "Dodge & Burn (AI prep): the usual dodge and burn curve layers, but their masks come pre-painted from a reference retouch — white where the reference is brighter (dodge) or darker (burn). You open a file with the dodging already started."
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:504
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:185
+msgid "Dodge & burn with masks pre-painted from an AI reference"
+msgstr ""
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:188
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:183
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:186
+msgid "What the retouch should look like"
+msgstr ""
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:189
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:184
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:187
+msgid "Only used by the AI reference. Leave empty for \"clean natural skin\"."
+msgstr ""
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:193
+msgid "Curve strength (%)"
+msgstr ""
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:194
+msgid "How far each curve lifts or lowers the midtones: 12 means 0.12 at 0.5."
+msgstr ""
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:197
+msgid "Pre-paint amount (%)"
+msgstr ""
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:198
+msgid "How much of the measured difference is painted in already. 70 leaves the last 30% for your brush; 100 hands the whole correction over."
+msgstr ""
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:202
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:196
+msgid "Reference radius (px, local only)"
+msgstr ""
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:203
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:197
+msgid "Cutoff of the local low-pass reference; ignored by the AI reference."
+msgstr ""
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:206
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:193
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:200
+msgid "AI denoise"
+msgstr ""
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:207
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:201
+msgid "How far ComfyUI may move the pixels: 0.2 barely touches them, 0.5 starts changing features."
+msgstr ""
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:211
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:198
+#: plugin/ai-inpaint/ai-inpaint.py:506
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:205
 msgid "ComfyUI address"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:505
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:212
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:199
+#: plugin/ai-inpaint/ai-inpaint.py:507
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:206
 msgid "Empty = $LB_COMFY_URL, else http://127.0.0.1:8188"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:508
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:215
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:202
+#: plugin/ai-inpaint/ai-inpaint.py:510
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:209
 msgid "Checkpoint"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:509
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:216
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:203
+#: plugin/ai-inpaint/ai-inpaint.py:511
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:210
 msgid "Model file name; empty picks the first one ComfyUI offers"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:512
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:219
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:206
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:213
+msgid "AI steps"
+msgstr ""
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:219
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:206
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:213
+msgid "Sampling steps for the reference pass"
+msgstr ""
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:222
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:209
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:216
+#: plugin/dodge-burn/dodge-burn.py:270
+#: plugin/frequency-separation/frequency-separation.py:269
+#: plugin/hsi-split-curves/hsi-split-curves.py:323
+#: plugin/hsl-split-curves/hsl-split-curves.py:544
+#: plugin/hsv-split-curves/hsv-split-curves.py:554
+#: plugin/lab-split-curves/lab-split-curves.py:601
+#: plugin/lch-split-curves/lch-split-curves.py:730
+#: plugin/neutral-grey/neutral-grey.py:237
+msgid "Put in a layer group"
+msgstr ""
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:223
+msgid "Puts both curve layers into a pass-through group."
+msgstr ""
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:231
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:219
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:225
+msgid "plugin/_shared/retouch_prep.py is missing: install the _shared folder next to the plug-in"
+msgstr ""
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:236
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:224
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:230
+#: plugin/dodge-burn/dodge-burn.py:277
+#: plugin/frequency-separation/frequency-separation.py:276
+#: plugin/neutral-grey/neutral-grey.py:244
+msgid "Select exactly one layer."
+msgstr ""
+
+#: plugin/ai-dodge-burn/ai-dodge-burn.py:254
+msgid "The dodge and burn masks are already painted where the reference differs from your layer. Click a mask and paint more white with a soft brush to finish; #000000 takes a stroke back."
+msgstr ""
+
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:74
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:108
+msgid "Frequency Separation (AI prep)"
+msgstr ""
+
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:82
+#: plugin/frequency-separation/frequency-separation.py:175
+#: plugin/hsi-split-curves/hsi-split-curves.py:232
+#: plugin/hsl-split-curves/hsl-split-curves.py:350
+#: plugin/hsl-split-curves/hsl-split-curves.py:431
+#: plugin/hsl-split-curves/hsl-split-curves.py:501
+#: plugin/hsv-split-curves/hsv-split-curves.py:379
+#: plugin/lab-split-curves/lab-split-curves.py:406
+#: plugin/lab-split-curves/lab-split-curves.py:488
+#: plugin/lab-split-curves/lab-split-curves.py:558
+#: plugin/lch-split-curves/lch-split-curves.py:536
+#: plugin/lch-split-curves/lch-split-curves.py:617
+#: plugin/lch-split-curves/lch-split-curves.py:687
+msgid "Nothing to split: no layer."
+msgstr ""
+
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:85
+#: plugin/frequency-separation/frequency-separation.py:178
+#: plugin/hsi-split-curves/hsi-split-curves.py:235
+#: plugin/hsl-split-curves/hsl-split-curves.py:353
+#: plugin/hsl-split-curves/hsl-split-curves.py:434
+#: plugin/hsl-split-curves/hsl-split-curves.py:504
+#: plugin/hsv-split-curves/hsv-split-curves.py:382
+#: plugin/lab-split-curves/lab-split-curves.py:409
+#: plugin/lab-split-curves/lab-split-curves.py:491
+#: plugin/lab-split-curves/lab-split-curves.py:561
+#: plugin/lch-split-curves/lch-split-curves.py:539
+#: plugin/lch-split-curves/lch-split-curves.py:620
+#: plugin/lch-split-curves/lch-split-curves.py:690
+msgid "A layer group cannot be split; pick a raster layer first (right-click the group, then Merge Group)."
+msgstr ""
+
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:112
+#: plugin/frequency-separation/frequency-separation.py:202
+msgid "1 · Low frequency (tone)"
+msgstr ""
+
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:117
+#: plugin/frequency-separation/frequency-separation.py:210
+msgid "2 · High frequency (detail)"
+msgstr ""
+
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:145
+msgid "\"AI\" sends the layer through ComfyUI at low denoise; \"Local\" blurs a downscaled copy instead. AI falls back to Local when ComfyUI is not running."
+msgstr ""
+
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:176
+msgid "Frequency Separation (AI prep): builds the usual low/high frequency pair, but the pixels come from a reference that was already retouched — a low-denoise ComfyUI pass or a blurred copy. The composite is that reference, so you open a file with the work already started."
+msgstr ""
+
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:180
+msgid "Low/high frequency pair built on a pre-retouched reference"
+msgstr ""
+
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:188
+#: plugin/frequency-separation/frequency-separation.py:265
+msgid "Split radius (px)"
+msgstr ""
+
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:189
+msgid "Standard deviation of the low-frequency blur; also the cutoff between tone and texture."
+msgstr ""
+
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:194
+msgid "How far ComfyUI may move the pixels: 0.2 barely touches them, 0.5 starts changing features. Ignored by the local reference."
+msgstr ""
+
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:210
+msgid "Puts both layers into a pass-through group; turn it off to stack them directly above the original layer."
+msgstr ""
+
+#: plugin/ai-frequency-separation/ai-frequency-separation.py:241
+msgid "The low layer already has the reference's tone, the high layer its texture: refine on the high layer, adjust colour on the low one. Hide the group to compare with the original."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:113
+msgid "Some words in the prompt are not in the built-in Chinese dictionary: %s. SD models only read English — rephrase with common words, or write that part in English."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:118
+#: plugin/ai-inpaint/ai-inpaint.py:127
+msgid "The prompt is empty — this box is what the AI paints, so it must say what should appear. Describe the RESULT, not the thing you want gone: to erase a bottle, write \"empty wooden table, wood grain\" instead of \"remove the bottle\"."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:133
+msgid "The prompt contains Chinese/Japanese/Korean characters. SD1.5 and SDXL can only read English — anything else is treated as random noise, which is why the result looked unrelated to your picture. Write it in English, e.g. \"empty wooden table, wood grain, soft daylight\", and put what you want removed into the negative prompt."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:180
+msgid "Failed to read layer pixels: expected %d bytes, got %d"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:189
+msgid "No selection"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:194
+msgid "Failed to read the selection buffer: expected %d bytes, got %d"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:291
+msgid "Could not read the inpainting result (%s)"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:325
+msgid "plugin/_shared/ai_client.py is missing: install the _shared folder next to the plug-in"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:334
+msgid "Make a selection first: frame what you want repainted (a rough one is fine — grow/feather cleans up the edges)."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:351
+msgid "AI Inpaint"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:444
+msgid "What to paint"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:445
+msgid "Pick a subject and the prompt starts from it — the prompt box then only needs the details (colour, pose, surroundings)"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:450
+msgid "What to paint (none / cat / dog / person / flower / tree / coffee / food / car)"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:452
+msgid "Leave empty for none"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:473
+msgid "Prompt — what the selection should become"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:474
+msgid "Describe the RESULT. Chinese is fine for common words (the plug-in translates them); SD itself only reads English. To remove a bottle, write \"empty wooden table, wood grain\" rather than \"remove the bottle\"."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:481
+msgid "Negative prompt"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:482
+msgid "What must not appear — put the thing you are deleting here"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:487
+msgid "AI Inpaint (Advanced)…"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:489
+msgid "AI Inpaint (Advanced): every sampling and blending knob"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:490
+msgid "Selection + prompt -> ComfyUI inpaint -> new layer with a feathered selection mask. Exposes steps/CFG/seed/denoise/mask grow/feather/working scale."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:495
+msgid "AI Inpaint…"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:497
+msgid "AI Inpaint: frame the area, say what should be there, done"
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:498
+msgid "Selection + prompt -> ComfyUI inpaint -> new layer. Only asks what to paint; the sampling settings use good defaults. Use \"AI Inpaint (Advanced)\" to change them."
+msgstr ""
+
+#: plugin/ai-inpaint/ai-inpaint.py:514
 msgid "Steps"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:512
+#: plugin/ai-inpaint/ai-inpaint.py:514
 msgid "Sampling steps (25 is a good default)"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:515
+#: plugin/ai-inpaint/ai-inpaint.py:517
 msgid "CFG"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:515
+#: plugin/ai-inpaint/ai-inpaint.py:517
 msgid "Prompt guidance strength"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:518
+#: plugin/ai-inpaint/ai-inpaint.py:520
 msgid "Random seed; -1 picks a new one each run"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:521
+#: plugin/ai-inpaint/ai-inpaint.py:523
 msgid "Denoise"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:522
+#: plugin/ai-inpaint/ai-inpaint.py:524
 msgid "1.0 fully repaints the masked area, lower keeps more of it"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:525
+#: plugin/ai-inpaint/ai-inpaint.py:527
 msgid "Grow mask"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:526
+#: plugin/ai-inpaint/ai-inpaint.py:528
 msgid "Pixels to expand the selection before sending (softens seams)"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:529
+#: plugin/ai-inpaint/ai-inpaint.py:531
 msgid "Model mask grow"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:530
+#: plugin/ai-inpaint/ai-inpaint.py:532
 msgid "Extra pixels the model may touch (8 px = 1 latent cell; bigger = fewer seams, more drift)"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:535
+#: plugin/ai-inpaint/ai-inpaint.py:537
 msgid "Feather radius of the layer mask used when pasting back"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:538
+#: plugin/ai-inpaint/ai-inpaint.py:540
 msgid "Timeout (s)"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:539
+#: plugin/ai-inpaint/ai-inpaint.py:541
 msgid "How long to wait for ComfyUI before giving up"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:542
+#: plugin/ai-inpaint/ai-inpaint.py:544
 msgid "Keep mask channel"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:543
+#: plugin/ai-inpaint/ai-inpaint.py:545
 msgid "Keep the 'AI Mask' channel so the result can be re-masked later"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:546
+#: plugin/ai-inpaint/ai-inpaint.py:548
 msgid "Working scale"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:547
+#: plugin/ai-inpaint/ai-inpaint.py:549
 msgid "0 = fit the model's native size (SD1.5 512, SDXL 1024); 1.0 = send the crop unchanged"
 msgstr ""
 
-#: plugin/ai-inpaint/ai-inpaint.py:555
+#: plugin/ai-inpaint/ai-inpaint.py:557
 #: plugin/alpha-curves/alpha-curves.py:274
 #: plugin/channel-to-mask/channel-to-mask.py:212
 #: plugin/color-range/color-range.py:499
@@ -3593,6 +3910,39 @@ msgstr ""
 #: plugin/layer-to-selection/layer-to-selection.py:299
 #: plugin/lch-split-curves/lch-split-curves.py:739
 msgid "No image or no layer selected"
+msgstr ""
+
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:67
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:113
+msgid "Neutral Grey (AI prep)"
+msgstr ""
+
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:117
+msgid "1 · Neutral grey (pre-corrected)"
+msgstr ""
+
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:179
+msgid "Neutral Grey (AI prep): a 50% grey Soft Light layer whose pixels are already shifted toward a reference retouch, so the dodging and burning is partly done when the file opens. White brush lightens, black darkens, #808080 erases."
+msgstr ""
+
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:183
+msgid "Soft Light grey layer pre-corrected from an AI reference"
+msgstr ""
+
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:191
+msgid "Pre-correct amount (%)"
+msgstr ""
+
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:192
+msgid "How much of the measured difference is baked into the grey layer. 70 leaves the last 30% for your brush."
+msgstr ""
+
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:217
+msgid "Puts the grey layer into a pass-through group."
+msgstr ""
+
+#: plugin/ai-neutral-grey/ai-neutral-grey.py:247
+msgid "The grey layer is no longer flat 128: it already pushes the skin toward the reference. Paint white / black at 5–15% to finish, or #808080 to take a correction back."
 msgstr ""
 
 #: plugin/alpha-curves/alpha-curves.py:85
@@ -3625,19 +3975,6 @@ msgstr ""
 
 #: plugin/alpha-curves/alpha-curves.py:170
 msgid "The lb:channel-range-to-alpha operation is missing, so the channel cannot be written into alpha. Install the module from dist/, or set the source channel to alpha to attach the curve alone."
-msgstr ""
-
-#: plugin/alpha-curves/alpha-curves.py:182
-#: plugin/color-range/color-range.py:181
-#: plugin/dodge-burn/dodge-burn.py:174
-#: plugin/neutral-grey/neutral-grey.py:150
-msgid "Nothing to work on: no layer."
-msgstr ""
-
-#: plugin/alpha-curves/alpha-curves.py:185
-#: plugin/dodge-burn/dodge-burn.py:177
-#: plugin/neutral-grey/neutral-grey.py:153
-msgid "A layer group has no pixels of its own; pick a raster layer (right-click the group, then Merge Group)."
 msgstr ""
 
 #: plugin/alpha-curves/alpha-curves.py:210
@@ -4246,11 +4583,6 @@ msgstr ""
 msgid "Unknown direction"
 msgstr ""
 
-#: plugin/dodge-burn/dodge-burn.py:127
-#: plugin/frequency-separation/frequency-separation.py:135
-msgid "0 · alpha"
-msgstr ""
-
 #: plugin/dodge-burn/dodge-burn.py:196
 #: plugin/dodge-burn/dodge-burn.py:256
 msgid "Dodge & Burn"
@@ -4261,19 +4593,11 @@ msgid "1 · Dodge (black mask)"
 msgstr ""
 
 #: plugin/dodge-burn/dodge-burn.py:202
-msgid "1 · Dodge curve"
-msgstr ""
-
-#: plugin/dodge-burn/dodge-burn.py:202
 msgid "Paint white to dodge"
 msgstr ""
 
 #: plugin/dodge-burn/dodge-burn.py:203
 msgid "2 · Burn (black mask)"
-msgstr ""
-
-#: plugin/dodge-burn/dodge-burn.py:203
-msgid "2 · Burn curve"
 msgstr ""
 
 #: plugin/dodge-burn/dodge-burn.py:203
@@ -4314,76 +4638,13 @@ msgstr ""
 msgid "How far the curve lifts or lowers the midtones: 12 means 0.12 at 0.5 (about 30 levels)."
 msgstr ""
 
-#: plugin/dodge-burn/dodge-burn.py:270
-#: plugin/frequency-separation/frequency-separation.py:269
-#: plugin/hsi-split-curves/hsi-split-curves.py:323
-#: plugin/hsl-split-curves/hsl-split-curves.py:544
-#: plugin/hsv-split-curves/hsv-split-curves.py:554
-#: plugin/lab-split-curves/lab-split-curves.py:601
-#: plugin/lch-split-curves/lch-split-curves.py:730
-#: plugin/neutral-grey/neutral-grey.py:237
-msgid "Put in a layer group"
-msgstr ""
-
 #: plugin/dodge-burn/dodge-burn.py:271
 msgid "Puts both layers into a pass-through group named Dodge & Burn; turn it off to stack them directly above the original layer."
-msgstr ""
-
-#: plugin/dodge-burn/dodge-burn.py:277
-#: plugin/frequency-separation/frequency-separation.py:276
-#: plugin/neutral-grey/neutral-grey.py:244
-msgid "Select exactly one layer."
-msgstr ""
-
-#: plugin/frequency-separation/frequency-separation.py:150
-msgid "Gaussian blur (low frequency)"
-msgstr ""
-
-#: plugin/frequency-separation/frequency-separation.py:160
-msgid "High pass (high frequency)"
-msgstr ""
-
-#: plugin/frequency-separation/frequency-separation.py:175
-#: plugin/hsi-split-curves/hsi-split-curves.py:232
-#: plugin/hsl-split-curves/hsl-split-curves.py:350
-#: plugin/hsl-split-curves/hsl-split-curves.py:431
-#: plugin/hsl-split-curves/hsl-split-curves.py:501
-#: plugin/hsv-split-curves/hsv-split-curves.py:379
-#: plugin/lab-split-curves/lab-split-curves.py:406
-#: plugin/lab-split-curves/lab-split-curves.py:488
-#: plugin/lab-split-curves/lab-split-curves.py:558
-#: plugin/lch-split-curves/lch-split-curves.py:536
-#: plugin/lch-split-curves/lch-split-curves.py:617
-#: plugin/lch-split-curves/lch-split-curves.py:687
-msgid "Nothing to split: no layer."
-msgstr ""
-
-#: plugin/frequency-separation/frequency-separation.py:178
-#: plugin/hsi-split-curves/hsi-split-curves.py:235
-#: plugin/hsl-split-curves/hsl-split-curves.py:353
-#: plugin/hsl-split-curves/hsl-split-curves.py:434
-#: plugin/hsl-split-curves/hsl-split-curves.py:504
-#: plugin/hsv-split-curves/hsv-split-curves.py:382
-#: plugin/lab-split-curves/lab-split-curves.py:409
-#: plugin/lab-split-curves/lab-split-curves.py:491
-#: plugin/lab-split-curves/lab-split-curves.py:561
-#: plugin/lch-split-curves/lch-split-curves.py:539
-#: plugin/lch-split-curves/lch-split-curves.py:620
-#: plugin/lch-split-curves/lch-split-curves.py:690
-msgid "A layer group cannot be split; pick a raster layer first (right-click the group, then Merge Group)."
 msgstr ""
 
 #: plugin/frequency-separation/frequency-separation.py:197
 #: plugin/frequency-separation/frequency-separation.py:255
 msgid "Frequency Separation"
-msgstr ""
-
-#: plugin/frequency-separation/frequency-separation.py:202
-msgid "1 · Low frequency (tone)"
-msgstr ""
-
-#: plugin/frequency-separation/frequency-separation.py:210
-msgid "2 · High frequency (detail)"
 msgstr ""
 
 #: plugin/frequency-separation/frequency-separation.py:228
@@ -4396,10 +4657,6 @@ msgstr ""
 
 #: plugin/frequency-separation/frequency-separation.py:261
 msgid "Frequency separation: one click builds a blurred low-frequency layer (tone/colour) and a high-pass high-frequency layer (detail) that recombine to the original."
-msgstr ""
-
-#: plugin/frequency-separation/frequency-separation.py:265
-msgid "Split radius (px)"
 msgstr ""
 
 #: plugin/frequency-separation/frequency-separation.py:266

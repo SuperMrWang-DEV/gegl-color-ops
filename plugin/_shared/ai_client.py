@@ -516,6 +516,68 @@ def build_inpaint_workflow(checkpoint, image_name, mask_name, prompt,
     }
 
 
+# 整图重绘（img2img）用的固定图：CheckpointLoaderSimple → LoadImage → VAEEncode
+# → KSampler → VAEDecode → SaveImage。
+#
+# 和下面的 inpaint 工作流的区别只有一处：没有蒙版，latent 直接来自整张图，
+# denoise 决定「保留多少原图」。磨皮预修要的正是这个——低 denoise（0.3–0.4）
+# 把皮肤往干净里推，同时保住五官和轮廓；用 inpaint 那条路（全白蒙版）会把
+# 整个 latent 清空，出来的是另一张脸。
+def build_img2img_workflow(checkpoint, image_name, prompt, negative="",
+                           steps=25, cfg=7.5, seed=0, denoise=0.35,
+                           sampler="dpmpp_2m", scheduler="karras",
+                           prefix="lb-ai-img2img"):
+    return {
+        "1": {"class_type": "CheckpointLoaderSimple",
+              "inputs": {"ckpt_name": checkpoint}},
+        "2": {"class_type": "LoadImage", "inputs": {"image": image_name}},
+        "4": {"class_type": "CLIPTextEncode",
+              "inputs": {"text": prompt, "clip": ["1", 1]}},
+        "5": {"class_type": "CLIPTextEncode",
+              "inputs": {"text": negative or "", "clip": ["1", 1]}},
+        "6": {"class_type": "VAEEncode",
+              "inputs": {"pixels": ["2", 0], "vae": ["1", 2]}},
+        "7": {"class_type": "KSampler",
+              "inputs": {"model": ["1", 0], "positive": ["4", 0],
+                         "negative": ["5", 0], "latent_image": ["6", 0],
+                         "seed": int(seed), "steps": int(steps),
+                         "cfg": float(cfg), "sampler_name": sampler,
+                         "scheduler": scheduler, "denoise": float(denoise)}},
+        "8": {"class_type": "VAEDecode",
+              "inputs": {"samples": ["7", 0], "vae": ["1", 2]}},
+        "9": {"class_type": "SaveImage",
+              "inputs": {"images": ["8", 0], "filename_prefix": prefix}},
+    }
+
+
+def img2img(client, image_png, prompt, negative="", checkpoint="", steps=25,
+            cfg=7.5, seed=0, denoise=0.35, sampler="dpmpp_2m",
+            scheduler="karras", timeout=600.0, prefix="lb-ai-img2img",
+            on_tick=None):
+    """整图低重绘：传图 → 排队 → 等 → 取回；返回 (png_bytes, info)。
+
+    denoise 是这条路上唯一真正要紧的参数：0.2 只是轻微去噪，0.5 以上就开始
+    换脸。磨皮预修默认 0.35。
+    """
+    t0 = time.time()
+    src_name, _ = client.upload_image("lb-img2img-src.png", image_png)
+    ckpt = checkpoint or client.first_checkpoint()
+
+    wf = build_img2img_workflow(ckpt, src_name, prompt, negative=negative,
+                                steps=steps, cfg=cfg, seed=seed,
+                                denoise=denoise, sampler=sampler,
+                                scheduler=scheduler, prefix=prefix)
+    pid = client.queue(wf)
+    entry = client.wait(pid, timeout=timeout, on_tick=on_tick)
+    img = first_image(entry)
+    blob = client.download(img.get("filename", ""),
+                           img.get("subfolder", ""),
+                           img.get("type", "output"))
+    return blob, {"prompt_id": pid, "checkpoint": ckpt,
+                  "seconds": round(time.time() - t0, 2),
+                  "filename": img.get("filename", "")}
+
+
 def first_image(entry):
     """从 history 条目里挑第一张 output 图（{filename, subfolder, type}）。"""
     for _node, out in (entry.get("outputs") or {}).items():

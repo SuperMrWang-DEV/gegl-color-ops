@@ -46,6 +46,9 @@ gegl-color-ops/
 ├── plugin/frequency-separation/ # Python 插件：高低频磨皮（低频 + 高频两层，合成即原图）
 ├── plugin/dodge-burn/        # Python 插件：双曲线磨皮（提亮 / 压暗两层，黑蒙版）
 ├── plugin/neutral-grey/      # Python 插件：中性灰磨皮（50% 灰 + 柔光）
+├── plugin/ai-frequency-separation/ # Python 插件：高低频磨皮（AI 预修，两层内容 = 参考图）
+├── plugin/ai-dodge-burn/     # Python 插件：双曲线磨皮（AI 预修，蒙版已预涂）
+├── plugin/ai-neutral-grey/   # Python 插件：中性灰磨皮（AI 预修，灰层已反解）
 ├── plugin/alpha-curves/      # Python 插件：通道 → Alpha + 一条可编辑的 alpha 曲线（菜单 Mask）
 ├── plugin/sky-replace/       # Python 插件：一键换天（源码保留，.disabled 暂不安装）
 ├── dist/                 # 编好的模块，给不想编译的人直接下载（windows-x64 / linux-x64）
@@ -53,9 +56,9 @@ gegl-color-ops/
 ├── tools/site/           # 站点样式源（生成时拷进 docs/assets/）
 │   ├── blog/             #   博客长文正文（中文），英文在 en/blog/
 │   └── en/               #   算子文章与博客的英文正文
-├── tools/plugin_docs.py  # 十五个插件页的正文与卡片文案（plugins/<slug> 文章页用）
+├── tools/plugin_docs.py  # 十九个插件页的正文与卡片文案（plugins/<slug> 文章页用）
 ├── docs/                 #  GitHub Pages 站点（tools/site_build.py 生成，别手改）
-│   ├── plugins/          #  十五个插件各一篇（菜单结构、原理、用法、实测）
+│   ├── plugins/          #  十九个插件各一篇（菜单结构、原理、用法、实测）
 │   └── blog/             #  博客长文（中英双版、带目录）
 ├── build/                # 编译产物（build.sh 生成，可随时删）
 └── LICENSE               # GPL-3.0
@@ -494,6 +497,46 @@ alpha 都有回滚。与算子版本的区别是**一次性应用**——想随�
 回归：`tools/check_sky_replace.py`（13 条断言：分层、蒙版、合成像素、
 亮度匹配、开关行为、报错路径；直方图期望值按 255·enc_srgb(v) 刻度
 换算，跑在 gimp-console 的 python-fu-eval 里）。
+
+### Python 插件：plugin/ai-*（AI 磨皮，三支「预修版」）
+
+原来的三支磨皮（高低频 / 双曲线 / 中性灰）是「干净结构 + 你自己修」。这三支
+一行都不会改它们，而是各开一个新入口：**结构搭好的同时把活也干了一部分**，
+打开文件就是一张有工作痕迹的图，剩下的是收尾。
+
+| 菜单项 | 打开时已经做完的 | 你接着做什么 |
+| --- | --- | --- |
+| **高低频磨皮（AI 预修）** | 两层内容是一张修过一遍的参考图（合成结果 = 参考图），色块已平、痘印已淡 | 高频层点掉残留细节，低频层铺色 |
+| **双曲线磨皮（AI 预修）** | 提亮 / 压暗蒙版已按差值预涂 70%，浓度按每像素自己的亮度反算 | 补白、涂黑收尾 |
+| **中性灰磨皮（AI 预修）** | 灰层不是平的 128，而是按柔光公式反解出的 128±偏移 | 5–15% 白 / 黑画笔收尾，`#808080` 擦回 |
+
+参考图两条路，参数 `source` 选：
+
+- **AI 参考**：整层交给 ComfyUI 做一次整图低重绘（`denoise` 默认 0.35，走
+  `VAEEncode → KSampler` 的 img2img 工作流，不是 inpaint——inpaint 会把整个
+  latent 清空，出来的是另一张脸）。它认得「这是皮肤」：痘印、泛红、色块被推平，
+  五官与轮廓留住。提示词可以直接写中文（`prompt_tools` 词表），留空用内置的
+  `clean natural skin`。
+- **本地参考**：整层降采样再放大当低通，毫秒级、零依赖；本质是「自动双曲线」。
+
+规则：
+
+1. AI 连不上 ComfyUI 时**自动退回本地参考**，并在提示里说清原因——不静默失败，
+   也不弹一堆报错。
+2. **有选区时只在选区内预修**，选区外逐像素等于原图（参考图整层混合，选区外
+   alpha=0）。
+3. 预修不是 100%：双曲线与中性灰默认补 70%，剩下的留给画笔。设 0% 等于原版
+   插件（全黑蒙版 / 平灰层）。
+4. 参数里那个 `radius` 在 AI 模式下不影响参考图（AI 自己按底模选 512 / 1024），
+   只在 `local` 模式下当低通截止半径。
+
+回归（两套，都不需要显卡）：
+
+```bash
+python tools/check_retouch_ai.py          # 87 条：数学 / 柔光反解 / img2img 工作流 / mock 端到端 / 源码约束
+# 真 GIMP，45 条：结构、预涂蒙版、灰层、选区、AI 退回
+gimp-console -b "exec(open('tools/check_retouch_ai_gimp.py').read())"
+```
 
 ### Python 插件：plugin/ai-inpaint（AI 局部重绘）
 
@@ -953,7 +996,9 @@ SuperMrWang → Component → <算子>   （10 个 dual / compose + 灰度转分
 SuperMrWang → Tone / Color / Blend / Mask → <算子>
 SuperMrWang → Sharpen / Noise / Distort → <算子>
 SuperMrWang → AI        → AI Inpaint… / AI Inpaint (Advanced)…
-                          （Python 插件，不在 47 个算子里）
+SuperMrWang → Retouch   → 高低频 / 双曲线 / 中性灰磨皮
+                          各自再加一个「（AI 预修）」入口
+                          （以上都是 Python 插件，不在 47 个算子里）
 ```
 
 47 个算子按「找算子时的念头」分九组，避免一个子菜单里平铺二十多项：

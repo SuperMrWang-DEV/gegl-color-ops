@@ -21,6 +21,7 @@
 
  注意   重绘结果 = 原图，蒙版区域（mask PNG 的 alpha < 128 处）填成 FILL_RGB。
         所以「白=要重绘」这条约定一旦写反，测试立刻红——这正是要守的东西。
+        只有一个 LoadImage 的工作流（整图 img2img）原样返回。
  ==========================================================================="""
 
 import argparse
@@ -74,6 +75,19 @@ class MockState(object):
                 prefix = node["inputs"].get("filename_prefix") or "mock"
 
         names = [n for n in loads if n in self.inputs]
+        if len(names) == 1:
+            # img2img 工作流只有一张 LoadImage：原样返回。
+            # 「denoise=0 等于不动像素」是真的，磨皮预修那三支插件据此断言
+            # 「AI 参考与原图一致时不该凭空刷出蒙版」。
+            sw, sh, sch, spix = ai_client.decode_png(self.inputs[names[0]])
+            out = bytearray(sw * sh * 4)
+            for i in range(sw * sh):
+                j3, j4 = i * sch, i * 4
+                out[j4:j4 + 3] = spix[j3:j3 + 3]
+                out[j4 + 3] = spix[j3 + 3] if sch == 4 else 255
+            filename = "%s_%05d_.png" % (prefix, len(self.outputs) + 1)
+            self.outputs[filename] = ai_client.rgba_png(sw, sh, bytes(out))
+            return {"filename": filename, "subfolder": "", "type": "output"}
         if len(names) < 2:
             raise ValueError("工作流里要有两张 LoadImage（原图 + 蒙版），"
                              "实际上传了 %s" % list(self.inputs))

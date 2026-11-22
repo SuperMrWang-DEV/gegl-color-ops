@@ -61,6 +61,7 @@ echo "                             最大值 / 最小值（膨胀 / 腐蚀，半
 echo "    SuperMrWang → Blend      应用图像 / 计算"
 echo "    SuperMrWang → AI         AI Inpaint（选区 + 提示词 → 本机 ComfyUI 重绘，需要 ComfyUI 在跑）"
 echo "    SuperMrWang → Retouch    HSV·HSL·Lab·LCh·HSI Split + 高低频/双曲线/中性灰磨皮"
+echo "                             再各加一个「（AI 预修）」入口：结构 + 预修一起给"
 echo "    图层右键 → SuperMrWang → Convert / Mask / Retouch   与上面同样的分组，只留单层能用的"
 echo "    通道右键 → SuperMrWang → Convert / Mask             以通道为源的那几项，点的哪条就用哪条"
 echo "  （gray-mask 已被 layer-to-* 取代，标记停用；sky-replace 同样停用）"

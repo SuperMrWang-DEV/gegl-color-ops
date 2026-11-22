@@ -605,6 +605,179 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
   </div>""",
     ),
     dict(
+        key='ai-frequency',
+        slug='ai-frequency-separation',
+        title='高低频磨皮（AI 预修）',
+        tag=('磨皮', 't-tone'),
+        count='一键 + 预修',
+        menu='SuperMrWang → Retouch → 高低频磨皮（AI 预修）',
+        menus=['SuperMrWang → Retouch → 高低频磨皮（AI 预修）',
+               '图层右键 → SuperMrWang → Retouch → 高低频磨皮（AI 预修）'],
+        pdb='lb-plugin-ai-frequency-separation(\n    image, drawables, prompt, source, radius,\n    denoise, server, checkpoint, steps, group)',
+        lede="""结构和「高低频磨皮」一模一样，只有内容换了人做：两层用的不是原图，
+       而是一张<b>已经修过一遍的参考图</b>——AI 低重绘，或本地降采样模糊。所以
+       打开文件时色块已经铺平、痘印已经淡掉，接着在高频层补几笔就行，不必从
+       零开始。""",
+        body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>生成的结构</h3><span class="pill">与原版同构</span></div>
+      <pre><code>高低频磨皮（AI 预修）      组 · 穿透（带 alpha 时组上还有蒙版）
+  ├─ 2 · 高频（细节）      颗粒合并 + 高通
+  ├─ 1 · 低频（影调）      正常 + 高斯模糊
+  └─ 原图层（不动，隐藏它也不掉东西）</code></pre>
+      <p>合成结果等于<b>参考图</b>，不是原图——这就是「工作痕迹」。想对照就把组
+         的眼睛关掉，或按住 <kbd>Shift</kbd> 点眼睛临时隐藏。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>参考图从哪来</h3><span class="pill">参数 source</span></div>
+      <p><b>AI 参考</b>：整层交给 ComfyUI 低重绘（默认 <code>denoise 0.35</code>），
+         它认得出「这是皮肤」——痘印、泛红、局部色块被推平，五官与轮廓留住。
+         <b>本地参考</b>：整层降采样再放大当低通，毫秒级、零依赖。</p>
+      <p>AI 连不上时自动退回本地参考，并在提示里说清原因，不会弹一堆报错。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>选区</h3></div>
+      <p>有选区时，参考图只替换选区内，选区外逐像素等于原图——可以只修脸，
+         不动头发和背景。这一点三支 AI 磨皮插件一致。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>接着怎么修</h3></div>
+      <ol class="steps">
+        <li><b>高频层</b>：剩下没抹干净的痘印、毛孔，图章或修复画笔点掉。</li>
+        <li><b>低频层</b>：还想更平的地方用低透明度画笔铺一下；铺过头就吸周围的
+            颜色盖回来。</li>
+        <li><b>半径</b>就是分界线：1024 长的图从 4–8 px 起试。两层半径是同一个量，
+            改的时候一起改，否则叠回去就不再是参考图。</li>
+      </ol>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>实测</h3><span class="pill">check_retouch_ai*.py</span></div>
+      <p>结构 / 混合模式 / 滤镜与原版逐项一致；本地参考路径在软斑测试图上把高频
+         残留压到 <b>≤ 6 码</b>（原图为对照组）；参考图与原图一致时（mock 返回原图）
+         痘印一位不动，说明不是无条件抹平。</p>
+      <p class="muted small">参数：<code>source</code>（ai / local）、
+         <code>radius</code> 0.2–100 px、<code>denoise</code> 0.05–0.9、
+         <code>prompt</code>、<code>server</code> / <code>checkpoint</code> /
+         <code>steps</code>、<code>group</code>。</p>
+    </div>
+  </div>""",
+    ),
+    dict(
+        key='ai-dodge',
+        slug='ai-dodge-burn',
+        title='双曲线磨皮（AI 预修）',
+        tag=('磨皮', 't-tone'),
+        count='一键 + 预涂',
+        menu='SuperMrWang → Retouch → 双曲线磨皮（AI 预修）',
+        menus=['SuperMrWang → Retouch → 双曲线磨皮（AI 预修）',
+               '图层右键 → SuperMrWang → Retouch → 双曲线磨皮（AI 预修）'],
+        pdb='lb-plugin-ai-dodge-burn(\n    image, drawables, prompt, source, amount,\n    prepaint, radius, denoise, server, checkpoint, steps, group)',
+        lede="""还是提亮 / 压暗两条曲线层，区别是<b>蒙版已经不是全黑</b>：插件先把参考
+       图和原图的亮度差算出来，折成蒙版浓度，预先涂上七成。打开文件就是「已经
+       打过一轮双曲线」的状态。""",
+        body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>生成的结构</h3><span class="pill">预涂蒙版</span></div>
+      <pre><code>双曲线磨皮（AI 预修）      组 · 穿透
+  ├─ 2 · 压暗（已预涂）    正常 + 压暗曲线 + 预涂蒙版
+  ├─ 1 · 提亮（已预涂）    正常 + 提亮曲线 + 预涂蒙版
+  └─ 原图层（不动）</code></pre>
+      <p>暗于参考图的地方落在提亮蒙版，亮于参考图的地方落在压暗蒙版；背景与
+         没差值的地方仍然是黑的（不参与合成）。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>浓度不是全图一个系数</h3></div>
+      <p>曲线是 <code>x + d·4x(1−x)</code>：两端不动、中间最鼓。所以同一个「提亮
+         0.06」，在中灰需要 <code>蒙版 0.5</code>，在暗部要浓得多。插件按每个像素
+         自己的亮度反算浓度，而不是全图乘一个数。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>为什么只补七成</h3><span class="pill">prepaint 70%</span></div>
+      <p>一次补平通常过头——参考图本身也有误差。默认 70%，剩下的交给你的画笔；
+         想完全交给 AI 就设 100%，只想做个提示就设 30%。设 0% 等于原版插件
+         （两张全黑蒙版）。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>接着怎么修</h3></div>
+      <ol class="steps">
+        <li>点中某一层的<b>蒙版缩略图</b>，柔边画笔、白色、不透明度 10–20%。</li>
+        <li>不够亮的位置再补白；画过头用黑色盖回去，或者把预涂浓度调低重跑。</li>
+        <li>想检查涂了多少：按住 <kbd>Alt</kbd> 点蒙版缩略图，只看黑白分布。</li>
+      </ol>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>实测</h3><span class="pill">check_retouch_ai*.py</span></div>
+      <p>软斑测试图上，暗斑处提亮蒙版 ≈ <b>116</b>、亮斑处压暗蒙版 ≈ <b>129</b>，
+         交叉位置为 0；<code>prepaint=0</code> 时两张蒙版全黑（与原版行为一致）；
+         选区外的蒙版保持 0。</p>
+      <p class="muted small">参数：<code>source</code>、<code>amount</code> 1–40%、
+         <code>prepaint</code> 0–100%、<code>radius</code>（本地参考）、
+         <code>denoise</code>、<code>prompt</code>、<code>group</code>。</p>
+    </div>
+  </div>""",
+    ),
+    dict(
+        key='ai-grey',
+        slug='ai-neutral-grey',
+        title='中性灰磨皮（AI 预修）',
+        tag=('磨皮', 't-tone'),
+        count='一键 + 预校正',
+        menu='SuperMrWang → Retouch → 中性灰磨皮（AI 预修）',
+        menus=['SuperMrWang → Retouch → 中性灰磨皮（AI 预修）',
+               '图层右键 → SuperMrWang → Retouch → 中性灰磨皮（AI 预修）'],
+        pdb='lb-plugin-ai-neutral-grey(\n    image, drawables, prompt, source, prepaint,\n    radius, denoise, server, checkpoint, steps, group)',
+        lede="""那张 50% 灰的柔光层<b>不再是平的 128</b>：插件把「参考图比原图亮多少 /
+       暗多少」反解成柔光需要的灰度，直接写进灰层。打开文件就是已经做过一轮
+       中性灰、肤色被拉平了一截的状态。""",
+        body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>生成的结构</h3><span class="pill">128 ± 偏移</span></div>
+      <pre><code>中性灰磨皮（AI 预修）        组 · 穿透
+  └─ 1 · 中性灰（已预校正）  柔光 + 128±偏移的像素
+     └─ 原图层（不动）</code></pre>
+      <p>灰层里每个像素都是解析解：把柔光公式 <code>out = x + (2g−1)·…</code> 反推
+         出「要让这里变成参考图，g 该是多少」，不是估的。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>它是像素，不是蒙版</h3></div>
+      <p>所以橡皮擦、选区填充、渐变、复制粘贴都能用——比双曲线那版更耐改；
+         代价是画过头只能靠 <code>#808080</code> 盖回去（双曲线那版把蒙版涂黑就行）。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>预校正多少</h3><span class="pill">prepaint 70%</span></div>
+      <p>默认补七成：暗斑处灰层 &gt; 128（提亮）、油光处 &lt; 128（压暗）、背景
+         ≈ 128（不动）。设 0% 就是原版那张平灰层。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>接着怎么修</h3></div>
+      <ol class="steps">
+        <li>选中灰层，柔边画笔、不透明度 5–15%：白色提亮、黑色压暗。</li>
+        <li>画过头：前景色设 <code>#808080</code> 涂回去，等于「这一块没做」。</li>
+        <li>觉得整体太强 / 太弱：关掉组，用 <code>prepaint</code> 换个比例重跑，
+            原图层一直没动。</li>
+      </ol>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>实测</h3><span class="pill">check_retouch_ai.py</span></div>
+      <p>灰层代回柔光公式，能把原图推回参考图的误差 <b>≤ 1 码</b>（六组亮度/差值
+         组合，含正负方向）；软斑图上暗斑处 <b>162</b>、亮斑处 <b>97</b>、背景
+         <b>128</b>；<code>prepaint=0</code> 整层 128。</p>
+      <p class="muted small">参数：<code>source</code>、<code>prepaint</code> 0–100%、
+         <code>radius</code>（本地参考）、<code>denoise</code>、<code>prompt</code>、
+         <code>group</code>。</p>
+    </div>
+  </div>""",
+    ),
+    dict(
         key='alpha-curves',
         slug='alpha-curves',
         title='Alpha Curves（透明通道曲线）',
@@ -999,6 +1172,9 @@ BRIEF = {
     "frequency": "低频管影调、高频管细节，叠起来就是原图；半径决定分界。",
     "dodge": "提亮 / 压暗两条曲线压在黑蒙版下：涂到哪里动哪里。",
     "grey": "一层 50% 灰、柔光下恒等；白笔提亮、黑笔压暗、灰盖回去。",
+    "ai-frequency": "结构同高低频，两层的内容换成一张已经修过一遍的参考图。",
+    "ai-dodge": "两条曲线的蒙版按参考图的差值预先涂好七成，打开就能继续补。",
+    "ai-grey": "灰层不再是平的 128：按参考图反解出偏移，已做一轮中性灰。",
     "alpha-curves": "把颜色通道写进 alpha，再接一条三个控制点的平滑曲线："
                     "挂上去先拉满，往下拖即成形状。",
     "color-range": "色彩范围的定制对话框：选什么颜色，下面就只显示那种颜色的参数，"
@@ -1016,6 +1192,9 @@ TAG_EN = {"曲线": "Curves", "磨皮": "Retouching", "选区": "Selection",
 
 TITLE_EN = {
     "frequency": "Frequency Separation",
+    "ai-frequency": "Frequency Separation (AI prep)",
+    "ai-dodge": "Dodge & Burn (AI prep)",
+    "ai-grey": "Neutral Grey (AI prep)",
     "dodge": "Dodge & Burn",
     "grey": "Neutral Grey",
     "alpha-curves": "Alpha Curves",
@@ -1046,6 +1225,12 @@ BRIEF_EN = {
              "paint where you want them.",
     "grey": "A 50% grey layer is identity under soft light: white brush lightens, "
             "black darkens, grey paints it back.",
+    "ai-frequency": "Same structure as Frequency Separation, but both layers carry a "
+                     "reference that was already retouched once.",
+    "ai-dodge": "Both curve masks come pre-painted to 70% of the measured difference, "
+                "so the dodging is already started.",
+    "ai-grey": "The grey layer is no longer flat 128: the offset is solved from the "
+               "reference, so one neutral-grey pass is already done.",
     "alpha-curves": "Writes a colour channel into alpha, then a smooth three-point "
                     "curve — pull it up to fill, drag down to shape.",
     "color-range": "A custom Colour Range dialog: pick what to target and only that "
@@ -1062,6 +1247,19 @@ BRIEF_EN = {
 AREA_EN = {"图层转换": "Convert", "Mask": "Mask", "Retouch 修饰": "Retouch"}
 
 DEPS_NOTE_EN = {
+    "ai-frequency": "Only GIMP's own <code>gegl:gaussian-blur</code> and "
+                    "<code>gegl:high-pass</code> — no extra operator modules. It does "
+                    "need <code>retouch_prep.py</code>, <code>retouch_math.py</code> "
+                    "and <code>ai_client.py</code> from <code>plugin/_shared/</code>, "
+                    "and they are inside the download.",
+    "ai-dodge": "Only GIMP's own <code>gimp:curves</code> — no extra operator modules. "
+                "It does need <code>retouch_prep.py</code>, <code>retouch_math.py</code> "
+                "and <code>ai_client.py</code> from <code>plugin/_shared/</code>, and "
+                "they are inside the download.",
+    "ai-grey": "No operator modules at all: it writes pixels into the buffer and uses "
+               "GIMP's own soft-light mode. It does need <code>retouch_prep.py</code> "
+               "and <code>retouch_math.py</code> from <code>plugin/_shared/</code>, "
+               "already included.",
     "grey": "No dependency on this project's operators: it only writes pixels into "
             "the buffer and uses GIMP's own soft-light mode. Install the plug-in and "
             "it works.",
@@ -1092,6 +1290,9 @@ DEPS = {
     "frequency": ["gegl:gaussian-blur", "gegl:high-pass"],
     "dodge": ["gimp:curves"],
     "grey": [],
+    "ai-frequency": ["gegl:gaussian-blur", "gegl:high-pass"],
+    "ai-dodge": ["gimp:curves"],
+    "ai-grey": [],
     "alpha-curves": ["lb:channel-range-to-alpha", "gimp:curves"],
     "color-range": ["lb:color-mask-select"],
     "channel-to-mask": [],
@@ -1109,6 +1310,18 @@ DEPS_NOTE = {
     "split": "不依赖任何自研算子：读一次图层数据后按分量切片，只调 GIMP 自己的通道 PDB。",
     "channel-to-mask": "不依赖任何自研算子：只读通道像素、只调 GIMP 自己的蒙版 PDB。",
     "convert": "不依赖任何自研算子：十二个方向都只调 GIMP 自己的通道、选区、蒙版、路径 PDB。",
+    "ai-frequency": "只用 GIMP 自带的 <code>gegl:gaussian-blur</code> 与 "
+                    "<code>gegl:high-pass</code>，不需要额外的算子模块。但要 "
+                    "<code>plugin/_shared/</code> 里的 <code>retouch_prep.py</code>、"
+                    "<code>retouch_math.py</code>、<code>ai_client.py</code>——"
+                    "下载包里已经带上了。",
+    "ai-dodge": "只用 GIMP 自带的 <code>gimp:curves</code>，不需要额外的算子模块。"
+                "但要 <code>plugin/_shared/</code> 里的 <code>retouch_prep.py</code>、"
+                "<code>retouch_math.py</code>、<code>ai_client.py</code>——"
+                "下载包里已经带上了。",
+    "ai-grey": "不依赖任何算子模块：只往缓冲区写像素，用 GIMP 自己的柔光模式。"
+               "但要 <code>plugin/_shared/retouch_prep.py</code> 与 "
+               "<code>retouch_math.py</code>——下载包里已经带上了。",
     "max-min": "用本项目自己的算子 lb:max-min（GIMP 3 已不带 dilate / erode）。"
                "插件包里已附带这个模块，按 readme 放进 GEGL 模块目录即可。",
 }

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-title-zh="中性灰磨皮（AI 预修） · Python 插件 · gegl-color-ops" data-title-en="中性灰磨皮（AI 预修） · Python plug-ins · gegl-color-ops">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>中性灰磨皮（AI 预修） · Python 插件 · gegl-color-ops</title>
+<meta name="description" content="那张 50% 灰的柔光层不再是平的 128：插件把「参考图比原图亮多少 /
+       暗多少」反解成柔光需要的灰度，直接写进灰层。打开文件就是已经做过一轮
+       中性灰、肤色被拉平了一截的状态。" data-desc-zh="那张 50% 灰的柔光层不再是平的 128：插件把「参考图比原图亮多少 /
+       暗多少」反解成柔光需要的灰度，直接写进灰层。打开文件就是已经做过一轮
+       中性灰、肤色被拉平了一截的状态。" data-desc-en="That 50% grey Soft Light layer is no longer flat 128: the plug-in solves
+   the soft-light formula backwards for the ref">
+<meta property="og:title" content="中性灰磨皮（AI 预修） · Python 插件 · gegl-color-ops" data-title-zh="中性灰磨皮（AI 预修） · Python 插件 · gegl-color-ops" data-title-en="中性灰磨皮（AI 预修） · Python plug-ins · gegl-color-ops">
+<meta property="og:description" content="那张 50% 灰的柔光层不再是平的 128：插件把「参考图比原图亮多少 /
+       暗多少」反解成柔光需要的灰度，直接写进灰层。打开文件就是已经做过一轮
+       中性灰、肤色被拉平了一截的状态。" data-desc-zh="那张 50% 灰的柔光层不再是平的 128：插件把「参考图比原图亮多少 /
+       暗多少」反解成柔光需要的灰度，直接写进灰层。打开文件就是已经做过一轮
+       中性灰、肤色被拉平了一截的状态。" data-desc-en="That 50% grey Soft Light layer is no longer flat 128: the plug-in solves
+   the soft-light formula backwards for the ref">
+<link rel="stylesheet" href="../assets/style.css?v=5235b3fe7a">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+<main id="main">
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> /
+    <a href="../plugins.html">插件</a> / Retouch 修饰</p>
+  <h1>中性灰磨皮（AI 预修）</h1>
+  <div class="meta">
+    <code>plugin/ai-neutral-grey</code>
+    <span class="tag t-tone">磨皮</span>
+    <span>Retouch 修饰</span>
+  </div>
+  <p class="lede">那张 50% 灰的柔光层<b>不再是平的 128</b>：插件把「参考图比原图亮多少 /
+       暗多少」反解成柔光需要的灰度，直接写进灰层。打开文件就是已经做过一轮
+       中性灰、肤色被拉平了一截的状态。</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="zh-overview">
+  <dt>菜单位置</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → Retouch → 中性灰磨皮（AI 预修）</li><li>图层右键 → SuperMrWang → Retouch → 中性灰磨皮（AI 预修）</li></ul><p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p></dd>
+  <dt>脚本调用</dt>
+  <dd><code class="pdb">lb-plugin-ai-neutral-grey(
+    image, drawables, prompt, source, prepaint,
+    radius, denoise, server, checkpoint, steps, group)</code><p>标准 PDB 过程，参数留空走默认值。</p></dd>
+  <dt>依赖</dt>
+  <dd><p>不依赖任何算子模块：只往缓冲区写像素，用 GIMP 自己的柔光模式。但要 <code>plugin/_shared/retouch_prep.py</code> 与 <code>retouch_math.py</code>——下载包里已经带上了。</p></dd>
+</dl>
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-1">
+      <div class="dl-head"><h3>生成的结构</h3><span class="pill">128 ± 偏移</span></div>
+      <pre><code>中性灰磨皮（AI 预修）        组 · 穿透
+  └─ 1 · 中性灰（已预校正）  柔光 + 128±偏移的像素
+     └─ 原图层（不动）</code></pre>
+      <p>灰层里每个像素都是解析解：把柔光公式 <code>out = x + (2g−1)·…</code> 反推
+         出「要让这里变成参考图，g 该是多少」，不是估的。</p>
+    </div>
+    <div class="dl" id="zh-sec-2">
+      <div class="dl-head"><h3>它是像素，不是蒙版</h3></div>
+      <p>所以橡皮擦、选区填充、渐变、复制粘贴都能用——比双曲线那版更耐改；
+         代价是画过头只能靠 <code>#808080</code> 盖回去（双曲线那版把蒙版涂黑就行）。</p>
+    </div>
+    <div class="dl" id="zh-sec-3">
+      <div class="dl-head"><h3>预校正多少</h3><span class="pill">prepaint 70%</span></div>
+      <p>默认补七成：暗斑处灰层 &gt; 128（提亮）、油光处 &lt; 128（压暗）、背景
+         ≈ 128（不动）。设 0% 就是原版那张平灰层。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-4">
+      <div class="dl-head"><h3>接着怎么修</h3></div>
+      <ol class="steps">
+        <li>选中灰层，柔边画笔、不透明度 5–15%：白色提亮、黑色压暗。</li>
+        <li>画过头：前景色设 <code>#808080</code> 涂回去，等于「这一块没做」。</li>
+        <li>觉得整体太强 / 太弱：关掉组，用 <code>prepaint</code> 换个比例重跑，
+            原图层一直没动。</li>
+      </ol>
+    </div>
+    <div class="dl" id="zh-sec-5">
+      <div class="dl-head"><h3>实测</h3><span class="pill">check_retouch_ai.py</span></div>
+      <p>灰层代回柔光公式，能把原图推回参考图的误差 <b>≤ 1 码</b>（六组亮度/差值
+         组合，含正负方向）；软斑图上暗斑处 <b>162</b>、亮斑处 <b>97</b>、背景
+         <b>128</b>；<code>prepaint=0</code> 整层 128。</p>
+      <p class="muted small">参数：<code>source</code>、<code>prepaint</code> 0–100%、
+         <code>radius</code>（本地参考）、<code>denoise</code>、<code>prompt</code>、
+         <code>group</code>。</p>
+    </div>
+  </div>
+
+<section class="download" id="zh-download">
+  <h2>下载这一个</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>中性灰磨皮（AI 预修）</h3><span class="pill">.py · 免编译</span></div>
+    <p>包里是一个 <code>.py</code>、一份安装说明，以及 <code>_shared/</code> 与 <code>locale/</code>。整包解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，但界面只有英文。</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-ai-neutral-grey.zip">下载 中性灰磨皮（AI 预修）</a>
+    <p class="muted small">60.7 KB · 校验：<code>SHA256 17dc0af5ff019f234cd058a2e892af55…</code></p>
+  </div>
+</section>
+
+<p class="note">文中「码」指 8 位图上的一个台阶：0–255 共 256 级，
+   相邻两级的差就是 1 码，等于 1/255 ≈ 0.392%%（也就是 RGB 128 与 129 之间的差）。
+   各数量级的含义与「码为什么不是感知量」的说明见
+   <a href="../guide.html#code">安装指南 · 精度里的「码」</a>。</p>
+  </article>
+  <aside class="toc">
+    <p class="toc-title">本页目录</p>
+    <ul>
+      <li><a href="#zh-overview">概览</a></li>
+<li><a href="#zh-sec-1">生成的结构</a></li><li><a href="#zh-sec-2">它是像素，不是蒙版</a></li><li><a href="#zh-sec-3">预校正多少</a></li><li><a href="#zh-sec-4">接着怎么修</a></li><li><a href="#zh-sec-5">实测</a></li>
+      <li><a href="#zh-download">下载</a></li>
+    </ul>
+  </aside>
+</div>
+<nav class="pager">
+  <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
+  <a class="prev" href="ai-dodge-burn.html"><span>上一篇</span>双曲线磨皮（AI 预修）</a><a class="next" href="alpha-curves.html"><span>下一篇</span>Alpha Curves（透明通道曲线）</a>
+</nav></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> /
+    <a href="../plugins.html">Plug-ins</a> / Retouch</p>
+  <h1>Neutral Grey (AI prep)</h1>
+  <div class="meta">
+    <code>plugin/ai-neutral-grey</code>
+    <span class="tag t-tone">Retouching</span>
+    <span>Retouch</span>
+  </div>
+  <p class="lede">That 50% grey Soft Light layer is <b>no longer flat 128</b>: the plug-in solves
+   the soft-light formula backwards for the reference and writes the result into the
+   layer. You open a file where one neutral-grey pass is already done.</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="en-overview">
+  <dt>Menu location</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → Retouch → Neutral Grey (AI prep)</li><li>Layer right-click → SuperMrWang → Retouch → Neutral Grey (AI prep)</li></ul><p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p></dd>
+  <dt>Scripting</dt>
+  <dd><code class="pdb">lb-plugin-ai-neutral-grey(
+    image, drawables, prompt, source, prepaint,
+    radius, denoise, server, checkpoint, steps, group)</code><p>A standard PDB procedure; leave an argument empty to take its default.</p></dd>
+  <dt>Dependencies</dt>
+  <dd><p>No operator modules at all: it writes pixels into the buffer and uses GIMP's own soft-light mode. It does need <code>retouch_prep.py</code> and <code>retouch_math.py</code> from <code>plugin/_shared/</code>, already included.</p></dd>
+</dl>
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-1">
+      <div class="dl-head"><h3>What it builds</h3><span class="pill">128 ± offset</span></div>
+      <pre><code>Neutral Grey (AI prep)          group · pass-through
+  └─ 1 · Neutral grey (pre-corrected)  soft light + 128±offset pixels
+     └─ the original layer (untouched)</code></pre>
+      <p>Every pixel is an analytic solution: <code>out = x + (2g−1)·…</code> inverted for
+         g, not a guess.</p>
+    </div>
+    <div class="dl" id="en-sec-2">
+      <div class="dl-head"><h3>Pixels, not a mask</h3></div>
+      <p>So erasers, fills, gradients and paste all work — it takes more abuse than the
+         dodge &amp; burn version. The price: overshooting can only be undone with
+         <code>#808080</code>, whereas the curve version just paints its mask black.</p>
+    </div>
+    <div class="dl" id="en-sec-3">
+      <div class="dl-head"><h3>How much is pre-corrected</h3><span class="pill">prepaint 70%</span></div>
+      <p>70% by default: shadows land above 128 (lightened), highlights below 128
+         (darkened), flat background at 128. 0% gives the original flat grey layer.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-4">
+      <div class="dl-head"><h3>Finishing it</h3></div>
+      <ol class="steps">
+        <li>Select the grey layer, soft brush at 5–15%: white lightens, black darkens.</li>
+        <li>Overshot? Set the foreground to <code>#808080</code> and paint it back — that
+            means "do nothing here".</li>
+        <li>Too strong overall? Hide the group, change <code>prepaint</code> and run again;
+            your original layer never moved.</li>
+      </ol>
+    </div>
+    <div class="dl" id="en-sec-5">
+      <div class="dl-head"><h3>Measured</h3><span class="pill">check_retouch_ai.py</span></div>
+      <p>Feeding the grey layer back through the soft-light formula reproduces the
+         reference within <b>≤ 1 level</b> across six combinations of base value and delta,
+         in both directions. On the blob image: <b>162</b> on the dark blob, <b>97</b> on
+         the bright one, <b>128</b> on the background; <code>prepaint=0</code> is flat 128.</p>
+      <p class="muted small">Arguments: <code>source</code>, <code>prepaint</code> 0–100%,
+         <code>radius</code> (local reference), <code>denoise</code>, <code>prompt</code>,
+         <code>group</code>.</p>
+    </div>
+  </div>
+
+<section class="download" id="en-download">
+  <h2>Download this one</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>Neutral Grey (AI prep)</h3><span class="pill">.py · no compile</span></div>
+    <p>The archive holds a single <code>.py</code>, an install note and the <code>_shared/</code> + <code>locale/</code> pair. Unpack all of it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register. Without <code>_shared/</code> and <code>locale/</code> it still runs, but only in English.</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-ai-neutral-grey.zip">Download Neutral Grey (AI prep)</a>
+    <p class="muted small">60.7 KB · checksum: <code>SHA256 17dc0af5ff019f234cd058a2e892af55…</code></p>
+  </div>
+</section>
+
+<p class="note">In this article a "code" means one step on an 8-bit
+   image: 0–255 is 256 levels, so the gap between neighbours is 1 code, or
+   1/255 ≈ 0.392%% (the difference between RGB 128 and 129). For the order of magnitude
+   of each figure, and why a code is not a perceptual quantity, see
+   <a href="../guide.html#code">Install guide · what a code is</a>.</p>
+  </article>
+  <aside class="toc">
+    <p class="toc-title">On this page</p>
+    <ul>
+      <li><a href="#en-overview">Overview</a></li>
+<li><a href="#en-sec-1">What it builds</a></li><li><a href="#en-sec-2">Pixels, not a mask</a></li><li><a href="#en-sec-3">How much is pre-corrected</a></li><li><a href="#en-sec-4">Finishing it</a></li><li><a href="#en-sec-5">Measured</a></li>
+      <li><a href="#en-download">Download</a></li>
+    </ul>
+  </aside>
+</div>
+<nav class="pager">
+  <a href="../plugins.html"><span>Back to</span>All plug-ins</a>
+  <a class="prev" href="ai-dodge-burn.html"><span>Previous</span>Dodge & Burn (AI prep)</a><a class="next" href="alpha-curves.html"><span>Next</span>Alpha Curves</a>
+</nav></div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
+    <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
+    <span class="muted">685e089</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
+</body>
+</html>
