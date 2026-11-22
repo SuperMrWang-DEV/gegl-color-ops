@@ -55,6 +55,13 @@ FAMILY_TARGET = {
 SCALE_MIN = 0.25
 SCALE_MAX = 4.0
 
+# 送进模型的工作画布，长宽比不许超过这个值。
+# SD1.5 / SDXL 都只在自己训练过的比例（大致 1:2 ~ 2:1）附近画得对；超出就会
+# 退化成「平涂海报 + 重复图形」——2026-11-23 实测：同一句 "sunglasses"，选区
+# 是眼睛那条 1024×400（2.56:1），SDXL 交回一块绿色底 + 重复白色箭头（像路牌），
+# 把画布补成 1024×512 就正常戴上眼镜了。所以超宽/超高一律先补，不硬送。
+MAX_WORK_RATIO = 2.0
+
 
 def detect_family(checkpoint):
     """按文件名猜底模家族：'sd15' 或 'sdxl'。认不出来就当 SD1.5。"""
@@ -233,6 +240,113 @@ def decode_png(blob):
 
 
 # ---- 尺寸对齐 ---------------------------------------------------------------
+
+def _split_growth(need, room_a, room_b):
+    """把 need 像素尽量均分到 a、b 两侧，返回 (da, db, 没地方放的余量)。
+
+    先各给一半，一侧不够就借另一侧的，两边都满了才把余量吐回来（调用方
+    用补边把余量吃掉）。
+    """
+    need = max(0, int(need))
+    room_a = max(0, int(room_a))
+    room_b = max(0, int(room_b))
+    da = min(room_a, need // 2)
+    db = min(room_b, need - da)
+    left = need - da - db
+    if left:
+        extra = min(room_a - da, left)
+        da += extra
+        left -= extra
+    return da, db, left
+
+
+def plan_canvas_rect(x, y, w, h, canvas_w, canvas_h,
+                     max_ratio=MAX_WORK_RATIO, align=SIZE_ALIGN):
+    """把裁切框补成「长宽比 ≤ max_ratio」的工作画布。
+
+    返回 (x, y, w, h, pad_left, pad_top, pad_right, pad_bottom)。其中
+    (x, y, w, h) 是**工作画布**，可能超出图像边界；pad_* 是超出/额外部分的
+    像素数，这些位置用边缘像素复制补齐（只给模型当上下文看，贴回时会被蒙版
+    挡住，所以假一点也不露出来）。
+
+    why: SD 系列只在自己训练过的比例附近才画得对。1024×400（2.56:1）这种
+    超宽条送进去，SDXL 会退化成「平涂海报 + 重复图形」——实测同样一句
+    "sunglasses"，2.56:1 出来是一块绿色底配重复白色箭头，2:1 就正常戴上了
+    眼镜。这不是提示词的问题，是画幅的问题。
+    """
+    x, y, w, h = int(x), int(y), int(w), int(h)
+    pad_l = pad_t = pad_r = pad_b = 0
+    if w <= 0 or h <= 0 or max_ratio <= 0:
+        return x, y, w, h, 0, 0, 0, 0
+
+    if w / float(h) > max_ratio:                    # 太宽 → 加高
+        need = int(-(-w // max_ratio)) - h          # ceil
+        if need > 0:
+            da, db, left = _split_growth(need, y, canvas_h - (y + h))
+            y -= da
+            h += da + db
+            if left:                                # 画布上下都到边了 → 补边
+                pad_t = left // 2
+                pad_b = left - pad_t
+                y -= pad_t
+                h += left
+    elif h / float(w) > max_ratio:                  # 太高 → 加宽
+        need = int(-(-h // max_ratio)) - w
+        if need > 0:
+            da, db, left = _split_growth(need, x, canvas_w - (x + w))
+            x -= da
+            w += da + db
+            if left:
+                pad_l = left // 2
+                pad_r = left - pad_l
+                x -= pad_l
+                w += left
+
+    # 顺手对齐 8：多出来的补在右下。补边区反正被蒙版挡住，不需要真实像素
+    if align > 1:
+        ew, eh = (-w) % align, (-h) % align
+        w += ew
+        pad_r += ew
+        h += eh
+        pad_b += eh
+    return x, y, w, h, pad_l, pad_t, pad_r, pad_b
+
+
+def pad_edge_rgba(data, w, h, left=0, top=0, right=0, bottom=0):
+    """RGBA 8 位紧排像素 → 用边缘像素复制补齐到 (w+left+right, h+top+bottom)。
+
+    返回 (nw, nh, bytes)。补边比黑边好得多：黑边对模型来说是「一块不认识的
+    深色区域」，会把周围的肤色也带暗。
+    """
+    left, top, right, bottom = (max(0, int(v)) for v in (left, top, right, bottom))
+    if not (left or top or right or bottom):
+        return w, h, data
+    nw, nh = w + left + right, h + top + bottom
+    rows = []
+    for yy in range(h):
+        row = data[yy * w * 4:(yy + 1) * w * 4]
+        rows.append(row[:4] * left + row + row[-4:] * right)
+    if not rows:                                    # 空裁剪：只能给个中性色
+        return nw, nh, b"\x80" * (nw * nh * 4)
+    body = b"".join(rows)
+    return nw, nh, rows[0] * top + body + rows[-1] * bottom
+
+
+def pad_gray(data, w, h, left=0, top=0, right=0, bottom=0, fill=0):
+    """8 位灰度 → 补齐到 (nw, nh)，补出来的地方默认填 0（＝不重绘）。"""
+    left, top, right, bottom = (max(0, int(v)) for v in (left, top, right, bottom))
+    if not (left or top or right or bottom):
+        return w, h, data
+    nw, nh = w + left + right, h + top + bottom
+    f = bytes([int(fill) & 0xff])
+    band = f * nw
+    out = bytearray(band * top)
+    side_l, side_r = f * left, f * right
+    for yy in range(h):
+        out += side_l + data[yy * w:(yy + 1) * w] + side_r
+    out += band * bottom
+    return nw, nh, bytes(out)
+
 
 def align_rect(x, y, w, h, canvas_w, canvas_h, align=SIZE_ALIGN):
     """把矩形向外扩到 align 的整数倍，并夹在画布内。

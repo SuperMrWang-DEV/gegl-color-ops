@@ -602,10 +602,13 @@ python 的退出码 + `if errorlevel 1 set EXTRA=--cpu`，稳定得多。
 
 1. 选区外扩 `grow` 像素，外接框再带一圈 `CONTEXT_PAD`（32px）上下文；
 2. 裁切框宽高对齐到 8 的整数倍，并按画布夹紧；
-3. 从**可见合成**（`Gimp.Layer.new_from_visible`）读这块像素——图层比画布小、
+3. **画布补到长宽比 ≤ 2:1**（`ai_client.plan_canvas_rect()`）：超宽条先往画面里
+   长高（拿真实像素当上下文），画面到边了才复制边缘像素补边，补出来的那圈贴回
+   时被蒙版挡住；
+4. 从**可见合成**（`Gimp.Layer.new_from_visible`）读这块像素——图层比画布小、
    带偏移时，界外取到的是下面的图层，不是黑色；
-4. 选区存成蒙版 PNG 交给 ComfyUI，等 `/history` 报完成；
-5. 结果 PNG 读回成图层，插在原图层正上方、偏移对回裁切框原点；羽化后的选区
+5. 选区存成蒙版 PNG 交给 ComfyUI，等 `/history` 报完成；
+6. 结果 PNG 读回成图层，插在原图层正上方、偏移对回裁切框原点；羽化后的选区
    存成 `AI Mask` 通道，同时用作图层蒙版（`keep-mask` 关掉就只留蒙版不收通道）。
 
 高级版参数：`prompt` / `preset` / `negative` / `server` / `checkpoint` /
@@ -642,7 +645,7 @@ python 的退出码 + `if errorlevel 1 set EXTRA=--cpu`，稳定得多。
 上下文（8–16）、`denoise` 想保留原结构就降到 0.6–0.8。SD 系列在小面积补材质上
 可靠，大面积重画或要具体物体仍会跑偏——那是模型的能力边界，不是提示词没写对。
 
-**三个坑**（都写进了代码注释，改的时候别绕回去）：
+**四个坑**（都写进了代码注释，改的时候别绕回去）：
 
 - **蒙版方向**：ComfyUI 的 `LoadImage` 用 **alpha 倒推** mask（`mask = 1 - alpha`），
   所以「白＝要重绘」必须写成**透明**。直接送一张白底黑区的灰度图，得到的是全 0
@@ -652,6 +655,17 @@ python 的退出码 + `if errorlevel 1 set EXTRA=--cpu`，稳定得多。
 - **别用 inpaint 专用底模**：`InpaintModelConditioning` 在 ComfyUI v0.46 上不生效
   （开关 `noise_mask` 都不改像素），`VAEEncode` 只吐糊团；工作流走普通 SD1.5 +
   `VAEEncodeForInpaint`。
+- **画幅比例别超过 2:1**：SD 只在自己训练过的比例附近画得对。眼睛那样的一条
+  1024×400（2.56:1）送进 SDXL，整块会被画成「平涂海报 + 重复图形」——2026-11-23
+  用户报的「输入 `sunglasses` 却给我一块绿色路牌」（绿底、白色箭头、两辆车）就是
+  这个，**不是提示词没生效**（ComfyUI 存的 PNG 元数据里 `text` 确实是 `sunglasses`）。
+  同一句提示、同样的图，把画布补成 1024×512 就正常戴上墨镜了。所以
+  `plan_canvas_rect()` 一律先把画布补到 ≤2:1 再送。默认的 `negative` 里也加了
+  `illustration, cartoon, flat graphic, poster`，压一压往矢量海报跑的趋势。
+
+**选区别框太大。** 蒙版里画多少，模型就重画多少：框满一整块眼睛区域，模型就会
+把墨镜按整块的大小画出来（结果是一副「巨大墨镜」），因为它没有「戴在脸上」这个
+尺度概念。想把眼镜戴上，选区贴着眼镜该在的位置框一条，上下别带上额头和脸颊。
 
 **一键装环境**（Windows，`tools/setup-ai.bat` 双击即可）：
 

@@ -23,14 +23,20 @@
            PNG 部分在 plugin/_shared/ai_client.py 里，tools/check_ai_inpaint.py
            拿 mock 服务测它（不需要显卡）。
 
- note      三个坑（都已在代码里绕开）：
+ note      四个坑（都已在代码里绕开）：
            1. ComfyUI 的 LoadImage 用 **alpha 倒推** mask（mask = 1 - alpha），
               所以白＝要重绘的区域必须写成透明；直接送灰度图会得到全 0 的
               mask，跑完像素纹丝不动；
            2. VAE 是 8× 下采样，裁剪框宽高不是 8 的倍数就会截断，回来的图比
               请求的小，贴回去错位——所以 bbox 一律对齐到 8；
            3. 9 通道的 inpaint 专用底模在 ComfyUI v0.46 上不生效（开关
-              noise_mask 都不改像素），工作流走普通 SD1.5 + VAEEncodeForInpaint。
+              noise_mask 都不改像素），工作流走普通 SD1.5 + VAEEncodeForInpaint；
+           4. **画幅比例**。SD 只在自己训练过的比例附近画得对，选区是眼睛那
+              样一条 1024×400（2.56:1）时，SDXL 会把整块画成平涂海报——一句
+              "sunglasses" 出来是一块绿底配重复白色箭头（2026-11-23 用户报的
+              「输入 sunglasses 却给了我这个」）。ai_client.plan_canvas_rect()
+              会把画布补到 ≤2:1（优先往画面里长真像素，画布到边才复制边缘），
+              补出来的那圈贴回时被蒙版挡住，不会露出来。
 
  license   GPL-3.0-or-later，见工程根目录 LICENSE
  ==========================================================================="""
@@ -90,7 +96,12 @@ RESULT_LAYER = "AI Inpaint"
 # 结果点菜单直接确定的人会得到一块跟画面毫无关系的干净色块——AI 老老实实
 # 画了「干净背景」，只是没人要。现在空着，不填就报错说清楚怎么填。
 DEFAULT_PROMPT = ""
-DEFAULT_NEGATIVE = "blurry, low quality, watermark, text, deformed"
+# 底模在「比例不正常 + 全量重绘」时会往平涂海报的方向跑（画出来像矢量插画、
+# 甚至像路牌）。这是照片修图插件，所以默认把插画类风格压在负面里——用户想
+# 要画风自己改这一栏就行。
+DEFAULT_NEGATIVE = ("blurry, low quality, watermark, text, deformed, "
+                    "illustration, cartoon, flat graphic, poster, "
+                    "vector art, cgi, 3d render")
 
 # SD1.5 / SDXL 的文本编码器只认英文（OpenCLIP，词表里没有汉字）。中文提示词
 # 会被切成一片未知 token，等价于「随机重绘」——这是「画出来的东西跟图完全不
@@ -349,16 +360,32 @@ def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
             _pdb('gimp-selection-grow', image=image, steps=int(grow))
 
         rect = crop_rect(image, selection_box(image) or box, grow=0)
-        x, y, w, h = rect
+        iw, ih = image.get_width(), image.get_height()
+        # 4) 画布比例：超宽/超高的裁剪条会被 SD 画成「平涂海报 + 重复图形」，
+        #    所以先往画面里长高（真实上下文最好），画布到边了才补边。
+        cx, cy, cw, ch, pl, pt, pr, pb = ai_client.plan_canvas_rect(
+            rect[0], rect[1], rect[2], rect[3], iw, ih)
         Gimp.progress_init(_("AI Inpaint"))
 
         # 2) 送出去的两张图：裁切区域 + 硬边蒙版（白=重绘）
-        gray = read_mask(image, x, y, w, h)
+        #    画布可以超出图像边界，先求交再补边
+        ix1, iy1 = max(0, cx), max(0, cy)
+        ix2 = min(iw, cx + cw)
+        iy2 = min(ih, cy + ch)
+        rw, rh = ix2 - ix1, iy2 - iy1
+        if rw <= 0 or rh <= 0:
+            raise RuntimeError(_("The selection is outside the image"))
+        gray = read_mask(image, ix1, iy1, rw, rh)
         flat = Gimp.Layer.new_from_visible(image, image, "lb-ai-src")
         try:
-            src = read_region(flat, x, y, w, h)
+            src = read_region(flat, ix1, iy1, rw, rh)
         finally:
             flat.delete()
+        src = ai_client.pad_edge_rgba(src, rw, rh, ix1 - cx, iy1 - cy,
+                                      (cx + cw) - ix2, (cy + ch) - iy2)[2]
+        gray = ai_client.pad_gray(gray, rw, rh, ix1 - cx, iy1 - cy,
+                                  (cx + cw) - ix2, (cy + ch) - iy2)[2]
+        w, h = cw, ch
 
         # 3) 贴回时用的软边蒙版：羽化后存成通道，等结果回来再选它
         mask_channel = None
@@ -367,7 +394,7 @@ def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
         mask_channel = _pdb('gimp-selection-save', image=image).index(1)
         mask_channel.set_name(MASK_CHANNEL)
 
-        # 4) 缩放到这个底模的舒适长边，再交给 ComfyUI
+        # 5) 缩放到这个底模的舒适长边，再交给 ComfyUI
         if client is None:
             client = ai_client.ComfyClient(server, timeout=min(timeout, 60.0))
         checkpoint = checkpoint or client.first_checkpoint()
@@ -390,11 +417,15 @@ def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
             denoise=float(denoise), grow_mask_by=int(grow_mask_by),
             timeout=float(timeout), on_tick=on_tick or Gimp.progress_pulse)
 
-        # 5) 落盘 → 当图层读回来（GIMP 自己解 PNG，比手写解码靠谱）
+        # 6) 落盘 → 当图层读回来（GIMP 自己解 PNG，比手写解码靠谱）
+        #    贴的是**工作画布**的位置：补边那圈像素会被下面的选区蒙版整圈挡掉
         with open(png_path, "wb") as fh:
             fh.write(blob)
-        result = paste_result(image, drawable, png_path, rect, mask_channel)
-        info["rect"] = rect
+        result = paste_result(image, drawable, png_path, (cx, cy, cw, ch),
+                              mask_channel)
+        info["rect"] = (cx, cy, cw, ch)
+        info["source_rect"] = rect
+        info["pads"] = (pl, pt, pr, pb)
         info["seed"] = seed
         info["checkpoint"] = checkpoint
         info["work_size"] = (ww, hh)
@@ -475,7 +506,9 @@ class AiInpaintPlugin(Gimp.PlugIn):
             _("Describe the RESULT. Chinese is fine for common words (the "
               "plug-in translates them); SD itself only reads English. To "
               "remove a bottle, write \"empty wooden table, wood grain\" "
-              "rather than \"remove the bottle\"."),
+              "rather than \"remove the bottle\". Keep the selection tight "
+              "around the thing you are painting — the model scales what it "
+              "draws to fill the mask."),
             DEFAULT_PROMPT, GObject.ParamFlags.READWRITE)
         _add_preset_argument(procedure)
         procedure.add_string_argument(

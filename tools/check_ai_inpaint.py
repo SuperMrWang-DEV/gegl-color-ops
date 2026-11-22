@@ -189,6 +189,61 @@ def test_family():
            "%dx%d" % (w * got, h * got))
 
 
+# ---- 3c. 画幅比例（2026-11-23 那块「绿色路牌」）-------------------------------
+
+def test_canvas_ratio():
+    print("\n工作画布比例（超宽条会被画成平涂海报）")
+    iw, ih = 1376, 2064
+
+    # 用户那次：眼睛一条 1024×400 = 2.56:1 → 必须补到 ≤2:1
+    x, y, w, h, pl, pt, pr, pb = ai_client.plan_canvas_rect(
+        176, 620, 1024, 400, iw, ih)
+    ok("1024×400 被补成 ≤2:1 的画布", w / float(h) <= ai_client.MAX_WORK_RATIO,
+       "%dx%d = %.2f:1" % (w, h, w / float(h)))
+    ok("  → 宽高仍是 8 的倍数", w % 8 == 0 and h % 8 == 0, "%dx%d" % (w, h))
+    ok("  → 原选区还在画布里",
+       x <= 176 and y <= 620 and x + w >= 176 + 1024 and y + h >= 620 + 400)
+    ok("  → 画布内能长出来的部分不用补边", pl == 0 and pt == 0,
+       "pads %s" % ((pl, pt, pr, pb),))
+
+    # 竖条同样要治
+    x, y, w, h = ai_client.plan_canvas_rect(0, 0, 256, 1024, 2048, 2048)[:4]
+    ok("256×1024 竖条被补成 ≤1:2", h / float(w) <= ai_client.MAX_WORK_RATIO,
+       "%dx%d" % (w, h))
+
+    # 正常比例不动
+    got = ai_client.plan_canvas_rect(0, 0, 512, 512, iw, ih)
+    ok("正方框原样不动", got[:4] == (0, 0, 512, 512), str(got[:4]))
+
+    # 画布太小、长不出真实像素时 → 用补边吃下余量，不能让比例破功
+    x, y, w, h, pl, pt, pr, pb = ai_client.plan_canvas_rect(
+        0, 0, 1024, 400, 1024, 400)
+    ok("画布到边 → 改用补边", pl + pt + pr + pb > 0, str((pl, pt, pr, pb)))
+    ok("  → 比例依旧 ≤2:1", w / float(h) <= ai_client.MAX_WORK_RATIO,
+       "%dx%d" % (w, h))
+    ok("  → 原图仍落在画布内", x <= 0 and y <= 0 and x + w >= 1024 and
+       y + h >= 400, "%d,%d %dx%d" % (x, y, w, h))
+
+    # 补边：边缘像素复制，不是黑边
+    w, h = 3, 2
+    px = bytes()
+    for y0 in range(h):
+        for x0 in range(w):
+            px += bytes([10 * y0 + x0, 0, 0, 255])
+    nw, nh, out = ai_client.pad_edge_rgba(px, w, h, 1, 1, 1, 1)
+    ok("pad_edge_rgba 尺寸对", (nw, nh) == (5, 4))
+    corner = tuple(out[0:3])
+    ok("左上角复制了左上像素", corner == (0, 0, 0), str(corner))
+    bottom_right = tuple(out[((nh - 1) * nw + nw - 1) * 4:][:3])
+    ok("右下角复制了右下像素", bottom_right == (10 + 2, 0, 0), str(bottom_right))
+
+    # 灰度补边默认填 0（＝不重绘），不然补出来的边会被一起重画
+    nw, nh, g = ai_client.pad_gray(bytes([255, 255, 255, 255]), 2, 2, 2, 2, 2, 2)
+    ok("pad_gray 尺寸对", (nw, nh) == (6, 6))
+    ok("pad_gray 补出来的地方是 0（不重绘）", g[0] == 0 and g[-1] == 0)
+    ok("pad_gray 原来的像素没动", g[2 * 6 + 2] == 255)
+
+
 # ---- 4. 工作流 --------------------------------------------------------------
 
 def test_workflow():
@@ -403,6 +458,7 @@ def main():
     test_png()
     test_mask()
     test_align()
+    test_canvas_ratio()
     test_workflow()
     test_family()
     test_end_to_end()
