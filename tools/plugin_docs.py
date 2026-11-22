@@ -793,7 +793,7 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
        它只有几何、没有 alpha，位图进路径时按 50% 等值线取轮廓。""",
         body="""<div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>为什么值得单独做</h3><span class="pill">十二条路散在四处</span></div>
+      <div class="dl-head"><h3>为什么值得单独做</h3><span class="pill">十三条路，散在四处</span></div>
       <p>原生要办同一件事，得记住三套路径：<b>选择</b>菜单里存通道、<b>通道右键</b>转选区、
          <b>图层面板右键 → 添加图层蒙版</b>再在弹窗里挑类型。同一类操作放在三个地方，
          方向还是反的。</p>
@@ -804,7 +804,7 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
          现在这些全在同一个子菜单里，按目标命名。</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>十二个方向</h3><span class="pill">全零参数</span></div>
+      <div class="dl-head"><h3>十三个方向</h3><span class="pill">全零参数</span></div>
       <ul class="deps">
         <li><b>Channel to Selection</b> · 通道 → 选区</li>
         <li><b>Selection to Channel</b> · 选区 → 通道</li>
@@ -818,9 +818,15 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
         <li><b>Channel to Path</b> · 通道 → 路径</li>
         <li><b>Path to Mask</b> · 路径 → 图层蒙版</li>
         <li><b>Mask to Path</b> · 图层蒙版 → 路径</li>
+        <li><b>Path to Bitmap</b> · 路径 → 像素图层（前景色填充，裁到路径）</li>
       </ul>
       <p>没有省略号的菜单项就是<b>点一下直接跑</b>：源全从上下文取，不需要在对话框里
          再选一遍。</p>
+      <p>最后一条和前面十二条不一样：前面都是 GIMP 内部几种对象之间倒腾，<b>Path to
+         Bitmap</b> 是唯一一条把几何真正落成像素的——路径在 GIMP 里只存几何、没有填充色和
+         线宽，所以替它选了「用前景色填内部」这一种落笔方式（与原生「编辑 → 用前景色填充
+         路径」同义）。新图层只做路径外接框那么大、偏移对回原位，栅格化一个 24×24 的图标
+         不会顺手生成一张 4000×3000 的空图层。要线稿（描边）就用原生「编辑 → 描边路径」。</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>源永远是「当前」</h3></div>

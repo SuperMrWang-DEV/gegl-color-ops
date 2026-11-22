@@ -795,7 +795,7 @@ PLUGIN_EN["convert"] = dict(
          submenu, named by destination.</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>Twelve directions</h3><span class="pill">zero arguments</span></div>
+      <div class="dl-head"><h3>Thirteen directions</h3><span class="pill">zero arguments</span></div>
       <ul class="deps">
         <li><b>Channel to Selection</b></li>
         <li><b>Selection to Channel</b></li>
@@ -809,9 +809,18 @@ PLUGIN_EN["convert"] = dict(
         <li><b>Channel to Path</b></li>
         <li><b>Path to Mask</b></li>
         <li><b>Mask to Path</b></li>
+        <li><b>Path to Bitmap</b> — rasterise to a pixel layer</li>
       </ul>
       <p>A menu item without an ellipsis <b>runs immediately</b>: the source is read from the
          context, so there is nothing to pick in a dialog.</p>
+      <p>The last one is different from the other twelve. All of those shuffle objects inside
+         GIMP; <b>Path to Bitmap</b> is the only one that turns geometry into pixels. A path
+         carries no fill colour and no line width, so rasterising it here means filling its
+         interior with the foreground colour — the same thing the native "Edit > Fill with
+         foreground colour" does on a path. The new layer is cropped to the path's bounding
+         box and offset back into place, so rasterising a 24×24 icon does not also hand you a
+         4000×3000 empty layer. For outlines rather than solid shapes, use the native
+         "Edit > Stroke Path".</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>The source is always "current"</h3></div>

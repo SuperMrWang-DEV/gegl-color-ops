@@ -408,6 +408,46 @@ def path_to_mask(image, drawables):
     return path, apply_selection_mask(image, drawables)
 
 
+def path_to_bitmap(image, drawables=None):
+    """路径 → 像素图层：真·栅格化，一步出可编辑的位图。
+
+    路径在 GIMP 里只存几何，没有填充色、没有线宽，所以「栅格化」必须替它挑
+    一种落笔方式。这里用**前景色填充路径内部**，和原生「编辑 → 用前景色填充
+    路径」同义（原生那条内部也是先转选区再填，边缘同样是一像素过渡），这也
+    是「矢量图形 → 位图」最常见的那个意思。要的是线稿（描边）而不是实心形状
+    时，用原生「编辑 → 描边路径」，本插件不管那条。
+
+    新图层只做路径外接框那么大、偏移对回原位，不铺满整个画布：栅格化一个
+    24×24 的图标不该顺手生成一张 4000×3000 的空图层。
+
+    The path is a shape, not a brush: rasterising it here means filling its
+    interior with the foreground colour — the same thing the native
+    "Edit > Fill with foreground colour" does on a path, with the same
+    one-pixel edge falloff. The new layer is cropped to the path's bounding
+    box and offset back into place."""
+    path = pick_path(image, drawables)
+    image.select_item(Gimp.ChannelOps.REPLACE, path)
+
+    ok, non_empty, x1, y1, x2, y2 = image.get_selection().bounds(image)
+    if not non_empty or x2 <= x1 or y2 <= y1:
+        raise RuntimeError(
+            _("This path encloses no area to fill; check that it has at least "
+              "one stroke."))
+
+    x, y = int(x1), int(y1)
+    w, h = int(x2 - x1), int(y2 - y1)
+    layer = Gimp.Layer.new(image, unique_name(image, path.get_name()), w, h,
+                           Gimp.ImageType.RGBA_IMAGE, 100.0,
+                           Gimp.LayerMode.NORMAL)
+    image.insert_layer(layer, None, 0)
+    layer.set_offsets(x, y)
+    if not layer.edit_fill(Gimp.FillType.FOREGROUND):
+        layer.delete()
+        raise RuntimeError(_("Filling the path failed; the image may be in a "
+                             "mode that cannot take a new RGBA layer."))
+    return path, layer
+
+
 # ---- 程序包装 / procedure wrapper ------------------------------------------
 
 # 名字 → (菜单标签, 动作, 说明)
@@ -478,6 +518,16 @@ DIRECTIONS = [
      'mask-to-path',
      _("Trace the selected layer's mask into a new path."),
      _("Mask to path: traces the outline of the selected layer's mask into a new path.")),
+
+    # 路径 → 真·位图：不是「转成另一种 GIMP 对象」，而是直接落成像素图层。
+    # 前面十条都只在 GIMP 的几种对象之间倒腾（选区/通道/蒙版/路径），这是唯一
+    # 一条把几何变成可涂抹像素的。
+    ('lb-plugin-conv-path-to-bitmap',
+     'Path to Bitmap',
+     'path-to-bitmap',
+     _("Rasterise the selected path into a new pixel layer, filled with the "
+       "foreground colour."),
+     _("Path to bitmap: rasterises the path into a new pixel layer (filled with the foreground colour), cropped to the path.")),
 ]
 
 BY_KEY = dict((d[2], d) for d in DIRECTIONS)
@@ -570,6 +620,10 @@ class ConvertPlugin(Gimp.PlugIn):
                 src, dst = mask_to_path(image, drawables)
                 note = _("Mask \"%s\" to path \"%s\"") % (src.get_name(),
                                                      dst.get_name())
+            elif key == 'path-to-bitmap':
+                src, dst = path_to_bitmap(image, drawables)
+                note = _("Path \"%s\" rasterised into layer \"%s\"") % (
+                    src.get_name(), dst.get_name())
             else:
                 raise RuntimeError(_("Unknown direction"))
         except Exception as exc:

@@ -37,7 +37,7 @@ gegl-color-ops/
 ├── plugin/layer-to-selection/ # Python 插件：右键任意图层 → 选区
 ├── plugin/layer-to-channel/  # Python 插件：右键任意图层 → Alpha 通道（恒为灰度）
 ├── plugin/channel-to-mask/   # Python 插件：右键任意图层 → 把选中的通道挂成图层蒙版
-├── plugin/convert/           # Python 插件：通道/选区/蒙版/路径 十二向互转，一键直达（零参数）
+├── plugin/convert/           # Python 插件：通道/选区/蒙版/路径 十二向互转 + 路径转位图（零参数）
 ├── plugin/max-min/           # Python 插件：最大值（膨胀）/ 最小值（腐蚀），半径 1–100
 ├── plugin/split-channels/    # Python 插件：右键任意图层 → 一次拆出 R/G/B/Alpha 四条通道
 ├── plugin/*-split-curves/    # Python 插件：HSV / LCh / HSL / Lab / HSI 分量分层 + 曲线（菜单 Retouch）；
@@ -250,7 +250,7 @@ python-fu-eval 里，不要求插件已安装）保留着，作为那条复制/�
 彩色亮度、四个单通道、通道值/名字/反相、**彩色图层转通道得到的是亮度而不是
 R 通道**、**有选区时转通道不被截断**、四种组合方式）。
 
-### Python 插件：plugin/convert（十二向转换）
+### Python 插件：plugin/convert（十二向转换 + 路径转位图）
 
 ```
 SuperMrWang → Convert → Channel to Selection / Selection to Channel
@@ -259,15 +259,16 @@ SuperMrWang → Convert → Channel to Selection / Selection to Channel
                       → Path to Selection / Selection to Path
                       → Path to Channel / Channel to Path
                       → Path to Mask / Mask to Path
-图层右键 → SuperMrWang → Convert（同样十二项）
+                      → Path to Bitmap
+图层右键 → SuperMrWang → Convert（同样十三项）
 通道右键 → SuperMrWang → Convert（以通道为源的三项）
-路径右键 → SuperMrWang → Convert（以路径为源的三项）
+路径右键 → SuperMrWang → Convert（以路径为源的四项）
 ```
 
 **只是原生方式的便捷实现**：不新增任何算法，十二个方向全部转调 GIMP 自带的 PDB 过程，
 所以结果与手点原生菜单逐位相同；插件的作用只是把散在四处菜单、要跨三四步的动作收成一次点击。
 
-**一个插件，十二个过程，全部零参数。** 通道、选区、蒙版、路径四者两两互转，每条路一个菜单项，
+**一个插件，十三个过程，全部零参数。** 通道、选区、蒙版、路径四者两两互转，每条路一个菜单项，
 点下去直接执行，不弹参数框——源都从上下文取：
 
 | 方向 | 源 | 落点 |
@@ -284,12 +285,21 @@ SuperMrWang → Convert → Channel to Selection / Selection to Channel
 | 通道 → 路径 | 同「通道 → 选区」 | 新建路径 `Channel <通道名>` |
 | 路径 → 蒙版 | 同上 | 选中图层的蒙版 |
 | 蒙版 → 路径 | 选中图层的蒙版 | 新建路径 `<图层名> Mask` |
+| 路径 → 位图 | 同「路径 → 选区」 | 新建像素图层（前景色填充，裁到路径外接框） |
 
 原生那些路散在四个地方（选择菜单、通道右键、图层面板右键、路径右键），其中**「蒙版 → 通道」
 根本不存在**，只能先蒙版到选区再选区存通道；**「通道 / 蒙版 ↔ 路径」**同样没有直连。
 这里把它们都做成一步。
 
-**十二个方向都转调原生过程，结果逐位一致。** 不碰像素缓冲：通道 / 路径转选区走
+**前十二个方向都转调原生过程，结果逐位一致**；第十三个是唯一真·新建像素的：
+
+- **路径 → 位图**（`Path to Bitmap`）把路径栅格化成图层——路径只存几何、不带填充色和
+  线宽，所以替它选了「用前景色填内部」这一种落笔方式，与原生「编辑 → 用前景色填充路径」
+  同义（原生那条内部也是先转选区再填，边缘同样一像素过渡）。新图层只做路径外接框那么
+  大、偏移对回原位，栅格化一个 24×24 的图标不会顺手生成一张 4000×3000 的空图层。
+  要线稿（描边）而不是实心形状时，用原生「编辑 → 描边路径」。
+
+其余十二个不碰像素缓冲：通道 / 路径转选区走
 `gimp-image-select-item`，选区存通道走 `gimp-selection-save`，选区建蒙版走
 `create_mask(SELECTION)`，选区描路径走 `plug-in-sel2path`（「选择 → 路径」背后那个过程）。
 「通道 ↔ 蒙版」「通道 / 蒙版 ↔ 路径」原生没有直连，就按原生的两步走，中间都经选区这一站。
@@ -304,12 +314,13 @@ SuperMrWang → Convert → Channel to Selection / Selection to Channel
 1. **没有选区时先按全选处理**（原生过程没有选区会拒绝执行），通道名 `Selection`；
 2. **已有蒙版先丢掉再新建**，结果与原生新建逐位一致，重跑即刷新；
 3. **路径这一站有损**：它只有几何、没有 alpha，「位图 → 路径」会把羽化、渐变、抗锯齿
-   的边缘压成硬边界（原生 To Path 也一样）；「路径 → 位图」不丢东西，栅格化出来就是
+   的边缘压成硬边界（原生 To Path 也一样）；「路径 → 选区 / 通道 / 蒙版」出来也是
    干净的硬边。路径重名自动加序号，重跑不覆盖旧路径。
 
-回归：`tools/check_convert.py`（55 条断言，每个方向都拿原生 PDB 的结果当基准逐位
+回归：`tools/check_convert.py`（65 条断言，每个方向都拿原生 PDB 的结果当基准逐位
 比较；另覆盖 32 位线性精度、偏移图层、多图层、已有蒙版重建、无选区、三种错误分支，
-以及路径六向、羽化过路径的硬边化、路径取源兜底与重跑命名）。
+以及路径六向、羽化过路径的硬边化、路径取源兜底、重跑命名，和「路径 → 位图」的
+裁切/偏移/与原生逐位一致）。
 `tools/check_convert_pixels.py` 是加严版：0–255 全幅渐变、整幅 4096 像素逐像素比，
 u8 与 32 位线性各跑一遍十二向，要求偏差为 0（24 项）。
 

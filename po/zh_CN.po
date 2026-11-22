@@ -2112,3 +2112,81 @@ msgstr "提示词是空的——这一栏就是 AI 要画的内容，必须写�
 #: plugin/ai-inpaint/ai-inpaint.py
 msgid "What must not appear — put the thing you are deleting here"
 msgstr "不该出现的东西——想删掉的对象写在这里"
+
+
+# ---- plugin/convert：路径转位图 + 补齐转换文案（2026-11-22） ----
+#: plugin/convert/convert.py
+msgid "Filling the path failed; the image may be in a mode that cannot take a new RGBA layer."
+msgstr "填充路径失败；图像可能处于无法新建 RGBA 图层的模式。"
+
+#: plugin/convert/convert.py
+msgid "No image"
+msgstr "没有图像"
+
+#: plugin/convert/convert.py
+msgid "Path \"%s\" rasterised into layer \"%s\""
+msgstr "路径「%s」已栅格化为图层「%s」"
+
+#: plugin/convert/convert.py
+msgid "Path to bitmap: rasterises the path into a new pixel layer (filled with the foreground colour), cropped to the path."
+msgstr "路径转位图：把路径栅格化为新像素图层（用前景色填充），并裁到路径范围。"
+
+#: plugin/convert/convert.py
+msgid "Rasterise the selected path into a layer mask on every selected layer."
+msgstr "把选中路径栅格化为每个选中图层的图层蒙版。"
+
+#: plugin/convert/convert.py
+msgid "Rasterise the selected path into a new channel."
+msgstr "把选中路径栅格化为新通道。"
+
+#: plugin/convert/convert.py
+msgid "Rasterise the selected path into a new pixel layer, filled with the foreground colour."
+msgstr "把选中路径栅格化为新像素图层，用前景色填充。"
+
+#: plugin/convert/convert.py
+msgid "Save the current selection as a new channel."
+msgstr "把当前选区存成新通道。"
+
+#: plugin/convert/convert.py
+msgid "Take the channel selected in the Channels dock and turn it into the pixel selection."
+msgstr "把通道面板里选中的通道转成像素选区。"
+
+#: plugin/convert/convert.py
+msgid "This path encloses no area to fill; check that it has at least one stroke."
+msgstr "这条路径没有可填充的面积；确认它至少有一个 stroke。"
+
+#: plugin/convert/convert.py
+msgid "Trace the current selection into a new path (the native Select > To Path geometry, with a readable name)."
+msgstr "把当前选区描成新路径（几何与原生「选择 → 路径」一致，只是给了个看得懂的名字）。"
+
+#: plugin/convert/convert.py
+msgid "Trace the selected channel's 50% contour into a new path."
+msgstr "把选中通道的 50% 等值线描成新路径。"
+
+#: plugin/convert/convert.py
+msgid "Trace the selected layer's mask into a new path."
+msgstr "把选中图层的蒙版描成新路径。"
+
+#: plugin/convert/convert.py
+msgid "Turn the selected layer's layer mask into a new channel."
+msgstr "把选中图层的蒙版转成新通道。"
+
+#: plugin/convert/convert.py
+msgid "Turn the selected layer's layer mask into the pixel selection."
+msgstr "把选中图层的蒙版转成像素选区。"
+
+#: plugin/convert/convert.py
+msgid "Turn the selected path into the pixel selection."
+msgstr "把选中路径转成像素选区。"
+
+#: plugin/convert/convert.py
+msgid "Use the current selection as a layer mask on every selected layer."
+msgstr "把当前选区用作每个选中图层的图层蒙版。"
+
+#: plugin/convert/convert.py
+msgid "Use the selected channel's grey levels as a layer mask on every selected layer."
+msgstr "把选中通道的灰度用作每个选中图层的图层蒙版。"
+
+#: plugin/convert/convert.py
+msgid "Path to Bitmap"
+msgstr "路径转位图"

@@ -584,6 +584,57 @@ def run():
         check("无选区报错信息", ["selection" in str(exc) or "选区" in str(exc)], [True])
     img.delete()
 
+    print("\n[23] 路径 → 位图（前景色填充，裁到路径外接框）")
+
+    def dump(layer):
+        """整层 R'G'B'A u8，用来和原生逐位比对。"""
+        raw = layer.get_buffer().get(
+            Gegl.Rectangle.new(0, 0, layer.get_width(), layer.get_height()),
+            1.0, "R'G'B'A u8", Gegl.AbyssPolicy.NONE)
+        return bytes(bytearray(raw))
+
+    fg = Gegl.Color()
+    fg.set_rgba(0.2, 0.4, 0.8, 1.0)
+    Gimp.context_set_foreground(fg)
+
+    # 原生参照：路径 → 选区 → 同尺寸图层 → 前景色填充
+    img2, layer2 = new_doc()
+    path2 = path_to_rect(img2, layer2, 6, 0, 8, H)
+    pdb('gimp-image-select-item', image=img2,
+        operation=Gimp.ChannelOps.REPLACE, item=path2)
+    _ok, _ne, nx1, ny1, nx2, ny2 = img2.get_selection().bounds(img2)
+    nat = Gimp.Layer.new(img2, "nat", nx2 - nx1, ny2 - ny1,
+                         Gimp.ImageType.RGBA_IMAGE, 100.0, Gimp.LayerMode.NORMAL)
+    img2.insert_layer(nat, None, 0)
+    nat.set_offsets(nx1, ny1)
+    nat.edit_fill(Gimp.FillType.FOREGROUND)
+    nat_px = dump(nat)
+    img2.delete()
+
+    img, layer = new_doc()
+    path = path_to_rect(img, layer, 6, 0, 8, H)
+    src, ours = mod.path_to_bitmap(img, [path])
+    check("取到的是那条路径", [src.get_name()], [path.get_name()])
+    check("新图层用路径名", [ours.get_name()], [path.get_name()])
+    check("图层裁到路径外接框", [ours.get_width(), ours.get_height()],
+          [nx2 - nx1, ny2 - ny1])
+    check("偏移对回原位", list(ours.get_offsets()[1:]), [nx1, ny1])
+    check("是像素图层（可涂抹）", [isinstance(ours, Gimp.Layer)], [True])
+    check("与原生逐位一致", [dump(ours) == nat_px], [True])
+    # 默认前景色是黑，Y' 也是 0，所以「非 0」才证明用的真是刚设的前景色
+    check("填的确实是前景色（不是默认黑）",
+          [read_y(ours, [4], 8)[0] > 10], [True])
+
+    raw = dump(ours)
+    alphas = raw[3::4]
+    check("图层内有实心区", [max(alphas)], [255])
+
+    # 再点一次：不能覆盖上一张，得自动编号
+    src3, ours3 = mod.path_to_bitmap(img, [path])
+    check("重跑自动换名", [ours3.get_name() != ours.get_name()], [True])
+    check("两层都在", [len(img.get_layers())], [3])
+    img.delete()
+
 
 try:
     run()
