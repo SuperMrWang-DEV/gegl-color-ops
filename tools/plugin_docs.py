@@ -1298,9 +1298,10 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
     </div>
     <div class="dl">
       <div class="dl-head"><h3>和 PS 差在哪</h3></div>
-      <p><b>有：</b>网格交点 + 贝塞尔把手、2×2～6×6 密度、原位网格虚线对照、
-         实时预览、脚本参数。<b>没有：</b>PS 的「变形预设」（弧形 / 旗帜 / 鱼眼那排）、
-         网格「拆分」，以及木偶变形那边的「深度」层级。</p>
+      <p><b>有：</b>网格交点 + 贝塞尔把手、2×2～6×6 密度、Alt+点击自己加分割线、
+         原位网格虚线对照、实时预览、脚本参数。<b>没有：</b>PS 的「变形预设」
+         （弧形 / 旗帜 / 鱼眼那排），也没有「拆分 / 合并格子」（加线是重新拟合，
+         不是保留原控制点的精确细分），以及木偶变形那边的「深度」层级。</p>
       <p>参照物：<b>Krita 的变形工具</b>（Warp）用的是同一类双三次曲面网格，
          <b>GIMP 自己的 Warp Transform</b> 是「推/拉」画笔式的，都值得对照着看。
          PhotoShop 的网格也是这个路子，所以手感能对上。</p>
@@ -1998,6 +1999,82 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
     ),
 ]
 
+PAGES.append(dict(
+    key='layer-style',
+    slug='layer-style',
+    title='图层样式',
+    tag=('图层', 't-blend'),
+    count='十个效果',
+    menu='SuperMrWang → Layer → 图层样式…',
+    menus=['SuperMrWang → Layer → 图层样式…'],
+    pdb='lb-plugin-layer-style(image, drawables, style)',
+    lede="""PS 的「图层 → 图层样式」这一整套：投影、内阴影、外发光、内发光、
+   斜面和浮雕、光泽、颜色/渐变/图案叠加、描边。勾一个效果、拖几根滑杆，画面立刻
+   跟着动；确定之后不烤进像素，而是给出一组**还能单独选中、隐藏、调不透明度的图层**。""",
+    body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>十个效果，一个面板</h3><span class="pill">10 个</span></div>
+      <p><b>投影 / 内阴影</b>：颜色、不透明度、角度（可跟随全局光）、距离、扩展/阻塞、
+         大小、12 条预设等高线、杂色。<b>外发光 / 内发光</b>：单色或渐变、柔和/精确两种
+         技法、扩展、大小、范围；内发光还能选「边缘 / 居中」两个源。</p>
+      <p><b>斜面和浮雕</b>：外斜面 / 内斜面 / 浮雕 / 枕状浮雕 / 描边浮雕五种样式，
+         平滑 / 雕刻清晰 / 雕刻柔和三种方法，深度、方向、大小、软化、高度，高光与阴影
+         各自有颜色和混合模式。<b>光泽</b>：角度、距离、大小、反相。</p>
+      <p><b>颜色 / 渐变 / 图案叠加</b>：26 种混合模式，渐变有线性 / 径向 / 角度 / 对称 /
+         菱形五种、可反相、可对齐图层。<b>描边</b>：外 / 内 / 居中三档，宽度按精确距离
+         算（不靠模糊），填充可选颜色、渐变或图案。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>结果是一组真图层</h3><span class="pill">非破坏</span></div>
+      <p>应用后会多一个叫 <code>原图层名 (layer style)</code> 的组，原图层被收进组里
+         居中：<b>投影和外发光在它下面</b>，<b>内阴影、内发光、描边、三种叠加、斜面
+         在它上面</b>。这个顺序就是 PS 的那套，所以半透明的原图层会「透出」阴影、
+         内阴影只会压在内缘 —— 不需要额外裁蒙版。</p>
+      <p>改参数再跑一次，组里的旧效果层会被整体换掉（原图层原封不动），不会越叠越多。
+         每个效果层都是普通 RGBA 图层，可以单独关掉、调不透明度、加自己的蒙版。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>和 PS 差在哪</h3></div>
+      <p><b>有：</b>十个效果、26 种混合模式、全局光角度、12 条等高线、扩展/阻塞、
+         挖空（无 / 浅 / 深）、本图层的混合颜色带（含两端拆分）、实时预览。</p>
+      <p><b>没有：</b>纹理（斜面的图案浮雕）、3D 材质、自定义等高线编辑器、
+         <b>下一图层</b>的混合颜色带、图案叠加的角度旋转（PS 也没有）、
+         「在图层上直接拖投影手柄」那套交互。</p>
+      <p>另外 GIMP 没有「样式挂在图层上」这回事，所以改参数要重跑一遍；PS 是点开
+         样式面板随时改。要反复微调的话，可以先把样式存在一个图层上，调好再复制到别的图层。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>为什么交给 GIMP 的是「普通」模式</h3></div>
+      <p>GIMP 3 默认的混合模式在<b>线性光</b>里算：实测 50% 的 204 叠在 51 上是
+         <b>153</b>，而 PS 在 sRGB 值上算，结果是 <b>128</b>。直接把效果层挂上
+         MULTIPLY / SCREEN，边和中间调会整体偏亮，柔边还会发白。</p>
+      <p>所以插件把混合<b>先算进颜色里</b>，图层一律挂 <code>NORMAL_LEGACY</code>
+         （纯 sRGB 的 over）。和 GEGL 对拍：实心区<b>最大色差 0.6/255、平均
+         0.12/255</b>，等于同一张图。代价是效果层的颜色里带着「下方是什么」的痕迹，
+         拖动它会跟着错 —— 图层样式本来也不是让你挪的。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl">
+      <div class="dl-head"><h3>实测</h3></div>
+      <p>768×1024、六种效果一起开：<b>1.7 s</b>（含 14 次全图合成），预览
+         560 长边一帧 <b>60–100 ms</b>，拖滑杆跟得上手。描边和斜面用的都是精确
+         带符号距离（不是模糊逼近），所以同样的参数在软边和硬边上厚度一致。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>非交互也能跑</h3></div>
+      <p>整份样式是一个 JSON 字符串参数 <code>style</code>，对话框点应用时写的就是
+         它，脚本可以原样回放：<code>lb-plugin-layer-style 图层 style="{\\"effects\\":
+         {\\"drop-shadow\\": {\\"enabled\\": true, …}}}"</code>。渐变和图案取 GIMP
+         当前的渐变 / 图案。</p>
+    </div>
+  </div>""",
+))
+
 BY_KEY = {p["key"]: p for p in PAGES}
 
 # 英文正文单独一个模块（大段 HTML，混在这里不好读）
@@ -2043,13 +2120,14 @@ BRIEF = {
                        "多选图层一次挂齐，可反相。",
     "max-min": "形态学的最大值（膨胀）与最小值（腐蚀）：扩边、收边、去亮点暗点，"
                "半径 1–100、方形或圆盘可选。",
+    "layer-style": "十个 PS 图层样式效果，结果是一组可编辑图层：投影在外、内阴影在内。",
     "convert": "通道、选区、蒙版、路径四者两两互转，十二个方向各一个菜单项、点一下"
                "就完事，不弹参数框；另加一条路径 / 矢量图层转位图。",
 }
 
 TAG_EN = {"曲线": "Curves", "磨皮": "Retouching", "选区": "Selection",
           "通道": "Channels", "蒙版": "Mask", "转换": "Convert", "AI": "AI",
-          "观察": "Inspect", "变形": "Distort"}
+          "观察": "Inspect", "变形": "Distort", "图层": "Layer"}
 
 TITLE_EN = {
     "ai-inpaint": "AI Inpaint",
@@ -2071,6 +2149,7 @@ TITLE_EN = {
     "channel-to-mask": "Channel to Mask",
     "max-min": "Max / Min",
     "convert": "Convert",
+    "layer-style": "Layer Style",
 }
 
 BRIEF_EN = {
@@ -2126,11 +2205,14 @@ BRIEF_EN = {
                        "invertible.",
     "max-min": "Morphological maximum (dilate) and minimum (erode): grow or shrink a "
                "mask, kill specks, radius 1–100, square or disc.",
+    "layer-style": "Ten Photoshop layer effects, delivered as a group of editable layers: shadows below, "
+                   "inner effects above.",
     "convert": "Channels, selections, layer masks and paths, all twelve directions as one-click "
                 "menu items with no dialog.",
 }
 
 AREA_EN = {"图层转换": "Convert", "Mask": "Mask", "Retouch 修饰": "Retouch",
+           "Layer": "Layer",
            "AI": "AI"}
 
 DEPS_NOTE_EN = {
@@ -2173,6 +2255,7 @@ DEPS_NOTE_EN = {
 
 AREA = {"selection": "图层转换", "channel": "图层转换", "split": "图层转换",
         "convert": "图层转换",
+        "layer-style": "Layer",
         "ai-inpaint": "AI",
         "cutout": "Mask",
         "refine": "Mask",
@@ -2207,6 +2290,7 @@ DEPS = {
     "channel-to-mask": [],
     "max-min": ["lb:max-min"],
     "convert": [],
+    "layer-style": [],
     "split": [],
 }
 

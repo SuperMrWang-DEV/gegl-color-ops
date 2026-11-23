@@ -190,9 +190,10 @@
     </div>
     <div class="dl" id="zh-sec-11">
       <div class="dl-head"><h3>和 PS 差在哪</h3></div>
-      <p><b>有：</b>网格交点 + 贝塞尔把手、2×2～6×6 密度、原位网格虚线对照、
-         实时预览、脚本参数。<b>没有：</b>PS 的「变形预设」（弧形 / 旗帜 / 鱼眼那排）、
-         网格「拆分」，以及木偶变形那边的「深度」层级。</p>
+      <p><b>有：</b>网格交点 + 贝塞尔把手、2×2～6×6 密度、Alt+点击自己加分割线、
+         原位网格虚线对照、实时预览、脚本参数。<b>没有：</b>PS 的「变形预设」
+         （弧形 / 旗帜 / 鱼眼那排），也没有「拆分 / 合并格子」（加线是重新拟合，
+         不是保留原控制点的精确细分），以及木偶变形那边的「深度」层级。</p>
       <p>参照物：<b>Krita 的变形工具</b>（Warp）用的是同一类双三次曲面网格，
          <b>GIMP 自己的 Warp Transform</b> 是「推/拉」画笔式的，都值得对照着看。
          PhotoShop 的网格也是这个路子，所以手感能对上。</p>
@@ -205,7 +206,7 @@
     <div class="dl-head"><h3>自由变形（网格 + 把手）…</h3><span class="pill">.py · 免编译</span></div>
     <p>包里是一个 <code>.py</code>、一份安装说明，以及 <code>_shared/</code> 与 <code>locale/</code>。整包解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，但界面只有英文。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-mesh-warp.zip">下载 自由变形（网格 + 把手）…</a>
-    <p class="muted small">81.6 KB · 校验：<code>SHA256 3e72b8b97ae095ef1cb14621ab6039b0…</code></p>
+    <p class="muted small">81.9 KB · 校验：<code>SHA256 a7d6d363272ef619b769d6d13a26f7fe…</code></p>
   </div>
 </section>
 
@@ -391,10 +392,12 @@
     </div>
     <div class="dl" id="en-sec-11">
       <div class="dl-head"><h3>Where it differs from Photoshop</h3></div>
-      <p><b>Has:</b> grid points with Bezier handles, 2×2 to 6×6 density, dashed original
-         grid for reference, live preview, a scriptable mesh. <b>Does not have:</b>
-         Photoshop's warp presets (arc / flag / fisheye), the “split” grid, or the depth
-         ordering that puppet warp itself lacks.</p>
+      <p><b>Has:</b> grid points with Bezier handles, 2×2 to 6×6 density, Alt+click to add
+         split lines of your own, a dashed original grid for reference, live preview and a
+         scriptable mesh. <b>Does not have:</b> Photoshop's warp presets (arc / flag /
+         fisheye), nor splitting / merging cells into a new topology (adding a line is a
+         refit, not the exact subdivision Photoshop gets from storing the whole control
+         net), nor the depth ordering that puppet warp itself lacks.</p>
       <p>Useful references: <b>Krita's Warp transform</b> uses the same kind of bicubic
          surface mesh, while <b>GIMP's own Warp Transform</b> is the push/pull brush. Both
          are worth comparing against.</p>
@@ -407,7 +410,7 @@
     <div class="dl-head"><h3>Free Transform (Mesh)</h3><span class="pill">.py · no compile</span></div>
     <p>The archive holds a single <code>.py</code>, an install note and the <code>_shared/</code> + <code>locale/</code> pair. Unpack all of it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register. Without <code>_shared/</code> and <code>locale/</code> it still runs, but only in English.</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-mesh-warp.zip">Download Free Transform (Mesh)</a>
-    <p class="muted small">81.6 KB · checksum: <code>SHA256 3e72b8b97ae095ef1cb14621ab6039b0…</code></p>
+    <p class="muted small">81.9 KB · checksum: <code>SHA256 a7d6d363272ef619b769d6d13a26f7fe…</code></p>
   </div>
 </section>
 
@@ -442,7 +445,7 @@
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">a4761cc</span>
+    <span class="muted">65153d2</span>
   </div>
 </footer>
 <script>

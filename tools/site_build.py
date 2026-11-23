@@ -2426,6 +2426,18 @@ PLUGIN_SPECS = [
              shared=["mesh_warp.py", "warp_math.py", "mask_io.py",
                      "refine_math.py"],
              pdb="lb-plugin-mesh-warp(image, drawables, mesh, output)"),
+        dict(key="layer-style", ops=[],
+             name="gegl-color-ops-plugin-layer-style.zip",
+             src_dir=os.path.join(ROOT, "plugin", "layer-style"),
+             py="layer-style.py",
+             menu="图层样式 (Layer Style)",
+             menus="    SuperMrWang → Layer → 图层样式…",
+             desc="图层样式：投影 / 内阴影 / 外发光 / 内发光 / 斜面和浮雕（五种样式）/ "
+                  "光泽 / 颜色·渐变·图案叠加 / 描边（外·内·居中），十个效果各有自己的"
+                  "混合模式、颜色、角度、距离、大小、等高线，带实时预览；结果是一组"
+                  "可编辑图层（投影和外发光在下面，内效果在上面），不烤进像素。",
+             shared=["layer_style.py", "mask_io.py", "refine_math.py"],
+             pdb="lb-plugin-layer-style(image, drawables, style)"),
         dict(key="vanishing-point", ops=[],
              name="gegl-color-ops-plugin-vanishing-point.zip",
              src_dir=os.path.join(ROOT, "plugin", "vanishing-point"),

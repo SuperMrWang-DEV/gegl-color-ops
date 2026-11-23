@@ -1855,10 +1855,12 @@ PLUGIN_EN["mesh-warp"] = dict(
     </div>
     <div class="dl">
       <div class="dl-head"><h3>Where it differs from Photoshop</h3></div>
-      <p><b>Has:</b> grid points with Bezier handles, 2×2 to 6×6 density, dashed original
-         grid for reference, live preview, a scriptable mesh. <b>Does not have:</b>
-         Photoshop's warp presets (arc / flag / fisheye), the “split” grid, or the depth
-         ordering that puppet warp itself lacks.</p>
+      <p><b>Has:</b> grid points with Bezier handles, 2×2 to 6×6 density, Alt+click to add
+         split lines of your own, a dashed original grid for reference, live preview and a
+         scriptable mesh. <b>Does not have:</b> Photoshop's warp presets (arc / flag /
+         fisheye), nor splitting / merging cells into a new topology (adding a line is a
+         refit, not the exact subdivision Photoshop gets from storing the whole control
+         net), nor the depth ordering that puppet warp itself lacks.</p>
       <p>Useful references: <b>Krita's Warp transform</b> uses the same kind of bicubic
          surface mesh, while <b>GIMP's own Warp Transform</b> is the push/pull brush. Both
          are worth comparing against.</p>
@@ -2035,6 +2037,84 @@ PLUGIN_EN["vanishing-point"] = dict(
       <p>Worth comparing against: <b>Krita's perspective assistants</b> are the same idea but
          only draw guides, they do not transfer images. The textbook name for the transfer
          itself is <b>homography-based image transfer</b>.</p>
+    </div>
+  </div>""",
+)
+
+
+PLUGIN_EN["layer-style"] = dict(
+    lede="""Photoshop's Layer Styles, the whole set: drop shadow, inner shadow, outer and
+   inner glow, bevel and emboss, satin, colour / gradient / pattern overlay and stroke. Tick an
+   effect, drag a slider, the picture follows. Nothing gets baked into pixels — you get a group of
+   layers you can still select, hide and fade one by one.""",
+    body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Ten effects, one panel</h3><span class="pill">10</span></div>
+      <p><b>Drop / inner shadow</b>: colour, opacity, angle (optionally following the global
+         light), distance, spread / choke, size, one of 12 preset contours, noise. <b>Outer /
+         inner glow</b>: solid colour or gradient, softer or precise technique, spread, size,
+         range; the inner glow can radiate from the edge or from the centre.</p>
+      <p><b>Bevel and emboss</b>: outer bevel / inner bevel / emboss / pillow emboss / stroke
+         emboss, smooth / chisel hard / chisel soft, depth, direction, size, soften, altitude,
+         with separate highlight and shadow colours and blend modes. <b>Satin</b>: angle,
+         distance, size, invert.</p>
+      <p><b>Colour / gradient / pattern overlay</b>: 26 blend modes; gradients can be linear,
+         radial, angled, reflected or diamond, reversed, aligned to the layer. <b>Stroke</b>:
+         outside / inside / centre, width measured as an exact distance (not a blur), filled
+         with a colour, a gradient or a pattern.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>The result is real layers</h3><span class="pill">non-destructive</span></div>
+      <p>Applying creates a group called <code>layer name (layer style)</code> and moves the
+         original layer into the middle of it: <b>drop shadow and outer glow go underneath it</b>,
+         <b>inner shadow, inner glow, stroke, the three overlays and the bevel go on top</b>. That
+         is Photoshop's stacking order, so a semi-transparent layer lets its shadow show through
+         and an inner shadow only presses on the inside edge — no extra masking needed.</p>
+      <p>Run it again after changing a slider and the old effect layers inside the group are
+         replaced; the original layer is never touched and nothing piles up. Every effect layer is
+         an ordinary RGBA layer: switch it off, fade it, give it its own mask.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Where it differs from Photoshop</h3></div>
+      <p><b>There:</b> all ten effects, 26 blend modes, global light, 12 contours,
+         spread / choke, knockout (none / shallow / deep), "blend if: this layer" with both
+         softness handles, live preview.</p>
+      <p><b>Not there:</b> texture (pattern bevels), 3D materials, a custom contour editor,
+         "blend if: underlying layer", rotating the pattern (Photoshop cannot either), and
+         dragging shadow handles straight on the canvas.</p>
+      <p>GIMP has no concept of a style attached to a layer, so changing a parameter means running
+         the plug-in again — Photoshop lets you reopen the panel at any time.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Why GIMP is handed plain "normal" layers</h3></div>
+      <p>GIMP 3's default blend modes work in <b>linear light</b>: measured, 50% of 204 over 51
+         gives <b>153</b>, while Photoshop blends sRGB values and gives <b>128</b>. Hang MULTIPLY
+         or SCREEN straight onto an effect layer and edges and midtones come out too bright, with
+         soft edges glowing.</p>
+      <p>So the plug-in <b>blends first, in the colour itself</b>, and every layer is
+         <code>NORMAL_LEGACY</code> (a plain sRGB over). Cross-checked against GEGL: maximum
+         channel difference in solid areas <b>0.6/255</b>, mean <b>0.12/255</b> — the same
+         picture. The cost is that an effect layer's colour carries a trace of what was under it,
+         so dragging the layer would smear; layer styles are not meant to be dragged anyway.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl">
+      <div class="dl-head"><h3>Measured</h3></div>
+      <p>768×1024 with six effects on: <b>1.7 s</b>, including 14 full-frame composites. The
+         560-pixel preview runs a frame in <b>60–100 ms</b>, so sliders keep up. Stroke and bevel
+         use an exact signed distance field rather than a blur, so the same number gives the same
+         thickness on a soft edge and a hard one.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Scriptable</h3></div>
+      <p>The whole style is one JSON string argument, <code>style</code>, and the dialog writes
+         exactly what it applied, so a script can replay it. Gradients and patterns come from
+         GIMP's current gradient and pattern.</p>
     </div>
   </div>""",
 )
