@@ -69,6 +69,7 @@ echo "                             最大值 / 最小值（膨胀 / 腐蚀，半
 echo "                             抠图 / 移除背景（本地：四边泛洪；AI：ComfyUI 的 RMBG-2.0）"
 echo "                             选择并遮住（精修边缘：吸附/平滑/羽化/对比度/移动边缘/去色边）"
 echo "    SuperMrWang → Blend      应用图像 / 计算"
+echo "    SuperMrWang → Distort    Displace（按位移图重采样）/ 木偶变形（放钉子拖动，MLS 网格变形）"
 echo "    SuperMrWang → AI         AI Inpaint（选区 + 提示词 → 本机 ComfyUI 重绘，需要 ComfyUI 在跑）"
 echo "                             AI Inpaint (Advanced)（全参数，含底模下拉）"
 echo "                             AI Environment（手选 ComfyUI 目录 / 自动启动 / 一键装 / 看模型清单）"

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-title-zh="木偶变形 · Python 插件 · gegl-color-ops" data-title-en="木偶变形 · Python plug-ins · gegl-color-ops">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>木偶变形 · Python 插件 · gegl-color-ops</title>
+<meta name="description" content="姿势差一点、胳膊短一截、杯子被拍歪了——这些都不该开液化一格一格推。
+   在图层上点几个钉子，拖住钉子把内容拽过去，钉子之间平滑地跟着走，
+   离钉子远的地方一个字节都不动。" data-desc-zh="姿势差一点、胳膊短一截、杯子被拍歪了——这些都不该开液化一格一格推。
+   在图层上点几个钉子，拖住钉子把内容拽过去，钉子之间平滑地跟着走，
+   离钉子远的地方一个字节都不动。" data-desc-en="The pose is slightly off, the arm a bit short, the cup knocked crooked — none of
+   that deserves pixel-by-pixel liquify">
+<meta property="og:title" content="木偶变形 · Python 插件 · gegl-color-ops" data-title-zh="木偶变形 · Python 插件 · gegl-color-ops" data-title-en="木偶变形 · Python plug-ins · gegl-color-ops">
+<meta property="og:description" content="姿势差一点、胳膊短一截、杯子被拍歪了——这些都不该开液化一格一格推。
+   在图层上点几个钉子，拖住钉子把内容拽过去，钉子之间平滑地跟着走，
+   离钉子远的地方一个字节都不动。" data-desc-zh="姿势差一点、胳膊短一截、杯子被拍歪了——这些都不该开液化一格一格推。
+   在图层上点几个钉子，拖住钉子把内容拽过去，钉子之间平滑地跟着走，
+   离钉子远的地方一个字节都不动。" data-desc-en="The pose is slightly off, the arm a bit short, the cup knocked crooked — none of
+   that deserves pixel-by-pixel liquify">
+<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+<main id="main">
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> /
+    <a href="../plugins.html">插件</a> / Distort</p>
+  <h1>木偶变形</h1>
+  <div class="meta">
+    <code>plugin/warp</code>
+    <span class="tag t-distort">变形</span>
+    <span>Distort</span>
+  </div>
+  <p class="lede">姿势差一点、胳膊短一截、杯子被拍歪了——这些都不该开液化一格一格推。
+   在图层上点几个钉子，拖住钉子把内容拽过去，钉子之间平滑地跟着走，
+   离钉子远的地方一个字节都不动。</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="zh-overview">
+  <dt>菜单位置</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → Distort → 木偶变形（网格变形）…</li></ul><p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p></dd>
+  <dt>脚本调用</dt>
+  <dd><code class="pdb">lb-plugin-puppet-warp(image, drawables, pins, mode, radius, output)</code><p>标准 PDB 过程，参数留空走默认值。</p></dd>
+  <dt>依赖</dt>
+  <dd><p>靠下面这些算子干活。<b>它们已经打进这个插件的下载包</b>（<code>modules-windows-x64</code> / <code>modules-linux-x64</code>），不用另外去下：</p></dd>
+</dl>
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-1">
+      <div class="dl-head"><h3>怎么用</h3><span class="pill">点、拖、右键</span></div>
+      <p>选图层 → 菜单 → 图片上<b>点一下就是一根钉子</b>（按住可以直接拖）；
+         <b>拖钉子</b>画面跟着动；<b>右键点钉子</b>删掉它，或者选中后按 Delete。
+         钉子拖过的范围由「影响半径」决定，圈外是严格的恒等——连一个字节都不重采样。</p>
+      <p>「刚性（保形）」只允许旋转 + 等比缩放，方角还是方的，和 PS 的木偶变形最像；
+         「自由（仿射）」放开剪切和拉伸，适合把东西拉长，不适合脸。</p>
+      <p>输出两种：<b>覆盖当前图层</b>，或者<b>复制到新图层</b>（原图层留着对比）。</p>
+    </div>
+    <div class="dl" id="zh-sec-2">
+      <div class="dl-head"><h3>非交互也能跑</h3></div>
+      <p>钉子是过程参数 <code>pins</code>，格式
+         <code>sx,sy,dx,dy; sx,sy,dx,dy</code>（原位 → 拖到的地方，图层像素坐标），
+         分号和换行都认，写两个数就表示没拖。对话框点应用时也是把钉子写成这个
+         字符串再跑一遍，所以脚本能完整复现一次手动变形：</p>
+      <p><code>lb-plugin-puppet-warp 图层 pins="100,200,140,200; 300,400,300,430"
+         mode=rigid radius=30</code></p>
+    </div>
+  </div>
+
+  <div class="dl" id="zh-sec-3">
+    <div class="dl-head"><h3>它是怎么算的</h3><span class="pill">MLS，不是三角网格</span></div>
+    <p>PS 的木偶变形是 ARAP（在网格上解一个稀疏线性系统）。GIMP 3 的 Python 里
+       <b>没有 numpy</b>，稀疏求解在纯 Python 里跑不动，所以这里换成 <b>MLS</b>
+       （移动最小二乘）：每个像素按到各钉子的距离加权，解一个最小二乘仿射，
+       让「钉子原位」尽量对到「钉子现在的位置」。钉子上严格插值，场是光滑的。</p>
+    <p>三件事必须做对，否则画面会悄悄坏掉：</p>
+    <p><b>① MLS 是全局的，要自己收口。</b>用 1/d² 权重时远处解出来的仍是一个像样的
+       仿射，整张图会跟着轻微旋转（实测四角漂 0.7 px）。所以每个像素再乘一个
+       到最近钉子的 smoothstep 窗口，圈外严格恒等。</p>
+    <p><b>② 只在栅格上解，不是每个像素。</b>768×1024 逐像素解 8 个钉子要十几秒；
+       改成在长边 140 个节点的栅格上解、重采样时对偏移量做双线性，误差 &lt; 0.02 px。</p>
+    <p><b>③ 没动过的行整行抄。</b>纯 Python 重采样 1600×2400 全图要 6 s；
+       逐行先按节点扫「这一行有没有超过 0.5 px 的位移」，没有就整行切片复制，
+       只动画面一角时是 0.2 s 级。</p>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-4">
+      <div class="dl-head"><h3>实测</h3></div>
+      <p>768×1024 图层、两个钉子、影响半径 25%：全分辨率变形 <b>0.35 秒</b>（含读写
+         缓冲区）。预览是 520 长边，拖钉子时按 70 ms 节流重画，通常 <b>0.1 秒</b>
+         一张，手感跟得上。</p>
+      <p>1600×2400 的图局部拖一处约 <b>2.4 秒</b>；影响半径拉到 100% 就是全图重采样，
+         约 6 秒，界面上不会假死但会等一会儿。</p>
+    </div>
+    <div class="dl" id="zh-sec-5">
+      <div class="dl-head"><h3>和 PS 差在哪</h3></div>
+      <p><b>有：</b>钉子上拖、刚性/自由两档、影响半径、网格叠加、右键删钉子、
+         实时预览、非交互的钉子参数。<b>没有：</b>PS 的「深度」（钉子前后层级）、
+         以及按 Alt 旋转整根钉子的那套手柄——要大角度旋转请直接转图层。</p>
+      <p>图层组、文字层、矢量层会被明确拦下来（它们没有可变的像素），
+         报错里直接说要先栅格化，而不是丢一串 GIMP 内部错误。</p>
+    </div>
+  </div>
+
+<section class="download" id="zh-download">
+  <h2>下载这一个</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>木偶变形（网格变形）…</h3><span class="pill">.py · 免编译</span></div>
+    <p>包里是一个 <code>.py</code>、一份安装说明，以及 <code>_shared/</code> 与 <code>locale/</code>。整包解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，但界面只有英文。</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-puppet-warp.zip">下载 木偶变形（网格变形）…</a>
+    <p class="muted small">64.4 KB · 校验：<code>SHA256 6ae73d1208a8c422f5f3f6a94c6df4ee…</code></p>
+  </div>
+</section>
+
+<p class="note">文中「码」指 8 位图上的一个台阶：0–255 共 256 级，
+   相邻两级的差就是 1 码，等于 1/255 ≈ 0.392%%（也就是 RGB 128 与 129 之间的差）。
+   各数量级的含义与「码为什么不是感知量」的说明见
+   <a href="../guide.html#code">安装指南 · 精度里的「码」</a>。</p>
+  </article>
+  <aside class="toc">
+    <p class="toc-title">本页目录</p>
+    <ul>
+      <li><a href="#zh-overview">概览</a></li>
+<li><a href="#zh-sec-1">怎么用</a></li><li><a href="#zh-sec-2">非交互也能跑</a></li><li><a href="#zh-sec-3">它是怎么算的</a></li><li><a href="#zh-sec-4">实测</a></li><li><a href="#zh-sec-5">和 PS 差在哪</a></li>
+      <li><a href="#zh-download">下载</a></li>
+    </ul>
+  </aside>
+</div>
+<nav class="pager">
+  <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
+  <a class="prev" href="refine.html"><span>上一篇</span>选择并遮住</a><a class="next" href="ai-frequency-separation.html"><span>下一篇</span>高低频磨皮（AI 预修）</a>
+</nav></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> /
+    <a href="../plugins.html">Plug-ins</a> / Retouch</p>
+  <h1>Puppet Warp</h1>
+  <div class="meta">
+    <code>plugin/warp</code>
+    <span class="tag t-distort">变形</span>
+    <span>Retouch</span>
+  </div>
+  <p class="lede">The pose is slightly off, the arm a bit short, the cup knocked crooked — none of
+   that deserves pixel-by-pixel liquify. Drop a few pins on the layer, drag the pins and
+   the picture follows: smooth in between, and byte-for-byte untouched far away.</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="en-overview">
+  <dt>Menu location</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → Distort → Puppet Warp（网格变形）…</li></ul><p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p></dd>
+  <dt>Scripting</dt>
+  <dd><code class="pdb">lb-plugin-puppet-warp(image, drawables, pins, mode, radius, output)</code><p>A standard PDB procedure; leave an argument empty to take its default.</p></dd>
+  <dt>Dependencies</dt>
+  <dd><p>The operators below do the work. <b>They are already inside this plug-in's download</b> (<code>modules-windows-x64</code> / <code>modules-linux-x64</code>) — nothing else to fetch:</p></dd>
+</dl>
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-1">
+      <div class="dl-head"><h3>How it works</h3><span class="pill">click, drag, right-click</span></div>
+      <p>Pick a layer → menu → <b>click once on the picture to place a pin</b> (holding
+         the button drags it right away); <b>drag a pin</b> and the pixels follow;
+         <b>right-click a pin</b> to delete it, or select it and press Delete. How far a
+         pin reaches is set by <b>Falloff</b>; outside that circle the layer is left alone
+         completely — not even resampled.</p>
+      <p>“Rigid (keeps shapes)” only allows rotation and uniform scale, so square corners
+         stay square — this is the one that behaves like Photoshop's puppet warp.
+         “Free (allows stretching)” opens up shear and stretch: good for lengthening
+         something, bad for faces.</p>
+      <p>Two outputs: <b>replace this layer</b>, or <b>copy to a new layer</b> so the
+         original stays around for comparison.</p>
+    </div>
+    <div class="dl" id="en-sec-2">
+      <div class="dl-head"><h3>Works without a mouse, too</h3></div>
+      <p>The pins are a procedure argument, <code>pins</code>, written as
+         <code>sx,sy,dx,dy; sx,sy,dx,dy</code> (where a pin was placed → where it was
+         dragged, in layer pixels). Semicolons and newlines both separate; two numbers
+         mean “placed but not dragged”. Pressing Apply writes exactly that string back
+         into the config and runs the same code, so a script can reproduce a manual warp
+         step for step:</p>
+      <p><code>lb-plugin-puppet-warp layer pins="100,200,140,200; 300,400,300,430"
+         mode=rigid radius=30</code></p>
+    </div>
+  </div>
+
+  <div class="dl" id="en-sec-3">
+    <div class="dl-head"><h3>How it is computed</h3><span class="pill">MLS, not a triangle mesh</span></div>
+    <p>Photoshop's puppet warp is ARAP: a sparse linear system on a mesh. GIMP 3's Python
+       has <b>no numpy</b>, and a sparse solve in pure Python is hopeless, so this uses
+       <b>MLS</b> (moving least squares) instead: each pixel gets weights from its
+       distance to every pin, then a least-squares affine is solved that maps “where the
+       pin was” onto “where the pin is now”. Interpolation at the pins is exact and the
+       field is smooth.</p>
+    <p>Three things have to be right or the picture quietly goes wrong:</p>
+    <p><b>① MLS is global, so it needs a cutoff.</b> With 1/d² weights the far field is
+       still a perfectly good affine — the whole image drifts slightly (measured: corners
+       moved 0.7 px). Every pixel is therefore multiplied by a smoothstep window measured
+       from the nearest pin; outside it the map is the identity.</p>
+    <p><b>② Solve on a grid, not per pixel.</b> Solving 8 pins per pixel at 768×1024 takes
+       ten-odd seconds. Solving on a grid of 140 nodes along the long edge and bilinearly
+       interpolating the offsets costs 0.02 px of accuracy.</p>
+    <p><b>③ Copy untouched rows verbatim.</b> Resampling 1600×2400 in pure Python takes
+       6 s. Each row is first scanned at node level for “any displacement over 0.5 px”;
+       if there is none the whole row is a slice copy. Dragging one corner becomes 0.2 s.</p>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-4">
+      <div class="dl-head"><h3>Measured</h3></div>
+      <p>768×1024 layer, two pins, falloff 25 %: full-resolution warp in <b>0.35 s</b>
+         including buffer read and write. The preview runs at a 520 px long edge and is
+         throttled to 70 ms while dragging — usually <b>0.1 s</b> per redraw, which keeps
+         up with the hand.</p>
+      <p>On a 1600×2400 photo a local drag costs about <b>2.4 s</b>; pushing the falloff to
+         100 % means resampling everything, roughly 6 s. The window stays responsive, it
+         just takes a moment.</p>
+    </div>
+    <div class="dl" id="en-sec-5">
+      <div class="dl-head"><h3>Where it differs from Photoshop</h3></div>
+      <p><b>Has:</b> draggable pins, rigid/free modes, falloff, mesh overlay, right-click
+         delete, live preview, a non-interactive pin argument. <b>Does not have:</b>
+         Photoshop's depth (pins in front of / behind each other) and the Alt-drag rotation
+         handle — for big rotations, rotate the layer instead.</p>
+      <p>Layer groups, text and vector layers are refused with a plain sentence (they have
+         no pixels of their own) instead of a GIMP-internal error.</p>
+    </div>
+  </div>
+
+<section class="download" id="en-download">
+  <h2>Download this one</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>Puppet Warp</h3><span class="pill">.py · no compile</span></div>
+    <p>The archive holds a single <code>.py</code>, an install note and the <code>_shared/</code> + <code>locale/</code> pair. Unpack all of it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register. Without <code>_shared/</code> and <code>locale/</code> it still runs, but only in English.</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-puppet-warp.zip">Download Puppet Warp</a>
+    <p class="muted small">64.4 KB · checksum: <code>SHA256 6ae73d1208a8c422f5f3f6a94c6df4ee…</code></p>
+  </div>
+</section>
+
+<p class="note">In this article a "code" means one step on an 8-bit
+   image: 0–255 is 256 levels, so the gap between neighbours is 1 code, or
+   1/255 ≈ 0.392%% (the difference between RGB 128 and 129). For the order of magnitude
+   of each figure, and why a code is not a perceptual quantity, see
+   <a href="../guide.html#code">Install guide · what a code is</a>.</p>
+  </article>
+  <aside class="toc">
+    <p class="toc-title">On this page</p>
+    <ul>
+      <li><a href="#en-overview">Overview</a></li>
+<li><a href="#en-sec-1">How it works</a></li><li><a href="#en-sec-2">Works without a mouse, too</a></li><li><a href="#en-sec-3">How it is computed</a></li><li><a href="#en-sec-4">Measured</a></li><li><a href="#en-sec-5">Where it differs from Photoshop</a></li>
+      <li><a href="#en-download">Download</a></li>
+    </ul>
+  </aside>
+</div>
+<nav class="pager">
+  <a href="../plugins.html"><span>Back to</span>All plug-ins</a>
+  <a class="prev" href="refine.html"><span>Previous</span>Select and Mask</a><a class="next" href="ai-frequency-separation.html"><span>Next</span>Frequency Separation (AI prep)</a>
+</nav></div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
+    <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
+    <span class="muted">7f4f9eb</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
+</body>
+</html>

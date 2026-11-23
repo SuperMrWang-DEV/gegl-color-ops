@@ -1090,6 +1090,75 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
   </div>""",
     ),
     dict(
+        key='warp',
+        slug='warp',
+        title='木偶变形',
+        tag=('变形', 't-distort'),
+        count='钉子在画布上拖',
+        menu='SuperMrWang → Distort → 木偶变形（网格变形）…',
+        menus=['SuperMrWang → Distort → 木偶变形（网格变形）…'],
+        pdb='lb-plugin-puppet-warp(image, drawables, pins, mode, radius, output)',
+        lede="""姿势差一点、胳膊短一截、杯子被拍歪了——这些都不该开液化一格一格推。
+   在图层上点几个钉子，拖住钉子把内容拽过去，钉子之间平滑地跟着走，
+   离钉子远的地方一个字节都不动。""",
+        body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>怎么用</h3><span class="pill">点、拖、右键</span></div>
+      <p>选图层 → 菜单 → 图片上<b>点一下就是一根钉子</b>（按住可以直接拖）；
+         <b>拖钉子</b>画面跟着动；<b>右键点钉子</b>删掉它，或者选中后按 Delete。
+         钉子拖过的范围由「影响半径」决定，圈外是严格的恒等——连一个字节都不重采样。</p>
+      <p>「刚性（保形）」只允许旋转 + 等比缩放，方角还是方的，和 PS 的木偶变形最像；
+         「自由（仿射）」放开剪切和拉伸，适合把东西拉长，不适合脸。</p>
+      <p>输出两种：<b>覆盖当前图层</b>，或者<b>复制到新图层</b>（原图层留着对比）。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>非交互也能跑</h3></div>
+      <p>钉子是过程参数 <code>pins</code>，格式
+         <code>sx,sy,dx,dy; sx,sy,dx,dy</code>（原位 → 拖到的地方，图层像素坐标），
+         分号和换行都认，写两个数就表示没拖。对话框点应用时也是把钉子写成这个
+         字符串再跑一遍，所以脚本能完整复现一次手动变形：</p>
+      <p><code>lb-plugin-puppet-warp 图层 pins="100,200,140,200; 300,400,300,430"
+         mode=rigid radius=30</code></p>
+    </div>
+  </div>
+
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>它是怎么算的</h3><span class="pill">MLS，不是三角网格</span></div>
+    <p>PS 的木偶变形是 ARAP（在网格上解一个稀疏线性系统）。GIMP 3 的 Python 里
+       <b>没有 numpy</b>，稀疏求解在纯 Python 里跑不动，所以这里换成 <b>MLS</b>
+       （移动最小二乘）：每个像素按到各钉子的距离加权，解一个最小二乘仿射，
+       让「钉子原位」尽量对到「钉子现在的位置」。钉子上严格插值，场是光滑的。</p>
+    <p>三件事必须做对，否则画面会悄悄坏掉：</p>
+    <p><b>① MLS 是全局的，要自己收口。</b>用 1/d² 权重时远处解出来的仍是一个像样的
+       仿射，整张图会跟着轻微旋转（实测四角漂 0.7 px）。所以每个像素再乘一个
+       到最近钉子的 smoothstep 窗口，圈外严格恒等。</p>
+    <p><b>② 只在栅格上解，不是每个像素。</b>768×1024 逐像素解 8 个钉子要十几秒；
+       改成在长边 140 个节点的栅格上解、重采样时对偏移量做双线性，误差 &lt; 0.02 px。</p>
+    <p><b>③ 没动过的行整行抄。</b>纯 Python 重采样 1600×2400 全图要 6 s；
+       逐行先按节点扫「这一行有没有超过 0.5 px 的位移」，没有就整行切片复制，
+       只动画面一角时是 0.2 s 级。</p>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl">
+      <div class="dl-head"><h3>实测</h3></div>
+      <p>768×1024 图层、两个钉子、影响半径 25%：全分辨率变形 <b>0.35 秒</b>（含读写
+         缓冲区）。预览是 520 长边，拖钉子时按 70 ms 节流重画，通常 <b>0.1 秒</b>
+         一张，手感跟得上。</p>
+      <p>1600×2400 的图局部拖一处约 <b>2.4 秒</b>；影响半径拉到 100% 就是全图重采样，
+         约 6 秒，界面上不会假死但会等一会儿。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>和 PS 差在哪</h3></div>
+      <p><b>有：</b>钉子上拖、刚性/自由两档、影响半径、网格叠加、右键删钉子、
+         实时预览、非交互的钉子参数。<b>没有：</b>PS 的「深度」（钉子前后层级）、
+         以及按 Alt 旋转整根钉子的那套手柄——要大角度旋转请直接转图层。</p>
+      <p>图层组、文字层、矢量层会被明确拦下来（它们没有可变的像素），
+         报错里直接说要先栅格化，而不是丢一串 GIMP 内部错误。</p>
+    </div>
+  </div>""",
+    ),
+    dict(
         key='ai-frequency',
         ai_comfy=True,
         slug='ai-frequency-separation',
@@ -1670,6 +1739,7 @@ BRIEF = {
     "ai-grey": "灰层不再是平的 128：按参考图反解出偏移，已做一轮中性灰。",
     "cutout": "两条路：AI（RMBG）连发丝一起抠，本地版从四边泛洪吃纯色背景。",
     "refine": "选区做完了边还是糊的：六根滑杆 + 实时预览，把边缘收干净。",
+    "warp": "点几个钉子拖住画面走：钉子之间平滑过渡，圈外一个字节都不动。",
     "alpha-curves": "把颜色通道写进 alpha，再接一条三个控制点的平滑曲线："
                     "挂上去先拉满，往下拖即成形状。",
     "color-range": "色彩范围的定制对话框：选什么颜色，下面就只显示那种颜色的参数，"
@@ -1697,6 +1767,7 @@ TITLE_EN = {
     "observe": "Inspection Layers",
     "cutout": "Cut Out / Remove Background",
     "refine": "Select and Mask",
+    "warp": "Puppet Warp",
     "luminosity": "Luminosity Masks",
     "alpha-curves": "Alpha Curves",
     "color-range": "Color Range",
@@ -1734,6 +1805,8 @@ BRIEF_EN = {
               "flood-fills a plain background from the border.",
     "refine": "The selection is done but the edge is mush: six sliders and a "
               "live preview to clean it up.",
+    "warp": "Drop a few pins and drag the picture with them: smooth in between, "
+            "and byte-for-byte untouched outside the falloff.",
     "ai-inpaint": "Frame an area, write what should be there, and a local ComfyUI "
                   "redraws it — the answer comes back as a new masked layer.",
     "ai-frequency": "Same structure as Frequency Separation, but both layers carry a "
@@ -1801,6 +1874,7 @@ AREA = {"selection": "图层转换", "channel": "图层转换", "split": "图层
         "ai-inpaint": "AI",
         "cutout": "Mask",
         "refine": "Mask",
+        "warp": "Distort",
         "alpha-curves": "Mask", "color-range": "Mask",
         "channel-to-mask": "Mask", "max-min": "Mask"}
 
@@ -1808,6 +1882,7 @@ DEPS = {
     "ai-inpaint": [],
     "cutout": [],
     "refine": [],
+    "warp": [],
     "hsv": ["lb:hsv-dual", "lb:hsv-compose", "gimp:curves"],
     "lch": ["lb:lch-dual", "lb:lch-compose", "gimp:curves"],
     "hsl": ["lb:hsl-dual", "lb:hsl-compose", "gimp:curves"],

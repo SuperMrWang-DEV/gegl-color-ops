@@ -1621,3 +1621,79 @@ so you can re-limit the area later.</code></pre>
     </div>
   </div>""",
 )
+
+PLUGIN_EN["warp"] = dict(
+    lede="""The pose is slightly off, the arm a bit short, the cup knocked crooked — none of
+   that deserves pixel-by-pixel liquify. Drop a few pins on the layer, drag the pins and
+   the picture follows: smooth in between, and byte-for-byte untouched far away.""",
+    body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>How it works</h3><span class="pill">click, drag, right-click</span></div>
+      <p>Pick a layer → menu → <b>click once on the picture to place a pin</b> (holding
+         the button drags it right away); <b>drag a pin</b> and the pixels follow;
+         <b>right-click a pin</b> to delete it, or select it and press Delete. How far a
+         pin reaches is set by <b>Falloff</b>; outside that circle the layer is left alone
+         completely — not even resampled.</p>
+      <p>“Rigid (keeps shapes)” only allows rotation and uniform scale, so square corners
+         stay square — this is the one that behaves like Photoshop's puppet warp.
+         “Free (allows stretching)” opens up shear and stretch: good for lengthening
+         something, bad for faces.</p>
+      <p>Two outputs: <b>replace this layer</b>, or <b>copy to a new layer</b> so the
+         original stays around for comparison.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Works without a mouse, too</h3></div>
+      <p>The pins are a procedure argument, <code>pins</code>, written as
+         <code>sx,sy,dx,dy; sx,sy,dx,dy</code> (where a pin was placed → where it was
+         dragged, in layer pixels). Semicolons and newlines both separate; two numbers
+         mean “placed but not dragged”. Pressing Apply writes exactly that string back
+         into the config and runs the same code, so a script can reproduce a manual warp
+         step for step:</p>
+      <p><code>lb-plugin-puppet-warp layer pins="100,200,140,200; 300,400,300,430"
+         mode=rigid radius=30</code></p>
+    </div>
+  </div>
+
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>How it is computed</h3><span class="pill">MLS, not a triangle mesh</span></div>
+    <p>Photoshop's puppet warp is ARAP: a sparse linear system on a mesh. GIMP 3's Python
+       has <b>no numpy</b>, and a sparse solve in pure Python is hopeless, so this uses
+       <b>MLS</b> (moving least squares) instead: each pixel gets weights from its
+       distance to every pin, then a least-squares affine is solved that maps “where the
+       pin was” onto “where the pin is now”. Interpolation at the pins is exact and the
+       field is smooth.</p>
+    <p>Three things have to be right or the picture quietly goes wrong:</p>
+    <p><b>① MLS is global, so it needs a cutoff.</b> With 1/d² weights the far field is
+       still a perfectly good affine — the whole image drifts slightly (measured: corners
+       moved 0.7 px). Every pixel is therefore multiplied by a smoothstep window measured
+       from the nearest pin; outside it the map is the identity.</p>
+    <p><b>② Solve on a grid, not per pixel.</b> Solving 8 pins per pixel at 768×1024 takes
+       ten-odd seconds. Solving on a grid of 140 nodes along the long edge and bilinearly
+       interpolating the offsets costs 0.02 px of accuracy.</p>
+    <p><b>③ Copy untouched rows verbatim.</b> Resampling 1600×2400 in pure Python takes
+       6 s. Each row is first scanned at node level for “any displacement over 0.5 px”;
+       if there is none the whole row is a slice copy. Dragging one corner becomes 0.2 s.</p>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl">
+      <div class="dl-head"><h3>Measured</h3></div>
+      <p>768×1024 layer, two pins, falloff 25 %: full-resolution warp in <b>0.35 s</b>
+         including buffer read and write. The preview runs at a 520 px long edge and is
+         throttled to 70 ms while dragging — usually <b>0.1 s</b> per redraw, which keeps
+         up with the hand.</p>
+      <p>On a 1600×2400 photo a local drag costs about <b>2.4 s</b>; pushing the falloff to
+         100 % means resampling everything, roughly 6 s. The window stays responsive, it
+         just takes a moment.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Where it differs from Photoshop</h3></div>
+      <p><b>Has:</b> draggable pins, rigid/free modes, falloff, mesh overlay, right-click
+         delete, live preview, a non-interactive pin argument. <b>Does not have:</b>
+         Photoshop's depth (pins in front of / behind each other) and the Alt-drag rotation
+         handle — for big rotations, rotate the layer instead.</p>
+      <p>Layer groups, text and vector layers are refused with a plain sentence (they have
+         no pixels of their own) instead of a GIMP-internal error.</p>
+    </div>
+  </div>""",
+)

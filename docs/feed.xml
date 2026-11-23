@@ -106,6 +106,15 @@
        零开始。</summary>
   </entry>
   <entry>
+    <title>插件 · 木偶变形</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/warp.html"/>
+    <id>tag:github.com,2026:plugin-warp</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>姿势差一点、胳膊短一截、杯子被拍歪了——这些都不该开液化一格一格推。
+   在图层上点几个钉子，拖住钉子把内容拽过去，钉子之间平滑地跟着走，
+   离钉子远的地方一个字节都不动。</summary>
+  </entry>
+  <entry>
     <title>插件 · 选择并遮住</title>
     <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/refine.html"/>
     <id>tag:github.com,2026:plugin-refine</id>

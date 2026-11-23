@@ -2401,6 +2401,17 @@ PLUGIN_SPECS = [
              shared=["refine_math.py", "mask_io.py"],
              pdb="lb-plugin-refine-mask(image, drawables, radius, smart, smooth,\n"
                  "    feather, contrast, shift, decontaminate, output, work-size)"),
+        dict(key="warp", ops=[],
+             name="gegl-color-ops-plugin-puppet-warp.zip",
+             src_dir=os.path.join(ROOT, "plugin", "puppet-warp"),
+             py="puppet-warp.py",
+             menu="木偶变形 (Puppet Warp)",
+             menus="    SuperMrWang → Distort → 木偶变形（网格变形）…",
+             desc="木偶变形：在图层上点钉子、拖钉子把内容拽过去，钉子之间平滑过渡，"
+                  "影响半径之外一个字节都不重采样。刚性（保形）与自由（仿射）两档，"
+                  "带网格叠加与实时预览；钉子也能用参数传，脚本可以完整复现。",
+             shared=["warp_math.py", "mask_io.py", "refine_math.py"],
+             pdb="lb-plugin-puppet-warp(image, drawables, pins, mode, radius, output)"),
         dict(key="ai-frequency", ops=[],
              name="gegl-color-ops-plugin-ai-frequency-separation.zip",
              src_dir=os.path.join(ROOT, "plugin", "ai-frequency-separation"),
@@ -2808,6 +2819,7 @@ def build_plugins(version, stats=None):
     shortcut = [p for p in PD.PAGES if p["area"].startswith("Retouch")]
     convert = [p for p in PD.PAGES if p["area"] == "图层转换"]
     mask = [p for p in PD.PAGES if p["area"] == "Mask"]
+    distort = [p for p in PD.PAGES if p["area"] == "Distort"]
 
     n_plug = len(PD.PAGES)
 
@@ -2840,6 +2852,7 @@ def build_plugins(version, stats=None):
 {shortcut}
 {convert}
 {mask}
+{distort}
   <p class="note">{note}</p>
 </div>""".format(
         home=t("首页", "Home"), plugs=t("Python 插件", "Python plug-ins"),
@@ -2878,6 +2891,12 @@ def build_plugins(version, stats=None):
                       tag_en="Convert",
                       desc_en="Turns the greyscale an operator leaves behind into a "
                               "mask or a saved selection in one step."),
+        distort=group("distort", "Distort", "t-distort",
+                      "钉子在画布上拖：钉子之间平滑过渡，圈外一个字节都不动。",
+                      distort, tag_en="Distort",
+                      desc_en="Drag pins on the canvas: smooth in between, "
+                              "byte-for-byte untouched outside the falloff.")
+        if distort else "",
         mask=group("mask", "Mask", "t-mask",
                    "透明度本身当曲线来画：按通道生成 alpha，形状随便画。", mask,
                    tag_en="Mask",

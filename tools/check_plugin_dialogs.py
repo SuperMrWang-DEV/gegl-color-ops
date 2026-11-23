@@ -81,18 +81,23 @@ def plugin_sources():
 
 
 def test_static():
-    """源码层面：run() 里必须调用 run_dialog，且 lb_dialog 真的导进来了。"""
+    """源码层面：run() 里必须弹一个对话框。
+
+    自绘对话框的那几支（refine-mask / puppet-warp）本来就不需要 lb_dialog ——
+    那个 helper 只是「GimpUi.ProcedureDialog 自动参数框」的壳子。所以
+    `import lb_dialog` 只在走自动参数框时才要求。
+    """
     for name, path, src in plugin_sources():
         rel = os.path.relpath(path, ROOT).replace("\\", "/")
-        ok("%s 导入了 lb_dialog" % rel, "import lb_dialog" in src)
         # 两种都算数：GimpUi 自动参数框（run_dialog），或者插件自绘的对话框
         # （需要实时预览的就只能自绘）。后者必须自己 build 再 show，别把
         # Gtk 代码散在 run() 里。
+        auto = "run_dialog(procedure, run_mode, config)" in src
         custom = "build_dialog(" in src and "show_dialog(" in src
-        ok("%s 在 run() 里弹对话框" % rel,
-           "run_dialog(procedure, run_mode, config)" in src or custom,
-           "custom" if custom and "run_dialog(procedure, run_mode, config)"
-           not in src else "")
+        if auto or not custom:
+            ok("%s 导入了 lb_dialog" % rel, "import lb_dialog" in src)
+        ok("%s 在 run() 里弹对话框" % rel, auto or custom,
+           "custom" if custom and not auto else "")
         # 取消时必须返回 CANCEL，否则用户点「取消」照样会跑一遍
         ok("%s 取消时返回 CANCEL" % rel,
            "PDBStatusType.CANCEL" in src)
