@@ -43,6 +43,10 @@
               现在 crop_rect 按选区较长边的 0.75 倍带上下文（至少 64 px），
               ai_client.work_size() 两头卡：短边抬到家族下限（SD1.5 512 /
               SDXL 768），长边不超过上限（768 / 1024）。
+           6. **一张定生死**（2026-11-23）。默认一次出 3 张（RepeatLatentBatch），
+              按接缝、清晰度、色台阶、选区外泄漏打分，最好的显示、其余隐藏；
+              胜出那张再补接缝低频色差与颗粒（plugin/_shared/quality.py）。
+              参考 hexsian/openfill 的 quality.py。Variations=1 回到单张。
 
  license   GPL-3.0-or-later，见工程根目录 LICENSE
  ==========================================================================="""
@@ -93,6 +97,11 @@ try:
 except Exception as _exc:          # 没带 _shared/ai_client.py 的裸装情况
     ai_client = None
     _AI_IMPORT_ERROR = _exc
+
+try:
+    import quality                   # 多候选打分 / 接缝补偿 / 颗粒匹配
+except Exception:                  # 老包没带 quality.py：只用单张，不降级功能
+    quality = None
 
 try:
     import prompt_tools
@@ -177,6 +186,14 @@ def _check_prompt(prompt, preset="none"):
 # 这里取 0.75 折中：够模型认得出周围是什么，又不至于把选区细节缩没。
 CONTEXT_PAD = 64
 CONTEXT_RATIO = 0.75
+
+# 一次出几张候选。3 张是性价比拐点：再多，采样时间线性涨，而第 1 名和第 3 名
+# 的差距已经不明显（openfill 的默认变化数也是 3）。
+VARIATIONS = 3
+VARIATIONS_MAX = 4
+# 打分在缩小图上做：长边 200 足够分辨「接缝硬不硬、糊不糊」，而且是纯 Python，
+# 原尺寸跑一次要十几秒。
+SCORE_SIDE = 200
 
 
 # ---- PDB 小工具 / PDB helpers ----------------------------------------------
@@ -318,18 +335,18 @@ def crop_rect(image, box, grow=8, pad=None):
 
 # ---- 贴回 / paste back ------------------------------------------------------
 
-def paste_result(image, drawable, png_path, rect, mask_channel):
+def paste_result(image, drawable, png_path, rect, mask_channel, name=None):
     """把重绘结果贴成新图层，位置对齐原裁切框，蒙版取 mask_channel。
 
     返回新图层。返回图尺寸与请求不符时（服务端截断过）先缩回原尺寸，免得
-    贴上去整体错位。
+    贴上去整体错位。name 用来区分多张候选。
     """
     x, y, w, h = rect
     layer = Gimp.file_load_layer(Gimp.RunMode.NONINTERACTIVE, image,
                                  Gio.File.new_for_path(png_path))
     if layer is None:
         raise RuntimeError(_("Could not read the inpainting result (%s)") % png_path)
-    layer.set_name(RESULT_LAYER)
+    layer.set_name(name or RESULT_LAYER)
     pos = image.get_item_position(drawable)
     # 先插进图像再缩放：file_load_layer 返回的图层还没归属任何图像，此时
     # gimp-layer-scale 会报 "cannot be used because it has not been added to an
@@ -345,6 +362,82 @@ def paste_result(image, drawable, png_path, rect, mask_channel):
         mask = layer.create_mask(Gimp.AddMaskType.SELECTION)
         layer.add_mask(mask)
     return layer
+
+
+def write_region(layer, w, h, data):
+    """把整块 RGBA 8 位像素写回图层（走 shadow buffer，比建选区快）。"""
+    shadow = layer.get_shadow_buffer()
+    shadow.set(Gegl.Rectangle.new(0, 0, w, h), "R'G'B'A u8", data)
+    shadow.flush()
+    layer.merge_shadow(True)
+
+
+# ---- 候选打分与后处理 / ranking and clean-up --------------------------------
+
+def _shrink(data, w, h, nw, nh):
+    """缩一块 RGBA 用于打分；尺寸没变就直接返回。"""
+    return data if (w, h) == (nw, nh) else _scale_rgba(data, w, h, nw, nh)
+
+
+def rank_layers(original, mask, layers, w, h, removal):
+    """给已贴好的候选图层打分，返回 (order, scores)。
+
+    order 是最好的在前。打分、贴回都在同一块上下文坐标里：original 是填充前
+    的画布（含补边），mask 是送出去的那张硬边蒙版。任何异常都由调用方兜住
+    ——挑不出最好的，也不该丢结果。
+    """
+    if quality is None or len(layers) < 2:
+        return list(range(len(layers))), []
+    scale = float(SCORE_SIDE) / max(1, max(w, h))
+    sw = max(8, int(round(w * scale)))
+    sh = max(8, int(round(h * scale)))
+    base = quality.Buffer(sw, sh, _shrink(original, w, h, sw, sh), 4)
+    small_mask = _scale_gray(mask, w, h, sw, sh)
+    cands = []
+    for layer in layers:
+        px = read_region(layer, 0, 0, w, h)
+        cands.append(quality.Buffer(sw, sh, _shrink(px, w, h, sw, sh), 4))
+    d = quality.signed_distance(sw, sh, small_mask)
+    scores = [quality.score(base, c, small_mask, removal, d) for c in cands]
+    order = sorted(range(len(scores)), key=lambda i: (scores[i].total, i))
+    return order, scores
+
+
+def clean_up(original, mask, layer, w, h, seed, seam_band=24):
+    """对选中的那张做两级修补，返回做了什么（给日志/提示用）。
+
+    1. 接缝补偿：只加低频色差，生成的细节一点不动；
+    2. 颗粒匹配：周围是颗粒感照片就往填充区补噪点，干净照片不加。
+    两步都是「锦上添花」，任何一步失败都保留原样。
+    """
+    if quality is None:
+        return {}
+    done = {}
+    px = read_region(layer, 0, 0, w, h)
+
+    try:
+        field = quality.seam_field(w, h, original, px, mask, 4, band=seam_band)
+        if field is not None:
+            biggest = max(max(abs(v) for v in cell) for cell in field.offsets)
+            px = quality.apply_seam_field(px, w, h, 4, field)
+            write_region(layer, w, h, px)
+            done["seam"] = round(biggest, 1)
+    except Exception as exc:
+        done["seam_error"] = str(exc)
+
+    try:
+        ring = quality.noise_sigma(w, h, original, 4, mask, inside=False, step=3)
+        if ring >= 1.0:
+            inside = quality.noise_sigma(w, h, px, 4, mask, inside=True, step=3)
+            add = quality.grain_to_add(ring, inside)
+            if add > 0:
+                px = quality.add_grain(px, 4, add, seed=int(seed) & 0xFFFF)
+                write_region(layer, w, h, px)
+                done["grain"] = round(add, 2)
+        done["grain_ring"] = round(ring, 2)
+    except Exception as exc:
+        done["grain_error"] = str(exc)
+    return done
 
 
 # ---- 主流程 / the whole thing ----------------------------------------------
@@ -394,11 +487,15 @@ def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
                server="", checkpoint="", steps=25, cfg=7.5, seed=-1,
                denoise=1.0, grow=8, grow_mask_by=8, feather=4.0,
                timeout=600.0, keep_mask=True, scale=0.0, client=None,
-               on_tick=None, preset="none"):
+               on_tick=None, preset="none", variations=VARIATIONS,
+               fix_seams=True, match_grain=True):
     """选区 → AI 重绘 → 新图层。返回 (layer, info)。
 
     client 参数是给回归脚本塞 mock 用的；正常情况留空，按 server 现建一个。
     scale 是送给模型前的缩放倍率；0 = 按底模自动算（SD1.5→512、SDXL→1024）。
+    variations 是一次出几张候选（1~4，默认 3）：一次采样出多张、按接缝/清晰度/
+    颜色/泄漏打分排序，最好的那张可见，其余留在图层面板里当备选。
+    fix_seams / match_grain 是对胜出那张做接缝色差补偿与颗粒匹配。
     preset 是「菜里先放一份主料」：选「小猫」就相当于提示词前面带上
     "a small cat, fluffy fur, detailed eyes"，用户写的细节再接在后面。
     """
@@ -418,7 +515,6 @@ def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
     undo_started = False
     result = None
     tmpdir = tempfile.mkdtemp(prefix="lb-ai-inpaint-")
-    png_path = os.path.join(tmpdir, "result.png")
     try:
         image.undo_group_start()
         undo_started = True
@@ -487,22 +583,55 @@ def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
         gray_work = _scale_gray(gray, w, h, ww, hh)
 
         seed = ai_client.random_seed() if int(seed) < 0 else int(seed)
-        blob, info = ai_client.inpaint(
+        batch = max(1, min(VARIATIONS_MAX, int(variations or 1)))
+        blobs, info = ai_client.inpaint(
             client,
             ai_client.rgba_png(ww, hh, src_work),
             ai_client.mask_png(ww, hh, gray_work),
             prompt.strip(), negative=negative or "", checkpoint=checkpoint,
             steps=int(steps), cfg=float(cfg), seed=seed,
             denoise=float(denoise), grow_mask_by=int(grow_mask_by),
-            timeout=float(timeout), on_tick=on_tick or Gimp.progress_pulse)
+            timeout=float(timeout), on_tick=on_tick or Gimp.progress_pulse,
+            batch=batch)
 
         # 6) 落盘 → 当图层读回来（GIMP 自己解 PNG，比手写解码靠谱）
         #    贴的是**工作画布**的位置：补边那圈像素会被下面的选区蒙版整圈挡掉
-        with open(png_path, "wb") as fh:
-            fh.write(blob)
-        result = paste_result(image, drawable, png_path, (cx, cy, cw, ch),
-                              mask_channel)
+        layers = []
+        for index, blob in enumerate(blobs):
+            path = os.path.join(tmpdir, "result-%d.png" % index)
+            with open(path, "wb") as fh:
+                fh.write(blob)
+            layers.append(paste_result(
+                image, drawable, path, (cx, cy, cw, ch), mask_channel,
+                name=("%s %d" % (RESULT_LAYER, index + 1)) if len(blobs) > 1 else None))
+        result = layers[0]
+
+        # 7) 多张就打分：接缝硬不硬、比周围糊还是碎、跨边缘有没有色台阶、
+        #    周围有没有被改动。胜出的显示，其余隐藏但留在图层面板里（想换
+        #    一张点眼睛就行）。removal = 没写提示词，判据要反过来。
+        order, scores = rank_layers(src, gray, layers, w, h,
+                                    removal=not prompt.strip())
+        for i, layer in enumerate(layers):
+            layer.set_visible(i == order[0])
+            if len(layers) > 1:
+                layer.set_name("%s %d (%s)" % (
+                    RESULT_LAYER, i + 1,
+                    "%.2f" % scores[i].total if scores else "?"))
+        result = layers[order[0]]
+
+        # 8) 只修胜出的那张：接缝色差 + 颗粒。失败就当没修，绝不丢结果。
+        cleanup = {}
+        if fix_seams or match_grain:
+            try:
+                cleanup = clean_up(src, gray, result, w, h, seed)
+            except Exception as exc:
+                cleanup = {"error": str(exc)}
+        info["cleanup"] = cleanup
+
         info["rect"] = (cx, cy, cw, ch)
+        info["variations"] = len(layers)
+        info["order"] = order
+        info["scores"] = [round(sc.total, 3) for sc in scores]
         info["source_rect"] = rect
         info["pads"] = (pl, pt, pr, pb)
         info["seed"] = seed
@@ -517,7 +646,8 @@ def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
         if undo_started:
             image.undo_group_end()
         try:
-            os.remove(png_path)
+            for name in os.listdir(tmpdir):
+                os.remove(os.path.join(tmpdir, name))
         except OSError:
             pass
         try:
@@ -1062,6 +1192,17 @@ class AiInpaintPlugin(Gimp.PlugIn):
             "negative", _("Negative prompt"),
             _("What must not appear — put the thing you are deleting here"),
             DEFAULT_NEGATIVE, GObject.ParamFlags.READWRITE)
+        # 一次出多张：这是「填充总差一口气」最有效的一招。3 张里挑一张，
+        # 比赌一张稳得多，代价是采样时间乘以张数（共享模型加载）。
+        procedure.add_int_argument(
+            "variations", _("Variations — how many to draw and rank"),
+            _("Draw this many candidates in one go, score them (seam "
+              "sharpness, how soft or busy the fill is against its "
+              "surroundings, colour step across the edge, changes outside the "
+              "selection) and keep the best one visible. The rest stay on the "
+              "layer stack, hidden: click their eye to swap. 1 = old behaviour, "
+              "one shot, no ranking."),
+            1, VARIATIONS_MAX, VARIATIONS, GObject.ParamFlags.READWRITE)
 
         if name == PROC_ADVANCED:
             self._add_advanced_arguments(procedure)
@@ -1167,7 +1308,10 @@ class AiInpaintPlugin(Gimp.PlugIn):
                        prop('timeout', 600),
                        prop('keep-mask', True),
                        prop('scale', 0.0),
-                       preset=config.get_property('preset') or "none")
+                       preset=config.get_property('preset') or "none",
+                       # variations 两个入口都有，不走 prop()（那是给「只有高级
+                       # 版才有」的参数用的）
+                       variations=config.get_property('variations') or VARIATIONS)
             return procedure.new_return_values(
                 Gimp.PDBStatusType.SUCCESS, GLib.Error())
         except Exception as exc:

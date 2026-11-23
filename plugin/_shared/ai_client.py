@@ -713,8 +713,13 @@ def _status_error(status):
 def build_inpaint_workflow(checkpoint, image_name, mask_name, prompt,
                            negative="", steps=25, cfg=7.5, seed=0, denoise=1.0,
                            sampler="dpmpp_2m", scheduler="karras",
-                           grow_mask_by=8, prefix="lb-ai-inpaint"):
-    return {
+                           grow_mask_by=8, prefix="lb-ai-inpaint", batch=1):
+    """inpaint 工作流。batch > 1 时用 RepeatLatentBatch 让一次采样出多张。
+
+    一次出多张而不是排 N 单：模型只加载一次、两张共享同一段文本编码，
+    而且同一个 prompt_id 就能把 N 张一起取回（见 all_images）。
+    """
+    wf = {
         "1": {"class_type": "CheckpointLoaderSimple",
               "inputs": {"ckpt_name": checkpoint}},
         "2": {"class_type": "LoadImage", "inputs": {"image": image_name}},
@@ -737,6 +742,12 @@ def build_inpaint_workflow(checkpoint, image_name, mask_name, prompt,
         "9": {"class_type": "SaveImage",
               "inputs": {"images": ["8", 0], "filename_prefix": prefix}},
     }
+    batch = max(1, int(batch))
+    if batch > 1:
+        wf["10"] = {"class_type": "RepeatLatentBatch",
+                    "inputs": {"samples": ["6", 0], "amount": batch}}
+        wf["7"]["inputs"]["latent_image"] = ["10", 0]
+    return wf
 
 
 # 整图重绘（img2img）用的固定图：CheckpointLoaderSimple → LoadImage → VAEEncode
@@ -810,13 +821,26 @@ def first_image(entry):
     raise ComfyError("ComfyUI 跑完了却没有产出图片（工作流里少了 SaveImage？）")
 
 
+def all_images(entry):
+    """history 条目里这一单产出的**全部** output 图（batch > 1 时有多张）。"""
+    images = []
+    for _node, out in (entry.get("outputs") or {}).items():
+        for img in (out.get("images") or []):
+            if (img.get("type") or "output") == "output":
+                images.append(img)
+    if not images:
+        raise ComfyError("ComfyUI 跑完了却没有产出图片（工作流里少了 SaveImage？）")
+    return images
+
+
 def inpaint(client, image_png, mask_png_bytes, prompt, negative="",
             checkpoint="", steps=25, cfg=7.5, seed=0, denoise=1.0,
             grow_mask_by=8, sampler="dpmpp_2m", scheduler="karras",
-            timeout=600.0, prefix="lb-ai-inpaint", on_tick=None):
-    """一整套「传图 → 排队 → 等 → 取回」；返回 (png_bytes, info)。
+            timeout=600.0, prefix="lb-ai-inpaint", on_tick=None, batch=1):
+    """一整套「传图 → 排队 → 等 → 取回」；返回 ([png_bytes, …], info)。
 
     image_png / mask_png_bytes 都是 PNG 字节，尺寸必须一致（调用方保证）。
+    batch > 1 时一次出多张候选，由调用方挑（见 quality.rank）。
     """
     t0 = time.time()
     src_name, _ = client.upload_image("lb-inpaint-src.png", image_png)
@@ -827,16 +851,18 @@ def inpaint(client, image_png, mask_png_bytes, prompt, negative="",
                                negative=negative, steps=steps, cfg=cfg,
                                seed=seed, denoise=denoise, sampler=sampler,
                                scheduler=scheduler, grow_mask_by=grow_mask_by,
-                               prefix=prefix)
+                               prefix=prefix, batch=batch)
     pid = client.queue(wf)
     entry = client.wait(pid, timeout=timeout, on_tick=on_tick)
-    img = first_image(entry)
-    blob = client.download(img.get("filename", ""),
-                           img.get("subfolder", ""),
-                           img.get("type", "output"))
-    return blob, {"prompt_id": pid, "checkpoint": ckpt,
-                  "seconds": round(time.time() - t0, 2),
-                  "filename": img.get("filename", "")}
+    images = all_images(entry)
+    blobs = [client.download(img.get("filename", ""),
+                             img.get("subfolder", ""),
+                             img.get("type", "output"))
+             for img in images]
+    return blobs, {"prompt_id": pid, "checkpoint": ckpt,
+                   "seconds": round(time.time() - t0, 2),
+                   "filename": images[0].get("filename", ""),
+                   "count": len(blobs)}
 
 
 def random_seed():

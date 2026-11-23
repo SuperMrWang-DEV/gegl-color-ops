@@ -85,7 +85,7 @@ lb-plugin-ai-env(image)</code><p>标准 PDB 过程，参数留空走默认值。
       <ol class="steps">
         <li>选区外扩 <code>grow</code>（默认 8 px，收拾接缝），外接框再带一圈上下文；</li>
         <li>裁切框宽高对齐到 <b>8</b>——VAE 是 8× 下采样，不对齐回来就错位；长宽比补到
-            <b>≤ 2:1</b>，见下面「五个坑」；</li>
+            <b>≤ 2:1</b>，见下面「六个坑」；</li>
         <li>从<b>可见合成</b>读这块像素（图层比画布小时取到的是下面图层，不是黑），
             连同蒙版 PNG 发给 ComfyUI；</li>
         <li>轮询 <code>/history</code> 等它画完；</li>
@@ -165,7 +165,7 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
 
   <div class="dl-grid">
     <div class="dl" id="zh-sec-6">
-      <div class="dl-head"><h3>五个坑</h3><span class="pill">都在代码里绕开了</span></div>
+      <div class="dl-head"><h3>六个坑</h3><span class="pill">都在代码里绕开了</span></div>
       <p><b>1. 蒙版方向是反的。</b>ComfyUI 的 <code>LoadImage</code> 用 alpha 倒推蒙版
          （<code>mask = 1 - alpha</code>），所以「要重绘」必须写成<b>透明</b>。直接送灰度图
          会得到全 0 蒙版，跑完像素纹丝不动。</p>
@@ -186,6 +186,13 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
          （SD1.5 512 / SDXL 768），长边不超上限（768 / 1024）；大图里选一小块时
          还会先把上下文收窄（<code>fit_context()</code>），免得整块缩下去把细节
          缩没。</p>
+      <p><b>6. 一次只画一张。</b>赌一张的失败率就是全部失败率。现在默认一次出
+         <b>3 张</b>（<code>RepeatLatentBatch</code>，共享模型加载），按四项打分排序：
+         接缝比周围硬不硬、填充区比周围糊还是碎、跨边缘有没有颜色台阶、选区外
+         有没有被改动。最好的那张显示，其余藏在图层面板里（点眼睛就能换）。胜出
+         那张再做两步收尾：<b>接缝色差补偿</b>（只补低频偏移，生成细节不动）和
+         <b>颗粒匹配</b>（周围是颗粒感照片就补噪点，干净照片不加）。<code>Variations</code>
+         设成 1 就是原来的一枪定生死。</p>
     </div>
     <div class="dl" id="zh-sec-7">
       <div class="dl-head"><h3>AI 环境</h3><span class="pill">装在哪都行</span></div>
@@ -233,7 +240,7 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
     <div class="dl-head"><h3>AI Inpaint…</h3><span class="pill">.py · 免编译</span></div>
     <p>包里是一个 <code>.py</code>、一份安装说明，以及 <code>_shared/</code> 与 <code>locale/</code>。整包解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，但界面只有英文。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-ai-inpaint.zip">下载 AI Inpaint…</a>
-    <p class="muted small">102.1 KB · 校验：<code>SHA256 d19bfddd98951cf76a89f5fa4f7d0f0f…</code></p>
+    <p class="muted small">104.9 KB · 校验：<code>SHA256 613813d57957f0a2cae3fef6418665cf…</code></p>
   </div>
 </section>
 
@@ -243,7 +250,7 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
     <p class="toc-title">本页目录</p>
     <ul>
       <li><a href="#zh-overview">概览</a></li>
-<li><a href="#zh-sec-1">一次点击做了什么</a></li><li><a href="#zh-sec-2">选区要紧</a></li><li><a href="#zh-sec-3">三个框</a></li><li><a href="#zh-sec-4">参数框</a></li><li><a href="#zh-sec-5">高级版多出来的参数</a></li><li><a href="#zh-sec-6">五个坑</a></li><li><a href="#zh-sec-7">AI 环境</a></li><li><a href="#zh-sec-8">实测</a></li><li><a href="#zh-sec-9">前提</a></li>
+<li><a href="#zh-sec-1">一次点击做了什么</a></li><li><a href="#zh-sec-2">选区要紧</a></li><li><a href="#zh-sec-3">三个框</a></li><li><a href="#zh-sec-4">参数框</a></li><li><a href="#zh-sec-5">高级版多出来的参数</a></li><li><a href="#zh-sec-6">六个坑</a></li><li><a href="#zh-sec-7">AI 环境</a></li><li><a href="#zh-sec-8">实测</a></li><li><a href="#zh-sec-9">前提</a></li>
       <li><a href="#zh-download">下载</a></li>
     </ul>
   </aside>
@@ -290,7 +297,7 @@ lb-plugin-ai-env(image)</code><p>A standard PDB procedure; leave an argument emp
             its bounding box plus context;</li>
         <li>Align the crop to <b>8</b> — the VAE downsamples 8×, and a crop that is not a
             multiple comes back truncated and pastes out of place — then pad the aspect
-            ratio to <b>≤ 2:1</b> (see “five traps” below);</li>
+            ratio to <b>≤ 2:1</b> (see “six traps” below);</li>
         <li>Read those pixels from the <b>visible composite</b> (a layer smaller than the
             canvas gives you the layer below, not black) and post them with a mask PNG;</li>
         <li>Poll <code>/history</code> until the job is done;</li>
@@ -376,7 +383,7 @@ so you can re-limit the area later.</code></pre>
 
   <div class="dl-grid">
     <div class="dl" id="en-sec-6">
-      <div class="dl-head"><h3>Five traps</h3><span class="pill">all worked around</span></div>
+      <div class="dl-head"><h3>Six traps</h3><span class="pill">all worked around</span></div>
       <p><b>1. The mask is inverted.</b>ComfyUI's <code>LoadImage</code> derives the mask
          from alpha (<code>mask = 1 - alpha</code>), so “repaint here” has to be
          <b>transparent</b>. Send a grey image and you get an all-zero mask — the run finishes
@@ -401,7 +408,17 @@ so you can re-limit the area later.</code></pre>
          side up to the family floor (SD 1.5 512 / SDXL 768), the long side down to the
          ceiling (768 / 1024). On a big photo with a small selection,
          <code>fit_context()</code> narrows the context first instead of shrinking the
-         whole crop into mush.</p></p>
+         whole crop into mush.</p>
+      <p><b>6. One shot per click.</b> Drawing a single candidate makes its failure
+         rate your failure rate. The default is now <b>three</b> candidates per run
+         (<code>RepeatLatentBatch</code>, sharing the model load), ranked on four
+         signals: whether the seam is harder than its surroundings, whether the fill is
+         softer or busier than the ring around it, the colour step across the edge, and
+         any change outside the selection. The best one is shown; the others wait on the
+         layer stack, hidden — click an eye to swap. The winner then gets two touches:
+         a <b>seam colour correction</b> (low-frequency offsets only, generated detail
+         untouched) and <b>grain matching</b> (adds noise on grainy photos, nothing on
+         clean ones). Set <code>Variations</code> to 1 for the old one-shot behaviour.</p>
     </div>
     <div class="dl" id="en-sec-7">
       <div class="dl-head"><h3>AI Environment</h3><span class="pill">any folder</span></div>
@@ -456,7 +473,7 @@ so you can re-limit the area later.</code></pre>
     <div class="dl-head"><h3>AI Inpaint</h3><span class="pill">.py · no compile</span></div>
     <p>The archive holds a single <code>.py</code>, an install note and the <code>_shared/</code> + <code>locale/</code> pair. Unpack all of it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register. Without <code>_shared/</code> and <code>locale/</code> it still runs, but only in English.</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-ai-inpaint.zip">Download AI Inpaint</a>
-    <p class="muted small">102.1 KB · checksum: <code>SHA256 d19bfddd98951cf76a89f5fa4f7d0f0f…</code></p>
+    <p class="muted small">104.9 KB · checksum: <code>SHA256 613813d57957f0a2cae3fef6418665cf…</code></p>
   </div>
 </section>
 
@@ -466,7 +483,7 @@ so you can re-limit the area later.</code></pre>
     <p class="toc-title">On this page</p>
     <ul>
       <li><a href="#en-overview">Overview</a></li>
-<li><a href="#en-sec-1">What one click does</a></li><li><a href="#en-sec-2">Keep the selection tight</a></li><li><a href="#en-sec-3">Three boxes</a></li><li><a href="#en-sec-4">The parameter dialog</a></li><li><a href="#en-sec-5">What the advanced version adds</a></li><li><a href="#en-sec-6">Five traps</a></li><li><a href="#en-sec-7">AI Environment</a></li><li><a href="#en-sec-8">Measured</a></li><li><a href="#en-sec-9">Requirements</a></li>
+<li><a href="#en-sec-1">What one click does</a></li><li><a href="#en-sec-2">Keep the selection tight</a></li><li><a href="#en-sec-3">Three boxes</a></li><li><a href="#en-sec-4">The parameter dialog</a></li><li><a href="#en-sec-5">What the advanced version adds</a></li><li><a href="#en-sec-6">Six traps</a></li><li><a href="#en-sec-7">AI Environment</a></li><li><a href="#en-sec-8">Measured</a></li><li><a href="#en-sec-9">Requirements</a></li>
       <li><a href="#en-download">Download</a></li>
     </ul>
   </aside>
@@ -487,7 +504,7 @@ so you can re-limit the area later.</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">fb4c2b3</span>
+    <span class="muted">cf152f7</span>
   </div>
 </footer>
 <script>

@@ -29,6 +29,7 @@ sys.path.insert(0, os.path.join(ROOT, "plugin", "_shared"))
 import ai_client  # noqa: E402
 import mock_comfy  # noqa: E402
 import prompt_tools  # noqa: E402
+import quality  # noqa: E402
 
 VERBOSE = "-v" in sys.argv
 PASS = FAIL = 0
@@ -268,6 +269,26 @@ def test_workflow():
     ok("grow_mask_by 是整数", isinstance(enc["inputs"]["grow_mask_by"], int))
     ok("有 SaveImage 才取得到图",
        any(n["class_type"] == "SaveImage" for n in wf.values()))
+    ok("默认 batch=1 时不加 RepeatLatentBatch",
+       "RepeatLatentBatch" not in kinds, sorted(kinds))
+
+    wf3 = ai_client.build_inpaint_workflow("m.safetensors", "s.png", "m.png",
+                                           "a cat", batch=3)
+    kinds3 = {n["class_type"] for n in wf3.values()}
+    ok("batch=3 用 RepeatLatentBatch 一次出三张",
+       "RepeatLatentBatch" in kinds3, sorted(kinds3))
+    rep = next(n for n in wf3.values()
+               if n["class_type"] == "RepeatLatentBatch")
+    ok("  → amount 是 3", rep["inputs"]["amount"] == 3, rep["inputs"]["amount"])
+    ks3 = next(n for n in wf3.values() if n["class_type"] == "KSampler")
+    ok("  → KSampler 吃的是复制后的 latent",
+       wf3[ks3["inputs"]["latent_image"][0]]["class_type"] == "RepeatLatentBatch")
+    enc3 = next(n for n in wf3.values()
+                if n["class_type"] == "VAEEncodeForInpaint")
+    ok("  → 复制的源还是编码后的 latent",
+       rep["inputs"]["samples"] == ["6", 0] or
+       wf3[rep["inputs"]["samples"][0]]["class_type"] == "VAEEncodeForInpaint",
+       rep["inputs"]["samples"])
 
 
 # ---- 5. 端到端（mock）------------------------------------------------------
@@ -284,10 +305,45 @@ def test_end_to_end():
         ok("探活通过", probe["ok"], probe.get("version"))
         ok("读到 mock 底模", client.checkpoints() == [mock_comfy.CHECKPOINT])
 
-        blob, info = ai_client.inpaint(
+        blobs, info = ai_client.inpaint(
             client, ai_client.rgba_png(w, h, src),
             ai_client.mask_png(w, h, gray), "a red apple", negative="blurry",
             steps=8, seed=1, timeout=30)
+        ok("返回的是列表（单张也包成列表）", isinstance(blobs, list) and blobs,
+           type(blobs).__name__)
+        ok("info 记了张数", info.get("count") == len(blobs), info.get("count"))
+
+        # 一次出三张：mock 按 RepeatLatentBatch 的 amount 多吐几张
+        trio, info3 = ai_client.inpaint(
+            client, ai_client.rgba_png(w, h, src),
+            ai_client.mask_png(w, h, gray), "a red apple",
+            steps=8, seed=1, timeout=30, batch=3)
+        ok("batch=3 真的取回三张", len(trio) == 3, len(trio))
+        ok("  → 三张都是 PNG", all(b[:4] == b"\x89PNG" for b in trio))
+        ok("  → 每张内容不同（换种子/变体）", len(set(trio)) == 3, len(set(trio)))
+        # 同一块画布上，三张的分差应能排出高低：越亮离原图越远
+        def nn(data, w, h, nw, nh, ch=4):
+            out = bytearray(nw * nh * ch)
+            for y in range(nh):
+                sy = min(h - 1, y * h // nh)
+                for x in range(nw):
+                    sx = min(w - 1, x * w // nw)
+                    d = (y * nw + x) * ch
+                    o = (sy * w + sx) * ch
+                    out[d:d + ch] = data[o:o + ch]
+            return bytes(out)
+
+        small_mask = nn(gray, w, h, 48, 36, 1)
+        base = quality.Buffer(48, 36, nn(src, w, h, 48, 36), 4)
+        cands = [quality.Buffer(48, 36, nn(ai_client.decode_png(b)[3], w, h, 48, 36), 4)
+                 for b in trio]
+        order = quality.rank(base, cands, small_mask, removal=False)
+        ok("三张候选排得出顺序", len(order) == 3 and sorted(order) == [0, 1, 2],
+           order)
+        ok("  → 最接近原图的那张（第 0 张）排第一", order[0] == 0,
+           [round(quality.score(base, c, small_mask, False).total, 2)
+            for c in cands])
+        blob = blobs[0]
         ok("取回的是 PNG", blob[:8] == b"\x89PNG\r\n\x1a\n",
            "%d 字节 / %.2fs" % (len(blob), info["seconds"]))
         rw, rh, rch, rpx = ai_client.decode_png(blob)
@@ -310,6 +366,84 @@ def test_end_to_end():
         ok("info 带 prompt_id", bool(info["prompt_id"]))
         ok("checkpoint 用的是服务端第一份",
            info["checkpoint"] == mock_comfy.CHECKPOINT)
+
+
+# ---- 5.5 候选打分与修补 ------------------------------------------------------
+
+def _flat(w, h, level, noise=0.0, seed=1):
+    """纯色 RGBA 图（可选加单色颗粒）。"""
+    px = bytes([level, level, level, 255]) * (w * h)
+    if noise > 0:
+        px = quality.add_grain(px, 4, noise, seed=seed)
+    return px
+
+
+def test_quality():
+    print("\n候选打分 / 接缝补偿 / 颗粒匹配")
+    w = h = 64
+    mask = bytes([255 if 24 <= x < 40 and 24 <= y < 40 else 0
+                  for y in range(h) for x in range(w)])
+
+    base = quality.Buffer(w, h, _flat(w, h, 128), 4)
+    # 差的一张：选区内亮 60 级，边缘一道硬台阶，周围也被改动
+    bad_px = bytearray(_flat(w, h, 128))
+    for y in range(h):
+        for x in range(w):
+            i = y * w + x
+            if mask[i]:
+                o = i * 4
+                bad_px[o:o + 3] = bytes([188, 188, 188])
+    bad = quality.Buffer(w, h, bytes(bad_px), 4)
+    # 好的一张：选区内和周围一致
+    good = quality.Buffer(w, h, _flat(w, h, 128), 4)
+
+    sc_bad = quality.score(base, bad, mask, removal=True)
+    sc_good = quality.score(base, good, mask, removal=True)
+    ok("接缝硬的罚分更高", sc_bad.seam > sc_good.seam,
+       "%.2f vs %.2f" % (sc_bad.seam, sc_good.seam))
+    ok("色台阶大的罚分更高", sc_bad.frame > sc_good.frame,
+       "%.2f vs %.2f" % (sc_bad.frame, sc_good.frame))
+    ok("总分排序正确", sc_good.total < sc_bad.total,
+       "%.3f vs %.3f" % (sc_good.total, sc_bad.total))
+    ok("rank 把好的排第一", quality.rank(base, [bad, good], mask, True) == [1, 0],
+       quality.rank(base, [bad, good], mask, True))
+    ok("只有一张时不排序", quality.rank(base, [good], mask, True) == [0])
+
+    # 边缘距离：选区内 <=0、边界 0、外面 >0
+    d = quality.signed_distance(w, h, mask)
+    ok("选区中心距离为负", d[32 * w + 32] < 0, d[32 * w + 32])
+    ok("选区外距离为正", d[5 * w + 5] > 0, d[5 * w + 5])
+
+    # 接缝场：整幅偏亮 12 级 → 应测出约 +12（原图 - 图层 = -12）
+    layer = quality.Buffer(w, h, _flat(w, h, 140), 4)
+    field = quality.seam_field(w, h, base.data, layer.data, mask, 4, band=16)
+    ok("测出了接缝色差", field is not None)
+    if field is not None:
+        inside = [cell[0] for cell in field.offsets if any(cell)]
+        ok("  → 偏移量约 -12", bool(inside) and
+           -14 < sum(inside) / len(inside) < -10,
+           round(sum(inside) / len(inside), 2) if inside else None)
+        fixed = quality.apply_seam_field(layer.data, w, h, 4, field)
+        centre = (32 * w + 32) * 4
+        ok("  → 补完选区内接近原图",
+           abs(fixed[centre] - 128) <= 2, fixed[centre])
+
+    # 无差异时不该返回场（不许白改）
+    ok("本来就没色差 → 返回 None",
+       quality.seam_field(w, h, base.data, base.data, mask, 4, band=16) is None)
+
+    # 颗粒：周围 sigma≈4、填充区 0 → 补 4
+    ring_px = _flat(w, h, 128, noise=4.0, seed=7)
+    s_ring = quality.noise_sigma(w, h, ring_px, 4, None, inside=False, step=2)
+    s_clean = quality.noise_sigma(w, h, _flat(w, h, 128), 4, None, inside=False)
+    ok("量出周围噪声 ~4（%.2f）" % s_ring, 3.0 < s_ring < 5.0, s_ring)
+    ok("干净图量出的噪声接近 0（%.2f）" % s_clean, s_clean < 0.5, s_clean)
+    add = quality.grain_to_add(s_ring, s_clean)
+    ok("要补的量 ~4（%.2f）" % add, 3.0 < add < 5.0, add)
+    ok("本来就有颗粒 → 不加", quality.grain_to_add(4.0, 4.2) == 0.0)
+    ok("补完噪声接近周围",
+       abs(quality.noise_sigma(w, h, quality.add_grain(_flat(w, h, 128), 4, add, 3),
+                               4, None, inside=False, step=2) - s_ring) < 1.2)
 
 
 # ---- 6. 错误路径 ------------------------------------------------------------
@@ -575,6 +709,7 @@ def main():
     test_work_size()
     test_fit_context()
     test_end_to_end()
+    test_quality()
     test_errors()
     test_prompt_tools()
     test_env_entry()

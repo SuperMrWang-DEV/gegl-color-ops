@@ -63,6 +63,38 @@ class MockState(object):
         self.lock = threading.Lock()
 
     # ---- 生成 ----
+    def _emit(self, prefix, width, height, data, batch=1):
+        """把一张结果按 batch 打包成 N 张：第 0 张原样，后面每张亮 12 级。
+
+        这样 `quality.rank` 有东西可挑（色台阶越大分越高），而且第 0 张和
+        以前的单张结果完全一样，老断言不用改。
+        """
+        images = []
+        for index in range(max(1, int(batch))):
+            px = data
+            if index:
+                px = bytearray(data)
+                delta = 12 * index
+                for c in range(3):
+                    px[c::4] = bytes(min(255, v + delta) for v in data[c::4])
+                px = bytes(px)
+            filename = "%s_%05d_.png" % (prefix, len(self.outputs) + 1)
+            self.outputs[filename] = ai_client.rgba_png(width, height, px)
+            images.append({"filename": filename, "subfolder": "",
+                           "type": "output"})
+        return images
+
+    @staticmethod
+    def _batch_of(workflow):
+        """工作流里声明的候选张数（RepeatLatentBatch.amount）。"""
+        for node in workflow.values():
+            if node.get("class_type") in ("RepeatLatentBatch", "RepeatImageBatch"):
+                try:
+                    return max(1, int(node["inputs"].get("amount", 1)))
+                except (TypeError, ValueError):
+                    return 1
+        return 1
+
     def generate(self, workflow):
         """抠图工作流（LoadImage + RMBG）：吐一张 alpha 已知的图。
 
@@ -100,9 +132,7 @@ class MockState(object):
                         out[j4 + 3] = int(255 * (x - split) / float(ramp))
                     else:
                         out[j4 + 3] = 255
-            filename = "%s_%05d_.png" % (prefix, len(self.outputs) + 1)
-            self.outputs[filename] = ai_client.rgba_png(sw, sh, bytes(out))
-            return {"filename": filename, "subfolder": "", "type": "output"}
+            return self._emit(prefix, sw, sh, bytes(out))
         if len(names) == 1:
             # img2img 工作流只有一张 LoadImage：原样返回。
             # 「denoise=0 等于不动像素」是真的，磨皮预修那三支插件据此断言
@@ -113,9 +143,7 @@ class MockState(object):
                 j3, j4 = i * sch, i * 4
                 out[j4:j4 + 3] = spix[j3:j3 + 3]
                 out[j4 + 3] = spix[j3 + 3] if sch == 4 else 255
-            filename = "%s_%05d_.png" % (prefix, len(self.outputs) + 1)
-            self.outputs[filename] = ai_client.rgba_png(sw, sh, bytes(out))
-            return {"filename": filename, "subfolder": "", "type": "output"}
+            return self._emit(prefix, sw, sh, bytes(out))
         if len(names) < 2:
             raise ValueError("工作流里要有两张 LoadImage（原图 + 蒙版），"
                              "实际上传了 %s" % list(self.inputs))
@@ -129,6 +157,7 @@ class MockState(object):
             raise ValueError("蒙版与原图尺寸不一致: %dx%d vs %dx%d"
                              % (mw, mh, sw, sh))
 
+        batch = self._batch_of(workflow)
         out = bytearray(sw * sh * 4)
         for i in range(sw * sh):
             r, g, b = spix[i * sch:i * sch + 3]
@@ -144,9 +173,7 @@ class MockState(object):
                 a = 255
             out[i * 4:i * 4 + 4] = bytes((r, g, b, a))
 
-        filename = "%s_%05d_.png" % (prefix, len(self.outputs) + 1)
-        self.outputs[filename] = ai_client.rgba_png(sw, sh, bytes(out))
-        return {"filename": filename, "subfolder": "", "type": "output"}
+        return self._emit(prefix, sw, sh, bytes(out), batch)
 
 
 def _make_handler(state):
@@ -279,7 +306,7 @@ def _make_handler(state):
             if state.delay:
                 time.sleep(state.delay)
             try:
-                image = state.generate(workflow)
+                images = state.generate(workflow)
             except ValueError as exc:
                 return self._send(400, {"error": {"message": str(exc)},
                                         "node_errors": {}})
@@ -289,7 +316,7 @@ def _make_handler(state):
                 # 模拟「排完队、跑完了」：mock 一气呵成，history 直接就是终态
                 state.history[pid] = {
                     "prompt": [0, pid, workflow, {}, []],
-                    "outputs": {"9": {"images": [image]}},
+                    "outputs": {"9": {"images": images}},
                     "status": {"status_str": "success", "completed": True,
                                "messages": [["execution_start",
                                              {"prompt_id": pid}]]},

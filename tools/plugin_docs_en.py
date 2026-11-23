@@ -1470,7 +1470,7 @@ PLUGIN_EN["ai-inpaint"] = dict(
             its bounding box plus context;</li>
         <li>Align the crop to <b>8</b> — the VAE downsamples 8×, and a crop that is not a
             multiple comes back truncated and pastes out of place — then pad the aspect
-            ratio to <b>≤ 2:1</b> (see “five traps” below);</li>
+            ratio to <b>≤ 2:1</b> (see “six traps” below);</li>
         <li>Read those pixels from the <b>visible composite</b> (a layer smaller than the
             canvas gives you the layer below, not black) and post them with a mask PNG;</li>
         <li>Poll <code>/history</code> until the job is done;</li>
@@ -1556,7 +1556,7 @@ so you can re-limit the area later.</code></pre>
 
   <div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>Five traps</h3><span class="pill">all worked around</span></div>
+      <div class="dl-head"><h3>Six traps</h3><span class="pill">all worked around</span></div>
       <p><b>1. The mask is inverted.</b>ComfyUI's <code>LoadImage</code> derives the mask
          from alpha (<code>mask = 1 - alpha</code>), so “repaint here” has to be
          <b>transparent</b>. Send a grey image and you get an all-zero mask — the run finishes
@@ -1581,7 +1581,17 @@ so you can re-limit the area later.</code></pre>
          side up to the family floor (SD 1.5 512 / SDXL 768), the long side down to the
          ceiling (768 / 1024). On a big photo with a small selection,
          <code>fit_context()</code> narrows the context first instead of shrinking the
-         whole crop into mush.</p></p>
+         whole crop into mush.</p>
+      <p><b>6. One shot per click.</b> Drawing a single candidate makes its failure
+         rate your failure rate. The default is now <b>three</b> candidates per run
+         (<code>RepeatLatentBatch</code>, sharing the model load), ranked on four
+         signals: whether the seam is harder than its surroundings, whether the fill is
+         softer or busier than the ring around it, the colour step across the edge, and
+         any change outside the selection. The best one is shown; the others wait on the
+         layer stack, hidden — click an eye to swap. The winner then gets two touches:
+         a <b>seam colour correction</b> (low-frequency offsets only, generated detail
+         untouched) and <b>grain matching</b> (adds noise on grainy photos, nothing on
+         clean ones). Set <code>Variations</code> to 1 for the old one-shot behaviour.</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>AI Environment</h3><span class="pill">any folder</span></div>

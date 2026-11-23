@@ -789,7 +789,7 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
       <ol class="steps">
         <li>选区外扩 <code>grow</code>（默认 8 px，收拾接缝），外接框再带一圈上下文；</li>
         <li>裁切框宽高对齐到 <b>8</b>——VAE 是 8× 下采样，不对齐回来就错位；长宽比补到
-            <b>≤ 2:1</b>，见下面「五个坑」；</li>
+            <b>≤ 2:1</b>，见下面「六个坑」；</li>
         <li>从<b>可见合成</b>读这块像素（图层比画布小时取到的是下面图层，不是黑），
             连同蒙版 PNG 发给 ComfyUI；</li>
         <li>轮询 <code>/history</code> 等它画完；</li>
@@ -869,7 +869,7 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
 
   <div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>五个坑</h3><span class="pill">都在代码里绕开了</span></div>
+      <div class="dl-head"><h3>六个坑</h3><span class="pill">都在代码里绕开了</span></div>
       <p><b>1. 蒙版方向是反的。</b>ComfyUI 的 <code>LoadImage</code> 用 alpha 倒推蒙版
          （<code>mask = 1 - alpha</code>），所以「要重绘」必须写成<b>透明</b>。直接送灰度图
          会得到全 0 蒙版，跑完像素纹丝不动。</p>
@@ -890,6 +890,13 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
          （SD1.5 512 / SDXL 768），长边不超上限（768 / 1024）；大图里选一小块时
          还会先把上下文收窄（<code>fit_context()</code>），免得整块缩下去把细节
          缩没。</p>
+      <p><b>6. 一次只画一张。</b>赌一张的失败率就是全部失败率。现在默认一次出
+         <b>3 张</b>（<code>RepeatLatentBatch</code>，共享模型加载），按四项打分排序：
+         接缝比周围硬不硬、填充区比周围糊还是碎、跨边缘有没有颜色台阶、选区外
+         有没有被改动。最好的那张显示，其余藏在图层面板里（点眼睛就能换）。胜出
+         那张再做两步收尾：<b>接缝色差补偿</b>（只补低频偏移，生成细节不动）和
+         <b>颗粒匹配</b>（周围是颗粒感照片就补噪点，干净照片不加）。<code>Variations</code>
+         设成 1 就是原来的一枪定生死。</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>AI 环境</h3><span class="pill">装在哪都行</span></div>

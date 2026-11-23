@@ -97,9 +97,12 @@ try:
     img.select_rectangle(Gimp.ChannelOps.REPLACE, 80, 60, 40, 30)
 
     client = ai_client.ComfyClient(srv.url, timeout=10, poll=0.05)
+    # 这一段的断言全是「贴回位置 / 尺寸 / 蒙版 / 原始像素」，所以关掉多候选
+    # 与后处理：接缝补偿会把 mock 的固定填色往周围拉（那是另一条用例的事）。
     out, info = mod.ai_inpaint(img, layer, "a red apple", negative="blurry",
                                client=client, grow=0, feather=0, steps=8,
-                               timeout=30)
+                               timeout=30, variations=1,
+                               fix_seams=False, match_grain=False)
 
     check("返回了新图层", out is not None and out.get_name() == "AI Inpaint",
           out.get_name() if out else "None")
@@ -122,6 +125,27 @@ try:
     check("圆角外角（框内选区外）也原样",
           px(out, w - 3, h - 3)[:3] == (200, 180, 160),
           str(px(out, w - 3, h - 3)))
+
+    # ---- 多候选：一次出三张，只留最好的可见 ------------------------------
+    img3, layer3 = new_image(200, 160, (120, 150, 190))
+    img3.select_rectangle(Gimp.ChannelOps.REPLACE, 70, 50, 60, 50)
+    out3, info3 = mod.ai_inpaint(img3, layer3, "a red apple", client=client,
+                                 grow=0, feather=0, steps=8, timeout=30,
+                                 variations=3)
+    check("一次出了 3 张", info3.get("variations") == 3, info3.get("variations"))
+    ranked = [ly for ly in img3.get_layers()
+              if ly.get_name().startswith("AI Inpaint ")]
+    check("图上多了 3 个候选图层", len(ranked) == 3,
+          [ly.get_name() for ly in ranked])
+    check("只有一张可见", sum(1 for ly in ranked if ly.get_visible()) == 1,
+          [(ly.get_name(), ly.get_visible()) for ly in ranked])
+    best = (info3.get("order") or [0])[0]
+    check("可见的是排第一那张",
+          out3.get_visible() and out3.get_name().startswith(
+              "AI Inpaint %d " % (best + 1)), out3.get_name())
+    check("名字里带分数", "(" in out3.get_name(), out3.get_name())
+    check("order 覆盖全部候选",
+          sorted(info3.get("order") or []) == [0, 1, 2], info3.get("order"))
 
     names = [c.get_name() for c in img.get_channels()]
     check("留下了 AI Mask 通道", "AI Mask" in names, str(names))
