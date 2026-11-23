@@ -598,9 +598,83 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
       <div class="dl-head"><h3>实测与一个实现注记</h3><span class="pill">0 码</span></div>
       <p>恒等往返浮点与 8 位都是 <b>0 码</b>；涂白变亮、涂黑变暗、没涂的地方
          一位不动；带 alpha 的图由组蒙版保住透明度。</p>
-      <p>写灰层像素之后必须 <code>flush()</code> 再 <code>update()</code>：只改
-         私有 buffer 不通知核心，投影不失效，<b>导出是对的、界面上那一层却是黑的</b>。
-         这一版修的就是这个坑，回归里专门盯了一次 <code>update(0,0,W,H)</code>。</p>
+      <p>灰层的像素走 <code>get_shadow_buffer()</code> → <code>merge_shadow()</code>。
+         直接写 <code>get_buffer()</code> 再 flush+update（上一版的做法）只保证数值对，
+         投影和图层缩略图仍可能停在新图层的空内容上：<b>导出是对的、界面上那一层
+         却是黑的</b>——而且只有「不带 AI」这一支会这样，AI 版本来就走 shadow
+         路径。回归里盯住 <code>merge_shadow</code> 确实被调到。</p>
+    </div>
+  </div>""",
+    ),
+    dict(
+        key='observe',
+        slug='observe',
+        title='观察层',
+        tag=('观察', 't-noise'),
+        count='六个菜单项',
+        menu='SuperMrWang → Observe → 黑白 / 陡峭曲线 / 波浪曲线 / 饱和度 / 阈值 / 海报化',
+        menus=['SuperMrWang → Observe → 六个菜单项，点了直接建',
+               '图层右键 → SuperMrWang → Observe → 同上'],
+        pdb='lb-plugin-observe-* 六个过程，全部零参数',
+        lede="""修图最怕看不清问题就开始调。这六支把「先建一个观察层」压成一次点击：副本、滤镜、参数都已经配好，看完隐藏或删掉，原图层一个像素都没动。""",
+        body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>生成的结构</h3><span class="pill">一层副本</span></div>
+      <pre><code>观察 · 陡峭曲线        副本 + 图层滤镜（参数随时可改）
+原图层                 不动，像素一个都没变</code></pre>
+      <p>副本是完整的像素副本，滤镜挂在副本上——右键副本 → 图层 → 滤镜就能
+         把参数调回来，不存在「效果烤死在像素里」这回事。看完删掉整层即可，
+         不留痕迹。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>为什么不做成调整图层</h3></div>
+      <p>GIMP 3 没有 Photoshop 那种独立调整图层，但图层滤镜是等价的：<b>参数
+         是活的、像素是死的</b>。差别只在于它必须挂在某个图层上，所以先复制一层
+         再挂，功能上没有任何损失。</p>
+    </div>
+  </div>
+
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>六种看什么</h3><span class="pill">零参数，点了就建</span></div>
+    <div class="table-wrap"><table class="op-table">
+      <thead><tr><th>菜单项</th><th>挂的滤镜</th><th>看什么</th></tr></thead>
+      <tbody>
+        <tr><td><b>黑白</b></td><td><code>gimp:desaturate</code>（<b>明度</b>）</td>
+            <td>明暗结构、脏点、凹凸、色块之间的明度差。皮肤问题一大半在这一层
+                就能看见，是和中性灰、双曲线配合最多的一层</td></tr>
+        <tr><td><b>陡峭曲线</b></td><td>曲线 S 形，中间调斜率约 2.3 倍</td>
+            <td>细微色斑、肤色不匀。原本要盯半天才看得出的过渡，被拉成明显的斑</td></tr>
+        <tr><td><b>波浪曲线</b></td><td>去色 + 锯齿曲线（四个峰谷）</td>
+            <td>色带、断层、渐变里的台阶。连续的色阶被反复翻折，哪里断了一眼
+                就露出来——像等高线地形图</td></tr>
+        <tr><td><b>饱和度</b></td><td><code>gimp:hue-saturation</code>，+100</td>
+            <td>泛红、色偏、色块边界。皮肤该均匀的地方一泛红就跳出来</td></tr>
+        <tr><td><b>阈值</b></td><td>去色 + 硬阶梯（切点＝中位数）</td>
+            <td>灰尘、痘印、小污点。六种里最狠的一层，只剩形状</td></tr>
+        <tr><td><b>海报化</b></td><td><code>gimp:posterize</code>，4 级</td>
+            <td>大块边界、渐变是否干净。比阈值温和，还留一点结构</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl">
+      <div class="dl-head"><h3>阈值为什么按中位数切</h3></div>
+      <p>写死 0.5 是不行的：偏暗的图（夜景、深色截图、欠曝照片）整张都在 0.5
+         以下，切出来是一块纯黑，什么都看不见。按图层亮度的<b>中位数</b>切，
+         黑白天然各占一半。</p>
+      <p>这里也没用 <code>gimp:threshold</code>：它的 low / high 语义和界面上那两个
+         滑块并不一致——真实测下来，<code>low == high</code>（想切得干脆）会整片
+         变黑，区间收窄切点还会飘。改成曲线做硬阶梯，切点就是中位数，行为确定。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>两个容易被忽略的细节</h3></div>
+      <p><b>波浪和阈值先转灰。</b>直接对彩色图操作，等值线会带上各通道自己的
+         色相（紫绿蓝的环），信息量大但看着闹，判断「这块肤色不匀」反而更难；
+         三通道各自过切点还会让阈值图变成彩色。</p>
+      <p><b>黑白用明度（Luminance），不用亮度（Lightness）。</b>前者按人眼对
+         R/G/B 的敏感度加权，红绿两块在 Lightness 下亮度相同、在 Luminance 下
+         能分开——挑色斑要的正是后者。</p>
     </div>
   </div>""",
     ),
@@ -1341,6 +1415,7 @@ BRIEF = {
     "frequency": "低频管影调、高频管细节，叠起来就是原图；半径决定分界。",
     "dodge": "提亮 / 压暗两条曲线压在黑蒙版下：涂到哪里动哪里。",
     "grey": "一层 50% 灰、柔光下恒等；白笔提亮、黑笔压暗、灰盖回去。",
+    "observe": "六种观察层各一个菜单项：黑白、陡峭曲线、波浪曲线、饱和度、阈值、海报化。",
     "ai-inpaint": "框一块地方、写一句提示词，交给本机 ComfyUI 重画，结果当新图层贴回原位。",
     "ai-frequency": "结构同高低频，两层的内容换成一张已经修过一遍的参考图。",
     "ai-dodge": "两条曲线的蒙版按参考图的差值预先涂好七成，打开就能继续补。",
@@ -1358,7 +1433,8 @@ BRIEF = {
 }
 
 TAG_EN = {"曲线": "Curves", "磨皮": "Retouching", "选区": "Selection",
-          "通道": "Channels", "蒙版": "Mask", "转换": "Convert", "AI": "AI"}
+          "通道": "Channels", "蒙版": "Mask", "转换": "Convert", "AI": "AI",
+          "观察": "Inspect"}
 
 TITLE_EN = {
     "ai-inpaint": "AI Inpaint",
@@ -1368,6 +1444,7 @@ TITLE_EN = {
     "ai-grey": "Neutral Grey (AI prep)",
     "dodge": "Dodge & Burn",
     "grey": "Neutral Grey",
+    "observe": "Inspection Layers",
     "alpha-curves": "Alpha Curves",
     "color-range": "Color Range",
     "channel-to-mask": "Channel to Mask",
@@ -1396,6 +1473,8 @@ BRIEF_EN = {
              "paint where you want them.",
     "grey": "A 50% grey layer is identity under soft light: white brush lightens, "
             "black darkens, grey paints it back.",
+    "observe": "Six inspection layers, one menu item each: black & white, steep "
+               "curves, wave curves, saturation, threshold, posterize.",
     "ai-inpaint": "Frame an area, write what should be there, and a local ComfyUI "
                   "redraws it — the answer comes back as a new masked layer.",
     "ai-frequency": "Same structure as Frequency Separation, but both layers carry a "
@@ -1474,6 +1553,7 @@ DEPS = {
     "frequency": ["gegl:gaussian-blur", "gegl:high-pass"],
     "dodge": ["gimp:curves"],
     "grey": [],
+    "observe": [],
     "ai-frequency": ["gegl:gaussian-blur", "gegl:high-pass"],
     "ai-dodge": ["gimp:curves"],
     "ai-grey": [],

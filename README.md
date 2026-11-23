@@ -46,6 +46,7 @@ gegl-color-ops/
 ├── plugin/frequency-separation/ # Python 插件：高低频磨皮（低频 + 高频两层，合成即原图）
 ├── plugin/dodge-burn/        # Python 插件：双曲线磨皮（提亮 / 压暗两层，黑蒙版）
 ├── plugin/neutral-grey/      # Python 插件：中性灰磨皮（50% 灰 + 柔光）
+├── plugin/observe/           # Python 插件：观察层六种（黑白 / 陡峭 / 波浪 / 饱和 / 阈值 / 海报化）
 ├── plugin/ai-frequency-separation/ # Python 插件：高低频磨皮（AI 预修，两层内容 = 参考图）
 ├── plugin/ai-dodge-burn/     # Python 插件：双曲线磨皮（AI 预修，蒙版已预涂）
 ├── plugin/ai-neutral-grey/   # Python 插件：中性灰磨皮（AI 预修，灰层已反解）
@@ -504,6 +505,40 @@ alpha 都有回滚。与算子版本的区别是**一次性应用**——想随�
 亮度匹配、开关行为、报错路径；直方图期望值按 255·enc_srgb(v) 刻度
 换算，跑在 gimp-console 的 python-fu-eval 里）。
 
+### Python 插件：plugin/observe（观察层六种）
+
+修图前先看清问题，比什么都省时间。六种观察层各一个菜单项，
+`SuperMrWang → Observe`，**零参数、点了就建**：
+
+| 菜单项 | 挂的滤镜 | 看什么 |
+| --- | --- | --- |
+| 黑白 | `gimp:desaturate`（**明度**） | 明暗结构、脏点、凹凸、色块的明度差 |
+| 陡峭曲线 | 曲线 S 形，中间调斜率约 2.3× | 细微色斑、肤色不匀 |
+| 波浪曲线 | 去色 + 锯齿曲线（四个峰谷） | 色带、断层、渐变里的台阶 |
+| 饱和度 +100 | `gimp:hue-saturation` | 泛红、色偏、色块边界 |
+| 阈值 | 去色 + 硬阶梯（切点 = 中位数） | 灰尘、痘印、小污点（最狠的一层） |
+| 海报化（4 级） | `gimp:posterize` | 大块边界、渐变是否干净 |
+
+生成的是**副本 + 图层滤镜**，不是改像素：参数随时能改（右键副本 → 图层 → 滤镜），
+删掉整层就干净，原图层一个像素都没动。相当于 GIMP 3 里的调整图层——GIMP 没有
+独立调整层，但图层滤镜是等价的，代价是得先复制一层。
+
+三个实现上的坑，都写进注释和回归了：
+
+1. **阈值不能写死 0.5**。偏暗的图（夜景、深色截图、欠曝照片）整张都在 0.5 以下，
+   切出来是一块纯黑。按图层亮度**中位数**切（`gimp-drawable-histogram` 的第三个
+   返回值，0…255 刻度），黑白天然各半。
+2. **也别用 `gimp:threshold`**。它的 `low` / `high` 语义和界面上那两个滑块不一致：
+   实测 `low == high`（想切得干脆）整片变黑，区间收窄切点还会飘。改成曲线做一个码
+   宽的硬阶梯，切点就是中位数，行为确定。
+3. **波浪和阈值先转灰**。直接对彩色图操作，等值线带上各通道的色相（紫绿蓝环），
+   判断「这块肤色不匀」反而更难；三通道各自过切点还会让阈值图变成彩色。
+
+回归：`tools/check_observe.py`（57 条，真 GIMP 内跑：六个过程都注册、只多一层副本、
+插在原层正上方、原层像素逐位不变、每个滤镜挂得上、六种效果的方向对——去色后三通道
+相等、陡峭曲线暗部更暗亮部更亮、波浪出现反向台阶、阈值只有两种值且暗图也切得开、
+海报化每通道不超过 4 级）。
+
 ### Python 插件：plugin/ai-*（AI 磨皮，三支「预修版」）
 
 原来的三支磨皮（高低频 / 双曲线 / 中性灰）是「干净结构 + 你自己修」。这三支
@@ -541,6 +576,7 @@ alpha 都有回滚。与算子版本的区别是**一次性应用**——想随�
 ```bash
 python tools/check_retouch_ai.py          # 87 条：数学 / 柔光反解 / img2img 工作流 / mock 端到端 / 源码约束
 python tools/check_retouch.py             # 真 GIMP，76 条：三支磨皮的结构、滤镜、恒等、画笔、无 alpha 图
+python tools/check_observe.py             # 真 GIMP，57 条：六种观察层的结构、滤镜、效果方向、暗图
 # 真 GIMP，67 条：结构、预涂蒙版、灰层、选区、AI 退回
 gimp-console -b "exec(open('tools/check_retouch_ai_gimp.py').read())"
 ```
@@ -1141,6 +1177,8 @@ SuperMrWang → Sharpen / Noise / Distort → <算子>
 SuperMrWang → AI        → AI Inpaint… / AI Inpaint (Advanced)… / AI Environment…
 SuperMrWang → Retouch   → 高低频 / 双曲线 / 中性灰磨皮
                           各自再加一个「（AI 预修）」入口
+SuperMrWang → Observe   → 黑白 / 陡峭曲线 / 波浪曲线 / 饱和度 / 阈值 / 海报化
+                          观察层，点了就建（也是 Python 插件）
                           （以上都是 Python 插件，不在 47 个算子里）
 ```
 
@@ -1215,9 +1253,10 @@ python tools/check_ai_inpaint.py            # AI 重绘的 HTTP/PNG 链路（对
 # 下面三条要在真 GIMP 里跑（插件已装好）；用 gimp-console，不用开界面
 gimp-console -b "exec(open('tools/check_plugin_dialogs.py').read())"   # 每个插件都能弹出参数框（145 条）
 gimp-console -b "exec(open('tools/check_retouch.py').read())"          # 磨皮三支（非 AI）：结构 / 滤镜 / 恒等 / 画笔（76 条）
+gimp-console -b "exec(open('tools/check_observe.py').read())"          # 观察层六种：结构 / 滤镜 / 效果方向（57 条）
 gimp-console -b "exec(open('tools/check_retouch_ai_gimp.py').read())"  # 磨皮三支（AI 预修）：结构 / 预涂蒙版 / 灰层 / 选区（67 条）
 gimp-console -b "exec(open('tools/check_ai_inpaint_gimp.py').read())"  # AI 重绘的落位与蒙版
-python tools/run_plugin_checks.py           # 上面七套一次跑完（661 条），把条数写进 tools/plugin_assertions.json
+python tools/run_plugin_checks.py           # 上面八套一次跑完（724 条），把条数写进 tools/plugin_assertions.json
 python tools/run_plugin_checks.py --check   # 只核对：json 是不是比脚本旧了（站点构建会自动喊）
 python tools/make_dist.py                   # 把 build/ 整理成 dist/（含 manifest + 校验和）
 ./tools/check-linux.sh                      # 在 Linux/WSL 里验证 .so 能加载并渲染（不开 GIMP）

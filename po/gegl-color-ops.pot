@@ -1687,6 +1687,7 @@ msgstr ""
 
 #: ops/dust-scratches/dust-scratches.c:41
 #: ops/unsharp-mask/unsharp-mask.c:51
+#: plugin/observe/observe.py:230
 #: plugin/sky-replace/sky-replace.py:222
 msgid "Threshold"
 msgstr ""
@@ -3450,7 +3451,7 @@ msgstr ""
 #: plugin/alpha-curves/alpha-curves.py:184
 #: plugin/color-range/color-range.py:183
 #: plugin/dodge-burn/dodge-burn.py:176
-#: plugin/neutral-grey/neutral-grey.py:152
+#: plugin/neutral-grey/neutral-grey.py:159
 msgid "Nothing to work on: no layer."
 msgstr ""
 
@@ -3458,7 +3459,8 @@ msgstr ""
 #: plugin/ai-neutral-grey/ai-neutral-grey.py:80
 #: plugin/alpha-curves/alpha-curves.py:187
 #: plugin/dodge-burn/dodge-burn.py:179
-#: plugin/neutral-grey/neutral-grey.py:155
+#: plugin/neutral-grey/neutral-grey.py:162
+#: plugin/observe/observe.py:253
 msgid "A layer group has no pixels of its own; pick a raster layer (right-click the group, then Merge Group)."
 msgstr ""
 
@@ -3622,7 +3624,7 @@ msgstr ""
 #: plugin/hsv-split-curves/hsv-split-curves.py:556
 #: plugin/lab-split-curves/lab-split-curves.py:603
 #: plugin/lch-split-curves/lch-split-curves.py:732
-#: plugin/neutral-grey/neutral-grey.py:239
+#: plugin/neutral-grey/neutral-grey.py:246
 msgid "Put in a layer group"
 msgstr ""
 
@@ -3641,7 +3643,8 @@ msgstr ""
 #: plugin/ai-neutral-grey/ai-neutral-grey.py:232
 #: plugin/dodge-burn/dodge-burn.py:279
 #: plugin/frequency-separation/frequency-separation.py:278
-#: plugin/neutral-grey/neutral-grey.py:246
+#: plugin/neutral-grey/neutral-grey.py:253
+#: plugin/observe/observe.py:354
 msgid "Select exactly one layer."
 msgstr ""
 
@@ -4236,6 +4239,7 @@ msgstr ""
 
 #: plugin/blend/blend.py:669
 #: plugin/convert/convert.py:662
+#: plugin/observe/observe.py:350
 msgid "No image"
 msgstr ""
 
@@ -4754,7 +4758,7 @@ msgstr ""
 #: plugin/lab-split-curves/lab-split-curves.py:476
 #: plugin/lab-split-curves/lab-split-curves.py:546
 #: plugin/lch-split-curves/lch-split-curves.py:675
-#: plugin/neutral-grey/neutral-grey.py:205
+#: plugin/neutral-grey/neutral-grey.py:212
 msgid "\n(This image has transparency, so the layers went into a group automatically: the group mask preserves it.)"
 msgstr ""
 
@@ -5362,29 +5366,69 @@ msgstr ""
 msgid "Select a layer or one of its masks."
 msgstr ""
 
-#: plugin/neutral-grey/neutral-grey.py:180
-#: plugin/neutral-grey/neutral-grey.py:230
+#: plugin/neutral-grey/neutral-grey.py:187
+#: plugin/neutral-grey/neutral-grey.py:237
 msgid "Neutral Grey"
 msgstr ""
 
-#: plugin/neutral-grey/neutral-grey.py:186
+#: plugin/neutral-grey/neutral-grey.py:193
 msgid "1 · Neutral grey (white dodges, black burns)"
 msgstr ""
 
-#: plugin/neutral-grey/neutral-grey.py:203
+#: plugin/neutral-grey/neutral-grey.py:210
 msgid "Neutral Grey is set up: a 50% grey soft-light layer that currently leaves the image identical. Click the layer and paint with a soft brush (opacity 5–15%): white lightens, black darkens, and #808080 paints over the overshoot."
 msgstr ""
 
-#: plugin/neutral-grey/neutral-grey.py:235
+#: plugin/neutral-grey/neutral-grey.py:242
 msgid "Neutral Grey: adds a 50% grey soft-light layer that is pixel-identical to the original when untouched. Paint white to lighten and black to darken, going over the skin until it evens out."
 msgstr ""
 
-#: plugin/neutral-grey/neutral-grey.py:236
+#: plugin/neutral-grey/neutral-grey.py:243
 msgid "Neutral grey dodge & burn: a 50% grey Soft Light layer, identity on the backdrop; paint white to lighten, black to darken."
 msgstr ""
 
-#: plugin/neutral-grey/neutral-grey.py:240
+#: plugin/neutral-grey/neutral-grey.py:247
 msgid "Puts the grey layer into a pass-through group named Neutral Grey; turn it off to stack it directly above the original layer."
+msgstr ""
+
+#: plugin/observe/observe.py:85
+msgid "Observe · %s"
+msgstr ""
+
+#: plugin/observe/observe.py:105
+msgid "This GIMP build has no \"%s\" filter."
+msgstr ""
+
+#: plugin/observe/observe.py:133
+msgid "Desaturate"
+msgstr ""
+
+#: plugin/observe/observe.py:148
+msgid "Steep curves"
+msgstr ""
+
+#: plugin/observe/observe.py:169
+msgid "Wave curves"
+msgstr ""
+
+#: plugin/observe/observe.py:174
+msgid "Saturation +100"
+msgstr ""
+
+#: plugin/observe/observe.py:234
+msgid "Posterize"
+msgstr ""
+
+#: plugin/observe/observe.py:250
+msgid "Nothing to observe: no layer."
+msgstr ""
+
+#: plugin/observe/observe.py:263
+msgid "Could not copy the layer."
+msgstr ""
+
+#: plugin/observe/observe.py:366
+msgid "Added \"%s\": hide or delete it when you are done — the layer underneath was not touched."
 msgstr ""
 
 #: plugin/sky-replace/sky-replace.py:208

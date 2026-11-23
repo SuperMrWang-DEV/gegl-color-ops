@@ -115,6 +115,13 @@
        不需要联网，不需要账号，一张 1024×512 的图在本机显卡上约 9 秒。</summary>
   </entry>
   <entry>
+    <title>插件 · 观察层</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/observe.html"/>
+    <id>tag:github.com,2026:plugin-observe</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>修图最怕看不清问题就开始调。这六支把「先建一个观察层」压成一次点击：副本、滤镜、参数都已经配好，看完隐藏或删掉，原图层一个像素都没动。</summary>
+  </entry>
+  <entry>
     <title>插件 · 中性灰磨皮</title>
     <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/neutral-grey.html"/>
     <id>tag:github.com,2026:plugin-neutral-grey</id>

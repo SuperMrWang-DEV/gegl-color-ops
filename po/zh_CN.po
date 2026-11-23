@@ -2618,3 +2618,45 @@ msgstr "矢量图层（GIMP 3.2）按它自己的填充与描边渲染，并替�
 #: plugin/convert/convert.py
 msgid "Path to bitmap: a vector layer is rasterised as it looks and replaces itself; a bare path becomes a new layer filled with the foreground colour, cropped to the path."
 msgstr "路径转位图：矢量图层按它显示的样子栅格化并替换自身；裸路径新建一层、用前景色填充，并裁到路径范围。"
+
+msgid "Observe · %s"
+msgstr "观察 · %s"
+
+msgid "Black & White"
+msgstr "黑白"
+
+msgid "Steep Curves"
+msgstr "陡峭曲线"
+
+msgid "Wave Curves"
+msgstr "波浪曲线"
+
+msgid "Saturation +100"
+msgstr "饱和度 +100"
+
+msgid "Posterize (4 levels)"
+msgstr "海报化（4 级）"
+
+msgid "Steep curves"
+msgstr "陡峭曲线"
+
+msgid "Wave curves"
+msgstr "波浪曲线"
+
+msgid "Posterize"
+msgstr "海报化"
+
+msgid "Desaturate"
+msgstr "去色"
+
+msgid "This GIMP build has no \"%s\" filter."
+msgstr "这个 GIMP 版本没有「%s」滤镜。"
+
+msgid "Nothing to observe: no layer."
+msgstr "没有可以观察的图层。"
+
+msgid "Could not copy the layer."
+msgstr "无法复制图层。"
+
+msgid "Added \"%s\": hide or delete it when you are done — the layer underneath was not touched."
+msgstr "已添加「%s」：看完隐藏或删掉就行——下面那层没有被改动。"

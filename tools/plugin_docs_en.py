@@ -599,6 +599,77 @@ PLUGIN_EN["grey"] = dict(
     </div>
   </div>""")
 
+PLUGIN_EN["observe"] = dict(
+    lede="""The most expensive mistake in retouching is adjusting what you cannot see yet. These
+   six turn "build an inspection layer first" into one click: the copy, the filter and its
+   settings are already in place. Hide it or delete it when you are done — not one pixel of the
+   original was touched.""",
+    body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>What gets created</h3><span class="pill">one copy</span></div>
+      <pre><code>Observe · Steep curves    a copy + a layer filter (settings stay editable)
+original layer            untouched, not one pixel changed</code></pre>
+      <p>The copy carries the full pixels and the filter sits on the copy: right-click it →
+         Layer → Filters and the parameters are still live. Nothing is baked into pixels, and
+         deleting the layer leaves no trace.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Why not an adjustment layer</h3></div>
+      <p>GIMP 3 has no stand-alone adjustment layer, but a layer filter is the equivalent:
+         <b>the settings are live, the pixels are not</b>. The only difference is that it has to
+         hang off a layer, so we duplicate one first — no functionality is lost.</p>
+    </div>
+  </div>
+
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>What the six show you</h3><span class="pill">no arguments, one click</span></div>
+    <div class="table-wrap"><table class="op-table">
+      <thead><tr><th>Menu item</th><th>Filter</th><th>What it reveals</th></tr></thead>
+      <tbody>
+        <tr><td><b>Black &amp; White</b></td><td><code>gimp:desaturate</code> (<b>luminance</b>)</td>
+            <td>Structure, dust, bumps, brightness differences between patches. Most skin
+                problems are already visible here; this is the layer that pairs with neutral
+                grey and dodge &amp; burn</td></tr>
+        <tr><td><b>Steep Curves</b></td><td>an S-curve, midtone slope about 2.3x</td>
+            <td>Faint blotches and uneven tone. Transitions you would stare at for a minute
+                turn into obvious patches</td></tr>
+        <tr><td><b>Wave Curves</b></td><td>desaturate + a four-peak zigzag curve</td>
+            <td>Banding, broken tone steps, steps inside a gradient. Continuous tone folds
+                back and forth, so a break shows up at once — a contour map of the skin</td></tr>
+        <tr><td><b>Saturation +100</b></td><td><code>gimp:hue-saturation</code>, +100</td>
+            <td>Redness, colour casts, the edges of colour patches</td></tr>
+        <tr><td><b>Threshold</b></td><td>desaturate + a hard step at the median</td>
+            <td>Dust, acne, small specks. The harshest of the six — only shapes survive</td></tr>
+        <tr><td><b>Posterize</b></td><td><code>gimp:posterize</code>, 4 levels</td>
+            <td>Patch boundaries and whether a gradient is clean. Gentler, keeps some structure</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl">
+      <div class="dl-head"><h3>Why the threshold uses the median</h3></div>
+      <p>A fixed 0.5 does not work: a dark image (night shot, dark screenshot, underexposed
+         photo) sits entirely below 0.5 and comes out as one black block with nothing to see.
+         Cutting at the layer's <b>median</b> keeps black and white roughly balanced.</p>
+      <p>It also avoids <code>gimp:threshold</code>: its low / high arguments do not behave the
+         way the two sliders in the UI do — measured, <code>low == high</code> (the obvious way
+         to get a hard cut) turns the whole layer black, and narrowing the range moves the cut
+         point around. A curve with a one-code step is deterministic: the cut is the median.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Two details that are easy to miss</h3></div>
+      <p><b>Wave and threshold desaturate first.</b> Applied to colour, the contours pick up
+         each channel's own hue (purple, green, blue rings) — informative but noisy, and it
+         makes "is this patch uneven?" harder to judge. Letting the three channels cross the
+         threshold separately also turns the threshold layer colour.</p>
+      <p><b>Black &amp; white uses luminance, not lightness.</b> Luminance weights R/G/B the
+         way the eye does: a red and a green patch can have the same lightness and still differ
+         in luminance. Spotting blotches needs the latter.</p>
+    </div>
+  </div>""",
+)
+
 PLUGIN_EN["alpha-curves"] = dict(
     lede="""GIMP's curves tool does have an Alpha channel, but that curve can only edit
    transparency that already exists — it has no idea what the red channel holds. Deciding

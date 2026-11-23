@@ -2336,6 +2336,16 @@ PLUGIN_SPECS = [
              desc="中性灰磨皮：加一张 50% 灰的柔光层，恒等时与原图逐像素相同。"
                   "白色画笔提亮、黑色画笔压暗，反复涂抹把皮肤推平。",
              pdb="lb-plugin-neutral-grey(image, drawables, group)"),
+        dict(key="observe", ops=[],
+             name="gegl-color-ops-plugin-observe.zip",
+             src_dir=os.path.join(ROOT, "plugin", "observe"),
+             py="observe.py",
+             menu="观察层 (Inspection Layers)",
+             menus="    SuperMrWang → Observe → 黑白 / 陡峭曲线 / 波浪曲线 / 饱和度 / 阈值 / 海报化\n"
+                   "    图层右键 → SuperMrWang → Observe → 同上",
+             desc="观察层：六种一键建好的观察副本（黑白、陡峭曲线、波浪曲线、饱和度、"
+                  "阈值、海报化）。用图层滤镜实现，参数随时能改、删掉图层就干净，原图不动。",
+             pdb="lb-plugin-observe-* 六个过程，全部零参数"),
         dict(key="ai-inpaint", ops=[],
              name="gegl-color-ops-plugin-ai-inpaint.zip",
              src_dir=os.path.join(ROOT, "plugin", "ai-inpaint"),
