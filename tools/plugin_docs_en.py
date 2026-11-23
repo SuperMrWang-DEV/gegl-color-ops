@@ -1175,6 +1175,38 @@ PLUGIN_EN["cutout"] = dict(
        24 MP is a matter of milliseconds.</p>
   </div>
 
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>Four models, four different thresholds</h3>
+      <span class="pill">tested one by one, Nov 2026</span></div>
+    <p>The ComfyUI-RMBG node lists four models in one dropdown, but getting them to run is
+       not the same job. The plug-in appends the difference to each entry and, when one
+       fails, says what is missing instead of echoing <code>No module named …</code>.</p>
+    <div class="table-wrap"><table class="op-table">
+      <thead><tr><th>Model</th><th>First run needs</th><th>Measured</th></tr></thead>
+      <tbody>
+        <tr><td><b>RMBG-2.0</b></td>
+            <td>Nothing — downloaded along with ComfyUI-RMBG (812 MB)</td>
+            <td>4.6 s on a 768×1024 portrait, cleanest hair. The default</td></tr>
+        <tr><td><b>BEN2</b></td><td>A one-time ~1.1 GB weight download</td>
+            <td>Faster in batches, slightly softer edges; fine for people and products</td></tr>
+        <tr><td><b>BEN</b></td><td>A one-time ~1.1 GB weight download (8 min here)</td>
+            <td>Works, but nothing over BEN2 except the longer wait</td></tr>
+        <tr><td><b>INSPYRENET</b></td>
+            <td>The <code>transparent-background</code> Python package (plus onnxruntime),
+                and it runs on CPU by default</td>
+            <td>Fails without the package; slower than RMBG-2.0 even with it. Not
+                recommended</td></tr>
+      </tbody>
+    </table></div>
+    <p>While the weights download, the ComfyUI console only prints a few
+       <code>Downloading…</code> lines and the progress bar does not move — the plug-in can
+       only wait. So the timeout message reads “downloading about 1.1 GB, give it a few more
+       minutes” rather than “image too large or too many steps”. If you would rather not
+       wait, switch back to RMBG-2.0.</p>
+    <p>To check for yourself: <code>python tools/check_cutout_models.py</code> runs every
+       model once for real and prints its time and failure reason.</p>
+  </div>
+
   <div class="dl-grid">
     <div class="dl">
       <div class="dl-head"><h3>Turning an AI alpha into a selection</h3></div>

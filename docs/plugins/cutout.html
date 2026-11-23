@@ -116,8 +116,36 @@ lb-plugin-cutout-ai(
        <code>gimp-image-select-contiguous-color</code> 是 C 实现，24MP 也是毫秒级。</p>
   </div>
 
+  <div class="dl" id="zh-sec-4">
+    <div class="dl-head"><h3>四个模型，门槛不一样</h3><span class="pill">2026-11 逐个实测</span></div>
+    <p>ComfyUI-RMBG 的节点把四个模型摆在同一个下拉里，但它们的准备成本差得远。
+       插件会把差别写在选项后面，选错时也会说清缺什么，而不是甩一句
+       <code>No module named …</code>。</p>
+    <div class="table-wrap"><table class="op-table">
+      <thead><tr><th>模型</th><th>第一次用要做什么</th><th>实测</th></tr></thead>
+      <tbody>
+        <tr><td><b>RMBG-2.0</b></td>
+            <td>无。装 ComfyUI-RMBG 时就连带下好了（812 MB）</td>
+            <td>768×1024 人像 4.6 秒，发丝最干净 —— 默认选它</td></tr>
+        <tr><td><b>BEN2</b></td><td>首次下约 1.1 GB 权重</td>
+            <td>批量推理快，边缘略软；人像、商品都可以</td></tr>
+        <tr><td><b>BEN</b></td><td>首次下约 1.1 GB 权重（实测下载 8 分钟）</td>
+            <td>能用，但没有明显强过 BEN2，下载最久</td></tr>
+        <tr><td><b>INSPYRENET</b></td>
+            <td>要装 Python 包 <code>transparent-background</code>（连带
+                onnxruntime），而且它默认走 CPU</td>
+            <td>没装必炸；装了也比 RMBG-2.0 慢，不推荐</td></tr>
+      </tbody>
+    </table></div>
+    <p>下载那几分钟里 ComfyUI 窗口只多出几行 <code>Downloading…</code>，进度条不动，
+       插件这边只能等。所以超时提示写的是「正在下约 1.1 GB 权重，再等等」，
+       而不是「图太大或步数太多」。等不了就换 RMBG-2.0。</p>
+    <p>想自己核对：<code>python tools/check_cutout_models.py</code> 会把四个模型逐个
+       真跑一遍，打印每个的耗时与失败原因。</p>
+  </div>
+
   <div class="dl-grid">
-    <div class="dl" id="zh-sec-4">
+    <div class="dl" id="zh-sec-5">
       <div class="dl-head"><h3>蒙版怎么从 AI 的 alpha 变成选区</h3></div>
       <p>AI 回来的 alpha 尺寸是缩略图的（长边 ≤ 2048）。在 Python 里把它插值到
          4000×6000 要十几秒；这里建一个同尺寸的临时图层，RGB=白、A=alpha，
@@ -125,7 +153,7 @@ lb-plugin-cutout-ai(
          再 <code>select-item</code> 取它的 alpha——缩放是 C 做的，Python 只搬一次
          <code>mw×mh×4</code> 字节。</p>
     </div>
-    <div class="dl" id="zh-sec-5">
+    <div class="dl" id="zh-sec-6">
       <div class="dl-head"><h3>两个静默失败</h3></div>
       <p><b>泛洪一个点都没选中时 GIMP 不报错</b>：选区是空的，反选之后就成了整张图，
          看起来像「把主体抠成了全白」。所以先看边框采样点的命中率，低于 35% 直接
@@ -141,7 +169,7 @@ lb-plugin-cutout-ai(
     <div class="dl-head"><h3>抠图 / 移除背景（本地 / AI）</h3><span class="pill">.py · 免编译</span></div>
     <p>包里是一个 <code>.py</code>、一份安装说明，以及 <code>_shared/</code> 与 <code>locale/</code>。整包解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，但界面只有英文。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-cutout.zip">下载 抠图 / 移除背景（本地 / AI）</a>
-    <p class="muted small">77.9 KB · 校验：<code>SHA256 5d9a54abc5c0c8aa1c265878cecc204b…</code></p>
+    <p class="muted small">80.3 KB · 校验：<code>SHA256 b014278120f4711a3c29aa4ffad09feb…</code></p>
   </div>
 </section>
 
@@ -154,7 +182,7 @@ lb-plugin-cutout-ai(
     <p class="toc-title">本页目录</p>
     <ul>
       <li><a href="#zh-overview">概览</a></li>
-<li><a href="#zh-sec-1">两条路各自管什么</a></li><li><a href="#zh-sec-2">输出形态</a></li><li><a href="#zh-sec-3">实测</a></li><li><a href="#zh-sec-4">蒙版怎么从 AI 的 alpha 变成选区</a></li><li><a href="#zh-sec-5">两个静默失败</a></li>
+<li><a href="#zh-sec-1">两条路各自管什么</a></li><li><a href="#zh-sec-2">输出形态</a></li><li><a href="#zh-sec-3">实测</a></li><li><a href="#zh-sec-4">四个模型，门槛不一样</a></li><li><a href="#zh-sec-5">蒙版怎么从 AI 的 alpha 变成选区</a></li><li><a href="#zh-sec-6">两个静默失败</a></li>
       <li><a href="#zh-download">下载</a></li>
     </ul>
   </aside>
@@ -236,8 +264,40 @@ lb-plugin-cutout-ai(
        24 MP is a matter of milliseconds.</p>
   </div>
 
+  <div class="dl" id="en-sec-4">
+    <div class="dl-head"><h3>Four models, four different thresholds</h3>
+      <span class="pill">tested one by one, Nov 2026</span></div>
+    <p>The ComfyUI-RMBG node lists four models in one dropdown, but getting them to run is
+       not the same job. The plug-in appends the difference to each entry and, when one
+       fails, says what is missing instead of echoing <code>No module named …</code>.</p>
+    <div class="table-wrap"><table class="op-table">
+      <thead><tr><th>Model</th><th>First run needs</th><th>Measured</th></tr></thead>
+      <tbody>
+        <tr><td><b>RMBG-2.0</b></td>
+            <td>Nothing — downloaded along with ComfyUI-RMBG (812 MB)</td>
+            <td>4.6 s on a 768×1024 portrait, cleanest hair. The default</td></tr>
+        <tr><td><b>BEN2</b></td><td>A one-time ~1.1 GB weight download</td>
+            <td>Faster in batches, slightly softer edges; fine for people and products</td></tr>
+        <tr><td><b>BEN</b></td><td>A one-time ~1.1 GB weight download (8 min here)</td>
+            <td>Works, but nothing over BEN2 except the longer wait</td></tr>
+        <tr><td><b>INSPYRENET</b></td>
+            <td>The <code>transparent-background</code> Python package (plus onnxruntime),
+                and it runs on CPU by default</td>
+            <td>Fails without the package; slower than RMBG-2.0 even with it. Not
+                recommended</td></tr>
+      </tbody>
+    </table></div>
+    <p>While the weights download, the ComfyUI console only prints a few
+       <code>Downloading…</code> lines and the progress bar does not move — the plug-in can
+       only wait. So the timeout message reads “downloading about 1.1 GB, give it a few more
+       minutes” rather than “image too large or too many steps”. If you would rather not
+       wait, switch back to RMBG-2.0.</p>
+    <p>To check for yourself: <code>python tools/check_cutout_models.py</code> runs every
+       model once for real and prints its time and failure reason.</p>
+  </div>
+
   <div class="dl-grid">
-    <div class="dl" id="en-sec-4">
+    <div class="dl" id="en-sec-5">
       <div class="dl-head"><h3>Turning an AI alpha into a selection</h3></div>
       <p>The alpha comes back at thumbnail size (long edge ≤ 2048). Interpolating that to
          4000×6000 in Python takes tens of seconds, so instead a temporary layer of the same
@@ -245,7 +305,7 @@ lb-plugin-cutout-ai(
          <code>gimp-layer-scale</code>, and finally <code>select-item</code>d. The scaling is
          C; Python moves <code>mw×mh×4</code> bytes once.</p>
     </div>
-    <div class="dl" id="en-sec-5">
+    <div class="dl" id="en-sec-6">
       <div class="dl-head"><h3>Two silent failures</h3></div>
       <p><b>A flood fill that selects nothing reports no error</b>: the selection is empty,
          inverting gives the whole image, and the result looks like “the subject became pure
@@ -263,7 +323,7 @@ lb-plugin-cutout-ai(
     <div class="dl-head"><h3>Cut Out / Remove Background</h3><span class="pill">.py · no compile</span></div>
     <p>The archive holds a single <code>.py</code>, an install note and the <code>_shared/</code> + <code>locale/</code> pair. Unpack all of it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register. Without <code>_shared/</code> and <code>locale/</code> it still runs, but only in English.</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-cutout.zip">Download Cut Out / Remove Background</a>
-    <p class="muted small">77.9 KB · checksum: <code>SHA256 5d9a54abc5c0c8aa1c265878cecc204b…</code></p>
+    <p class="muted small">80.3 KB · checksum: <code>SHA256 b014278120f4711a3c29aa4ffad09feb…</code></p>
   </div>
 </section>
 
@@ -277,7 +337,7 @@ lb-plugin-cutout-ai(
     <p class="toc-title">On this page</p>
     <ul>
       <li><a href="#en-overview">Overview</a></li>
-<li><a href="#en-sec-1">Which route does what</a></li><li><a href="#en-sec-2">Output</a></li><li><a href="#en-sec-3">Measured</a></li><li><a href="#en-sec-4">Turning an AI alpha into a selection</a></li><li><a href="#en-sec-5">Two silent failures</a></li>
+<li><a href="#en-sec-1">Which route does what</a></li><li><a href="#en-sec-2">Output</a></li><li><a href="#en-sec-3">Measured</a></li><li><a href="#en-sec-4">Four models, four different thresholds</a></li><li><a href="#en-sec-5">Turning an AI alpha into a selection</a></li><li><a href="#en-sec-6">Two silent failures</a></li>
       <li><a href="#en-download">Download</a></li>
     </ul>
   </aside>
@@ -298,7 +358,7 @@ lb-plugin-cutout-ai(
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">cf152f7</span>
+    <span class="muted">52afc29</span>
   </div>
 </footer>
 <script>

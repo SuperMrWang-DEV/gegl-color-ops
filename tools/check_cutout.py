@@ -267,6 +267,44 @@ def test_sources():
     ok("拒绝图层组（没有自己的像素）", "is_group()" in src)
 
 
+def test_model_notes():
+    section("8b. 模型可用性与报错翻译")
+    names = ["INSPYRENET", "BEN", "RMBG-2.0"]
+    ok("默认模型优先 RMBG-2.0（开箱即用那个）",
+       AC.preferred_model(names) == "RMBG-2.0", AC.preferred_model(names))
+    ok("用户选中的模型原样保留",
+       AC.preferred_model(names, "BEN") == "BEN")
+    ok("节点列表里没有 RMBG-2.0 时退而求其次选 BEN2",
+       AC.preferred_model(["INSPYRENET", "BEN2"]) == "BEN2")
+    ok("空列表不崩", AC.preferred_model([]) == "")
+
+    # 权重表与节点里的模型名必须对得上：漏一个就说明新模型没有按 MLA
+    for name in AC.CUTOUT_MODELS:
+        ok("权重表收录 %s" % name, name in AC.CUTOUT_WEIGHT_MB)
+
+    missing = AC.explain_cutout_error(
+        "ComfyUI 执行出错：RMBG: Error in image processing: Error in "
+        "Inspyrenet processing: Failed to initialize transparent_background: "
+        "No module named 'transparent_background'", "INSPYRENET")
+    ok("缺 transparent_background 时给 pip 命令",
+       "pip install" in missing and "transparent-background" in missing,
+       missing[:100])
+    ok("提示里带 ComfyUI 的解释器路径",
+       "py312" in missing or "python.exe" in missing)
+
+    timeout = AC.explain_cutout_error(
+        "等了 600 秒 ComfyUI 还没跑完（任务 abc）", "BEN")
+    ok("超时且模型要下权重的，提示在下载而不是骂图太大",
+       "下载" in timeout and "1080" in timeout, timeout[:120])
+    ok("超时提示给了一条不用等的退路", "RMBG-2.0" in timeout)
+    ok("不认识模型的超时也要劝换 RMBG-2.0",
+       "RMBG-2.0" in AC.explain_cutout_error("timed out", ""))
+
+    oom = AC.explain_cutout_error("CUDA out of memory", "RMBG-2.0")
+    ok("认识的错误才加提示，认不出来原样返回", oom == "CUDA out of memory", oom)
+    ok("空错误串不会炸", AC.explain_cutout_error("", "") == "")
+
+
 def main():
     test_seeds()
     test_offset()
@@ -276,6 +314,7 @@ def main():
     test_workflow()
     test_mock_roundtrip()
     test_missing_node()
+    test_model_notes()
     test_sources()
     print("\n" + ("全部通过：%d 条断言" % PASS if not FAIL
                   else "失败 %d / %d：\n  " % (len(FAIL), len(FAIL) + PASS)

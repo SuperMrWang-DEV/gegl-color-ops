@@ -994,6 +994,34 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
        <code>gimp-image-select-contiguous-color</code> 是 C 实现，24MP 也是毫秒级。</p>
   </div>
 
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>四个模型，门槛不一样</h3><span class="pill">2026-11 逐个实测</span></div>
+    <p>ComfyUI-RMBG 的节点把四个模型摆在同一个下拉里，但它们的准备成本差得远。
+       插件会把差别写在选项后面，选错时也会说清缺什么，而不是甩一句
+       <code>No module named …</code>。</p>
+    <div class="table-wrap"><table class="op-table">
+      <thead><tr><th>模型</th><th>第一次用要做什么</th><th>实测</th></tr></thead>
+      <tbody>
+        <tr><td><b>RMBG-2.0</b></td>
+            <td>无。装 ComfyUI-RMBG 时就连带下好了（812 MB）</td>
+            <td>768×1024 人像 4.6 秒，发丝最干净 —— 默认选它</td></tr>
+        <tr><td><b>BEN2</b></td><td>首次下约 1.1 GB 权重</td>
+            <td>批量推理快，边缘略软；人像、商品都可以</td></tr>
+        <tr><td><b>BEN</b></td><td>首次下约 1.1 GB 权重（实测下载 8 分钟）</td>
+            <td>能用，但没有明显强过 BEN2，下载最久</td></tr>
+        <tr><td><b>INSPYRENET</b></td>
+            <td>要装 Python 包 <code>transparent-background</code>（连带
+                onnxruntime），而且它默认走 CPU</td>
+            <td>没装必炸；装了也比 RMBG-2.0 慢，不推荐</td></tr>
+      </tbody>
+    </table></div>
+    <p>下载那几分钟里 ComfyUI 窗口只多出几行 <code>Downloading…</code>，进度条不动，
+       插件这边只能等。所以超时提示写的是「正在下约 1.1 GB 权重，再等等」，
+       而不是「图太大或步数太多」。等不了就换 RMBG-2.0。</p>
+    <p>想自己核对：<code>python tools/check_cutout_models.py</code> 会把四个模型逐个
+       真跑一遍，打印每个的耗时与失败原因。</p>
+  </div>
+
   <div class="dl-grid">
     <div class="dl">
       <div class="dl-head"><h3>蒙版怎么从 AI 的 alpha 变成选区</h3></div>

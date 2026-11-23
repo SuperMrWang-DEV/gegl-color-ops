@@ -23,6 +23,7 @@
 
 import json
 import os
+import re
 import struct
 import time
 import urllib.error
@@ -883,6 +884,25 @@ CUTOUT_NODE = "RMBG"
 CUTOUT_MODELS = ("RMBG-2.0", "INSPYRENET", "BEN", "BEN2")
 CUTOUT_PREFIX = "lb-cutout"
 
+# 节点把四个模型摆在同一个下拉里，但它们**不等价**（2026-11-23 在本机逐个实测，
+# 见 tools/check_cutout_models.py）：
+#   RMBG-2.0    开箱即用。BiRefNet，发丝/毛绒最干净，权重 844 MB，默认选它。
+#   INSPYRENET  要 Python 包 transparent-background（连带 onnxruntime）。没装时
+#               节点直接抛 "No module named 'transparent_background'"——实测必炸。
+#   BEN         自带 model.py + BEN_Base.pth（实测 1.08 GB）。
+#   BEN2        自带 BEN2.py + BEN2_Base.pth（实测 1.08 GB），批量推理更快。
+# 后两个不是「不能用」，是「第一次要等下载」。真正的坑在于下载那几分钟里
+# ComfyUI 一行日志都不打，插件就在那转圈，用户只能以为卡死了。所以下面
+# 准备了一张权重表，把超时翻成「正在下 X MB，再等等」。
+CUTOUT_WEIGHT_MB = {
+    "RMBG-2.0": 844,
+    "INSPYRENET": 350,
+    "BEN": 1080,
+    "BEN2": 1080,
+}
+# 默认模型的优先级：先挑真的能跑的，再考虑效果。
+CUTOUT_PREFERRED = ("RMBG-2.0", "BEN2", "BEN", "INSPYRENET")
+
 
 def build_cutout_workflow(image_name, model="RMBG-2.0", sensitivity=1.0,
                           process_res=1024, mask_blur=0, mask_offset=0,
@@ -941,6 +961,66 @@ def cutout_available(client, timeout=2.0):
     return bool(cutout_models(client, timeout=timeout))
 
 
+def preferred_model(models, want=""):
+    """挑一个默认模型：want 命中就用它，否则按「能用优先」的顺序挑。"""
+    names = [str(m) for m in (models or [])]
+    want = (want or "").strip()
+    if want and want in names:
+        return want
+    for cand in CUTOUT_PREFERRED:
+        if cand in names:
+            return cand
+    return names[0] if names else ""
+
+
+def explain_cutout_error(message, model="", elapsed=None):
+    """把 ComfyUI 回的抠图错误翻成「缺什么、怎么补」。
+
+    认不出来就原样返回——宁可给用户看原文，也不要编一句对的废话。
+    """
+    text = str(message or "")
+    low = text.lower()
+    tips = []
+
+    if "transparent_background" in low:
+        tips.append(
+            "INSPYRENET 要 Python 包 transparent-background（它自己还要 "
+            "onnxruntime），当前这个 ComfyUI 环境里没装：\n"
+            "    <ComfyUI>\\py312\\python.exe -m pip install "
+            "transparent-background onnxruntime\n"
+            "装完重启 ComfyUI。副作用是这个包会把 opencv-python-headless 和 "
+            "protobuf 一起升上去，别的节点若依赖旧版可能受影响；只求稳就用 "
+            "RMBG-2.0（开箱即用，效果也最好）。")
+    else:
+        mod = re.search(r"no module named '([\w.\-]+)'", low)
+        if mod:
+            tips.append("这个模型缺 Python 包 %s：\n    <ComfyUI>\\py312\\python.exe "
+                        "-m pip install %s\n装完重启 ComfyUI。"
+                        % (mod.group(1), mod.group(1).split(".")[0]))
+
+    timed_out = ("还没跑完" in text) or ("timed out" in low) or ("timeout" in low)
+    if timed_out:
+        mb = CUTOUT_WEIGHT_MB.get(model, 0)
+        if mb:
+            tips.append(
+                "%s 第一次用要先下约 %d MB 权重。下载阶段 ComfyUI 窗口里只会"
+                "多出几行 Downloading…，进度条是不动的，插件这边只能干等。\n"
+                "  先去看一眼 ComfyUI 窗口：还在 Downloading 就多等几分钟，"
+                "权重落盘后再跑是秒出；下不动就查网络/镜像"
+                "（start-comfyui.bat 里设了 HF_ENDPOINT=https://hf-mirror.com）。"
+                % (model, mb))
+        tips.append("不想等就换 RMBG-2.0 —— 它不需要额外下载。")
+    elif any(k in low for k in ("connection", "name or service", "ssl",
+                                "download", "404", "resolve")):
+        tips.append("权重下载失败：确认能访问 hf-mirror.com。"
+                    "ComfyUI 的启动脚本里已经设了 HF_ENDPOINT，"
+                    "如果是手动起的服务，要自己先 set 这个变量。")
+
+    if not tips:
+        return text
+    return text + "\n\n" + "\n".join(tips)
+
+
 def cutout(client, image_png, model="", sensitivity=1.0, process_res=1024,
            mask_blur=0, mask_offset=0, refine_foreground=True,
            timeout=600.0, on_tick=None):
@@ -959,9 +1039,11 @@ def cutout(client, image_png, model="", sensitivity=1.0, process_res=1024,
             "  3. 重启 ComfyUI（会自动下载 RMBG-2.0 模型，约 900 MB）\n"
             "装好后这个菜单就能用了；本地抠图那条路不需要它。")
     want = (model or "").strip()
+    fallback_from = ""
     if want and want not in models:
-        want = ""                     # 名字对不上就退回第一个，不报错
-    model = want or models[0]
+        fallback_from = want          # 名字对不上就退回推荐的，不报错
+        want = ""
+    model = preferred_model(models, want)
 
     src_name, _ = client.upload_image("lb-cutout-src.png", image_png)
     wf = build_cutout_workflow(src_name, model=model, sensitivity=sensitivity,
@@ -969,11 +1051,18 @@ def cutout(client, image_png, model="", sensitivity=1.0, process_res=1024,
                                mask_offset=mask_offset,
                                refine_foreground=refine_foreground)
     pid = client.queue(wf)
-    entry = client.wait(pid, timeout=timeout, on_tick=on_tick)
+    try:
+        entry = client.wait(pid, timeout=timeout, on_tick=on_tick)
+    except ComfyError as exc:
+        # 报错原文对用户没用（"No module named ..." / "等了 600 秒还没跑完"），
+        # 在这里补上「缺什么、怎么补」，插件那边就能原样弹出来。
+        raise ComfyError(explain_cutout_error(str(exc), model,
+                                              time.time() - t0)) from None
     img = first_image(entry)
     blob = client.download(img.get("filename", ""), img.get("subfolder", ""),
                            img.get("type", "output"))
     return blob, {"prompt_id": pid, "model": model,
+                  "fallback_from": fallback_from,
                   "seconds": round(time.time() - t0, 2),
                   "filename": img.get("filename", "")}
 

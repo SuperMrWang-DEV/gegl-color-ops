@@ -610,8 +610,22 @@ alpha 都有回滚。与算子版本的区别是**一次性应用**——想随�
 （`models/RMBG/RMBG-2.0/`）。节点包不在时会直接说清装哪个仓库，而不是把
 ComfyUI 的 `node_errors` 原样甩出来。本地那条什么都不需要。
 
-回归：`tools/check_cutout.py`（70 条：种子点分布、偏移换算、alpha 残影闸、
-cover 缩放、背景三选一、工作流参数、mock 端到端、节点缺失文案、源码约束）+
+**模型下拉里四个选项门槛不一样**（2026-11 逐个实测，`tools/check_cutout_models.py`）：
+
+| 模型 | 第一次用要做什么 | 结论 |
+| --- | --- | --- |
+| RMBG-2.0 | 无（随节点包一起下，812 MB） | 默认，发丝最干净 |
+| BEN2 | 首次下约 1.1 GB 权重 | 可用，批量快 |
+| BEN | 首次下约 1.1 GB 权重（实测 8 分钟） | 可用，但没有强过 BEN2 |
+| INSPYRENET | 要装 `transparent-background`（连带 onnxruntime，且默认 CPU） | 没装必炸，装了也慢；不推荐 |
+
+插件把每个模型的代价写在选项后面，超时也会翻成「正在下约 X MB 权重」而不是
+「图太大」；认得出的错误（缺包、下载失败）会附上可照抄的 pip 命令。
+`python tools/check_cutout_models.py` 可以随时把四个模型真跑一遍对账。
+
+回归：`tools/check_cutout.py`（87 条：种子点分布、偏移换算、alpha 残影闸、
+cover 缩放、背景三选一、工作流参数、mock 端到端、节点缺失文案、模型优选项与
+报错翻译、源码约束）+
 `tools/check_cutout_gimp.py`（30 条：蒙版真的落在像素上、选区路径、三种背景、
 cover 之后的尺寸与偏移、失败路径不留蒙版/选区）。
 

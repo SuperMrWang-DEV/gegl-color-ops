@@ -369,6 +369,7 @@ def cutout_ai(image, drawable, server="", model="", resolution=1024,
         image.undo_group_end()
     Gimp.displays_flush()
     return drawable, {"model": cinfo.get("model", model),
+                      "fallback_from": cinfo.get("fallback_from", ""),
                       "seconds": cinfo.get("seconds"),
                       "foreground": ratio, "mask_min": lo, "mask_max": hi,
                       "mask_size": (dw, dh), "thumb": (tw, th),
@@ -425,6 +426,18 @@ def cutout_local(image, drawable, threshold=LOCAL_THRESHOLD,
 
 # ---- 程序注册 ---------------------------------------------------------------
 
+# 每个模型后面跟的一句话注解。写死在这里是有原因的：/object_info 只有模型
+# 名字，看不出某个模型缺 Python 包、或者第一次要下 1.1 GB 权重；用户点了才
+# 炸，而且炸出来的是 "No module named 'transparent_background'" 这种天书。
+# 这几条来自实测（tools/check_cutout_models.py，2026-11-23）。
+_MODEL_NOTES = {
+    "RMBG-2.0": ("", "ready to use"),
+    "INSPYRENET": ("needs transparent-background", "needs an extra Python package"),
+    "BEN": ("first run downloads 1.1 GB", "first run downloads the weights"),
+    "BEN2": ("first run downloads 1.1 GB", "first run downloads the weights"),
+}
+
+
 def _add_model_argument(procedure):
     """抠图模型下拉：连得上 ComfyUI 就把可选模型列出来，连不上退回文本框。"""
     names = []
@@ -433,16 +446,24 @@ def _add_model_argument(procedure):
             names = ai_client.cutout_models(ai_client.ComfyClient(timeout=1.5))
         except Exception:
             names = []
-    help_text = _("RMBG-2.0 (BiRefNet) gives the cleanest hair and fur; "
-                  "INSPYRENET is faster, BEN/BEN2 are lighter models. "
-                  "Needs the ComfyUI-RMBG custom node pack.")
+    help_text = _("RMBG-2.0 (BiRefNet) gives the cleanest hair and fur and needs "
+                  "no extra download. INSPYRENET is faster but needs the "
+                  "transparent-background Python package; BEN/BEN2 need a "
+                  "one-time ~1 GB weight download. Needs the ComfyUI-RMBG "
+                  "custom node pack.")
     if names:
         try:
             choice = Gimp.Choice.new()
             for idx, name in enumerate(names):
-                choice.add(name, idx, name, _("From this ComfyUI installation"))
+                label, blurb = _MODEL_NOTES.get(name, ("", ""))
+                # 名字后面挂注解：下拉里一眼能看出「这个点了会等下载」。
+                # 值仍然是裸名字，写回 config 的是 name，不是 label。
+                shown = name + ("  — " + _(label) if label else "")
+                choice.add(name, idx, shown,
+                           _(blurb) or _("From this ComfyUI installation"))
+            default = ai_client.preferred_model(names) if ai_client else names[0]
             procedure.add_choice_argument(
-                "model", _("Cut-out model"), help_text, choice, names[0],
+                "model", _("Cut-out model"), help_text, choice, default,
                 GObject.ParamFlags.READWRITE)
             return
         except Exception:
@@ -597,6 +618,10 @@ class CutoutPlugin(Gimp.PlugIn):
                     info.get("model", "RMBG"),
                     info.get("seconds") or 0.0,
                     100.0 * float(info.get("foreground") or 0.0))
+                if info.get("fallback_from"):
+                    msg = _("Model \"%s\" is not on this ComfyUI, used %s "
+                            "instead. ") % (info["fallback_from"],
+                                            info.get("model", "RMBG")) + msg
             else:
                 layer, info = cutout_local(
                     image, drawable,
