@@ -99,16 +99,42 @@
 
   <div class="dl-grid">
     <div class="dl" id="zh-sec-3">
+      <div class="dl-head"><h3>复制样式：一份代码串</h3><span class="pill">复制粘贴</span></div>
+      <p>PS 是「右键 → 拷贝图层样式」，粘到另一个图层上是「右键 → 粘贴图层样式」。
+         GIMP 没有「样式挂在图层上」这个宿主概念，所以这里换成一串代码：对话框底部展开
+         <b>Style code</b>，里面就是当前样式的 JSON（换行缩进，全是 ASCII）；点
+         <b>Copy code</b> 带走，到另一个图层的同一个对话框里点 <b>Paste and load</b>，
+         或者把代码贴进框里再点 <b>Load this code</b>。参数面板、勾选框、预览会一起
+         跟着变，确定之后就是同一份样式。</p>
+      <p>代码里就是全部参数，没有藏起来的状态：数字越界会夹到边界、0–255 写法的颜色
+         自动除以 255、认不出来的效果忽略并提示 —— 所以从旧版本或别的机器上拿来的
+         代码也读得进去。这串东西正好就是 PDB 的 <code>style</code> 参数，脚本能原样
+         回放，不需要再维护第二套格式。</p>
+    </div>
+    <div class="dl" id="zh-sec-4">
+      <div class="dl-head"><h3>样式跟着图层走</h3><span class="pill">存进 XCF</span></div>
+      <p>应用之后，这份 JSON 会被写成图层和组的<b>寄生数据</b>（parasite），跟着 XCF
+         一起保存、跟着撤销一起回退。于是再点同一个图层的「图层样式」，看到的是
+         <b>上次那一套参数</b>，不是默认值 —— 少了这一步，复制出去的就永远是默认样式，
+         功能等于没有。</p>
+      <p>把一份样式铺到很多图层上：在源图层复制，再到每个目标图层粘一次。尺寸按文档
+         像素算，粘到尺寸不同的图层上数值原样保留（PS 也是这样）。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-5">
       <div class="dl-head"><h3>和 PS 差在哪</h3></div>
       <p><b>有：</b>十个效果、26 种混合模式、全局光角度、12 条等高线、扩展/阻塞、
          挖空（无 / 浅 / 深）、本图层的混合颜色带（含两端拆分）、实时预览。</p>
       <p><b>没有：</b>纹理（斜面的图案浮雕）、3D 材质、自定义等高线编辑器、
          <b>下一图层</b>的混合颜色带、图案叠加的角度旋转（PS 也没有）、
          「在图层上直接拖投影手柄」那套交互。</p>
-      <p>另外 GIMP 没有「样式挂在图层上」这回事，所以改参数要重跑一遍；PS 是点开
-         样式面板随时改。要反复微调的话，可以先把样式存在一个图层上，调好再复制到别的图层。</p>
+      <p>另外 GIMP 没有「样式挂在图层上」这回事，所以改参数要重跑一遍（PS 是点开
+         样式面板随时改）。不过参数本身会记在图层上，重跑时看到的就是上次那一套，
+         调好一处再复制给其它图层，实际用起来差别不大。</p>
     </div>
-    <div class="dl" id="zh-sec-4">
+    <div class="dl" id="zh-sec-6">
       <div class="dl-head"><h3>为什么交给 GIMP 的是「普通」模式</h3></div>
       <p>GIMP 3 默认的混合模式在<b>线性光</b>里算：实测 50% 的 204 叠在 51 上是
          <b>153</b>，而 PS 在 sRGB 值上算，结果是 <b>128</b>。直接把效果层挂上
@@ -121,13 +147,13 @@
   </div>
 
   <div class="dl-grid">
-    <div class="dl" id="zh-sec-5">
+    <div class="dl" id="zh-sec-7">
       <div class="dl-head"><h3>实测</h3></div>
       <p>768×1024、六种效果一起开：<b>1.7 s</b>（含 14 次全图合成），预览
          560 长边一帧 <b>60–100 ms</b>，拖滑杆跟得上手。描边和斜面用的都是精确
          带符号距离（不是模糊逼近），所以同样的参数在软边和硬边上厚度一致。</p>
     </div>
-    <div class="dl" id="zh-sec-6">
+    <div class="dl" id="zh-sec-8">
       <div class="dl-head"><h3>非交互也能跑</h3></div>
       <p>整份样式是一个 JSON 字符串参数 <code>style</code>，对话框点应用时写的就是
          它，脚本可以原样回放：<code>lb-plugin-layer-style 图层 style="{\"effects\":
@@ -142,7 +168,7 @@
     <div class="dl-head"><h3>图层样式…</h3><span class="pill">.py · 免编译</span></div>
     <p>包里是一个 <code>.py</code>、一份安装说明，以及 <code>_shared/</code> 与 <code>locale/</code>。整包解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，但界面只有英文。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-layer-style.zip">下载 图层样式…</a>
-    <p class="muted small">73.4 KB · 校验：<code>SHA256 1934cfa4f1035e82739c0ce41173955b…</code></p>
+    <p class="muted small">79.6 KB · 校验：<code>SHA256 acde7825b059435b6f3f437eac89cc48…</code></p>
   </div>
 </section>
 
@@ -155,7 +181,7 @@
     <p class="toc-title">本页目录</p>
     <ul>
       <li><a href="#zh-overview">概览</a></li>
-<li><a href="#zh-sec-1">十个效果，一个面板</a></li><li><a href="#zh-sec-2">结果是一组真图层</a></li><li><a href="#zh-sec-3">和 PS 差在哪</a></li><li><a href="#zh-sec-4">为什么交给 GIMP 的是「普通」模式</a></li><li><a href="#zh-sec-5">实测</a></li><li><a href="#zh-sec-6">非交互也能跑</a></li>
+<li><a href="#zh-sec-1">十个效果，一个面板</a></li><li><a href="#zh-sec-2">结果是一组真图层</a></li><li><a href="#zh-sec-3">复制样式：一份代码串</a></li><li><a href="#zh-sec-4">样式跟着图层走</a></li><li><a href="#zh-sec-5">和 PS 差在哪</a></li><li><a href="#zh-sec-6">为什么交给 GIMP 的是「普通」模式</a></li><li><a href="#zh-sec-7">实测</a></li><li><a href="#zh-sec-8">非交互也能跑</a></li>
       <li><a href="#zh-download">下载</a></li>
     </ul>
   </aside>
@@ -219,6 +245,37 @@
 
   <div class="dl-grid">
     <div class="dl" id="en-sec-3">
+      <div class="dl-head"><h3>Copying a style: one string of code</h3>
+        <span class="pill">copy / paste</span></div>
+      <p>Photoshop does it with right-click → Copy Layer Style, then Paste Layer Style on the
+         target. GIMP has no host concept of a style attached to a layer, so here it is a
+         string: expand <b>Style code</b> at the bottom of the dialog and you get the current
+         style as JSON (indented, pure ASCII). <b>Copy code</b> takes it away;
+         <b>Paste and load</b> in the other layer's dialog reads the clipboard, or paste into
+         the box yourself and press <b>Load this code</b>. Sliders, checkboxes and the preview
+         all follow, and Apply then gives that same style.</p>
+      <p>The string holds every parameter and no hidden state: out-of-range numbers are
+         clamped to the limit, colours written 0–255 are divided by 255, unknown effect names
+         are ignored with a note — so codes from an older version or another machine still
+         load. It is exactly the PDB's <code>style</code> argument, so scripts replay it with
+         no second format to keep in sync.</p>
+    </div>
+    <div class="dl" id="en-sec-4">
+      <div class="dl-head"><h3>The style travels with the layer</h3>
+        <span class="pill">stored in the XCF</span></div>
+      <p>After applying, that JSON is attached to the layer and the group as a
+         <b>parasite</b>: it is saved in the XCF and rolls back with undo. So opening Layer
+         Style on that layer again shows <b>the values you last used</b>, not the defaults —
+         without that step the copy feature would only ever copy the defaults, which is the
+         same as not having it.</p>
+      <p>To cover many layers with one style: copy on the source layer, then paste once per
+         target. Sizes are document pixels, so pasting onto a differently sized layer keeps
+         the numbers as they are — same as Photoshop.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-5">
       <div class="dl-head"><h3>Where it differs from Photoshop</h3></div>
       <p><b>There:</b> all ten effects, 26 blend modes, global light, 12 contours,
          spread / choke, knockout (none / shallow / deep), "blend if: this layer" with both
@@ -227,9 +284,11 @@
          "blend if: underlying layer", rotating the pattern (Photoshop cannot either), and
          dragging shadow handles straight on the canvas.</p>
       <p>GIMP has no concept of a style attached to a layer, so changing a parameter means running
-         the plug-in again — Photoshop lets you reopen the panel at any time.</p>
+         the plug-in again (Photoshop reopens the panel at any time). The values themselves are
+         remembered on the layer, though, so a re-run starts from what you last applied — and one
+         good style can be pasted onto the rest.</p>
     </div>
-    <div class="dl" id="en-sec-4">
+    <div class="dl" id="en-sec-6">
       <div class="dl-head"><h3>Why GIMP is handed plain "normal" layers</h3></div>
       <p>GIMP 3's default blend modes work in <b>linear light</b>: measured, 50% of 204 over 51
          gives <b>153</b>, while Photoshop blends sRGB values and gives <b>128</b>. Hang MULTIPLY
@@ -244,14 +303,14 @@
   </div>
 
   <div class="dl-grid">
-    <div class="dl" id="en-sec-5">
+    <div class="dl" id="en-sec-7">
       <div class="dl-head"><h3>Measured</h3></div>
       <p>768×1024 with six effects on: <b>1.7 s</b>, including 14 full-frame composites. The
          560-pixel preview runs a frame in <b>60–100 ms</b>, so sliders keep up. Stroke and bevel
          use an exact signed distance field rather than a blur, so the same number gives the same
          thickness on a soft edge and a hard one.</p>
     </div>
-    <div class="dl" id="en-sec-6">
+    <div class="dl" id="en-sec-8">
       <div class="dl-head"><h3>Scriptable</h3></div>
       <p>The whole style is one JSON string argument, <code>style</code>, and the dialog writes
          exactly what it applied, so a script can replay it. Gradients and patterns come from
@@ -265,7 +324,7 @@
     <div class="dl-head"><h3>Layer Style</h3><span class="pill">.py · no compile</span></div>
     <p>The archive holds a single <code>.py</code>, an install note and the <code>_shared/</code> + <code>locale/</code> pair. Unpack all of it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register. Without <code>_shared/</code> and <code>locale/</code> it still runs, but only in English.</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-layer-style.zip">Download Layer Style</a>
-    <p class="muted small">73.4 KB · checksum: <code>SHA256 1934cfa4f1035e82739c0ce41173955b…</code></p>
+    <p class="muted small">79.6 KB · checksum: <code>SHA256 acde7825b059435b6f3f437eac89cc48…</code></p>
   </div>
 </section>
 
@@ -279,7 +338,7 @@
     <p class="toc-title">On this page</p>
     <ul>
       <li><a href="#en-overview">Overview</a></li>
-<li><a href="#en-sec-1">Ten effects, one panel</a></li><li><a href="#en-sec-2">The result is real layers</a></li><li><a href="#en-sec-3">Where it differs from Photoshop</a></li><li><a href="#en-sec-4">Why GIMP is handed plain &quot;normal&quot; layers</a></li><li><a href="#en-sec-5">Measured</a></li><li><a href="#en-sec-6">Scriptable</a></li>
+<li><a href="#en-sec-1">Ten effects, one panel</a></li><li><a href="#en-sec-2">The result is real layers</a></li><li><a href="#en-sec-3">Copying a style: one string of code</a></li><li><a href="#en-sec-4">The style travels with the layer</a></li><li><a href="#en-sec-5">Where it differs from Photoshop</a></li><li><a href="#en-sec-6">Why GIMP is handed plain &quot;normal&quot; layers</a></li><li><a href="#en-sec-7">Measured</a></li><li><a href="#en-sec-8">Scriptable</a></li>
       <li><a href="#en-download">Download</a></li>
     </ul>
   </aside>
@@ -300,7 +359,7 @@
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">65153d2</span>
+    <span class="muted">2ad6676</span>
   </div>
 </footer>
 <script>

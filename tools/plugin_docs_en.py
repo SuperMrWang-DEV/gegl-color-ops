@@ -2078,6 +2078,37 @@ PLUGIN_EN["layer-style"] = dict(
 
   <div class="dl-grid">
     <div class="dl primary-dl">
+      <div class="dl-head"><h3>Copying a style: one string of code</h3>
+        <span class="pill">copy / paste</span></div>
+      <p>Photoshop does it with right-click → Copy Layer Style, then Paste Layer Style on the
+         target. GIMP has no host concept of a style attached to a layer, so here it is a
+         string: expand <b>Style code</b> at the bottom of the dialog and you get the current
+         style as JSON (indented, pure ASCII). <b>Copy code</b> takes it away;
+         <b>Paste and load</b> in the other layer's dialog reads the clipboard, or paste into
+         the box yourself and press <b>Load this code</b>. Sliders, checkboxes and the preview
+         all follow, and Apply then gives that same style.</p>
+      <p>The string holds every parameter and no hidden state: out-of-range numbers are
+         clamped to the limit, colours written 0–255 are divided by 255, unknown effect names
+         are ignored with a note — so codes from an older version or another machine still
+         load. It is exactly the PDB's <code>style</code> argument, so scripts replay it with
+         no second format to keep in sync.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>The style travels with the layer</h3>
+        <span class="pill">stored in the XCF</span></div>
+      <p>After applying, that JSON is attached to the layer and the group as a
+         <b>parasite</b>: it is saved in the XCF and rolls back with undo. So opening Layer
+         Style on that layer again shows <b>the values you last used</b>, not the defaults —
+         without that step the copy feature would only ever copy the defaults, which is the
+         same as not having it.</p>
+      <p>To cover many layers with one style: copy on the source layer, then paste once per
+         target. Sizes are document pixels, so pasting onto a differently sized layer keeps
+         the numbers as they are — same as Photoshop.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
       <div class="dl-head"><h3>Where it differs from Photoshop</h3></div>
       <p><b>There:</b> all ten effects, 26 blend modes, global light, 12 contours,
          spread / choke, knockout (none / shallow / deep), "blend if: this layer" with both
@@ -2086,7 +2117,9 @@ PLUGIN_EN["layer-style"] = dict(
          "blend if: underlying layer", rotating the pattern (Photoshop cannot either), and
          dragging shadow handles straight on the canvas.</p>
       <p>GIMP has no concept of a style attached to a layer, so changing a parameter means running
-         the plug-in again — Photoshop lets you reopen the panel at any time.</p>
+         the plug-in again (Photoshop reopens the panel at any time). The values themselves are
+         remembered on the layer, though, so a re-run starts from what you last applied — and one
+         good style can be pasted onto the rest.</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>Why GIMP is handed plain "normal" layers</h3></div>

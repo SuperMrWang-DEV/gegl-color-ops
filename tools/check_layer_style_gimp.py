@@ -278,6 +278,97 @@ def main():
     check("投影层 offset = 原图层的 offset",
           mod.layer_offsets(kid8) == (40, 30), mod.layer_offsets(kid8))
 
+    section("复制样式：寄生数据 + 代码框")
+    img8, layer8 = make_image(120, 90, box=(20, 20, 100, 70), alpha=True)
+    images.append(img8)
+    st8 = only(LS.default_style(), "drop-shadow", "inner-shadow", "stroke")
+    st8["effects"]["drop-shadow"]["distance"] = 11
+    st8["effects"]["stroke"]["position"] = "inside"
+    info8 = mod.apply_style(img8, layer8, st8)
+    back8 = mod.recover_style(layer8)
+    check("重开对话框能读回上次的样式（不是默认值）",
+          back8 is not None
+          and LS.format_style(back8) == LS.format_style(st8),
+          None if back8 is None else "ok")
+    check("组上挂着这份样式", mod._read_style_code(info8["group"]) is not None)
+    check("图层自己也挂着（被拖出组也还在）",
+          mod._read_style_code(layer8) is not None)
+    img_bare, layer_bare = make_image(40, 40)
+    images.append(img_bare)
+    check("没挂过的图层读回来是 None",
+          mod.recover_style(layer_bare) is None)
+
+    # 真正的「拷贝图层样式 → 粘到另一个图层」
+    img9, layer9 = make_image(120, 90, box=(25, 25, 105, 75), alpha=True)
+    images.append(img9)
+    code8 = LS.format_style(mod.recover_style(layer8))
+    st_copy, _warn8 = LS.read_style_code(code8)
+    mod.apply_style(img9, layer9, st_copy)
+    names8 = [c.get_name() for c in info8["group"].get_children()]
+    names9 = [c.get_name() for c in layer9.get_parent().get_children()]
+    check("粘过去之后层序与层名完全一致", names8 == names9, names9)
+    check("新图层也记住了这份样式",
+          LS.format_style(mod.recover_style(layer9)) == code8)
+
+    section("对话框里的代码框（复制 / 粘贴自己来）")
+    img10, layer10 = make_image(240, 180, box=(60, 50, 180, 120), alpha=True)
+    images.append(img10)
+    cfg10 = FakeConfig()
+    dlg10, ctx10 = mod.build_dialog(cfg10, img10, layer10, 240, 180)
+    code10 = ctx10["style_code"]()
+    check("代码框里是一份能读回来的代码",
+          LS.format_style(LS.read_style_code(code10)[0])
+          == LS.format_style(ctx10["style"]))
+    check("框里的文本就是那份代码", ctx10["box_text"]().strip() == code10.strip(),
+          "%d 字符" % len(code10))
+    check("代码面板默认收起（对话框高度不变）",
+          ctx10["code_panel"].get_visible() is False)
+    ctx10["changed"]()
+    ctx10["style"]["effects"]["drop-shadow"]["distance"] = 33
+    ctx10["changed"]()
+    check("参数一改，代码串跟着变",
+          '"distance": 33' in ctx10["box_text"]())
+
+    before10 = bytes(ctx10["pixbuf"].get_pixels()) if ctx10["pixbuf"] else b""
+    st_new = only(LS.default_style(), "outer-glow", "bevel")
+    st_new["effects"]["bevel"].update({"size": 17.0, "style": "pillow"})
+    st_new["effects"]["outer-glow"]["size"] = 12.0
+    loaded = ctx10["load_code"](LS.pretty_style(st_new))
+    check("粘贴另一份代码 → 载入成功", loaded is True)
+    check("载入后样式等于粘进来的那份",
+          LS.format_style(ctx10["style"]) == LS.format_style(st_new))
+    check("载入后滑杆跟着变（斜面大小 17）",
+          abs(ctx10["controls"]["bevel"]["size"].get_value() - 17.0) < 0.01,
+          ctx10["controls"]["bevel"]["size"].get_value())
+    check("载入后下拉跟着变（枕状浮雕）",
+          ctx10["controls"]["bevel"]["style"].get_active_id() == "pillow",
+          ctx10["controls"]["bevel"]["style"].get_active_id())
+    check("载入后勾选框跟着变（斜面开、投影关）",
+          ctx10["rowmap"]["bevel"].get_child().get_active()
+          and not ctx10["rowmap"]["drop-shadow"].get_child().get_active())
+    check("载入后代码框换成新代码",
+          '"size": 17' in ctx10["box_text"]())
+    ctx10["render"]()
+    after10 = bytes(ctx10["pixbuf"].get_pixels()) if ctx10["pixbuf"] else b""
+    check("载入后预览真的重画了", before10 and before10 != after10,
+          "%d vs %d" % (len(before10), len(after10)))
+
+    before_style = LS.format_style(ctx10["style"])
+    check("乱粘一坨 → 返回 False",
+          ctx10["load_code"]("hello world") is False)
+    check("乱粘之后样式没被改坏",
+          LS.format_style(ctx10["style"]) == before_style)
+
+    copied = ctx10["copy_code"]()
+    check("复制出来的就是当前这份（剪贴板不行就退回全选）",
+          LS.format_style(LS.read_style_code(copied)[0]) == before_style)
+    check("复制的内容还能再粘回去", ctx10["load_code"](copied) is True)
+
+    if ctx10["id"]:
+        from gi.repository import GLib as _GLib
+        _GLib.source_remove(ctx10["id"])
+    dlg10.destroy()
+
     section("GIMP 真的按混合模式合成了吗（数学 vs GEGL）")
     img10, layer10 = make_image(240, 180, box=(60, 50, 180, 120),
                                 fg=(90, 140, 220), alpha=True)

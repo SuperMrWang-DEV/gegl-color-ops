@@ -18,7 +18,7 @@
 
  usage     选一个像素图层 → 菜单 → 左边勾选效果 → 右边调参数 → 应用。
 
- note      三个非踩不可的：
+ note      四个非踩不可的：
            1. **像素参数在预览里要乘 k**。预览图是可缩放过的（长边 560），
               而「距离 5 px / 大小 8 px」是文档像素。不缩放的话预览里的投影
               比真正应用时大两倍，用户会以为确定以后「变小了」。
@@ -27,6 +27,10 @@
               画布左上角，效果整个错位——看起来像「投影没跟着内容走」。
            3. **重跑时必须先把旧的效果层删掉**。只往上加的话，同一组里会堆出
               十套投影，而且旧层还带着旧参数，用户永远调不干净。
+           4. **样式得自己记**。GIMP 没有「样式挂在图层上」，所以整份 JSON 要
+              挂成寄生数据（parasite，跟着 XCF 存）。不记的话：再打开对话框
+              只看到默认值，PS 那种「拷贝图层样式 → 粘到另一个图层」也就无从
+              谈起。对话框底下那条「Style code」就是把这份 JSON 交给人复制。
 
  license   GPL-3.0-or-later，见工程根目录 LICENSE
  ==========================================================================="""
@@ -234,6 +238,76 @@ def _find_style_group(drawable):
     return None
 
 
+# ---- 样式跟着图层走：寄生数据 ---------------------------------------------
+# GIMP 没有「样式挂在图层上」这回事，但 XCF 能存任意寄生数据（parasite）。
+# 把整份样式 JSON 挂到组和原图层上，于是：
+#   · 关掉 GIMP 再打开，点这个图层的图层样式，看到的是上次那一套，不是默认值；
+#   · 「复制到别的图层」真正可用 —— 不然打开对话框只有默认参数，复制的
+#     永远是默认样式，等于没做。
+STYLE_PARASITE = "supermrwang-layer-style"
+
+# Gimp.Parasite.new 的 flags 是整数：1 = PERSISTENT，2 = UNDOABLE。
+# PERSISTENT 才会跟着 XCF 一起存，少这一位就是「关了 GIMP 就丢」。
+_PARASITE_FLAGS = 1 | 2
+
+
+def _read_style_code(item):
+    """从图层/组上读回样式代码字符串；没有就 None。"""
+    if item is None:
+        return None
+    try:
+        par = Gimp.Item.get_parasite(item, STYLE_PARASITE)
+    except Exception:
+        return None
+    if par is None:
+        return None
+    try:
+        return bytes(par.get_data()).decode("utf-8", "replace")
+    except Exception:
+        return None
+
+
+def remember_style(item, style):
+    """把样式写成寄生数据。返回是否成功（失败不影响出图，所以不抛）。"""
+    if item is None:
+        return False
+    try:
+        code = LS.format_style(style).encode("utf-8")
+        Gimp.Item.attach_parasite(
+            item, Gimp.Parasite.new(STYLE_PARASITE, _PARASITE_FLAGS, code))
+        return True
+    except Exception:
+        return False
+
+
+def recover_style(drawable):
+    """这个图层上一次用的样式：先看它自己，再看它所在的样式组。
+
+    返回 style dict 或 None。代码坏掉就当没有（不能因为一段残留数据
+    让「打开对话框」整个失败）。
+    """
+    cands = [drawable]
+    group = _find_style_group(drawable)
+    if group is not None:
+        cands.insert(0, group)
+    try:
+        parent = drawable.get_parent()
+        if parent is not None and parent not in cands:
+            cands.append(parent)
+    except Exception:
+        pass
+    for item in cands:
+        code = _read_style_code(item)
+        if not code:
+            continue
+        try:
+            st, _warn = LS.read_style_code(code)
+        except LS.StyleCodeError:
+            continue
+        return st
+    return None
+
+
 def apply_style(image, drawable, style, assets=None):
     """渲染样式并写成图层组。返回 info 字典。"""
     if not LS.have_numpy():
@@ -300,6 +374,12 @@ def apply_style(image, drawable, style, assets=None):
             _write_layer(image, node, w, h, lyr["bytes"], offset,
                          lyr["mode"], lyr["opacity"])
             made.append(node)
+
+        # 样式存到组和原图层上（跟着 XCF 走）：再点这个图层就是上次那一套，
+        # 「复制样式到别的图层」也才有东西可复制。放在 undo 组里，
+        # 于是「撤销」会连样式一起退回去，不会留下对不上的参数。
+        remember_style(group, style)
+        remember_style(drawable, style)
     finally:
         try:
             image.undo_group_end()
@@ -417,7 +497,154 @@ def build_dialog(config, image, drawable, w, h):
 
     ctx = {"style": style, "k": k, "assets": {}, "pixbuf": None,
            "id": 0, "page": "blend", "preview_w": pw, "preview_h": ph,
-           "preview_rgba": prgba, "controls": {}, "drawable": drawable}
+           "preview_rgba": prgba, "controls": {}, "drawable": drawable,
+           "quiet": False}
+
+    # ---- 样式代码：复制到另一个图层 / 从代码粘回来 ------------------------
+    # GIMP 里样式不是图层的一个属性，PS 那种「右键 → 拷贝图层样式」没有对应
+    # 的宿主功能，所以跨图层复制就靠这一份 JSON：复制出去，到另一个图层的
+    # 对话框里粘回来。同一份字符串也正是 PDB 的 style 参数，脚本能直接回放。
+    exp = Gtk.Expander.new(_("Style code — copy this style to another layer"))
+    outer.pack_start(exp, False, False, 0)
+    cwrap = Gtk.Box.new(Gtk.Orientation.VERTICAL, 4)
+    cwrap.set_border_width(6)
+    exp.add(cwrap)
+
+    cbar = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 6)
+    cwrap.pack_start(cbar, False, False, 0)
+    b_copy = Gtk.Button.new_with_label(_("Copy code"))
+    b_paste = Gtk.Button.new_with_label(_("Paste and load"))
+    b_load = Gtk.Button.new_with_label(_("Load this code"))
+    for _b in (b_copy, b_paste, b_load):
+        cbar.pack_start(_b, False, False, 0)
+    chint = Gtk.Label.new(_("Sizes are document pixels — pasting onto a "
+                            "different-sized layer keeps them as they are."))
+    chint.set_xalign(0.0)
+    chint.set_line_wrap(True)
+    cbar.pack_start(chint, True, True, 0)
+
+    tview = Gtk.TextView.new()
+    tview.set_monospace(True)
+    tview.set_wrap_mode(Gtk.WrapMode.CHAR)
+    buf = tview.get_buffer()
+    cscroll = Gtk.ScrolledWindow.new(None, None)
+    cscroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+    cscroll.set_size_request(-1, 104)
+    cscroll.add(tview)
+    cwrap.pack_start(cscroll, False, False, 0)
+
+    cstate = Gtk.Label.new("")
+    cstate.set_xalign(0.0)
+    cstate.set_line_wrap(True)
+    cwrap.pack_start(cstate, False, False, 0)
+
+    cflag = {"sync": False, "edited": False}
+
+    def say(msg):
+        cstate.set_text(msg)
+
+    def code_text():
+        return LS.pretty_style(ctx["style"])
+
+    def box_text():
+        return buf.get_text(buf.get_start_iter(), buf.get_end_iter(), True)
+
+    def set_code(text):
+        # set_text 会触发 "changed"：用 sync 标记区分「程序写的」和「人手改的」，
+        # 否则每次预览刷新都会被当成用户编辑，自动同步就再也不生效了
+        cflag["sync"] = True
+        buf.set_text(text)
+        cflag["sync"] = False
+        cflag["edited"] = False
+
+    def on_code_changed(_b):
+        if cflag["sync"]:
+            return
+        cflag["edited"] = True
+        say(_("Edited — press “Load this code” to use these values."))
+
+    def sync_widgets():
+        """把 ctx["style"] 的当前值写回所有控件（粘贴之后要看得见）。"""
+        ctx["quiet"] = True
+        try:
+            for name, store in ctx["controls"].items():
+                specs = LS.BLEND_SPECS if name == "blend" else LS.SPECS[name]
+                src = (ctx["style"]["blend"] if name == "blend"
+                       else ctx["style"]["effects"][name])
+                for item in specs:
+                    info = _spec_info(item)
+                    key = info["key"]
+                    if key in store:
+                        _set_widget(Gtk, info["kind"], store[key],
+                                    src.get(key, info["default"]))
+            for name, row in rowmap.items():
+                if name == "blend":
+                    continue
+                child = row.get_child()
+                if child is not None and hasattr(child, "set_active"):
+                    child.set_active(
+                        bool(ctx["style"]["effects"][name].get("enabled")))
+        finally:
+            ctx["quiet"] = False
+
+    def load_code(text=None):
+        txt = box_text() if text is None else text
+        try:
+            st, warns = LS.read_style_code(txt)
+        except LS.StyleCodeError as exc:
+            say(_("That is not a style code: %s") % exc)
+            return False
+        LS.adopt_style(ctx["style"], st)
+        sync_widgets()
+        set_code(code_text())
+        changed()
+        msg = _("Loaded — %d effect(s) on.")
+        msg = msg % len(LS.enabled_effects(ctx["style"]))
+        if warns:
+            msg += " " + "; ".join(warns[:3])
+            if len(warns) > 3:
+                msg += " …"
+        say(msg)
+        return True
+
+    def copy_code(_b=None):
+        # 用户手动改过就以框里为准：他改的可能正是想带走的那一版
+        text = box_text() if cflag["edited"] else code_text()
+        if text != box_text():
+            set_code(text)
+        try:
+            from gi.repository import Gdk
+            clip = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+            clip.set_text(text, -1)
+            clip.store()
+            say(_("Copied %d characters. Open the other layer's dialog, "
+                  "paste into this box and press “Load this code”.")
+                % len(text))
+        except Exception as exc:
+            # 没有剪贴板（无头、Wayland 没起来）也别让人复制不了：
+            # 全选交给 Ctrl+C
+            buf.select_range(buf.get_start_iter(), buf.get_end_iter())
+            say(_("The clipboard refused (%s); the code is selected — "
+                  "press Ctrl+C.") % exc)
+        return text
+
+    def on_paste(_b=None):
+        try:
+            from gi.repository import Gdk
+            text = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD).wait_for_text()
+        except Exception as exc:
+            say(_("Could not read the clipboard: %s") % exc)
+            return False
+        if not text or not text.strip():
+            say(_("The clipboard is empty."))
+            return False
+        set_code(text)
+        return load_code(text)
+
+    b_copy.connect("clicked", copy_code)
+    b_paste.connect("clicked", on_paste)
+    b_load.connect("clicked", lambda _b: load_code())
+    buf.connect("changed", on_code_changed)
 
     def need_assets():
         want = set()
@@ -469,6 +696,9 @@ def build_dialog(config, image, drawable, w, h):
 
     def changed():
         schedule()
+        # 代码框跟着参数走；用户手动改过就先别覆盖（他可能正要粘出去）
+        if not cflag["edited"]:
+            set_code(code_text())
 
     # ---- 控件生成
     def add_page(name, specs, values, title):
@@ -495,6 +725,8 @@ def build_dialog(config, image, drawable, w, h):
             store[key] = widget
 
             def on_change(_w, key=key, kind=kind):
+                if ctx["quiet"]:            # 载入代码时在批量写控件，别回头改数据
+                    return
                 values[key] = _read_widget(Gtk, kind, store[key])
                 ctx["style"]["effects"].setdefault(name, {})
                 ctx["style"]["effects"][name][key] = values[key]
@@ -530,6 +762,8 @@ def build_dialog(config, image, drawable, w, h):
         bstore[key] = widget
 
         def on_blend(_w, key=key, kind=kind):
+            if ctx["quiet"]:
+                return
             ctx["style"]["blend"][key] = _read_widget(Gtk, kind, bstore[key])
             changed()
 
@@ -552,6 +786,8 @@ def build_dialog(config, image, drawable, w, h):
     rowmap["blend"] = blend_row
 
     def on_toggle(btn, name):
+        if ctx["quiet"]:
+            return
         ctx["style"]["effects"][name]["enabled"] = bool(btn.get_active())
         changed()
 
@@ -602,9 +838,22 @@ def build_dialog(config, image, drawable, w, h):
     ctx["values"] = lambda: ctx["style"]
     ctx["on_toggle"] = on_toggle
     ctx["rowmap"] = rowmap
+    ctx["changed"] = changed
+    ctx["style_code"] = code_text
+    ctx["load_code"] = load_code
+    ctx["copy_code"] = copy_code
+    ctx["code_box"] = tview
+    ctx["box_text"] = box_text
+    ctx["code_panel"] = cwrap
     listbox.select_row(blend_row)
     render()
     outer.show_all()
+    # show_all 会把折叠面板里的东西也 show 出来（set_expanded(False) 对已经
+    # 处于折叠状态的 expander 会直接 early-return，光靠它收不起来），
+    # 所以显式把面板 hide 掉：默认不占高度，点标题才展开。
+    exp.set_expanded(False)
+    cwrap.hide()
+    set_code(code_text())
     return dlg, ctx
 
 
@@ -665,6 +914,32 @@ def _read_widget(Gtk, kind, widget):
     if kind in ("percent", "int"):
         return int(round(v))
     return round(v, 2)
+
+
+def _set_widget(Gtk, kind, widget, value):
+    """把值写回控件（粘贴代码之后用）。写不进去就保持原样，不抛。"""
+    if kind == "bool":
+        widget.set_active(bool(value))
+        return
+    if kind == "color":
+        from gi.repository import Gdk
+        col = Gdk.RGBA()
+        try:
+            col.red, col.green, col.blue = (
+                float(value[0]), float(value[1]), float(value[2]))
+        except Exception:
+            col.red = col.green = col.blue = 0.0
+        col.alpha = 1.0
+        widget.set_rgba(col)
+        return
+    if kind == "choice":
+        # set_active_id 对着不存在的 id 会返回 False 并保持原样
+        widget.set_active_id(str(value))
+        return
+    try:
+        widget.set_value(float(value))
+    except Exception:
+        pass
 
 
 def _connect(Gtk, kind, widget, cb):
@@ -743,9 +1018,12 @@ class LayerStylePlugin(Gimp.PlugIn):
         procedure.set_attribution("SuperMrWang", "SuperMrWang", "2026")
         procedure.add_string_argument(
             "style", _("Style"),
-            _("The whole style as a JSON string (see the dialog — it writes "
-              "exactly this back, so a script can replay a style). Leave empty "
-              "for the defaults with the drop shadow turned on."),
+            _("The whole style as a JSON string. The dialog's \"Style code\" "
+              "box holds exactly this string — copy it from one layer and "
+              "paste it into another layer's box (or pass it here from a "
+              "script) to get the same style. Leave empty to use whatever "
+              "style that layer was last given (it is stored in the XCF), or "
+              "the defaults with the drop shadow on for a fresh layer."),
             "", GObject.ParamFlags.READWRITE)
         procedure.add_menu_path("<Image>/SuperMrWang/Layer")
         return procedure
@@ -758,6 +1036,13 @@ class LayerStylePlugin(Gimp.PlugIn):
         drawable = drawables[0]
         try:
             check_drawable(drawable)
+            # 没有显式给样式 → 读回这个图层上次用的那一套（存在寄生数据里）。
+            # 少了这一步，「复制样式到别的图层」打开对话框只会看到默认值，
+            # 复制的永远不是原来那份 —— 功能表面上有，实际没用。
+            if not (config.get_property('style') or "").strip():
+                found = recover_style(drawable)
+                if found is not None:
+                    config.set_property('style', LS.format_style(found))
             if run_mode == Gimp.RunMode.INTERACTIVE:
                 if not show_dialog(procedure, config, image, drawable,
                                    drawable.get_width(),

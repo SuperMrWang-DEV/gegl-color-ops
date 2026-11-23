@@ -15,6 +15,7 @@
 这些错了不会报错，只会给你一张「看着差一点」的图。
 """
 
+import json
 import math
 import os
 import sys
@@ -539,6 +540,81 @@ plan = LS.render(big, 768, 1024, st, assets)
 dt = time.time() - t0
 ok("768×1024 六个效果 < 4 s（%.2f s）" % dt, dt < 4.0, dt)
 ok("全部产出了图层", len(plan["layers"]) == 7, len(plan["layers"]))
+
+
+section("复制样式：代码串进、代码串出")
+st_a = style(drop_shadow={"distance": 9, "size": 7, "angle": 135.0},
+             inner_shadow={"choke": 20},
+             stroke={"size": 2.5, "position": "inside"})
+code = LS.format_style(st_a)
+again, warns = LS.read_style_code(code)
+ok("复制 → 粘贴，逐字节还原（%d 字符）" % len(code),
+   LS.format_style(again) == code)
+ok("读回时没有警告", not warns, warns)
+ok("pretty 版本（换行缩进）读回来还是同一份",
+   LS.format_style(LS.read_style_code(LS.pretty_style(st_a))[0]) == code)
+ok("代码串全是 ASCII（粘到哪儿都不会被编码弄坏）",
+   all(ord(c) < 128 for c in LS.pretty_style(st_a)))
+ok("套了一层引号（json.dumps 过两次）也能读",
+   LS.format_style(LS.read_style_code(json.dumps(code))[0]) == code)
+
+src = make(W, H, BOX)
+pa = LS.render(src, W, H, st_a, assets)
+pb = LS.render(src, W, H, again, assets)
+ok("粘过去渲染出来的像素完全一致",
+   len(pa["layers"]) == len(pb["layers"])
+   and all((la["rgba"] == lb["rgba"]).all()
+           for la, lb in zip(pa["layers"], pb["layers"])),
+   (len(pa["layers"]), len(pb["layers"])))
+
+for bad in ("", "   ", "hello", "[1,2]", '{"a":1}', '{"effects":5}'):
+    try:
+        LS.read_style_code(bad)
+        ok("坏代码要报错：%r" % bad, False)
+    except LS.StyleCodeError:
+        ok("坏代码报错：%r" % bad, True)
+
+st_c, warns_c = LS.read_style_code(
+    '{"effects":{"drop-shadow":{"distance":9999,"size":-5,'
+    '"contour":"nope"},"nope":{}}}')
+ok("越界距离夹到上限 300", float(st_c["effects"]["drop-shadow"]["distance"]) == 300.0,
+   st_c["effects"]["drop-shadow"]["distance"])
+ok("负数大小夹到 0", float(st_c["effects"]["drop-shadow"]["size"]) == 0.0,
+   st_c["effects"]["drop-shadow"]["size"])
+ok("不认识的等高线退回 linear",
+   st_c["effects"]["drop-shadow"]["contour"] == "linear")
+ok("不认识的效果被忽略、但留一条警告",
+   any("nope" in w for w in warns_c), warns_c)
+
+st_d, _w = LS.read_style_code(
+    '{"effects":{"color-overlay":{"color":[255,128,0],"enabled":true}}}')
+ok("0–255 写法的颜色自动除以 255",
+   near(st_d["effects"]["color-overlay"]["color"][0], 1.0, 1e-6)
+   and near(st_d["effects"]["color-overlay"]["color"][1], 128 / 255.0, 1e-6),
+   st_d["effects"]["color-overlay"]["color"])
+
+st_e, _w = LS.read_style_code('{"effects":{"satin":{"size":22}}}')
+ok("只给一个参数，其余保持默认",
+   float(st_e["effects"]["satin"]["size"]) == 22.0
+   and st_e["effects"]["satin"]["distance"]
+   == LS.default_style()["effects"]["satin"]["distance"],
+   (st_e["effects"]["satin"]["size"], st_e["effects"]["satin"]["distance"]))
+ok("手写代码没写 enabled 也当成要开",
+   st_e["effects"]["satin"]["enabled"] is True)
+ok("没提到的效果保持关闭",
+   st_e["effects"]["drop-shadow"]["enabled"] is False)
+
+dest = LS.default_style()
+ref = dest["effects"]["bevel"]
+LS.adopt_style(dest, st_a)
+ok("adopt 之后参数页握着的还是同一个 dict（否则滑杆再也改不动数据）",
+   ref is dest["effects"]["bevel"])
+ok("adopt 之后内容等于源", LS.format_style(dest) == code)
+st_f = LS.default_style()
+st_f["global_angle"] = 45.0
+LS.adopt_style(dest, st_f)
+ok("全局光也一起带过去", near(dest["global_angle"], 45.0, 1e-9),
+   dest["global_angle"])
 
 print("\n" + "=" * 62)
 if FAIL:

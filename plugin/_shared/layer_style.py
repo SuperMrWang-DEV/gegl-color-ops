@@ -292,6 +292,195 @@ def format_style(st):
     return json.dumps(st, sort_keys=True, separators=(",", ":"))
 
 
+def pretty_style(st, indent=1):
+    """给人看的同一份代码：换行缩进，方便选中复制、肉眼核对。
+
+    JSON 里的空白不影响解析，所以这份也能直接当 `style` 参数喂回去。
+    ensure_ascii 保持默认 True —— 全是 ASCII，粘到任何地方都不会被编码搞坏。
+    """
+    return json.dumps(st, sort_keys=True, indent=indent)
+
+
+class StyleCodeError(ValueError):
+    """粘进来的不是一份样式代码。"""
+
+
+def _clamp(value, lo, hi):
+    try:
+        v = float(value)
+    except Exception:
+        return None
+    if v != v or v in (float("inf"), float("-inf")):
+        return None
+    if lo is not None:
+        v = max(float(lo), v)
+    if hi is not None:
+        v = min(float(hi), v)
+    return v
+
+
+def _coerce(kind, value, default, lo, hi, options, label, warns):
+    """按规格把一个值掰回合法范围。掰不动就退回默认值并记一条警告。"""
+    if kind == "bool":
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, (int, float)):
+            return bool(value)
+        warns.append("bool expected for %s" % label)
+        return default
+    if kind == "color":
+        try:
+            seq = [float(x) for x in value][:3]
+        except Exception:
+            warns.append("colour expected for %s" % label)
+            return default
+        if len(seq) < 3 or any(x != x for x in seq):
+            warns.append("colour expected for %s" % label)
+            return default
+        # 有人从别处抄 0–255 的写法：明显超过 1 就按 0–255 解读
+        if max(seq) > 1.0001:
+            seq = [x / 255.0 for x in seq]
+            warns.append("%s looked like 0-255, divided by 255" % label)
+        # 整数就写成整数：默认样式里是 [1,1,1]，往返一趟不该变成 [1.0,1.0,1.0]
+        return [(int(x) if x % 1 == 0 else x)
+                for x in (min(1.0, max(0.0, v)) for v in seq)]
+    if kind == "choice":
+        ids = []
+        for opt in (options or ()):
+            ids.append(opt[0] if isinstance(opt, (tuple, list)) else opt)
+        if str(value) in ids:
+            return str(value)
+        warns.append("%s=%r not one of %s" % (label, value, "/".join(ids)))
+        return default
+    v = _clamp(value, lo, hi)
+    if v is None:
+        warns.append("number expected for %s" % label)
+        return default
+    if kind in ("percent", "int"):
+        return int(round(v))
+    # 原来是整数就写回整数：5 和 5.0 数值一样，但代码串要逐字节一致，
+    # 否则「复制 → 粘贴」拿到的字符串跟原来的不一样，比对起来很别扭。
+    if isinstance(value, int) and not isinstance(value, bool) and v == value:
+        return int(v)
+    return round(v, 4)
+
+
+def read_style_code(text):
+    """粘贴进来的代码 → (style, warnings)；不是代码就抛 StyleCodeError。
+
+    比 parse_style 严格：parse_style 是「读不出来就给默认」，适合 PDB 参数；
+    这里是用户主动粘了一坨东西，静默改成默认会让人以为粘贴成功了，所以
+    必须报错。反过来，能读但超出范围的数字不报错——夹到边界并记一条警告，
+    这样从旧版本或别的机器上拿来的代码仍然能用。
+    """
+    if isinstance(text, (bytes, bytearray)):
+        text = bytes(text).decode("utf-8", "replace")
+    text = (text or "").strip()
+    if not text:
+        raise StyleCodeError("empty")
+    raw = text
+    for _ in range(2):                     # 容忍被再编码过一次（""{...}""）
+        if not isinstance(raw, str):
+            break
+        try:
+            raw = json.loads(raw)
+        except Exception as exc:
+            raise StyleCodeError(str(exc))
+    if not isinstance(raw, dict):
+        raise StyleCodeError("expected a JSON object")
+    if "effects" not in raw and "blend" not in raw:
+        raise StyleCodeError("no \"effects\" / \"blend\" in it")
+
+    st = default_style()
+    # 从「全关」起步：代码里没提到的效果就别偷偷开一个默认投影，否则粘一份
+    # 手写的三行代码上去，结果凭空多一个阴影，很莫名其妙。
+    # 完整复制的代码里每个效果都带 enabled，所以这么改不影响它。
+    for name in st["effects"]:
+        st["effects"][name]["enabled"] = False
+    warns = []
+    for key in ("global_angle", "global_altitude"):
+        if key in raw:
+            v = _clamp(raw[key], -180.0, 180.0)
+            if v is None:
+                warns.append("number expected for %s" % key)
+            else:
+                st[key] = v
+
+    blend_raw = raw.get("blend") or {}
+    if not isinstance(blend_raw, dict):
+        raise StyleCodeError("\"blend\" is not an object")
+    effects_raw = raw.get("effects") or {}
+    if not isinstance(effects_raw, dict):
+        raise StyleCodeError("\"effects\" is not an object")
+
+    for key, value in blend_raw.items():
+        if key not in st["blend"]:
+            warns.append("unknown blend key %r" % key)
+            continue
+        item = next((i for i in BLEND_SPECS if i[0] == key), None)
+        if item is None:
+            continue
+        key, kind, dflt = item[0], item[1], item[2]
+        if kind == "choice":               # ("x","choice",默认,选项,标签)
+            options, lo, hi, label = item[3], None, None, item[4]
+        else:                              # ("x",类型,默认,下界,上界,标签)
+            options, lo, hi, label = None, item[3], item[4], item[5]
+        st["blend"][key] = _coerce(kind, value, dflt, lo, hi, options,
+                                   label, warns)
+
+    for name, eff in effects_raw.items():
+        if name not in st["effects"]:
+            warns.append("unknown effect %r" % name)
+            continue
+        if not isinstance(eff, dict):
+            warns.append("%s: expected an object" % name)
+            continue
+        for item in SPECS[name]:
+            key, kind, dflt = item[0], item[1], item[2]
+            if kind == "choice":
+                lo = hi = None
+                options = item[3]
+                label = item[4]
+            else:
+                lo, hi = item[3], item[4]
+                options = None
+                label = item[5]
+            if key in eff:
+                st["effects"][name][key] = _coerce(
+                    kind, eff[key], dflt, lo, hi, options,
+                    "%s.%s" % (name, key), warns)
+        if "enabled" in eff:
+            st["effects"][name]["enabled"] = bool(eff["enabled"])
+        elif eff:
+            # 手写 / 手改的代码通常不写 enabled：给了参数就当要开，
+            # 否则粘贴一份自己写的代码会得到一片空白，看不出为什么。
+            st["effects"][name]["enabled"] = True
+    return st, warns
+
+
+def adopt_style(dest, src):
+    """把 src 原地写进 dest，**保住 effects[name] 这个 dict 的身份**。
+
+    对话框里每个参数页握着自己那一格 dict 的引用（改滑杆直接写进去），
+    整个换掉 ctx["style"] 会让那些引用指向旧对象——页面从此改不动数据，
+    预览也不再跟着动，而且看不出哪里错了。
+    """
+    if not isinstance(dest, dict) or not isinstance(src, dict):
+        return dest
+    for key in ("global_angle", "global_altitude"):
+        if key in src:
+            dest[key] = src[key]
+    blend = dest.setdefault("blend", {})
+    for key, value in (src.get("blend") or {}).items():
+        blend[key] = value
+    effects = dest.setdefault("effects", {})
+    for name, eff in (src.get("effects") or {}).items():
+        target = effects.setdefault(name, {})
+        for key, value in eff.items():
+            target[key] = value
+    return dest
+
+
 def parse_style(text):
     """从字符串读回样式。空串 / 坏串 → 默认样式（宁可少一个参数，不能炸）。"""
     st = default_style()
@@ -306,10 +495,17 @@ def parse_style(text):
     for key in ("global_angle", "global_altitude"):
         if isinstance(raw.get(key), (int, float)):
             st[key] = float(raw[key])
-    for key, value in (raw.get("blend") or {}).items():
+    blend_raw = raw.get("blend") or {}
+    if not isinstance(blend_raw, dict):
+        raise StyleCodeError("\"blend\" is not an object")
+    effects_raw = raw.get("effects") or {}
+    if not isinstance(effects_raw, dict):
+        raise StyleCodeError("\"effects\" is not an object")
+
+    for key, value in blend_raw.items():
         if key in st["blend"]:
             st["blend"][key] = value
-    for name, eff in (raw.get("effects") or {}).items():
+    for name, eff in effects_raw.items():
         if name not in st["effects"] or not isinstance(eff, dict):
             continue
         for key, value in eff.items():
