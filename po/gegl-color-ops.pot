@@ -188,6 +188,8 @@ msgstr ""
 
 #: ops/apply-image/apply-image.c:135
 #: ops/calculations/calculations.c:131
+#: plugin/refine-mask/refine-mask.py:413
+#: plugin/refine-mask/refine-mask.py:582
 msgid "Output"
 msgstr ""
 
@@ -438,6 +440,8 @@ msgid "the classic editor's Brightness, -150 to +150. In the legacy mode the val
 msgstr ""
 
 #: ops/brightness-contrast/lb-brightness-contrast.c:46
+#: plugin/refine-mask/refine-mask.py:404
+#: plugin/refine-mask/refine-mask.py:554
 msgid "Contrast"
 msgstr ""
 
@@ -1421,7 +1425,9 @@ msgstr ""
 #: ops/color-mask-select/color-mask-select.c:124
 #: plugin/ai-inpaint/ai-inpaint.py:1094
 #: plugin/color-range/color-range.py:266
-#: plugin/cutout/cutout.py:485
+#: plugin/cutout/cutout.py:487
+#: plugin/refine-mask/refine-mask.py:402
+#: plugin/refine-mask/refine-mask.py:550
 #: plugin/sky-replace/sky-replace.py:230
 msgid "Feather"
 msgstr ""
@@ -1648,10 +1654,12 @@ msgid "Transparent"
 msgstr ""
 
 #: ops/displace/displace.c:64
+#: plugin/refine-mask/refine-mask.py:376
 msgid "Black"
 msgstr ""
 
 #: ops/displace/displace.c:65
+#: plugin/refine-mask/refine-mask.py:375
 msgid "White"
 msgstr ""
 
@@ -3399,6 +3407,19 @@ msgstr ""
 msgid "the classic editor's Photo Filter: filter colour multiplied in XYZ space, with density and preserve-luminosity"
 msgstr ""
 
+#: plugin/_shared/mask_io.py:98
+msgid "Mask size mismatch: %d values for %d"
+msgstr ""
+
+#: plugin/_shared/mask_io.py:174
+msgid "There is no selection to refine. Make a selection first, or run Cut Out first (it leaves a \"Cutout Mask\" channel behind)."
+msgstr ""
+
+#: plugin/_shared/mask_io.py:220
+#: plugin/cutout/cutout.py:144
+msgid "Failed to read the layer: expected %d bytes, got %d"
+msgstr ""
+
 #: plugin/_shared/retouch_prep.py:91
 msgid "Could not read the layer: expected %d bytes, got %d"
 msgstr ""
@@ -3881,6 +3902,7 @@ msgstr ""
 #: plugin/ai-inpaint/ai-inpaint.py:692
 #: plugin/ai-inpaint/ai-inpaint.py:710
 #: plugin/blend/blend.py:566
+#: plugin/refine-mask/refine-mask.py:356
 msgid "_Cancel"
 msgstr ""
 
@@ -4143,7 +4165,7 @@ msgid "How long to wait for ComfyUI before giving up"
 msgstr ""
 
 #: plugin/ai-inpaint/ai-inpaint.py:1102
-#: plugin/cutout/cutout.py:489
+#: plugin/cutout/cutout.py:491
 msgid "Keep mask channel"
 msgstr ""
 
@@ -4163,7 +4185,7 @@ msgstr ""
 #: plugin/alpha-curves/alpha-curves.py:276
 #: plugin/channel-to-mask/channel-to-mask.py:214
 #: plugin/color-range/color-range.py:501
-#: plugin/cutout/cutout.py:573
+#: plugin/cutout/cutout.py:575
 #: plugin/hsi-split-curves/hsi-split-curves.py:334
 #: plugin/hsl-split-curves/hsl-split-curves.py:555
 #: plugin/hsv-split-curves/hsv-split-curves.py:565
@@ -4171,6 +4193,7 @@ msgstr ""
 #: plugin/layer-to-channel/layer-to-channel.py:297
 #: plugin/layer-to-selection/layer-to-selection.py:301
 #: plugin/lch-split-curves/lch-split-curves.py:741
+#: plugin/refine-mask/refine-mask.py:623
 msgid "No image or no layer selected"
 msgstr ""
 
@@ -4597,6 +4620,8 @@ msgid "OK"
 msgstr ""
 
 #: plugin/color-range/color-range.py:238
+#: plugin/refine-mask/refine-mask.py:419
+#: plugin/refine-mask/refine-mask.py:575
 msgid "Selection"
 msgstr ""
 
@@ -4855,10 +4880,6 @@ msgstr ""
 msgid "Unknown direction"
 msgstr ""
 
-#: plugin/cutout/cutout.py:144
-msgid "Failed to read the layer: expected %d bytes, got %d"
-msgstr ""
-
 #: plugin/cutout/cutout.py:161
 msgid "Mask size mismatch: %d values for %d×%d"
 msgstr ""
@@ -4940,127 +4961,127 @@ msgstr ""
 msgid "What goes behind the subject"
 msgstr ""
 
-#: plugin/cutout/cutout.py:468
+#: plugin/cutout/cutout.py:470
 msgid "Background colour"
 msgstr ""
 
-#: plugin/cutout/cutout.py:469
+#: plugin/cutout/cutout.py:471
 msgid "Used when the output background is \"Solid colour\""
 msgstr ""
 
-#: plugin/cutout/cutout.py:472
+#: plugin/cutout/cutout.py:474
 msgid "Background image"
 msgstr ""
 
-#: plugin/cutout/cutout.py:473
+#: plugin/cutout/cutout.py:475
 msgid "Used when the output background is \"Image\"; scaled to cover"
 msgstr ""
 
-#: plugin/cutout/cutout.py:480
+#: plugin/cutout/cutout.py:482
 msgid "Shrink edge"
 msgstr ""
 
-#: plugin/cutout/cutout.py:481
+#: plugin/cutout/cutout.py:483
 msgid "Pull the mask in by n pixels — removes the background-coloured fringe around the subject"
 msgstr ""
 
-#: plugin/cutout/cutout.py:486
+#: plugin/cutout/cutout.py:488
 msgid "Softens the mask edge; 0 keeps it hard"
 msgstr ""
 
-#: plugin/cutout/cutout.py:490
+#: plugin/cutout/cutout.py:492
 msgid "Store the mask as a \"Cutout Mask\" channel so a selection can be rebuilt later"
 msgstr ""
 
-#: plugin/cutout/cutout.py:512
+#: plugin/cutout/cutout.py:514
 msgid "Cut Out (AI)"
 msgstr ""
 
-#: plugin/cutout/cutout.py:514
+#: plugin/cutout/cutout.py:516
 msgid "Cut out the subject with RMBG (BiRefNet) on a local ComfyUI, then mask the layer"
 msgstr ""
 
-#: plugin/cutout/cutout.py:516
+#: plugin/cutout/cutout.py:518
 msgid "Sends a downscaled copy to ComfyUI-RMBG, turns the returned alpha into a feathered layer mask, and can put a flat colour or a picture underneath. Best for hair and fur."
 msgstr ""
 
-#: plugin/cutout/cutout.py:522
+#: plugin/cutout/cutout.py:524
 msgid "AI working size"
 msgstr ""
 
-#: plugin/cutout/cutout.py:523
+#: plugin/cutout/cutout.py:525
 msgid "Long edge sent to ComfyUI (and RMBG's process_res); 1024 is the model's native size"
 msgstr ""
 
-#: plugin/cutout/cutout.py:527
+#: plugin/cutout/cutout.py:529
 msgid "Sensitivity"
 msgstr ""
 
-#: plugin/cutout/cutout.py:528
+#: plugin/cutout/cutout.py:530
 msgid "Higher keeps more of the subject's soft edges"
 msgstr ""
 
-#: plugin/cutout/cutout.py:531
+#: plugin/cutout/cutout.py:533
 msgid "Clean edge colour"
 msgstr ""
 
-#: plugin/cutout/cutout.py:532
+#: plugin/cutout/cutout.py:534
 msgid "RMBG's foreground colour estimation — removes the background colour bleeding into the edge"
 msgstr ""
 
-#: plugin/cutout/cutout.py:539
+#: plugin/cutout/cutout.py:541
 msgid "Cut Out (Local)"
 msgstr ""
 
-#: plugin/cutout/cutout.py:541
+#: plugin/cutout/cutout.py:543
 msgid "Cut out the subject by flood-filling the background from the border (or use the current selection as the subject)"
 msgstr ""
 
-#: plugin/cutout/cutout.py:543
+#: plugin/cutout/cutout.py:545
 msgid "Classic route, no ComfyUI. Plain, gradient or studio backgrounds work well; use the AI route for busy scenes. If a selection exists it is treated as the subject."
 msgstr ""
 
-#: plugin/cutout/cutout.py:548
+#: plugin/cutout/cutout.py:550
 msgid "Background threshold"
 msgstr ""
 
-#: plugin/cutout/cutout.py:549
+#: plugin/cutout/cutout.py:551
 msgid "Colour tolerance of the border flood fill (0..0.5); raise it for noisy backgrounds, lower it if the subject is being eaten"
 msgstr ""
 
-#: plugin/cutout/cutout.py:554
+#: plugin/cutout/cutout.py:556
 msgid "Seed points per edge"
 msgstr ""
 
-#: plugin/cutout/cutout.py:555
+#: plugin/cutout/cutout.py:557
 msgid "How many points per border are used to start the flood fill; more helps with gradient backgrounds"
 msgstr ""
 
-#: plugin/cutout/cutout.py:559
+#: plugin/cutout/cutout.py:561
 msgid "Use existing selection as the subject"
 msgstr ""
 
-#: plugin/cutout/cutout.py:560
+#: plugin/cutout/cutout.py:562
 msgid "When a selection exists, treat it as the subject and only refine its edge (no flood fill)"
 msgstr ""
 
-#: plugin/cutout/cutout.py:594
+#: plugin/cutout/cutout.py:596
 msgid "Cut out with %s in %.1f s — subject kept %.0f%%."
 msgstr ""
 
-#: plugin/cutout/cutout.py:610
+#: plugin/cutout/cutout.py:612
 msgid "Cut out locally."
 msgstr ""
 
-#: plugin/cutout/cutout.py:612
+#: plugin/cutout/cutout.py:614
 msgid "Export as PNG to keep the transparency."
 msgstr ""
 
-#: plugin/cutout/cutout.py:614
+#: plugin/cutout/cutout.py:616
 msgid "A solid colour layer was added underneath."
 msgstr ""
 
-#: plugin/cutout/cutout.py:616
+#: plugin/cutout/cutout.py:618
 msgid "The background image was added underneath."
 msgstr ""
 
@@ -5815,6 +5836,186 @@ msgstr ""
 
 #: plugin/observe/observe.py:366
 msgid "Added \"%s\": hide or delete it when you are done — the layer underneath was not touched."
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:244
+msgid "Refining the mask…"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:251
+msgid "Layer and mask do not match: %d bytes for %d×%d"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:275
+msgid "Could not scale the mask back to the canvas"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:292
+msgid "Refined layer"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:301
+msgid "Removing the colour fringe…"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:307
+msgid "Unknown output mode: %s"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:354
+msgid "Select and Mask — refine the edge"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:357
+msgid "_Apply"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:375
+msgid "Checker"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:376
+msgid "Red overlay"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:392
+#: plugin/refine-mask/refine-mask.py:534
+msgid "Edge radius"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:394
+msgid "Search within ±N px for a real edge in the picture and pull the mask to it. 0 = off (an approximation of Photoshop's Smart Radius)"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:397
+#: plugin/refine-mask/refine-mask.py:541
+msgid "Only snap to clearly stronger edges"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:400
+#: plugin/refine-mask/refine-mask.py:546
+msgid "Smooth"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:406
+#: plugin/refine-mask/refine-mask.py:559
+msgid "Shift edge"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:408
+msgid "Positive expands the mask, negative contracts it"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:409
+#: plugin/refine-mask/refine-mask.py:564
+msgid "Decontaminate"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:417
+#: plugin/refine-mask/refine-mask.py:570
+msgid "Layer mask"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:418
+#: plugin/refine-mask/refine-mask.py:572
+msgid "New layer (transparent)"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:420
+#: plugin/refine-mask/refine-mask.py:577
+msgid "Channel + selection"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:473
+msgid "Preview %s · refine runs at %s · image %s\n%.0f%% kept (soft edge %.1f%%) · %.0f ms"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:480
+msgid "Preview failed: %s"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:509
+msgid "This build of GIMP has no GTK — running with the current values. (%s)"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:535
+msgid "Search within ±N px along the normal for a real edge in the picture and pull the mask to it; 0 turns it off. This is an approximation of Photoshop's Smart Radius (it moves the profile, it does not rebuild the matte)."
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:542
+msgid "On: move only when the found edge is at least 1.35× stronger than the current position. Off: snap to anything stronger within the radius, which pulls harder."
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:547
+msgid "Round off jaggies and stray specks on the mask edge"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:551
+msgid "Soften the transition; 0 keeps the edge hard"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:555
+msgid "Push the soft part of the mask towards 0 and 255 — this is what turns a mushy edge into a crisp one"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:560
+msgid "Positive expands the mask, negative contracts it; the 50% line moves, the softness stays"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:565
+msgid "Pull the colour of half-transparent edge pixels back to the foreground colour (removes the white/green fringe). Only used by the \"New layer\" output, because the others do not touch pixels"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:571
+msgid "Add the refined mask to the current layer"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:573
+msgid "Copy the layer, bake the mask into its alpha, and decontaminate the edge colours"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:576
+msgid "Replace the selection; nothing else changes"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:578
+msgid "Store the result as a \"Refined Mask\" channel and keep it as the selection — paint on the channel with a brush to add or remove areas, then load it again"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:582
+msgid "Where the refined mask goes"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:585
+msgid "Working size"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:586
+msgid "Long edge the mask is refined at, then scaled back to the canvas with C code. 0 = full resolution (slow: pure Python, no numpy in GIMP's Python)"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:605
+msgid "Select and Mask"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:607
+msgid "Refine a selection or mask: snap to edges, smooth, feather, contrast, shift, decontaminate"
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:609
+msgid "Takes the current selection (or the mask channel left by Cut Out) and turns a rough edge into a usable one. Opens a dialog with a live preview; the same code runs at full resolution when you press Apply."
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:644
+msgid "Refined at %s in %.1f s — solid area %.0f%% → %.0f%%."
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:650
+msgid "Decontaminated %d edge pixels."
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:653
+msgid "Paint on the \"Refined Mask\" channel to add or remove areas, then load it as a selection."
 msgstr ""
 
 #: plugin/sky-replace/sky-replace.py:208

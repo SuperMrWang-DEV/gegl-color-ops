@@ -1000,6 +1000,96 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
   </div>""",
     ),
     dict(
+        key='refine',
+        slug='refine',
+        title='选择并遮住',
+        tag=('蒙版', 't-mask'),
+        count='六根滑杆 + 实时预览',
+        menu='SuperMrWang → Mask → 选择并遮住（精修边缘）…',
+        menus=['SuperMrWang → Mask → 选择并遮住（精修边缘）…'],
+        pdb='lb-plugin-refine-mask(image, drawables, radius, smart, smooth,\n'
+            '    feather, contrast, shift, decontaminate, output, work-size)',
+        lede="""选区做完了，边还是糊的：AI 抠图回来的 alpha 半透明、魔棒选出来的边
+   像狗啃、羽化过的边上挂着背景色。这个对话框就是拿来收尾的——左边一块预览、
+   右边六根滑杆，拖一下立刻重算，满意了点应用。""",
+        body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>六根滑杆</h3><span class="pill">和 PS 同名同向</span></div>
+      <div class="table-wrap"><table class="op-table">
+        <thead><tr><th>滑杆</th><th>做什么</th><th>什么时候拉</th></tr></thead>
+        <tbody>
+          <tr><td><b>边缘检测半径</b></td>
+              <td>沿法线在 ±N 像素里找画面中真实的边缘，把蒙版剖面推过去。
+                  「智能半径」勾上时，只有找到明显更强的边缘（1.35×）才动</td>
+              <td>AI 抠的边糊出去一两像素、旁边正好有强边（头发对背景、衣领对皮肤）</td></tr>
+          <tr><td><b>平滑</b></td>
+              <td>盒式模糊一遍。锯齿、毛刺、零星飞点被摊平</td>
+              <td>魔棒 / 快速选择出来的边像狗啃</td></tr>
+          <tr><td><b>羽化</b></td>
+              <td>三次盒式逼近高斯，软化过渡</td>
+              <td>要贴到另一张图上，硬边会看出「剪纸」</td></tr>
+          <tr><td><b>对比度</b></td>
+              <td>把软边往 0 和 255 推（S 曲线，斜率最高 5×）</td>
+              <td>羽化过头、边缘一圈雾；或者 AI 的 alpha 太软</td></tr>
+          <tr><td><b>移动边缘</b></td>
+              <td>整体加/减 alpha：正值外扩、负值内缩，软硬不变</td>
+              <td>整体差半像素（白边、吃掉一圈轮廓）</td></tr>
+          <tr><td><b>去色边</b></td>
+              <td>半透明像素的颜色沿 alpha 梯度往里取「实心前景色」替换</td>
+              <td>抠到浅底上有白边，抠到绿幕上有绿边</td></tr>
+        </tbody>
+      </table></div>
+      <p>顺序是 <b>吸附 → 平滑 → 羽化 → 对比度 → 移动边缘</b>。羽化放在对比度
+         之前，是为了让对比度还能把软边重新压硬；反过来做，羽化永远压在上面，
+         那根滑杆就白给了。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>输出四种</h3></div>
+      <p><b>图层蒙版</b>：挂在当前图层上，非破坏，随时能改。<br>
+         <b>透明新图层</b>：复制一层、把蒙版烤进 alpha，去色边只在这条输出上生效
+         （另外三种不碰像素）。<br>
+         <b>选区</b>：只换选区，什么都不动。<br>
+         <b>通道 + 选区</b>：存成「Refined Mask」通道，选区也留着。</p>
+      <p>通道那条就是<b>画笔的入口</b>：PS 里那支「选择并遮住」的画笔，在这里
+         换成——在通道上用黑白画笔涂（白加、黑减），再双击通道载入成选区。
+         美术上的事交给 GIMP 自己的画笔，比插件里再搓一支靠谱。</p>
+    </div>
+  </div>
+
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>实测</h3><span class="pill">768×1024 / RMBG 结果</span></div>
+    <p>拿 SDXL 生成、RMBG-2.0 抠好的一张卷发人像当输入（alpha 就是蒙版）：
+       <b>1.03 秒</b>跑完六项（半径 2 / 平滑 1 / 羽化 1 / 对比度 35 / 去色边 60），
+       半透明像素从 40 万降到 1.3 万，边缘的浅色雾被收干净，23416 个边缘像素
+       换了颜色。预览那一侧是 520 长边，拖滑杆到重画通常 <b>150 毫秒</b>。</p>
+    <p>工作尺寸默认 1600 长边。GIMP 3 的 Python 里<b>没有 numpy</b>，模糊只能
+       手写前缀和；1600×1067 跑一遍约 1~2 秒，再大就要等了。0 表示按原分辨率算，
+       2400 万像素大概 10 秒起步。</p>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl">
+      <div class="dl-head"><h3>和 PS 差在哪</h3></div>
+      <p><b>有：</b>六根滑杆、实时预览、四种看片方式（棋盘格 / 白 / 黑 / 红蒙版）、
+         四种输出。<b>没有：</b>画布上的那支减画笔、以及 PS 那种「按图重建 matte」
+         的边缘检测。</p>
+      <p>边缘检测这里是<b>沿法线平移剖面</b>：每个半透明像素在 ±半径内找最强边缘，
+         明显更强就把蒙版挪过去（双线性重采样）。结果一样是把糊出去的边收回来，
+         但它不会像 PS 那样重新解一遍前景色和不透明度。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>三个不下心就翻车的细节</h3></div>
+      <p><b>通道读出来是线性的。</b>选区存成通道后，用 <code>"Y u8"</code> 读到的
+         是线性亮度，而选区值和图层 alpha 是 sRGB 编码的（实测：通道写 128，
+         选区读回 188）。不转这一下，精修完中间调整体下压，50% 等值线跟着漂。</p>
+      <p><b>预览和应用必须是同一套代码。</b>两边都调同一个 <code>refine_mask</code>，
+         只有分辨率不同。各写一套实现，早晚会漂成「预览好看、确定后不一样」。</p>
+      <p><b>吸附要把位移沿法线传播到 ±半径。</b>只改半透明带的话，剖面搬过去没有
+         地方接住，边界会塌成一道硬跳变。</p>
+    </div>
+  </div>""",
+    ),
+    dict(
         key='ai-frequency',
         ai_comfy=True,
         slug='ai-frequency-separation',
@@ -1579,6 +1669,7 @@ BRIEF = {
     "ai-dodge": "两条曲线的蒙版按参考图的差值预先涂好七成，打开就能继续补。",
     "ai-grey": "灰层不再是平的 128：按参考图反解出偏移，已做一轮中性灰。",
     "cutout": "两条路：AI（RMBG）连发丝一起抠，本地版从四边泛洪吃纯色背景。",
+    "refine": "选区做完了边还是糊的：六根滑杆 + 实时预览，把边缘收干净。",
     "alpha-curves": "把颜色通道写进 alpha，再接一条三个控制点的平滑曲线："
                     "挂上去先拉满，往下拖即成形状。",
     "color-range": "色彩范围的定制对话框：选什么颜色，下面就只显示那种颜色的参数，"
@@ -1605,6 +1696,7 @@ TITLE_EN = {
     "grey": "Neutral Grey",
     "observe": "Inspection Layers",
     "cutout": "Cut Out / Remove Background",
+    "refine": "Select and Mask",
     "luminosity": "Luminosity Masks",
     "alpha-curves": "Alpha Curves",
     "color-range": "Color Range",
@@ -1640,6 +1732,8 @@ BRIEF_EN = {
                   "midtones — double-click one to load it as a selection.",
     "cutout": "Two routes: AI (RMBG) keeps hair and fur, the local one "
               "flood-fills a plain background from the border.",
+    "refine": "The selection is done but the edge is mush: six sliders and a "
+              "live preview to clean it up.",
     "ai-inpaint": "Frame an area, write what should be there, and a local ComfyUI "
                   "redraws it — the answer comes back as a new masked layer.",
     "ai-frequency": "Same structure as Frequency Separation, but both layers carry a "
@@ -1706,12 +1800,14 @@ AREA = {"selection": "图层转换", "channel": "图层转换", "split": "图层
         "convert": "图层转换",
         "ai-inpaint": "AI",
         "cutout": "Mask",
+        "refine": "Mask",
         "alpha-curves": "Mask", "color-range": "Mask",
         "channel-to-mask": "Mask", "max-min": "Mask"}
 
 DEPS = {
     "ai-inpaint": [],
     "cutout": [],
+    "refine": [],
     "hsv": ["lb:hsv-dual", "lb:hsv-compose", "gimp:curves"],
     "lch": ["lb:lch-dual", "lb:lch-compose", "gimp:curves"],
     "hsl": ["lb:hsl-dual", "lb:hsl-compose", "gimp:curves"],

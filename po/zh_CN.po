@@ -2965,3 +2965,145 @@ msgstr "下面已经垫了一层纯色。"
 msgid "The background image was added underneath."
 msgstr "下面已经垫上了背景图。"
 
+
+msgid "Output"
+msgstr "输出"
+
+msgid "Contrast"
+msgstr "对比度"
+
+msgid "Mask size mismatch: %d values for %d"
+msgstr "蒙版尺寸不符：%d 个值对应 %d"
+
+msgid "There is no selection to refine. Make a selection first, or run Cut Out first (it leaves a \"Cutout Mask\" channel behind)."
+msgstr "没有可精修的蒙版。先做一个选区，或者先跑一次抠图（它会留下一条「Cutout Mask」通道）。"
+
+msgid "Refining the mask…"
+msgstr "正在精修蒙版…"
+
+msgid "Layer and mask do not match: %d bytes for %d×%d"
+msgstr "图层和蒙版对不上：%d 字节，应为 %d×%d"
+
+msgid "Could not scale the mask back to the canvas"
+msgstr "蒙版缩放回画布失败"
+
+msgid "Refined layer"
+msgstr "精修图层"
+
+msgid "Removing the colour fringe…"
+msgstr "正在去色边…"
+
+msgid "Unknown output mode: %s"
+msgstr "未知的输出方式：%s"
+
+msgid "Select and Mask — refine the edge"
+msgstr "选择并遮住 — 精修边缘"
+
+msgid "_Apply"
+msgstr "_应用"
+
+msgid "Checker"
+msgstr "棋盘格"
+
+msgid "Red overlay"
+msgstr "红色蒙版"
+
+msgid "Edge radius"
+msgstr "边缘检测半径"
+
+msgid "Search within ±N px for a real edge in the picture and pull the mask to it. 0 = off (an approximation of Photoshop's Smart Radius)"
+msgstr "在 ±N 像素内找画面里真实的边缘，把蒙版推过去。0 = 关闭（PS「智能半径」的近似实现）"
+
+msgid "Only snap to clearly stronger edges"
+msgstr "只吸附到明显更强的边缘"
+
+msgid "Smooth"
+msgstr "平滑"
+
+msgid "Shift edge"
+msgstr "移动边缘"
+
+msgid "Positive expands the mask, negative contracts it"
+msgstr "正值外扩，负值内缩"
+
+msgid "Decontaminate"
+msgstr "去色边"
+
+msgid "Layer mask"
+msgstr "图层蒙版"
+
+msgid "New layer (transparent)"
+msgstr "透明新图层"
+
+msgid "Channel + selection"
+msgstr "通道 + 选区"
+
+msgid "Preview %s · refine runs at %s · image %s\n%.0f%% kept (soft edge %.1f%%) · %.0f ms"
+msgstr "预览 %s · 精修在 %s 上算 · 原图 %s\n保留 %.0f%%（软边 %.1f%%）· %.0f 毫秒"
+
+msgid "Preview failed: %s"
+msgstr "预览失败：%s"
+
+msgid "This build of GIMP has no GTK — running with the current values. (%s)"
+msgstr "这个 GIMP 版本没有 GTK，直接按当前参数跑。（%s）"
+
+msgid "Search within ±N px along the normal for a real edge in the picture and pull the mask to it; 0 turns it off. This is an approximation of Photoshop's Smart Radius (it moves the profile, it does not rebuild the matte)."
+msgstr "沿法线在 ±N 像素内找画面里真实的边缘，把蒙版剖面推过去；0 = 关闭。这是 PS「智能半径」的近似实现：平移剖面，不重建 matte。"
+
+msgid "On: move only when the found edge is at least 1.35× stronger than the current position. Off: snap to anything stronger within the radius, which pulls harder."
+msgstr "开：只有找到比当前位置强 1.35 倍以上的边缘才动。关：半径内更强就吸附，拉得更凶。"
+
+msgid "Round off jaggies and stray specks on the mask edge"
+msgstr "把蒙版边上的锯齿、毛刺、飞点摊平"
+
+msgid "Soften the transition; 0 keeps the edge hard"
+msgstr "软化过渡；0 保持硬边"
+
+msgid "Push the soft part of the mask towards 0 and 255 — this is what turns a mushy edge into a crisp one"
+msgstr "把蒙版的软边往 0 和 255 推——糊边变脆边靠的就是这根"
+
+msgid "Positive expands the mask, negative contracts it; the 50% line moves, the softness stays"
+msgstr "正值外扩、负值内缩；动的是 50% 等值线，软硬不变"
+
+msgid "Pull the colour of half-transparent edge pixels back to the foreground colour (removes the white/green fringe). Only used by the \"New layer\" output, because the others do not touch pixels"
+msgstr "把半透明边缘像素的颜色拉回前景色（去掉白边/绿边）。只有「透明新图层」这条输出会用到，其它三种不碰像素"
+
+msgid "Add the refined mask to the current layer"
+msgstr "把精修后的蒙版挂到当前图层"
+
+msgid "Copy the layer, bake the mask into its alpha, and decontaminate the edge colours"
+msgstr "复制一层，把蒙版烤进 alpha，并修掉边缘的颜色"
+
+msgid "Replace the selection; nothing else changes"
+msgstr "只替换选区，其它什么都不动"
+
+msgid "Store the result as a \"Refined Mask\" channel and keep it as the selection — paint on the channel with a brush to add or remove areas, then load it again"
+msgstr "存成「Refined Mask」通道，同时保留为选区——之后可以用画笔在通道上加减，再载入成选区"
+
+msgid "Where the refined mask goes"
+msgstr "精修结果落到哪里"
+
+msgid "Working size"
+msgstr "工作尺寸"
+
+msgid "Long edge the mask is refined at, then scaled back to the canvas with C code. 0 = full resolution (slow: pure Python, no numpy in GIMP's Python)"
+msgstr "蒙版在多大的长边上精修，然后由 C 代码缩放回画布。0 = 原分辨率（慢：GIMP 的 Python 里没有 numpy）"
+
+msgid "Select and Mask"
+msgstr "选择并遮住"
+
+msgid "Refine a selection or mask: snap to edges, smooth, feather, contrast, shift, decontaminate"
+msgstr "精修选区或蒙版：边缘吸附、平滑、羽化、对比度、移动边缘、去色边"
+
+msgid "Takes the current selection (or the mask channel left by Cut Out) and turns a rough edge into a usable one. Opens a dialog with a live preview; the same code runs at full resolution when you press Apply."
+msgstr "拿当前选区（或抠图留下的蒙版通道），把粗糙的边修成能用的边。打开带实时预览的对话框；点应用时同一套代码在原分辨率上再跑一遍。"
+
+msgid "Refined at %s in %.1f s — solid area %.0f%% → %.0f%%."
+msgstr "在 %s 上精修完成，耗时 %.1f 秒——实心面积 %.0f%% → %.0f%%。"
+
+msgid "Decontaminated %d edge pixels."
+msgstr "去色边处理了 %d 个边缘像素。"
+
+msgid "Paint on the \"Refined Mask\" channel to add or remove areas, then load it as a selection."
+msgstr "可以在「Refined Mask」通道上用画笔加减区域，再把它载入成选区。"
+

@@ -2389,6 +2389,18 @@ PLUGIN_SPECS = [
                  "    feather, background, color, bg-file, keep-mask, use-selection)\n"
                  "lb-plugin-cutout-ai(image, drawable, model, resolution, sensitivity,\n"
                  "    refine, shrink, feather, background, color, bg-file, keep-mask)"),
+        dict(key="refine", ops=[],
+             name="gegl-color-ops-plugin-refine-mask.zip",
+             src_dir=os.path.join(ROOT, "plugin", "refine-mask"),
+             py="refine-mask.py",
+             menu="选择并遮住 (Select and Mask)",
+             menus="    SuperMrWang → Mask → 选择并遮住（精修边缘）…",
+             desc="选择并遮住：把「差不多」的蒙版修成能用的蒙版——边缘吸附、平滑、"
+                  "羽化、对比度、移动边缘、去色边，六根滑杆带实时预览（棋盘格/白/"
+                  "黑/红蒙版），结果可落成图层蒙版、透明新图层、选区或通道。",
+             shared=["refine_math.py", "mask_io.py"],
+             pdb="lb-plugin-refine-mask(image, drawables, radius, smart, smooth,\n"
+                 "    feather, contrast, shift, decontaminate, output, work-size)"),
         dict(key="ai-frequency", ops=[],
              name="gegl-color-ops-plugin-ai-frequency-separation.zip",
              src_dir=os.path.join(ROOT, "plugin", "ai-frequency-separation"),

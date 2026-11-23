@@ -1196,6 +1196,107 @@ PLUGIN_EN["cutout"] = dict(
     </div>
   </div>""")
 
+PLUGIN_EN["refine"] = dict(
+    lede="""The selection is there, the edge is not: alpha from an AI cut-out is
+   half-transparent, a magic-wand edge looks gnawed, a feathered edge carries the old
+   background colour. This dialog is the finishing pass — preview on the left, six
+   sliders on the right, every change re-rendered immediately.""",
+    body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>The six sliders</h3><span class="pill">same names, same direction</span></div>
+      <div class="table-wrap"><table class="op-table">
+        <thead><tr><th>Slider</th><th>What it does</th><th>When to pull it</th></tr></thead>
+        <tbody>
+          <tr><td><b>Edge radius</b></td>
+              <td>Searches ±N px along the normal for a real edge and moves the mask
+                  profile onto it. With “smart” on, it only moves for an edge at least
+                  1.35× stronger</td>
+              <td>The AI edge is one or two pixels out and there is a strong edge
+                  nearby (hair against background, collar against skin)</td></tr>
+          <tr><td><b>Smooth</b></td>
+              <td>One box blur pass: jaggies, specks and stray dots get flattened</td>
+              <td>A magic-wand / quick-select edge looks gnawed</td></tr>
+          <tr><td><b>Feather</b></td>
+              <td>Three box passes approximating a Gaussian</td>
+              <td>Pasting onto another picture, where a hard edge reads as cut paper</td></tr>
+          <tr><td><b>Contrast</b></td>
+              <td>Pushes the soft part towards 0 and 255 (S-curve, up to 5× slope)</td>
+              <td>Over-feathered, a band of fog around the subject; or alpha that is
+                  simply too soft</td></tr>
+          <tr><td><b>Shift edge</b></td>
+              <td>Adds or subtracts alpha: positive expands, negative contracts, the
+                  softness stays</td>
+              <td>The whole mask is half a pixel out (a white fringe, or eating into
+                  the outline)</td></tr>
+          <tr><td><b>Decontaminate</b></td>
+              <td>Walks inwards along the alpha gradient and replaces half-transparent
+                  colours with the solid foreground colour behind them</td>
+              <td>A white fringe on a light background, a green fringe from a green
+                  screen</td></tr>
+        </tbody>
+      </table></div>
+      <p>The order is <b>snap → smooth → feather → contrast → shift</b>. Feather sits
+         before contrast on purpose: contrast has to be able to harden a softened edge,
+         otherwise feather always wins and that slider does nothing.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Four outputs</h3></div>
+      <p><b>Layer mask</b>: attached to the current layer, non-destructive.<br>
+         <b>New layer</b>: the layer is copied and the mask is baked into its alpha;
+         decontaminate only applies here, because the other three do not touch
+         pixels.<br>
+         <b>Selection</b>: replaces the selection, nothing else changes.<br>
+         <b>Channel + selection</b>: stored as a “Refined Mask” channel.</p>
+      <p>That channel is the <b>brush entry point</b>: Photoshop's brush inside Select
+         and Mask is replaced by painting black and white on the channel (white adds,
+         black removes) and loading it back as a selection. GIMP's own brushes are
+         better than a brush we would re-invent inside a plug-in.</p>
+    </div>
+  </div>
+
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>Measured</h3><span class="pill">768×1024 / RMBG result</span></div>
+    <p>Input: an SDXL portrait cut out with RMBG-2.0 (its alpha is the mask).
+       All six steps in <b>1.03 s</b> (radius 2 / smooth 1 / feather 1 / contrast 35 /
+       decontaminate 60): half-transparent pixels dropped from 400 k to 13 k, the pale
+       haze on the edge was cleaned up, and 23 416 edge pixels changed colour. On the
+       preview side (520 px long edge) a slider drag re-renders in under
+       <b>150 ms</b>.</p>
+    <p>The working size defaults to 1600 px on the long edge. GIMP 3's Python has
+       <b>no numpy</b>, so blurs are written by hand with prefix sums: 1600×1067 takes
+       one to two seconds, more takes longer. 0 means full resolution — 24 MP starts at
+       about ten seconds.</p>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl">
+      <div class="dl-head"><h3>Where it differs from Photoshop</h3></div>
+      <p><b>Has:</b> the six sliders, a live preview, four ways to look at the result
+         (checker / white / black / red overlay), four outputs. <b>Has not:</b> the
+         subtract brush on the canvas, and Photoshop's “rebuild the matte” edge
+         detection.</p>
+      <p>Edge detection here <b>slides the profile along the normal</b>: every
+         half-transparent pixel looks for the strongest edge within ±radius and, if it
+         is clearly stronger, the mask is resampled onto it. Same visible result —
+         the smeared edge comes back — but it does not re-solve foreground colour and
+         opacity the way Photoshop does.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Three details that bite</h3></div>
+      <p><b>A channel reads back linear.</b> After saving a selection to a channel,
+         <code>"Y u8"</code> gives linear luminance while selection values and layer
+         alpha are sRGB-encoded (measured: write 128 into the channel, the selection
+         reads 188). Skip that conversion and the whole midtone shifts down after
+         refining, taking the 50 % contour with it.</p>
+      <p><b>Preview and apply have to be the same code.</b> Both call the same
+         <code>refine_mask</code>, only at different resolutions. Two implementations
+         always drift into “looks great in the preview, different after Apply”.</p>
+      <p><b>The snap has to propagate its offset along the normal to ±radius.</b>
+         Moving only the half-transparent band leaves nothing to receive the shifted
+         profile, and the edge collapses into a hard step.</p>
+    </div>
+  </div>""")
+
 PLUGIN_EN["ai-frequency"] = dict(
     lede="""The structure is exactly the same as Frequency Separation — the pixels are
    not. Both layers carry a <b>reference that was already retouched once</b>: a low-denoise

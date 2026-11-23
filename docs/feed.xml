@@ -106,6 +106,15 @@
        零开始。</summary>
   </entry>
   <entry>
+    <title>插件 · 选择并遮住</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/refine.html"/>
+    <id>tag:github.com,2026:plugin-refine</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>选区做完了，边还是糊的：AI 抠图回来的 alpha 半透明、魔棒选出来的边
+   像狗啃、羽化过的边上挂着背景色。这个对话框就是拿来收尾的——左边一块预览、
+   右边六根滑杆，拖一下立刻重算，满意了点应用。</summary>
+  </entry>
+  <entry>
     <title>插件 · 抠图 / 移除背景</title>
     <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/cutout.html"/>
     <id>tag:github.com,2026:plugin-cutout</id>

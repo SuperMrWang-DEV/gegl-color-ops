@@ -85,8 +85,14 @@ def test_static():
     for name, path, src in plugin_sources():
         rel = os.path.relpath(path, ROOT).replace("\\", "/")
         ok("%s 导入了 lb_dialog" % rel, "import lb_dialog" in src)
+        # 两种都算数：GimpUi 自动参数框（run_dialog），或者插件自绘的对话框
+        # （需要实时预览的就只能自绘）。后者必须自己 build 再 show，别把
+        # Gtk 代码散在 run() 里。
+        custom = "build_dialog(" in src and "show_dialog(" in src
         ok("%s 在 run() 里弹对话框" % rel,
-           "run_dialog(procedure, run_mode, config)" in src)
+           "run_dialog(procedure, run_mode, config)" in src or custom,
+           "custom" if custom and "run_dialog(procedure, run_mode, config)"
+           not in src else "")
         # 取消时必须返回 CANCEL，否则用户点「取消」照样会跑一遍
         ok("%s 取消时返回 CANCEL" % rel,
            "PDBStatusType.CANCEL" in src)
