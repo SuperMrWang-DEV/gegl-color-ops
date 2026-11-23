@@ -448,7 +448,7 @@ def build_dialog(config, image, drawable, w, h):
                 for sign in (1, -1):
                     hx, hy = m.handle(i, j, axis, sign)
                     cr.set_source_rgba(1.0, 0.95, 0.85, 0.95)
-                    cr.arc(hx, hy, HANDLE_HIT * 0.5, 0, 2 * _math.pi)
+                    cr.arc(hx, hy, HANDLE_HIT * 0.62, 0, 2 * _math.pi)
                     cr.fill_preserve()
                     cr.set_source_rgba(0.75, 0.25, 0.05, 0.95)
                     cr.set_line_width(1.2)
@@ -468,12 +468,20 @@ def build_dialog(config, image, drawable, w, h):
             cr.set_source_rgba(0.05, 0.05, 0.05, 0.75)
             cr.stroke()
 
-        if ctx["mesh"].is_identity():
-            cr.set_source_rgba(0.0, 0.0, 0.0, 0.6)
+        # 常驻引导：把手是「选中才画」的，不写字的话勾着 Show the handles
+        # 却一个圆点也看不见，会以为功能坏了。
+        tip = ""
+        if sel < 0:
+            if ctx["mesh"].is_identity():
+                tip = _("Drag a square to shape · click to get handles")
+            else:
+                tip = _("Click a square to get its handles")
+        if tip:
+            cr.set_source_rgba(0.0, 0.0, 0.0, 0.62)
             cr.select_font_face("Sans", 0, 1)
-            cr.set_font_size(15)
-            cr.move_to(14, ph - 18)
-            cr.show_text(_("Drag a grid point to start shaping"))
+            cr.set_font_size(max(11, min(14, pw * 0.030)))
+            cr.move_to(14, ph - 16)
+            cr.show_text(tip)
 
     # -- 命中 --------------------------------------------------------------
     def hit_node(x, y):
@@ -685,7 +693,15 @@ def build_dialog(config, image, drawable, w, h):
     combo_grid.connect("changed", on_grid)
     combo_out.connect("changed", lambda *_a: None)
     show_mesh.connect("toggled", lambda *_a: schedule(0))
-    show_handles.connect("toggled", lambda *_a: schedule(0))
+    def on_show_handles(*_a):
+        # 勾上但一个点都没选中 → 帮用户选中中间那个，否则界面上什么都
+        # 看不到（把手本来只在选中节点时画）。
+        if show_handles.get_active() and ctx["selected"] < 0:
+            m0 = ctx["mesh"]
+            ctx["selected"] = (m0.rows // 2) * (m0.cols + 1) + m0.cols // 2
+        schedule(0)
+
+    show_handles.connect("toggled", on_show_handles)
 
     ctx["render"] = render
     ctx["values"] = values
@@ -696,6 +712,8 @@ def build_dialog(config, image, drawable, w, h):
     ctx["set_handle"] = set_handle
     ctx["reset_all"] = reset_all
     ctx["add_line"] = add_line
+    if show_handles.get_active() and ctx["selected"] < 0:
+        ctx["selected"] = (mesh.rows // 2) * (mesh.cols + 1) + mesh.cols // 2
     render()
     outer.show_all()
     return dlg, ctx
