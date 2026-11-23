@@ -303,19 +303,26 @@ try:
         check("高级版读到了 scale", args[15] == 1.0, str(args[15]))
         check("高级版 keep-mask=off 传下去", args[14] is False, str(args[14]))
 
-    # 底模下拉：真的建成了 Gimp.Choice（不是退回文本框）才会「挑值」——给一个
-    # 不在清单里的名字，Choice 会把它拉回默认的 auto；普通字符串参数则原样收下。
-    # 这比「源码里出现了 add_choice_argument」有力得多：参数类型被降级的时
-    # 候源码看着完全正常，只有真设一次值才看得出来。
+    # 底模参数的形态取决于「注册那一刻 ComfyUI 在不在跑」：连得上就建成 Gimp.Choice
+    # （乱写的名字会被拉回默认的 auto），连不上就退回文本框（原样收下，让用户手写
+    # 文件名）。两种都是设计好的行为，所以这里按当时的状态分别验——否则同一份代码
+    # 在有服务和没服务的机器上会一个绿一个红（2026-11-23 就撞上过）。
     proc = Gimp.get_pdb().lookup_procedure(mod.PROC_ADVANCED)
     if proc is not None:
         cfg = proc.create_config()
         default = cfg.get_property("checkpoint")
         cfg.set_property("checkpoint", "definitely-not-a-model.safetensors")
-        check("底模是下拉（乱写的名字被拒回默认值）",
-              cfg.get_property("checkpoint") == default,
-              "default=%r got=%r" % (default, cfg.get_property("checkpoint")))
-        check("底模默认是 auto", default in ("auto", ""), repr(default))
+        got = cfg.get_property("checkpoint")
+        online = bool(mod._available_checkpoints())
+        if online:
+            check("有底模时是下拉（乱写的名字被拒回默认值）", got == default,
+                  "default=%r got=%r" % (default, got))
+            check("有底模时默认值是 auto", default == mod.AUTO_CKPT, repr(default))
+        else:
+            check("没底模时退化成文本框（原样收下文件名）",
+                  got == "definitely-not-a-model.safetensors",
+                  "got=%r" % (got,))
+            check("没底模时默认值为空", default in ("", None), repr(default))
 
         env_proc = Gimp.get_pdb().lookup_procedure(mod.PROC_ENV)
         check("注册了 AI 环境过程", env_proc is not None)

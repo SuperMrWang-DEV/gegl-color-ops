@@ -37,6 +37,7 @@ SUITES = [
     ("check_plugin_dialogs", "gimp"),
     ("check_retouch", "gimp"),
     ("check_observe", "gimp"),
+    ("check_luminosity_mask", "gimp"),
     ("check_convert", "gimp"),
     ("check_ai_inpaint_gimp", "gimp"),
     ("check_retouch_ai_gimp", "gimp"),

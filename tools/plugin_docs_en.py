@@ -670,6 +670,83 @@ original layer            untouched, not one pixel changed</code></pre>
   </div>""",
 )
 
+PLUGIN_EN["luminosity"] = dict(
+    lede="""Luminosity masks turn "this part should be brighter" from a description into a
+   selection you can load at any time. Seven channels cut by brightness, all in the channels
+   dialog: double-click one and it becomes a selection. Brighten the sky, darken the ground,
+   work on the midtones alone -- no more hand-painted masks.""",
+    body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>What gets built</h3><span class="pill">seven channels</span></div>
+      <pre><code>Luminosity · Lights 1 (&gt; 64)     widest highlight mask
+Luminosity · Lights 2 (&gt; 128)
+Luminosity · Lights 3 (&gt; 192)     only the brightest
+Luminosity · Darks 1 (&lt; 192)      widest shadow mask
+Luminosity · Darks 2 (&lt; 128)
+Luminosity · Darks 3 (&lt; 64)
+Luminosity · Midtones (64-192)   trapezoid, fading at both ends</code></pre>
+      <p>They land in the <b>channels dialog</b>, not the layer stack -- that is their native
+         form in Photoshop too. Double-click one to load it as a selection; curves, levels and
+         sharpening then act only inside it.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Three steps to use it</h3></div>
+      <p><b>1</b>　Select a layer, run the menu item -- all seven are built<br>
+         <b>2</b>　Double-click a channel to load it as a selection<br>
+         <b>3</b>　Duplicate the layer, adjust the curve inside the selection</p>
+      <p>To hang one as a layer mask: select the channel, then right-click the layer
+         (pairs with <b>Channel to Mask</b>). Re-running deletes the previous batch first, so
+         the channels never pile up.</p>
+    </div>
+  </div>
+
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>What each one selects</h3><span class="pill">linear level stretch</span></div>
+    <div class="table-wrap"><table class="op-table">
+      <thead><tr><th>Channel</th><th>How it is computed</th><th>What it picks</th></tr></thead>
+      <tbody>
+        <tr><td><b>Lights 1 (&gt; 64)</b></td><td>luminance 64-255 stretched to 0-255</td>
+            <td>Sky, lit surfaces, white walls -- everything outside the shadows. The workhorse</td></tr>
+        <tr><td><b>Lights 2 (&gt; 128)</b></td><td>128-255</td>
+            <td>Clear highlights. Pull down highlights, recover cloud detail</td></tr>
+        <tr><td><b>Lights 3 (&gt; 192)</b></td><td>192-255</td>
+            <td>Clouds, lamps, specular hits. For touching only the brightest patch</td></tr>
+        <tr><td><b>Darks 1 (&lt; 192)</b></td><td>inverse of Lights 3</td>
+            <td>Everything from the shadows up into the midtones</td></tr>
+        <tr><td><b>Darks 2 (&lt; 128)</b></td><td>inverse of Lights 2</td>
+            <td>Clear shadow areas. Darken the edges into a vignette</td></tr>
+        <tr><td><b>Darks 3 (&lt; 64)</b></td><td>inverse of Lights 1</td>
+            <td>Crushed blacks. Lift shadow detail, clean up noise there</td></tr>
+        <tr><td><b>Midtones (64-192)</b></td><td>Lights 1 minus Lights 3, normalised</td>
+            <td>The tonal band the subject lives in, fading at both ends -- add contrast
+                without touching highlights or shadows</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl">
+      <div class="dl-head"><h3>Why channels, not layers</h3></div>
+      <p>A luminosity mask <i>is</i> a channel in Photoshop; "load as selection" is how it is
+         used. Gray layers work too, but every use costs an extra "layer to selection" step --
+         one extra step means it gets used less.</p>
+      <p>All seven share one luminance pass: duplicate the layer, desaturate (weighted), read
+         the pixels once, apply seven look-up tables, delete the copy. So they are cut from the
+         same brightness and cannot drift apart.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Two implementation details</h3></div>
+      <p><b>Midtones subtract, they do not multiply.</b> Multiplying two highlight masks peaks
+         around 170 -- a muddy grey that needs another curve before it is usable as a mask.
+         Subtracting and renormalising puts the peak at pure white with pure black at both
+         ends.</p>
+      <p><b>Built at 8 bits (256 levels).</b> A mask is a continuous gradient and 256 levels
+         are invisible in almost any composite. If 16-bit landscape work ever shows stepping,
+         the same masks can be routed through GEGL levels so the precision follows the image.</p>
+    </div>
+  </div>""",
+)
+
 PLUGIN_EN["alpha-curves"] = dict(
     lede="""GIMP's curves tool does have an Alpha channel, but that curve can only edit
    transparency that already exists — it has no idea what the red channel holds. Deciding

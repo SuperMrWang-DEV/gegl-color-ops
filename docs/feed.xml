@@ -115,6 +115,15 @@
        不需要联网，不需要账号，一张 1024×512 的图在本机显卡上约 9 秒。</summary>
   </entry>
   <entry>
+    <title>插件 · 明度蒙版</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/luminosity.html"/>
+    <id>tag:github.com,2026:plugin-luminosity</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>明度蒙版把「哪块该亮、哪块该暗」从一句形容变成可以随时载入的选区：
+   按亮度切七刀，全在通道面板里，双击就选中。提亮天空、压暗地面、单独修中间调，
+   都不用再手画蒙版。</summary>
+  </entry>
+  <entry>
     <title>插件 · 观察层</title>
     <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/observe.html"/>
     <id>tag:github.com,2026:plugin-observe</id>

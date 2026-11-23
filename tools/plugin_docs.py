@@ -679,6 +679,82 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
   </div>""",
     ),
     dict(
+        key='luminosity',
+        slug='luminosity',
+        title='明度蒙版',
+        tag=('蒙版', 't-mask'),
+        count='七条通道',
+        menu='SuperMrWang → Luminosity Masks → 明度蒙版（7 条通道）',
+        menus=['SuperMrWang → Luminosity Masks → 生成七条明度通道',
+               '图层右键 → SuperMrWang → Luminosity Masks → 同上'],
+        pdb='lb-plugin-luminosity-mask(image, drawables)',
+        lede="""明度蒙版把「哪块该亮、哪块该暗」从一句形容变成可以随时载入的选区：
+   按亮度切七刀，全在通道面板里，双击就选中。提亮天空、压暗地面、单独修中间调，
+   都不用再手画蒙版。""",
+        body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>生成什么</h3><span class="pill">七条通道</span></div>
+      <pre><code>明度 · 亮部 1（&gt; 64）      最宽的高光蒙版
+明度 · 亮部 2（&gt; 128）
+明度 · 亮部 3（&gt; 192）     只剩最亮的那截
+明度 · 暗部 1（&lt; 192）      最宽的暗部蒙版
+明度 · 暗部 2（&lt; 128）
+明度 · 暗部 3（&lt; 64）
+明度 · 中间调（64–192）    两端渐隐的梯形</code></pre>
+      <p>全部落在<b>通道面板</b>里，不是图层——这是它们在 PS 里的原生形态。双击任意
+         一条就变成选区，曲线、色阶、锐化都只作用在选中的范围里。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>用法就三步</h3></div>
+      <p><b>1</b>　选中图层 → 点菜单项，七条一次建好<br>
+         <b>2</b>　双击通道 → 变成选区<br>
+         <b>3</b>　复制一层，在选区里调曲线</p>
+      <p>要挂成图层蒙版：选中通道后右键图层（配合 <b>Channel to Mask</b>）。
+         重跑会先删掉上一批同名通道，不会越点越多。</p>
+    </div>
+  </div>
+
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>七条各挑什么</h3><span class="pill">线性色阶拉伸</span></div>
+    <div class="table-wrap"><table class="op-table">
+      <thead><tr><th>通道</th><th>怎么算</th><th>挑出什么</th></tr></thead>
+      <tbody>
+        <tr><td><b>亮部 1（&gt; 64）</b></td><td>亮度 64–255 拉到 0–255</td>
+            <td>天空、受光面、白墙——所有不在阴影里的地方。最常用的一条</td></tr>
+        <tr><td><b>亮部 2（&gt; 128）</b></td><td>128–255</td>
+            <td>明确的高光。压高光、加云层细节</td></tr>
+        <tr><td><b>亮部 3（&gt; 192）</b></td><td>192–255</td>
+            <td>云、灯、反光。只想动最亮的那一小块时用</td></tr>
+        <tr><td><b>暗部 1（&lt; 192）</b></td><td>亮部 3 的反相</td>
+            <td>从阴影一直到中间调的大片区域</td></tr>
+        <tr><td><b>暗部 2（&lt; 128）</b></td><td>亮部 2 的反相</td>
+            <td>明确的暗部。压暗四周做暗角</td></tr>
+        <tr><td><b>暗部 3（&lt; 64）</b></td><td>亮部 1 的反相</td>
+            <td>死黑。提暗部细节、去噪点就用这条</td></tr>
+        <tr><td><b>中间调（64–192）</b></td><td>亮部 1 减亮部 3，再归一化</td>
+            <td>主体所在的那一层，两端渐隐——加对比不碰高光和阴影</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl">
+      <div class="dl-head"><h3>为什么是通道，不是图层</h3></div>
+      <p>明度蒙版在 PS 里本来就是通道，「载入成选区」是它的用法。做成灰度图层也能看，
+         但每次都要手动「图层转选区」，多一步就少用一次。</p>
+      <p>七条通道共用一次明度提取：复制图层 → 去色（明度加权）→ 读一遍像素 →
+         套七张映射表 → 删掉副本。所以七条是同一份亮度切的，不会因为算了两遍而对不齐。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>两个实现细节</h3></div>
+      <p><b>中间调是相减，不是相乘。</b>两条亮部相乘，峰值只有 170 左右，蒙版灰蒙蒙的，
+         当蒙版用时还得再补一条曲线；相减再按峰值归一化，峰值才是纯白、两端纯黑。</p>
+      <p><b>按 8 位生成（256 级）。</b>蒙版本身是连续渐变，256 级在绝大多数叠加里看不出来。
+         真遇上 16 位风光修图露台阶，可以改走 GEGL 色阶，让精度跟着图像走。</p>
+    </div>
+  </div>""",
+    ),
+    dict(
         key='ai-inpaint',
         slug='ai-inpaint',
         title='AI 局部重绘',
@@ -1416,6 +1492,7 @@ BRIEF = {
     "dodge": "提亮 / 压暗两条曲线压在黑蒙版下：涂到哪里动哪里。",
     "grey": "一层 50% 灰、柔光下恒等；白笔提亮、黑笔压暗、灰盖回去。",
     "observe": "六种观察层各一个菜单项：黑白、陡峭曲线、波浪曲线、饱和度、阈值、海报化。",
+    "luminosity": "按亮度切七刀：亮部/暗部各 3 档 + 中间调，双击通道即变选区。",
     "ai-inpaint": "框一块地方、写一句提示词，交给本机 ComfyUI 重画，结果当新图层贴回原位。",
     "ai-frequency": "结构同高低频，两层的内容换成一张已经修过一遍的参考图。",
     "ai-dodge": "两条曲线的蒙版按参考图的差值预先涂好七成，打开就能继续补。",
@@ -1445,6 +1522,7 @@ TITLE_EN = {
     "dodge": "Dodge & Burn",
     "grey": "Neutral Grey",
     "observe": "Inspection Layers",
+    "luminosity": "Luminosity Masks",
     "alpha-curves": "Alpha Curves",
     "color-range": "Color Range",
     "channel-to-mask": "Channel to Mask",
@@ -1554,6 +1632,7 @@ DEPS = {
     "dodge": ["gimp:curves"],
     "grey": [],
     "observe": [],
+    "luminosity": [],
     "ai-frequency": ["gegl:gaussian-blur", "gegl:high-pass"],
     "ai-dodge": ["gimp:curves"],
     "ai-grey": [],

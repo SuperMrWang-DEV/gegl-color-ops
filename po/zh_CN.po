@@ -2660,3 +2660,36 @@ msgstr "无法复制图层。"
 
 msgid "Added \"%s\": hide or delete it when you are done — the layer underneath was not touched."
 msgstr "已添加「%s」：看完隐藏或删掉就行——下面那层没有被改动。"
+
+msgid "Luminosity · "
+msgstr "明度 · "
+
+msgid "Lights 1 (> %d)"
+msgstr "亮部 1（> %d）"
+
+msgid "Lights 2 (> %d)"
+msgstr "亮部 2（> %d）"
+
+msgid "Lights 3 (> %d)"
+msgstr "亮部 3（> %d）"
+
+msgid "Darks 1 (< %d)"
+msgstr "暗部 1（< %d）"
+
+msgid "Darks 2 (< %d)"
+msgstr "暗部 2（< %d）"
+
+msgid "Darks 3 (< %d)"
+msgstr "暗部 3（< %d）"
+
+msgid "Midtones (%d–%d)"
+msgstr "中间调（%d–%d）"
+
+msgid "Could not create a channel."
+msgstr "无法创建通道。"
+
+msgid "Luminosity Masks (7 channels)"
+msgstr "明度蒙版（7 条通道）"
+
+msgid "Added %d luminosity channels: double-click one to load it as a selection."
+msgstr "已生成 %d 条明度通道：双击任意一条即可载入为选区。"

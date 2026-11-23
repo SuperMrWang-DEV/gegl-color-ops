@@ -47,6 +47,7 @@ gegl-color-ops/
 ├── plugin/dodge-burn/        # Python 插件：双曲线磨皮（提亮 / 压暗两层，黑蒙版）
 ├── plugin/neutral-grey/      # Python 插件：中性灰磨皮（50% 灰 + 柔光）
 ├── plugin/observe/           # Python 插件：观察层六种（黑白 / 陡峭 / 波浪 / 饱和 / 阈值 / 海报化）
+├── plugin/luminosity-mask/   # Python 插件：明度蒙版七条通道（亮部/暗部各 3 档 + 中间调）
 ├── plugin/ai-frequency-separation/ # Python 插件：高低频磨皮（AI 预修，两层内容 = 参考图）
 ├── plugin/ai-dodge-burn/     # Python 插件：双曲线磨皮（AI 预修，蒙版已预涂）
 ├── plugin/ai-neutral-grey/   # Python 插件：中性灰磨皮（AI 预修，灰层已反解）
@@ -539,6 +540,39 @@ alpha 都有回滚。与算子版本的区别是**一次性应用**——想随�
 相等、陡峭曲线暗部更暗亮部更亮、波浪出现反向台阶、阈值只有两种值且暗图也切得开、
 海报化每通道不超过 4 级）。
 
+### Python 插件：plugin/luminosity-mask（明度蒙版七条）
+
+把「哪块该亮、哪块该暗」从一个形容词变成可以随时载入的选区。一次生成七条通道，
+双击任意一条就变成选区，之后曲线、色阶、锐化只作用在那一块：
+
+| 通道 | 怎么算 | 挑出什么 |
+| --- | --- | --- |
+| 亮部 1（> 64） | 亮度 64–255 拉到 0–255 | 天空、受光面、白墙——所有不在阴影里的地方 |
+| 亮部 2（> 128） | 128–255 | 明确的高光 |
+| 亮部 3（> 192） | 192–255 | 云、灯、反光，只想动最亮那一小块时用 |
+| 暗部 1（< 192） | 亮部 3 的反相 | 从阴影一直到中间调的大片区域 |
+| 暗部 2（< 128） | 亮部 2 的反相 | 明确的暗部，做暗角常用 |
+| 暗部 3（< 64） | 亮部 1 的反相 | 死黑，提暗部细节用这条 |
+| 中间调（64–192） | 亮部 1 减亮部 3，再归一化 | 主体所在的层，两端渐隐 |
+
+用法三步：选图层 → 点菜单项；双击通道 → 变选区；复制一层，在选区里调曲线。
+要挂成图层蒙版就选中通道后右键图层（配合 `channel-to-mask`）。
+
+三个实现上的取舍：
+
+1. **通道，不是图层**。明度蒙版在 PS 里本来就是通道，「载入成选区」是它的用法；
+   做成灰度图层每次还要多一步「图层转选区」。
+2. **中间调是相减再归一化，不是相乘**。两条亮部相乘峰值只有 170 左右，蒙版灰蒙蒙；
+   相减后峰值到 255、两端 0，当蒙版用时不用再补曲线。
+3. **按 8 位生成**。蒙版是连续渐变，256 级在绝大多数叠加里看不出来；真遇到 16 位
+   风光露台阶，可以改走 GEGL 色阶。
+
+七条共用一次明度提取（复制 → 去色（明度加权）→ 读一遍 → 套七张映射表 → 删副本），
+所以它们切自同一份亮度，不会因为算两遍而对不齐。重跑会先删掉上一批同名通道。
+
+回归：`tools/check_luminosity_mask.py`（51 条：映射表逐值、通道数量与命名、渐变图上
+的实际取值、暗部是亮部反相、中间调峰值归一化、重跑幂等、图层组被拒、无 alpha 图）。
+
 ### Python 插件：plugin/ai-*（AI 磨皮，三支「预修版」）
 
 原来的三支磨皮（高低频 / 双曲线 / 中性灰）是「干净结构 + 你自己修」。这三支
@@ -577,6 +611,7 @@ alpha 都有回滚。与算子版本的区别是**一次性应用**——想随�
 python tools/check_retouch_ai.py          # 87 条：数学 / 柔光反解 / img2img 工作流 / mock 端到端 / 源码约束
 python tools/check_retouch.py             # 真 GIMP，76 条：三支磨皮的结构、滤镜、恒等、画笔、无 alpha 图
 python tools/check_observe.py             # 真 GIMP，57 条：六种观察层的结构、滤镜、效果方向、暗图
+python tools/check_luminosity_mask.py     # 真 GIMP，51 条：七条明度通道的映射表、内容、幂等
 # 真 GIMP，67 条：结构、预涂蒙版、灰层、选区、AI 退回
 gimp-console -b "exec(open('tools/check_retouch_ai_gimp.py').read())"
 ```
@@ -1179,6 +1214,7 @@ SuperMrWang → Retouch   → 高低频 / 双曲线 / 中性灰磨皮
                           各自再加一个「（AI 预修）」入口
 SuperMrWang → Observe   → 黑白 / 陡峭曲线 / 波浪曲线 / 饱和度 / 阈值 / 海报化
                           观察层，点了就建（也是 Python 插件）
+SuperMrWang → Luminosity Masks → 生成七条明度通道（亮部/暗部各 3 档 + 中间调）
                           （以上都是 Python 插件，不在 47 个算子里）
 ```
 
@@ -1254,9 +1290,10 @@ python tools/check_ai_inpaint.py            # AI 重绘的 HTTP/PNG 链路（对
 gimp-console -b "exec(open('tools/check_plugin_dialogs.py').read())"   # 每个插件都能弹出参数框（145 条）
 gimp-console -b "exec(open('tools/check_retouch.py').read())"          # 磨皮三支（非 AI）：结构 / 滤镜 / 恒等 / 画笔（76 条）
 gimp-console -b "exec(open('tools/check_observe.py').read())"          # 观察层六种：结构 / 滤镜 / 效果方向（57 条）
+gimp-console -b "exec(open('tools/check_luminosity_mask.py').read())"  # 明度蒙版七条：映射表 / 内容 / 幂等（51 条）
 gimp-console -b "exec(open('tools/check_retouch_ai_gimp.py').read())"  # 磨皮三支（AI 预修）：结构 / 预涂蒙版 / 灰层 / 选区（67 条）
 gimp-console -b "exec(open('tools/check_ai_inpaint_gimp.py').read())"  # AI 重绘的落位与蒙版
-python tools/run_plugin_checks.py           # 上面八套一次跑完（724 条），把条数写进 tools/plugin_assertions.json
+python tools/run_plugin_checks.py           # 上面九套一次跑完（783 条），把条数写进 tools/plugin_assertions.json
 python tools/run_plugin_checks.py --check   # 只核对：json 是不是比脚本旧了（站点构建会自动喊）
 python tools/make_dist.py                   # 把 build/ 整理成 dist/（含 manifest + 校验和）
 ./tools/check-linux.sh                      # 在 Linux/WSL 里验证 .so 能加载并渲染（不开 GIMP）

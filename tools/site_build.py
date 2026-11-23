@@ -2346,6 +2346,16 @@ PLUGIN_SPECS = [
              desc="观察层：六种一键建好的观察副本（黑白、陡峭曲线、波浪曲线、饱和度、"
                   "阈值、海报化）。用图层滤镜实现，参数随时能改、删掉图层就干净，原图不动。",
              pdb="lb-plugin-observe-* 六个过程，全部零参数"),
+        dict(key="luminosity", ops=[],
+             name="gegl-color-ops-plugin-luminosity-mask.zip",
+             src_dir=os.path.join(ROOT, "plugin", "luminosity-mask"),
+             py="luminosity-mask.py",
+             menu="明度蒙版 (Luminosity Masks)",
+             menus="    SuperMrWang → Luminosity Masks → 生成七条明度通道\n"
+                   "    图层右键 → SuperMrWang → Luminosity Masks → 同上",
+             desc="明度蒙版：按亮度生成七条通道（亮部/暗部各 3 档 + 中间调）。"
+                  "双击通道即变选区，重跑会先删掉上一批，不会越积越多。",
+             pdb="lb-plugin-luminosity-mask(image, drawables)"),
         dict(key="ai-inpaint", ops=[],
              name="gegl-color-ops-plugin-ai-inpaint.zip",
              src_dir=os.path.join(ROOT, "plugin", "ai-inpaint"),
