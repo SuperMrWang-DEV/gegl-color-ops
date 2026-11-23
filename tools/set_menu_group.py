@@ -51,6 +51,9 @@ GROUPS = {
     "Sharpen": ["unsharp-mask"],
     "Noise":   ["add-noise", "reduce-noise", "dust-scratches"],
     "Distort": ["displace"],
+    # 图层样式（GEGL 版）：与 Python 版同在 SuperMrWang → Layer 下，一个「图层
+    # 样式…」是烤图层的，一个「Layer Style (live)…」是挂滤镜的。
+    "Layer": ["layer-style"],
 }
 
 # 匹配已有的 menu-path 值（带或不带 /Colors 前缀、带或不带分组后缀）

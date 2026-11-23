@@ -539,7 +539,10 @@ def _box(a, r, axis):
         return a
     m = np.moveaxis(a, axis, 0)
     n = m.shape[0]
-    pad = ((r + 1, r),) + ((0, 0),) * (m.ndim - 1)
+    # 对称补边：上面补 r、下面补 r+1。写成 (r+1, r) 时窗口会整体偏一格，
+    # 三次高斯下来就是 3 px 的位移——模糊把内容往右下推，投影会比设定值多
+    # 走 3 px，斜面高光也会窄 3 px（和 C 版对拍时一眼看到的就是这个）。
+    pad = ((r, r + 1),) + ((0, 0),) * (m.ndim - 1)
     p = np.pad(m, pad, mode="edge")
     cs = np.cumsum(p, axis=0, dtype=np.float32)
     cs = np.concatenate([np.zeros_like(cs[:1]), cs], axis=0)

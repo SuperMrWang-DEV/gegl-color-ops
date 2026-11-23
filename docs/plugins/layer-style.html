@@ -130,9 +130,10 @@
       <p><b>没有：</b>纹理（斜面的图案浮雕）、3D 材质、自定义等高线编辑器、
          <b>下一图层</b>的混合颜色带、图案叠加的角度旋转（PS 也没有）、
          「在图层上直接拖投影手柄」那套交互。</p>
-      <p>另外 GIMP 没有「样式挂在图层上」这回事，所以改参数要重跑一遍（PS 是点开
+      <p>另外这个版本里「样式」不是挂在图层上的对象，改参数要重跑一遍（PS 是点开
          样式面板随时改）。不过参数本身会记在图层上，重跑时看到的就是上次那一套，
-         调好一处再复制给其它图层，实际用起来差别不大。</p>
+         调好一处再复制给其它图层，实际用起来差别不大。要「参数随时能改、原像素
+         一点不动」，用下一节那条实时滤镜。</p>
     </div>
     <div class="dl" id="zh-sec-6">
       <div class="dl-head"><h3>为什么交给 GIMP 的是「普通」模式</h3></div>
@@ -162,13 +163,36 @@
     </div>
   </div>
 
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-9">
+      <div class="dl-head"><h3>同一套样式的另一条路：实时滤镜</h3><span class="pill">非破坏</span></div>
+      <p>这一页讲的是<b>破坏性</b>的做法：算完就变成图层，原像素被换掉了，参数只能
+         记着、不能随时调。仓库里另有一个 GEGL 算子 <code>lb:layer-style</code>
+         （菜单不同：<code>SuperMrWang → Layer → Layer Style (live)…</code>），
+         同一个引擎挂成<b>图层滤镜</b>——拖滑杆实时重算、眼睛图标可关、参数随 XCF
+         存盘、原像素一个字节都不动。</p>
+      <p>两条路各自有用：要「随时改」或者「存进 XCF 回头再调」，用滤镜那条；要
+         「拿到十个能单独加蒙版、改不透明度、随手涂改的效果图层」，用这一条。滤镜
+         版拿不到 GIMP 的图案库（GEGL 进程看不到 GIMP 资源），图案只能用六种程序化
+         图形；渐变也只能给两个颜色。</p>
+    </div>
+    <div class="dl" id="zh-sec-10">
+      <div class="dl-head"><h3>为什么不是同一份代码</h3></div>
+      <p>GIMP 3 的非破坏编辑<b>只认 GEGL 算子</b>：滤镜栈里存的是算子名 + 属性值，
+         所以必须是 C 编译出来的模块。Python 插件只能读写像素，再多的图层组也只是
+         一份烤好的结果。</p>
+      <p>两份实现共用同一套公式（<code>plugin/_shared/layer_style.py</code> 是 C 版的
+         对照实现），对拍过：实心区平均差 <b>0.45/255</b>、p99 <b>5.0</b>。</p>
+    </div>
+  </div>
+
 <section class="download" id="zh-download">
   <h2>下载这一个</h2>
   <div class="dl primary-dl">
     <div class="dl-head"><h3>图层样式…</h3><span class="pill">.py · 免编译</span></div>
     <p>包里是一个 <code>.py</code>、一份安装说明，以及 <code>_shared/</code> 与 <code>locale/</code>。整包解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，但界面只有英文。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-layer-style.zip">下载 图层样式…</a>
-    <p class="muted small">79.6 KB · 校验：<code>SHA256 acde7825b059435b6f3f437eac89cc48…</code></p>
+    <p class="muted small">82.2 KB · 校验：<code>SHA256 c65cc2fb5b9c0d8c2695abef0afe395b…</code></p>
   </div>
 </section>
 
@@ -181,7 +205,7 @@
     <p class="toc-title">本页目录</p>
     <ul>
       <li><a href="#zh-overview">概览</a></li>
-<li><a href="#zh-sec-1">十个效果，一个面板</a></li><li><a href="#zh-sec-2">结果是一组真图层</a></li><li><a href="#zh-sec-3">复制样式：一份代码串</a></li><li><a href="#zh-sec-4">样式跟着图层走</a></li><li><a href="#zh-sec-5">和 PS 差在哪</a></li><li><a href="#zh-sec-6">为什么交给 GIMP 的是「普通」模式</a></li><li><a href="#zh-sec-7">实测</a></li><li><a href="#zh-sec-8">非交互也能跑</a></li>
+<li><a href="#zh-sec-1">十个效果，一个面板</a></li><li><a href="#zh-sec-2">结果是一组真图层</a></li><li><a href="#zh-sec-3">复制样式：一份代码串</a></li><li><a href="#zh-sec-4">样式跟着图层走</a></li><li><a href="#zh-sec-5">和 PS 差在哪</a></li><li><a href="#zh-sec-6">为什么交给 GIMP 的是「普通」模式</a></li><li><a href="#zh-sec-7">实测</a></li><li><a href="#zh-sec-8">非交互也能跑</a></li><li><a href="#zh-sec-9">同一套样式的另一条路：实时滤镜</a></li><li><a href="#zh-sec-10">为什么不是同一份代码</a></li>
       <li><a href="#zh-download">下载</a></li>
     </ul>
   </aside>
@@ -283,10 +307,11 @@
       <p><b>Not there:</b> texture (pattern bevels), 3D materials, a custom contour editor,
          "blend if: underlying layer", rotating the pattern (Photoshop cannot either), and
          dragging shadow handles straight on the canvas.</p>
-      <p>GIMP has no concept of a style attached to a layer, so changing a parameter means running
-         the plug-in again (Photoshop reopens the panel at any time). The values themselves are
-         remembered on the layer, though, so a re-run starts from what you last applied — and one
-         good style can be pasted onto the rest.</p>
+      <p>In this version the style is not an object hanging off the layer, so changing a parameter
+         means running the plug-in again (Photoshop reopens the panel at any time). The values
+         themselves are remembered on the layer, so a re-run starts from what you last applied —
+         and one good style can be pasted onto the rest. For "parameters editable at any time,
+         pixels untouched", see the live filter below.</p>
     </div>
     <div class="dl" id="en-sec-6">
       <div class="dl-head"><h3>Why GIMP is handed plain "normal" layers</h3></div>
@@ -318,13 +343,41 @@
     </div>
   </div>
 
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-9">
+      <div class="dl-head"><h3>The other way to get the same styles: a live filter</h3><span class="pill">non-destructive</span></div>
+      <p>This page describes the <b>destructive</b> route: the effects are computed once and
+         become layers, the original pixels are replaced, and the parameters are only remembered,
+         never re-applied. The repository also ships a GEGL op,
+         <code>lb:layer-style</code> (different menu:
+         <code>SuperMrWang → Layer → Layer Style (live)…</code>), which attaches the same engine
+         as a <b>layer filter</b>: sliders recompute live, the eye icon switches it off, the
+         parameters are saved in the XCF, and the pixels are never written to.</p>
+      <p>Both have their use. Want to keep tweaking, or reopen the file next month and adjust?
+         Use the filter. Want ten separate effect layers you can mask, fade and paint on? Use
+         this one. The filter version cannot reach GIMP's pattern library (a GEGL process cannot
+         see GIMP resources), so patterns are six procedural kinds and gradients are two
+         colours.</p>
+    </div>
+    <div class="dl" id="en-sec-10">
+      <div class="dl-head"><h3>Why it is not one code base</h3></div>
+      <p>GIMP 3's non-destructive editing <b>only understands GEGL operations</b>: the filter
+         stack stores an operation name plus property values, so it has to be a C module. A
+         Python plug-in can only read and write pixels; any number of groups is still a baked
+         result.</p>
+      <p>Both implementations share the same formulas
+         (<code>plugin/_shared/layer_style.py</code> is the reference the C version was checked
+         against): mean difference in solid areas <b>0.45/255</b>, p99 <b>5.0</b>.</p>
+    </div>
+  </div>
+
 <section class="download" id="en-download">
   <h2>Download this one</h2>
   <div class="dl primary-dl">
     <div class="dl-head"><h3>Layer Style</h3><span class="pill">.py · no compile</span></div>
     <p>The archive holds a single <code>.py</code>, an install note and the <code>_shared/</code> + <code>locale/</code> pair. Unpack all of it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register. Without <code>_shared/</code> and <code>locale/</code> it still runs, but only in English.</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-layer-style.zip">Download Layer Style</a>
-    <p class="muted small">79.6 KB · checksum: <code>SHA256 acde7825b059435b6f3f437eac89cc48…</code></p>
+    <p class="muted small">82.2 KB · checksum: <code>SHA256 c65cc2fb5b9c0d8c2695abef0afe395b…</code></p>
   </div>
 </section>
 
@@ -338,7 +391,7 @@
     <p class="toc-title">On this page</p>
     <ul>
       <li><a href="#en-overview">Overview</a></li>
-<li><a href="#en-sec-1">Ten effects, one panel</a></li><li><a href="#en-sec-2">The result is real layers</a></li><li><a href="#en-sec-3">Copying a style: one string of code</a></li><li><a href="#en-sec-4">The style travels with the layer</a></li><li><a href="#en-sec-5">Where it differs from Photoshop</a></li><li><a href="#en-sec-6">Why GIMP is handed plain &quot;normal&quot; layers</a></li><li><a href="#en-sec-7">Measured</a></li><li><a href="#en-sec-8">Scriptable</a></li>
+<li><a href="#en-sec-1">Ten effects, one panel</a></li><li><a href="#en-sec-2">The result is real layers</a></li><li><a href="#en-sec-3">Copying a style: one string of code</a></li><li><a href="#en-sec-4">The style travels with the layer</a></li><li><a href="#en-sec-5">Where it differs from Photoshop</a></li><li><a href="#en-sec-6">Why GIMP is handed plain &quot;normal&quot; layers</a></li><li><a href="#en-sec-7">Measured</a></li><li><a href="#en-sec-8">Scriptable</a></li><li><a href="#en-sec-9">The other way to get the same styles: a live filter</a></li><li><a href="#en-sec-10">Why it is not one code base</a></li>
       <li><a href="#en-download">Download</a></li>
     </ul>
   </aside>
@@ -359,7 +412,7 @@
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">2ad6676</span>
+    <span class="muted">ccf695f</span>
   </div>
 </footer>
 <script>

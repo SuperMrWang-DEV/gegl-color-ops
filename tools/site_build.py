@@ -69,6 +69,7 @@ GROUP_ZH = {
     "Sharpen": ("Sharpen", "锐化"),
     "Noise": ("Noise", "杂色"),
     "Distort": ("Distort", "扭曲"),
+    "Layer": ("Layer", "图层"),
 }
 
 GROUP_DESC = {
@@ -86,6 +87,8 @@ GROUP_DESC = {
              "蒙尘与划痕（孤立点用邻域中值换掉）。",
     "Distort": "按位移图重采样：一张 RGBA 图同时给 X/Y，单位可换成长边百分比，"
                "覆盖不到的区域原样输出。",
+    "Layer": "挂在图层上的效果：图层样式做成 GEGL 运算，参数存在滤镜栈里，"
+              "改一根滑杆就重算一遍，原像素不动。",
 }
 
 GROUP_DESC_EN = {
@@ -111,6 +114,9 @@ GROUP_DESC_EN = {
     "Distort": "Resample through a displacement map: one RGBA image drives both "
                "axes, the unit can be a percentage of the long edge, and areas "
                "the map does not cover pass straight through.",
+    "Layer": "Effects attached to the layer: layer styles as a GEGL operation, with "
+             "the parameters living on the filter stack — one slider move recomputes "
+             "it, and the pixels stay untouched.",
 }
 
 TYPE_ZH = {

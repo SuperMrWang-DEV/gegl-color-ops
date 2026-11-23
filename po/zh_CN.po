@@ -3107,3 +3107,509 @@ msgstr "去色边处理了 %d 个边缘像素。"
 msgid "Paint on the \"Refined Mask\" channel to add or remove areas, then load it as a selection."
 msgstr "可以在「Refined Mask」通道上用画笔加减区域，再把它载入成选区。"
 
+
+#: ops/layer-style/layer-style.c:45
+msgid "Normal"
+msgstr "正常"
+
+#: ops/layer-style/layer-style.c:46
+msgid "Darken"
+msgstr "变暗"
+
+#: ops/layer-style/layer-style.c:47
+msgid "Multiply"
+msgstr "正片叠底"
+
+#: ops/layer-style/layer-style.c:50
+msgid "Lighten"
+msgstr "变亮"
+
+#: ops/layer-style/layer-style.c:51
+msgid "Screen"
+msgstr "滤色"
+
+#: ops/layer-style/layer-style.c:54
+msgid "Overlay"
+msgstr "叠加"
+
+#: ops/layer-style/layer-style.c:61
+msgid "Difference"
+msgstr "差值"
+
+#: ops/layer-style/layer-style.c:62
+msgid "Exclusion"
+msgstr "排除"
+
+#: ops/layer-style/layer-style.c:63
+msgid "Subtract"
+msgstr "减去"
+
+#: ops/layer-style/layer-style.c:64
+msgid "Divide"
+msgstr "划分"
+
+#: ops/layer-style/layer-style.c:65
+msgid "Hue"
+msgstr "色相"
+
+#: ops/layer-style/layer-style.c:66
+msgid "Saturation"
+msgstr "饱和度"
+
+#: ops/layer-style/layer-style.c:67
+msgid "Color"
+msgstr "颜色"
+
+#: ops/layer-style/layer-style.c:68
+msgid "Luminosity"
+msgstr "明度"
+
+#: ops/layer-style/layer-style.c:48
+msgid "Color burn"
+msgstr "颜色加深"
+
+#: ops/layer-style/layer-style.c:49
+msgid "Linear burn"
+msgstr "线性加深"
+
+#: ops/layer-style/layer-style.c:52
+msgid "Color dodge"
+msgstr "颜色减淡"
+
+#: ops/layer-style/layer-style.c:53
+msgid "Linear dodge (add)"
+msgstr "线性减淡（相加）"
+
+#: ops/layer-style/layer-style.c:55
+msgid "Soft light"
+msgstr "柔光"
+
+#: ops/layer-style/layer-style.c:56
+msgid "Hard light"
+msgstr "强光"
+
+#: ops/layer-style/layer-style.c:57
+msgid "Vivid light"
+msgstr "亮光"
+
+#: ops/layer-style/layer-style.c:58
+msgid "Pin light"
+msgstr "点光"
+
+#: ops/layer-style/layer-style.c:59
+msgid "Linear light"
+msgstr "线性光"
+
+#: ops/layer-style/layer-style.c:60
+msgid "Hard mix"
+msgstr "实色混合"
+
+#: ops/layer-style/layer-style.c:69
+msgid "Darker color"
+msgstr "较暗颜色"
+
+#: ops/layer-style/layer-style.c:70
+msgid "Lighter color"
+msgstr "较亮颜色"
+
+#: ops/layer-style/layer-style.c:75
+#: ops/layer-style/layer-style.c:111
+msgid "Linear"
+msgstr "线性"
+
+#: ops/layer-style/layer-style.c:76
+msgid "Cone"
+msgstr "锥形"
+
+#: ops/layer-style/layer-style.c:77
+msgid "Cone inverted"
+msgstr "反向锥形"
+
+#: ops/layer-style/layer-style.c:79
+msgid "Ring"
+msgstr "环形"
+
+#: ops/layer-style/layer-style.c:80
+msgid "Ring double"
+msgstr "双环"
+
+#: ops/layer-style/layer-style.c:81
+msgid "Hollow"
+msgstr "凹形"
+
+#: ops/layer-style/layer-style.c:82
+msgid "Rolling slope"
+msgstr "滚动斜坡"
+
+#: ops/layer-style/layer-style.c:83
+msgid "Sawtooth"
+msgstr "锯齿"
+
+#: ops/layer-style/layer-style.c:84
+msgid "Sawtooth double"
+msgstr "双锯齿"
+
+#: ops/layer-style/layer-style.c:85
+msgid "Notched"
+msgstr "刻痕"
+
+#: ops/layer-style/layer-style.c:86
+msgid "Half round"
+msgstr "半圆"
+
+#: ops/layer-style/layer-style.c:91
+msgid "Inner bevel"
+msgstr "内斜面"
+
+#: ops/layer-style/layer-style.c:92
+msgid "Outer bevel"
+msgstr "外斜面"
+
+#: ops/layer-style/layer-style.c:93
+msgid "Emboss"
+msgstr "浮雕"
+
+#: ops/layer-style/layer-style.c:94
+msgid "Pillow emboss"
+msgstr "枕状浮雕"
+
+#: ops/layer-style/layer-style.c:95
+msgid "Stroke emboss"
+msgstr "描边浮雕"
+
+#: ops/layer-style/layer-style.c:100
+msgid "Chisel hard"
+msgstr "雕刻清晰"
+
+#: ops/layer-style/layer-style.c:101
+msgid "Chisel soft"
+msgstr "雕刻柔和"
+
+#: ops/layer-style/layer-style.c:105
+msgid "Up"
+msgstr "上"
+
+#: ops/layer-style/layer-style.c:106
+msgid "Down"
+msgstr "下"
+
+#: ops/layer-style/layer-style.c:112
+msgid "Radial"
+msgstr "径向"
+
+#: ops/layer-style/layer-style.c:113
+msgid "Angle"
+msgstr "角度"
+
+#: ops/layer-style/layer-style.c:114
+msgid "Reflected"
+msgstr "对称"
+
+#: ops/layer-style/layer-style.c:115
+msgid "Diamond"
+msgstr "菱形"
+
+#: ops/layer-style/layer-style.c:120
+msgid "Outside"
+msgstr "外部"
+
+#: ops/layer-style/layer-style.c:121
+msgid "Inside"
+msgstr "内部"
+
+#: ops/layer-style/layer-style.c:122
+#: ops/layer-style/layer-style.c:127
+msgid "Center"
+msgstr "居中"
+
+#: ops/layer-style/layer-style.c:126
+msgid "Edge"
+msgstr "边缘"
+
+#: ops/layer-style/layer-style.c:137
+msgid "Dots"
+msgstr "点阵"
+
+#: ops/layer-style/layer-style.c:138
+msgid "Stripes"
+msgstr "条纹"
+
+#: ops/layer-style/layer-style.c:140
+msgid "Grid"
+msgstr "网格"
+
+#: ops/layer-style/layer-style.c:141
+msgid "Diagonal stripes"
+msgstr "斜线"
+
+#: ops/layer-style/layer-style.c:142
+msgid "Rings"
+msgstr "同心环"
+
+#: ops/layer-style/layer-style.c:146
+msgid "Global light angle"
+msgstr "全局光角度"
+
+#: ops/layer-style/layer-style.c:147
+msgid "Photoshop's global light. Effects with Use global light ticked follow it; 120° means the light comes from the upper left, so a drop shadow falls to the lower right"
+msgstr "PS 的全局光。勾了「使用全局光」的效果都读它；120° 表示光从左上来，投影就落在右下"
+
+#: ops/layer-style/layer-style.c:153
+msgid "Global light altitude"
+msgstr "全局光高度"
+
+#: ops/layer-style/layer-style.c:154
+msgid "Height of the light above the surface, used by the bevel"
+msgstr "光离开表面的高度，斜面用它"
+
+#: ops/layer-style/layer-style.c:159
+msgid "Drop shadow"
+msgstr "投影"
+
+#: ops/layer-style/layer-style.c:160
+#: ops/layer-style/layer-style.c:295
+msgid "  Shadow colour"
+msgstr "  投影颜色"
+
+#: ops/layer-style/layer-style.c:162
+#: ops/layer-style/layer-style.c:189
+#: ops/layer-style/layer-style.c:210
+#: ops/layer-style/layer-style.c:233
+#: ops/layer-style/layer-style.c:310
+#: ops/layer-style/layer-style.c:330
+#: ops/layer-style/layer-style.c:355
+#: ops/layer-style/layer-style.c:374
+#: ops/layer-style/layer-style.c:391
+msgid "  Opacity"
+msgstr "  不透明度"
+
+#: ops/layer-style/layer-style.c:165
+#: ops/layer-style/layer-style.c:213
+#: ops/layer-style/layer-style.c:273
+#: ops/layer-style/layer-style.c:313
+#: ops/layer-style/layer-style.c:345
+msgid "  Angle"
+msgstr "  角度"
+
+#: ops/layer-style/layer-style.c:168
+#: ops/layer-style/layer-style.c:216
+#: ops/layer-style/layer-style.c:277
+msgid "  Use global light"
+msgstr "  使用全局光"
+
+#: ops/layer-style/layer-style.c:169
+#: ops/layer-style/layer-style.c:217
+#: ops/layer-style/layer-style.c:316
+msgid "  Distance"
+msgstr "  距离"
+
+#: ops/layer-style/layer-style.c:170
+msgid "How far the shadow is offset, in pixels"
+msgstr "投影偏移多少像素"
+
+#: ops/layer-style/layer-style.c:173
+#: ops/layer-style/layer-style.c:195
+msgid "  Spread"
+msgstr "  扩展"
+
+#: ops/layer-style/layer-style.c:174
+msgid "Tightens the shadow after the blur: 0 is a soft edge, 100 is a hard one. Photoshop applies spread after the blur for the same reason — before it, the blur just softens it again"
+msgstr "模糊之后再收紧：0 是软边，100 是硬边。PS 也把扩展放在模糊之后——放在前面会被模糊再糊回去"
+
+#: ops/layer-style/layer-style.c:179
+#: ops/layer-style/layer-style.c:192
+#: ops/layer-style/layer-style.c:223
+#: ops/layer-style/layer-style.c:241
+#: ops/layer-style/layer-style.c:265
+#: ops/layer-style/layer-style.c:319
+#: ops/layer-style/layer-style.c:382
+msgid "  Size"
+msgstr "  大小"
+
+#: ops/layer-style/layer-style.c:182
+#: ops/layer-style/layer-style.c:203
+#: ops/layer-style/layer-style.c:226
+#: ops/layer-style/layer-style.c:247
+msgid "  Contour"
+msgstr "  等高线"
+
+#: ops/layer-style/layer-style.c:186
+msgid "Outer glow"
+msgstr "外发光"
+
+#: ops/layer-style/layer-style.c:187
+msgid "  Glow colour"
+msgstr "  发光颜色"
+
+#: ops/layer-style/layer-style.c:198
+#: ops/layer-style/layer-style.c:244
+msgid "  Range"
+msgstr "  范围"
+
+#: ops/layer-style/layer-style.c:199
+msgid "How much of the glow's alpha survives: a low range boosts the glow, 100 keeps it as it is"
+msgstr "发光 alpha 保留多少：范围小则发光更强，100 保持原样"
+
+#: ops/layer-style/layer-style.c:207
+msgid "Inner shadow"
+msgstr "内阴影"
+
+#: ops/layer-style/layer-style.c:208
+msgid "  Inner shadow colour"
+msgstr "  内阴影颜色"
+
+#: ops/layer-style/layer-style.c:220
+#: ops/layer-style/layer-style.c:238
+msgid "  Choke"
+msgstr "  阻塞"
+
+#: ops/layer-style/layer-style.c:230
+msgid "Inner glow"
+msgstr "内发光"
+
+#: ops/layer-style/layer-style.c:231
+msgid "  Inner glow colour"
+msgstr "  内发光颜色"
+
+#: ops/layer-style/layer-style.c:236
+msgid "  Source"
+msgstr "  源"
+
+#: ops/layer-style/layer-style.c:251
+msgid "Bevel and emboss"
+msgstr "斜面和浮雕"
+
+#: ops/layer-style/layer-style.c:252
+#: ops/layer-style/layer-style.c:342
+msgid "  Style"
+msgstr "  样式"
+
+#: ops/layer-style/layer-style.c:255
+msgid "  Technique"
+msgstr "  方法"
+
+#: ops/layer-style/layer-style.c:258
+msgid "  Depth"
+msgstr "  深度"
+
+#: ops/layer-style/layer-style.c:262
+msgid "  Direction"
+msgstr "  方向"
+
+#: ops/layer-style/layer-style.c:269
+msgid "  Soften"
+msgstr "  软化"
+
+#: ops/layer-style/layer-style.c:279
+msgid "  Altitude"
+msgstr "  高度"
+
+#: ops/layer-style/layer-style.c:283
+msgid "  Highlight mode"
+msgstr "  高光模式"
+
+#: ops/layer-style/layer-style.c:286
+msgid "  Highlight colour"
+msgstr "  高光颜色"
+
+#: ops/layer-style/layer-style.c:288
+msgid "  Highlight opacity"
+msgstr "  高光不透明度"
+
+#: ops/layer-style/layer-style.c:292
+msgid "  Shadow mode"
+msgstr "  阴影模式"
+
+#: ops/layer-style/layer-style.c:297
+msgid "  Shadow opacity"
+msgstr "  阴影不透明度"
+
+#: ops/layer-style/layer-style.c:301
+msgid "  Stroke size (stroke emboss)"
+msgstr "  描边宽度（描边浮雕）"
+
+#: ops/layer-style/layer-style.c:307
+msgid "Satin"
+msgstr "光泽"
+
+#: ops/layer-style/layer-style.c:308
+msgid "  Satin colour"
+msgstr "  光泽颜色"
+
+#: ops/layer-style/layer-style.c:322
+msgid "  Invert"
+msgstr "  反相"
+
+#: ops/layer-style/layer-style.c:323
+#: ops/layer-style/layer-style.c:333
+#: ops/layer-style/layer-style.c:358
+#: ops/layer-style/layer-style.c:377
+#: ops/layer-style/layer-style.c:394
+msgid "  Blend mode"
+msgstr "  混合模式"
+
+#: ops/layer-style/layer-style.c:327
+msgid "Colour overlay"
+msgstr "颜色叠加"
+
+#: ops/layer-style/layer-style.c:328
+#: ops/layer-style/layer-style.c:389
+msgid "  Colour"
+msgstr "  颜色"
+
+#: ops/layer-style/layer-style.c:337
+msgid "Gradient overlay"
+msgstr "渐变叠加"
+
+#: ops/layer-style/layer-style.c:338
+msgid "  From"
+msgstr "  从"
+
+#: ops/layer-style/layer-style.c:340
+msgid "  To"
+msgstr "  到"
+
+#: ops/layer-style/layer-style.c:349
+#: ops/layer-style/layer-style.c:370
+msgid "  Scale"
+msgstr "  缩放"
+
+#: ops/layer-style/layer-style.c:353
+msgid "  Reverse"
+msgstr "  反相"
+
+#: ops/layer-style/layer-style.c:362
+msgid "Pattern overlay"
+msgstr "图案叠加"
+
+#: ops/layer-style/layer-style.c:363
+msgid "  Pattern"
+msgstr "  图案"
+
+#: ops/layer-style/layer-style.c:366
+msgid "  Colour 1"
+msgstr "  颜色 1"
+
+#: ops/layer-style/layer-style.c:368
+msgid "  Colour 2"
+msgstr "  颜色 2"
+
+#: ops/layer-style/layer-style.c:381
+msgid "Stroke"
+msgstr "描边"
+
+#: ops/layer-style/layer-style.c:386
+msgid "  Position"
+msgstr "  位置"
+
+#: ops/layer-style/layer-style.c:1697
+msgid "Layer Style (live)"
+msgstr "图层样式（实时）"
+
+#: ops/layer-style/layer-style.c:1706
+msgid "Layer Style (live)…"
+msgstr "图层样式（实时）…"
+
+#: ops/layer-style/layer-style.c:1698
+msgid "Photoshop's layer styles as a live filter: drop shadow, inner shadow, outer and inner glow, bevel and emboss (five styles), satin, colour / gradient / pattern overlay and stroke. The style lives on the filter, so nothing is baked into the pixels and every slider can be reopened later."
+msgstr "PS 的图层样式，做成一条实时滤镜：投影、内阴影、外发光、内发光、斜面和浮雕（五种样式）、光泽、颜色 / 渐变 / 图案叠加、描边。样式挂在滤镜上，像素里什么都没烤进去，每根滑杆回头都能再拖"

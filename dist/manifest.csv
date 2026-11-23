@@ -31,6 +31,7 @@ windows-x64,hue-saturation.dll,lb:hue-saturation,Hue/Saturation,113111,ce697e6bb
 windows-x64,lab-compose.dll,lb:lab-compose,Lab Compose,102527,dfd6a66980ebc71191508ae9e73cdf6d7048f4d8dad98ae9f1f90b275e6aa328
 windows-x64,lab-dual.dll,lb:lab-dual,Lab Dual Extract,102509,0abe3c4c02196b1667d506fdb0755c3d5783245b8d898eb23f4daa85792a0de2
 windows-x64,lab-levels.dll,lb:lab-levels,LAB Levels,135422,486db3f1396c779bf921d38d1fd90e629f9a0b174ebdda5ba7331c752a338ed0
+windows-x64,layer-style.dll,lb:layer-style,Layer Style (live),202850,1b9680f2413c2d56011e0471cab73310cc45c931ab237aea29192e08e66db55d
 windows-x64,lb-brightness-contrast.dll,lb:brightness-contrast,Brightness/Contrast,132736,7a6eb2fe6a20e29b100683ba30710b4c7a735ec6e2be21bb6fb1d98b1577935c
 windows-x64,lb-exposure.dll,lb:exposure,Exposure EV,132032,4060fffc42ade92faf4933a9723f7bee76fee9e7bf96f703a35183dbe96a45b9
 windows-x64,lch-compose.dll,lb:lch-compose,LCh Compose,102527,035cf5fbfad8435135f1746965f9ac0fc30f9193cefd0a7626dcc4815f13447f

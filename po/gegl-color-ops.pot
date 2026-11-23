@@ -52,6 +52,7 @@ msgid "Adds Gaussian or uniform noise, monochromatic or per channel. The seed ma
 msgstr ""
 
 #: ops/add-noise/add-noise.c:35
+#: ops/layer-style/layer-style.c:81
 msgid "Gaussian"
 msgstr ""
 
@@ -188,8 +189,14 @@ msgstr ""
 
 #: ops/apply-image/apply-image.c:135
 #: ops/calculations/calculations.c:131
-#: plugin/refine-mask/refine-mask.py:413
-#: plugin/refine-mask/refine-mask.py:582
+#: plugin/mesh-warp/mesh-warp.py:277
+#: plugin/mesh-warp/mesh-warp.py:705
+#: plugin/puppet-warp/puppet-warp.py:299
+#: plugin/puppet-warp/puppet-warp.py:602
+#: plugin/refine-mask/refine-mask.py:420
+#: plugin/refine-mask/refine-mask.py:589
+#: plugin/vanishing-point/vanishing-point.py:403
+#: plugin/vanishing-point/vanishing-point.py:959
 msgid "Output"
 msgstr ""
 
@@ -219,16 +226,19 @@ msgstr ""
 
 #: ops/apply-image/apply-image.c:38
 #: ops/calculations/calculations.c:31
+#: ops/layer-style/layer-style.c:48
 msgid "Normal"
 msgstr ""
 
 #: ops/apply-image/apply-image.c:39
 #: ops/calculations/calculations.c:32
+#: ops/layer-style/layer-style.c:49
 msgid "Darken"
 msgstr ""
 
 #: ops/apply-image/apply-image.c:40
 #: ops/calculations/calculations.c:33
+#: ops/layer-style/layer-style.c:50
 msgid "Multiply"
 msgstr ""
 
@@ -244,11 +254,13 @@ msgstr ""
 
 #: ops/apply-image/apply-image.c:43
 #: ops/calculations/calculations.c:36
+#: ops/layer-style/layer-style.c:53
 msgid "Lighten"
 msgstr ""
 
 #: ops/apply-image/apply-image.c:44
 #: ops/calculations/calculations.c:37
+#: ops/layer-style/layer-style.c:54
 msgid "Screen"
 msgstr ""
 
@@ -264,6 +276,7 @@ msgstr ""
 
 #: ops/apply-image/apply-image.c:47
 #: ops/calculations/calculations.c:40
+#: ops/layer-style/layer-style.c:57
 msgid "Overlay"
 msgstr ""
 
@@ -299,21 +312,25 @@ msgstr ""
 
 #: ops/apply-image/apply-image.c:54
 #: ops/calculations/calculations.c:47
+#: ops/layer-style/layer-style.c:64
 msgid "Difference"
 msgstr ""
 
 #: ops/apply-image/apply-image.c:55
 #: ops/calculations/calculations.c:48
+#: ops/layer-style/layer-style.c:65
 msgid "Exclusion"
 msgstr ""
 
 #: ops/apply-image/apply-image.c:56
 #: ops/calculations/calculations.c:49
+#: ops/layer-style/layer-style.c:66
 msgid "Subtract"
 msgstr ""
 
 #: ops/apply-image/apply-image.c:57
 #: ops/calculations/calculations.c:50
+#: ops/layer-style/layer-style.c:67
 msgid "Divide"
 msgstr ""
 
@@ -333,6 +350,7 @@ msgstr ""
 #: ops/hue-range-basic/hue-range-basic.c:89
 #: ops/hue-saturation-basic/hue-saturation-basic.c:49
 #: ops/hue-saturation/hue-saturation.c:29
+#: ops/layer-style/layer-style.c:68
 msgid "Hue"
 msgstr ""
 
@@ -342,17 +360,20 @@ msgstr ""
 #: ops/hue-range-basic/hue-range-basic.c:95
 #: ops/hue-saturation-basic/hue-saturation-basic.c:55
 #: ops/hue-saturation/hue-saturation.c:34
+#: ops/layer-style/layer-style.c:69
 #: ops/vibrance-hyper/vibrance-hyper.c:34
 msgid "Saturation"
 msgstr ""
 
 #: ops/apply-image/apply-image.c:62
 #: ops/calculations/calculations.c:55
+#: ops/layer-style/layer-style.c:70
 msgid "Color"
 msgstr ""
 
 #: ops/apply-image/apply-image.c:63
 #: ops/calculations/calculations.c:56
+#: ops/layer-style/layer-style.c:71
 msgid "Luminosity"
 msgstr ""
 
@@ -440,8 +461,8 @@ msgid "the classic editor's Brightness, -150 to +150. In the legacy mode the val
 msgstr ""
 
 #: ops/brightness-contrast/lb-brightness-contrast.c:46
-#: plugin/refine-mask/refine-mask.py:404
-#: plugin/refine-mask/refine-mask.py:554
+#: plugin/refine-mask/refine-mask.py:411
+#: plugin/refine-mask/refine-mask.py:561
 msgid "Contrast"
 msgstr ""
 
@@ -1426,8 +1447,8 @@ msgstr ""
 #: plugin/ai-inpaint/ai-inpaint.py:1094
 #: plugin/color-range/color-range.py:266
 #: plugin/cutout/cutout.py:487
-#: plugin/refine-mask/refine-mask.py:402
-#: plugin/refine-mask/refine-mask.py:550
+#: plugin/refine-mask/refine-mask.py:409
+#: plugin/refine-mask/refine-mask.py:557
 #: plugin/sky-replace/sky-replace.py:230
 msgid "Feather"
 msgstr ""
@@ -1654,12 +1675,12 @@ msgid "Transparent"
 msgstr ""
 
 #: ops/displace/displace.c:64
-#: plugin/refine-mask/refine-mask.py:376
+#: plugin/refine-mask/refine-mask.py:383
 msgid "Black"
 msgstr ""
 
 #: ops/displace/displace.c:65
-#: plugin/refine-mask/refine-mask.py:375
+#: plugin/refine-mask/refine-mask.py:382
 msgid "White"
 msgstr ""
 
@@ -1767,6 +1788,8 @@ msgstr ""
 #: ops/gray-to-component/gray-to-component.c:84
 #: ops/max-min/max-min.c:48
 #: plugin/max-min/max-min.py:226
+#: plugin/vanishing-point/vanishing-point.py:306
+#: plugin/vanishing-point/vanishing-point.py:934
 msgid "Mode"
 msgstr ""
 
@@ -2727,6 +2750,469 @@ msgstr ""
 
 #: ops/lab-levels/lab-levels.c:351
 msgid "Independent levels adjustment for L,a,b channel, adjust tone and color separately"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:149
+msgid "Global light angle"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:150
+msgid "Photoshop's global light. Effects with Use global light ticked follow it; 120° means the light comes from the upper left, so a drop shadow falls to the lower right"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:156
+msgid "Global light altitude"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:157
+msgid "Height of the light above the surface, used by the bevel"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:162
+msgid "Drop shadow"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:163
+#: ops/layer-style/layer-style.c:298
+msgid "  Shadow colour"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:165
+#: ops/layer-style/layer-style.c:192
+#: ops/layer-style/layer-style.c:213
+#: ops/layer-style/layer-style.c:236
+#: ops/layer-style/layer-style.c:313
+#: ops/layer-style/layer-style.c:333
+#: ops/layer-style/layer-style.c:358
+#: ops/layer-style/layer-style.c:377
+#: ops/layer-style/layer-style.c:394
+msgid "  Opacity"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:168
+#: ops/layer-style/layer-style.c:216
+#: ops/layer-style/layer-style.c:276
+#: ops/layer-style/layer-style.c:316
+#: ops/layer-style/layer-style.c:348
+msgid "  Angle"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:171
+#: ops/layer-style/layer-style.c:219
+#: ops/layer-style/layer-style.c:280
+msgid "  Use global light"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:172
+#: ops/layer-style/layer-style.c:220
+#: ops/layer-style/layer-style.c:319
+msgid "  Distance"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:173
+msgid "How far the shadow is offset, in pixels"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:176
+#: ops/layer-style/layer-style.c:198
+msgid "  Spread"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:177
+msgid "Tightens the shadow after the blur: 0 is a soft edge, 100 is a hard one. Photoshop applies spread after the blur for the same reason — before it, the blur just softens it again"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:182
+#: ops/layer-style/layer-style.c:195
+#: ops/layer-style/layer-style.c:226
+#: ops/layer-style/layer-style.c:244
+#: ops/layer-style/layer-style.c:268
+#: ops/layer-style/layer-style.c:322
+#: ops/layer-style/layer-style.c:385
+msgid "  Size"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:185
+#: ops/layer-style/layer-style.c:206
+#: ops/layer-style/layer-style.c:229
+#: ops/layer-style/layer-style.c:250
+msgid "  Contour"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:189
+msgid "Outer glow"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:190
+msgid "  Glow colour"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:201
+#: ops/layer-style/layer-style.c:247
+msgid "  Range"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:202
+msgid "How much of the glow's alpha survives: a low range boosts the glow, 100 keeps it as it is"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:210
+msgid "Inner shadow"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:211
+msgid "  Inner shadow colour"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:223
+#: ops/layer-style/layer-style.c:241
+msgid "  Choke"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:233
+msgid "Inner glow"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:234
+msgid "  Inner glow colour"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:239
+msgid "  Source"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:254
+msgid "Bevel and emboss"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:255
+#: ops/layer-style/layer-style.c:345
+msgid "  Style"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:258
+msgid "  Technique"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:261
+msgid "  Depth"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:265
+msgid "  Direction"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:272
+msgid "  Soften"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:282
+msgid "  Altitude"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:286
+msgid "  Highlight mode"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:289
+msgid "  Highlight colour"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:291
+msgid "  Highlight opacity"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:295
+msgid "  Shadow mode"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:300
+msgid "  Shadow opacity"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:304
+msgid "  Stroke size (stroke emboss)"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:310
+msgid "Satin"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:311
+msgid "  Satin colour"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:325
+msgid "  Invert"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:326
+#: ops/layer-style/layer-style.c:336
+#: ops/layer-style/layer-style.c:361
+#: ops/layer-style/layer-style.c:380
+#: ops/layer-style/layer-style.c:397
+msgid "  Blend mode"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:330
+msgid "Colour overlay"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:331
+#: ops/layer-style/layer-style.c:392
+msgid "  Colour"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:340
+msgid "Gradient overlay"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:341
+msgid "  From"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:343
+msgid "  To"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:352
+#: ops/layer-style/layer-style.c:373
+msgid "  Scale"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:356
+msgid "  Reverse"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:365
+msgid "Pattern overlay"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:366
+msgid "  Pattern"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:369
+msgid "  Colour 1"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:371
+msgid "  Colour 2"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:384
+msgid "Stroke"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:389
+msgid "  Position"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:1700
+msgid "Layer Style (live)"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:1701
+msgid "Photoshop's layer styles as a live filter: drop shadow, inner shadow, outer and inner glow, bevel and emboss (five styles), satin, colour / gradient / pattern overlay and stroke. The style lives on the filter, so nothing is baked into the pixels and every slider can be reopened later."
+msgstr ""
+
+#: ops/layer-style/layer-style.c:1709
+msgid "Layer Style (live)…"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:51
+msgid "Color burn"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:52
+msgid "Linear burn"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:55
+msgid "Color dodge"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:56
+msgid "Linear dodge (add)"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:58
+msgid "Soft light"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:59
+msgid "Hard light"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:60
+msgid "Vivid light"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:61
+msgid "Pin light"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:62
+msgid "Linear light"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:63
+msgid "Hard mix"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:72
+msgid "Darker color"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:73
+msgid "Lighter color"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:78
+#: ops/layer-style/layer-style.c:114
+msgid "Linear"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:79
+msgid "Cone"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:80
+msgid "Cone inverted"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:82
+msgid "Ring"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:83
+msgid "Ring double"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:84
+msgid "Hollow"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:85
+msgid "Rolling slope"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:86
+msgid "Sawtooth"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:87
+msgid "Sawtooth double"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:88
+msgid "Notched"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:89
+msgid "Half round"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:94
+msgid "Inner bevel"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:95
+msgid "Outer bevel"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:96
+msgid "Emboss"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:97
+msgid "Pillow emboss"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:98
+msgid "Stroke emboss"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:102
+#: plugin/refine-mask/refine-mask.py:407
+#: plugin/refine-mask/refine-mask.py:553
+msgid "Smooth"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:103
+msgid "Chisel hard"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:104
+msgid "Chisel soft"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:108
+msgid "Up"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:109
+msgid "Down"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:115
+msgid "Radial"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:116
+msgid "Angle"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:117
+msgid "Reflected"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:118
+msgid "Diamond"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:123
+msgid "Outside"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:124
+msgid "Inside"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:125
+#: ops/layer-style/layer-style.c:130
+msgid "Center"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:129
+msgid "Edge"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:140
+msgid "Dots"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:141
+msgid "Stripes"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:142
+#: plugin/refine-mask/refine-mask.py:382
+msgid "Checker"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:143
+#: plugin/mesh-warp/mesh-warp.py:249
+#: plugin/vanishing-point/vanishing-point.py:332
+msgid "Grid"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:144
+msgid "Diagonal stripes"
+msgstr ""
+
+#: ops/layer-style/layer-style.c:145
+msgid "Rings"
 msgstr ""
 
 #: ops/lch-compose/lch-compose.c:116
@@ -3902,7 +4388,10 @@ msgstr ""
 #: plugin/ai-inpaint/ai-inpaint.py:692
 #: plugin/ai-inpaint/ai-inpaint.py:710
 #: plugin/blend/blend.py:566
-#: plugin/refine-mask/refine-mask.py:356
+#: plugin/mesh-warp/mesh-warp.py:211
+#: plugin/puppet-warp/puppet-warp.py:230
+#: plugin/refine-mask/refine-mask.py:363
+#: plugin/vanishing-point/vanishing-point.py:263
 msgid "_Cancel"
 msgstr ""
 
@@ -4109,6 +4598,7 @@ msgid "Selection + prompt -> ComfyUI inpaint -> new layer. Only asks what to pai
 msgstr ""
 
 #: plugin/ai-inpaint/ai-inpaint.py:1072
+#: plugin/vanishing-point/vanishing-point.py:376
 msgid "Steps"
 msgstr ""
 
@@ -4190,10 +4680,14 @@ msgstr ""
 #: plugin/hsl-split-curves/hsl-split-curves.py:555
 #: plugin/hsv-split-curves/hsv-split-curves.py:565
 #: plugin/lab-split-curves/lab-split-curves.py:612
+#: plugin/layer-style/layer-style.py:1035
 #: plugin/layer-to-channel/layer-to-channel.py:297
 #: plugin/layer-to-selection/layer-to-selection.py:301
 #: plugin/lch-split-curves/lch-split-curves.py:741
-#: plugin/refine-mask/refine-mask.py:623
+#: plugin/mesh-warp/mesh-warp.py:741
+#: plugin/puppet-warp/puppet-warp.py:638
+#: plugin/refine-mask/refine-mask.py:630
+#: plugin/vanishing-point/vanishing-point.py:996
 msgid "No image or no layer selected"
 msgstr ""
 
@@ -4612,6 +5106,7 @@ msgid "Color Range"
 msgstr ""
 
 #: plugin/color-range/color-range.py:228
+#: plugin/layer-style/layer-style.py:450
 msgid "Cancel"
 msgstr ""
 
@@ -4620,8 +5115,8 @@ msgid "OK"
 msgstr ""
 
 #: plugin/color-range/color-range.py:238
-#: plugin/refine-mask/refine-mask.py:419
-#: plugin/refine-mask/refine-mask.py:575
+#: plugin/refine-mask/refine-mask.py:426
+#: plugin/refine-mask/refine-mask.py:582
 msgid "Selection"
 msgstr ""
 
@@ -5530,6 +6025,133 @@ msgstr ""
 msgid "Puts this layer into a pass-through group named Lab split; turn it off to stack it directly above the original layer."
 msgstr ""
 
+#: plugin/layer-style/layer-style.py:319
+#: plugin/mesh-warp/mesh-warp.py:141
+#: plugin/puppet-warp/puppet-warp.py:160
+#: plugin/vanishing-point/vanishing-point.py:152
+msgid "Read the layer at the wrong size: %d×%d, expected %d×%d"
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:326
+msgid "No effect is turned on — tick at least one on the left before applying."
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:448
+msgid "Layer Style"
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:451
+msgid "Apply"
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:468
+msgid "Effects"
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:507
+msgid "Style code — copy this style to another layer"
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:515
+msgid "Copy code"
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:516
+msgid "Paste and load"
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:517
+msgid "Load this code"
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:520
+msgid "Sizes are document pixels — pasting onto a different-sized layer keeps them as they are."
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:564
+msgid "Edited — press “Load this code” to use these values."
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:595
+msgid "That is not a style code: %s"
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:601
+msgid "Loaded — %d effect(s) on."
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:620
+msgid "Copied %d characters. Open the other layer's dialog, paste into this box and press “Load this code”."
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:627
+msgid "The clipboard refused (%s); the code is selected — press Ctrl+C."
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:636
+msgid "Could not read the clipboard: %s"
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:639
+msgid "The clipboard is empty."
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:679
+msgid "%d effect(s) on · preview %s (full size %s)"
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:744
+#: plugin/layer-style/layer-style.py:781
+msgid "Blend Options"
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:962
+msgid "This build of GIMP has no GTK — nothing to click on. (%s). Pass the style through the style argument instead (a JSON string)."
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:982
+#: plugin/mesh-warp/mesh-warp.py:104
+#: plugin/puppet-warp/puppet-warp.py:103
+#: plugin/vanishing-point/vanishing-point.py:110
+msgid "Nothing is selected. Pick a pixel layer first."
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:984
+msgid "That is not a layer. Select a pixel layer."
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:986
+msgid "That is a layer group. Pick a single layer inside it — a group has no pixels to draw a style from."
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:990
+msgid "The layer is %d×%d — too small for a style."
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:1007
+msgid "Layer Style…"
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:1009
+msgid "Drop shadow, glows, bevel, satin, overlays and stroke — as a group of editable layers, with live preview"
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:1011
+msgid "Photoshop's layer styles: drop shadow, inner shadow, outer and inner glow, bevel and emboss (five styles), satin, colour / gradient / pattern overlay and stroke. Each one has its own blend mode, colour, angle, distance, size and contour. The result is a layer group holding the original layer plus one layer per effect, so nothing is baked into the pixels."
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:1020
+msgid "Style"
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:1021
+msgid "The whole style as a JSON string. The dialog's \"Style code\" box holds exactly this string — copy it from one layer and paste it into another layer's box (or pass it here from a script) to get the same style. Leave empty to use whatever style that layer was last given (it is stored in the XCF), or the defaults with the drop shadow on for a fresh layer."
+msgstr ""
+
+#: plugin/layer-style/layer-style.py:1054
+msgid "Layer style: %d layer(s) in \"%s\" · %s · %.1f s"
+msgstr ""
+
 #: plugin/layer-to-channel/layer-to-channel.py:167
 #: plugin/layer-to-selection/layer-to-selection.py:165
 msgid "A layer group cannot be converted directly; right-click it and Merge Layer Group first."
@@ -5777,6 +6399,184 @@ msgstr ""
 msgid "Select a layer or one of its masks."
 msgstr ""
 
+#: plugin/mesh-warp/mesh-warp.py:85
+#: plugin/puppet-warp/puppet-warp.py:79
+#: plugin/vanishing-point/vanishing-point.py:92
+msgid "Pixel buffer size mismatch: %d bytes for %d×%d"
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:106
+#: plugin/puppet-warp/puppet-warp.py:105
+#: plugin/vanishing-point/vanishing-point.py:112
+msgid "That is not a layer. Select a normal pixel layer first."
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:109
+#: plugin/puppet-warp/puppet-warp.py:108
+msgid "That is a layer group. Pick a single layer inside it — a group has no pixels of its own to warp."
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:113
+#: plugin/puppet-warp/puppet-warp.py:112
+msgid "That is a text/vector layer. Rasterise it first (Layer → Discard text information), otherwise there are no pixels to warp."
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:118
+#: plugin/puppet-warp/puppet-warp.py:117
+msgid "The layer is %d×%d — too small to warp."
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:128
+msgid "No mesh — nothing to deform."
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:130
+msgid "The mesh has not been touched yet — drag a grid point (or a handle) away from its original spot first."
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:136
+msgid "The deformation came out empty — the grid points cancel each other out."
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:145
+#: plugin/puppet-warp/puppet-warp.py:164
+msgid "Warping %d×%d…"
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:155
+#: plugin/puppet-warp/puppet-warp.py:174
+msgid " (warped)"
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:210
+msgid "Free Transform (Mesh + Handles)"
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:212
+#: plugin/puppet-warp/puppet-warp.py:231
+#: plugin/refine-mask/refine-mask.py:364
+#: plugin/vanishing-point/vanishing-point.py:264
+msgid "_Apply"
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:230
+msgid "Drag a grid point to move it · select a point to get its handles, drag the round dots to bend the lines · right-click resets a point"
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:245
+#: plugin/mesh-warp/mesh-warp.py:691
+msgid "Mesh"
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:254
+msgid "%d × %d cells"
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:256
+msgid "custom (you added lines)"
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:269
+#: plugin/puppet-warp/puppet-warp.py:294
+msgid "Show the mesh"
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:272
+msgid "Show the handles"
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:281
+#: plugin/mesh-warp/mesh-warp.py:700
+#: plugin/puppet-warp/puppet-warp.py:303
+#: plugin/puppet-warp/puppet-warp.py:597
+#: plugin/vanishing-point/vanishing-point.py:407
+#: plugin/vanishing-point/vanishing-point.py:954
+msgid "Replace this layer"
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:282
+#: plugin/mesh-warp/mesh-warp.py:702
+#: plugin/puppet-warp/puppet-warp.py:304
+#: plugin/puppet-warp/puppet-warp.py:599
+#: plugin/vanishing-point/vanishing-point.py:408
+#: plugin/vanishing-point/vanishing-point.py:956
+msgid "Copy to a new layer"
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:290
+msgid "Reset selected"
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:291
+msgid "Reset all"
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:339
+msgid " · %d bent"
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:340
+msgid "%d×%d cells · %d moved%s · max shift %.1f px\npreview %s of %s · %.0f ms"
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:346
+#: plugin/puppet-warp/puppet-warp.py:381
+#: plugin/refine-mask/refine-mask.py:487
+#: plugin/vanishing-point/vanishing-point.py:531
+msgid "Preview failed: %s"
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:434
+msgid "Drag a grid point to start shaping"
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:479
+msgid "Could not add a line: %s"
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:493
+msgid "Grid is already at the maximum of %d lines."
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:668
+msgid "This build of GIMP has no GTK — nothing to click on. (%s). Pass the mesh through the mesh argument instead: \"3,3; x,y,ux,uy,vx,vy; …\""
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:692
+msgid "cols,rows; then one x,y,ux,uy,vx,vy[,auto] per grid point, row by row. ux/uy and vx/vy are the two handle vectors (the derivative of the surface, i.e. three times the distance to the handle dot); auto=1 means the handle is derived from the neighbours. Leave empty to get a 3×3 grid and drag the points on the picture instead. This is what the dialog writes back, so a script can replay a warp."
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:701
+#: plugin/puppet-warp/puppet-warp.py:598
+msgid "Bake the warp into the current layer"
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:703
+#: plugin/puppet-warp/puppet-warp.py:600
+msgid "Keep the original and put the warped copy above it"
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:705
+#: plugin/puppet-warp/puppet-warp.py:602
+msgid "Where the warped pixels go"
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:722
+msgid "Free Transform (Mesh)"
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:724
+msgid "Warp a layer with a Bezier grid: drag the grid points, bend the lines with their handles, see it live"
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:726
+msgid "A grid is laid over the layer. Dragging a grid point moves the picture with it; selecting a point shows its two handles, and dragging a handle bends the grid line into a curve, so bulges and tucks are possible. The mesh can also be passed as a string, so this works from a script."
+msgstr ""
+
+#: plugin/mesh-warp/mesh-warp.py:757
+msgid "Warped %s in %.1f s — %d×%d cells, %d points moved."
+msgstr ""
+
 #: plugin/neutral-grey/neutral-grey.py:187
 #: plugin/neutral-grey/neutral-grey.py:237
 msgid "Neutral Grey"
@@ -5838,6 +6638,125 @@ msgstr ""
 msgid "Added \"%s\": hide or delete it when you are done — the layer underneath was not touched."
 msgstr ""
 
+#: plugin/puppet-warp/puppet-warp.py:143
+msgid "No pins yet — click on the picture to place at least one, then drag it."
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:146
+msgid "None of the pins has been dragged yet — drag a pin away from where you placed it."
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:149
+msgid "ARAP needs numpy, which this GIMP's Python does not have. Run tools/install_gimp_numpy.py, or pick one of the MLS modes."
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:155
+msgid "The deformation came out empty (pins are too close to cancel each other out)."
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:229
+#: plugin/puppet-warp/puppet-warp.py:619
+msgid "Puppet Warp"
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:249
+msgid "Click to drop a pin · drag a pin to pull the picture · right-click a pin to delete it"
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:263
+#: plugin/puppet-warp/puppet-warp.py:567
+msgid "Pins"
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:267
+#: plugin/puppet-warp/puppet-warp.py:588
+msgid "Deformation"
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:271
+#: plugin/puppet-warp/puppet-warp.py:574
+msgid "Rigid (keeps shapes)"
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:272
+#: plugin/puppet-warp/puppet-warp.py:578
+msgid "Free (allows stretching)"
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:274
+#: plugin/puppet-warp/puppet-warp.py:581
+msgid "ARAP (best at bending)"
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:282
+#: plugin/puppet-warp/puppet-warp.py:591
+msgid "Falloff"
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:312
+msgid "Delete selected"
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:313
+msgid "Clear pins"
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:372
+msgid "ARAP · falloff not used"
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:374
+msgid "falloff %.0f px"
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:375
+msgid "%d pins, %d dragged, max shift %.1f px\npreview %s of %s · %.0f ms · %s"
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:433
+msgid "Click on the picture to place the first pin"
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:542
+msgid "This build of GIMP has no GTK — nothing to click on. (%s). Pass pins through the pins argument instead: sx,sy,dx,dy; …"
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:568
+msgid "sx,sy,dx,dy; sx,sy,dx,dy — where each pin was placed and where it was dragged to, in layer pixels. Leave empty to place the pins by clicking on the picture (interactive run). This is what the dialog writes back, so a script can drive the warp without a mouse."
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:575
+msgid "MLS similarity: the local transform can only rotate, translate and scale uniformly, so corners stay square — this is the one that looks like Photoshop's puppet warp"
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:579
+msgid "Full MLS affine: the picture can also shear and stretch. Better for pulling something longer, worse on faces"
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:582
+msgid "As-rigid-as-possible on a mesh: every patch may only rotate and translate, so bending an arm does not squash it. The closest to Photoshop's behaviour on big bends. Needs numpy (run tools/install_gimp_numpy.py); Falloff is not used in this mode"
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:588
+msgid "How the pixels between pins are solved"
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:592
+msgid "How far a pin reaches, as a percentage of the long edge. Outside that circle the picture is left untouched — byte for byte. Small values make it a local nudge, large values make the whole picture follow the pins"
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:621
+msgid "Warp a layer by dragging pins: MLS deformation, editable pins, live preview"
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:623
+msgid "Drop pins on the layer and drag them; the pixels between pins follow smoothly and the area outside the falloff stays untouched. Rigid mode keeps shapes, free mode allows stretch. The pins can also be passed as a string, so this works from a script."
+msgstr ""
+
+#: plugin/puppet-warp/puppet-warp.py:656
+msgid "Warped %s in %.1f s — %d pins, max shift %.1f px."
+msgstr ""
+
 #: plugin/refine-mask/refine-mask.py:244
 msgid "Refining the mask…"
 msgstr ""
@@ -5850,171 +6769,162 @@ msgstr ""
 msgid "Could not scale the mask back to the canvas"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:292
+#: plugin/refine-mask/refine-mask.py:286
+msgid "A layer group cannot take a mask. Pick a raster layer, or use \"New layer\" output."
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:289
+msgid "This layer already has a mask. Delete it first (or use \"New layer\" output), so the old mask is not thrown away silently."
+msgstr ""
+
+#: plugin/refine-mask/refine-mask.py:299
 msgid "Refined layer"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:301
+#: plugin/refine-mask/refine-mask.py:308
 msgid "Removing the colour fringe…"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:307
+#: plugin/refine-mask/refine-mask.py:314
 msgid "Unknown output mode: %s"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:354
+#: plugin/refine-mask/refine-mask.py:361
 msgid "Select and Mask — refine the edge"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:357
-msgid "_Apply"
-msgstr ""
-
-#: plugin/refine-mask/refine-mask.py:375
-msgid "Checker"
-msgstr ""
-
-#: plugin/refine-mask/refine-mask.py:376
+#: plugin/refine-mask/refine-mask.py:383
 msgid "Red overlay"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:392
-#: plugin/refine-mask/refine-mask.py:534
+#: plugin/refine-mask/refine-mask.py:399
+#: plugin/refine-mask/refine-mask.py:541
 msgid "Edge radius"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:394
+#: plugin/refine-mask/refine-mask.py:401
 msgid "Search within ±N px for a real edge in the picture and pull the mask to it. 0 = off (an approximation of Photoshop's Smart Radius)"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:397
-#: plugin/refine-mask/refine-mask.py:541
+#: plugin/refine-mask/refine-mask.py:404
+#: plugin/refine-mask/refine-mask.py:548
 msgid "Only snap to clearly stronger edges"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:400
-#: plugin/refine-mask/refine-mask.py:546
-msgid "Smooth"
-msgstr ""
-
-#: plugin/refine-mask/refine-mask.py:406
-#: plugin/refine-mask/refine-mask.py:559
+#: plugin/refine-mask/refine-mask.py:413
+#: plugin/refine-mask/refine-mask.py:566
 msgid "Shift edge"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:408
+#: plugin/refine-mask/refine-mask.py:415
 msgid "Positive expands the mask, negative contracts it"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:409
-#: plugin/refine-mask/refine-mask.py:564
+#: plugin/refine-mask/refine-mask.py:416
+#: plugin/refine-mask/refine-mask.py:571
 msgid "Decontaminate"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:417
-#: plugin/refine-mask/refine-mask.py:570
+#: plugin/refine-mask/refine-mask.py:424
+#: plugin/refine-mask/refine-mask.py:577
 msgid "Layer mask"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:418
-#: plugin/refine-mask/refine-mask.py:572
+#: plugin/refine-mask/refine-mask.py:425
+#: plugin/refine-mask/refine-mask.py:579
 msgid "New layer (transparent)"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:420
-#: plugin/refine-mask/refine-mask.py:577
+#: plugin/refine-mask/refine-mask.py:427
+#: plugin/refine-mask/refine-mask.py:584
 msgid "Channel + selection"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:473
+#: plugin/refine-mask/refine-mask.py:480
 msgid "Preview %s · refine runs at %s · image %s\n%.0f%% kept (soft edge %.1f%%) · %.0f ms"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:480
-msgid "Preview failed: %s"
-msgstr ""
-
-#: plugin/refine-mask/refine-mask.py:509
+#: plugin/refine-mask/refine-mask.py:516
 msgid "This build of GIMP has no GTK — running with the current values. (%s)"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:535
+#: plugin/refine-mask/refine-mask.py:542
 msgid "Search within ±N px along the normal for a real edge in the picture and pull the mask to it; 0 turns it off. This is an approximation of Photoshop's Smart Radius (it moves the profile, it does not rebuild the matte)."
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:542
+#: plugin/refine-mask/refine-mask.py:549
 msgid "On: move only when the found edge is at least 1.35× stronger than the current position. Off: snap to anything stronger within the radius, which pulls harder."
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:547
+#: plugin/refine-mask/refine-mask.py:554
 msgid "Round off jaggies and stray specks on the mask edge"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:551
+#: plugin/refine-mask/refine-mask.py:558
 msgid "Soften the transition; 0 keeps the edge hard"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:555
+#: plugin/refine-mask/refine-mask.py:562
 msgid "Push the soft part of the mask towards 0 and 255 — this is what turns a mushy edge into a crisp one"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:560
+#: plugin/refine-mask/refine-mask.py:567
 msgid "Positive expands the mask, negative contracts it; the 50% line moves, the softness stays"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:565
+#: plugin/refine-mask/refine-mask.py:572
 msgid "Pull the colour of half-transparent edge pixels back to the foreground colour (removes the white/green fringe). Only used by the \"New layer\" output, because the others do not touch pixels"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:571
+#: plugin/refine-mask/refine-mask.py:578
 msgid "Add the refined mask to the current layer"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:573
+#: plugin/refine-mask/refine-mask.py:580
 msgid "Copy the layer, bake the mask into its alpha, and decontaminate the edge colours"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:576
+#: plugin/refine-mask/refine-mask.py:583
 msgid "Replace the selection; nothing else changes"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:578
+#: plugin/refine-mask/refine-mask.py:585
 msgid "Store the result as a \"Refined Mask\" channel and keep it as the selection — paint on the channel with a brush to add or remove areas, then load it again"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:582
+#: plugin/refine-mask/refine-mask.py:589
 msgid "Where the refined mask goes"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:585
+#: plugin/refine-mask/refine-mask.py:592
 msgid "Working size"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:586
+#: plugin/refine-mask/refine-mask.py:593
 msgid "Long edge the mask is refined at, then scaled back to the canvas with C code. 0 = full resolution (slow: pure Python, no numpy in GIMP's Python)"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:605
+#: plugin/refine-mask/refine-mask.py:612
 msgid "Select and Mask"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:607
+#: plugin/refine-mask/refine-mask.py:614
 msgid "Refine a selection or mask: snap to edges, smooth, feather, contrast, shift, decontaminate"
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:609
+#: plugin/refine-mask/refine-mask.py:616
 msgid "Takes the current selection (or the mask channel left by Cut Out) and turns a rough edge into a usable one. Opens a dialog with a live preview; the same code runs at full resolution when you press Apply."
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:644
+#: plugin/refine-mask/refine-mask.py:651
 msgid "Refined at %s in %.1f s — solid area %.0f%% → %.0f%%."
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:650
+#: plugin/refine-mask/refine-mask.py:657
 msgid "Decontaminated %d edge pixels."
 msgstr ""
 
-#: plugin/refine-mask/refine-mask.py:653
+#: plugin/refine-mask/refine-mask.py:660
 msgid "Paint on the \"Refined Mask\" channel to add or remove areas, then load it as a selection."
 msgstr ""
 
@@ -6104,4 +7014,260 @@ msgstr ""
 
 #: plugin/split-channels/split-channels.py:328
 msgid "Empty = use the layer name; channels become \"<prefix> R\", \"<prefix> G\", ..."
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:115
+msgid "That is a layer group. Pick a single layer inside it — a group has no pixels of its own."
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:119
+msgid "That is a text/vector layer. Rasterise it first, otherwise there are no pixels to work with."
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:123
+msgid "The layer is %d×%d — too small."
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:141
+msgid "No plane yet — drag a quadrilateral over the picture first (or pass one in the planes argument)."
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:146
+msgid "That quadrilateral is too small or has a concave corner — drag its corners into a proper convex shape."
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:160
+msgid "Rectifying %d×%d…"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:162
+msgid " (rectified)"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:175
+msgid "Folding the picture over the steps…"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:182
+msgid "This quadrilateral cannot be read as a plane (%s) — drag its corners into a convex quad with some perspective."
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:191
+msgid "Pasting into the plane…"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:196
+msgid " (vanishing point)"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:262
+msgid "Vanishing Point (Perspective Planes)"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:282
+msgid "Drag on empty space to make a plane · drag its corners to fit the perspective · drag the little triangle on an edge to grow a neighbouring plane · right-click a plane to delete it"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:298
+msgid "Plane"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:310
+#: plugin/vanishing-point/vanishing-point.py:927
+msgid "Paste the picture into the plane"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:311
+#: plugin/vanishing-point/vanishing-point.py:930
+msgid "Rectify the plane to a flat layer"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:319
+#: plugin/vanishing-point/vanishing-point.py:943
+msgid "Grow"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:323
+msgid "Perpendicular (a wall next to this one)"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:324
+#: plugin/vanishing-point/vanishing-point.py:940
+msgid "In the same plane"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:342
+msgid "Show the perspective grid"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:345
+msgid "Mark the vanishing points"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:354
+msgid "Fold this plane into stairs"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:360
+msgid "from the far edge"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:361
+msgid "from the near edge"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:362
+msgid "from the right edge"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:363
+msgid "from the left edge"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:373
+msgid "flip"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:375
+msgid "Starts"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:377
+msgid "Rise"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:378
+msgid "Run"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:386
+msgid "Run 0 = fill the plane. Stairs need a camera, so the quad must have perspective."
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:416
+msgid "New plane"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:417
+msgid "Delete plane"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:473
+msgid "No plane — drag on the picture to make one."
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:505
+msgid " · rectified %s"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:506
+msgid "plane %d of %d · %d×%d px · grid %d%s\npreview %s of %s · %.0f ms"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:519
+msgid " (approximate — this quad has no perspective, so the steps may look flat)"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:521
+msgid "stairs %d × rise %.2f · run %.2f · unfolded %.2f\nfocal ≈ %d%s"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:527
+msgid "No camera from this quad — make it a trapezoid (one edge nearer than the other)."
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:651
+msgid "Drag a quadrilateral to start a plane"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:891
+msgid "This build of GIMP has no GTK — nothing to click on. (%s). Pass the plane through the planes argument instead: \"x0,y0,x1,y1,x2,y2,x3,y3\"."
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:918
+msgid "Planes"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:919
+msgid "One or more quadrilaterals separated by “|”, each as x0,y0,x1,y1,x2,y2,x3,y3 (corners in layer pixels, in order top-left, top-right, bottom-right, bottom-left). The FIRST plane is the one used; the rest are kept so a dialog session can be replayed. Better: leave it empty and drag a quadrilateral in the dialog."
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:928
+msgid "Put the whole layer into the plane, perspective-matching the quadrilateral; pixels outside stay untouched"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:931
+msgid "Undo the perspective: the quadrilateral becomes a rectangular new layer"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:934
+msgid "What to do with the plane"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:937
+msgid "Perpendicular"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:938
+msgid "The next plane is perpendicular to this one (a wall next to this wall)"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:941
+msgid "The next plane continues this one (same wall, further on)"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:943
+msgid "Which way a plane grown from an edge goes"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:946
+msgid "Stairs"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:947
+msgid "Fold the plane into a staircase: \"edge,steps,rise,run,flip\" (edge 0..3 = which side the steps start from, rise/run in plane side lengths, 0 run = fill the plane). Empty = plain plane. The picture is then wrapped over the steps continuously instead of being pasted flat."
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:955
+msgid "Bake the result into the current layer"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:957
+msgid "Keep the original and put the result above it"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:959
+msgid "Where the pixels go"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:976
+msgid "Vanishing Point (Perspective)"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:978
+msgid "Define a perspective plane on the picture, then paste into it or rectify it back to a flat rectangle"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:980
+msgid "Three mutually perpendicular directions have their vanishing points at the corners of a triangle whose orthocentre is the principal point — so a second, perpendicular plane can be derived from the first without any camera calibration. The grid you see is drawn by projecting evenly spaced world lines, which is why it converges to those points."
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:1008
+msgid "No plane given — drag one in the dialog or pass the planes argument."
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:1018
+msgid "rectified to %s"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:1020
+msgid "folded into %d steps"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:1022
+msgid "pasted into a %s plane"
+msgstr ""
+
+#: plugin/vanishing-point/vanishing-point.py:1023
+msgid "Done in %.1f s — %s."
 msgstr ""

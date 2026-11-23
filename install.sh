@@ -4,16 +4,20 @@
 #         GEGL_PLUGIN_DIR=/path ./install.sh 自定义目标
 #         ./install.sh --verify             装完立刻用 gegl CLI 逐个确认注册
 #         ./install.sh --no-build           跳过 build.sh，直接装 build/ 里现有的产物
-#         （--verify 与 --no-build 可以一起用；两个参数顺序随意）
+#         ./install.sh --gimp               装进 GIMP 自己的 lib/gegl-0.4（Windows 上
+#                                           GIMP 只扫这里，用户目录那份它看不见）
+#         （三个参数可以一起用；顺序随意）
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VERIFY=0
 NOBUILD=0
+TO_GIMP=0
 for arg in "$@"; do
   case "$arg" in
     --verify)   VERIFY=1 ;;
     --no-build) NOBUILD=1 ;;
+    --gimp)     TO_GIMP=1 ;;
   esac
 done
 
@@ -29,10 +33,43 @@ case "$(uname -s)" in
 esac
 DEST="${GEGL_PLUGIN_DIR:-$DEST}"
 
+# GIMP 自带的算子目录：Windows 上 GIMP 把 GEGL_PATH 指向这里，用户目录那份
+# 它根本不去扫（同一份模块放两处还会报 Two different plugins tried to register）。
+find_gimp_gegl_dir() {
+  for cand in \
+      "${GIMP_GEGL_DIR:-/nonexistent}" \
+      "/d/fastsoftware/GIMP 3/lib/gegl-0.4" \
+      "/c/Program Files/GIMP 3/lib/gegl-0.4" \
+      "${LOCALAPPDATA:-/nonexistent}/Programs/GIMP 3/lib/gegl-0.4" \
+      "/usr/lib/x86_64-linux-gnu/gegl-0.4" \
+      "/usr/local/lib/gegl-0.4"
+  do
+    [ -d "$cand" ] && { printf '%s' "$cand"; return 0; }
+  done
+  return 1
+}
+
+if [ "$TO_GIMP" = "1" ]; then
+  GDIR="$(find_gimp_gegl_dir || true)"
+  [ -n "$GDIR" ] || { echo "✗ 找不到 GIMP 的 lib/gegl-0.4，用 GIMP_GEGL_DIR=... 指定" >&2; exit 1; }
+  DEST="$GDIR"
+fi
+
 mkdir -p "$DEST"
 echo "· 安装到 $DEST"
 cp -f "$ROOT/build"/*.$EXT "$DEST"/
 echo "· 已复制 $(ls "$ROOT/build"/*.$EXT | wc -l) 个模块（重启 GIMP 生效）"
+
+# 两处各放一份同名模块 = GEGL 注册两次同一个 GType，加载时报
+# Two different plugins tried to register。复制完立刻查另一处，只说不动手。
+GDIR="$(find_gimp_gegl_dir || true)"
+if [ -n "$GDIR" ] && [ "$DEST" != "$GDIR" ] && [ -d "$GDIR" ]; then
+  dup=0
+  for f in "$ROOT"/build/*.$EXT; do
+    [ -f "$GDIR/$(basename "$f")" ] && dup=$((dup+1))
+  done
+  [ "$dup" -eq 0 ] || echo "⚠ $GDIR 里也有 $dup 个同名模块；GEGL 会报 Two different plugins tried to register，请删掉一边"
+fi
 
 # 翻译目录要和模块放在一起：common/i18n.c 按 .dll/.so 自身位置往上找
 # locale/、../locale、../share/locale，这里命中第一个。

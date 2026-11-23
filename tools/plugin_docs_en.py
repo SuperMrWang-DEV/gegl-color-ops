@@ -2116,10 +2116,11 @@ PLUGIN_EN["layer-style"] = dict(
       <p><b>Not there:</b> texture (pattern bevels), 3D materials, a custom contour editor,
          "blend if: underlying layer", rotating the pattern (Photoshop cannot either), and
          dragging shadow handles straight on the canvas.</p>
-      <p>GIMP has no concept of a style attached to a layer, so changing a parameter means running
-         the plug-in again (Photoshop reopens the panel at any time). The values themselves are
-         remembered on the layer, though, so a re-run starts from what you last applied — and one
-         good style can be pasted onto the rest.</p>
+      <p>In this version the style is not an object hanging off the layer, so changing a parameter
+         means running the plug-in again (Photoshop reopens the panel at any time). The values
+         themselves are remembered on the layer, so a re-run starts from what you last applied —
+         and one good style can be pasted onto the rest. For "parameters editable at any time,
+         pixels untouched", see the live filter below.</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>Why GIMP is handed plain "normal" layers</h3></div>
@@ -2148,6 +2149,34 @@ PLUGIN_EN["layer-style"] = dict(
       <p>The whole style is one JSON string argument, <code>style</code>, and the dialog writes
          exactly what it applied, so a script can replay it. Gradients and patterns come from
          GIMP's current gradient and pattern.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>The other way to get the same styles: a live filter</h3><span class="pill">non-destructive</span></div>
+      <p>This page describes the <b>destructive</b> route: the effects are computed once and
+         become layers, the original pixels are replaced, and the parameters are only remembered,
+         never re-applied. The repository also ships a GEGL op,
+         <code>lb:layer-style</code> (different menu:
+         <code>SuperMrWang → Layer → Layer Style (live)…</code>), which attaches the same engine
+         as a <b>layer filter</b>: sliders recompute live, the eye icon switches it off, the
+         parameters are saved in the XCF, and the pixels are never written to.</p>
+      <p>Both have their use. Want to keep tweaking, or reopen the file next month and adjust?
+         Use the filter. Want ten separate effect layers you can mask, fade and paint on? Use
+         this one. The filter version cannot reach GIMP's pattern library (a GEGL process cannot
+         see GIMP resources), so patterns are six procedural kinds and gradients are two
+         colours.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Why it is not one code base</h3></div>
+      <p>GIMP 3's non-destructive editing <b>only understands GEGL operations</b>: the filter
+         stack stores an operation name plus property values, so it has to be a C module. A
+         Python plug-in can only read and write pixels; any number of groups is still a baked
+         result.</p>
+      <p>Both implementations share the same formulas
+         (<code>plugin/_shared/layer_style.py</code> is the reference the C version was checked
+         against): mean difference in solid areas <b>0.45/255</b>, p99 <b>5.0</b>.</p>
     </div>
   </div>""",
 )

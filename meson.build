@@ -89,6 +89,9 @@ ops = [
   ['reduce-noise',            'reduce-noise',            'reduce-noise.c'],
   ['dust-scratches',          'dust-scratches',          'dust-scratches.c'],
   ['color-temperature-tint',   'color-temperature-tint',   'color-temperature-tint.c'],
+  # 图层样式（非破坏版）：参数挂在滤镜栈上，供 GIMP 的「图层滤镜」使用。
+  # 破坏性的 Python 版在 plugin/layer-style，两版并存、各走各的入口。
+  ['layer-style',             'layer-style',             'layer-style.c'],
 ]
 
 foreach op : ops

@@ -152,6 +152,7 @@ Python 插件走另一条线，两种取法都行：
 | `lb:add-noise` | Add Noise | Add Noise | Noise | Filter | PS「添加杂色」等价：高斯 / 均匀、可单色、按行播种所以分带不影响结果，同种子逐位可复现 |
 | `lb:reduce-noise` | Reduce Noise | Reduce Noise | Noise | Area | PS「减少杂色」等价：sigma 滤波（Lee），只平均与中心相近的邻居，强度 / 保留细节 / 每通道可调，边缘不动 |
 | `lb:dust-scratches` | Dust & Scratches | Dust & Scratches | Noise | Area | PS「蒙尘与划痕」等价：取阈值内邻居的中值，中心自己不入集合，所以孤立灰尘被抹掉而真实边缘不动 |
+| `lb:layer-style` | Layer Style (live) | Layer Style (live) | Layer | Area | PS 图层样式的**非破坏**版：十个效果（投影 / 内阴影 / 外发光 / 内发光 / 斜面和浮雕 / 光泽 / 三种叠加 / 描边）挂在图层滤镜栈上——改滑杆实时重算，参数随 XCF 存盘、重开还能改，原像素一个字节不动。破坏性的 Python 版见 `plugin/layer-style` |
 
 每个算子的算法说明、参数含义见 `ops/<算子名>/README.md`（原始文档）。
 
@@ -907,8 +908,9 @@ JSON（换行缩进、纯 ASCII），`Copy code` 带走，到另一个图层的�
 没有 `get_width()`）。
 
 和 PS 的差距：没有纹理（图案浮雕）、3D 材质、自定义等高线编辑器、**下一图层**的
-混合颜色带、图案叠加的角度（PS 也没有）；GIMP 没有「样式挂在图层上」，改参数要重跑
-（参数本身记在图层上，重跑看到的是上次那一套，不是默认值）。
+混合颜色带、图案叠加的角度（PS 也没有）；这个版本里样式不是挂在图层上的对象，
+改参数要重跑（参数本身记在图层上，重跑看到的是上次那一套，不是默认值）。要「随时
+能改、原像素不动」，用下一节那条实时滤镜。
 
 回归：`tools/check_layer_style.py`（152 条：字节往返、模糊保平台、精确距离场（含对角
 5√2）、扩展钉 0.5、12 条等高线、渐变五种样式与方向、26 种混合模式公式、W3C 合成、
@@ -919,6 +921,47 @@ adopt 保住 dict 身份**、性能）+ `tools/check_layer_style_gimp.py`（60 �
 组与层序、`NORMAL_LEGACY`、offset 跟着走、重跑不堆层、描边三档真像素、斜面两片、
 预览对话框驱动、图案/渐变取用、**寄生数据读回与跨图层复制**、**代码框载入后控件/预览
 跟着变**、**与 GEGL 的对拍色差**、性能）。
+
+### GEGL 算子：ops/layer-style（同一套样式的非破坏版）
+
+同一套公式的第二份实现，做成**实时滤镜**。菜单 `SuperMrWang → Layer →
+Layer Style (live)…`（注意和上面那个 Python 版的入口不是同一个：那个是
+「图层样式…」，这个后面带 (live)）。算子 `lb:layer-style`，源码
+`ops/layer-style/layer-style.c`，文档 `ops/layer-style/README.md`。
+
+**为什么要两份**：GIMP 3 的非破坏编辑只认 GEGL 算子——滤镜栈里存的是「算子名 +
+属性值」，所以必须是 C 编译出来的模块。Python 插件只能读写像素，造多少图层组都
+已经是一份烤好的结果。所以「非破坏」不是实现风格的选择题，而是 C/GEGL 与
+Python/像素的分水岭。
+
+四个和插件版不一样的地方：
+
+1. **参数在滤镜上，不在图层上**。`Gimp.DrawableFilter.new(drawable, "lb:layer-style",
+   名)` → `drawable.append_filter()`；读写走 `filter.get_config()` 的属性；改完
+   **必须** `filter.update()`（不调就既不重算、读回的还是 1.0）。挂上之后原图层
+   像素逐字节不变，存 XCF 存的还是原像素，`merge_filters()` 才烤进去。
+2. **tile 化渲染**：`process()` 每次只拿结果的一小块（420×300 被切成六块 70×300）。
+   渐变/图案的包围盒必须换成**整张图**（`prepare` 里记全图矩形、采样用 `gx + x`），
+   否则每块各跑一遍，接缝是 70 px 的硬边；效果要读邻居，`get_required_for_output`
+   返回整张输入，work 区域按 `最大 size + 描边` 外扩，用 `GEGL_ABYSS_NONE` 读。
+3. **内容层必须 over，不能赋值**。先画投影/外发光再赋值内容，会把下面两条整块擦掉
+   （第一版投影完全不出现就是这么错的）。
+4. **带符号距离用精确 EDT**（Felzenszwalb 抛物线包络，先外后内两趟 O(n)），不是
+   numpy 版那种 ±k 行近似——软边硬边上同参数厚度一致，斜对角不会被算宽。
+
+图案是**算出来的**：GEGL 进程看不到 GIMP 的图案/渐变资源，所以渐变只能给两个颜色，
+图案给了六种可参数化的（点阵 / 条纹 / 棋盘 / 网格 / 斜线 / 同心环）。要真图案库，
+用插件版。混合模式和插件版一样，在 **sRGB 值**上算（GIMP 默认的线性光会把柔边
+洗白）。
+
+`plugin/_shared/layer_style.py` 同时是 C 版的对照实现，两边对拍（420×300，投影 +
+斜面 + 描边 + 颜色叠加）：整体平均差 **0.83/255**，alpha>128 区域平均 **0.45/255**、
+p99 **5.0**——剩下的大差都在 1 px 的极淡边缘上。
+
+回归：`tools/check_layer_style_gegl.py`（30 条，真 GIMP：滤镜进栈后**原像素零变化**、
+`update()` 生效、`set-visible` 可逆、`set-opacity(0.5)` 半量、**XCF 存盘重开滤镜与
+参数都在且存的仍是原像素**、`merge_filters()` 才烤进去、768×1024 四效果 0.03 s）。
+装法见「安装」：这个模块要走 GEGL 的模块目录，不是 `plug-ins/`。
 
 ### Python 插件：plugin/ai-*（AI 磨皮，三支「预修版」）
 
@@ -1467,6 +1510,7 @@ brew install gegl
 ```bash
 ./install.sh            # 编译 + 复制到用户插件目录
 ./install.sh --verify   # 复制后再用 gegl CLI 逐个确认注册
+./install.sh --gimp     # 装进 GIMP 自己的 lib/gegl-0.4（找不到会报错，可用 GIMP_GEGL_DIR=... 指）
 ```
 
 默认目标目录：
@@ -1476,6 +1520,14 @@ brew install gegl
 | Windows | `%LOCALAPPDATA%\gegl-0.4\plug-ins` |
 | Linux | `~/.local/share/gegl-0.4/plug-ins` |
 | macOS | `~/Library/Application Support/gegl-0.4/plug-ins` |
+
+**Windows 上 GIMP 只扫自己的 `<GIMP>/lib/gegl-0.4/`**，用户目录那份它看不见（两者
+都放一份更糟：GEGL 会把同一个 GType 注册两次，报
+`Two different plugins tried to register 'gegl_op_lb_layer_style'`）。所以 Windows
+上要么先用 `--gimp`，要么手工把 `build/*.dll` 复制进 `<GIMP>/lib/gegl-0.4/`，
+`locale/` 那棵树放进 `<GIMP>/share/locale/`（`common/i18n.c` 会从模块位置往上找
+`locale/`、`../locale`、`../share/locale`，第三个正好命中）。`install.sh` 复制完会
+检查另一处有没有同名模块，有就提示删掉一边。
 
 装完**重启 GIMP**，在 `/`（Search Actions）里搜标题即可；GIMP 会把滤镜以非破坏性 fx 挂在图层上。
 想临时试跑、不装进 GIMP：

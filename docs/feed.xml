@@ -281,6 +281,13 @@
        蒙版转选区），这里一步到位，而且彩色图层也能直接用。</summary>
   </entry>
   <entry>
+    <title>Layer Style (live)</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/layer-style/README.md"/>
+    <id>tag:github.com,2026:lb:layer-style</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>Photoshop 图层样式的非破坏版本。参数挂在滤镜栈上，改一个滑杆只是让这条滤镜重新算一遍；原像素一个字节都没动过，随时可以整体关掉或删掉。</summary>
+  </entry>
+  <entry>
     <title>Displace</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/displace/README.md"/>
     <id>tag:github.com,2026:lb:displace</id>

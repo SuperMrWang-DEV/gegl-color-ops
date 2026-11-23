@@ -318,7 +318,8 @@ ok("外发光默认 screen",
    plan["layers"][0]["style_mode"] == "screen")
 plan = render(inner_glow={"size": 8.0, "source": "edge", "opacity": 100})
 edge = alpha_of(plan["layers"][0])
-plan = render(inner_glow={"size": 8.0, "source": "center", "opacity": 100})
+plan = render(inner_glow={"size": 8.0, "source": "center", "opacity": 100,
+                          "range": 100})
 center = alpha_of(plan["layers"][0])
 ok("内发光（边缘）：贴边亮、中心暗", edge[42, 55] > edge[60, 80],
    (edge[42, 55], edge[60, 80]))

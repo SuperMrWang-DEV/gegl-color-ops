@@ -51,6 +51,8 @@ SUITES = [
     ("check_warp_gimp", "gimp"),
     ("check_mesh_warp_gimp", "gimp"),
     ("check_layer_style_gimp", "gimp"),
+    # GEGL 版（非破坏）的滤镜栈检查：要真 GIMP 才能 append_filter
+    ("check_layer_style_gegl", "gimp"),
     ("check_perspective_gimp", "gimp"),
     ("check_convert", "gimp"),
     ("check_ai_inpaint_gimp", "gimp"),

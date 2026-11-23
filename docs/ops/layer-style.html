@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-title-zh="Layer Style (live) · gegl-color-ops" data-title-en="Layer Style (live) · gegl-color-ops">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Layer Style (live) · gegl-color-ops</title>
+<meta name="description" content="Photoshop 图层样式的非破坏版本。参数挂在滤镜栈上，改一个滑杆只是让这条滤镜重新算一遍；原像素一个字节都没动过，随时可以整体关掉或删掉。" data-desc-zh="Photoshop 图层样式的非破坏版本。参数挂在滤镜栈上，改一个滑杆只是让这条滤镜重新算一遍；原像素一个字节都没动过，随时可以整体关掉或删掉。" data-desc-en="Photoshop 图层样式的非破坏版本。参数挂在滤镜栈上，改一个滑杆只是让这条滤镜重新算一遍；原像素一个字节都没动过，随时可以整体关掉或删掉。">
+<meta property="og:title" content="Layer Style (live) · gegl-color-ops" data-title-zh="Layer Style (live) · gegl-color-ops" data-title-en="Layer Style (live) · gegl-color-ops">
+<meta property="og:description" content="Photoshop 图层样式的非破坏版本。参数挂在滤镜栈上，改一个滑杆只是让这条滤镜重新算一遍；原像素一个字节都没动过，随时可以整体关掉或删掉。" data-desc-zh="Photoshop 图层样式的非破坏版本。参数挂在滤镜栈上，改一个滑杆只是让这条滤镜重新算一遍；原像素一个字节都没动过，随时可以整体关掉或删掉。" data-desc-en="Photoshop 图层样式的非破坏版本。参数挂在滤镜栈上，改一个滑杆只是让这条滤镜重新算一遍；原像素一个字节都没动过，随时可以整体关掉或删掉。">
+<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body class="article">
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+<main id="main">
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 图层</p>
+  <h1>Layer Style (live)</h1>
+  <div class="meta">
+    <code>lb:layer-style</code>
+    <span class="tag t-layer">图层</span>
+    <span>整块区域</span>
+  </div>
+  <p class="lede">Photoshop 图层样式的<strong>非破坏</strong>版本。参数挂在滤镜栈上，改一个滑杆只是让这条滤镜重新算一遍；原像素一个字节都没动过，随时可以整体关掉或删掉。</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>PS 的「图层 → 图层样式」那十个效果，做成一条<strong>挂在图层上的实时滤镜</strong>：</p>
+<pre><code>图层 ──▶ ┌──────────────────────────┐ ──▶ 画布
+         │ lb:layer-style（滤镜栈里）│
+         │  投影 / 内阴影 / 两发光   │      参数存在滤镜上
+         │  斜面 / 光泽 / 三叠加     │      原像素一个字节都没动
+         │  描边                     │
+         └──────────────────────────┘</code></pre>
+<p>勾一个效果、拖几根滑杆，画面立刻跟着动；关掉滤镜整块消失；存成 XCF 再打开，滑杆还在原来的位置。这就是 PS 的「智能滤镜」，也就是 GIMP 3 里唯一的非破坏编辑方式。</p>
+<blockquote><p>仓库里还有一份<strong>破坏性</strong>的 Python 版：<code>plugin/layer-style</code>（菜单是 <code>SuperMrWang → Layer → 图层样式…</code>）。它把十个效果算完、造出一组可编辑图层给你，代价是原像素被换成了图层组，参数不会再回来。两版功能面一样，要「随时能改参数」用这一条，要「拿到能单独编辑的效果图层」用那一条。</p></blockquote>
+<h2 id="为什么非得是-gegl-算子">为什么非得是 GEGL 算子</h2>
+<p>GIMP 3 的非破坏链路只认 GEGL 算子：<code>Gimp.DrawableFilter.new(drawable, op, name)</code> 把<strong>算子名</strong>挂到 drawable 的滤镜栈上，参数读写的是算子的属性，改完 <code>filter.update()</code> 重算一遍。滤镜栈随 XCF 存盘、随撤销回退。</p>
+<p>Python 插件做不到这件事——它只能读像素、算、写像素。哪怕自己造十个图层，那也已经是一份烤好的结果（这就是 <code>plugin/layer-style</code> 的做法）。所以「非破坏」不是实现风格的选择题，而是「C / GEGL」还是「Python / 像素」的分水岭。</p>
+<h2 id="参数">参数</h2>
+<p>所有效果的勾选框在第一层，缩进两格的参数属于上面那个效果。角度/高度跟随全局光时，<code>angle</code>、<code>altitude</code> 被 <code>global-angle</code> / <code>global-altitude</code> 覆盖（PS 同）。</p>
+<div class="table-wrap"><table><thead><tr><th>效果</th><th>属性</th><th>说明</th></tr></thead><tbody><tr><td>全局</td><td><code>global-angle</code> 120° / <code>global-altitude</code> 30°</td><td>全局光。勾了「使用全局光」的效果都读它</td></tr><tr><td>投影</td><td><code>shadow-on</code> / <code>-color</code> / <code>-opacity</code> 75 / <code>-angle</code> / <code>-global</code> / <code>-distance</code> 5 / <code>-spread</code> 0 / <code>-size</code> 5 / <code>-contour</code> linear</td><td>大小＝模糊半径；扩展按阈值加硬边</td></tr><tr><td>外发光</td><td><code>glow-on</code> / <code>-color</code> <code>#fdfa87</code> / <code>-opacity</code> 75 / <code>-size</code> 8 / <code>-spread</code> 0 / <code>-range</code> 50 / <code>-contour</code></td><td>单色；<code>range</code> 是等高线作用区间的宽度</td></tr><tr><td>内阴影</td><td><code>ishadow-on</code> / <code>-color</code> / <code>-opacity</code> 75 / <code>-angle</code> / <code>-global</code> / <code>-distance</code> 5 / <code>-choke</code> 0 / <code>-size</code> 5 / <code>-contour</code></td><td>阻塞＝向内收的阈值</td></tr><tr><td>内发光</td><td><code>iglow-on</code> / <code>-color</code> / <code>-opacity</code> 75 / <code>-source</code> edge·center / <code>-choke</code> / <code>-size</code> / <code>-range</code> / <code>-contour</code></td><td>源＝边缘 / 居中</td></tr><tr><td>斜面和浮雕</td><td><code>bevel-on</code> / <code>-style</code> inner·outer·emboss·pillow·stroke / <code>-method</code> smooth·chisel-hard·chisel-soft / <code>-depth</code> 100 / <code>-direction</code> up·down / <code>-size</code> 5 / <code>-soften</code> 0 / <code>-angle</code> / <code>-global</code> / <code>-altitude</code> 30 / <code>-highlight-mode</code>·<code>-color</code>·<code>-opacity</code> / <code>-shadow-mode</code>·<code>-color</code>·<code>-opacity</code> / <code>-stroke-size</code> 3</td><td>五种样式 × 三种技法</td></tr><tr><td>光泽</td><td><code>satin-on</code> / <code>-color</code> / <code>-opacity</code> 50 / <code>-angle</code> 19 / <code>-distance</code> 11 / <code>-size</code> 14 / <code>-invert</code> / <code>-mode</code></td><td>两片镜像模糊相减，得大块软过渡</td></tr><tr><td>颜色叠加</td><td><code>color-on</code> / <code>-color</code> <code>#ff0000</code> / <code>-opacity</code> / <code>-mode</code></td><td></td></tr><tr><td>渐变叠加</td><td><code>grad-on</code> / <code>-color1</code> / <code>-color2</code> / <code>-style</code> linear·radial·angle·reflected·diamond / <code>-angle</code> 90 / <code>-scale</code> 100 / <code>-reverse</code> / <code>-opacity</code> / <code>-mode</code></td><td>按整张图的包围盒铺，接缝为零</td></tr><tr><td>图案叠加</td><td><code>pattern-on</code> / <code>-kind</code> <code>dots</code>·<code>stripes</code>·<code>checker</code>·<code>grid</code>·<code>diagonal</code>·<code>rings</code> / <code>-color1</code> ·<code>-color2</code> / <code>-scale</code> / <code>-opacity</code> / <code>-mode</code></td><td>程序化图案，见下</td></tr><tr><td>描边</td><td><code>stroke-on</code> / <code>-size</code> 3 / <code>-position</code> outside·inside·center / <code>-color</code> / <code>-opacity</code> / <code>-mode</code></td><td>宽度按精确距离算，不靠模糊</td></tr></tbody></table></div>
+<p>26 种混合模式（<code>normal</code> … <code>lightercolor</code>）、12 条等高线（<code>linear</code>、<code>cone</code>、 <code>gauss</code>、<code>ring</code>、<code>sawtooth</code>、<code>notched</code>、<code>half-round</code> …）、5 种渐变样式。</p>
+<p><strong>图案是算出来的，不是 GIMP 的图案库</strong>：GEGL 算子跑在 GEGL 进程里，看不到 GIMP 的图案、渐变资源，所以渐变只能给两个颜色，图案给了六种可参数化的（点阵、斜纹、棋盘、网、斜线、同心环）。要真图案叠加，用 Python 版。</p>
+<h2 id="渲染顺序">渲染顺序</h2>
+<p>顺序照抄 PS，因为它决定了「半透明原图层会不会透出阴影」：</p>
+<pre><code>1. 投影      ┐ 两条都画进空缓冲（acc）
+2. 外发光    ┘
+3. 原内容    ← over 到 acc 上
+4. 内阴影    ← MULTIPLY，只压在内缘
+5. 内发光    ← SCREEN
+6. 颜色 / 渐变 / 图案叠加 ← 只改 rgb，alpha 不动
+7. 光泽
+8. 斜面：阴影片先、高光片后
+9. 描边       ← over</code></pre>
+<p>第 3 步必须是 <strong>over</strong>，不能是赋值：赋值会把刚画好的投影、外发光整块擦掉（第一版就是这么错的，投影完全不出现）。第 6 步只刷 rgb 不改 alpha——PS 的叠加效果也不改图层透明度。</p>
+<h2 id="算法上的几处选择">算法上的几处选择</h2>
+<p><strong>在 sRGB 值上混，不在线性光里混。</strong> GIMP 3 默认的混合模式在线性光域算：实测 50% 的 204 叠在 51 上得 <strong>153</strong>，PS 在 sRGB 值上是 <strong>128</strong>。算子直接把 sRGB 分量当数字用，和 PS 对齐；柔边不会发白。</p>
+<p><strong>带符号距离是精确的。</strong> 描边宽度、扩展/阻塞、斜面的高度图都要「到边缘多远」。这里用 Felzenszwalb 的抛物线包络做<strong>精确</strong>欧氏距离变换（先算外部、再算内部，两趟 O(n)），不是 numpy 版那种 ±k 行近似——所以软边和硬边上同样的参数厚度一致，斜对角也不会被算宽。全空 / 全实心的块有单独分支，避免把「这一块里没有内容」当成距离 0。</p>
+<p><strong>模糊是三次盒式。</strong> 三次盒式的方差是 <code>3·(2r+1)²/12</code>，令它等于 <code>σ²</code> 反解半径，与 numpy 版同一个公式。滑动窗口，每像素两次加减。</p>
+<p><strong>tile 化渲染的两个坑。</strong> <code>process()</code> 每次只拿到结果的一小块（420×300 实测被切成六块 70×300），所以：</p>
+<ul><li>渐变、图案的包围盒必须换成<strong>整张图</strong>（<code>prepare</code> 里记下全图矩形，采样点用 <code>gx + x</code>）。用块内坐标，每块各跑一遍渐变，接缝是一条 70 px 的硬边。</li><li>效果要读邻居，<code>get_required_for_output</code> 直接返回整张输入，<code>process</code> 里把 work 区域外扩 <code>margin = 最大 size + 描边</code>，用 <code>GEGL_ABYSS_NONE</code> 读，越界的 当透明。</li></ul>
+<h2 id="正确性验证">正确性验证</h2>
+<pre><code>gimp-console -i -c -d -f --batch-interpreter=python-fu-eval \
+    -b "exec(open(r'&lt;仓库&gt;/tools/check_layer_style_gegl.py').read())" --quit</code></pre>
+<p>（<code>tools/run_plugin_checks.py</code> 走的就是这一行；脚本要用 GIMP 自带的 Python，因为 <code>Gimp.DrawableFilter</code> 只有 GIMP 进程里有。）</p>
+<p><code>tools/check_layer_style_gegl.py</code> <strong>30 项</strong>，验的全是「非破坏」这件事本身：</p>
+<ul><li>挂上滤镜之后，原图层像素<strong>逐字节不变</strong></li><li>改参数 + <code>update()</code> 之后画面变了；<code>set-visible(false)</code> 回到原样，再打开又是效果</li><li><code>set-opacity(0.5)</code> 得到半量（注意：<code>set_opacity</code> 返回 <code>None</code>，改 config 之后 <strong>必须</strong> <code>update()</code>，否则读回的还是 1.0、画面也不动）</li><li>存 XCF → 重开：滤镜还在栈里，<code>distance=20</code>、<code>shadow_on</code> 都还在，<strong>XCF 里存的 仍是原像素</strong>而不是烤好的结果</li><li><code>merge_filters()</code> 之后滤镜栈空了、像素才变成结果</li><li>768×1024 四个效果全开，<code>merge_filters</code> <strong>0.03 s</strong></li></ul>
+<p>数学层与 numpy 版（<code>plugin/_shared/layer_style.py</code>）对拍：420×300、投影 + 斜面 + 描边 + 颜色叠加，整体平均差 <strong>0.83/255</strong>；alpha&gt;128 的区域平均 <strong>0.45/255</strong>、 p99 <strong>5.0</strong>。剩下的大差都发生在 1 px 的极淡边缘上——两边的轮廓亚像素覆盖不同。</p>
+<p>速度（<code>gegl</code> 命令行，含进程启动）：400×300 <strong>1.74 s</strong>、1600×1200 <strong>1.52 s</strong>、 3200×2400 <strong>7.71 s</strong>，十个效果全开。</p>
+<h2 id="安装">安装</h2>
+<pre><code>./build.sh                      # 产出 build/layer-style.dll
+./install.sh --verify           # 装到 GEGL 用户插件目录并逐个确认注册</code></pre>
+<p>Windows 上 GIMP 只扫自己的 <code>lib/gegl-0.4/</code>，把 <code>build/layer-style.dll</code> 复制到 <code>&lt;GIMP&gt;/lib/gegl-0.4/</code> 再完全退出 GIMP 重开即可（和 <code>plugin/layer-style</code> 那种 Python 插件不同，它不走 <code>plug-ins/</code> 目录）。同一目录里放两份同样的 dll 会报 <code>Two different plugins tried to register 'gegl_op_lb_layer_style'</code>。</p>
+<h2 id="和-ps-差在哪">和 PS 差在哪</h2>
+<p><strong>有</strong>：十个效果、26 种混合模式、全局光、12 条等高线、扩展 / 阻塞、渐变五种样式与反相、描边三档位置、精确距离场、真实时（滤镜挂在栈上）。<strong>没有</strong>：纹理（斜面的图案浮雕）、3D 材质、自定义等高线编辑器、「下一图层」混合颜色带、挖空、在画布上直接拖投影手柄、真正的图案资源（见上）。</p>
+<p>改参数在「图层」对话框里：滤镜是图层下面的一条子项（带自己的眼睛图标），双击它就打开 GIMP 按属性自动生成的参数面板，改完确认，画面立刻重算。参数不会丢，但也没有 PS 那样一个把所有效果竖着排开的面板——GEGL 的 UI 是按属性名自动生成的，效果的层级只能靠参数名前面的缩进表示。</p><div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>layer-style.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/layer-style.dll">下载 layer-style.dll<span class="size">Windows x64</span></a></div>
+</div><nav class="pager"><a class="prev" href="displace.html"><span>上一个</span>Displace</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#为什么非得是-gegl-算子">为什么非得是 GEGL 算子</a></li>
+<li class="l2"><a href="#参数">参数</a></li>
+<li class="l2"><a href="#渲染顺序">渲染顺序</a></li>
+<li class="l2"><a href="#算法上的几处选择">算法上的几处选择</a></li>
+<li class="l2"><a href="#正确性验证">正确性验证</a></li>
+<li class="l2"><a href="#安装">安装</a></li>
+<li class="l2"><a href="#和-ps-差在哪">和 PS 差在哪</a></li></ul>
+</aside>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Layer</p>
+  <h1>Layer Style (live)</h1>
+  <div class="meta">
+    <code>lb:layer-style</code>
+    <span class="tag t-layer">Layer</span>
+    <span>area</span>
+  </div>
+  <p class="lede">Photoshop's ten layer effects as a live GEGL filter — drop shadow, inner shadow, both glows, bevel and emboss, satin, three overlays, stroke. The style lives on the filter stack, so nothing is baked into the pixels.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>Photoshop's <strong>Layer → Layer Style</strong> set as one real-time filter attached to the layer:</p>
+<pre><code>layer ──▶ ┌──────────────────────────┐ ──▶ canvas
+          │ lb:layer-style (filter)  │
+          │  shadow / inner shadow   │      parameters live on the filter
+          │  both glows / bevel      │      the pixels are never written
+          │  satin / 3 overlays/stroke│
+          └──────────────────────────┘</code></pre>
+<p>Tick an effect, drag a slider, the image follows. Switch the filter off and it disappears. Save as XCF, reopen, and every slider is still where you left it. That is Photoshop's "smart filter", and it is the only non-destructive editing GIMP 3 has.</p>
+<blockquote><p>There is also a <strong>destructive</strong> Python twin in this repository: <code>plugin/layer-style</code> (menu <code>SuperMrWang → Layer → 图层样式…</code>). It computes the same ten effects and hands you back a group of editable layers — the price is that the original pixels are replaced and the parameters never come back. Same feature surface: take this one when you want to keep editing the parameters, take that one when you want the effects as separate layers.</p></blockquote>
+<h2 id="why-this-has-to-be-a-gegl-op">Why this has to be a GEGL op</h2>
+<p>GIMP 3's non-destructive chain only understands GEGL operations. <code>Gimp.DrawableFilter.new(drawable, op_name, name)</code> puts the <strong>operation name</strong> on the drawable's filter stack, the parameters are the operation's properties, and <code>filter.update()</code> recomputes. The stack is saved in the XCF and undone with the undo history.</p>
+<p>A Python plug-in cannot do that — it can only read pixels, compute, and write pixels. Even if it invents ten layers, that is already a baked result (which is exactly what <code>plugin/layer-style</code> does). "Non-destructive" is not a matter of taste; it is the line between C/GEGL and Python/pixels.</p>
+<h2 id="parameters">Parameters</h2>
+<p>Effect switches sit at the top level; the indented parameters belong to the effect above them. With "use global light" ticked, <code>angle</code> and <code>altitude</code> are overridden by <code>global-angle</code> / <code>global-altitude</code>, exactly like Photoshop.</p>
+<div class="table-wrap"><table><thead><tr><th>Effect</th><th>Properties</th><th>Notes</th></tr></thead><tbody><tr><td>Global</td><td><code>global-angle</code> 120°, <code>global-altitude</code> 30°</td><td>Every effect that has "use global light" reads it</td></tr><tr><td>Drop shadow</td><td><code>shadow-on</code>, <code>-color</code>, <code>-opacity</code> 75, <code>-angle</code>, <code>-global</code>, <code>-distance</code> 5, <code>-spread</code> 0, <code>-size</code> 5, <code>-contour</code></td><td>size = blur radius, spread hardens the ramp</td></tr><tr><td>Outer glow</td><td><code>glow-on</code>, <code>-color</code> <code>#fdfa87</code>, <code>-opacity</code> 75, <code>-size</code> 8, <code>-spread</code> 0, <code>-range</code> 50, <code>-contour</code></td><td>solid colour only</td></tr><tr><td>Inner shadow</td><td><code>ishadow-on</code>, <code>-color</code>, <code>-opacity</code>, <code>-angle</code>, <code>-global</code>, <code>-distance</code>, <code>-choke</code> 0, <code>-size</code>, <code>-contour</code></td><td>choke pulls the ramp inwards</td></tr><tr><td>Inner glow</td><td><code>iglow-on</code>, <code>-color</code>, <code>-opacity</code>, <code>-source</code> edge/center, <code>-choke</code>, <code>-size</code>, <code>-range</code>, <code>-contour</code></td><td>source = edge or centre</td></tr><tr><td>Bevel &amp; emboss</td><td><code>bevel-on</code>, <code>-style</code> inner/outer/emboss/pillow/stroke, <code>-method</code> smooth/chisel-hard/chisel-soft, <code>-depth</code> 100, <code>-direction</code> up/down, <code>-size</code> 5, <code>-soften</code> 0, <code>-angle</code>, <code>-global</code>, <code>-altitude</code> 30, <code>-highlight-mode</code>/<code>-color</code>/<code>-opacity</code>, <code>-shadow-mode</code>/<code>-color</code>/<code>-opacity</code>, <code>-stroke-size</code> 3</td><td>five styles × three techniques</td></tr><tr><td>Satin</td><td><code>satin-on</code>, <code>-color</code>, <code>-opacity</code> 50, <code>-angle</code> 19, <code>-distance</code> 11, <code>-size</code> 14, <code>-invert</code>, <code>-mode</code></td><td>two mirrored blurs, subtracted</td></tr><tr><td>Colour overlay</td><td><code>color-on</code>, <code>-color</code> <code>#ff0000</code>, <code>-opacity</code>, <code>-mode</code></td><td></td></tr><tr><td>Gradient overlay</td><td><code>grad-on</code>, <code>-color1</code>/<code>-color2</code>, <code>-style</code> linear/radial/angle/reflected/diamond, <code>-angle</code> 90, <code>-scale</code> 100, <code>-reverse</code>, <code>-opacity</code>, <code>-mode</code></td><td>laid out over the whole image, so no tile seams</td></tr><tr><td>Pattern overlay</td><td><code>pattern-on</code>, <code>-kind</code> dots/stripes/checker/grid/diagonal/rings, <code>-color1</code>/<code>-color2</code>, <code>-scale</code>, <code>-opacity</code>, <code>-mode</code></td><td>procedural patterns, see below</td></tr><tr><td>Stroke</td><td><code>stroke-on</code>, <code>-size</code> 3, <code>-position</code> outside/inside/center, <code>-color</code>, <code>-opacity</code>, <code>-mode</code></td><td>width from an exact distance field, not a blur</td></tr></tbody></table></div>
+<p>26 blend modes, 12 contours (<code>linear</code>, <code>cone</code>, <code>gauss</code>, <code>ring</code>, <code>sawtooth</code>, <code>notched</code>, <code>half-round</code> …), 5 gradient styles.</p>
+<p><strong>Patterns are computed, not GIMP's pattern library.</strong> A GEGL op runs inside the GEGL process and cannot see GIMP's patterns or gradients, so gradients get two colours and patterns are six parameterisable kinds. For real patterns, use the Python version.</p>
+<h2 id="render-order">Render order</h2>
+<p>Copied from Photoshop, because it decides whether a semi-transparent layer lets the shadow show through:</p>
+<pre><code>1. drop shadow   ┐ into an empty accumulator
+2. outer glow    ┘
+3. the content     ← composited with over
+4. inner shadow    ← multiply, inside the edge only
+5. inner glow      ← screen
+6. colour / gradient / pattern overlay ← rgb only, alpha untouched
+7. satin
+8. bevel: shadow sheet first, highlight sheet after
+9. stroke          ← over</code></pre>
+<p>Step 3 must be <strong>over</strong>, not an assignment: assigning wipes the shadow and glow that were just drawn underneath (that was the first bug — the drop shadow simply did not appear). Step 6 paints rgb and leaves alpha alone, because overlays do not change layer opacity in Photoshop either.</p>
+<h2 id="algorithm-notes">Algorithm notes</h2>
+<p><strong>Blending happens in sRGB values, not in linear light.</strong> GIMP 3's default blend modes compute in linear light: 50 % of 204 over 51 gives <strong>153</strong>, while Photoshop works on the sRGB values and gives <strong>128</strong>. This op treats the sRGB components as plain numbers, so soft edges do not wash out.</p>
+<p><strong>The signed distance field is exact.</strong> Stroke width, spread/choke and the bevel height map all need "how far is the edge". The op uses Felzenszwalb's parabola-envelope <strong>exact</strong> Euclidean distance transform (outside first, then inside, two O(n) passes) instead of the ±k row approximation the numpy version uses — so a given width is the same thickness on soft and hard edges, and diagonals are not over-measured. All-empty and all-solid tiles take their own branch, otherwise "no content in this tile" would be read as distance 0.</p>
+<p><strong>Blur is three box passes.</strong> Three box blurs of radius r have variance <code>3·(2r+1)²/12</code>; the radius is solved from σ² with the same formula as the numpy twin. Sliding window, two adds and two subtracts per pixel.</p>
+<p><strong>Two tiling traps.</strong> <code>process()</code> only receives a small piece of the result (a 420×300 render arrived as six 70×300 tiles), so:</p>
+<ul><li>the bounding box for gradients and patterns must be the <strong>whole image</strong> (recorded in <code>prepare</code>, sampled at <code>gx + x</code>). With tile-local coordinates each tile restarts the gradient and the seam is a hard 70 px step.</li><li>the effects read neighbours, so <code>get_required_for_output</code> returns the entire input and <code>process()</code> grows the work rectangle by <code>margin = largest size + stroke</code>, reading with <code>GEGL_ABYSS_NONE</code> so anything outside counts as transparent.</li></ul>
+<h2 id="verification">Verification</h2>
+<pre><code>gimp-console -i -c -d -f --batch-interpreter=python-fu-eval \
+    -b "exec(open(r'&lt;repo&gt;/tools/check_layer_style_gegl.py').read())" --quit</code></pre>
+<p><code>tools/check_layer_style_gegl.py</code> has <strong>30 checkpoints</strong>, all of them about non-destructiveness itself:</p>
+<ul><li>after appending the filter the layer's pixels are <strong>byte-for-byte unchanged</strong></li><li>changing a property plus <code>update()</code> changes the render; <code>set-visible(false)</code> restores the original and switching it back restores the effect</li><li><code>set-opacity(0.5)</code> gives half strength (note: <code>set_opacity</code> returns <code>None</code>, and you <strong>must</strong> call <code>update()</code> after touching the config, or you read back 1.0 and nothing changes on screen)</li><li>save to XCF and reopen: the filter is still on the stack with <code>distance=20</code> and <code>shadow_on</code> intact, and the <strong>XCF still stores the original pixels</strong>, not the baked result</li><li><code>merge_filters()</code> empties the stack and only then do the pixels become the result</li><li>768×1024 with four effects enabled, <code>merge_filters</code> takes <strong>0.03 s</strong></li></ul>
+<p>Parity with the numpy twin (<code>plugin/_shared/layer_style.py</code>) on 420×300 with drop shadow + bevel + stroke + colour overlay: mean difference <strong>0.83/255</strong> overall, <strong>0.45/255</strong> mean and <strong>5.0</strong> p99 where alpha &gt; 128. The remaining large deltas sit on 1 px, near-transparent edges where the two rasterisations cover sub-pixels differently.</p>
+<p>Speed (<code>gegl</code> CLI, process start included): 400×300 <strong>1.74 s</strong>, 1600×1200 <strong>1.52 s</strong>, 3200×2400 <strong>7.71 s</strong> with all ten effects on.</p>
+<h2 id="installation">Installation</h2>
+<pre><code>./build.sh                      # produces build/layer-style.dll
+./install.sh --verify           # installs into the GEGL user plug-in directory</code></pre>
+<p>On Windows GIMP only scans its own <code>lib/gegl-0.4/</code>, so copy <code>build/layer-style.dll</code> there and fully quit and restart GIMP (unlike the Python plug-in, which goes into <code>plug-ins/</code>). Two copies of the same module on the path trigger <code>Two different plugins tried to register 'gegl_op_lb_layer_style'</code>.</p>
+<h2 id="differences-from-photoshop">Differences from Photoshop</h2>
+<p><strong>Has:</strong> ten effects, 26 blend modes, global light, 12 contours, spread/choke, five gradient styles with reverse, three stroke positions, exact distance field, true live editing. <strong>Missing:</strong> texture (pattern bevels), 3D materials, a contour editor, "blend if underlying layer", knockout, on-canvas shadow handles, real pattern resources.</p>
+<p>Parameters are edited in the Layers dialog: the filter is a child row under the layer with its own eye icon, and double-clicking it opens the panel GIMP generates from the property tree. Nothing is lost, but there is no Photoshop-style panel that stacks all ten effects — the hierarchy is expressed by the indentation in the property names.</p><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>layer-style.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/layer-style.dll">Download layer-style.dll<span class="size">Windows x64</span></a></div>
+</div><nav class="pager"><a class="prev" href="displace.html"><span>Previous</span>Displace</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#why-this-has-to-be-a-gegl-op">Why this has to be a GEGL op</a></li>
+<li class="l2"><a href="#parameters">Parameters</a></li>
+<li class="l2"><a href="#render-order">Render order</a></li>
+<li class="l2"><a href="#algorithm-notes">Algorithm notes</a></li>
+<li class="l2"><a href="#verification">Verification</a></li>
+<li class="l2"><a href="#installation">Installation</a></li>
+<li class="l2"><a href="#differences-from-photoshop">Differences from Photoshop</a></li></ul>
+</aside>
+</div></div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
+    <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
+    <span class="muted">ccf695f</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
+</body>
+</html>
