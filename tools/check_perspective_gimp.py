@@ -98,6 +98,14 @@ def pixels(layer):
     return w, h, bytes(bytearray(raw))
 
 
+def layer_at(img, i):
+    """取第 i 层。有的 GIMP 版本把层列表再包一层元组。"""
+    lay = img.get_layers()
+    if isinstance(lay, tuple) and len(lay) == 1 and isinstance(lay[0], tuple):
+        lay = lay[0]
+    return lay[i]
+
+
 def px(rgba, w, x, y):
     o = (y * w + x) * 4
     return tuple(rgba[o:o + 4])
@@ -106,7 +114,7 @@ def px(rgba, w, x, y):
 class FakeConfig(object):
     def __init__(self, **vals):
         self.vals = {"planes": "", "mode": "paste", "along": "w",
-                     "output": "replace"}
+                     "output": "replace", "stairs": ""}
         self.vals.update(vals)
 
     def get_property(self, key):
@@ -129,12 +137,14 @@ def main():
     if proc is None:
         print("  （%s 还没装进 GIMP，跳过 PDB 参数表；"
               "./install-plugin.sh 之后再跑就会检查）" % mod.PROC)
-        check("源码里四个参数都在",
+        check("源码里五个参数都在",
               all(('"%s"' % x) in src
-                  for x in ("planes", "mode", "along", "output")))
+                  for x in ("planes", "mode", "along", "output", "stairs")))
+        check("源码里带上了 scene3d",
+              ("import scene3d" in src) and ("stair_faces" in src))
     else:
         args = [a.get_name() for a in proc.get_arguments()]
-        for want in ("planes", "mode", "along", "output"):
+        for want in ("planes", "mode", "along", "output", "stairs"):
             check("参数 %s 在" % want, want in args, str(args))
         cfg0 = proc.create_config()
         check("planes 缺省是空", cfg0.get_property("planes") in ("", None),
@@ -324,6 +334,70 @@ def main():
                 GLib.source_remove(ctx["id"])
             dlg.destroy()
 
+    # ---- 台阶 --------------------------------------------------------------
+    section("台阶（折面）")
+    STAIR_QUAD = [(20, 30), (180, 20), (160, 130), (40, 140)]
+    img7, layer7 = make_image(200, 150, grid=15)
+    images.append(img7)
+    before7 = pixels(layer7)[2]
+    st = mod.S3D.parse_stair_string("2,5,0.12,0,0")
+    check("参数串解析出 5 级台阶", st["on"] and st["steps"] == 5)
+    info7 = mod.apply_planes(layer7, [P.Plane(STAIR_QUAD)], mode=mod.MODE_PASTE,
+                             output=mod.OUTPUT_REPLACE, stairs=st)
+    check("台阶跑通并回报面片数", bool(info7.get("stairs"))
+          and info7["stairs"]["faces"] == 10, info7.get("stairs"))
+    w7, h7, after7 = pixels(layer7)
+    changed = sum(1 for i in range(0, len(after7), 4)
+                  if after7[i:i + 3] != before7[i:i + 3])
+    check("台阶真的改了像素（%d）" % changed, 400 < changed < 200 * 150 * 0.9,
+          changed)
+    check("台阶的总展开长 = 5×(run+rise)",
+          abs(info7["stairs"]["total_v"] - 5 * (0.2 + 0.12)) < 1e-6,
+          info7["stairs"]["total_v"])
+    check("台阶高度 = 5×rise",
+          abs(info7["stairs"]["height"] - 0.6) < 1e-9,
+          info7["stairs"]["height"])
+
+    # 新图层输出
+    img8, layer8 = make_image(200, 150, grid=15)
+    images.append(img8)
+    before8 = pixels(layer8)
+    info8 = mod.apply_planes(layer8, [P.Plane(STAIR_QUAD)], mode=mod.MODE_PASTE,
+                             output=mod.OUTPUT_LAYER, stairs=st)
+    check("台阶 + 新图层：多了一层", len(img8.get_layers()) == 2,
+          len(img8.get_layers()))
+    # 按名字找新层：这个 build 的 get_layers() 有时给 list 有时给 tuple，
+    # 索引拿到的对象不一定稳，遍历最保险。
+    made = None
+    for lyr in img8.get_layers():
+        if "(vanishing point)" in lyr.get_name():
+            made = lyr
+    check("台阶 + 新图层：新层按名字找得到", made is not None)
+    check("台阶 + 新图层：原层不动",
+          pixels(layer8)[2] == before8[2], "原层被改了")
+    if made is not None:
+        check("台阶 + 新图层：新层是折过的",
+              pixels(made)[2] != before8[2], "新层和原层一样")
+
+    # 关掉台阶时不该有台阶信息
+    img9, layer9 = make_image(200, 150, grid=15)
+    images.append(img9)
+    info9 = mod.apply_planes(layer9, [P.Plane(STAIR_QUAD)], mode=mod.MODE_PASTE,
+                             stairs=mod.S3D.parse_stair_string(""))
+    check("空参数串 = 不折台阶", info9.get("stairs") is None)
+
+    # 矩形（没有透视）要能退回近似而不是报错
+    img10, layer10 = make_image(200, 150, grid=20)
+    images.append(img10)
+    info10 = mod.apply_planes(layer10, [P.Plane([(30, 30), (170, 30),
+                                                 (170, 120), (30, 120)])],
+                              mode=mod.MODE_PASTE,
+                              stairs=mod.S3D.parse_stair_string("2,4,0.1,0,0"))
+    check("无透视的矩形也能折（近似相机）",
+          bool(info10.get("stairs"))
+          and info10["stairs"]["cam"].approx is True,
+          info10.get("stairs") and info10["stairs"]["cam"].approx)
+
     # ---- 序列化经 config 往返 ----------------------------------------------
     section("config 往返")
     img6, layer6 = make_image(200, 150, grid=25)
@@ -337,11 +411,19 @@ def main():
         cfg.set_property("mode", "rectify")
         cfg.set_property("along", "v")
         cfg.set_property("output", "new-layer")
+        cfg.set_property("stairs", mod.S3D.format_stair_string(
+            {"on": True, "edge": 1, "steps": 4, "rise": 0.09, "run": 0.05,
+             "flip": True}))
     finally:
         if dlg is not None:
             dlg.destroy()
     parsed = mod.PERSP.parse_plane_string(cfg.get_property("planes"), 200, 150)
     check("平面串能解析回来", len(parsed) == 1, cfg.get_property("planes")[:60])
+    back_st = mod.S3D.parse_stair_string(cfg.get_property("stairs"))
+    check("台阶串经 config 往返",
+          back_st["on"] and back_st["edge"] == 1 and back_st["steps"] == 4
+          and abs(back_st["rise"] - 0.09) < 1e-6 and back_st["flip"] is True,
+          cfg.get_property("stairs"))
     check("解析回来的平面有效", parsed and parsed[0].is_valid())
     info6 = mod.apply_planes(layer6, parsed, mode=cfg.get_property("mode"),
                              output=cfg.get_property("output"))

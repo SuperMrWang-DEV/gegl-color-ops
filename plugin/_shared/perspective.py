@@ -465,6 +465,28 @@ def _bilinear(src, sw, sh, sx, sy):
     )
 
 
+def _poly_dir(poly):
+    """凸多边形是逆时针还是顺时针（同号叉积判据的符号）。"""
+    if poly is None:
+        return 1.0
+    a = 0.0
+    for i in range(4):
+        ax, ay = poly[i]
+        bx, by = poly[(i + 1) % 4]
+        a += ax * by - bx * ay
+    return 1.0 if a > 0 else -1.0
+
+
+def _in_poly(poly, pdir, x, y):
+    for i in range(4):
+        ax, ay = poly[i]
+        bx, by = poly[(i + 1) % 4]
+        z = (bx - ax) * (y - ay) - (by - ay) * (x - ax)
+        if z * pdir < -1e-7:
+            return False
+    return True
+
+
 def _bbox(corners, w, h):
     xs = [p[0] for p in corners]
     ys = [p[1] for p in corners]
@@ -497,10 +519,13 @@ def paste_into(dst, w, h, src, sw, sh, corners, mix=True, progress=None):
     return bytes(out)
 
 
-def _paste_py(out, w, h, src, sw, sh, Hi, x0, y0, x1, y1, mix, progress):
+def _paste_py(out, w, h, src, sw, sh, Hi, x0, y0, x1, y1, mix, progress,
+              bounds=None, poly=None):
     h0, h1, h2, h3, h4, h5, h6, h7 = Hi
-    smax = sw - 1.0
-    tmax = sh - 1.0
+    pdir = _poly_dir(poly)
+    # bounds 把「落在源图哪儿才算数」限制成一个子窗口。多面片贴图时用：
+    # 少了它，每块面片都会顺着 v 方向溢出自己的四边形，盖到邻面上。
+    smin, tmin, smax, tmax = bounds or (0.0, 0.0, sw - 1.0, sh - 1.0)
     rows = float(max(1, y1 - y0))
     for y in range(y0, y1):
         base = y * w * 4
@@ -510,7 +535,9 @@ def _paste_py(out, w, h, src, sw, sh, Hi, x0, y0, x1, y1, mix, progress):
                 continue
             sx = (h0 * x + h1 * y + h2) / den
             sy = (h3 * x + h4 * y + h5) / den
-            if sx < 0.0 or sx > smax or sy < 0.0 or sy > tmax:
+            if sx < smin or sx > smax or sy < tmin or sy > tmax:
+                continue
+            if poly is not None and not _in_poly(poly, pdir, x, y):
                 continue
             r, g, b, a = _bilinear(src, sw, sh, sx, sy)
             if a <= 0.5:
@@ -531,14 +558,18 @@ def _paste_py(out, w, h, src, sw, sh, Hi, x0, y0, x1, y1, mix, progress):
             progress((y - y0) / rows)
 
 
-def _paste_np(out, w, h, src, sw, sh, Hi, x0, y0, x1, y1, mix, progress):
+def _paste_np(out, w, h, src, sw, sh, Hi, x0, y0, x1, y1, mix, progress,
+              arr=None, bounds=None, poly=None, sarr=None):
     np = _np
+    pdir = _poly_dir(poly)
     h0, h1, h2, h3, h4, h5, h6, h7 = Hi
-    smax = sw - 1.0
-    tmax = sh - 1.0
-    sarr = np.frombuffer(src, dtype=np.uint8).reshape(sh, sw, 4).astype(np.float32)
+    smin, tmin, smax, tmax = bounds or (0.0, 0.0, sw - 1.0, sh - 1.0)
+    if sarr is None:
+        sarr = np.frombuffer(src, dtype=np.uint8).reshape(sh, sw, 4).astype(np.float32)
     # frombuffer 出来的是只读视图，必须 copy 一份才能就地写
-    dst_arr = np.array(np.frombuffer(bytes(out), dtype=np.uint8)).reshape(h, w, 4)
+    dst_arr = arr
+    if dst_arr is None:
+        dst_arr = np.array(np.frombuffer(bytes(out), dtype=np.uint8)).reshape(h, w, 4)
     xs = np.arange(x0, x1, dtype=np.float64)
     chunk = 256
     rows = float(max(1, y1 - y0))
@@ -551,7 +582,13 @@ def _paste_np(out, w, h, src, sw, sh, Hi, x0, y0, x1, y1, mix, progress):
         safe = np.where(good, den, 1.0)
         sx = (h0 * X + h1 * ys + h2) / safe
         sy = (h3 * X + h4 * ys + h5) / safe
-        good &= (sx >= 0.0) & (sx <= smax) & (sy >= 0.0) & (sy <= tmax)
+        good &= ((sx >= smin) & (sx <= smax)
+                 & (sy >= tmin) & (sy <= tmax))
+        for k in range(4 if poly is not None else 0):
+            ax, ay = poly[k]
+            bx, by = poly[(k + 1) % 4]
+            zz = (bx - ax) * (ys - ay) - (by - ay) * (X - ax)
+            good &= (zz * pdir) >= -1e-7
         xi = np.floor(sx).astype(np.int32)
         yi = np.floor(sy).astype(np.int32)
         np.clip(xi, 0, max(0, sw - 2), out=xi)
@@ -584,7 +621,55 @@ def _paste_np(out, w, h, src, sw, sh, Hi, x0, y0, x1, y1, mix, progress):
                 m4, np.clip(blended, 0, 255).astype(np.uint8), block.astype(np.uint8))
         if progress:
             progress((yb - y0) / rows)
-    out[:] = dst_arr.tobytes()
+    if arr is None:
+        out[:] = dst_arr.tobytes()
+
+
+def paste_many(dst, w, h, src, sw, sh, mappings, mix=True, progress=None):
+    """一次把好几块四边形贴到同一张 dst 上（后面的盖前面的）。
+
+    mappings 每项是 (Hi, x0, y0, x1, y1[, bounds[, poly]])：图像 → 源坐标的
+    逆单应、包围盒，可选 bounds=(s0,t0,s1,t1) 限定只看源图的这一块，
+    可选 poly 给出要裁剪的凸四边形。多面片贴图时两个都要给：bounds 挡住
+    沿 v 方向的溢出，poly 挡住「逆单应越过无穷远线」之后在包围盒另一角
+    冒出来的零星像素。
+    顺着贴多重面的贴图要共用一份像素数组，逐块贴会每次拷贝整幅图。
+    """
+    out = bytearray(dst)
+    if not mappings:
+        return bytes(out)
+    rows_total = float(sum(max(0, m[4] - m[2]) for m in mappings)) or 1.0
+    arr = None
+    sarr = None
+    if have_numpy():
+        arr = _np.array(_np.frombuffer(bytes(out), dtype=_np.uint8)
+                        ).reshape(h, w, 4)
+        # 源图转一次 float32 就够：每个面片各转一遍等于白烧 17 MB × 面数
+        sarr = _np.frombuffer(src, dtype=_np.uint8).reshape(sh, sw, 4).astype(
+            _np.float32)
+    done = 0.0
+    for m in mappings:
+        Hi, x0, y0, x1, y1 = m[:5]
+        bounds = m[5] if len(m) > 5 else None
+        poly = m[6] if len(m) > 6 else None
+        if x1 <= x0 or y1 <= y0:
+            continue
+        base, span = done, float(max(1, y1 - y0))
+
+        def _cb(frac, base=base, span=span):
+            if progress:
+                progress((base + frac * span) / rows_total)
+
+        if arr is not None:
+            _paste_np(out, w, h, src, sw, sh, Hi, x0, y0, x1, y1, mix, _cb,
+                      arr=arr, bounds=bounds, poly=poly, sarr=sarr)
+        else:
+            _paste_py(out, w, h, src, sw, sh, Hi, x0, y0, x1, y1, mix, _cb,
+                      bounds=bounds, poly=poly)
+        done += span
+    if arr is not None:
+        out[:] = arr.tobytes()
+    return bytes(out)
 
 
 def rectify_size(corners):

@@ -1815,7 +1815,8 @@ PLUGIN_EN["vanishing-point"] = dict(
    on the picture: drag out a quadrilateral and it stands for a rectangle in the 3D world.
    The grid is laid out at even spacing in world units, so it converges to the vanishing
    points by itself. Once the plane is marked you can use it in either direction — paste
-   the whole picture into it, or rectify that patch back to a flat rectangle.""",
+   the whole picture into it, or rectify that patch back to a flat rectangle. You can also
+   **fold the plane into steps** and have one picture run continuously up them.""",
     body="""  <div class="dl-grid">
     <div class="dl primary-dl">
       <div class="dl-head"><h3>Using it</h3><span class="pill">drag one quadrilateral</span></div>
@@ -1866,6 +1867,61 @@ PLUGIN_EN["vanishing-point"] = dict(
   </div>
 
   <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Folding it into steps</h3><span class="pill">one picture, continuous</span></div>
+      <p>Tick <b>fold into steps</b> and the plane folds along one edge into n treads and
+         risers, with the picture running <b>continuously</b> up them — one copy folded over,
+         not one copy per step. Choose the <b>edge</b> the fold starts from (far / near /
+         right / left), the <b>count</b> (1–24), the <b>riser</b> and the <b>run</b>, both as
+         fractions of the plane. Run 0 means "auto" = 1/count, which fills the plane exactly.
+         A riser around half the run reads like a real staircase.</p>
+      <p>From a script: <code>stairs="edge,count,riser,run,flip"</code>, for example
+         <code>stairs="0,6,0.075,0,0"</code>; an empty string means no fold. Apply writes the
+         string back into the argument.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Why it has to be real 3D</h3><span class="pill">one plane solves the camera</span></div>
+      <p>The first attempt tried to be cheap: stitch a few quadrilaterals together into a
+         staircase. The higher the step, the worse the drift — by step six the edge was off
+         by a dozen pixels. Raising something by one side length is not "move it down a few
+         pixels" in perspective; it is a step along the <b>third axis</b>.</p>
+      <p>So the camera is solved instead. A plane with perspective pins the whole pinhole
+         camera: principal point at the centre of the frame, square pixels, orthogonal
+         vanishing points, therefore <code>f² = −(Vu−O)·(Vv−O)</code> gives the focal length
+         uniquely. Then <code>b = K⁻¹·p</code> brings three corners into camera space,
+         normalising them gives the rotation <code>R</code>, <code>n = r1×r2</code> is the
+         normal and <code>eye = −Rᵀ·b3</code> the position. <b>The unit of z</b> is the
+         geometric mean of the two side lengths — <code>b</code> already carries length,
+         it is not a pure direction (getting this wrong once put the 3D projection off by
+         278 px).</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl">
+      <div class="dl-head"><h3>Three traps in the fold</h3></div>
+      <p><b>1. A quad without perspective cannot yield a focal length.</b> When both pairs of
+         edges are parallel (a rectangle shot head-on), it falls back to
+         <code>f = 1.5 × long side</code> and the status line says approximate. The riser in
+         the middle is then <b>edge-on</b> to the camera and collapses to a line — it has to
+         be dropped, or you get a white seam and a singular homography that aborts.</p>
+      <p><b>2. The picture comes out upside down.</b> Source row 0 lands on the <b>nearest</b>
+         step (v accumulates along the stairs), so a poster has to be flipped first. Found by
+         looking at the render, not by reading the code.</p>
+      <p><b>3. Steps occlude themselves.</b> A standing riser hides the tread behind it, so the
+         sampling test has to use "the last face that covers this pixel" — otherwise the
+         regression reports a mismatch that is not there.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Measured</h3></div>
+      <p>1600×2400 with 16 faces: <b>1.54 s</b>. Preview at a 560 px long edge, 16 faces:
+         <b>172 ms</b> per redraw, which keeps up with dragging. All faces share one
+         destination buffer (<code>arr</code> / <code>sarr</code> are built once), otherwise
+         every face rebuilds 17 MB.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
     <div class="dl">
       <div class="dl-head"><h3>Three things that quietly break it</h3></div>
       <p><b>1. The homography must be solved on Hartley-normalised points.</b> Feeding raw
@@ -1911,11 +1967,15 @@ PLUGIN_EN["vanishing-point"] = dict(
       <div class="dl-head"><h3>Where it differs from Photoshop</h3></div>
       <p><b>Has:</b> quadrilateral planes, a grid that converges to the vanishing points,
          growing a neighbouring plane from an edge (perpendicular or continuing), paste into
-         the plane, rectify to a new layer.<br>
+         the plane, rectify to a new layer, folding the plane into n steps with the picture
+         running continuously over them.<br>
          <b>Does not have:</b> Photoshop's most-used trick — cloning and painting <i>on</i>
          the plane with the stroke following the perspective. That needs a GIMP paint tool
-         subclass and is a job of its own. Also no 3D export, and planes do not snap to each
-         other's vanishing points (you align them by dragging corners).</p>
+         subclass and is a job of its own — same for painting on the steps. Also no 3D
+         export, and planes do not snap to each other's vanishing points (you align them by
+         dragging corners). The fold is <b>single-segment</b> (n steps in one direction);
+         Photoshop lets you draw several segments inside one plane and turn corners, which
+         is not done here.</p>
       <p>Worth comparing against: <b>Krita's perspective assistants</b> are the same idea but
          only draw guides, they do not transfer images. The textbook name for the transfer
          itself is <b>homography-based image transfer</b>.</p>

@@ -6,16 +6,16 @@
 <title>消失点 · Python 插件 · gegl-color-ops</title>
 <meta name="description" content="这一支不拽像素，它是**给画面标一块「有透视的平面」**：拖一个四边形，
    它就代表三维世界里的一块矩形；网格按世界坐标等距铺开，于是自然朝消失点收敛。
-   标好之后能往回拉——把整张图透视贴上去，或者把这块画面拉正成矩形。" data-desc-zh="这一支不拽像素，它是**给画面标一块「有透视的平面」**：拖一个四边形，
+   标好之后能往回拉——把整张图透视贴上去，或者把这块画面拉正成矩形；也能把这块" data-desc-zh="这一支不拽像素，它是**给画面标一块「有透视的平面」**：拖一个四边形，
    它就代表三维世界里的一块矩形；网格按世界坐标等距铺开，于是自然朝消失点收敛。
-   标好之后能往回拉——把整张图透视贴上去，或者把这块画面拉正成矩形。" data-desc-en="This one does not drag pixels around. It marks **a plane that has perspective**
+   标好之后能往回拉——把整张图透视贴上去，或者把这块画面拉正成矩形；也能把这块" data-desc-en="This one does not drag pixels around. It marks **a plane that has perspective**
    on the picture: drag out a quadrilate">
 <meta property="og:title" content="消失点 · Python 插件 · gegl-color-ops" data-title-zh="消失点 · Python 插件 · gegl-color-ops" data-title-en="消失点 · Python plug-ins · gegl-color-ops">
 <meta property="og:description" content="这一支不拽像素，它是**给画面标一块「有透视的平面」**：拖一个四边形，
    它就代表三维世界里的一块矩形；网格按世界坐标等距铺开，于是自然朝消失点收敛。
-   标好之后能往回拉——把整张图透视贴上去，或者把这块画面拉正成矩形。" data-desc-zh="这一支不拽像素，它是**给画面标一块「有透视的平面」**：拖一个四边形，
+   标好之后能往回拉——把整张图透视贴上去，或者把这块画面拉正成矩形；也能把这块" data-desc-zh="这一支不拽像素，它是**给画面标一块「有透视的平面」**：拖一个四边形，
    它就代表三维世界里的一块矩形；网格按世界坐标等距铺开，于是自然朝消失点收敛。
-   标好之后能往回拉——把整张图透视贴上去，或者把这块画面拉正成矩形。" data-desc-en="This one does not drag pixels around. It marks **a plane that has perspective**
+   标好之后能往回拉——把整张图透视贴上去，或者把这块画面拉正成矩形；也能把这块" data-desc-en="This one does not drag pixels around. It marks **a plane that has perspective**
    on the picture: drag out a quadrilate">
 <link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
@@ -61,7 +61,8 @@
   </div>
   <p class="lede">这一支不拽像素，它是**给画面标一块「有透视的平面」**：拖一个四边形，
    它就代表三维世界里的一块矩形；网格按世界坐标等距铺开，于是自然朝消失点收敛。
-   标好之后能往回拉——把整张图透视贴上去，或者把这块画面拉正成矩形。</p>
+   标好之后能往回拉——把整张图透视贴上去，或者把这块画面拉正成矩形；也能把这块
+   平面**折成一级级台阶**，同一张图沿台阶连续铺上去。</p>
 </section>
 <div class="article-layout">
   <article class="prose">
@@ -69,7 +70,8 @@
   <dt>菜单位置</dt>
   <dd><ul class="menu-list"><li>SuperMrWang → Distort → 消失点（透视平面）…</li></ul><p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p></dd>
   <dt>脚本调用</dt>
-  <dd><code class="pdb">lb-plugin-vanishing-point(image, drawables, planes, mode, along, output)</code><p>标准 PDB 过程，参数留空走默认值。</p></dd>
+  <dd><code class="pdb">lb-plugin-vanishing-point(
+    image, drawables, planes, mode, along, output, stairs)</code><p>标准 PDB 过程，参数留空走默认值。</p></dd>
   <dt>依赖</dt>
   <dd><p>靠下面这些算子干活。<b>它们已经打进这个插件的下载包</b>（<code>modules-windows-x64</code> / <code>modules-linux-x64</code>），不用另外去下：</p></dd>
 </dl>
@@ -113,6 +115,53 @@
 
   <div class="dl-grid">
     <div class="dl" id="zh-sec-4">
+      <div class="dl-head"><h3>折成台阶</h3><span class="pill">同一张图沿台阶连铺</span></div>
+      <p>标好平面后勾上<b>「折成台阶」</b>，这块平面就沿一条边折成一级级台阶，图
+         <b>沿台阶连续</b>铺上去——不是每级各贴一份，而是整张图被折过去。<b>起边</b>
+         选折痕从哪条边起（远 / 近 / 右 / 左），<b>级数</b> 1–24，<b>踢面高</b>与
+         <b>踏面深</b>都是平面的比例；踏面深填 0 = 自动 = 1/级数，正好铺满平面。
+         踢面高取踏面深的一半左右最像真楼梯。</p>
+      <p>脚本里是 <code>stairs="起边,级数,踢面高,踏面深,反向"</code>，例如
+         <code>stairs="0,6,0.075,0,0"</code>；空串就是不起台阶。按「应用」时这一串
+         会写回参数。</p>
+    </div>
+    <div class="dl" id="zh-sec-5">
+      <div class="dl-head"><h3>为什么必须真三维</h3><span class="pill">一块平面反解整台相机</span></div>
+      <p>第一版想省事：拼几个四边形凑出台阶。越往上级差得越远，第 6 级的边已经偏出
+         十几个像素——因为「抬高一个边长」在透视里不是「往下挪几个像素」，而是往
+         <b>第三个维度</b>走一步。</p>
+      <p>所以改成反解相机。一块有透视的平面其实把整台针孔相机都定死了：主点固定在
+         画面中心、像素是方的、两个消失点正交，于是
+         <code>f² = −(Vu−O)·(Vv−O)</code> 唯一给出焦距。<code>b = K⁻¹·p</code> 把三个
+         角换算到相机坐标，归一化得旋转 <code>R</code>，<code>n = r1×r2</code> 是法线，
+         相机位置 <code>eye = −Rᵀ·b3</code>。<b>z 的单位</b>是两边边长的几何平均——
+         <code>b</code> 本身就是「长度 × 方向」，不是纯方向（这一条算错过一次，
+         三维投影差到 278 px）。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-6">
+      <div class="dl-head"><h3>台阶的三个坑</h3></div>
+      <p><b>1. 没有透视的四边形解不出焦距。</b>四边两组平行时（比如正对着拍的矩形），
+         退回 <code>f = 1.5 × 长边</code>，状态行会写 approximate。这时正中间的踢面
+         正好<b>侧对相机</b>、退化成一条线，必须丢掉——不丢就是一条白缝，还会让单应
+         解奇异直接崩。</p>
+      <p><b>2. 图会上下反。</b>源图第 0 行落在<b>最近</b>那一级上（v 沿台阶累加），
+         所以海报要先上下翻一下才正——实测就是这么发现的。</p>
+      <p><b>3. 台阶会自己挡住自己。</b>立起来的踢面盖住后面的踏面。取色判据必须按
+         「最后一个覆盖该点的面片」算，不然回归里会误判成贴错。</p>
+    </div>
+    <div class="dl" id="zh-sec-7">
+      <div class="dl-head"><h3>实测</h3></div>
+      <p>1600×2400、16 面片：<b>1.54 s</b>；预览 560 长边 16 面片 <b>172 ms/帧</b>，
+         拖动跟得上。所有面片共用一块目标缓冲（numpy 里 <code>arr</code> /
+         <code>sarr</code> 各只建一次），否则每贴一块面片就要重建 17 MB。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-8">
       <div class="dl-head"><h3>三个非踩不可的</h3></div>
       <p><b>1. 单应必须先用 Hartley 归一化。</b>直接拿原始像素（上千的量级）解 8×8，
          条件数能差到 1e8，纯 Python 的高斯消元只好到 1e-3——四边形一歪，贴图就错位。
@@ -123,7 +172,7 @@
       <p><b>3. 第三方向的消失点不是「另一组边的交点」。</b>拿平面另一对边去求，得到的是
          同一个消失点，墙会贴到墙自己身上。必须是垂心关系。</p>
     </div>
-    <div class="dl" id="zh-sec-5">
+    <div class="dl" id="zh-sec-9">
       <div class="dl-head"><h3>…还有两个</h3></div>
       <p><b>4. 延伸平面的两个远角不能取同一个 t。</b>都写成 <code>p + t·(V−p)</code> 会让
          新平面的上下两条边严格平行，u 方向消失点跑到 1e16 外面——等于把透视扔了。
@@ -136,7 +185,7 @@
   </div>
 
   <div class="dl-grid">
-    <div class="dl" id="zh-sec-6">
+    <div class="dl" id="zh-sec-10">
       <div class="dl-head"><h3>实测</h3></div>
       <p>768×1024 图层：贴图 <b>127 ms</b>、拉正 <b>71 ms</b>。1600×2400：
          贴图 <b>635 ms</b>、拉正 <b>356 ms</b>。比木偶变形慢，因为整块平面都要重采样；
@@ -144,13 +193,14 @@
       <p>预览按 <b>560 长边</b>跑，一次约 <b>75 ms</b>，拖动跟得上手。纯 Python 那条路
          大概慢 4 倍（1200×900 一秒钟），只在没装 numpy 时用。</p>
     </div>
-    <div class="dl" id="zh-sec-7">
+    <div class="dl" id="zh-sec-11">
       <div class="dl-head"><h3>和 PS 的差异</h3></div>
       <p><b>有：</b>四边形平面、朝消失点收敛的透视网格、从边延伸相邻平面（垂直 / 延续
-         两种）、透视贴图、拉正成新图层。<br>
+         两种）、透视贴图、拉正成新图层、把平面折成 n 级台阶并沿台阶连续贴图。<br>
          <b>没有：</b>PS 最常用的那个「在平面上用图章/画笔，笔画自动贴合透视」——那要写
-         GIMP 的绘图工具类，工作量是另一件事；也没有导出 3D、没有「平面自动吸附共享
-         消失点」（我们是靠拖角对齐）。</p>
+         GIMP 的绘图工具类，工作量是另一件事，台阶上同理；也没有导出 3D、没有「平面
+         自动吸附共享消失点」（我们是靠拖角对齐）。台阶只有<b>一段</b>折（n 级同向），
+         PS 可以在一个平面里画好几段折线、中途拐弯，这一点还没做。</p>
       <p>想对照着看：Krita 的「透视辅助线」是同一类东西（但只画线、不贴图），
          而真正的教科书名字叫 <b>homography-based image transfer</b>。</p>
     </div>
@@ -162,7 +212,7 @@
     <div class="dl-head"><h3>消失点（透视平面）…</h3><span class="pill">.py · 免编译</span></div>
     <p>包里是一个 <code>.py</code>、一份安装说明，以及 <code>_shared/</code> 与 <code>locale/</code>。整包解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，但界面只有英文。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-vanishing-point.zip">下载 消失点（透视平面）…</a>
-    <p class="muted small">69.1 KB · 校验：<code>SHA256 2addfa1dc6c3345fc39227151c86271e…</code></p>
+    <p class="muted small">78.3 KB · 校验：<code>SHA256 53db92ccdf787c5a18d5306f53668c53…</code></p>
   </div>
 </section>
 
@@ -175,7 +225,7 @@
     <p class="toc-title">本页目录</p>
     <ul>
       <li><a href="#zh-overview">概览</a></li>
-<li><a href="#zh-sec-1">怎么用</a></li><li><a href="#zh-sec-2">从脚本</a></li><li><a href="#zh-sec-3">怎么算的</a></li><li><a href="#zh-sec-4">三个非踩不可的</a></li><li><a href="#zh-sec-5">…还有两个</a></li><li><a href="#zh-sec-6">实测</a></li><li><a href="#zh-sec-7">和 PS 的差异</a></li>
+<li><a href="#zh-sec-1">怎么用</a></li><li><a href="#zh-sec-2">从脚本</a></li><li><a href="#zh-sec-3">怎么算的</a></li><li><a href="#zh-sec-4">折成台阶</a></li><li><a href="#zh-sec-5">为什么必须真三维</a></li><li><a href="#zh-sec-6">台阶的三个坑</a></li><li><a href="#zh-sec-7">实测</a></li><li><a href="#zh-sec-8">三个非踩不可的</a></li><li><a href="#zh-sec-9">…还有两个</a></li><li><a href="#zh-sec-10">实测</a></li><li><a href="#zh-sec-11">和 PS 的差异</a></li>
       <li><a href="#zh-download">下载</a></li>
     </ul>
   </aside>
@@ -197,7 +247,8 @@
    on the picture: drag out a quadrilateral and it stands for a rectangle in the 3D world.
    The grid is laid out at even spacing in world units, so it converges to the vanishing
    points by itself. Once the plane is marked you can use it in either direction — paste
-   the whole picture into it, or rectify that patch back to a flat rectangle.</p>
+   the whole picture into it, or rectify that patch back to a flat rectangle. You can also
+   **fold the plane into steps** and have one picture run continuously up them.</p>
 </section>
 <div class="article-layout">
   <article class="prose">
@@ -205,7 +256,8 @@
   <dt>Menu location</dt>
   <dd><ul class="menu-list"><li>SuperMrWang → Distort → Vanishing Point（透视平面）…</li></ul><p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p></dd>
   <dt>Scripting</dt>
-  <dd><code class="pdb">lb-plugin-vanishing-point(image, drawables, planes, mode, along, output)</code><p>A standard PDB procedure; leave an argument empty to take its default.</p></dd>
+  <dd><code class="pdb">lb-plugin-vanishing-point(
+    image, drawables, planes, mode, along, output, stairs)</code><p>A standard PDB procedure; leave an argument empty to take its default.</p></dd>
   <dt>Dependencies</dt>
   <dd><p>The operators below do the work. <b>They are already inside this plug-in's download</b> (<code>modules-windows-x64</code> / <code>modules-linux-x64</code>) — nothing else to fetch:</p></dd>
 </dl>
@@ -260,6 +312,61 @@
 
   <div class="dl-grid">
     <div class="dl" id="en-sec-4">
+      <div class="dl-head"><h3>Folding it into steps</h3><span class="pill">one picture, continuous</span></div>
+      <p>Tick <b>fold into steps</b> and the plane folds along one edge into n treads and
+         risers, with the picture running <b>continuously</b> up them — one copy folded over,
+         not one copy per step. Choose the <b>edge</b> the fold starts from (far / near /
+         right / left), the <b>count</b> (1–24), the <b>riser</b> and the <b>run</b>, both as
+         fractions of the plane. Run 0 means "auto" = 1/count, which fills the plane exactly.
+         A riser around half the run reads like a real staircase.</p>
+      <p>From a script: <code>stairs="edge,count,riser,run,flip"</code>, for example
+         <code>stairs="0,6,0.075,0,0"</code>; an empty string means no fold. Apply writes the
+         string back into the argument.</p>
+    </div>
+    <div class="dl" id="en-sec-5">
+      <div class="dl-head"><h3>Why it has to be real 3D</h3><span class="pill">one plane solves the camera</span></div>
+      <p>The first attempt tried to be cheap: stitch a few quadrilaterals together into a
+         staircase. The higher the step, the worse the drift — by step six the edge was off
+         by a dozen pixels. Raising something by one side length is not "move it down a few
+         pixels" in perspective; it is a step along the <b>third axis</b>.</p>
+      <p>So the camera is solved instead. A plane with perspective pins the whole pinhole
+         camera: principal point at the centre of the frame, square pixels, orthogonal
+         vanishing points, therefore <code>f² = −(Vu−O)·(Vv−O)</code> gives the focal length
+         uniquely. Then <code>b = K⁻¹·p</code> brings three corners into camera space,
+         normalising them gives the rotation <code>R</code>, <code>n = r1×r2</code> is the
+         normal and <code>eye = −Rᵀ·b3</code> the position. <b>The unit of z</b> is the
+         geometric mean of the two side lengths — <code>b</code> already carries length,
+         it is not a pure direction (getting this wrong once put the 3D projection off by
+         278 px).</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-6">
+      <div class="dl-head"><h3>Three traps in the fold</h3></div>
+      <p><b>1. A quad without perspective cannot yield a focal length.</b> When both pairs of
+         edges are parallel (a rectangle shot head-on), it falls back to
+         <code>f = 1.5 × long side</code> and the status line says approximate. The riser in
+         the middle is then <b>edge-on</b> to the camera and collapses to a line — it has to
+         be dropped, or you get a white seam and a singular homography that aborts.</p>
+      <p><b>2. The picture comes out upside down.</b> Source row 0 lands on the <b>nearest</b>
+         step (v accumulates along the stairs), so a poster has to be flipped first. Found by
+         looking at the render, not by reading the code.</p>
+      <p><b>3. Steps occlude themselves.</b> A standing riser hides the tread behind it, so the
+         sampling test has to use "the last face that covers this pixel" — otherwise the
+         regression reports a mismatch that is not there.</p>
+    </div>
+    <div class="dl" id="en-sec-7">
+      <div class="dl-head"><h3>Measured</h3></div>
+      <p>1600×2400 with 16 faces: <b>1.54 s</b>. Preview at a 560 px long edge, 16 faces:
+         <b>172 ms</b> per redraw, which keeps up with dragging. All faces share one
+         destination buffer (<code>arr</code> / <code>sarr</code> are built once), otherwise
+         every face rebuilds 17 MB.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-8">
       <div class="dl-head"><h3>Three things that quietly break it</h3></div>
       <p><b>1. The homography must be solved on Hartley-normalised points.</b> Feeding raw
          pixel coordinates (thousands) into an 8×8 system puts the condition number near
@@ -274,7 +381,7 @@
          edges".</b> Doing that returns the same vanishing point you started with and the
          wall lands on top of itself. It has to be the orthocentre relation.</p>
     </div>
-    <div class="dl" id="en-sec-5">
+    <div class="dl" id="en-sec-9">
       <div class="dl-head"><h3>…and two more</h3></div>
       <p><b>4. The two far corners of a grown plane must not share one t.</b> Writing both
          as <code>p + t·(V−p)</code> makes the new plane's two edges exactly parallel and
@@ -290,7 +397,7 @@
   </div>
 
   <div class="dl-grid">
-    <div class="dl" id="en-sec-6">
+    <div class="dl" id="en-sec-10">
       <div class="dl-head"><h3>Measured</h3></div>
       <p>768×1024 layer: paste <b>127 ms</b>, rectify <b>71 ms</b>. 1600×2400: paste
          <b>635 ms</b>, rectify <b>356 ms</b>. Slower than puppet warp because the whole
@@ -300,15 +407,19 @@
          keeps up with the drag. The pure-Python path is roughly 4× slower (one second at
          1200×900) and only runs when numpy is missing.</p>
     </div>
-    <div class="dl" id="en-sec-7">
+    <div class="dl" id="en-sec-11">
       <div class="dl-head"><h3>Where it differs from Photoshop</h3></div>
       <p><b>Has:</b> quadrilateral planes, a grid that converges to the vanishing points,
          growing a neighbouring plane from an edge (perpendicular or continuing), paste into
-         the plane, rectify to a new layer.<br>
+         the plane, rectify to a new layer, folding the plane into n steps with the picture
+         running continuously over them.<br>
          <b>Does not have:</b> Photoshop's most-used trick — cloning and painting <i>on</i>
          the plane with the stroke following the perspective. That needs a GIMP paint tool
-         subclass and is a job of its own. Also no 3D export, and planes do not snap to each
-         other's vanishing points (you align them by dragging corners).</p>
+         subclass and is a job of its own — same for painting on the steps. Also no 3D
+         export, and planes do not snap to each other's vanishing points (you align them by
+         dragging corners). The fold is <b>single-segment</b> (n steps in one direction);
+         Photoshop lets you draw several segments inside one plane and turn corners, which
+         is not done here.</p>
       <p>Worth comparing against: <b>Krita's perspective assistants</b> are the same idea but
          only draw guides, they do not transfer images. The textbook name for the transfer
          itself is <b>homography-based image transfer</b>.</p>
@@ -321,7 +432,7 @@
     <div class="dl-head"><h3>Vanishing Point</h3><span class="pill">.py · no compile</span></div>
     <p>The archive holds a single <code>.py</code>, an install note and the <code>_shared/</code> + <code>locale/</code> pair. Unpack all of it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register. Without <code>_shared/</code> and <code>locale/</code> it still runs, but only in English.</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-vanishing-point.zip">Download Vanishing Point</a>
-    <p class="muted small">69.1 KB · checksum: <code>SHA256 2addfa1dc6c3345fc39227151c86271e…</code></p>
+    <p class="muted small">78.3 KB · checksum: <code>SHA256 53db92ccdf787c5a18d5306f53668c53…</code></p>
   </div>
 </section>
 
@@ -335,7 +446,7 @@
     <p class="toc-title">On this page</p>
     <ul>
       <li><a href="#en-overview">Overview</a></li>
-<li><a href="#en-sec-1">Using it</a></li><li><a href="#en-sec-2">From a script</a></li><li><a href="#en-sec-3">How it is computed</a></li><li><a href="#en-sec-4">Three things that quietly break it</a></li><li><a href="#en-sec-5">…and two more</a></li><li><a href="#en-sec-6">Measured</a></li><li><a href="#en-sec-7">Where it differs from Photoshop</a></li>
+<li><a href="#en-sec-1">Using it</a></li><li><a href="#en-sec-2">From a script</a></li><li><a href="#en-sec-3">How it is computed</a></li><li><a href="#en-sec-4">Folding it into steps</a></li><li><a href="#en-sec-5">Why it has to be real 3D</a></li><li><a href="#en-sec-6">Three traps in the fold</a></li><li><a href="#en-sec-7">Measured</a></li><li><a href="#en-sec-8">Three things that quietly break it</a></li><li><a href="#en-sec-9">…and two more</a></li><li><a href="#en-sec-10">Measured</a></li><li><a href="#en-sec-11">Where it differs from Photoshop</a></li>
       <li><a href="#en-download">Download</a></li>
     </ul>
   </aside>
@@ -356,7 +467,7 @@
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">9704a03</span>
+    <span class="muted">c9bc3d6</span>
   </div>
 </footer>
 <script>

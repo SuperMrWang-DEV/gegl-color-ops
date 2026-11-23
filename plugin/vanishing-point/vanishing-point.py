@@ -20,10 +20,12 @@
              · 拖四个角把它调成贴着墙/地/桌面的透视形状；
              · 拖**边中点**小三角，从这条边再长出一块相邻平面
                （「垂直」= PS 的墙对墙，「延续」= 同一面墙接着铺）；
+             · 勾上「做成台阶」：这块平面变成一组踏面/踢面，整张图沿
+               台阶连续铺上去（PS 里那个「楼梯」效果）；
              · 右侧选「透视贴图」把图铺到平面上，或「拉正」把平面里
                那块画面展开成新图层。
 
- note      三条非踩不可的：
+ note      四条非踩不可的：
            1. **三个互垂方向的消失点，主点是三角形的垂心**。知道平面
               自己的两个消失点，第三方向（垂直那面墙）不用相机内参就
               能算出来。把「垂直消失点」当成「另一组边的交点」会得到
@@ -35,6 +37,10 @@
               会让新平面两条边严格平行，u 方向消失点跑到 1e16 外——
               等于把透视扔了。q1 必须由「落在 p1 的射线上」和
               「q0q1 过共享边方向的消失点」两条约束解出来。
+           4. **台阶要真三维，不能拼四边形。** 一块平面的四角就能定出整台
+              相机（f² = −(Vu−O)·(Vv−O)，见 _shared/scene3d.py），有了相机
+              才能把「抬高 0.12 个边长」投到正确的位置。拿平面里的
+              「按法向平移」凑台阶，越往上级差得越远。
 
  license   GPL-3.0-or-later，见工程根目录 LICENSE
  ==========================================================================="""
@@ -61,6 +67,7 @@ except Exception:                  # helper 不在：保持可用，只是不翻
         return GLib.dgettext(None, message)
 
 import perspective as PERSP            # noqa: E402
+import scene3d as S3D                  # noqa: E402
 import mask_io as MI                   # noqa: E402
 
 PROC = 'lb-plugin-vanishing-point'
@@ -125,7 +132,7 @@ def _tick_wrap(on_tick):
 
 
 def apply_planes(drawable, planes, mode=MODE_PASTE, output=OUTPUT_REPLACE,
-                 on_tick=None):
+                 stairs=None, on_tick=None):
     """按第一个平面干活。返回 info 字典。"""
     image = drawable.get_image()
     w, h = drawable.get_width(), drawable.get_height()
@@ -146,6 +153,7 @@ def apply_planes(drawable, planes, mode=MODE_PASTE, output=OUTPUT_REPLACE,
                              "expected %d×%d") % (pw, ph, w, h))
 
     tick = _tick_wrap(on_tick)
+    stair_info = None
     if mode == MODE_RECTIFY:
         ow, oh = PERSP.rectify_size(plane.corners)
         if on_tick:
@@ -162,10 +170,27 @@ def apply_planes(drawable, planes, mode=MODE_PASTE, output=OUTPUT_REPLACE,
         layer.set_offsets(int(round(gx - ow * 0.5)), int(round(gy - oh * 0.5)))
         size = (ow, oh)
     else:
-        if on_tick:
-            Gimp.progress_set_text(_("Pasting into the plane…"))
-        out = PERSP.paste_into(rgba, w, h, rgba, w, h, plane.corners,
-                               mix=True, progress=tick)
+        if stairs and stairs.get("on"):
+            if on_tick:
+                Gimp.progress_set_text(_("Folding the picture over the "
+                                         "steps…"))
+            faces, stair_info = S3D.stair_faces(
+                plane, w, h, steps=stairs.get("steps", 6),
+                rise=stairs.get("rise", 0.12), run=stairs.get("run", 0.0),
+                edge=stairs.get("edge", 0), flip=stairs.get("flip", False))
+            if not faces:
+                raise RuntimeError(_(
+                    "This quadrilateral cannot be read as a plane (%s) — drag "
+                    "its corners into a convex quad with some perspective.")
+                    % (stair_info.get("reason") or "?"))
+            out = S3D.paste_faces(rgba, w, h, rgba, w, h, faces,
+                                  stair_info["total_v"], mix=True,
+                                  progress=tick)
+        else:
+            if on_tick:
+                Gimp.progress_set_text(_("Pasting into the plane…"))
+            out = PERSP.paste_into(rgba, w, h, rgba, w, h, plane.corners,
+                                   mix=True, progress=tick)
         if output == OUTPUT_LAYER:
             layer = drawable.copy()
             layer.set_name(drawable.get_name() + _(" (vanishing point)"))
@@ -178,7 +203,7 @@ def apply_planes(drawable, planes, mode=MODE_PASTE, output=OUTPUT_REPLACE,
     Vu, Vv = plane.vanish_uv()
     Vw = plane.vanish_w(w, h)
     return {"seconds": time.time() - t0, "size": size, "layer": layer,
-            "vanish": (Vu, Vv, Vw), "mode": mode,
+            "vanish": (Vu, Vv, Vw), "mode": mode, "stairs": stair_info,
             "rectified": PERSP.rectify_size(plane.corners)}
 
 
@@ -186,6 +211,14 @@ def apply_planes(drawable, planes, mode=MODE_PASTE, output=OUTPUT_REPLACE,
 
 def _fmt_size(w, h):
     return "%d×%d" % (w, h)
+
+
+def _cfg_str(config, name):
+    """读字符串属性。老版本的过程没有这个参数时返回空串，别让对话框炸掉。"""
+    try:
+        return config.get_property(name) or ""
+    except Exception:
+        return ""
 
 
 def _pixbuf_from_rgba(rgba, w, h):
@@ -313,6 +346,59 @@ def build_dialog(config, image, drawable, w, h):
     show_vanish.set_active(True)
     right.add(show_vanish)
 
+    # -- 台阶 ----------------------------------------------------------
+    stair_frame = Gtk.Frame.new()
+    sbox = Gtk.Box.new(Gtk.Orientation.VERTICAL, 4)
+    sbox.set_border_width(6)
+    stair_frame.add(sbox)
+    chk_stair = Gtk.CheckButton.new_with_label(_("Fold this plane into stairs"))
+    sbox.add(chk_stair)
+    sgrid = Gtk.Grid.new()
+    sgrid.set_row_spacing(3)
+    sgrid.set_column_spacing(6)
+    combo_edge = Gtk.ComboBoxText.new()
+    combo_edge.append("2", _("from the far edge"))
+    combo_edge.append("0", _("from the near edge"))
+    combo_edge.append("1", _("from the right edge"))
+    combo_edge.append("3", _("from the left edge"))
+    combo_edge.set_active_id("2")
+    spin_n = Gtk.SpinButton.new_with_range(1, 24, 1)
+    spin_n.set_value(6)
+    spin_rise = Gtk.SpinButton.new_with_range(0.01, 1.0, 0.01)
+    spin_rise.set_value(0.10)
+    spin_rise.set_digits(2)
+    spin_run = Gtk.SpinButton.new_with_range(0.0, 1.0, 0.01)
+    spin_run.set_value(0.0)
+    spin_run.set_digits(2)
+    chk_flip = Gtk.CheckButton.new_with_label(_("flip"))
+    for row, (lbl, wdg) in enumerate((
+            (_("Starts"), combo_edge),
+            (_("Steps"), spin_n),
+            (_("Rise"), spin_rise),
+            (_("Run"), spin_run))):
+        l = Gtk.Label.new(lbl)
+        l.set_xalign(0.0)
+        sgrid.attach(l, 0, row, 1, 1)
+        wdg.set_hexpand(True)
+        sgrid.attach(wdg, 1, row, 1, 1)
+    sgrid.attach(chk_flip, 0, 4, 2, 1)
+    sbox.add(sgrid)
+    stair_note = Gtk.Label.new(_("Run 0 = fill the plane. Stairs need a "
+                                "camera, so the quad must have perspective."))
+    stair_note.set_line_wrap(True)
+    stair_note.set_xalign(0.0)
+    stair_note.set_max_width_chars(30)
+    sbox.add(stair_note)
+    right.add(stair_frame)
+
+    st0 = S3D.parse_stair_string(_cfg_str(config, 'stairs'))
+    chk_stair.set_active(bool(st0.get("on")))
+    combo_edge.set_active_id(str(st0.get("edge", 2)))
+    spin_n.set_value(st0.get("steps", 6))
+    spin_rise.set_value(st0.get("rise", 0.10))
+    spin_run.set_value(st0.get("run", 0.0))
+    chk_flip.set_active(bool(st0.get("flip")))
+
     out_row = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 8)
     out_lbl = Gtk.Label.new(_("Output"))
     out_lbl.set_xalign(0.0)
@@ -345,6 +431,7 @@ def build_dialog(config, image, drawable, w, h):
         "ext_src": None,          # (plane, side)：边中点拖动时的源
         "prgba": prgba, "pw": pw, "ph": ph, "k": k, "w": w, "h": h,
         "preview": prgba, "id": 0, "lines": [], "vpoints": None,
+        "faces": [], "sinfo": None,
         "area": area, "note": note, "dialog": dlg,
     }
 
@@ -357,6 +444,14 @@ def build_dialog(config, image, drawable, w, h):
             "steps": int(spin_steps.get_value()),
             "show_grid": bool(show_grid.get_active()),
             "show_vanish": bool(show_vanish.get_active()),
+            "stairs": {
+                "on": bool(chk_stair.get_active()),
+                "edge": int(combo_edge.get_active_id() or 2),
+                "steps": int(spin_n.get_value()),
+                "rise": float(spin_rise.get_value()),
+                "run": float(spin_run.get_value()),
+                "flip": bool(chk_flip.get_active()),
+            },
         }
 
     def _sel_plane():
@@ -378,13 +473,29 @@ def build_dialog(config, image, drawable, w, h):
                 note.set_text(_("No plane — drag on the picture to make one."))
             else:
                 pv = scale_plane(sp, 1.0 / k)
+                st = v["stairs"]
+                ctx["faces"] = []
+                ctx["sinfo"] = None
                 if v["mode"] == MODE_PASTE and pv.is_valid():
-                    ctx["preview"] = PERSP.paste_into(
-                        prgba, pw, ph, prgba, pw, ph, pv.corners, mix=True)
+                    if st["on"]:
+                        faces, sinfo = S3D.stair_faces(
+                            pv, pw, ph, steps=st["steps"],
+                            rise=st["rise"], run=st["run"],
+                            edge=st["edge"], flip=st["flip"])
+                        ctx["faces"] = faces
+                        ctx["sinfo"] = sinfo
+                        ctx["preview"] = (
+                            S3D.paste_faces(prgba, pw, ph, prgba, pw, ph,
+                                            faces, sinfo["total_v"], mix=True)
+                            if faces else prgba)
+                    else:
+                        ctx["preview"] = PERSP.paste_into(
+                            prgba, pw, ph, prgba, pw, ph, pv.corners, mix=True)
                 else:
                     ctx["preview"] = prgba
-                ctx["lines"] = (pv.grid_lines(steps=v["steps"], reach=1.1)
-                                if v["show_grid"] else [])
+                ctx["lines"] = ([] if st["on"] else
+                                (pv.grid_lines(steps=v["steps"], reach=1.1)
+                                 if v["show_grid"] else []))
                 Vu, Vv = pv.vanish_uv()
                 Vw = pv.vanish_w(pw, ph)
                 ctx["vpoints"] = (Vu, Vv, Vw)
@@ -399,6 +510,23 @@ def build_dialog(config, image, drawable, w, h):
                     int(sp.corners[3][1] - sp.corners[0][1]),
                     v["steps"], pct, _fmt_size(pw, ph), _fmt_size(w, h),
                     (time.time() - t0) * 1000.0))
+                if st["on"]:
+                    si = ctx.get("sinfo") or {}
+                    cam = si.get("cam")
+                    if ctx.get("faces") and cam is not None:
+                        tag = ""
+                        if cam.approx:
+                            tag = _(" (approximate — this quad has no "
+                                    "perspective, so the steps may look flat)")
+                        note.set_text(note.get_text() + "\n" + _(
+                            "stairs %d × rise %.2f · run %.2f · unfolded %.2f"
+                            "\nfocal ≈ %d%s") % (
+                            si["steps"], si["rise"], si["run"], si["total_v"],
+                            int(round(cam.f)), tag))
+                    else:
+                        note.set_text(note.get_text() + "\n" + _(
+                            "No camera from this quad — make it a trapezoid "
+                            "(one edge nearer than the other)."))
         except Exception as exc:
             note.set_text(_("Preview failed: %s") % exc)
         area.queue_draw()
@@ -444,6 +572,19 @@ def build_dialog(config, image, drawable, w, h):
                     for px, py in line[1:]:
                         cr.line_to(px, py)
                     cr.stroke()
+            # 台阶面片：踏面亮黄、踢面暗一点，一眼看出哪块是立起来的
+            for fc in (ctx.get("faces") or []):
+                cr.set_line_width(1.3)
+                if fc.kind == "riser":
+                    cr.set_source_rgba(1.0, 0.55, 0.15, 0.70)
+                else:
+                    cr.set_source_rgba(1.0, 0.85, 0.35, 0.80)
+                q = fc.quad
+                cr.move_to(q[0][0], q[0][1])
+                for pt in q[1:]:
+                    cr.line_to(pt[0], pt[1])
+                cr.close_path()
+                cr.stroke()
             # 边框
             cr.set_line_width(1.8)
             cr.set_source_rgba(1.0, 0.62, 0.12, 0.95)
@@ -717,6 +858,12 @@ def build_dialog(config, image, drawable, w, h):
     spin_steps.connect("value-changed", lambda *_a: schedule(0))
     show_grid.connect("toggled", lambda *_a: schedule(0))
     show_vanish.connect("toggled", lambda *_a: schedule(0))
+    chk_stair.connect("toggled", lambda *_a: schedule(0))
+    combo_edge.connect("changed", lambda *_a: schedule(0))
+    spin_n.connect("value-changed", lambda *_a: schedule(0))
+    spin_rise.connect("value-changed", lambda *_a: schedule(0))
+    spin_run.connect("value-changed", lambda *_a: schedule(0))
+    chk_flip.connect("toggled", lambda *_a: schedule(0))
 
     ctx["render"] = render
     ctx["values"] = values
@@ -758,6 +905,8 @@ def show_dialog(procedure, config, image, drawable, w, h):
     config.set_property("mode", v["mode"])
     config.set_property("along", v["along"])
     config.set_property("output", v["output"])
+    config.set_property("stairs", S3D.format_stair_string(
+        v["stairs"] if v["stairs"].get("on") else None))
     dlg.destroy()
     return True
 
@@ -793,6 +942,14 @@ def _add_arguments(procedure):
     procedure.add_choice_argument(
         "along", _("Grow"), _("Which way a plane grown from an edge goes"),
         along, ALONG_W, GObject.ParamFlags.READWRITE)
+    procedure.add_string_argument(
+        "stairs", _("Stairs"),
+        _("Fold the plane into a staircase: \"edge,steps,rise,run,flip\" "
+          "(edge 0..3 = which side the steps start from, rise/run in plane "
+          "side lengths, 0 run = fill the plane). Empty = plain plane. The "
+          "picture is then wrapped over the steps continuously instead of "
+          "being pasted flat."),
+        "", GObject.ParamFlags.READWRITE)
     output = Gimp.Choice.new()
     output.add(OUTPUT_REPLACE, 0, _("Replace this layer"),
                _("Bake the result into the current layer"))
@@ -854,13 +1011,16 @@ class VanishingPointPlugin(Gimp.PlugIn):
                 drawable, planes,
                 mode=config.get_property('mode') or MODE_PASTE,
                 output=config.get_property('output') or OUTPUT_REPLACE,
+                stairs=S3D.parse_stair_string(_cfg_str(config, 'stairs')),
                 on_tick=Gimp.progress_pulse)
             Vu, Vv, Vw = info["vanish"]
-            Gimp.message(_("Done in %.1f s — %s.") % (
-                info["seconds"],
-                (_("rectified to %s") % _fmt_size(*info["size"]))
-                if info["mode"] == MODE_RECTIFY
-                else (_("pasted into a %s plane") % _fmt_size(*info["size"]))))
+            if info["mode"] == MODE_RECTIFY:
+                what = _("rectified to %s") % _fmt_size(*info["size"])
+            elif info.get("stairs"):
+                what = _("folded into %d steps") % info["stairs"]["steps"]
+            else:
+                what = _("pasted into a %s plane") % _fmt_size(*info["size"])
+            Gimp.message(_("Done in %.1f s — %s.") % (info["seconds"], what))
             return procedure.new_return_values(
                 Gimp.PDBStatusType.SUCCESS, GLib.Error())
         except Exception as exc:

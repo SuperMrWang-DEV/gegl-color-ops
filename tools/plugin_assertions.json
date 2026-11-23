@@ -1,6 +1,6 @@
 {
   "note": "由 tools/run_plugin_checks.py 生成，勿手改。站点构建读 total。",
-  "generated": "2026-11-23 16:15:33",
+  "generated": "2026-11-23 16:44:53",
   "suites": {
     "check_ai_inpaint": 189,
     "check_comfy_launcher": 53,
@@ -9,6 +9,7 @@
     "check_warp": 58,
     "check_mesh_warp": 46,
     "check_perspective": 50,
+    "check_scene3d": 41,
     "check_retouch_ai": 87,
     "check_plugin_dialogs": 176,
     "check_retouch": 76,
@@ -18,10 +19,10 @@
     "check_refine_gimp": 53,
     "check_warp_gimp": 57,
     "check_mesh_warp_gimp": 55,
-    "check_perspective_gimp": 48,
+    "check_perspective_gimp": 61,
     "check_convert": 72,
     "check_ai_inpaint_gimp": 51,
     "check_retouch_ai_gimp": 67
   },
-  "total": 1414
+  "total": 1468
 }
