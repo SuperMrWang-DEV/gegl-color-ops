@@ -80,7 +80,8 @@
          周围会冒出<b>四个小圆点</b>——那是把手的两端（对称，拖哪头都一样），
          按住拖，网格线就弯成曲线。</p>
       <p><b>右键点交点</b>把那个点复位，选中后按 Delete 也行；右边有「重置选中」
-         和「全部重置」。<b>网格密度</b>可以换 2×2 到 6×6 格——PS 默认那档是 3×3。</p>
+         和「全部重置」。<b>网格密度</b>可以换 2×2 到 6×6 格——PS 默认那档是 3×3；
+         不够用就 <b>Alt+点击</b>自己加线（见下）。</p>
       <p>虚线是原位网格，实线蓝的是变形后的网格，两者差多少一眼能看出来。
          输出两种：<b>覆盖当前图层</b>，或者<b>复制到新图层</b>。</p>
     </div>
@@ -96,7 +97,51 @@
     </div>
   </div>
 
-  <div class="dl" id="zh-sec-3">
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-3">
+      <div class="dl-head"><h3>自己加分割线</h3><span class="pill">Alt + 点击</span></div>
+      <p>拖点不够用的时候，<b>按住 Alt 在画面上点一下</b>，就在点到的位置多一条网格线——
+         方向跟着离得最近的那条线（竖向的线更近就加竖线）。下拉里的档位会变成
+         <b>custom</b>，因为格数不再是正方形了。上限 12 条。</p>
+      <p>这跟 PS 的 Alt+拖网格线是同一件事：<b>局部加密</b>。左边第 1 列可以只切成两半，
+         右边第 3 格还是整块——不是整张网格一起变密。</p>
+      <p>加过线的网格写回 <code>mesh</code> 参数时会多两段
+         <code>u:0,1.33,1.83,2.67,4</code> 和 <code>v:…</code>，记的是每条线在参数空间
+         里的位置。老串没有这两段，读回来就是等分。</p>
+    </div>
+    <div class="dl" id="zh-sec-4">
+      <div class="dl-head"><h3>加一条线要付什么代价</h3></div>
+      <p>格界不再等距，但<b>参数空间仍线性对应原图</b>，所以「哪个像素来自哪儿」一个字
+         没变，变的只是插值。新线的交点和切向都从原曲面上取，于是画面几乎不动：温和
+         变形（±10 px）实测曲面偏差 <b>0.6 px</b>、整张偏移场逐节点差 <b>0.4 px</b>。</p>
+      <p>大幅变形下它会变成一次<b>重拟合</b>（±60 px 时 2–5 px）。因为我们每个角只存
+         「位置 + 两个切向」，面片中间四个控制点的 twist 是靠四角位置估的，细分之后两侧
+         的 twist 对不上。PS 存的是整张控制点网，它的细分是精确的——这是表示上的差距，
+         不是算错。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-5">
+      <div class="dl-head"><h3>加线时三处最容易错</h3></div>
+      <p><b>① 参数范围必须跟着列数走。</b>源坐标按 <code>u/cols</code> 铺，加一列就得把
+         整条轴按 (cols+1)/cols 缩放，漏了整张图平移一次。</p>
+      <p><b>② 切向要除以这个缩放系数。</b>切向是「每参数单位」的导数，参数变短，同一个
+         像素跨度对应的导数就跟着变小。</p>
+      <p><b>③ 把手圆点按格宽换算。</b>格宽不等时把手画在「节点 ± 切向×格宽/3」；顺手写成
+         「± 切向/3」的话，窄格的把手会戳到隔壁格外面，拖起来还差一档。</p>
+    </div>
+    <div class="dl" id="zh-sec-6">
+      <div class="dl-head"><h3>实测</h3></div>
+      <p>插线本身是 O(节点数)，一瞬间的事；预览仍走 480 长边，一帧 100 ms 上下，多一条线
+         只多几片，手感不变。</p>
+      <p>回归里盯的是「插线前后画面不动」：恒等网格插完线必须仍判为恒等（一个像素都不
+         重采样）、新线的交点必须落在原曲面上（实测 0.00e+00 px）、两张偏移场逐节点差
+         &lt; 0.5 px。</p>
+    </div>
+  </div>
+
+  <div class="dl" id="zh-sec-7">
     <div class="dl-head"><h3>它是怎么算的</h3><span class="pill">FFD + 双三次 Bezier 面片</span></div>
     <p>标准做法叫 <b>FFD</b>（自由变形）：一格 = 一张 <b>4×4 控制点的双三次
        Bezier 曲面片</b>，把参数 (u,v) 映到图像坐标。角点是交点本身，边上 8 个
@@ -109,7 +154,7 @@
   </div>
 
   <div class="dl-grid">
-    <div class="dl" id="zh-sec-4">
+    <div class="dl" id="zh-sec-8">
       <div class="dl-head"><h3>五个不下心就翻车的细节</h3></div>
       <p><b>① 源坐标是 uv 在原位格上的位置，不是曲面上的位置。</b>曲面只回答
          「这个像素该落在哪个 uv」，源图是按原尺寸铺开的。弄反了画面会整体
@@ -121,7 +166,7 @@
          却还带着 66 px 的切向，控制多边形来回折、格子自交，反解出两个分支，
          画面撕一道。所以拖节点时按邻居重算切向，并限到相邻弦长以内。</p>
     </div>
-    <div class="dl" id="zh-sec-5">
+    <div class="dl" id="zh-sec-9">
       <div class="dl-head"><h3>还有两个</h3></div>
       <p><b>④ Newton 要限步。</b>曲面在交点附近被压扁时局部导数很小，一步能跨
          掉一整格，落到隔壁导数大的地方再跳回来——实测在格界上无限来回震，
@@ -135,7 +180,7 @@
   </div>
 
   <div class="dl-grid">
-    <div class="dl" id="zh-sec-6">
+    <div class="dl" id="zh-sec-10">
       <div class="dl-head"><h3>实测</h3></div>
       <p>768×1024 图层、拖一个交点 + 弯一处把手：<b>0.41 秒</b>（含读写缓冲区）。
          1600×2400 全流程 <b>1.3 秒</b>（解场 150 ms、重采样 1.16 s）。</p>
@@ -143,7 +188,7 @@
          480 长边算，一次约 <b>95 毫秒</b>——比木偶变形（520 长边、只重采样一小块）
          慢，这是代价，不是没优化。</p>
     </div>
-    <div class="dl" id="zh-sec-7">
+    <div class="dl" id="zh-sec-11">
       <div class="dl-head"><h3>和 PS 差在哪</h3></div>
       <p><b>有：</b>网格交点 + 贝塞尔把手、2×2～6×6 密度、原位网格虚线对照、
          实时预览、脚本参数。<b>没有：</b>PS 的「变形预设」（弧形 / 旗帜 / 鱼眼那排）、
@@ -160,7 +205,7 @@
     <div class="dl-head"><h3>自由变形（网格 + 把手）…</h3><span class="pill">.py · 免编译</span></div>
     <p>包里是一个 <code>.py</code>、一份安装说明，以及 <code>_shared/</code> 与 <code>locale/</code>。整包解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，但界面只有英文。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-mesh-warp.zip">下载 自由变形（网格 + 把手）…</a>
-    <p class="muted small">77.7 KB · 校验：<code>SHA256 15b063d3233211437a7dca1bab094d52…</code></p>
+    <p class="muted small">81.6 KB · 校验：<code>SHA256 3e72b8b97ae095ef1cb14621ab6039b0…</code></p>
   </div>
 </section>
 
@@ -173,7 +218,7 @@
     <p class="toc-title">本页目录</p>
     <ul>
       <li><a href="#zh-overview">概览</a></li>
-<li><a href="#zh-sec-1">怎么用</a></li><li><a href="#zh-sec-2">非交互也能跑</a></li><li><a href="#zh-sec-3">它是怎么算的</a></li><li><a href="#zh-sec-4">五个不下心就翻车的细节</a></li><li><a href="#zh-sec-5">还有两个</a></li><li><a href="#zh-sec-6">实测</a></li><li><a href="#zh-sec-7">和 PS 差在哪</a></li>
+<li><a href="#zh-sec-1">怎么用</a></li><li><a href="#zh-sec-2">非交互也能跑</a></li><li><a href="#zh-sec-3">自己加分割线</a></li><li><a href="#zh-sec-4">加一条线要付什么代价</a></li><li><a href="#zh-sec-5">加线时三处最容易错</a></li><li><a href="#zh-sec-6">实测</a></li><li><a href="#zh-sec-7">它是怎么算的</a></li><li><a href="#zh-sec-8">五个不下心就翻车的细节</a></li><li><a href="#zh-sec-9">还有两个</a></li><li><a href="#zh-sec-10">实测</a></li><li><a href="#zh-sec-11">和 PS 差在哪</a></li>
       <li><a href="#zh-download">下载</a></li>
     </ul>
   </aside>
@@ -214,7 +259,8 @@
          handles (symmetric, either end drags the same). Drag one and the grid line bends.</p>
       <p><b>Right-click a point</b> to reset it; Delete does the same for the selected one,
          and the sidebar has <i>Reset selected</i> / <i>Reset all</i>. <b>Grid density</b>
-         goes from 2×2 to 6×6 cells — Photoshop's default is 3×3.</p>
+         goes from 2×2 to 6×6 cells — Photoshop's default is 3×3. When that is not
+         enough, <b>Alt+click</b> to add lines of your own (below).</p>
       <p>The dashed lines are the original grid, the blue ones the deformed grid, so the
          amount of movement is obvious. Output either <b>replaces the layer</b> or
          <b>copies to a new one</b>.</p>
@@ -232,7 +278,62 @@
     </div>
   </div>
 
-  <div class="dl" id="en-sec-3">
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-3">
+      <div class="dl-head"><h3>Adding your own split lines</h3><span class="pill">Alt + click</span></div>
+      <p>When dragging points is not enough, <b>hold Alt and click on the picture</b> and a
+         grid line appears right there — its direction follows whichever line is nearest
+         (a vertical one means a new vertical line). The density drop-down switches to
+         <b>custom</b>, because the cells are no longer square. Twelve lines is the cap.</p>
+      <p>That is what Photoshop's Alt+drag on a grid line does: <b>local refinement</b>.
+         Split column one in half and column three stays whole — the grid does not get
+         denser everywhere.</p>
+      <p>A grid with added lines writes two extra chunks into the <code>mesh</code>
+         argument, <code>u:0,1.33,1.83,2.67,4</code> and <code>v:…</code>, holding each
+         line's position in parameter space. Older strings have no such chunks and read back
+         as evenly spaced.</p>
+    </div>
+    <div class="dl" id="en-sec-4">
+      <div class="dl-head"><h3>What one line costs</h3></div>
+      <p>The breaks are no longer even, but <b>parameter space still maps linearly to the
+         original image</b> — which pixel comes from where does not change, only the
+         interpolation. The new line takes its points and tangents from the existing
+         surface, so the picture barely moves: at a mild deformation (±10 px) the measured
+         surface deviation is <b>0.6 px</b> and the whole offset field differs by
+         <b>0.4 px</b>.</p>
+      <p>Under heavy deformation it becomes a <b>refit</b> (2–5 px at ±60 px). Each corner
+         only stores a position and two tangents, so the twist of the four middle control
+         points is estimated from the corners; after splitting, the two sides disagree.
+         Photoshop stores the whole control net, so its subdivision is exact — a difference
+         in representation, not a bug.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-5">
+      <div class="dl-head"><h3>Three easy mistakes when adding a line</h3></div>
+      <p><b>1. The parameter range has to follow the column count.</b> Source coordinates go
+         as <code>u/cols</code>, so adding a column means scaling the whole axis by
+         (cols+1)/cols — miss it and the picture shifts once.</p>
+      <p><b>2. Tangents must be divided by that same factor.</b> A tangent is a derivative
+         per parameter unit; shorter units mean a smaller derivative for the same pixel
+         span.</p>
+      <p><b>3. Handle dots scale with cell width.</b> With unequal cells a handle sits at
+         "node ± tangent × cell / 3". Writing "± tangent / 3" makes handles in narrow cells
+         stick out into the neighbour, and dragging is off by one notch.</p>
+    </div>
+    <div class="dl" id="en-sec-6">
+      <div class="dl-head"><h3>Measured</h3></div>
+      <p>Adding a line is O(nodes) — instant. The preview still runs at a 480 px long edge,
+         around 100 ms a frame; one more line adds a few patches, not a change in feel.</p>
+      <p>The regression watches one thing: the picture must not move. An identity grid with
+         an added line still has to classify as identity (not one pixel resampled), the new
+         line's points must land on the existing surface (measured 0.00e+00 px), and the two
+         offset fields must agree within 0.5 px per node.</p>
+    </div>
+  </div>
+
+  <div class="dl" id="en-sec-7">
     <div class="dl-head"><h3>How it is computed</h3><span class="pill">FFD, bicubic Bezier patches</span></div>
     <p>The textbook name is <b>FFD</b> (free-form deformation): each cell is a
        <b>bicubic Bezier patch with 16 control points</b> mapping (u,v) to image
@@ -247,7 +348,7 @@
   </div>
 
   <div class="dl-grid">
-    <div class="dl" id="en-sec-4">
+    <div class="dl" id="en-sec-8">
       <div class="dl-head"><h3>Three things that quietly break it</h3></div>
       <p><b>1. The source coordinate is the uv on the original lattice, not a point on the
          surface.</b> The surface only answers “which uv lands on this pixel”; the source
@@ -262,7 +363,7 @@
          moving a point re-derives the tangents from its neighbours and clamps them to the
          shorter adjacent chord.</p>
     </div>
-    <div class="dl" id="en-sec-5">
+    <div class="dl" id="en-sec-9">
       <div class="dl-head"><h3>…and two more</h3></div>
       <p><b>4. Newton needs a step limit.</b> Where the surface is squashed the local
          derivative is tiny, one step crosses a whole cell, lands where the derivative is
@@ -278,7 +379,7 @@
   </div>
 
   <div class="dl-grid">
-    <div class="dl" id="en-sec-6">
+    <div class="dl" id="en-sec-10">
       <div class="dl-head"><h3>Measured</h3></div>
       <p>768×1024 layer, one point dragged plus one handle bent: <b>0.41 s</b> including
          buffer read and write. 1600×2400 end to end: <b>1.3 s</b> (field 150 ms,
@@ -288,7 +389,7 @@
          slower than puppet warp (520 px, only a patch resampled). That is the cost, not a
          missing optimisation.</p>
     </div>
-    <div class="dl" id="en-sec-7">
+    <div class="dl" id="en-sec-11">
       <div class="dl-head"><h3>Where it differs from Photoshop</h3></div>
       <p><b>Has:</b> grid points with Bezier handles, 2×2 to 6×6 density, dashed original
          grid for reference, live preview, a scriptable mesh. <b>Does not have:</b>
@@ -306,7 +407,7 @@
     <div class="dl-head"><h3>Free Transform (Mesh)</h3><span class="pill">.py · no compile</span></div>
     <p>The archive holds a single <code>.py</code>, an install note and the <code>_shared/</code> + <code>locale/</code> pair. Unpack all of it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register. Without <code>_shared/</code> and <code>locale/</code> it still runs, but only in English.</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-mesh-warp.zip">Download Free Transform (Mesh)</a>
-    <p class="muted small">77.7 KB · checksum: <code>SHA256 15b063d3233211437a7dca1bab094d52…</code></p>
+    <p class="muted small">81.6 KB · checksum: <code>SHA256 3e72b8b97ae095ef1cb14621ab6039b0…</code></p>
   </div>
 </section>
 
@@ -320,7 +421,7 @@
     <p class="toc-title">On this page</p>
     <ul>
       <li><a href="#en-overview">Overview</a></li>
-<li><a href="#en-sec-1">Using it</a></li><li><a href="#en-sec-2">From a script</a></li><li><a href="#en-sec-3">How it is computed</a></li><li><a href="#en-sec-4">Three things that quietly break it</a></li><li><a href="#en-sec-5">…and two more</a></li><li><a href="#en-sec-6">Measured</a></li><li><a href="#en-sec-7">Where it differs from Photoshop</a></li>
+<li><a href="#en-sec-1">Using it</a></li><li><a href="#en-sec-2">From a script</a></li><li><a href="#en-sec-3">Adding your own split lines</a></li><li><a href="#en-sec-4">What one line costs</a></li><li><a href="#en-sec-5">Three easy mistakes when adding a line</a></li><li><a href="#en-sec-6">Measured</a></li><li><a href="#en-sec-7">How it is computed</a></li><li><a href="#en-sec-8">Three things that quietly break it</a></li><li><a href="#en-sec-9">…and two more</a></li><li><a href="#en-sec-10">Measured</a></li><li><a href="#en-sec-11">Where it differs from Photoshop</a></li>
       <li><a href="#en-download">Download</a></li>
     </ul>
   </aside>
@@ -341,7 +442,7 @@
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">c9bc3d6</span>
+    <span class="muted">a4761cc</span>
   </div>
 </footer>
 <script>

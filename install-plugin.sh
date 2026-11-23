@@ -70,7 +70,7 @@ echo "                             抠图 / 移除背景（本地：四边泛洪
 echo "                             选择并遮住（精修边缘：吸附/平滑/羽化/对比度/移动边缘/去色边）"
 echo "    SuperMrWang → Blend      应用图像 / 计算"
 echo "    SuperMrWang → Distort    Displace（按位移图重采样）/ 木偶变形（放钉子拖动，MLS 网格变形）
-                             自由变形（贝塞尔网格 + 把手：拖交点改形状，拖圆点把手弯网格线）
+                             自由变形（贝塞尔网格 + 把手：拖交点改形状，拖把手弯网格线，Alt+点击加分割线）
                              消失点（拖四边形标出透视平面：贴图进去 / 拉正成矩形 / 折成台阶）"
 echo "    SuperMrWang → AI         AI Inpaint（选区 + 提示词 → 本机 ComfyUI 重绘，需要 ComfyUI 在跑）"
 echo "                             AI Inpaint (Advanced)（全参数，含底模下拉）"

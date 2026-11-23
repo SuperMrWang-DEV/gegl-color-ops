@@ -32,6 +32,7 @@ sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(REPO, "plugin", "_shared"))
 
 import importlib.util                                  # noqa: E402
+import mesh_warp as MW8                                # noqa: E402
 
 PASS = 0
 FAIL = []
@@ -355,6 +356,64 @@ def main():
                 pass
 
     # ---- 大图 --------------------------------------------------------------
+    section("自己加分割线（Alt+点击）")
+    gi6 = gi
+    img8, layer8 = make_image()
+    images.append(img8)
+    cfg8 = FakeConfig(mesh="")
+    dlg8 = None
+    try:
+        dlg8, ctx8 = mod.build_dialog(cfg8, img8, layer8, 200, 150)
+        check("加线前是 3×3", ctx8["mesh"].cols == 3)
+        # 在第 2 列中间点一下（预览坐标 = 图层坐标）
+        added = ctx8["add_line"](100, 75)
+        m8 = ctx8["mesh"]
+        check("Alt+点击真的插进一条线", added and m8.cols + m8.rows == 7,
+              (m8.cols, m8.rows))
+        check("断点首尾对得上列数",
+              abs(m8.us[0]) < 1e-9
+              and abs(m8.us[-1] - m8.cols) < 1e-9,
+              (m8.us, m8.cols))
+        check("下拉变成 custom", ctx8["combo_grid"].get_active_id() == "0",
+              ctx8["combo_grid"].get_active_id())
+        ctx8["render"]()
+        check("插线后网格线多了一根",
+              ctx8["lines"] and len(ctx8["lines"]) > 8,
+              len(ctx8["lines"]) if ctx8["lines"] else None)
+        # 换个位置再点一次，第二个方向也插得进去
+        ctx8["add_line"](20, 20)
+        check("第二条也插进去（%d×%d）" % (ctx8["mesh"].cols,
+                                          ctx8["mesh"].rows),
+              ctx8["mesh"].cols + ctx8["mesh"].rows == 8,
+              (ctx8["mesh"].cols, ctx8["mesh"].rows))
+        # 改一个点，加过线的网格仍然变形正常
+        ctx8["set_node_pos"](0, 10, 10)
+        ctx8["render"]()
+        check("加线后拖点预览仍在变", ctx8["warped"] != ctx8["prgba"])
+        cfg8.set_property("mesh", MW8.format_mesh_string(ctx8["mesh"]))
+        txt8 = cfg8.get_property("mesh")
+        check("写回的串里带了分割线", "u:" in txt8 and "v:" in txt8, txt8[:50])
+    finally:
+        if dlg8 is not None:
+            try:
+                dlg8.destroy()
+            except Exception:
+                pass
+
+    section("网格串里带分割线也能跑")
+    img9, layer9 = make_image()
+    images.append(img9)
+    mesh9 = MW8.Mesh.identity(200, 150, 3, 3)
+    mesh9.node(1, 1)["x"] += 24.0
+    mesh9.auto_refresh()
+    mesh9 = mesh9.split_u(1, 0.4)
+    info9 = mod.warp_drawable(layer9, mesh9)
+    check("带分割线的网格能直接变形", info9["cols"] == 4, info9)
+    gw9, gh9, gb9 = pixels(layer9)
+    c9 = px(gb9, gw9, 100, 75)
+    check("像素真的被搬走（中心取色变了）",
+          len(c9) == 4 and c9[:3] != (0, 0, 0), c9)
+
     section("768×1024 走一遍完整流程")
     img7, layer7 = make_image(768, 1024, box=(300, 400, 500, 600))
     images.append(img7)

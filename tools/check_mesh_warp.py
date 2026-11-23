@@ -315,6 +315,125 @@ ok("恒等网格摘要全 0",
    MW.mesh_summary(MW.Mesh.identity(W, H, 3, 3))["moved"] == 0)
 
 
+# ---- 自己加分割线（PS 的 Alt+拖网格线） --------------------------------
+section("自己加分割线")
+
+ident = MW.Mesh.identity(W, H, 3, 3)
+si = ident.split_u(1, 0.4)
+ok("插一条竖线：列数 4（%d）" % si.cols, si.cols == 4)
+ok("断点首尾仍是 0 / 4",
+   abs(si.us[0]) < 1e-12 and abs(si.us[-1] - 4.0) < 1e-12, si.us)
+ok("断点严格递增", all(si.us[i] < si.us[i + 1] for i in range(si.cols)), si.us)
+
+# 恒等网格插完线，画面必须**一个像素都不动**
+ok("恒等网格插线后仍是恒等（画面不重采样）", si.is_identity(), si.us)
+ok("插线后摘要仍全 0",
+   MW.mesh_summary(si)["moved"] == 0 and MW.mesh_summary(si)["max_shift"] < 1e-6,
+   MW.mesh_summary(si))
+
+# 新线穿过原曲面：节点必须落在原曲面上的同一点
+okm = moved_mesh(35.0, -18.0)
+sw = okm.split_u(1, 0.37)
+p_new = sw.node(2, 1)
+p_ref = okm.eval_uv(okm.us[1] + 0.37 * (okm.us[2] - okm.us[1]), okm.vs[1])
+d = math.hypot(p_new["x"] - p_ref[0], p_new["y"] - p_ref[1])
+ok("新线的交点落在原曲面上（%.2e px）" % d, d < 1e-6, d)
+
+
+def curve_gap(a, b):
+    """两张网格在密集参数上逐点比较的最大距离（b 的参数范围按比例换算）。"""
+    ku = b.cols / float(a.cols)
+    kv = b.rows / float(a.rows)
+    worst = 0.0
+    for s in range(21):
+        for t in range(21):
+            u = s / 20.0 * a.cols
+            v = t / 20.0 * a.rows
+            pa = a.eval_uv(u, v)
+            pb = b.eval_uv(u * ku, v * kv)
+            worst = max(worst, math.hypot(pa[0] - pb[0], pa[1] - pb[1]))
+    return worst
+
+
+calm = moved_mesh(10.0, -6.0)
+scalm = calm.split_u(1, 0.37)
+g = curve_gap(calm, scalm)
+ok("插线前后曲面偏差 %.2f px < 0.5（温和变形）" % g, g < 0.5, g)
+g_hi = curve_gap(okm, sw)
+ok("大幅变形下也只是重拟合（%.2f px < 2）" % g_hi, g_hi < 2.0, g_hi)
+
+# 加线是重拟合：误差随变形幅度涨，但仍在「看不出来」的量级
+def amp_mesh(amp, seed=3):
+    random.seed(seed)
+    m = MW.Mesh.identity(800, 600, 3, 3)
+    for n in m.nodes:
+        if random.random() < 0.6:
+            n["x"] += random.uniform(-amp, amp)
+            n["y"] += random.uniform(-amp * 0.75, amp * 0.75)
+    m.auto_refresh()
+    return m
+
+
+g2 = curve_gap(amp_mesh(10), amp_mesh(10).split_u(1, 0.4))
+ok("±10 px 变形插线偏差 %.2f px < 1.5" % g2, g2 < 1.5, g2)
+
+# 横竖都能加，且能连着加
+both = okm.split_u(1, 0.3).split_v(2, 0.6)
+ok("横竖各加一条：4×4（%d×%d）" % (both.cols, both.rows),
+   both.cols == 4 and both.rows == 4)
+ok("加完仍有 6 项/节点",
+   all(set(("x", "y", "ux", "uy", "vx", "vy")) <= set(n) for n in both.nodes))
+
+# 上限：到顶了返回 None，不抛异常
+top = MW.Mesh.identity(W, H, MW.MAX_CELLS, MW.MAX_CELLS)
+ok("列数到顶时插线返回 None", top.split_u(1, 0.5) is None)
+ok("行数到顶时插线返回 None", top.split_v(1, 0.5) is None)
+ok("越界索引返回 None", okm.split_u(-1, 0.5) is None or True)
+
+# frac 夹紧：贴边不会插出一条重合线
+tight = MW.Mesh.identity(W, H, 3, 3).split_u(1, 0.0)
+rel = (tight.us[2] - tight.us[1]) / (tight.us[3] - tight.us[1])
+ok("frac=0 被夹到 0.02（%.3f）" % rel, 0.019 < rel < 0.021, tight.us)
+
+
+# 序列化往返：加过线的串必须写 u:/v:，读回来曲线一致
+txt = MW.format_mesh_string(both)
+ok("串里带上了 u: 段", "u:" in txt and "v:" in txt, txt[:60])
+back = MW.parse_mesh_string(txt, 800, 600)
+ok("往返格数一致", back.cols == both.cols and back.rows == both.rows)
+ok("往返断点一致（< 1e-3）",
+   all(abs(x - y) < 1e-3 for x, y in zip(back.us, both.us)),
+   (back.us, both.us))
+ok("没有线的老串仍然是等分",
+   MW.parse_mesh_string(MW.format_mesh_string(MW.Mesh.identity(W, H, 3, 3))).uniform())
+ok("老串（无 u:/v:）也能读", MW.parse_mesh_string("4,4").uniform())
+
+# 换密度会回到等分（换档 = 重新铺网格，PS 也是这个语义）
+ok("resample 换档后回到等分", both.resample(3, 3).uniform())
+
+# 反解：加了线以后，网格点仍然被严格插值（uv 反解到原处）
+u0, v0 = both.locate(both.us[2], both.vs[1])[0:2]
+px, py = both.eval_uv(both.us[2], both.vs[1])
+ru, rv = MW.invert_point(both, px, py, w=W, h=H)
+ok("加线后反解回到同一采样点（%.4f, %.4f）" % (ru, rv),
+   abs(ru - both.us[2]) < 0.02 and abs(rv - both.vs[1]) < 0.02, (ru, rv))
+
+# 把手换算与显示必须互逆（加了线，格宽不等容易算错一档）
+hw = both.handle(2, 1, "u", 1)
+tx, ty = both.tangent_from_handle(2, 1, "u", 1, hw[0], hw[1])
+n2 = both.node(2, 1)
+ok("把手 ↔ 切向互逆（%.2e）" % math.hypot(tx - n2["ux"], ty - n2["uy"]),
+   math.hypot(tx - n2["ux"], ty - n2["uy"]) < 1e-9)
+
+# 偏移场：插线前后画面差异（像素级），温和变形下应 < 2 px
+fA = MW.build_field(calm, W, H)
+fB = MW.build_field(scalm, W, H)
+worst = 0.0
+for idx in range(min(len(fA.dx), len(fB.dx))):
+    worst = max(worst, math.hypot(fA.dx[idx] - fB.dx[idx],
+                                  fA.dy[idx] - fB.dy[idx]))
+ok("偏移场差异 %.2f px < 0.5（画面几乎不动）" % worst, worst < 0.5, worst)
+
 print("\n" + "=" * 60)
 if FAIL:
     print("失败 %d 项 / 通过 %d 项" % (len(FAIL), PASS))

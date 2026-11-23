@@ -1723,7 +1723,8 @@ PLUGIN_EN["mesh-warp"] = dict(
          handles (symmetric, either end drags the same). Drag one and the grid line bends.</p>
       <p><b>Right-click a point</b> to reset it; Delete does the same for the selected one,
          and the sidebar has <i>Reset selected</i> / <i>Reset all</i>. <b>Grid density</b>
-         goes from 2×2 to 6×6 cells — Photoshop's default is 3×3.</p>
+         goes from 2×2 to 6×6 cells — Photoshop's default is 3×3. When that is not
+         enough, <b>Alt+click</b> to add lines of your own (below).</p>
       <p>The dashed lines are the original grid, the blue ones the deformed grid, so the
          amount of movement is obvious. Output either <b>replaces the layer</b> or
          <b>copies to a new one</b>.</p>
@@ -1738,6 +1739,61 @@ PLUGIN_EN["mesh-warp"] = dict(
       <p><code>lb-plugin-mesh-warp layer mesh="3,3; 100,200; 150,180" output=replace</code></p>
       <p>The dialog writes exactly this string when you press Apply, so a script can
          replay a manual warp.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Adding your own split lines</h3><span class="pill">Alt + click</span></div>
+      <p>When dragging points is not enough, <b>hold Alt and click on the picture</b> and a
+         grid line appears right there — its direction follows whichever line is nearest
+         (a vertical one means a new vertical line). The density drop-down switches to
+         <b>custom</b>, because the cells are no longer square. Twelve lines is the cap.</p>
+      <p>That is what Photoshop's Alt+drag on a grid line does: <b>local refinement</b>.
+         Split column one in half and column three stays whole — the grid does not get
+         denser everywhere.</p>
+      <p>A grid with added lines writes two extra chunks into the <code>mesh</code>
+         argument, <code>u:0,1.33,1.83,2.67,4</code> and <code>v:…</code>, holding each
+         line's position in parameter space. Older strings have no such chunks and read back
+         as evenly spaced.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>What one line costs</h3></div>
+      <p>The breaks are no longer even, but <b>parameter space still maps linearly to the
+         original image</b> — which pixel comes from where does not change, only the
+         interpolation. The new line takes its points and tangents from the existing
+         surface, so the picture barely moves: at a mild deformation (±10 px) the measured
+         surface deviation is <b>0.6 px</b> and the whole offset field differs by
+         <b>0.4 px</b>.</p>
+      <p>Under heavy deformation it becomes a <b>refit</b> (2–5 px at ±60 px). Each corner
+         only stores a position and two tangents, so the twist of the four middle control
+         points is estimated from the corners; after splitting, the two sides disagree.
+         Photoshop stores the whole control net, so its subdivision is exact — a difference
+         in representation, not a bug.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl">
+      <div class="dl-head"><h3>Three easy mistakes when adding a line</h3></div>
+      <p><b>1. The parameter range has to follow the column count.</b> Source coordinates go
+         as <code>u/cols</code>, so adding a column means scaling the whole axis by
+         (cols+1)/cols — miss it and the picture shifts once.</p>
+      <p><b>2. Tangents must be divided by that same factor.</b> A tangent is a derivative
+         per parameter unit; shorter units mean a smaller derivative for the same pixel
+         span.</p>
+      <p><b>3. Handle dots scale with cell width.</b> With unequal cells a handle sits at
+         "node ± tangent × cell / 3". Writing "± tangent / 3" makes handles in narrow cells
+         stick out into the neighbour, and dragging is off by one notch.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Measured</h3></div>
+      <p>Adding a line is O(nodes) — instant. The preview still runs at a 480 px long edge,
+         around 100 ms a frame; one more line adds a few patches, not a change in feel.</p>
+      <p>The regression watches one thing: the picture must not move. An identity grid with
+         an added line still has to classify as identity (not one pixel resampled), the new
+         line's points must land on the existing surface (measured 0.00e+00 px), and the two
+         offset fields must agree within 0.5 px per node.</p>
     </div>
   </div>
 

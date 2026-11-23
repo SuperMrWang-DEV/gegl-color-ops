@@ -16,6 +16,7 @@
 
  usage     选图层 → 菜单 → 拖网格交点 → 选中交点后拖圆点把手 → 应用。
            右键点交点把那个点复位；Delete 键同样。网格密度可以换（2×2～6×6）。
+           Alt+点击画面 = 自己加一条分割线（方向跟着最近的线），上限 12 条。
 
  note      三条非踩不可的：
            1. **源坐标是 uv 在原位格上的位置，不是曲面上的位置**。
@@ -27,6 +28,13 @@
               控制多边形来回折，格子自交，反解出两个分支，画面撕一道。
            3. **预览和应用调同一个 build_field + warp_rgba**，只是分辨率不同。
               两套实现必然漂成「预览好看、确定后不一样」。
+           4. **网格可以不等距**（us/vs 是格界，Alt+点击会往里面插数）。加一列时
+              参数范围必须按 (cols+1)/cols 缩放（源坐标按 u/cols 铺），切向跟着
+              除以同一个系数；格宽不等时把手圆点画在「节点 ± 切向×格宽/3」，
+              写成「± 切向/3」会戳到隔壁格、拖起来差一档。
+           5. **插线是重拟合，不是精确细分**：每个角只存位置 + 两个切向，面片
+              中间四个点的 twist 由四角位置估，细分后两侧对不上。温和变形偏差
+              0.6 px、大幅 2~5 px。PS 存整张控制点网，所以它那边是精确的。
 
  license   GPL-3.0-or-later，见工程根目录 LICENSE
  ==========================================================================="""
@@ -38,7 +46,7 @@ import time
 
 import gi
 gi.require_version('Gimp', '3.0')
-from gi.repository import Gimp, GLib, GObject, Gegl
+from gi.repository import Gimp, GLib, GObject, Gegl, Gdk
 
 _here = _os.path.dirname(_os.path.abspath(__file__))
 for _cand in (_os.path.join(_here, '_shared'),
@@ -244,6 +252,8 @@ def build_dialog(config, image, drawable, w, h):
     combo_grid = Gtk.ComboBoxText.new()
     for n in GRID_CHOICES:
         combo_grid.append(str(n), _("%d × %d cells") % (n, n))
+    # 「custom」= 自己 Alt+点击加过线，格数不再是正方形
+    combo_grid.append("0", _("custom (you added lines)"))
     combo_grid.set_active_id("3")
     combo_grid.set_hexpand(True)
     grid_row.add(glbl)
@@ -251,7 +261,10 @@ def build_dialog(config, image, drawable, w, h):
     right.add(grid_row)
 
     mesh = MWM.parse_mesh_string(config.get_property('mesh') or "", w, h)
-    combo_grid.set_active_id(str(mesh.cols))
+    if mesh.uniform() and mesh.cols == mesh.rows and mesh.cols in GRID_CHOICES:
+        combo_grid.set_active_id(str(mesh.cols))
+    else:
+        combo_grid.set_active_id("0")
 
     show_mesh = Gtk.CheckButton.new_with_label(_("Show the mesh"))
     show_mesh.set_active(True)
@@ -449,10 +462,54 @@ def build_dialog(config, image, drawable, w, h):
                     best, best_d = (axis, sign), d
         return best
 
+    # -- 自己加分割线 ------------------------------------------------------
+    def add_line(x, y):
+        """Alt+点击：在点到的位置加一条网格线（方向跟着最近的网格线）。
+
+        新线取原曲面上的点和切向，所以画面几乎不动——实测见
+        check_mesh_warp。「加线」是重拟合，形状变化在 1 px 量级。
+        """
+        mp = ctx["preview_mesh"]
+        m = ctx["mesh"]
+        if mp is None or m is None:
+            return False
+        try:
+            u, v = MWM.invert_point(mp, x, y, w=pw, h=ph)
+        except Exception as exc:
+            note.set_text(_("Could not add a line: %s") % exc)
+            return False
+        # 哪一边的线离得更近（按像素，格宽不等也公平）
+        d_u = min(abs(mp.eval_uv(mp.us[i], v)[0] - x)
+                  for i in range(mp.cols + 1))
+        d_v = min(abs(mp.eval_uv(u, mp.vs[j])[1] - y)
+                  for j in range(mp.rows + 1))
+        if d_u <= d_v:
+            ci, _cj, s, _t = m.locate(u, v)
+            new = m.split_u(ci, s)
+        else:
+            _ci, cj, _s, t = m.locate(u, v)
+            new = m.split_v(cj, t)
+        if new is None:
+            note.set_text(_("Grid is already at the maximum of %d lines.")
+                          % (MWM.MAX_CELLS + 1))
+            return False
+        ctx["mesh"] = new
+        ctx["selected"] = -1
+        ctx["drag"] = None
+        gid = str(new.cols) if (new.cols == new.rows
+                                and new.cols in GRID_CHOICES) else "0"
+        if combo_grid.get_active_id() != gid:
+            combo_grid.set_active_id(gid)
+        schedule(0)
+        return True
+
     # -- 交互 --------------------------------------------------------------
     def on_press(_area, ev):
         x, y = ev.x, ev.y
         m = ctx["mesh"]
+        if (ev.button == 1 and (ev.state & (Gdk.ModifierType.ALT_MASK
+                                           | Gdk.ModifierType.MOD1_MASK))):
+            return add_line(x, y)                # Alt+点击 = 加一条线
         if ev.button == 3:                       # 右键：这个点复位
             idx = hit_node(x, y)
             if idx >= 0:
@@ -503,10 +560,11 @@ def build_dialog(config, image, drawable, w, h):
         j, i = divmod(sel, m.cols + 1)
         n = m.node(i, j)
         # 把手圆点画在 节点 ± 切向/3 处，所以拖到哪就反推切向 = 3·(点-节点)
-        tx = sign * (cx * k - n["x"]) * 3.0
-        ty = sign * (cy * k - n["y"]) * 3.0
+        tx, ty = m.tangent_from_handle(i, j, axis, sign, cx * k, cy * k)
         cw, ch = m.cell_size()
-        lim = max(3.0, 3.0 * max(cw, ch))
+        # 限幅按**像素**算：切向 × 格宽 才是这一段实际跨了多少像素
+        span = m.cell_width(i) if axis == "u" else m.cell_height(j)
+        lim = max(3.0, 3.0 * max(cw, ch)) / (span if span > 0 else 1.0)
         ln = _math.hypot(tx, ty)
         if ln > lim:
             tx, ty = tx * lim / ln, ty * lim / ln
@@ -557,13 +615,17 @@ def build_dialog(config, image, drawable, w, h):
 
     def reset_all(_b=None):
         ctx["mesh"] = MWM.Mesh.identity(w, h, ctx["mesh"].cols,
-                                        ctx["mesh"].rows)
+                                        ctx["mesh"].rows,
+                                        ctx["mesh"].us, ctx["mesh"].vs)
         ctx["selected"] = -1
         ctx["drag"] = None
         schedule(0)
 
     def on_grid(_b=None):
-        want = int(combo_grid.get_active_id() or 3)
+        gid = combo_grid.get_active_id()
+        if gid in (None, "", "0"):               # 「custom」= 自己加过线
+            return
+        want = int(gid)
         if want == ctx["mesh"].cols and want == ctx["mesh"].rows:
             return
         ctx["mesh"] = ctx["mesh"].resample(want, want)
@@ -591,6 +653,7 @@ def build_dialog(config, image, drawable, w, h):
     ctx["set_node_pos"] = set_node_pos
     ctx["set_handle"] = set_handle
     ctx["reset_all"] = reset_all
+    ctx["add_line"] = add_line
     render()
     outer.show_all()
     return dlg, ctx

@@ -51,6 +51,52 @@ def _dist(a, b):
     return math.hypot(b["x"] - a["x"], b["y"] - a["y"])
 
 
+def _seg(arr, val):
+    """val 落在断点数组 arr 的第几段，以及段内归一化位置 [0,1]。
+
+    网格允许「自己加分割线」，所以格界不再等距：us / vs 记着每条线的参数
+    位置（默认 0,1,…,cols 等分）。参数空间本身永远线性对应原图，所以
+    加线只改插值，不改「哪个像素来自哪儿」。
+    """
+    n = len(arr) - 1
+    if val <= arr[0]:
+        return 0, 0.0
+    if val >= arr[n]:
+        return n - 1, 1.0
+    lo, hi = 0, n
+    while hi - lo > 1:
+        mid = (lo + hi) // 2
+        if arr[mid] <= val:
+            lo = mid
+        else:
+            hi = mid
+    span = arr[lo + 1] - arr[lo]
+    return lo, ((val - arr[lo]) / span if span > 0.0 else 0.0)
+
+
+def _breaks(arr, want, count):
+    """把断点数组规整成「长度 count+1、严格递增、首尾刚好 0 / want」。"""
+    out = None
+    if arr is not None:
+        try:
+            vals = [float(v) for v in arr]
+        except (TypeError, ValueError):
+            vals = []
+        if len(vals) == count + 1 and all(
+                vals[i] < vals[i + 1] for i in range(count)):
+            out = vals
+    if out is None:
+        out = [float(i) for i in range(count + 1)]
+    else:
+        span = out[count] - out[0]
+        if span <= 0.0:
+            out = [float(i) for i in range(count + 1)]
+        else:                               # 归一化到 0..count，参数范围固定
+            k = float(count) / span
+            out = [(v - out[0]) * k for v in out]
+    return out
+
+
 # ---- 数据结构 --------------------------------------------------------------
 
 class Mesh(object):
@@ -71,23 +117,64 @@ class Mesh(object):
     格子自交，反解出两三个分支，画面上撕出一道。
     """
 
-    __slots__ = ("cols", "rows", "w", "h", "nodes")
+    __slots__ = ("cols", "rows", "w", "h", "nodes", "us", "vs")
 
-    def __init__(self, cols, rows, nodes, w=0, h=0):
+    def __init__(self, cols, rows, nodes, w=0, h=0, us=None, vs=None):
         self.cols = max(1, int(cols))
         self.rows = max(1, int(rows))
         self.w = w
         self.h = h
         self.nodes = nodes
+        # 格界在参数空间里的位置。等分是 [0,1,…,cols]；「自己加分割线」就是
+        # 往这里插一个数，于是格宽不再相等，而参数范围仍是 0..cols。
+        self.us = _breaks(us, self.cols, self.cols)
+        self.vs = _breaks(vs, self.rows, self.rows)
+
+    def cell_width(self, i):
+        """第 i 列在参数空间的宽度（等分时恒为 1）。"""
+        i = 0 if i < 0 else (self.cols - 1 if i > self.cols - 1 else i)
+        return self.us[i + 1] - self.us[i]
+
+    def cell_height(self, j):
+        j = 0 if j < 0 else (self.rows - 1 if j > self.rows - 1 else j)
+        return self.vs[j + 1] - self.vs[j]
+
+    def node_width(self, i):
+        """节点 i 两侧较窄的那一列宽度（把手限幅用）。"""
+        if i <= 0:
+            return self.cell_width(0)
+        if i >= self.cols:
+            return self.cell_width(self.cols - 1)
+        return min(self.cell_width(i - 1), self.cell_width(i))
+
+    def node_height(self, j):
+        if j <= 0:
+            return self.cell_height(0)
+        if j >= self.rows:
+            return self.cell_height(self.rows - 1)
+        return min(self.cell_height(j - 1), self.cell_height(j))
+
+    def uniform(self, tol=1e-9):
+        """格界是不是等距的（用来判断「有没有自己加过线」）。"""
+        return (all(abs(self.us[i] - i) <= tol for i in range(self.cols + 1))
+                and all(abs(self.vs[j] - j) <= tol
+                        for j in range(self.rows + 1)))
 
     # -- 基本访问 ----------------------------------------------------------
     def node(self, i, j):
         return self.nodes[j * (self.cols + 1) + i]
 
     def cell_size(self):
-        """一格大致多宽多高（用原始画布尺寸算，把手长度限幅时用）。"""
+        """一格大致多宽多高（用原始画布尺寸算，把手长度限幅时用）。
+
+        加了分割线之后格宽不等，这里给的是**最窄**的那格——限幅宁严勿松。
+        """
         cw = (float(self.w) - 1.0) / self.cols if self.cols else 1.0
         ch = (float(self.h) - 1.0) / self.rows if self.rows else 1.0
+        if self.cols > 1:
+            cw *= min(self.cell_width(i) for i in range(self.cols))
+        if self.rows > 1:
+            ch *= min(self.cell_height(j) for j in range(self.rows))
         return cw, ch
 
     def auto_refresh(self):
@@ -108,19 +195,23 @@ class Mesh(object):
                 else:
                     if i == 0:
                         p, q = self.node(0, j), self.node(1, j)
-                        ax, ay = q["x"] - p["x"], q["y"] - p["y"]
+                        span = self.us[1] - self.us[0]
                     elif i == cols:
                         p, q = self.node(cols - 1, j), self.node(cols, j)
-                        ax, ay = q["x"] - p["x"], q["y"] - p["y"]
+                        span = self.us[cols] - self.us[cols - 1]
                     else:
                         p, q = self.node(i - 1, j), self.node(i + 1, j)
-                        ax, ay = (q["x"] - p["x"]) * 0.5, (q["y"] - p["y"]) * 0.5
+                        span = self.us[i + 1] - self.us[i - 1]
+                    ax = (q["x"] - p["x"]) / span
+                    ay = (q["y"] - p["y"]) / span
                     chords = []
                     if i > 0:
                         chords.append(_dist(self.node(i - 1, j), n))
                     if i < cols:
                         chords.append(_dist(self.node(i + 1, j), n))
-                    lim_u = max(1e-3, min(chords)) if chords else 0.0
+                    # 切向是「每参数单位」的位移，限幅要按这一列有多宽换算
+                    lim_u = (max(1e-3, min(chords)) / self.node_width(i)
+                             if chords else 0.0)
                 norm = math.hypot(ax, ay)
                 if lim_u > 0.0 and norm > lim_u:
                     k = lim_u / norm
@@ -135,19 +226,22 @@ class Mesh(object):
                 else:
                     if j == 0:
                         p, q = self.node(i, 0), self.node(i, 1)
-                        bx_, by_ = q["x"] - p["x"], q["y"] - p["y"]
+                        span = self.vs[1] - self.vs[0]
                     elif j == rows:
                         p, q = self.node(i, rows - 1), self.node(i, rows)
-                        bx_, by_ = q["x"] - p["x"], q["y"] - p["y"]
+                        span = self.vs[rows] - self.vs[rows - 1]
                     else:
                         p, q = self.node(i, j - 1), self.node(i, j + 1)
-                        bx_, by_ = (q["x"] - p["x"]) * 0.5, (q["y"] - p["y"]) * 0.5
+                        span = self.vs[j + 1] - self.vs[j - 1]
+                    bx_ = (q["x"] - p["x"]) / span
+                    by_ = (q["y"] - p["y"]) / span
                     chords = []
                     if j > 0:
                         chords.append(_dist(self.node(i, j - 1), n))
                     if j < rows:
                         chords.append(_dist(self.node(i, j + 1), n))
-                    lim_v = max(1e-3, min(chords)) if chords else 0.0
+                    lim_v = (max(1e-3, min(chords)) / self.node_height(j)
+                             if chords else 0.0)
                 norm = math.hypot(bx_, by_)
                 if lim_v > 0.0 and norm > lim_v:
                     k = lim_v / norm
@@ -158,22 +252,29 @@ class Mesh(object):
 
     # -- 构造 --------------------------------------------------------------
     @classmethod
-    def identity(cls, w, h, cols=3, rows=3):
-        """恒等网格：交点在均匀栅格上，切向 = 格宽/格高。"""
+    def identity(cls, w, h, cols=3, rows=3, us=None, vs=None):
+        """恒等网格：交点在栅格上，切向 = 格宽/格高。
+
+        us / vs 给了就按它铺（加了分割线的恒等网格），不给就是等分。
+        """
         cols = max(1, min(MAX_CELLS, int(cols)))
         rows = max(1, min(MAX_CELLS, int(rows)))
         cw = (float(w) - 1.0) / cols if w else 1.0
         ch = (float(h) - 1.0) / rows if h else 1.0
+        mesh = cls(cols, rows, [], w, h, us, vs)
+        us_, vs_ = mesh.us, mesh.vs
         nodes = []
         for j in range(rows + 1):
             for i in range(cols + 1):
-                nodes.append({"x": i * cw, "y": j * ch,
+                nodes.append({"x": us_[i] * cw, "y": vs_[j] * ch,
                               "ux": cw, "uy": 0.0, "vx": 0.0, "vy": ch, "a": 1})
-        return cls(cols, rows, nodes, w, h)
+        mesh.nodes = nodes
+        return mesh
 
     def copy(self):
         return Mesh(self.cols, self.rows,
-                    [dict(n) for n in self.nodes], self.w, self.h)
+                    [dict(n) for n in self.nodes], self.w, self.h,
+                    list(self.us), list(self.vs))
 
     def scaled(self, f):
         """整体缩放（图层坐标 → 预览坐标用）。f 是倍率。"""
@@ -183,11 +284,13 @@ class Mesh(object):
                           "ux": n["ux"] * f, "uy": n["uy"] * f,
                           "vx": n["vx"] * f, "vy": n["vy"] * f,
                           "a": n.get("a", 1)})
-        return Mesh(self.cols, self.rows, nodes, self.w * f, self.h * f)
+        return Mesh(self.cols, self.rows, nodes, self.w * f, self.h * f,
+                    list(self.us), list(self.vs))
 
     def position_only_copy(self):
         """只保留交点位置、把手全部回到自动（网格线是直的）。"""
-        out = Mesh.identity(self.w, self.h, self.cols, self.rows)
+        out = Mesh.identity(self.w, self.h, self.cols, self.rows,
+                            self.us, self.vs)          # 分割线要留着
         for idx, n in enumerate(self.nodes):
             out.nodes[idx]["x"] = n["x"]
             out.nodes[idx]["y"] = n["y"]
@@ -203,10 +306,13 @@ class Mesh(object):
         cols, rows = self.cols, self.rows
         cw = (float(self.w) - 1.0) / cols if self.w else 0.0
         ch = (float(self.h) - 1.0) / rows if self.h else 0.0
+        # 加了分割线之后「原位」不再是 i*cw —— 参数 u 仍线性对应原图，
+        # 所以第 i 条线在原图上的位置是 us[i]/cols（等分时就是 i）。
         for j in range(rows + 1):
             for i in range(cols + 1):
                 n = self.node(i, j)
-                if abs(n["x"] - i * cw) > tol or abs(n["y"] - j * ch) > tol:
+                if (abs(n["x"] - self.us[i] * cw) > tol
+                        or abs(n["y"] - self.vs[j] * ch) > tol):
                     return False
                 if abs(n["ux"] - cw) > tol or abs(n["uy"]) > tol:
                     return False
@@ -215,31 +321,15 @@ class Mesh(object):
         return True
 
     # -- 求值 --------------------------------------------------------------
-    def _cell(self, u, v):
-        """全局参数 (u,v) → (格子索引, 格内参数 s,t)。"""
-        cols, rows = self.cols, self.rows
-        ci = int(math.floor(u))
-        cj = int(math.floor(v))
-        if ci < 0:
-            ci = 0
-        elif ci > cols - 1:
-            ci = cols - 1
-        if cj < 0:
-            cj = 0
-        elif cj > rows - 1:
-            cj = rows - 1
-        s = u - ci
-        t = v - cj
-        # 边界外一律按边界算：Bezier 在 [0,1] 之外是外插，三次曲线会飞出去
-        if s < 0.0:
-            s = 0.0
-        elif s > 1.0:
-            s = 1.0
-        if t < 0.0:
-            t = 0.0
-        elif t > 1.0:
-            t = 1.0
+    def locate(self, u, v):
+        """全局参数 (u,v) → (列号, 行号, 格内 s, 格内 t)。"""
+        ci, s = _seg(self.us, u)
+        cj, t = _seg(self.vs, v)
         return ci, cj, s, t
+
+    def _cell(self, u, v):
+        """全局参数 (u,v) → (格子索引, 格内参数 s,t∈[0,1])。"""
+        return self.locate(u, v)
 
     def eval_uv(self, u, v):
         """参数 (u,v) → 变形后的图像坐标。u∈[0,cols]，v∈[0,rows]。"""
@@ -248,41 +338,67 @@ class Mesh(object):
         return _patch(bx, by, s, t)[:2]
 
     def eval_full(self, u, v):
-        """同上，外加两个切向（重采样网格时用）。"""
+        """同上，外加两个切向（重采样、插分割线时用）。
+
+        切向一律换算成「每参数单位」（∂P/∂u、∂P/∂v），片内的 ∂P/∂s 要乘格宽。
+        等分网格里两者相等，所以老代码看不出区别。
+        """
         ci, cj, s, t = self._cell(u, v)
         bx, by = _cell_ctrl(self, ci, cj)
-        return _patch(bx, by, s, t)
+        x, y, psx, psy, ptx, pty = _patch(bx, by, s, t)
+        dw = self.us[ci + 1] - self.us[ci]
+        dv = self.vs[cj + 1] - self.vs[cj]
+        return x, y, psx / dw, psy / dw, ptx / dv, pty / dv
 
     def grid_polylines(self, steps=10):
         """把变形后的网格线画成一串折线（图像坐标），给对话框用。"""
         steps = max(2, int(steps))
         lines = []
         for i in range(self.cols + 1):                  # 竖线：u 固定
+            u = self.us[i]
             pts = []
             for j in range(self.rows):
                 for k in range(steps + 1):
                     if j and k == 0:
                         continue                        # 接缝不重复点
-                    pts.append(self.eval_uv(i, j + k / float(steps)))
+                    pts.append(self.eval_uv(u, self.vs[j] + (self.vs[j + 1]
+                                                             - self.vs[j])
+                                            * k / float(steps)))
             lines.append(pts)
         for j in range(self.rows + 1):                  # 横线：v 固定
+            v = self.vs[j]
             pts = []
             for i in range(self.cols):
                 for k in range(steps + 1):
                     if i and k == 0:
                         continue
-                    pts.append(self.eval_uv(i + k / float(steps), j))
+                    pts.append(self.eval_uv(self.us[i] + (self.us[i + 1]
+                                                          - self.us[i])
+                                            * k / float(steps), v))
             lines.append(pts)
         return lines
 
     def handle(self, i, j, axis, sign):
-        """把手圆点的位置：节点 + sign·切向/3（控制点就在 1/3 处）。"""
+        """把手圆点的位置：节点 + sign·切向·格宽/3（控制点就在 1/3 格处）。"""
         n = self.node(i, j)
         if axis == "u":
-            return (n["x"] + sign * n["ux"] / 3.0,
-                    n["y"] + sign * n["uy"] / 3.0)
-        return (n["x"] + sign * n["vx"] / 3.0,
-                n["y"] + sign * n["vy"] / 3.0)
+            dw = self.cell_width(i if sign > 0 else i - 1)
+            return (n["x"] + sign * n["ux"] * dw / 3.0,
+                    n["y"] + sign * n["uy"] * dw / 3.0)
+        dv = self.cell_height(j if sign > 0 else j - 1)
+        return (n["x"] + sign * n["vx"] * dv / 3.0,
+                n["y"] + sign * n["vy"] * dv / 3.0)
+
+    def tangent_from_handle(self, i, j, axis, sign, cx, cy):
+        """把手圆点被拖到 (cx,cy) → 反推「每参数单位」的切向。"""
+        n = self.node(i, j)
+        if axis == "u":
+            dw = self.cell_width(i if sign > 0 else i - 1)
+            return (sign * (cx - n["x"]) * 3.0 / dw,
+                    sign * (cy - n["y"]) * 3.0 / dw)
+        dv = self.cell_height(j if sign > 0 else j - 1)
+        return (sign * (cx - n["x"]) * 3.0 / dv,
+                sign * (cy - n["y"]) * 3.0 / dv)
 
     # -- 改网格尺寸 --------------------------------------------------------
     def resample(self, cols, rows):
@@ -315,6 +431,69 @@ class Mesh(object):
         return out
 
 
+    # -- 自己加分割线（PS 的 Alt+拖网格线） --------------------------------
+    def split_u(self, ci, frac=0.5, auto=True):
+        """在第 ci 列里插一条竖线，返回**新**网格（失败返回 None）。
+
+        新线的交点和切向都取自原曲面，所以插完画面不动——这是整套改动的
+        验收标准（实测偏差见 check_mesh_warp）。切向默认 auto=True，之后
+        拖相邻节点时它会跟着重算，跟 PS 的活网格一致。
+        """
+        ci = int(ci)
+        if ci < 0 or ci > self.cols - 1 or self.cols >= MAX_CELLS:
+            return None
+        frac = min(0.98, max(0.02, float(frac)))
+        p = self.us[ci] + (self.us[ci + 1] - self.us[ci]) * frac
+        col = [self.eval_full(p, self.vs[j]) for j in range(self.rows + 1)]
+        # 参数范围必须跟着 cols 走（源图按 u/cols 铺），所以整条轴按 k 缩放；
+        # 切向是「每参数单位」的导数，参数变短 → 导数要除以 k，位置不用动。
+        k = (self.cols + 1) / float(self.cols)
+        nodes = []
+        for j in range(self.rows + 1):
+            for i in range(self.cols + 1):
+                m = dict(self.node(i, j))
+                m["ux"] /= k
+                m["uy"] /= k
+                nodes.append(m)
+                if i == ci:
+                    x, y, ux, uy, vx, vy = col[j]
+                    nodes.append({"x": x, "y": y,
+                                  "ux": ux / k, "uy": uy / k,
+                                  "vx": vx, "vy": vy,
+                                  "a": 1 if auto else 0})
+        us = [v * k for v in
+              (list(self.us[:ci + 1]) + [p] + list(self.us[ci + 1:]))]
+        return Mesh(self.cols + 1, self.rows, nodes, self.w, self.h,
+                    us, list(self.vs))
+
+    def split_v(self, cj, frac=0.5, auto=True):
+        """在第 cj 行里插一条横线，返回**新**网格（失败返回 None）。"""
+        cj = int(cj)
+        if cj < 0 or cj > self.rows - 1 or self.rows >= MAX_CELLS:
+            return None
+        frac = min(0.98, max(0.02, float(frac)))
+        p = self.vs[cj] + (self.vs[cj + 1] - self.vs[cj]) * frac
+        row = [self.eval_full(self.us[i], p) for i in range(self.cols + 1)]
+        k = (self.rows + 1) / float(self.rows)
+        nodes = []
+        for j in range(self.rows + 1):
+            for i in range(self.cols + 1):
+                m = dict(self.node(i, j))
+                m["vx"] /= k
+                m["vy"] /= k
+                nodes.append(m)
+            if j == cj:
+                for i in range(self.cols + 1):
+                    x, y, ux, uy, vx, vy = row[i]
+                    nodes.append({"x": x, "y": y, "ux": ux, "uy": uy,
+                                  "vx": vx / k, "vy": vy / k,
+                                  "a": 1 if auto else 0})
+        vs = [v * k for v in
+              (list(self.vs[:cj + 1]) + [p] + list(self.vs[cj + 1:]))]
+        return Mesh(self.cols, self.rows + 1, nodes, self.w, self.h,
+                    list(self.us), vs)
+
+
 # ---- 曲面片求值 ------------------------------------------------------------
 
 def _cell_ctrl(mesh, ci, cj):
@@ -328,6 +507,10 @@ def _cell_ctrl(mesh, ci, cj):
     n01 = mesh.node(ci, cj + 1)
     n10 = mesh.node(ci + 1, cj)
     n11 = mesh.node(ci + 1, cj + 1)
+    # 切向存的是「每参数单位」，片内参数 s 跨一整格 dω 个参数单位，
+    # 所以控制点偏移要乘格宽；等分时 dω=1，和以前完全一样。
+    dw = mesh.us[ci + 1] - mesh.us[ci]
+    dv = mesh.vs[cj + 1] - mesh.vs[cj]
     bx = [0.0] * 16
     by = [0.0] * 16
 
@@ -340,26 +523,26 @@ def _cell_ctrl(mesh, ci, cj):
     put(3, 0, n10["x"], n10["y"])
     put(3, 3, n11["x"], n11["y"])
 
-    put(0, 1, n00["x"] + n00["vx"] / 3.0, n00["y"] + n00["vy"] / 3.0)
-    put(0, 2, n01["x"] - n01["vx"] / 3.0, n01["y"] - n01["vy"] / 3.0)
-    put(3, 1, n10["x"] + n10["vx"] / 3.0, n10["y"] + n10["vy"] / 3.0)
-    put(3, 2, n11["x"] - n11["vx"] / 3.0, n11["y"] - n11["vy"] / 3.0)
+    put(0, 1, n00["x"] + n00["vx"] * dv / 3.0, n00["y"] + n00["vy"] * dv / 3.0)
+    put(0, 2, n01["x"] - n01["vx"] * dv / 3.0, n01["y"] - n01["vy"] * dv / 3.0)
+    put(3, 1, n10["x"] + n10["vx"] * dv / 3.0, n10["y"] + n10["vy"] * dv / 3.0)
+    put(3, 2, n11["x"] - n11["vx"] * dv / 3.0, n11["y"] - n11["vy"] * dv / 3.0)
 
-    put(1, 0, n00["x"] + n00["ux"] / 3.0, n00["y"] + n00["uy"] / 3.0)
-    put(2, 0, n10["x"] - n10["ux"] / 3.0, n10["y"] - n10["uy"] / 3.0)
-    put(1, 3, n01["x"] + n01["ux"] / 3.0, n01["y"] + n01["uy"] / 3.0)
-    put(2, 3, n11["x"] - n11["ux"] / 3.0, n11["y"] - n11["uy"] / 3.0)
+    put(1, 0, n00["x"] + n00["ux"] * dw / 3.0, n00["y"] + n00["uy"] * dw / 3.0)
+    put(2, 0, n10["x"] - n10["ux"] * dw / 3.0, n10["y"] - n10["uy"] * dw / 3.0)
+    put(1, 3, n01["x"] + n01["ux"] * dw / 3.0, n01["y"] + n01["uy"] * dw / 3.0)
+    put(2, 3, n11["x"] - n11["ux"] * dw / 3.0, n11["y"] - n11["uy"] * dw / 3.0)
 
     tx = (n11["x"] - n10["x"] - n01["x"] + n00["x"]) / 9.0
     ty = (n11["y"] - n10["y"] - n01["y"] + n00["y"]) / 9.0
-    put(1, 1, n00["x"] + (n00["ux"] + n00["vx"]) / 3.0 + tx,
-              n00["y"] + (n00["uy"] + n00["vy"]) / 3.0 + ty)
-    put(1, 2, n01["x"] + (n01["ux"] - n01["vx"]) / 3.0 + tx,
-              n01["y"] + (n01["uy"] - n01["vy"]) / 3.0 + ty)
-    put(2, 1, n10["x"] + (-n10["ux"] + n10["vx"]) / 3.0 + tx,
-              n10["y"] + (-n10["uy"] + n10["vy"]) / 3.0 + ty)
-    put(2, 2, n11["x"] + (-n11["ux"] - n11["vx"]) / 3.0 + tx,
-              n11["y"] + (-n11["uy"] - n11["vy"]) / 3.0 + ty)
+    put(1, 1, n00["x"] + (n00["ux"] * dw + n00["vx"] * dv) / 3.0 + tx,
+              n00["y"] + (n00["uy"] * dw + n00["vy"] * dv) / 3.0 + ty)
+    put(1, 2, n01["x"] + (n01["ux"] * dw - n01["vx"] * dv) / 3.0 + tx,
+              n01["y"] + (n01["uy"] * dw - n01["vy"] * dv) / 3.0 + ty)
+    put(2, 1, n10["x"] + (-n10["ux"] * dw + n10["vx"] * dv) / 3.0 + tx,
+              n10["y"] + (-n10["uy"] * dw + n10["vy"] * dv) / 3.0 + ty)
+    put(2, 2, n11["x"] + (-n11["ux"] * dw - n11["vx"] * dv) / 3.0 + tx,
+              n11["y"] + (-n11["uy"] * dw - n11["vy"] * dv) / 3.0 + ty)
     return bx, by
 
 
@@ -438,19 +621,18 @@ def invert_point(mesh, x, y, iters=NEWTON_ITERS, tol=NEWTON_TOL, w=None, h=None)
     """解 P(u,v) = (x,y)。返回 (u, v)；解决不了就返回边界上的近似值。"""
     cols, rows = mesh.cols, mesh.rows
     u, v = _initial_uv(mesh, x, y, w, h)
+    us, vs = mesh.us, mesh.vs
     cache = {}
     for _i in range(iters):
-        ci = int(math.floor(u))
-        cj = int(math.floor(v))
-        ci = 0 if ci < 0 else (cols - 1 if ci > cols - 1 else ci)
-        cj = 0 if cj < 0 else (rows - 1 if cj > rows - 1 else cj)
+        ci, s = _seg(us, u)
+        cj, t = _seg(vs, v)
         key = (ci, cj)
         ctrl = cache.get(key)
         if ctrl is None:
             ctrl = _cell_ctrl(mesh, ci, cj)
             cache[key] = ctrl
         bx, by = ctrl
-        px, py, psx, psy, ptx, pty = _patch(bx, by, u - ci, v - cj)
+        px, py, psx, psy, ptx, pty = _patch(bx, by, s, t)
         ex = x - px
         ey = y - py
         if ex * ex + ey * ey <= tol * tol:
@@ -460,13 +642,14 @@ def invert_point(mesh, x, y, iters=NEWTON_ITERS, tol=NEWTON_TOL, w=None, h=None)
             break
         du = (pty * ex - ptx * ey) / det
         dv = (-psy * ex + psx * ey) / det
+        # du/dv 是**格内参数**的增量，限步也按格算（0.75 格），最后再乘格宽
         step = max(abs(du), abs(dv))
         if step > NEWTON_STEP:                  # 见 NEWTON_STEP 的注释：不限步会震
             k = NEWTON_STEP / step
             du *= k
             dv *= k
-        u += du
-        v += dv
+        u += du * (us[ci + 1] - us[ci])
+        v += dv * (vs[cj + 1] - vs[cj])
         if not (u == u and v == v):             # NaN
             break
         if u < 0.0:
@@ -507,13 +690,18 @@ def _invert_np(mesh, xs, ys, iters=NEWTON_ITERS, tol=NEWTON_TOL, w=None, h=None)
     u = np.clip(xs / w1 * cols if w1 > 0 else np.zeros_like(xs), 0.0, cols)
     v = np.clip(ys / h1 * rows if h1 > 0 else np.zeros_like(ys), 0.0, rows)
     done = np.zeros(u.shape, dtype=bool)
+    us = np.asarray(mesh.us, dtype=np.float64)
+    vs = np.asarray(mesh.vs, dtype=np.float64)
 
     for _i in range(iters):
-        ci = np.clip(np.floor(u).astype(np.int64), 0, cols - 1)
-        cj = np.clip(np.floor(v).astype(np.int64), 0, rows - 1)
+        # 网格允许不等距：用 searchsorted 找格，格内参数归一化到 [0,1]
+        ci = np.clip(np.searchsorted(us, u, side="right") - 1, 0, cols - 1)
+        cj = np.clip(np.searchsorted(vs, v, side="right") - 1, 0, rows - 1)
         cells = cj * cols + ci
-        s = u - ci
-        t = v - cj
+        duw = us[ci + 1] - us[ci]
+        dvh = vs[cj + 1] - vs[cj]
+        s = (u - us[ci]) / duw
+        t = (v - vs[cj]) / dvh
         bxs = bx_net[cells]
         bys = by_net[cells]
 
@@ -614,8 +802,8 @@ def _invert_np(mesh, xs, ys, iters=NEWTON_ITERS, tol=NEWTON_TOL, w=None, h=None)
         dv = np.where(ok, (-dsy * ex + dsx * ey) * inv, 0.0)
         step = np.maximum(np.abs(du), np.abs(dv))
         k = np.where(step > NEWTON_STEP, NEWTON_STEP / np.maximum(step, 1e-12), 1.0)
-        u = np.clip(u + du * k, 0.0, cols)
-        v = np.clip(v + dv * k, 0.0, rows)
+        u = np.clip(u + du * k * duw, 0.0, cols)
+        v = np.clip(v + dv * k * dvh, 0.0, rows)
     return u, v
 
 
@@ -701,6 +889,22 @@ def parse_mesh_string(text, w=0, h=0, cols=3, rows=3):
     if len(head) >= 2:
         mesh = Mesh.identity(w or 2, h or 2, int(head[0]), int(head[1]))
         chunks = chunks[1:]
+    # 分割线段：以 u: / v: 开头，只有「自己加过线」时才写出来（老串没有）
+    rest = []
+    for raw in chunks:
+        low = raw.lower()
+        if low[:2] in ("u:", "v:"):
+            try:
+                vals = [float(v) for v in raw[2:].replace(",", " ").split()]
+            except ValueError:
+                continue
+            if low[0] == "u" and len(vals) == mesh.cols + 1:
+                mesh.us = _breaks(vals, mesh.cols, mesh.cols)
+            elif low[0] == "v" and len(vals) == mesh.rows + 1:
+                mesh.vs = _breaks(vals, mesh.rows, mesh.rows)
+            continue
+        rest.append(raw)
+    chunks = rest
     want = (mesh.cols + 1) * (mesh.rows + 1)
     for idx, raw in enumerate(chunks[:want]):
         try:
@@ -724,8 +928,15 @@ def parse_mesh_string(text, w=0, h=0, cols=3, rows=3):
 
 
 def format_mesh_string(mesh):
-    """反向：Mesh → parse_mesh_string 能读回的字符串（两位小数）。"""
+    """反向：Mesh → parse_mesh_string 能读回的字符串（两位小数）。
+
+    自己加过分割线时会多写两段 u: / v:（格界位置），没加过就不写——
+    老脚本写的串照样能读。
+    """
     parts = ["%d,%d" % (mesh.cols, mesh.rows)]
+    if not mesh.uniform():
+        parts.append("u:" + ",".join("%.4f" % v for v in mesh.us))
+        parts.append("v:" + ",".join("%.4f" % v for v in mesh.vs))
     for n in mesh.nodes:
         parts.append("%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%d"
                      % (n["x"], n["y"], n["ux"], n["uy"],
@@ -737,7 +948,8 @@ def mesh_summary(mesh):
     """对话框底部那行小字：几个点动过、把手弯了几个、最大位移多少。"""
     if mesh is None:
         return {"cols": 0, "rows": 0, "moved": 0, "curved": 0, "max_shift": 0.0}
-    ident = Mesh.identity(mesh.w, mesh.h, mesh.cols, mesh.rows)
+    ident = Mesh.identity(mesh.w, mesh.h, mesh.cols, mesh.rows,
+                          mesh.us, mesh.vs)
     moved = 0
     curved = 0
     top = 0.0
