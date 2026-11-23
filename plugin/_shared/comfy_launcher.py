@@ -34,6 +34,8 @@ import urllib.request
 
 # 配置文件路径可以盖掉（回归脚本用临时目录，绝不碰用户的真配置）
 CONFIG_ENV = "LB_COMFY_CONFIG"
+# 关掉自动启动（回归脚本用，也是「我不想让它自己起进程」的开关）
+AUTOSTART_ENV = "LB_COMFY_AUTOSTART"
 # 兼容老版本：只配了目录、没有配置文件的人
 HOME_ENV = "LB_COMFY_HOME"
 URL_ENV = "LB_COMFY_URL"
@@ -513,6 +515,9 @@ def ensure_running(server="", auto=None, timeout=None, on_progress=None):
                 "version": first["version"], "error": "", "log": ""}
 
     auto = cfg.get("auto_start", True) if auto is None else bool(auto)
+    if (os.environ.get(AUTOSTART_ENV) or "").strip().lower() in (
+            "0", "off", "false", "no"):
+        auto = False
     if not auto:
         return {"ok": False, "started": False, "error":
                 "ComfyUI is not running and auto-start is off", "log": ""}

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-title-zh="抠图 / 移除背景 · Python 插件 · gegl-color-ops" data-title-en="抠图 / 移除背景 · Python plug-ins · gegl-color-ops">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>抠图 / 移除背景 · Python 插件 · gegl-color-ops</title>
+<meta name="description" content="把主体从背景里抠出来：图层加一张羽化过的蒙版，主体之外透明，顺手还能
+   垫一层纯色（白底证件照、电商主图）或一张新背景图。两条路——AI 那条连发丝都能
+   分开，本地那条对付纯色和渐变背景是毫秒级的。" data-desc-zh="把主体从背景里抠出来：图层加一张羽化过的蒙版，主体之外透明，顺手还能
+   垫一层纯色（白底证件照、电商主图）或一张新背景图。两条路——AI 那条连发丝都能
+   分开，本地那条对付纯色和渐变背景是毫秒级的。" data-desc-en="Lift the subject off its background: one feathered mask on the layer, everything
+   else transparent — optionally with a">
+<meta property="og:title" content="抠图 / 移除背景 · Python 插件 · gegl-color-ops" data-title-zh="抠图 / 移除背景 · Python 插件 · gegl-color-ops" data-title-en="抠图 / 移除背景 · Python plug-ins · gegl-color-ops">
+<meta property="og:description" content="把主体从背景里抠出来：图层加一张羽化过的蒙版，主体之外透明，顺手还能
+   垫一层纯色（白底证件照、电商主图）或一张新背景图。两条路——AI 那条连发丝都能
+   分开，本地那条对付纯色和渐变背景是毫秒级的。" data-desc-zh="把主体从背景里抠出来：图层加一张羽化过的蒙版，主体之外透明，顺手还能
+   垫一层纯色（白底证件照、电商主图）或一张新背景图。两条路——AI 那条连发丝都能
+   分开，本地那条对付纯色和渐变背景是毫秒级的。" data-desc-en="Lift the subject off its background: one feathered mask on the layer, everything
+   else transparent — optionally with a">
+<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+<main id="main">
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> /
+    <a href="../plugins.html">插件</a> / Mask</p>
+  <h1>抠图 / 移除背景</h1>
+  <div class="meta">
+    <code>plugin/cutout</code>
+    <span class="tag t-mask">蒙版</span>
+    <span>Mask</span>
+  </div>
+  <p class="lede">把主体从背景里抠出来：图层加一张羽化过的蒙版，主体之外透明，顺手还能
+   垫一层纯色（白底证件照、电商主图）或一张新背景图。两条路——AI 那条连发丝都能
+   分开，本地那条对付纯色和渐变背景是毫秒级的。</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="zh-overview">
+  <dt>菜单位置</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → Mask → 抠图 / 移除背景（本地）</li><li>SuperMrWang → Mask → 抠图 / 移除背景（AI）</li></ul><p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p></dd>
+  <dt>脚本调用</dt>
+  <dd><code class="pdb">lb-plugin-cutout-local(
+    image, drawable, threshold, seeds, shrink,
+    feather, background, color, bg-file, keep-mask, use-selection)
+lb-plugin-cutout-ai(
+    image, drawable, model, resolution, sensitivity,
+    refine, shrink, feather, background, color, bg-file, keep-mask)</code><p>标准 PDB 过程，参数留空走默认值。</p></dd>
+  <dt>依赖</dt>
+  <dd><p>靠下面这些算子干活。<b>它们已经打进这个插件的下载包</b>（<code>modules-windows-x64</code> / <code>modules-linux-x64</code>），不用另外去下：</p></dd>
+</dl>
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-1">
+      <div class="dl-head"><h3>两条路各自管什么</h3><span class="pill">按素材挑</span></div>
+      <div class="table-wrap"><table class="op-table">
+        <thead><tr><th>菜单项</th><th>怎么找主体</th><th>什么时候用</th></tr></thead>
+        <tbody>
+          <tr><td><b>抠图（AI）</b></td>
+              <td>缩略图发给本机 ComfyUI 的 <code>RMBG</code> 节点
+                  （BiRefNet / RMBG-2.0），拿回来的 alpha 当蒙版</td>
+              <td>头发、毛绒、透明玻璃、绿幕、复杂背景。单张 4~6 秒</td></tr>
+          <tr><td><b>抠图（本地）</b></td>
+              <td>从四条边的多个种子点泛洪选背景，再反选。已有选区时
+                  <b>直接把选区当主体</b>，只做收边</td>
+              <td>纯色、渐变、影棚白底；或者想先粗框一下再自动收边。毫秒级</td></tr>
+        </tbody>
+      </table></div>
+      <p>两条路的收尾是同一段代码：蒙版 → 收缩 <code>shrink</code> 像素 → 羽化
+         <code>feather</code> → 图层蒙版 + <code>Cutout Mask</code> 通道 → 按需垫背景。</p>
+    </div>
+    <div class="dl" id="zh-sec-2">
+      <div class="dl-head"><h3>输出形态</h3></div>
+      <p><b>透明</b>：只加蒙版，导出 PNG 就是透明底。<b>纯色</b>：在照片下面新建一层
+         纯色（默认白），证件照、主图直接可用。<b>图片</b>：选一张背景图，按 cover
+         等比缩放铺满、居中裁切，放在照片下面。</p>
+      <p>三种都是非破坏的：原图层像素没动，蒙版随时能改，背景层删掉就回到透明。</p>
+    </div>
+  </div>
+
+  <div class="dl" id="zh-sec-3">
+    <div class="dl-head"><h3>实测</h3><span class="pill">RTX 3070 Ti</span></div>
+    <p>SDXL 生成的一张 768×1024 卷发人像，RMBG-2.0 抠图：<b>4.6 秒</b>（含模型加载），
+       主体占比 59.6%，发丝成缕保留，白衬衫边缘干净；<code>shrink=1</code> 收掉
+       RMBG 边界外扩的半像素，白底上看不到白边。</p>
+    <p>本地版在一张 400×300 的「白底 + 红方块」上：泛洪覆盖四边 100%，
+       主体内部蒙版 255、四角 0，全程没有 Python 逐像素循环——
+       <code>gimp-image-select-contiguous-color</code> 是 C 实现，24MP 也是毫秒级。</p>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-4">
+      <div class="dl-head"><h3>蒙版怎么从 AI 的 alpha 变成选区</h3></div>
+      <p>AI 回来的 alpha 尺寸是缩略图的（长边 ≤ 2048）。在 Python 里把它插值到
+         4000×6000 要十几秒；这里建一个同尺寸的临时图层，RGB=白、A=alpha，
+         插进图像后让 GIMP 自己 <code>gimp-layer-scale</code> 到画布大小，
+         再 <code>select-item</code> 取它的 alpha——缩放是 C 做的，Python 只搬一次
+         <code>mw×mh×4</code> 字节。</p>
+    </div>
+    <div class="dl" id="zh-sec-5">
+      <div class="dl-head"><h3>两个静默失败</h3></div>
+      <p><b>泛洪一个点都没选中时 GIMP 不报错</b>：选区是空的，反选之后就成了整张图，
+         看起来像「把主体抠成了全白」。所以先看边框采样点的命中率，低于 35% 直接
+         报错让人调阈值或换 AI 版。</p>
+      <p><b>背景层插错位置会盖住照片</b>：<code>insert_layer</code> 的 position 从
+         顶部数，插到照片的 pos 是插在它<b>上面</b>。要插 <code>pos + 1</code>。</p>
+    </div>
+  </div>
+
+<section class="download" id="zh-download">
+  <h2>下载这一个</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>抠图 / 移除背景（本地 / AI）</h3><span class="pill">.py · 免编译</span></div>
+    <p>包里是一个 <code>.py</code>、一份安装说明，以及 <code>_shared/</code> 与 <code>locale/</code>。整包解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，但界面只有英文。</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-cutout.zip">下载 抠图 / 移除背景（本地 / AI）</a>
+    <p class="muted small">71.5 KB · 校验：<code>SHA256 fe75b901ab7b5a96992e41195c5ac986…</code></p>
+  </div>
+</section>
+
+<p class="note">文中「码」指 8 位图上的一个台阶：0–255 共 256 级，
+   相邻两级的差就是 1 码，等于 1/255 ≈ 0.392%%（也就是 RGB 128 与 129 之间的差）。
+   各数量级的含义与「码为什么不是感知量」的说明见
+   <a href="../guide.html#code">安装指南 · 精度里的「码」</a>。</p>
+  </article>
+  <aside class="toc">
+    <p class="toc-title">本页目录</p>
+    <ul>
+      <li><a href="#zh-overview">概览</a></li>
+<li><a href="#zh-sec-1">两条路各自管什么</a></li><li><a href="#zh-sec-2">输出形态</a></li><li><a href="#zh-sec-3">实测</a></li><li><a href="#zh-sec-4">蒙版怎么从 AI 的 alpha 变成选区</a></li><li><a href="#zh-sec-5">两个静默失败</a></li>
+      <li><a href="#zh-download">下载</a></li>
+    </ul>
+  </aside>
+</div>
+<nav class="pager">
+  <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
+  <a class="prev" href="ai-inpaint.html"><span>上一篇</span>AI 局部重绘</a><a class="next" href="ai-frequency-separation.html"><span>下一篇</span>高低频磨皮（AI 预修）</a>
+</nav></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> /
+    <a href="../plugins.html">Plug-ins</a> / Mask</p>
+  <h1>Cut Out / Remove Background</h1>
+  <div class="meta">
+    <code>plugin/cutout</code>
+    <span class="tag t-mask">Mask</span>
+    <span>Mask</span>
+  </div>
+  <p class="lede">Lift the subject off its background: one feathered mask on the layer, everything
+   else transparent — optionally with a flat colour (ID photos, product shots) or a new
+   background picture underneath. Two routes: the AI one separates single hairs, the local
+   one eats plain and gradient backgrounds in milliseconds.</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="en-overview">
+  <dt>Menu location</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → Mask → Cut Out (Local)</li><li>SuperMrWang → Mask → Cut Out (AI)</li></ul><p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p></dd>
+  <dt>Scripting</dt>
+  <dd><code class="pdb">lb-plugin-cutout-local(
+    image, drawable, threshold, seeds, shrink,
+    feather, background, color, bg-file, keep-mask, use-selection)
+lb-plugin-cutout-ai(
+    image, drawable, model, resolution, sensitivity,
+    refine, shrink, feather, background, color, bg-file, keep-mask)</code><p>A standard PDB procedure; leave an argument empty to take its default.</p></dd>
+  <dt>Dependencies</dt>
+  <dd><p>The operators below do the work. <b>They are already inside this plug-in's download</b> (<code>modules-windows-x64</code> / <code>modules-linux-x64</code>) — nothing else to fetch:</p></dd>
+</dl>
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-1">
+      <div class="dl-head"><h3>Which route does what</h3><span class="pill">pick by photo</span></div>
+      <div class="table-wrap"><table class="op-table">
+        <thead><tr><th>Menu item</th><th>How it finds the subject</th><th>When to use it</th></tr></thead>
+        <tbody>
+          <tr><td><b>Cut Out (AI)</b></td>
+              <td>A downscaled copy goes to the local ComfyUI <code>RMBG</code> node
+                  (BiRefNet / RMBG-2.0); the returned alpha becomes the mask</td>
+              <td>Hair, fur, glass, green screen, busy backgrounds. 4–6 s per image</td></tr>
+          <tr><td><b>Cut Out (Local)</b></td>
+              <td>Flood-fills the background from several seeds per border, then inverts.
+                  With an existing selection, <b>the selection is the subject</b> and only
+                  its edge is refined</td>
+              <td>Plain, gradient or studio backgrounds; or rough-select first and let it
+                  clean the edge. Milliseconds</td></tr>
+        </tbody>
+      </table></div>
+      <p>Both routes end in the same code: mask → shrink by <code>shrink</code> px → feather
+         by <code>feather</code> → layer mask plus a <code>Cutout Mask</code> channel →
+         optional background underneath.</p>
+    </div>
+    <div class="dl" id="en-sec-2">
+      <div class="dl-head"><h3>Output</h3></div>
+      <p><b>Transparent</b>: just the mask — export a PNG and the background is gone.
+         <b>Solid colour</b>: a flat layer (white by default) is created under the photo.
+         <b>Image</b>: pick a picture; it is scale-to-cover and centre-cropped under the photo.</p>
+      <p>All three are non-destructive: original pixels stay, the mask stays editable, and
+         deleting the background layer brings transparency back.</p>
+    </div>
+  </div>
+
+  <div class="dl" id="en-sec-3">
+    <div class="dl-head"><h3>Measured</h3><span class="pill">RTX 3070 Ti</span></div>
+    <p>A 768×1024 SDXL portrait with curly hair, cut out with RMBG-2.0: <b>4.6 s</b>
+       including model load, 59.6 % of the pixels kept, individual strands preserved, the
+       white shirt edge clean. <code>shrink=1</code> removes the half-pixel the model adds
+       outward, so no white fringe shows on a light background.</p>
+    <p>The local route on a 400×300 “white background + red block” test image: border
+       coverage 100 %, mask 255 inside the subject and 0 at all four corners, with no
+       per-pixel Python loop — <code>gimp-image-select-contiguous-color</code> is C, so even
+       24 MP is a matter of milliseconds.</p>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-4">
+      <div class="dl-head"><h3>Turning an AI alpha into a selection</h3></div>
+      <p>The alpha comes back at thumbnail size (long edge ≤ 2048). Interpolating that to
+         4000×6000 in Python takes tens of seconds, so instead a temporary layer of the same
+         size is created with RGB=white and A=alpha, inserted, scaled to the canvas by
+         <code>gimp-layer-scale</code>, and finally <code>select-item</code>d. The scaling is
+         C; Python moves <code>mw×mh×4</code> bytes once.</p>
+    </div>
+    <div class="dl" id="en-sec-5">
+      <div class="dl-head"><h3>Two silent failures</h3></div>
+      <p><b>A flood fill that selects nothing reports no error</b>: the selection is empty,
+         inverting gives the whole image, and the result looks like “the subject became pure
+         white”. So the border coverage is checked first; below 35 % it stops and says to
+         raise the threshold or use the AI route.</p>
+      <p><b>A background layer at the wrong index hides the photo</b>:
+         <code>insert_layer</code> positions count from the top, so inserting at the photo's
+         own position puts it <b>above</b>. It has to be <code>pos + 1</code>.</p>
+    </div>
+  </div>
+
+<section class="download" id="en-download">
+  <h2>Download this one</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>Cut Out / Remove Background</h3><span class="pill">.py · no compile</span></div>
+    <p>The archive holds a single <code>.py</code>, an install note and the <code>_shared/</code> + <code>locale/</code> pair. Unpack all of it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register. Without <code>_shared/</code> and <code>locale/</code> it still runs, but only in English.</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-cutout.zip">Download Cut Out / Remove Background</a>
+    <p class="muted small">71.5 KB · checksum: <code>SHA256 fe75b901ab7b5a96992e41195c5ac986…</code></p>
+  </div>
+</section>
+
+<p class="note">In this article a "code" means one step on an 8-bit
+   image: 0–255 is 256 levels, so the gap between neighbours is 1 code, or
+   1/255 ≈ 0.392%% (the difference between RGB 128 and 129). For the order of magnitude
+   of each figure, and why a code is not a perceptual quantity, see
+   <a href="../guide.html#code">Install guide · what a code is</a>.</p>
+  </article>
+  <aside class="toc">
+    <p class="toc-title">On this page</p>
+    <ul>
+      <li><a href="#en-overview">Overview</a></li>
+<li><a href="#en-sec-1">Which route does what</a></li><li><a href="#en-sec-2">Output</a></li><li><a href="#en-sec-3">Measured</a></li><li><a href="#en-sec-4">Turning an AI alpha into a selection</a></li><li><a href="#en-sec-5">Two silent failures</a></li>
+      <li><a href="#en-download">Download</a></li>
+    </ul>
+  </aside>
+</div>
+<nav class="pager">
+  <a href="../plugins.html"><span>Back to</span>All plug-ins</a>
+  <a class="prev" href="ai-inpaint.html"><span>Previous</span>AI Inpaint</a><a class="next" href="ai-frequency-separation.html"><span>Next</span>Frequency Separation (AI prep)</a>
+</nav></div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
+    <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
+    <span class="muted">ff452d3</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
+</body>
+</html>

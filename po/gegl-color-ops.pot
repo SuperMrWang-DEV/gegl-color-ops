@@ -1421,6 +1421,7 @@ msgstr ""
 #: ops/color-mask-select/color-mask-select.c:124
 #: plugin/ai-inpaint/ai-inpaint.py:1094
 #: plugin/color-range/color-range.py:266
+#: plugin/cutout/cutout.py:485
 #: plugin/sky-replace/sky-replace.py:230
 msgid "Feather"
 msgstr ""
@@ -1642,6 +1643,7 @@ msgid "Repeat edge pixels"
 msgstr ""
 
 #: ops/displace/displace.c:63
+#: plugin/cutout/cutout.py:458
 msgid "Transparent"
 msgstr ""
 
@@ -3459,6 +3461,7 @@ msgstr ""
 #: plugin/ai-dodge-burn/ai-dodge-burn.py:82
 #: plugin/ai-neutral-grey/ai-neutral-grey.py:80
 #: plugin/alpha-curves/alpha-curves.py:187
+#: plugin/cutout/cutout.py:388
 #: plugin/dodge-burn/dodge-burn.py:179
 #: plugin/luminosity-mask/luminosity-mask.py:190
 #: plugin/neutral-grey/neutral-grey.py:162
@@ -3765,10 +3768,12 @@ msgid "Could not read the inpainting result (%s)"
 msgstr ""
 
 #: plugin/ai-inpaint/ai-inpaint.py:366
+#: plugin/cutout/cutout.py:309
 msgid "ComfyUI is not running and could not be started: %s"
 msgstr ""
 
 #: plugin/ai-inpaint/ai-inpaint.py:370
+#: plugin/cutout/cutout.py:313
 msgid "Last lines of the log:"
 msgstr ""
 
@@ -3777,6 +3782,7 @@ msgid "Fix it from SuperMrWang → AI → AI Environment… (pick the ComfyUI fo
 msgstr ""
 
 #: plugin/ai-inpaint/ai-inpaint.py:391
+#: plugin/cutout/cutout.py:331
 msgid "plugin/_shared/ai_client.py is missing: install the _shared folder next to the plug-in"
 msgstr ""
 
@@ -4024,6 +4030,7 @@ msgid "First model that is not an inpaint-only one"
 msgstr ""
 
 #: plugin/ai-inpaint/ai-inpaint.py:980
+#: plugin/cutout/cutout.py:443
 msgid "From this ComfyUI installation"
 msgstr ""
 
@@ -4136,6 +4143,7 @@ msgid "How long to wait for ComfyUI before giving up"
 msgstr ""
 
 #: plugin/ai-inpaint/ai-inpaint.py:1102
+#: plugin/cutout/cutout.py:489
 msgid "Keep mask channel"
 msgstr ""
 
@@ -4155,6 +4163,7 @@ msgstr ""
 #: plugin/alpha-curves/alpha-curves.py:276
 #: plugin/channel-to-mask/channel-to-mask.py:214
 #: plugin/color-range/color-range.py:501
+#: plugin/cutout/cutout.py:573
 #: plugin/hsi-split-curves/hsi-split-curves.py:334
 #: plugin/hsl-split-curves/hsl-split-curves.py:555
 #: plugin/hsv-split-curves/hsv-split-curves.py:565
@@ -4844,6 +4853,215 @@ msgstr ""
 
 #: plugin/convert/convert.py:721
 msgid "Unknown direction"
+msgstr ""
+
+#: plugin/cutout/cutout.py:144
+msgid "Failed to read the layer: expected %d bytes, got %d"
+msgstr ""
+
+#: plugin/cutout/cutout.py:161
+msgid "Mask size mismatch: %d values for %d×%d"
+msgstr ""
+
+#: plugin/cutout/cutout.py:208
+#: plugin/cutout/cutout.py:386
+msgid "The layer is empty — nothing to cut out"
+msgstr ""
+
+#: plugin/cutout/cutout.py:227
+msgid "The flood fill selected nothing. Raise the threshold, or use the AI route for busy backgrounds."
+msgstr ""
+
+#: plugin/cutout/cutout.py:240
+msgid "Only %.0f%% of the border matched the background — the background is probably not plain enough. Raise the threshold, or use the AI route (RMBG) instead."
+msgstr ""
+
+#: plugin/cutout/cutout.py:250
+msgid "The flood fill covered the whole image, so nothing is left as the subject. Lower the threshold, or use the AI route (RMBG) for photos where the background is not plain."
+msgstr ""
+
+#: plugin/cutout/cutout.py:289
+msgid "Could not load the background image"
+msgstr ""
+
+#: plugin/cutout/cutout.py:315
+msgid "Or use the local route: SuperMrWang → Mask → Cut Out (Local) — it needs no ComfyUI."
+msgstr ""
+
+#: plugin/cutout/cutout.py:349
+msgid "RMBG returned an image without alpha — the ComfyUI-RMBG node may be an incompatible build"
+msgstr ""
+
+#: plugin/cutout/cutout.py:354
+msgid "RMBG found no subject (%.1f%% of the pixels kept). Try another model or the local route."
+msgstr ""
+
+#: plugin/cutout/cutout.py:358
+msgid "RMBG kept the whole image — probably no clear subject. Try another model or the local route."
+msgstr ""
+
+#: plugin/cutout/cutout.py:436
+msgid "RMBG-2.0 (BiRefNet) gives the cleanest hair and fur; INSPYRENET is faster, BEN/BEN2 are lighter models. Needs the ComfyUI-RMBG custom node pack."
+msgstr ""
+
+#: plugin/cutout/cutout.py:445
+msgid "Cut-out model"
+msgstr ""
+
+#: plugin/cutout/cutout.py:451
+msgid "Cut-out model (RMBG-2.0 / INSPYRENET / BEN / BEN2)"
+msgstr ""
+
+#: plugin/cutout/cutout.py:459
+msgid "Just add the mask; export as PNG to keep transparency"
+msgstr ""
+
+#: plugin/cutout/cutout.py:460
+msgid "Solid colour"
+msgstr ""
+
+#: plugin/cutout/cutout.py:461
+msgid "Put a flat colour layer under the cut-out"
+msgstr ""
+
+#: plugin/cutout/cutout.py:462
+msgid "Image"
+msgstr ""
+
+#: plugin/cutout/cutout.py:463
+msgid "Put a picture under the cut-out, scaled to cover the canvas"
+msgstr ""
+
+#: plugin/cutout/cutout.py:465
+msgid "Output background"
+msgstr ""
+
+#: plugin/cutout/cutout.py:465
+msgid "What goes behind the subject"
+msgstr ""
+
+#: plugin/cutout/cutout.py:468
+msgid "Background colour"
+msgstr ""
+
+#: plugin/cutout/cutout.py:469
+msgid "Used when the output background is \"Solid colour\""
+msgstr ""
+
+#: plugin/cutout/cutout.py:472
+msgid "Background image"
+msgstr ""
+
+#: plugin/cutout/cutout.py:473
+msgid "Used when the output background is \"Image\"; scaled to cover"
+msgstr ""
+
+#: plugin/cutout/cutout.py:480
+msgid "Shrink edge"
+msgstr ""
+
+#: plugin/cutout/cutout.py:481
+msgid "Pull the mask in by n pixels — removes the background-coloured fringe around the subject"
+msgstr ""
+
+#: plugin/cutout/cutout.py:486
+msgid "Softens the mask edge; 0 keeps it hard"
+msgstr ""
+
+#: plugin/cutout/cutout.py:490
+msgid "Store the mask as a \"Cutout Mask\" channel so a selection can be rebuilt later"
+msgstr ""
+
+#: plugin/cutout/cutout.py:512
+msgid "Cut Out (AI)"
+msgstr ""
+
+#: plugin/cutout/cutout.py:514
+msgid "Cut out the subject with RMBG (BiRefNet) on a local ComfyUI, then mask the layer"
+msgstr ""
+
+#: plugin/cutout/cutout.py:516
+msgid "Sends a downscaled copy to ComfyUI-RMBG, turns the returned alpha into a feathered layer mask, and can put a flat colour or a picture underneath. Best for hair and fur."
+msgstr ""
+
+#: plugin/cutout/cutout.py:522
+msgid "AI working size"
+msgstr ""
+
+#: plugin/cutout/cutout.py:523
+msgid "Long edge sent to ComfyUI (and RMBG's process_res); 1024 is the model's native size"
+msgstr ""
+
+#: plugin/cutout/cutout.py:527
+msgid "Sensitivity"
+msgstr ""
+
+#: plugin/cutout/cutout.py:528
+msgid "Higher keeps more of the subject's soft edges"
+msgstr ""
+
+#: plugin/cutout/cutout.py:531
+msgid "Clean edge colour"
+msgstr ""
+
+#: plugin/cutout/cutout.py:532
+msgid "RMBG's foreground colour estimation — removes the background colour bleeding into the edge"
+msgstr ""
+
+#: plugin/cutout/cutout.py:539
+msgid "Cut Out (Local)"
+msgstr ""
+
+#: plugin/cutout/cutout.py:541
+msgid "Cut out the subject by flood-filling the background from the border (or use the current selection as the subject)"
+msgstr ""
+
+#: plugin/cutout/cutout.py:543
+msgid "Classic route, no ComfyUI. Plain, gradient or studio backgrounds work well; use the AI route for busy scenes. If a selection exists it is treated as the subject."
+msgstr ""
+
+#: plugin/cutout/cutout.py:548
+msgid "Background threshold"
+msgstr ""
+
+#: plugin/cutout/cutout.py:549
+msgid "Colour tolerance of the border flood fill (0..0.5); raise it for noisy backgrounds, lower it if the subject is being eaten"
+msgstr ""
+
+#: plugin/cutout/cutout.py:554
+msgid "Seed points per edge"
+msgstr ""
+
+#: plugin/cutout/cutout.py:555
+msgid "How many points per border are used to start the flood fill; more helps with gradient backgrounds"
+msgstr ""
+
+#: plugin/cutout/cutout.py:559
+msgid "Use existing selection as the subject"
+msgstr ""
+
+#: plugin/cutout/cutout.py:560
+msgid "When a selection exists, treat it as the subject and only refine its edge (no flood fill)"
+msgstr ""
+
+#: plugin/cutout/cutout.py:594
+msgid "Cut out with %s in %.1f s — subject kept %.0f%%."
+msgstr ""
+
+#: plugin/cutout/cutout.py:610
+msgid "Cut out locally."
+msgstr ""
+
+#: plugin/cutout/cutout.py:612
+msgid "Export as PNG to keep the transparency."
+msgstr ""
+
+#: plugin/cutout/cutout.py:614
+msgid "A solid colour layer was added underneath."
+msgstr ""
+
+#: plugin/cutout/cutout.py:616
+msgid "The background image was added underneath."
 msgstr ""
 
 #: plugin/dodge-burn/dodge-burn.py:198

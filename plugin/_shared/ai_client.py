@@ -773,3 +773,112 @@ def inpaint(client, image_png, mask_png_bytes, prompt, negative="",
 def random_seed():
     """seed < 0 时用这个；取时间戳而不是 random，方便在日志里回溯。"""
     return int(time.time() * 1000) % (2 ** 32)
+
+
+# ---- 抠图 / 移除背景 --------------------------------------------------------
+# 走 ComfyUI-RMBG 这个自定义节点包（custom_nodes/ComfyUI-RMBG）。它把
+# BiRefNet / InSPyReNet / BEN 这些「前景分割」模型包成几个节点，节点 id 是
+# RMBG，输出 (IMAGE, MASK, MASK_IMAGE)。我们只要第一路 IMAGE 里的 alpha：
+# 那是最贴近原图的软边（MASK 那一路经过尺寸对齐，边缘会硬一点）。
+#
+# 为什么要单独查节点在不在：节点包不在时 /prompt 只会回一句
+# "Cannot execute because node RMBG does not exist"，用户根本不知道该装什么。
+# 这里先问 /object_info/RMBG，没有就抛一条能照着做的错。
+CUTOUT_NODE = "RMBG"
+CUTOUT_MODELS = ("RMBG-2.0", "INSPYRENET", "BEN", "BEN2")
+CUTOUT_PREFIX = "lb-cutout"
+
+
+def build_cutout_workflow(image_name, model="RMBG-2.0", sensitivity=1.0,
+                          process_res=1024, mask_blur=0, mask_offset=0,
+                          refine_foreground=True, prefix=CUTOUT_PREFIX):
+    """LoadImage → RMBG → SaveImage，只有三个节点。
+
+    background 固定 "Alpha"：要的是透明底，不是它自带的换色。
+    refine_foreground 默认开——它就是「前景颜色估计」，把边缘半透明像素的
+    颜色按邻近前景重算，能明显压掉白边/绿边（绿幕照片尤其明显）。
+    """
+    return {
+        "1": {"class_type": "LoadImage", "inputs": {"image": image_name}},
+        "2": {"class_type": CUTOUT_NODE,
+              "inputs": {"image": ["1", 0], "model": model,
+                         "sensitivity": float(sensitivity),
+                         "process_res": int(process_res),
+                         "mask_blur": int(mask_blur),
+                         "mask_offset": int(mask_offset),
+                         "invert_output": False,
+                         "refine_foreground": bool(refine_foreground),
+                         "unload_model": False,
+                         "background": "Alpha"}},
+        "3": {"class_type": "SaveImage",
+              "inputs": {"images": ["2", 0], "filename_prefix": prefix}},
+    }
+
+
+def _input_names(object_info, node_id):
+    """从 /object_info 的一条里抠出某个输入的可选值（list 或 dict 两种形态）。"""
+    try:
+        spec = object_info[node_id]["input"]
+        for group in ("required", "optional"):
+            item = (spec.get(group) or {}).get("model") or \
+                   (spec.get(group) or {}).get("ckpt_name")
+            if not item:
+                continue
+            values = item[0] if isinstance(item, (list, tuple)) and item else item
+            if isinstance(values, (list, tuple)):
+                return [str(v) for v in values]
+    except (KeyError, TypeError, AttributeError, IndexError):
+        pass
+    return []
+
+
+def cutout_models(client, timeout=2.0):
+    """服务上可用哪些抠图模型；节点包没装就空表（不抛）。"""
+    try:
+        info = client._request("/object_info/" + CUTOUT_NODE, timeout=timeout)
+    except ComfyError:
+        return []
+    return _input_names(info, CUTOUT_NODE)
+
+
+def cutout_available(client, timeout=2.0):
+    """节点包在不在。插件注册菜单时用它决定「模型」是下拉还是文本框。"""
+    return bool(cutout_models(client, timeout=timeout))
+
+
+def cutout(client, image_png, model="", sensitivity=1.0, process_res=1024,
+           mask_blur=0, mask_offset=0, refine_foreground=True,
+           timeout=600.0, on_tick=None):
+    """传图 → RMBG → 取回带 alpha 的 RGBA。返回 (png_bytes, info)。
+
+    调用方（插件）负责先把图缩到长边 ≤ 2048 再传：RMBG 内部按 process_res
+    缩放，24MP 的原始图进去只会白白多占一份内存。
+    """
+    t0 = time.time()
+    models = cutout_models(client, timeout=3.0)
+    if not models:
+        raise ComfyError(
+            "ComfyUI 里没有 RMBG 节点。抠图需要 ComfyUI-RMBG 这个自定义节点包：\n"
+            "  1. 打开 ComfyUI 的 custom_nodes 目录；\n"
+            "  2. git clone https://github.com/1038lab/ComfyUI-RMBG\n"
+            "  3. 重启 ComfyUI（会自动下载 RMBG-2.0 模型，约 900 MB）\n"
+            "装好后这个菜单就能用了；本地抠图那条路不需要它。")
+    want = (model or "").strip()
+    if want and want not in models:
+        want = ""                     # 名字对不上就退回第一个，不报错
+    model = want or models[0]
+
+    src_name, _ = client.upload_image("lb-cutout-src.png", image_png)
+    wf = build_cutout_workflow(src_name, model=model, sensitivity=sensitivity,
+                               process_res=process_res, mask_blur=mask_blur,
+                               mask_offset=mask_offset,
+                               refine_foreground=refine_foreground)
+    pid = client.queue(wf)
+    entry = client.wait(pid, timeout=timeout, on_tick=on_tick)
+    img = first_image(entry)
+    blob = client.download(img.get("filename", ""), img.get("subfolder", ""),
+                           img.get("type", "output"))
+    return blob, {"prompt_id": pid, "model": model,
+                  "seconds": round(time.time() - t0, 2),
+                  "filename": img.get("filename", "")}
+

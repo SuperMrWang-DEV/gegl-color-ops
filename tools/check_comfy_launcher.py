@@ -126,7 +126,9 @@ def port_open(port, timeout=1.0):
 
 def main():
     # 先把环境隔离干净：绝不读用户真配置，也绝不动用户真的 ComfyUI
-    for key in ("LB_COMFY_HOME", "LB_COMFY_URL"):
+    # run_plugin_checks 会给所有子进程设 LB_COMFY_AUTOSTART=0（免得别的套件
+    # 真起服务）；这个套件要测的正是自动启动，所以先摘掉，后面再单独测开关。
+    for key in ("LB_COMFY_HOME", "LB_COMFY_URL", "LB_COMFY_AUTOSTART"):
         os.environ.pop(key, None)
     os.environ["LB_COMFY_CONFIG"] = CONFIG
 
@@ -299,6 +301,21 @@ def main():
        "exited" in (crash.get("error") or "").lower(), crash.get("error"))
     ok("把日志尾带回来（能看出是 CUDA 问题）",
        "CUDA" in (crash.get("log") or ""), (crash.get("log") or "")[-200:])
+
+    # LB_COMFY_AUTOSTART=0：回归脚本必须能关掉自动启动，否则「故意连空端口」
+    # 的用例会真的拉起一个 ComfyUI（11-23 在磨皮回归里撞到过）。
+    cfg = CL.load()
+    cfg["home"] = manual
+    cfg["auto_start"] = True
+    cfg["url"] = server2
+    CL.save(cfg)
+    os.environ["LB_COMFY_AUTOSTART"] = "0"
+    forced_off = CL.ensure_running(server2, timeout=5)
+    ok("环境变量能强制关掉自动启动",
+       forced_off.get("ok") is False
+       and "auto-start is off" in (forced_off.get("error") or ""), forced_off)
+    ok("强制关掉时不会真起进程", not port_open(port2), port2)
+    os.environ.pop("LB_COMFY_AUTOSTART", None)
 
     launch_fail = CL.launch(server2)
     ok("launch 永远返回结构化结果（不抛异常）",

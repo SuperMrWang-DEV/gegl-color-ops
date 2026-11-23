@@ -60,6 +60,7 @@ for _key, _path in SPECS.items():
     MODS[_key] = _mod
 
 import retouch_prep as RP                            # noqa: E402
+os.environ["LB_COMFY_AUTOSTART"] = "0"  # 别让回归去起真的 ComfyUI
 import mock_comfy                                     # noqa: E402
 
 FAIL = []

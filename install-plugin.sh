@@ -66,6 +66,8 @@ echo "                             Channel / Selection / Mask / Path 十二向�
 echo "    SuperMrWang → Mask       Alpha Curves（通道 → Alpha + alpha 曲线）/ Color Range（色彩范围）"
 echo "                             Channel to Mask（通道 → 图层蒙版）"
 echo "                             最大值 / 最小值（膨胀 / 腐蚀，半径 1–100，蒙版扩边收边）"
+echo "                             抠图 / 移除背景（本地：四边泛洪；AI：ComfyUI 的 RMBG-2.0）"
+echo "                             抠图 / 移除背景（本地：四边泛洪；AI：ComfyUI 的 RMBG-2.0）"
 echo "    SuperMrWang → Blend      应用图像 / 计算"
 echo "    SuperMrWang → AI         AI Inpaint（选区 + 提示词 → 本机 ComfyUI 重绘，需要 ComfyUI 在跑）"
 echo "                             AI Inpaint (Advanced)（全参数，含底模下拉）"

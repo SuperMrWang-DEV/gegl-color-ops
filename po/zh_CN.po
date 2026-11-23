@@ -2808,3 +2808,160 @@ msgstr "已停止。"
 msgid "Nothing to stop — %s"
 msgstr "没有可停的进程——%s"
 
+
+msgid "Failed to read the layer: expected %d bytes, got %d"
+msgstr "读图层失败：应为 %d 字节，实际 %d"
+
+msgid "Mask size mismatch: %d values for %d×%d"
+msgstr "蒙版尺寸不符：%d 个值对应 %d×%d"
+
+msgid "The layer is empty — nothing to cut out"
+msgstr "图层是空的，没东西可抠"
+
+msgid "The flood fill selected nothing. Raise the threshold, or use the AI route for busy backgrounds."
+msgstr "泛洪一个像素都没选中：调大阈值，或者复杂背景改用 AI 版。"
+
+msgid "Only %.0f%% of the border matched the background — the background is probably not plain enough. Raise the threshold, or use the AI route (RMBG) instead."
+msgstr "边框只有 %.0f%% 落在背景里——背景大概不够干净。调大阈值，或者改用 AI 版（RMBG）。"
+
+msgid "The flood fill covered the whole image, so nothing is left as the subject. Lower the threshold, or use the AI route (RMBG) for photos where the background is not plain."
+msgstr "泛洪把整张图都吃掉了，没剩下主体。调小阈值，或者背景不干净时改用 AI 版（RMBG）。"
+
+msgid "Could not load the background image"
+msgstr "背景图加载失败"
+
+msgid "Or use the local route: SuperMrWang → Mask → Cut Out (Local) — it needs no ComfyUI."
+msgstr "也可以走本地那条路：SuperMrWang → Mask → 抠图 / 移除背景（本地），不需要 ComfyUI。"
+
+msgid "RMBG returned an image without alpha — the ComfyUI-RMBG node may be an incompatible build"
+msgstr "RMBG 返回的图没有 alpha 通道——ComfyUI-RMBG 这个节点包版本可能不兼容"
+
+msgid "RMBG found no subject (%.1f%% of the pixels kept). Try another model or the local route."
+msgstr "RMBG 没找到主体（只留下 %.1f%% 的像素）。换个模型，或者走本地版。"
+
+msgid "RMBG kept the whole image — probably no clear subject. Try another model or the local route."
+msgstr "RMBG 把整张图都留下了——大概没有明确的主体。换个模型，或者走本地版。"
+
+msgid "RMBG-2.0 (BiRefNet) gives the cleanest hair and fur; INSPYRENET is faster, BEN/BEN2 are lighter models. Needs the ComfyUI-RMBG custom node pack."
+msgstr "RMBG-2.0（BiRefNet）的发丝和毛绒最干净；INSPYRENET 更快，BEN / BEN2 更轻。需要 ComfyUI-RMBG 这个自定义节点包。"
+
+msgid "Cut-out model"
+msgstr "抠图模型"
+
+msgid "Cut-out model (RMBG-2.0 / INSPYRENET / BEN / BEN2)"
+msgstr "抠图模型（RMBG-2.0 / INSPYRENET / BEN / BEN2）"
+
+msgid "Just add the mask; export as PNG to keep transparency"
+msgstr "只加蒙版；导出 PNG 就是透明底"
+
+msgid "Solid colour"
+msgstr "纯色"
+
+msgid "Put a flat colour layer under the cut-out"
+msgstr "在抠好的图下面垫一层纯色"
+
+msgid "Image"
+msgstr "图片"
+
+msgid "Put a picture under the cut-out, scaled to cover the canvas"
+msgstr "在下面垫一张图，等比铺满画布"
+
+msgid "Output background"
+msgstr "输出背景"
+
+msgid "What goes behind the subject"
+msgstr "主体后面放什么"
+
+msgid "Background colour"
+msgstr "背景色"
+
+msgid "Used when the output background is \"Solid colour\""
+msgstr "「输出背景」选纯色时用这个颜色"
+
+msgid "Background image"
+msgstr "背景图"
+
+msgid "Used when the output background is \"Image\"; scaled to cover"
+msgstr "「输出背景」选图片时用这张；按铺满缩放"
+
+msgid "Shrink edge"
+msgstr "边缘收缩"
+
+msgid "Pull the mask in by n pixels — removes the background-coloured fringe around the subject"
+msgstr "把蒙版往里收 n 像素——去掉主体边缘那一圈背景色"
+
+msgid "Softens the mask edge; 0 keeps it hard"
+msgstr "柔化蒙版边缘；0 = 硬边"
+
+msgid "Store the mask as a \"Cutout Mask\" channel so a selection can be rebuilt later"
+msgstr "把蒙版存成「Cutout Mask」通道，以后可以重新载入成选区"
+
+msgid "Cut Out (AI)"
+msgstr "抠图 / 移除背景（AI）"
+
+msgid "Cut out the subject with RMBG (BiRefNet) on a local ComfyUI, then mask the layer"
+msgstr "用本机 ComfyUI 的 RMBG（BiRefNet）抠主体，然后给图层加蒙版"
+
+msgid "Sends a downscaled copy to ComfyUI-RMBG, turns the returned alpha into a feathered layer mask, and can put a flat colour or a picture underneath. Best for hair and fur."
+msgstr "传一张缩略图给 ComfyUI-RMBG，把返回的 alpha 变成羽化蒙版，可选垫纯色或图片。发丝、毛绒效果最好。"
+
+msgid "AI working size"
+msgstr "AI 工作尺寸"
+
+msgid "Long edge sent to ComfyUI (and RMBG's process_res); 1024 is the model's native size"
+msgstr "传给 ComfyUI 的长边（也是 RMBG 的 process_res）；1024 是模型的原生尺寸"
+
+msgid "Sensitivity"
+msgstr "灵敏度"
+
+msgid "Higher keeps more of the subject's soft edges"
+msgstr "越大保留越多主体的软边"
+
+msgid "Clean edge colour"
+msgstr "清理边缘颜色"
+
+msgid "RMBG's foreground colour estimation — removes the background colour bleeding into the edge"
+msgstr "RMBG 的前景颜色估计——去掉渗到边缘上的背景色"
+
+msgid "Cut Out (Local)"
+msgstr "抠图 / 移除背景（本地）"
+
+msgid "Cut out the subject by flood-filling the background from the border (or use the current selection as the subject)"
+msgstr "从四边泛洪选中背景再反选（有选区时直接用选区当主体）"
+
+msgid "Classic route, no ComfyUI. Plain, gradient or studio backgrounds work well; use the AI route for busy scenes. If a selection exists it is treated as the subject."
+msgstr "经典路线，不需要 ComfyUI。纯色、渐变、影棚背景效果好；复杂场景请用 AI 版。已有选区时把选区当主体。"
+
+msgid "Background threshold"
+msgstr "背景阈值"
+
+msgid "Colour tolerance of the border flood fill (0..0.5); raise it for noisy backgrounds, lower it if the subject is being eaten"
+msgstr "边缘泛洪的颜色容差（0..0.5）：背景噪点多就调大，主体被吃掉就调小"
+
+msgid "Seed points per edge"
+msgstr "每条边的种子点数"
+
+msgid "How many points per border are used to start the flood fill; more helps with gradient backgrounds"
+msgstr "每条边撒几个点起泛洪；渐变背景可以多一点"
+
+msgid "Use existing selection as the subject"
+msgstr "用已有选区当主体"
+
+msgid "When a selection exists, treat it as the subject and only refine its edge (no flood fill)"
+msgstr "有选区时不泛洪，直接把选区当主体，只做收边"
+
+msgid "Cut out with %s in %.1f s — subject kept %.0f%%."
+msgstr "用 %s 抠完了，耗时 %.1f 秒，主体占 %.0f%%。"
+
+msgid "Cut out locally."
+msgstr "本地抠图完成。"
+
+msgid "Export as PNG to keep the transparency."
+msgstr "导出 PNG 就能保住透明底。"
+
+msgid "A solid colour layer was added underneath."
+msgstr "下面已经垫了一层纯色。"
+
+msgid "The background image was added underneath."
+msgstr "下面已经垫上了背景图。"
+

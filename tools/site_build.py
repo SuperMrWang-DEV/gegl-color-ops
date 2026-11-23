@@ -2374,6 +2374,21 @@ PLUGIN_SPECS = [
                  "    negative, server, checkpoint, steps, cfg, seed, denoise, grow,\n"
                  "    grow-mask-by, feather, timeout, keep-mask, scale)\n"
                  "lb-plugin-ai-env(image)"),
+        dict(key="cutout", ops=[],
+             name="gegl-color-ops-plugin-cutout.zip",
+             src_dir=os.path.join(ROOT, "plugin", "cutout"),
+             py="cutout.py",
+             menu="抠图 / 移除背景 (Cut Out)",
+             menus="    SuperMrWang → Mask → 抠图 / 移除背景（本地）\n"
+                   "    SuperMrWang → Mask → 抠图 / 移除背景（AI）",
+             desc="抠图 / 移除背景：两条路——AI（本机 ComfyUI 的 RMBG-2.0，发丝级）"
+                  "与本地（四边泛洪，纯色/渐变背景毫秒级）。结果是羽化蒙版 + 可选的"
+                  "纯色或图片背景，原图层像素不动。",
+             shared=["ai_client.py", "comfy_launcher.py", "cutout_math.py"],
+             pdb="lb-plugin-cutout-local(image, drawable, threshold, seeds, shrink,\n"
+                 "    feather, background, color, bg-file, keep-mask, use-selection)\n"
+                 "lb-plugin-cutout-ai(image, drawable, model, resolution, sensitivity,\n"
+                 "    refine, shrink, feather, background, color, bg-file, keep-mask)"),
         dict(key="ai-frequency", ops=[],
              name="gegl-color-ops-plugin-ai-frequency-separation.zip",
              src_dir=os.path.join(ROOT, "plugin", "ai-frequency-separation"),

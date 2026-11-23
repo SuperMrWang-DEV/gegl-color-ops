@@ -925,6 +925,81 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
   </div>""",
     ),
     dict(
+        key='cutout',
+        slug='cutout',
+        title='抠图 / 移除背景',
+        tag=('蒙版', 't-mask'),
+        count='AI + 本地两条路',
+        menu='SuperMrWang → Mask → 抠图 / 移除背景（本地 / AI）',
+        menus=['SuperMrWang → Mask → 抠图 / 移除背景（本地）',
+               'SuperMrWang → Mask → 抠图 / 移除背景（AI）'],
+        menus_en=['SuperMrWang → Mask → Cut Out (Local)',
+                  'SuperMrWang → Mask → Cut Out (AI)'],
+        pdb='lb-plugin-cutout-local(\n    image, drawable, threshold, seeds, shrink,\n'
+            '    feather, background, color, bg-file, keep-mask, use-selection)\n'
+            'lb-plugin-cutout-ai(\n    image, drawable, model, resolution, sensitivity,\n'
+            '    refine, shrink, feather, background, color, bg-file, keep-mask)',
+        lede="""把主体从背景里抠出来：图层加一张羽化过的蒙版，主体之外透明，顺手还能
+   垫一层纯色（白底证件照、电商主图）或一张新背景图。两条路——AI 那条连发丝都能
+   分开，本地那条对付纯色和渐变背景是毫秒级的。""",
+        body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>两条路各自管什么</h3><span class="pill">按素材挑</span></div>
+      <div class="table-wrap"><table class="op-table">
+        <thead><tr><th>菜单项</th><th>怎么找主体</th><th>什么时候用</th></tr></thead>
+        <tbody>
+          <tr><td><b>抠图（AI）</b></td>
+              <td>缩略图发给本机 ComfyUI 的 <code>RMBG</code> 节点
+                  （BiRefNet / RMBG-2.0），拿回来的 alpha 当蒙版</td>
+              <td>头发、毛绒、透明玻璃、绿幕、复杂背景。单张 4~6 秒</td></tr>
+          <tr><td><b>抠图（本地）</b></td>
+              <td>从四条边的多个种子点泛洪选背景，再反选。已有选区时
+                  <b>直接把选区当主体</b>，只做收边</td>
+              <td>纯色、渐变、影棚白底；或者想先粗框一下再自动收边。毫秒级</td></tr>
+        </tbody>
+      </table></div>
+      <p>两条路的收尾是同一段代码：蒙版 → 收缩 <code>shrink</code> 像素 → 羽化
+         <code>feather</code> → 图层蒙版 + <code>Cutout Mask</code> 通道 → 按需垫背景。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>输出形态</h3></div>
+      <p><b>透明</b>：只加蒙版，导出 PNG 就是透明底。<b>纯色</b>：在照片下面新建一层
+         纯色（默认白），证件照、主图直接可用。<b>图片</b>：选一张背景图，按 cover
+         等比缩放铺满、居中裁切，放在照片下面。</p>
+      <p>三种都是非破坏的：原图层像素没动，蒙版随时能改，背景层删掉就回到透明。</p>
+    </div>
+  </div>
+
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>实测</h3><span class="pill">RTX 3070 Ti</span></div>
+    <p>SDXL 生成的一张 768×1024 卷发人像，RMBG-2.0 抠图：<b>4.6 秒</b>（含模型加载），
+       主体占比 59.6%，发丝成缕保留，白衬衫边缘干净；<code>shrink=1</code> 收掉
+       RMBG 边界外扩的半像素，白底上看不到白边。</p>
+    <p>本地版在一张 400×300 的「白底 + 红方块」上：泛洪覆盖四边 100%，
+       主体内部蒙版 255、四角 0，全程没有 Python 逐像素循环——
+       <code>gimp-image-select-contiguous-color</code> 是 C 实现，24MP 也是毫秒级。</p>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl">
+      <div class="dl-head"><h3>蒙版怎么从 AI 的 alpha 变成选区</h3></div>
+      <p>AI 回来的 alpha 尺寸是缩略图的（长边 ≤ 2048）。在 Python 里把它插值到
+         4000×6000 要十几秒；这里建一个同尺寸的临时图层，RGB=白、A=alpha，
+         插进图像后让 GIMP 自己 <code>gimp-layer-scale</code> 到画布大小，
+         再 <code>select-item</code> 取它的 alpha——缩放是 C 做的，Python 只搬一次
+         <code>mw×mh×4</code> 字节。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>两个静默失败</h3></div>
+      <p><b>泛洪一个点都没选中时 GIMP 不报错</b>：选区是空的，反选之后就成了整张图，
+         看起来像「把主体抠成了全白」。所以先看边框采样点的命中率，低于 35% 直接
+         报错让人调阈值或换 AI 版。</p>
+      <p><b>背景层插错位置会盖住照片</b>：<code>insert_layer</code> 的 position 从
+         顶部数，插到照片的 pos 是插在它<b>上面</b>。要插 <code>pos + 1</code>。</p>
+    </div>
+  </div>""",
+    ),
+    dict(
         key='ai-frequency',
         ai_comfy=True,
         slug='ai-frequency-separation',
@@ -1503,6 +1578,7 @@ BRIEF = {
     "ai-frequency": "结构同高低频，两层的内容换成一张已经修过一遍的参考图。",
     "ai-dodge": "两条曲线的蒙版按参考图的差值预先涂好七成，打开就能继续补。",
     "ai-grey": "灰层不再是平的 128：按参考图反解出偏移，已做一轮中性灰。",
+    "cutout": "两条路：AI（RMBG）连发丝一起抠，本地版从四边泛洪吃纯色背景。",
     "alpha-curves": "把颜色通道写进 alpha，再接一条三个控制点的平滑曲线："
                     "挂上去先拉满，往下拖即成形状。",
     "color-range": "色彩范围的定制对话框：选什么颜色，下面就只显示那种颜色的参数，"
@@ -1528,6 +1604,7 @@ TITLE_EN = {
     "dodge": "Dodge & Burn",
     "grey": "Neutral Grey",
     "observe": "Inspection Layers",
+    "cutout": "Cut Out / Remove Background",
     "luminosity": "Luminosity Masks",
     "alpha-curves": "Alpha Curves",
     "color-range": "Color Range",
@@ -1561,6 +1638,8 @@ BRIEF_EN = {
                "curves, wave curves, saturation, threshold, posterize.",
     "luminosity": "Seven channels cut by luminance: three lights, three darks and "
                   "midtones — double-click one to load it as a selection.",
+    "cutout": "Two routes: AI (RMBG) keeps hair and fur, the local one "
+              "flood-fills a plain background from the border.",
     "ai-inpaint": "Frame an area, write what should be there, and a local ComfyUI "
                   "redraws it — the answer comes back as a new masked layer.",
     "ai-frequency": "Same structure as Frequency Separation, but both layers carry a "
@@ -1626,11 +1705,13 @@ DEPS_NOTE_EN = {
 AREA = {"selection": "图层转换", "channel": "图层转换", "split": "图层转换",
         "convert": "图层转换",
         "ai-inpaint": "AI",
+        "cutout": "Mask",
         "alpha-curves": "Mask", "color-range": "Mask",
         "channel-to-mask": "Mask", "max-min": "Mask"}
 
 DEPS = {
     "ai-inpaint": [],
+    "cutout": [],
     "hsv": ["lb:hsv-dual", "lb:hsv-compose", "gimp:curves"],
     "lch": ["lb:lch-dual", "lb:lch-compose", "gimp:curves"],
     "hsl": ["lb:hsl-dual", "lb:hsl-compose", "gimp:curves"],

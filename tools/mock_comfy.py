@@ -64,17 +64,45 @@ class MockState(object):
 
     # ---- 生成 ----
     def generate(self, workflow):
+        """抠图工作流（LoadImage + RMBG）：吐一张 alpha 已知的图。
+
+        左 60% alpha=0（背景）、右 40% alpha=255（主体），中间 8px 线性过渡。
+        插件侧「alpha → 蒙版 → 选区 → 图层蒙版」每一步都能拿这个形状对账，
+        不用猜 RMBG 到底给了什么。
+        """
         """按工作流里的 LoadImage + SaveImage 造一张结果图。"""
         loads = {}
         prefix = "mock"
+        is_cutout = False
         for node in workflow.values():
             kind = node.get("class_type")
             if kind == "LoadImage":
                 loads[node["inputs"].get("image", "")] = node["inputs"].get("image")
+            elif kind == "RMBG":
+                is_cutout = True
             elif kind == "SaveImage":
                 prefix = node["inputs"].get("filename_prefix") or "mock"
 
         names = [n for n in loads if n in self.inputs]
+        if is_cutout and len(names) == 1:
+            sw, sh, sch, spix = ai_client.decode_png(self.inputs[names[0]])
+            out = bytearray(sw * sh * 4)
+            ramp = max(1, sw // 20)
+            split = int(sw * 0.6)
+            for y in range(sh):
+                for x in range(sw):
+                    i = y * sw + x
+                    j3, j4 = i * sch, i * 4
+                    out[j4:j4 + 3] = spix[j3:j3 + 3]
+                    if x < split:
+                        out[j4 + 3] = 0
+                    elif x < split + ramp:
+                        out[j4 + 3] = int(255 * (x - split) / float(ramp))
+                    else:
+                        out[j4 + 3] = 255
+            filename = "%s_%05d_.png" % (prefix, len(self.outputs) + 1)
+            self.outputs[filename] = ai_client.rgba_png(sw, sh, bytes(out))
+            return {"filename": filename, "subfolder": "", "type": "output"}
         if len(names) == 1:
             # img2img 工作流只有一张 LoadImage：原样返回。
             # 「denoise=0 等于不动像素」是真的，磨皮预修那三支插件据此断言
@@ -160,6 +188,15 @@ def _make_handler(state):
                     "input": {"required": {"ckpt_name": [[CHECKPOINT]]},
                               "optional": {}},
                     "output": ["MODEL", "CLIP", "VAE"]}})
+
+            if path == "/object_info/RMBG":
+                return self._send(200, {"RMBG": {
+                    "input": {"required": {"image": ["IMAGE", {}],
+                                           "model": [["RMBG-2.0",
+                                                      "INSPYRENET"]]},
+                              "optional": {}},
+                    "output": ["IMAGE", "MASK", "IMAGE"],
+                    "output_name": ["IMAGE", "MASK", "MASK_IMAGE"]}})
 
             if path.startswith("/history/"):
                 pid = path.rsplit("/", 1)[-1]

@@ -34,11 +34,13 @@ OUT = os.path.join(ROOT, "tools", "plugin_assertions.json")
 SUITES = [
     ("check_ai_inpaint", "python"),
     ("check_comfy_launcher", "python"),
+    ("check_cutout", "python"),
     ("check_retouch_ai", "python"),
     ("check_plugin_dialogs", "gimp"),
     ("check_retouch", "gimp"),
     ("check_observe", "gimp"),
     ("check_luminosity_mask", "gimp"),
+    ("check_cutout_gimp", "gimp"),
     ("check_convert", "gimp"),
     ("check_ai_inpaint_gimp", "gimp"),
     ("check_retouch_ai_gimp", "gimp"),
@@ -97,8 +99,12 @@ def run_suite(name, kind, gimp):
     t0 = time.time()
     try:
         # GIMP 收尾时偶尔不肯退，超时直接判失败：宁可报错也不要一个来历不明的数。
+        # 回归里**不许**去起真的 ComfyUI：有的用例故意连一个空端口，
+        # 自动启动一开就会真拉一个进程起来（11-23 就踩到了）。
+        env = dict(os.environ)
+        env["LB_COMFY_AUTOSTART"] = "0"
         proc = subprocess.run(cmd, cwd=ROOT, stdout=subprocess.PIPE,
-                              stderr=subprocess.STDOUT, timeout=900)
+                              stderr=subprocess.STDOUT, timeout=900, env=env)
     except subprocess.TimeoutExpired:
         return None, "超时（>900 s）"
     out = proc.stdout.decode("utf-8", "replace")

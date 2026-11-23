@@ -1126,6 +1126,76 @@ PLUGIN_EN["max-min"] = dict(
      <code>check_max_min_plugin.py</code> (12 checks: PDB, filter attachment, mask baking,
      error branches).</p>""")
 
+PLUGIN_EN["cutout"] = dict(
+    lede="""Lift the subject off its background: one feathered mask on the layer, everything
+   else transparent — optionally with a flat colour (ID photos, product shots) or a new
+   background picture underneath. Two routes: the AI one separates single hairs, the local
+   one eats plain and gradient backgrounds in milliseconds.""",
+    body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Which route does what</h3><span class="pill">pick by photo</span></div>
+      <div class="table-wrap"><table class="op-table">
+        <thead><tr><th>Menu item</th><th>How it finds the subject</th><th>When to use it</th></tr></thead>
+        <tbody>
+          <tr><td><b>Cut Out (AI)</b></td>
+              <td>A downscaled copy goes to the local ComfyUI <code>RMBG</code> node
+                  (BiRefNet / RMBG-2.0); the returned alpha becomes the mask</td>
+              <td>Hair, fur, glass, green screen, busy backgrounds. 4–6 s per image</td></tr>
+          <tr><td><b>Cut Out (Local)</b></td>
+              <td>Flood-fills the background from several seeds per border, then inverts.
+                  With an existing selection, <b>the selection is the subject</b> and only
+                  its edge is refined</td>
+              <td>Plain, gradient or studio backgrounds; or rough-select first and let it
+                  clean the edge. Milliseconds</td></tr>
+        </tbody>
+      </table></div>
+      <p>Both routes end in the same code: mask → shrink by <code>shrink</code> px → feather
+         by <code>feather</code> → layer mask plus a <code>Cutout Mask</code> channel →
+         optional background underneath.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Output</h3></div>
+      <p><b>Transparent</b>: just the mask — export a PNG and the background is gone.
+         <b>Solid colour</b>: a flat layer (white by default) is created under the photo.
+         <b>Image</b>: pick a picture; it is scale-to-cover and centre-cropped under the photo.</p>
+      <p>All three are non-destructive: original pixels stay, the mask stays editable, and
+         deleting the background layer brings transparency back.</p>
+    </div>
+  </div>
+
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>Measured</h3><span class="pill">RTX 3070 Ti</span></div>
+    <p>A 768×1024 SDXL portrait with curly hair, cut out with RMBG-2.0: <b>4.6 s</b>
+       including model load, 59.6 % of the pixels kept, individual strands preserved, the
+       white shirt edge clean. <code>shrink=1</code> removes the half-pixel the model adds
+       outward, so no white fringe shows on a light background.</p>
+    <p>The local route on a 400×300 “white background + red block” test image: border
+       coverage 100 %, mask 255 inside the subject and 0 at all four corners, with no
+       per-pixel Python loop — <code>gimp-image-select-contiguous-color</code> is C, so even
+       24 MP is a matter of milliseconds.</p>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl">
+      <div class="dl-head"><h3>Turning an AI alpha into a selection</h3></div>
+      <p>The alpha comes back at thumbnail size (long edge ≤ 2048). Interpolating that to
+         4000×6000 in Python takes tens of seconds, so instead a temporary layer of the same
+         size is created with RGB=white and A=alpha, inserted, scaled to the canvas by
+         <code>gimp-layer-scale</code>, and finally <code>select-item</code>d. The scaling is
+         C; Python moves <code>mw×mh×4</code> bytes once.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Two silent failures</h3></div>
+      <p><b>A flood fill that selects nothing reports no error</b>: the selection is empty,
+         inverting gives the whole image, and the result looks like “the subject became pure
+         white”. So the border coverage is checked first; below 35 % it stops and says to
+         raise the threshold or use the AI route.</p>
+      <p><b>A background layer at the wrong index hides the photo</b>:
+         <code>insert_layer</code> positions count from the top, so inserting at the photo's
+         own position puts it <b>above</b>. It has to be <code>pos + 1</code>.</p>
+    </div>
+  </div>""")
+
 PLUGIN_EN["ai-frequency"] = dict(
     lede="""The structure is exactly the same as Frequency Separation — the pixels are
    not. Both layers carry a <b>reference that was already retouched once</b>: a low-denoise
