@@ -1470,7 +1470,7 @@ PLUGIN_EN["ai-inpaint"] = dict(
             its bounding box plus context;</li>
         <li>Align the crop to <b>8</b> — the VAE downsamples 8×, and a crop that is not a
             multiple comes back truncated and pastes out of place — then pad the aspect
-            ratio to <b>≤ 2:1</b> (see “four traps” below);</li>
+            ratio to <b>≤ 2:1</b> (see “five traps” below);</li>
         <li>Read those pixels from the <b>visible composite</b> (a layer smaller than the
             canvas gives you the layer below, not black) and post them with a mask PNG;</li>
         <li>Poll <code>/history</code> until the job is done;</li>
@@ -1556,7 +1556,7 @@ so you can re-limit the area later.</code></pre>
 
   <div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>Four traps</h3><span class="pill">all worked around</span></div>
+      <div class="dl-head"><h3>Five traps</h3><span class="pill">all worked around</span></div>
       <p><b>1. The mask is inverted.</b>ComfyUI's <code>LoadImage</code> derives the mask
          from alpha (<code>mask = 1 - alpha</code>), so “repaint here” has to be
          <b>transparent</b>. Send a grey image and you get an all-zero mask — the run finishes
@@ -1572,7 +1572,16 @@ so you can re-limit the area later.</code></pre>
          prompt of <code>sunglasses</code> came back as a green board with repeated white
          arrows. <code>plan_canvas_rect()</code> pads to ≤ 2:1 first, growing into real
          pixels where the image allows and only replicating edges at the border; that ring is
-         masked out when pasting back.</p>
+         masked out when pasting back.
+      <p><b>5. Short side and context.</b> Matching only the long side to 512 turns
+         1024×400 into 512×200 — far below SD 1.5's 512, and it comes back as rows of
+         repeated shapes. A 32 px context is just as bad: the model cannot see what
+         surrounds the hole, so it invents. Context is now 0.75× the selection's longer
+         side (64 px minimum), and <code>work_size()</code> clamps both ends: the short
+         side up to the family floor (SD 1.5 512 / SDXL 768), the long side down to the
+         ceiling (768 / 1024). On a big photo with a small selection,
+         <code>fit_context()</code> narrows the context first instead of shrinking the
+         whole crop into mush.</p></p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>AI Environment</h3><span class="pill">any folder</span></div>

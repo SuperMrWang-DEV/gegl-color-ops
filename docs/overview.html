@@ -50,7 +50,7 @@
      fx filter.</span>
      </p>
   <div class="cta">
-    <a class="btn primary" href="#download"><span class="l-zh">下载预编译包</span><span class="l-en">Download a prebuilt bundle</span><span class="size">Win 2.1 MB</span></a>
+    <a class="btn primary" href="#download"><span class="l-zh">下载预编译包</span><span class="l-en">Download a prebuilt bundle</span><span class="size">Win 2.2 MB</span></a>
     <a class="btn" href="#ops"><span class="l-zh">浏览 49 个算子</span><span class="l-en">Browse the 49 operators</span></a>
     <a class="btn ghost" href="guide.html"><span class="l-zh">怎么装</span><span class="l-en">How to install</span></a>
   </div>
@@ -58,7 +58,7 @@
     <li><b>49</b> <span class="l-zh">个算子</span><span class="l-en">operators</span></li>
     <li><b>6</b> <span class="l-zh">个分类</span><span class="l-en">categories</span></li>
     <li><b>0</b> <span class="l-zh">依赖 · 免编译包</span><span class="l-en">dependencies · prebuilt</span></li>
-    <li><b>48</b> <span class="l-zh">个 Windows 模块已随仓库发布</span><span class="l-en">Windows modules shipped with the repo</span></li>
+    <li><b>50</b> <span class="l-zh">个 Windows 模块已随仓库发布</span><span class="l-en">Windows modules shipped with the repo</span></li>
   </ul>
 </section><section class="steps" id="start">
   <h2><span class="l-zh">三分钟装上</span><span class="l-en">Set up in three minutes</span></h2>
@@ -646,7 +646,7 @@ macOS    ~/Library/Application Support/gegl-0.4/plug-ins</code></pre>
     
   </div>
   <h3><span class="l-zh">Puppet Warp (live)</span><span class="l-en">Puppet Warp (live)</span></h3>
-  <p><span class="l-zh">木偶变形的非破坏版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉…</span><span class="l-en">The non-destructive puppet warp: the pin string lives on the filter, re-running the…</span></p>
+  <p><span class="l-zh">木偶变形的非破坏版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉…</span><span class="l-en">The puppet-warp solver (MLS similarity, MLS affine, ARAP) as a live GEGL filter on the…</span></p>
   <span class="more"><span class="l-zh">读算法说明 →</span><span class="l-en">Read the notes →</span></span>
 </a>
   </div>
@@ -674,19 +674,19 @@ macOS    ~/Library/Application Support/gegl-0.4/plug-ins</code></pre>
   <div class="dl-grid">
     <div class="dl primary-dl">
       <div class="dl-head"><h3>Windows x64</h3><span class="pill"><span class="l-zh">推荐</span><span class="l-en">Recommended</span></span></div>
-      <p><span class="l-zh">48 个 <code>.dll</code>（2.1 MB）。解到
-         <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，重启 GIMP 即可。</span><span class="l-en">48 <code>.dll</code> files (2.1 MB). Unpack into
+      <p><span class="l-zh">50 个 <code>.dll</code>（2.2 MB）。解到
+         <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，重启 GIMP 即可。</span><span class="l-en">50 <code>.dll</code> files (2.2 MB). Unpack into
          <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code> and restart GIMP.</span></p>
       <a class="btn primary" href="download/gegl-color-ops-windows-x64.zip">gegl-color-ops-windows-x64.zip</a>
-      <p class="muted small"><span class="l-zh">校验：</span><span class="l-en">Checksum: </span><code>SHA256 956040699bb274940937df696a526158…</code></p>
+      <p class="muted small"><span class="l-zh">校验：</span><span class="l-en">Checksum: </span><code>SHA256 685ac2435938b3fa26aa4ce034ff76f9…</code></p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>Linux x86_64</h3></div>
       <p><span class="l-zh">47 个 <code>.so</code>（0.5 MB）。解到
-         <code>~/.local/share/gegl-0.4/plug-ins</code>，重启 GIMP 即可。　注意：component 家族那 1 个模块（各空间的 dual / compose 与 gray-to-component）还没出包，要用就 <code>./build.sh</code> 自编（Windows 端齐全）。</span><span class="l-en">47 <code>.so</code> files (0.5 MB). Unpack into
-         <code>~/.local/share/gegl-0.4/plug-ins</code> and restart GIMP. Note: the 1 component modules (dual / compose for each space, plus gray-to-component) are not in this bundle yet — build them with <code>./build.sh</code> (the Windows bundle has them all).</span></p>
+         <code>~/.local/share/gegl-0.4/plug-ins</code>，重启 GIMP 即可。　注意：component 家族那 3 个模块（各空间的 dual / compose 与 gray-to-component）还没出包，要用就 <code>./build.sh</code> 自编（Windows 端齐全）。</span><span class="l-en">47 <code>.so</code> files (0.5 MB). Unpack into
+         <code>~/.local/share/gegl-0.4/plug-ins</code> and restart GIMP. Note: the 3 component modules (dual / compose for each space, plus gray-to-component) are not in this bundle yet — build them with <code>./build.sh</code> (the Windows bundle has them all).</span></p>
       <a class="btn" href="download/gegl-color-ops-linux-x64.zip">gegl-color-ops-linux-x64.zip</a>
-      <p class="muted small"><span class="l-zh">校验：</span><span class="l-en">Checksum: </span><code>SHA256 c37d249b8f07b669b7d1450d8cbb20c7…</code></p>
+      <p class="muted small"><span class="l-zh">校验：</span><span class="l-en">Checksum: </span><code>SHA256 46d3673f2872462fd103c8d7e0be0667…</code></p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>macOS arm64</h3></div>
@@ -794,7 +794,7 @@ macOS    ~/Library/Application Support/gegl-0.4/plug-ins</code></pre>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">e545539</span>
+    <span class="muted">fb4c2b3</span>
   </div>
 </footer>
 <script>

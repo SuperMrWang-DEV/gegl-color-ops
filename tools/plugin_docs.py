@@ -789,7 +789,7 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
       <ol class="steps">
         <li>选区外扩 <code>grow</code>（默认 8 px，收拾接缝），外接框再带一圈上下文；</li>
         <li>裁切框宽高对齐到 <b>8</b>——VAE 是 8× 下采样，不对齐回来就错位；长宽比补到
-            <b>≤ 2:1</b>，见下面「四个坑」；</li>
+            <b>≤ 2:1</b>，见下面「五个坑」；</li>
         <li>从<b>可见合成</b>读这块像素（图层比画布小时取到的是下面图层，不是黑），
             连同蒙版 PNG 发给 ComfyUI；</li>
         <li>轮询 <code>/history</code> 等它画完；</li>
@@ -869,7 +869,7 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
 
   <div class="dl-grid">
     <div class="dl primary-dl">
-      <div class="dl-head"><h3>四个坑</h3><span class="pill">都在代码里绕开了</span></div>
+      <div class="dl-head"><h3>五个坑</h3><span class="pill">都在代码里绕开了</span></div>
       <p><b>1. 蒙版方向是反的。</b>ComfyUI 的 <code>LoadImage</code> 用 alpha 倒推蒙版
          （<code>mask = 1 - alpha</code>），所以「要重绘」必须写成<b>透明</b>。直接送灰度图
          会得到全 0 蒙版，跑完像素纹丝不动。</p>
@@ -883,6 +883,13 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
          <code>sunglasses</code> 出来是一块绿底配重复白色箭头。
          <code>plan_canvas_rect()</code> 一律先补到 ≤ 2:1：优先往画面里长真实像素，
          画面到边了才复制边缘，补出来的那圈贴回时被蒙版挡住。</p>
+      <p><b>5. 短边与上下文。</b>只把长边对到 512 的话，1024×400 会变成 512×200 ——
+         短边远低于 SD1.5 的 512，出来就是一排排重复图形；上下文只给 32 px 时
+         模型看不到周围是什么，也会自己编。现在上下文按选区较长边的 0.75 倍给
+         （至少 64 px），<code>work_size()</code> 两头卡：短边抬到家族下限
+         （SD1.5 512 / SDXL 768），长边不超上限（768 / 1024）；大图里选一小块时
+         还会先把上下文收窄（<code>fit_context()</code>），免得整块缩下去把细节
+         缩没。</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>AI 环境</h3><span class="pill">装在哪都行</span></div>

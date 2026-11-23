@@ -427,12 +427,18 @@ def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
         if grow > 0:
             _pdb('gimp-selection-grow', image=image, steps=int(grow))
 
-        rect = crop_rect(image, selection_box(image) or box, grow=0)
+        sel = selection_box(image) or box
+        rect = crop_rect(image, sel, grow=0)
         iw, ih = image.get_width(), image.get_height()
+        # 上下文给得太大、缩放要低于 0.6 时，宁可少看一点周围也别把原图细节
+        # 缩没（大图选一小块最容易踩这个，缩完 4000px 的照片只剩 768）。
         # 4) 画布比例：超宽/超高的裁剪条会被 SD 画成「平涂海报 + 重复图形」，
         #    所以先往画面里长高（真实上下文最好），画布到边了才补边。
+        fx1, fy1, fx2, fy2 = ai_client.fit_context(
+            sel, (rect[0], rect[1], rect[0] + rect[2], rect[1] + rect[3]),
+            checkpoint or "sd15", iw, ih)
         cx, cy, cw, ch, pl, pt, pr, pb = ai_client.plan_canvas_rect(
-            rect[0], rect[1], rect[2], rect[3], iw, ih)
+            fx1, fy1, fx2 - fx1, fy2 - fy1, iw, ih)
         Gimp.progress_init(_("AI Inpaint"))
 
         # 2) 送出去的两张图：裁切区域 + 硬边蒙版（白=重绘）

@@ -122,6 +122,43 @@ def work_size(w, h, checkpoint, max_upscale=4.0):
     return ww, hh, (ww / float(w) if w else 1.0)
 
 
+# 工作缩放的最低倍率：低于它，宁肯把上下文收窄（少看一点周围），也不把
+# 原图细节缩没。openfill 用 0.6 / 0.75，同一套数。
+MIN_WORK_SCALE = {"sd15": 0.6, "sdxl": 0.75}
+
+
+def fit_context(sel, ctx, checkpoint, canvas_w, canvas_h, min_margin=64):
+    """上下文太大、缩放会低于 MIN_WORK_SCALE 时，把它收窄到选区周围。
+
+    sel / ctx 都是 (x1, y1, x2, y2)。返回**不比原上下文大**的新上下文，且
+    一定完整包住选区（留 min_margin 边距）。选区本身就比上限还大时收不动，
+    原样返回——那种情况得靠分块生成，不是收边距能解决的。
+    """
+    x1, y1, x2, y2 = [int(v) for v in ctx]
+    sx1, sy1, sx2, sy2 = [int(v) for v in sel]
+    fam = detect_family(checkpoint)
+    max_side = FAMILY_SIDES.get(fam, FAMILY_SIDES["sd15"])[1]
+    limit = int(max_side / MIN_WORK_SCALE.get(fam, 0.6))
+    cw, ch = x2 - x1, y2 - y1
+    if max(cw, ch) <= limit:
+        return (x1, y1, x2, y2)
+    sw, sh = max(1, sx2 - sx1), max(1, sy2 - sy1)
+    if max(sw, sh) + 2 * min_margin > limit:
+        return (x1, y1, x2, y2)          # 选区自己就超了，收不动
+    want_w = min(cw, max(sw + 2 * min_margin, limit))
+    want_h = min(ch, max(sh + 2 * min_margin, limit))
+    # 以选区中心取框，再夹回画布内，最后确保仍包住选区
+    cx, cy = (sx1 + sx2) // 2, (sy1 + sy2) // 2
+    nx1 = max(0, min(canvas_w - want_w, cx - want_w // 2))
+    ny1 = max(0, min(canvas_h - want_h, cy - want_h // 2))
+    nx2, ny2 = nx1 + want_w, ny1 + want_h
+    nx1 = min(nx1, max(0, sx1 - min_margin // 2))
+    ny1 = min(ny1, max(0, sy1 - min_margin // 2))
+    nx2 = max(nx2, min(canvas_w, sx2 + min_margin // 2))
+    ny2 = max(ny2, min(canvas_h, sy2 + min_margin // 2))
+    return (nx1, ny1, min(canvas_w, nx2), min(canvas_h, ny2))
+
+
 def checkpoint_note(name):
     """给下拉框用的短标注：家族 + 舒适分辨率；inpaint 专用模型单独点出来。
 

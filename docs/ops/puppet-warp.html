@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-title-zh="Puppet Warp (live) · gegl-color-ops" data-title-en="Puppet Warp (live) · gegl-color-ops">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Puppet Warp (live) · gegl-color-ops</title>
-<meta name="description" content="木偶变形的非破坏版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉子点应用时写的也是这里的 pins 串，重跑对话框会从滤镜里把钉子读回来。" data-desc-zh="木偶变形的非破坏版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉子点应用时写的也是这里的 pins 串，重跑对话框会从滤镜里把钉子读回来。" data-desc-en="">
+<meta name="description" content="木偶变形的非破坏版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉子点应用时写的也是这里的 pins 串，重跑对话框会从滤镜里把钉子读回来。" data-desc-zh="木偶变形的非破坏版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉子点应用时写的也是这里的 pins 串，重跑对话框会从滤镜里把钉子读回来。" data-desc-en="木偶变形的非破坏版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉子点应用时写的也是这里的 pins 串，重跑对话框会从滤镜里把钉子读回来。">
 <meta property="og:title" content="Puppet Warp (live) · gegl-color-ops" data-title-zh="Puppet Warp (live) · gegl-color-ops" data-title-en="Puppet Warp (live) · gegl-color-ops">
-<meta property="og:description" content="木偶变形的非破坏版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉子点应用时写的也是这里的 pins 串，重跑对话框会从滤镜里把钉子读回来。" data-desc-zh="木偶变形的非破坏版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉子点应用时写的也是这里的 pins 串，重跑对话框会从滤镜里把钉子读回来。" data-desc-en="">
+<meta property="og:description" content="木偶变形的非破坏版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉子点应用时写的也是这里的 pins 串，重跑对话框会从滤镜里把钉子读回来。" data-desc-zh="木偶变形的非破坏版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉子点应用时写的也是这里的 pins 串，重跑对话框会从滤镜里把钉子读回来。" data-desc-en="木偶变形的非破坏版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉子点应用时写的也是这里的 pins 串，重跑对话框会从滤镜里把钉子读回来。">
 <link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
@@ -47,7 +47,19 @@ window.addEventListener("DOMContentLoaded", function () {
     });
   }
 });
-</script></head>
+</script><script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
 <body class="article">
 <a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
 <header class="site-head">
@@ -60,9 +72,13 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
     <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
   </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
 </header>
 <main id="main">
-<section class="page-head">
+<div class="l-zh"><section class="page-head">
   <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 扭曲</p>
   <h1>Puppet Warp (live)</h1>
   <div class="meta">
@@ -87,9 +103,9 @@ window.addEventListener("DOMContentLoaded", function () {
 <ul><li><strong>场要缓存，但不能直接 free。</strong> GEGL 的 <code>process</code> 会被多线程按 tile 调， 三态槽（FREE / RESERVED / READY）+ LRU 才安全，否则正在用的数组被别人释放。</li><li><strong>CLI 传参是 <code>pins=值</code>，不是 <code>--pins=值</code></strong>，而且值里不能有空格（GEGL 按空格拆）。 写错不会报错，只会拿到一张原图——对拍脚本一开始就是这么假通过的。</li></ul><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>这一版还没把这个模块打进预编译包，可以 <code>./build.sh</code> 自己编一个，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
+    <p>Windows 模块 <code>puppet-warp.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
-  <div class="btns"></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/puppet-warp.dll">下载 puppet-warp.dll<span class="size">Windows x64</span></a></div>
 </div><nav class="pager"><a class="prev" href="displace.html"><span>上一个</span>Displace</a><a class="next" href="layer-style.html"><span>下一个</span>Layer Style (live)</a></nav>
   </article>
   <aside class="toc">
@@ -98,7 +114,44 @@ window.addEventListener("DOMContentLoaded", function () {
 <li class="l2"><a href="#为什么是-c">为什么是 C</a></li>
 <li class="l2"><a href="#两个坑">两个坑</a></li></ul>
 </aside>
-</div>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Distort</p>
+  <h1>Puppet Warp (live)</h1>
+  <div class="meta">
+    <code>lb:puppet-warp</code>
+    <span class="tag t-distort">Distort</span>
+    <span>area</span>
+  </div>
+  <p class="lede">The puppet-warp solver (MLS similarity, MLS affine, ARAP) as a live GEGL filter on the layer — the pin list lives on the filter stack, not in the pixels.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>The solver behind <code>plugin/puppet-warp</code> (MLS similarity / MLS affine / ARAP) moved into C and attached to the layer as a <strong>real-time filter</strong>: the pin list is stored on the filter, and not a single pixel of the layer is written.</p>
+<pre><code>layer ──▶ ┌──────────────────────────┐ ──▶ canvas
+          │ lb:puppet-warp (filter)  │      pins / mode / radius
+          └──────────────────────────┘      are the filter's properties</code></pre>
+<p>Pressing Apply only writes <code>pins</code> into the filter config and re-renders; running the dialog again reads the pins back so you can keep dragging. Save as XCF, reopen, the pins are still there — editable, and switchable off at any time.</p>
+<blockquote><p>Menu: <code>SuperMrWang → Distort → Puppet Warp (live)…</code>. The destructive Python version sits in the same submenu; both stay available — use this one if you want the settings back, the other one (or “Replace this layer” in this dialog) to bake the result into pixels.</p></blockquote>
+<h2 id="properties">Properties</h2>
+<div class="table-wrap"><table><thead><tr><th>Property</th><th>Meaning</th></tr></thead><tbody><tr><td><code>pins</code></td><td><code>sx,sy,dx,dy; …</code>: where a pin was placed → where it was dragged, in layer pixels</td></tr><tr><td><code>mode</code></td><td><code>similarity</code> (shape-preserving) / <code>affine</code> (stretch allowed) / <code>arap</code> (best for large bends)</td></tr><tr><td><code>radius</code></td><td>falloff radius as a percentage of the long side; strictly identity outside it. ARAP ignores it (global weak anchoring)</td></tr></tbody></table></div>
+<h2 id="why-c">Why C</h2>
+<p>Non-destructive editing only exists for GEGL ops (<code>Gimp.DrawableFilter.new</code>); a Python plug-in can only read and write pixels. MLS is a per-pixel closed form and inherently tile-safe. ARAP solves a 48-node grid with a banded LDL: factor once, reuse over 12 iterations, and solve again for the reverse field with the pins' original and current positions swapped — the same formulas as the Python version, checked pixel by pixel in the regression (<code>check_warp.py</code> / <code>_pw_probe.py</code>).</p>
+<h2 id="two-traps">Two traps</h2>
+<ul><li><strong>The field has to be cached, but never freed directly.</strong> GEGL calls <code>process</code> per tile from several threads; a three-state slot (FREE / RESERVED / READY) plus LRU is what keeps another thread from releasing an array still in use.</li><li><strong>The CLI takes <code>pins=value</code>, not <code>--pins=value</code></strong>, and the value cannot contain spaces (GEGL splits on whitespace). A wrong form does not error — it just hands back the original image, which is exactly how the comparison script first passed with everything wrong.</li></ul><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>puppet-warp.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/puppet-warp.dll">Download puppet-warp.dll<span class="size">Windows x64</span></a></div>
+</div><nav class="pager"><a class="prev" href="displace.html"><span>Previous</span>Displace</a><a class="next" href="layer-style.html"><span>Next</span>Layer Style (live)</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#properties">Properties</a></li>
+<li class="l2"><a href="#why-c">Why C</a></li>
+<li class="l2"><a href="#two-traps">Two traps</a></li></ul>
+</aside>
+</div></div>
 </main>
 <footer class="site-foot">
   <div>
@@ -111,8 +164,51 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">e545539</span>
+    <span class="muted">fb4c2b3</span>
   </div>
 </footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
 </body>
 </html>

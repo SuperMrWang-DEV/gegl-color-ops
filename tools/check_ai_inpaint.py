@@ -540,6 +540,31 @@ def test_work_size():
        max(ww, hh) <= 768 + 8, (ww, hh))
 
 
+
+def test_fit_context():
+    print("\n上下文收窄：大图里选一小块，不能缩成 768 就完事")
+    sel = (1600, 1200, 2400, 1800)          # 800×600
+    ctx = (1000, 750, 3000, 2250)           # 2000×1500 的上下文
+    f = ai_client.fit_context(sel, ctx, "sd15.safetensors", 4000, 3000)
+    ok("上下文被收窄", (f[2] - f[0], f[3] - f[1]) < (2000, 1500),
+       (f[2] - f[0], f[3] - f[1]))
+    ok("  → 仍完整包住选区",
+       f[0] <= 1600 and f[1] <= 1200 and f[2] >= 2400 and f[3] >= 1800, f)
+    ww, hh, sc = ai_client.work_size(f[2] - f[0], f[3] - f[1], "sd15.safetensors")
+    ok("  → 工作缩放回到 ≥0.6（%.2f）" % sc, sc >= 0.59, sc)
+    ok("  → 短边也够 512（%dx%d）" % (ww, hh), min(ww, hh) >= 512, (ww, hh))
+
+    # 选区自己就超过上限：收不动，原样返回（那种得靠分块）
+    ok("大选区收不动，原样返回",
+       ai_client.fit_context((0, 0, 3000, 2000), (0, 0, 4000, 3000),
+                             "sd15.safetensors", 4000, 3000) ==
+       (0, 0, 4000, 3000))
+    # 本来就够小：一格不动
+    ok("小上下文不动",
+       ai_client.fit_context((10, 10, 50, 50), (0, 0, 300, 200),
+                             "sd15.safetensors", 400, 300) == (0, 0, 300, 200))
+
+
 def main():
     test_png()
     test_mask()
@@ -548,6 +573,7 @@ def main():
     test_workflow()
     test_family()
     test_work_size()
+    test_fit_context()
     test_end_to_end()
     test_errors()
     test_prompt_tools()
