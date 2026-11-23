@@ -1641,8 +1641,12 @@ PLUGIN_EN["warp"] = dict(
          not squash the patch</b> — the closest to Photoshop's behaviour.</p>
       <p>ARAP needs numpy (see “GIMP's own Python and numpy”); without it the entry is not
          in the dropdown. It also ignores Falloff — the slider greys out when you pick it.</p>
-      <p>Two outputs: <b>replace this layer</b>, or <b>copy to a new layer</b> so the
-         original stays around for comparison.</p>
+      <p>Three outputs. The first is a <b>non-destructive filter</b> (the dialog's
+         default): the pins and settings live on the layer's filter stack as
+         <code>lb:puppet-warp</code>, so <b>not a single pixel changes</b> — you can retune
+         or switch it off at any time, and running the dialog again reads the pins back
+         from the filter. The other two are <b>replace this layer</b> and <b>copy to a new
+         layer</b>, which bake the warp into pixels.</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>Works without a mouse, too</h3></div>
@@ -1728,6 +1732,10 @@ PLUGIN_EN["mesh-warp"] = dict(
       <p>The dashed lines are the original grid, the blue ones the deformed grid, so the
          amount of movement is obvious. Output either <b>replaces the layer</b> or
          <b>copies to a new one</b>.</p>
+      <p>By default the dialog attaches a <b>non-destructive filter</b>
+         (<code>lb:mesh-warp</code>): the grid lives on the filter stack, <b>no pixel is
+         touched</b>, and re-running the dialog reads it back so the surface stays
+         editable.</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>From a script</h3></div>

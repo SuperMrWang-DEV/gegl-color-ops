@@ -288,6 +288,13 @@
     <summary>Photoshop 图层样式的非破坏版本。参数挂在滤镜栈上，改一个滑杆只是让这条滤镜重新算一遍；原像素一个字节都没动过，随时可以整体关掉或删掉。</summary>
   </entry>
   <entry>
+    <title>Puppet Warp (live)</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/puppet-warp/README.md"/>
+    <id>tag:github.com,2026:lb:puppet-warp</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>木偶变形的非破坏版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉子点应用时写的也是这里的 pins 串，重跑对话框会从滤镜里把钉子读回来。</summary>
+  </entry>
+  <entry>
     <title>Displace</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/displace/README.md"/>
     <id>tag:github.com,2026:lb:displace</id>

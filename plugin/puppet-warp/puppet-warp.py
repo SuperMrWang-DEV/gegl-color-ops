@@ -65,8 +65,12 @@ PREVIEW_ARAP_NODES = 34
 MODE_SIMILARITY = 'similarity'
 MODE_AFFINE = 'affine'
 MODE_ARAP = 'arap'
+OUTPUT_FILTER = 'filter'
 OUTPUT_REPLACE = 'replace'
 OUTPUT_LAYER = 'new-layer'
+# 非破坏那一路挂的 GEGL 算子（ops/puppet-warp）。它的 pins/mode/radius
+# 属性跟这里的 PDB 参数同名同义，所以对话框写回 config 就等于写回滤镜。
+FILTER_OP = 'lb:puppet-warp'
 PIN_HIT = 11
 
 
@@ -124,6 +128,56 @@ def arap_ok():
         return ARAP is not None and ARAP.available() and WM.have_numpy()
     except Exception:
         return False
+
+
+def find_filter(drawable):
+    """图层上已有的木偶变形滤镜（有就返回它，重跑时接着改而不是再叠一条）。"""
+    try:
+        for filt in drawable.get_filters():
+            if filt.get_operation_name() == FILTER_OP:
+                return filt
+    except Exception:
+        pass
+    return None
+
+
+def load_filter_state(drawable):
+    """从滤镜 config 里读回钉子/模式/范围。没有滤镜就返回 None。"""
+    filt = find_filter(drawable)
+    if filt is None:
+        return None
+    cfg = filt.get_config()
+    return {
+        'pins': cfg.get_property('pins') or '',
+        'mode': cfg.get_property('mode') or MODE_SIMILARITY,
+        'radius': float(cfg.get_property('radius') or 30.0),
+    }
+
+
+def apply_filter(drawable, pins, mode=MODE_SIMILARITY, radius=30.0,
+                 copy_layer=False):
+    """非破坏那一路：把钉子串挂到滤镜栈上，原像素一个字节都不动。
+
+    重跑时更新同一条滤镜；copy_layer=True 先复制图层再挂，原层保持干净。
+    """
+    layer = drawable
+    if copy_layer:
+        image = drawable.get_image()
+        layer = drawable.copy()
+        layer.set_name(drawable.get_name() + _(" (warp filter)"))
+        image.insert_layer(layer, None, image.get_item_position(drawable))
+    filt = find_filter(layer)
+    label = _("Puppet warp")
+    if filt is None:
+        filt = Gimp.DrawableFilter.new(layer, FILTER_OP, label)
+    cfg = filt.get_config()
+    cfg.set_property('pins', WM.format_pin_string(pins))
+    cfg.set_property('mode', mode)
+    cfg.set_property('radius', float(radius))
+    filt.update()
+    if find_filter(layer) is None:
+        layer.append_filter(filt)
+    return filt, layer
 
 
 def warp_drawable(drawable, pins, mode=MODE_SIMILARITY, radius=0.30,
@@ -300,9 +354,10 @@ def build_dialog(config, image, drawable, w, h):
     out_lbl.set_xalign(0.0)
     out_lbl.set_size_request(96, -1)
     combo_out = Gtk.ComboBoxText.new()
+    combo_out.append(OUTPUT_FILTER, _("Non-destructive filter (editable)"))
     combo_out.append(OUTPUT_REPLACE, _("Replace this layer"))
     combo_out.append(OUTPUT_LAYER, _("Copy to a new layer"))
-    combo_out.set_active_id(config.get_property('output') or OUTPUT_REPLACE)
+    combo_out.set_active_id(config.get_property('output') or OUTPUT_FILTER)
     combo_out.set_hexpand(True)
     out_row.add(out_lbl)
     out_row.add(combo_out)
@@ -335,7 +390,7 @@ def build_dialog(config, image, drawable, w, h):
         return {
             "mode": combo_mode.get_active_id() or MODE_SIMILARITY,
             "radius": s_radius.get_value(),
-            "output": combo_out.get_active_id() or OUTPUT_REPLACE,
+            "output": combo_out.get_active_id() or OUTPUT_FILTER,
             "show_mesh": bool(mesh.get_active()),
             "pins": [dict(p) for p in ctx["pins"]],
         }
@@ -594,9 +649,14 @@ def _add_arguments(procedure):
           "values make it a local nudge, large values make the whole picture "
           "follow the pins"), 5.0, 100.0, 30.0, GObject.ParamFlags.READWRITE)
     output = Gimp.Choice.new()
-    output.add(OUTPUT_REPLACE, 0, _("Replace this layer"),
+    output.add(OUTPUT_FILTER, 0, _("Non-destructive filter"),
+               _("Attach the warp as a live filter on the layer: the pixels "
+                 "stay untouched and re-running the dialog reads the pins back "
+                 "from the filter, so the warp can be re-edited or switched "
+                 "off at any time. This is what the dialog picks by default"))
+    output.add(OUTPUT_REPLACE, 1, _("Replace this layer"),
                _("Bake the warp into the current layer"))
-    output.add(OUTPUT_LAYER, 1, _("Copy to a new layer"),
+    output.add(OUTPUT_LAYER, 2, _("Copy to a new layer"),
                _("Keep the original and put the warped copy above it"))
     procedure.add_choice_argument(
         "output", _("Output"), _("Where the warped pixels go"),
@@ -639,7 +699,18 @@ class PuppetWarpPlugin(Gimp.PlugIn):
         drawable = drawables[0]
         try:
             check_drawable(drawable)
+            # 图层上已经挂着滤镜：把钉子读回来当默认值，弹窗里能接着改
+            loaded = load_filter_state(drawable)
             if run_mode == Gimp.RunMode.INTERACTIVE:
+                if loaded:
+                    config.set_property('pins', loaded['pins'])
+                    config.set_property('mode', loaded['mode'])
+                    config.set_property('radius', loaded['radius'])
+                    config.set_property('output', OUTPUT_FILTER)
+                else:
+                    # 全新一次交互：默认走非破坏（破坏性那两档仍在下拉里，
+                    # 选一次就会记住，只是每次弹窗仍以滤镜为默认）
+                    config.set_property('output', OUTPUT_FILTER)
                 if not show_dialog(procedure, config, image, drawable,
                                    drawable.get_width(), drawable.get_height()):
                     return procedure.new_return_values(
@@ -647,11 +718,23 @@ class PuppetWarpPlugin(Gimp.PlugIn):
             pins = WM.parse_pin_string(config.get_property('pins') or "",
                                        drawable.get_width(),
                                        drawable.get_height())
+            mode = config.get_property('mode') or MODE_SIMILARITY
+            radius_pct = float(config.get_property('radius') or 30.0)
+            output = config.get_property('output') or OUTPUT_REPLACE
+            if output == OUTPUT_FILTER:
+                _, layer = apply_filter(drawable, pins, mode=mode,
+                                        radius=radius_pct)
+                Gimp.message(_("Attached a live puppet-warp filter to “%s” — "
+                               "%d pins. The pixels are untouched: adjust the "
+                               "filter or run the dialog again to re-edit.")
+                             % (layer.get_name(), len(pins)))
+                return procedure.new_return_values(
+                    Gimp.PDBStatusType.SUCCESS, GLib.Error())
             info = warp_drawable(
                 drawable, pins,
-                mode=config.get_property('mode') or MODE_SIMILARITY,
-                radius=float(config.get_property('radius') or 30.0) / 100.0,
-                output=config.get_property('output') or OUTPUT_REPLACE,
+                mode=mode,
+                radius=radius_pct / 100.0,
+                output=output,
                 on_tick=Gimp.progress_pulse)
             Gimp.message(_("Warped %s in %.1f s — %d pins, max shift %.1f px.")
                          % (_fmt_size(info["size"][0], info["size"][1]),

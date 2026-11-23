@@ -410,6 +410,49 @@ def main():
     else:
         print("  （numpy 没装，ARAP 不可用，跳过）")
 
+    # ---- 非破坏 ------------------------------------------------------------
+    section("非破坏：钉子挂在滤镜上，像素不动")
+    imgf, layerf = make_image()
+    images.append(imgf)
+    beforef = pixels(layerf)
+    pins_f = [{"sx": 100, "sy": 75, "dx": 140, "dy": 75}]
+    filt, tgt = mod.apply_filter(layerf, pins_f, mode=mod.MODE_SIMILARITY,
+                                 radius=90.0)
+    check("挂完滤镜像素一个字节都没动", beforef == pixels(layerf))
+    f_list = tgt.get_filters() if hasattr(tgt, 'get_filters') else []
+    check("图层上多了一条 lb:puppet-warp",
+          len(f_list) == 1 and
+          f_list[0].get_operation_name() == mod.FILTER_OP,
+          [x.get_operation_name() for x in f_list])
+    st = mod.load_filter_state(tgt)
+    check("重跑时能把钉子读回来",
+          bool(st) and st['pins'].startswith("100.00,75.00"), st)
+    check("模式与范围也读回来",
+          bool(st) and st['mode'] == mod.MODE_SIMILARITY and
+          abs(st['radius'] - 90.0) < 0.01, st)
+    mod.apply_filter(tgt, [{"sx": 100, "sy": 75, "dx": 150, "dy": 75}],
+                     mode=mod.MODE_SIMILARITY, radius=90.0)
+    check("再应用一次是更新同一条，不叠加",
+          len(tgt.get_filters()) == 1, len(tgt.get_filters()))
+
+    # 滤镜渲染出来要和破坏性那条路对得上
+    img9, layer9 = make_image()
+    images.append(img9)
+    mod.warp_drawable(layer9, [{"sx": 100, "sy": 75, "dx": 150, "dy": 75}],
+                      mode=mod.MODE_SIMILARITY, radius=0.9,
+                      output=mod.OUTPUT_REPLACE)
+    ref9 = pixels(layer9)
+    try:
+        tgt.merge_filters()
+        got9 = pixels(tgt)
+        nd = sum(1 for a, b in zip(got9[2], ref9[2]) if a != b)
+        big = sum(1 for a, b in zip(got9[2], ref9[2]) if abs(a - b) > 6)
+        mx = max(abs(a - b) for a, b in zip(got9[2], ref9[2]))
+        check("滤镜渲染 == 破坏性结果（%d 字节不同 / %d 超 6 级 / 最大 %d）"
+              % (nd, big, mx), big == 0 and mx <= 6, (nd, big, mx))
+    except Exception as exc:
+        check("merge_filters 可用（%s）" % exc, False)
+
     for im in images:
         try:
             im.delete()

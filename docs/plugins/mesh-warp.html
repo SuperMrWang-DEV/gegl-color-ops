@@ -82,8 +82,11 @@
       <p><b>右键点交点</b>把那个点复位，选中后按 Delete 也行；右边有「重置选中」
          和「全部重置」。<b>网格密度</b>可以换 2×2 到 6×6 格——PS 默认那档是 3×3；
          不够用就 <b>Alt+点击</b>自己加线（见下）。</p>
-      <p>虚线是原位网格，实线蓝的是变形后的网格，两者差多少一眼能看出来。
-         输出两种：<b>覆盖当前图层</b>，或者<b>复制到新图层</b>。</p>
+      <p>虚线是原位网格，实线蓝的是变形后的网格，两者差多少一眼能看出来。</p>
+      <p>输出三档，第一档是 <b>非破坏滤镜</b>（对话框默认）：网格挂在
+         <code>lb:mesh-warp</code> 这条滤镜上，<b>像素一个字节都不动</b>，随时能改参数
+         或关掉，重跑对话框会从滤镜里把网格读回来接着拖。另外两档是
+         <b>覆盖当前图层</b>、<b>复制到新图层</b>（把结果烤进像素）。</p>
     </div>
     <div class="dl" id="zh-sec-2">
       <div class="dl-head"><h3>非交互也能跑</h3></div>
@@ -206,7 +209,7 @@
     <div class="dl-head"><h3>自由变形（网格 + 把手）…</h3><span class="pill">.py · 免编译</span></div>
     <p>包里是一个 <code>.py</code>、一份安装说明，以及 <code>_shared/</code> 与 <code>locale/</code>。整包解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，但界面只有英文。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-mesh-warp.zip">下载 自由变形（网格 + 把手）…</a>
-    <p class="muted small">84.3 KB · 校验：<code>SHA256 bc7aaa15595b96eb33f5e6f0684d12d7…</code></p>
+    <p class="muted small">85.1 KB · 校验：<code>SHA256 8a2bdaf68dfd5173203a9f5bee9f269b…</code></p>
   </div>
 </section>
 
@@ -265,6 +268,10 @@
       <p>The dashed lines are the original grid, the blue ones the deformed grid, so the
          amount of movement is obvious. Output either <b>replaces the layer</b> or
          <b>copies to a new one</b>.</p>
+      <p>By default the dialog attaches a <b>non-destructive filter</b>
+         (<code>lb:mesh-warp</code>): the grid lives on the filter stack, <b>no pixel is
+         touched</b>, and re-running the dialog reads it back so the surface stays
+         editable.</p>
     </div>
     <div class="dl" id="en-sec-2">
       <div class="dl-head"><h3>From a script</h3></div>
@@ -410,7 +417,7 @@
     <div class="dl-head"><h3>Free Transform (Mesh)</h3><span class="pill">.py · no compile</span></div>
     <p>The archive holds a single <code>.py</code>, an install note and the <code>_shared/</code> + <code>locale/</code> pair. Unpack all of it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register. Without <code>_shared/</code> and <code>locale/</code> it still runs, but only in English.</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-mesh-warp.zip">Download Free Transform (Mesh)</a>
-    <p class="muted small">84.3 KB · checksum: <code>SHA256 bc7aaa15595b96eb33f5e6f0684d12d7…</code></p>
+    <p class="muted small">85.1 KB · checksum: <code>SHA256 8a2bdaf68dfd5173203a9f5bee9f269b…</code></p>
   </div>
 </section>
 
@@ -445,7 +452,7 @@
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">ccf695f</span>
+    <span class="muted">e545539</span>
   </div>
 </footer>
 <script>

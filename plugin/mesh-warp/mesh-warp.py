@@ -72,8 +72,12 @@ PREVIEW_EDGE = 480
 NODE_HIT = 9          # 交点的点击半径（画布像素）
 HANDLE_HIT = 8        # 把手的点击半径
 GRID_CHOICES = (2, 3, 4, 5, 6)
+OUTPUT_FILTER = 'filter'
 OUTPUT_REPLACE = 'replace'
 OUTPUT_LAYER = 'new-layer'
+# 非破坏那一路挂的 GEGL 算子（ops/mesh-warp）。属性名 mesh 与这里的 PDB
+# 参数同名，对话框写回 config 就等于写回滤镜。
+FILTER_OP = 'lb:mesh-warp'
 
 
 # ---- 变形本体 --------------------------------------------------------------
@@ -117,6 +121,43 @@ def check_drawable(drawable):
     if drawable.get_width() < 2 or drawable.get_height() < 2:
         raise RuntimeError(_("The layer is %d×%d — too small to warp.")
                            % (drawable.get_width(), drawable.get_height()))
+
+
+def find_filter(drawable):
+    """图层上已有的网格变形滤镜（重跑时更新它，不再叠一条）。"""
+    try:
+        for filt in drawable.get_filters():
+            if filt.get_operation_name() == FILTER_OP:
+                return filt
+    except Exception:
+        pass
+    return None
+
+
+def load_filter_state(drawable):
+    """从滤镜 config 读回网格串。没有滤镜返回 None。"""
+    filt = find_filter(drawable)
+    if filt is None:
+        return None
+    return {'mesh': filt.get_config().get_property('mesh') or ''}
+
+
+def apply_filter(drawable, mesh, copy_layer=False):
+    """非破坏那一路：网格串挂到滤镜栈上，原像素一个字节不变。"""
+    layer = drawable
+    if copy_layer:
+        image = drawable.get_image()
+        layer = drawable.copy()
+        layer.set_name(drawable.get_name() + _(" (warp filter)"))
+        image.insert_layer(layer, None, image.get_item_position(drawable))
+    filt = find_filter(layer)
+    if filt is None:
+        filt = Gimp.DrawableFilter.new(layer, FILTER_OP, _("Mesh warp"))
+    filt.get_config().set_property('mesh', MWM.format_mesh_string(mesh))
+    filt.update()
+    if find_filter(layer) is None:
+        layer.append_filter(filt)
+    return filt, layer
 
 
 def warp_drawable(drawable, mesh, output=OUTPUT_REPLACE, on_tick=None):
@@ -278,9 +319,10 @@ def build_dialog(config, image, drawable, w, h):
     out_lbl.set_xalign(0.0)
     out_lbl.set_size_request(96, -1)
     combo_out = Gtk.ComboBoxText.new()
+    combo_out.append(OUTPUT_FILTER, _("Non-destructive filter (editable)"))
     combo_out.append(OUTPUT_REPLACE, _("Replace this layer"))
     combo_out.append(OUTPUT_LAYER, _("Copy to a new layer"))
-    combo_out.set_active_id(config.get_property('output') or OUTPUT_REPLACE)
+    combo_out.set_active_id(config.get_property('output') or OUTPUT_FILTER)
     combo_out.set_hexpand(True)
     out_row.add(out_lbl)
     out_row.add(combo_out)
@@ -313,7 +355,7 @@ def build_dialog(config, image, drawable, w, h):
         return {
             "mesh": ctx["mesh"].copy(),
             "grid": int(combo_grid.get_active_id() or 3),
-            "output": combo_out.get_active_id() or OUTPUT_REPLACE,
+            "output": combo_out.get_active_id() or OUTPUT_FILTER,
             "show_mesh": bool(show_mesh.get_active()),
             "show_handles": bool(show_handles.get_active()),
         }
@@ -697,9 +739,13 @@ def _add_arguments(procedure):
           "is what the dialog writes back, so a script can replay a warp."),
         "", GObject.ParamFlags.READWRITE)
     output = Gimp.Choice.new()
-    output.add(OUTPUT_REPLACE, 0, _("Replace this layer"),
+    output.add(OUTPUT_FILTER, 0, _("Non-destructive filter"),
+               _("Attach the mesh as a live filter on the layer: pixels stay "
+                 "untouched and re-running the dialog reads the grid back from "
+                 "it. This is what the dialog picks by default"))
+    output.add(OUTPUT_REPLACE, 1, _("Replace this layer"),
                _("Bake the warp into the current layer"))
-    output.add(OUTPUT_LAYER, 1, _("Copy to a new layer"),
+    output.add(OUTPUT_LAYER, 2, _("Copy to a new layer"),
                _("Keep the original and put the warped copy above it"))
     procedure.add_choice_argument(
         "output", _("Output"), _("Where the warped pixels go"),
@@ -742,7 +788,12 @@ class MeshWarpPlugin(Gimp.PlugIn):
         drawable = drawables[0]
         try:
             check_drawable(drawable)
+            # 已经挂着滤镜：把网格读回来当默认值，弹窗里能接着拖
+            loaded = load_filter_state(drawable)
             if run_mode == Gimp.RunMode.INTERACTIVE:
+                if loaded:
+                    config.set_property('mesh', loaded['mesh'])
+                config.set_property('output', OUTPUT_FILTER)
                 if not show_dialog(procedure, config, image, drawable,
                                    drawable.get_width(), drawable.get_height()):
                     return procedure.new_return_values(
@@ -750,9 +801,18 @@ class MeshWarpPlugin(Gimp.PlugIn):
             mesh = MWM.parse_mesh_string(config.get_property('mesh') or "",
                                          drawable.get_width(),
                                          drawable.get_height())
+            output = config.get_property('output') or OUTPUT_REPLACE
+            if output == OUTPUT_FILTER:
+                _, layer = apply_filter(drawable, mesh)
+                Gimp.message(_("Attached a live mesh-warp filter to “%s” — "
+                               "%d×%d cells. The pixels are untouched: adjust "
+                               "the filter or run the dialog again to re-edit.")
+                             % (layer.get_name(), mesh.cols, mesh.rows))
+                return procedure.new_return_values(
+                    Gimp.PDBStatusType.SUCCESS, GLib.Error())
             info = warp_drawable(
                 drawable, mesh,
-                output=config.get_property('output') or OUTPUT_REPLACE,
+                output=output,
                 on_tick=Gimp.progress_pulse)
             Gimp.message(_("Warped %s in %.1f s — %d×%d cells, %d points moved.")
                          % (_fmt_size(info["size"][0], info["size"][1]),

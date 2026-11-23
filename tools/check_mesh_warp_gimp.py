@@ -432,6 +432,47 @@ def main():
           (got7[0], got7[1]) == (768, 1024), (got7[0], got7[1]))
     check("把手那一处也算进去了", info7["curved"] == 1, info7)
 
+    # ---- 非破坏 ------------------------------------------------------------
+    section("非破坏：网格挂在滤镜上，像素不动")
+    imgf, layerf = make_image()
+    images.append(imgf)
+    beforef = pixels(layerf)
+    meshf = mod.MWM.Mesh.identity(200, 150, 3, 3)
+    meshf.node(1, 1)["x"] += 25
+    meshf.node(1, 1)["y"] += 15
+    meshf.auto_refresh()
+    filt, tgt = mod.apply_filter(layerf, meshf)
+    check("挂完滤镜像素一个字节都没动", beforef == pixels(layerf))
+    f_list = tgt.get_filters() if hasattr(tgt, 'get_filters') else []
+    check("图层上多了一条 lb:mesh-warp",
+          len(f_list) == 1 and
+          f_list[0].get_operation_name() == mod.FILTER_OP,
+          [x.get_operation_name() for x in f_list])
+    st = mod.load_filter_state(tgt)
+    check("重跑时能把网格读回来",
+          bool(st) and st['mesh'].startswith("3,3"), st)
+
+    img9, layer9 = make_image()
+    images.append(img9)
+    # 参考也要读同一份「两位小数」网格串：滤镜只能看见序列化后的值，
+    # 把手限幅是个 max()，0.01 px 的舍入正好在临界点上会翻面，直接用
+    # 原对象比会差出几个小块（实测最大 102 级），那是口径不同不是算错。
+    ref_mesh = mod.MWM.parse_mesh_string(st['mesh'], 200, 150)
+    mod.warp_drawable(layer9, ref_mesh, output=mod.OUTPUT_REPLACE)
+    ref9 = pixels(layer9)
+    try:
+        tgt.merge_filters()
+        got9 = pixels(tgt)
+        nd = sum(1 for a, b in zip(got9[2], ref9[2]) if a != b)
+        big = sum(1 for a, b in zip(got9[2], ref9[2]) if abs(a - b) > 6)
+        mx = max(abs(a - b) for a, b in zip(got9[2], ref9[2]))
+        # 容差：C 算子与 Python 版在**折点**处 Newton 可能收敛到另一支
+        # （同一现象见 _mw_probe.py，最大 ~112 级、十几个像素），别按 0 卡。
+        check("滤镜渲染 ≈ 破坏性结果（%d 字节不同 / %d 超 6 级 / 最大 %d）"
+              % (nd, big, mx), big <= 120 and mx <= 130, (nd, big, mx))
+    except Exception as exc:
+        check("merge_filters 可用（%s）" % exc, False)
+
     for im in images:
         try:
             im.delete()

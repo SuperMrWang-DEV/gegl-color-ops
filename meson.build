@@ -92,6 +92,11 @@ ops = [
   # 图层样式（非破坏版）：参数挂在滤镜栈上，供 GIMP 的「图层滤镜」使用。
   # 破坏性的 Python 版在 plugin/layer-style，两版并存、各走各的入口。
   ['layer-style',             'layer-style',             'layer-style.c'],
+  # 变形（非破坏版）：MLS / ARAP 与 FFD + 双三次 Bezier 面片，钉子串 / 网格串
+  # 挂在滤镜栈上；破坏性的 Python 版在 plugin/puppet-warp、plugin/mesh-warp，
+  # 对话框点应用时默认写的就是这两条滤镜。
+  ['puppet-warp',             'puppet-warp',             'puppet-warp.c'],
+  ['mesh-warp',               'mesh-warp',               'mesh-warp.c'],
 ]
 
 foreach op : ops

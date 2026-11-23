@@ -153,6 +153,8 @@ Python 插件走另一条线，两种取法都行：
 | `lb:reduce-noise` | Reduce Noise | Reduce Noise | Noise | Area | PS「减少杂色」等价：sigma 滤波（Lee），只平均与中心相近的邻居，强度 / 保留细节 / 每通道可调，边缘不动 |
 | `lb:dust-scratches` | Dust & Scratches | Dust & Scratches | Noise | Area | PS「蒙尘与划痕」等价：取阈值内邻居的中值，中心自己不入集合，所以孤立灰尘被抹掉而真实边缘不动 |
 | `lb:layer-style` | Layer Style (live) | Layer Style (live) | Layer | Area | PS 图层样式的**非破坏**版：十个效果（投影 / 内阴影 / 外发光 / 内发光 / 斜面和浮雕 / 光泽 / 三种叠加 / 描边）挂在图层滤镜栈上——改滑杆实时重算，参数随 XCF 存盘、重开还能改，原像素一个字节不动。破坏性的 Python 版见 `plugin/layer-style` |
+| `lb:puppet-warp` | Puppet Warp (live) | Puppet Warp (live) | Distort | Filter | 木偶变形的**非破坏**版：钉子串挂在图层滤镜栈上，MLS（相似/仿射）与 ARAP 三档解算，钉子上严格插值、影响圈外逐字节恒等；对话框点应用只写滤镜参数，重跑会把钉子读回来接着拖。破坏性的 Python 版见 `plugin/puppet-warp` |
+| `lb:mesh-warp` | Mesh Warp (live) | Mesh Warp (live) | Distort | Filter | 自由变形的**非破坏**版：FFD + 双三次 Bezier 面片，一个 `mesh` 串挂在滤镜上，Newton 反解格内参数、把手自动限幅；重跑对话框从滤镜读回网格。破坏性的 Python 版见 `plugin/mesh-warp` |
 
 每个算子的算法说明、参数含义见 `ops/<算子名>/README.md`（原始文档）。
 

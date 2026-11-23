@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Puppet Warp (live) · gegl-color-ops</title>
+<meta name="description" content="木偶变形的非破坏版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉子点应用时写的也是这里的 pins 串，重跑对话框会从滤镜里把钉子读回来。" data-desc-zh="木偶变形的非破坏版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉子点应用时写的也是这里的 pins 串，重跑对话框会从滤镜里把钉子读回来。" data-desc-en="">
+<meta property="og:title" content="Puppet Warp (live) · gegl-color-ops" data-title-zh="Puppet Warp (live) · gegl-color-ops" data-title-en="Puppet Warp (live) · gegl-color-ops">
+<meta property="og:description" content="木偶变形的非破坏版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉子点应用时写的也是这里的 pins 串，重跑对话框会从滤镜里把钉子读回来。" data-desc-zh="木偶变形的非破坏版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉子点应用时写的也是这里的 pins 串，重跑对话框会从滤镜里把钉子读回来。" data-desc-en="">
+<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script></head>
+<body class="article">
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+</header>
+<main id="main">
+<section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 扭曲</p>
+  <h1>Puppet Warp (live)</h1>
+  <div class="meta">
+    <code>lb:puppet-warp</code>
+    <span class="tag t-distort">扭曲</span>
+    <span>整块区域</span>
+  </div>
+  <p class="lede">木偶变形的<strong>非破坏</strong>版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉子点应用时写的也是这里的 pins 串，重跑对话框会从滤镜里把钉子读回来。</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>把 <code>plugin/puppet-warp</code> 那套解算（MLS 相似 / MLS 仿射 / ARAP）搬进 C，做成一条<strong>挂在图层上的实时滤镜</strong>：钉子串存在滤镜上，原像素一个字节都不动。</p>
+<pre><code>图层 ──▶ ┌──────────────────────────┐ ──▶ 画布
+         │ lb:puppet-warp（滤镜栈里）│      钉子 / 模式 / 影响半径
+         └──────────────────────────┘      都是这条滤镜的属性</code></pre>
+<p>点应用只是把 <code>pins</code> 写进滤镜 config，重算一遍；再跑一次对话框会把钉子读回来，接着拖。存成 XCF 再打开，钉子还在，随时能改、能临时关掉。</p>
+<blockquote><p>菜单：<code>SuperMrWang → Distort → Puppet Warp (live)…</code>。同一子菜单里还有 Python 版那个破坏性的「木偶变形」，两版并存：要能回改参数用这一条，要直接烤进像素用那一条（对话框里选「覆盖当前图层」也一样）。</p></blockquote>
+<h2 id="属性">属性</h2>
+<div class="table-wrap"><table><thead><tr><th>属性</th><th>说明</th></tr></thead><tbody><tr><td><code>pins</code></td><td><code>sx,sy,dx,dy; …</code>：钉子放下的位置 → 拖到的位置，图层像素坐标</td></tr><tr><td><code>mode</code></td><td><code>similarity</code>（保形）/ <code>affine</code>（放开拉伸）/ <code>arap</code>（大弯折最准）</td></tr><tr><td><code>radius</code></td><td>影响半径，长边的百分比；圈外严格恒等。ARAP 不用它（全局弱锚定）</td></tr></tbody></table></div>
+<h2 id="为什么是-c">为什么是 C</h2>
+<p>非破坏只认 GEGL 算子（<code>Gimp.DrawableFilter.new</code>），Python 插件只能读写像素。 MLS 是逐像素闭式解，天生 tile 安全；ARAP 在 48 节点网格上用带状 LDL 解，分解一次、12 轮迭代复用，反向场用「钉子原位/现位互换」再解一遍——和 Python 版同一套公式，回归逐像素对拍（<code>check_warp.py</code> / <code>_pw_probe.py</code>）。</p>
+<h2 id="两个坑">两个坑</h2>
+<ul><li><strong>场要缓存，但不能直接 free。</strong> GEGL 的 <code>process</code> 会被多线程按 tile 调， 三态槽（FREE / RESERVED / READY）+ LRU 才安全，否则正在用的数组被别人释放。</li><li><strong>CLI 传参是 <code>pins=值</code>，不是 <code>--pins=值</code></strong>，而且值里不能有空格（GEGL 按空格拆）。 写错不会报错，只会拿到一张原图——对拍脚本一开始就是这么假通过的。</li></ul><div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>这一版还没把这个模块打进预编译包，可以 <code>./build.sh</code> 自己编一个，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
+  </div>
+  <div class="btns"></div>
+</div><nav class="pager"><a class="prev" href="displace.html"><span>上一个</span>Displace</a><a class="next" href="layer-style.html"><span>下一个</span>Layer Style (live)</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#属性">属性</a></li>
+<li class="l2"><a href="#为什么是-c">为什么是 C</a></li>
+<li class="l2"><a href="#两个坑">两个坑</a></li></ul>
+</aside>
+</div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
+    <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
+    <span class="muted">e545539</span>
+  </div>
+</footer>
+</body>
+</html>
