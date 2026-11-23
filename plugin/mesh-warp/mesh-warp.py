@@ -69,8 +69,11 @@ PROC = 'lb-plugin-mesh-warp'
 # 都要重采样（木偶变形只动一小块，大段整行抄过去），520 长边一次要 100 ms 起，
 # 拖动会发黏；480 长边约 95 ms，够跟上手。
 PREVIEW_EDGE = 480
-NODE_HIT = 9          # 交点的点击半径（画布像素）
-HANDLE_HIT = 8        # 把手的点击半径
+NODE_HIT = 10         # 交点的点击半径（画布像素）
+# 把手的点击半径。原来是 8、圆点画成 5 px，在 480 长边的预览里只有指甲盖
+# 那么大，落点差 3 px 就落到节点上变成「平移」——这就是用户说的「只能平移、
+# 拐不出弯」。现在画 7 px、命中 12 px，并且鼠标划过节点也会把它的把手亮出来。
+HANDLE_HIT = 12
 GRID_CHOICES = (2, 3, 4, 5, 6)
 OUTPUT_FILTER = 'filter'
 OUTPUT_REPLACE = 'replace'
@@ -344,6 +347,8 @@ def build_dialog(config, image, drawable, w, h):
         "mesh": mesh,
         "selected": -1,
         "drag": None,
+        "hover": -1,          # 鼠标停在哪个节点上：它也能直接拖把手
+        "clipped": False,     # 上一次拖动是不是被「防折叠」顶住了
         "prgba": prgba, "pw": pw, "ph": ph, "k": k, "w": w, "h": h,
         "warped": prgba, "lines": None, "id": 0, "preview_mesh": None,
         "area": area, "note": note, "dialog": dlg,
@@ -432,27 +437,40 @@ def build_dialog(config, image, drawable, w, h):
                 cr.stroke()
 
         sel = ctx["selected"]
-        # 选中节点的把手：一根线 + 两个圆点（对称，所以两端都画）
-        if sel >= 0 and ctx["check_handles"].get_active():
-            j, i = divmod(sel, m.cols + 1)
-            n = m.node(i, j)
-            cx, cy = n["x"], n["y"]
-            for axis in ("u", "v"):
-                cr.set_line_width(1.0)
-                cr.set_source_rgba(1.0, 0.38, 0.10, 0.9)
-                cr.move_to(cx, cy)
-                for sign in (1, -1):
-                    hx, hy = m.handle(i, j, axis, sign)
-                    cr.line_to(hx, hy)
-                cr.stroke()
-                for sign in (1, -1):
-                    hx, hy = m.handle(i, j, axis, sign)
-                    cr.set_source_rgba(1.0, 0.95, 0.85, 0.95)
-                    cr.arc(hx, hy, HANDLE_HIT * 0.62, 0, 2 * _math.pi)
-                    cr.fill_preserve()
-                    cr.set_source_rgba(0.75, 0.25, 0.05, 0.95)
-                    cr.set_line_width(1.2)
+        # 把手：一根线 + 两端圆点（对称，所以两端都画）。
+        # 选中的节点画亮，鼠标停着的节点画淡——这样不用先点中也能看见
+        # 「这个点能拐弯」，新手才找得到。
+        if ctx["check_handles"].get_active():
+            targets = []
+            if sel >= 0:
+                targets.append(sel)
+            hv = ctx["hover"]
+            if hv >= 0 and hv != sel and 0 <= hv < len(m.nodes):
+                targets.append(hv)
+            for idx in targets:
+                j, i = divmod(idx, m.cols + 1)
+                n = m.node(i, j)
+                cx, cy = n["x"], n["y"]
+                strong = idx == sel
+                for axis in ("u", "v"):
+                    cr.set_line_width(1.4 if strong else 1.0)
+                    cr.set_source_rgba(1.0, 0.38, 0.10, 0.9 if strong else 0.45)
+                    cr.move_to(cx, cy)
+                    for sign in (1, -1):
+                        hx, hy = m.handle(i, j, axis, sign)
+                        cr.line_to(hx, hy)
                     cr.stroke()
+                    for sign in (1, -1):
+                        hx, hy = m.handle(i, j, axis, sign)
+                        cr.set_source_rgba(1.0, 0.96, 0.86,
+                                           0.96 if strong else 0.55)
+                        cr.arc(hx, hy, HANDLE_HIT * 0.58 if strong
+                               else HANDLE_HIT * 0.40, 0, 2 * _math.pi)
+                        cr.fill_preserve()
+                        cr.set_source_rgba(0.72, 0.24, 0.05,
+                                           0.95 if strong else 0.45)
+                        cr.set_line_width(1.6 if strong else 1.0)
+                        cr.stroke()
 
         for idx in range(len(m.nodes)):
             j, i = divmod(idx, m.cols + 1)
@@ -471,11 +489,16 @@ def build_dialog(config, image, drawable, w, h):
         # 常驻引导：把手是「选中才画」的，不写字的话勾着 Show the handles
         # 却一个圆点也看不见，会以为功能坏了。
         tip = ""
-        if sel < 0:
+        if ctx["clipped"]:
+            tip = _("Stopped — dragging further would fold the grid")
+        elif sel < 0:
             if ctx["mesh"].is_identity():
-                tip = _("Drag a square to shape · click to get handles")
+                tip = _("Drag a square to move · drag a round dot to bend")
             else:
-                tip = _("Click a square to get its handles")
+                tip = _("Drag a square to move · drag a round dot to bend")
+        else:
+            tip = _("Round dots = bend · Shift+drag the square = bend "
+                    "without moving it")
         if tip:
             cr.set_source_rgba(0.0, 0.0, 0.0, 0.62)
             cr.select_font_face("Sans", 0, 1)
@@ -497,19 +520,27 @@ def build_dialog(config, image, drawable, w, h):
         return best
 
     def hit_handle(x, y):
-        """只查选中节点的四个把手圆点。返回 (axis, sign) 或 None。"""
-        sel = ctx["selected"]
-        if sel < 0:
-            return None
+        """查把手圆点：选中节点的优先，其次鼠标停着（hover）那个节点。
+
+        多查 hover 是为了少一次点击：鼠标扫到某个方块上，它的把手就亮出来，
+        直接按下去就能拖，不用「先点一下选中、再点一下把手」。
+        """
         m = ctx["preview_mesh"]
-        j, i = divmod(sel, m.cols + 1)
+        cands = []
+        if ctx["selected"] >= 0:
+            cands.append(ctx["selected"])
+        hv = ctx["hover"]
+        if hv >= 0 and hv != ctx["selected"]:
+            cands.append(hv)
         best, best_d = None, HANDLE_HIT ** 2
-        for axis in ("u", "v"):
-            for sign in (1, -1):
-                hx, hy = m.handle(i, j, axis, sign)
-                d = (hx - x) ** 2 + (hy - y) ** 2
-                if d <= best_d:
-                    best, best_d = (axis, sign), d
+        for idx in cands:
+            j, i = divmod(idx, m.cols + 1)
+            for axis in ("u", "v"):
+                for sign in (1, -1):
+                    hx, hy = m.handle(i, j, axis, sign)
+                    d = (hx - x) ** 2 + (hy - y) ** 2
+                    if d <= best_d:
+                        best, best_d = (idx, axis, sign), d
         return best
 
     # -- 自己加分割线 ------------------------------------------------------
@@ -576,7 +607,8 @@ def build_dialog(config, image, drawable, w, h):
         area.grab_focus()
         hh = hit_handle(x, y)
         if hh is not None:
-            ctx["drag"] = ("handle", hh[0], hh[1])
+            ctx["selected"] = hh[0]              # 拖的是谁的把手就选中谁
+            ctx["drag"] = ("handle", hh[1], hh[2])
             schedule(0)
             return True
         idx = hit_node(x, y)
@@ -586,20 +618,34 @@ def build_dialog(config, image, drawable, w, h):
             schedule(0)
             return True
         ctx["selected"] = idx
-        ctx["drag"] = ("node", idx, None)
+        shift = bool(ev.state & Gdk.ModifierType.SHIFT_MASK)
+        ctx["drag"] = ("node", idx, shift)
+        ctx["bend_start"] = (x, y)
         schedule(0)
         return True
 
     def set_node_pos(idx, cx, cy):
-        """把第 idx 个交点挪到画布坐标 (cx, cy)。拖拽和回归都走这一条。"""
+        """把第 idx 个交点挪到画布坐标 (cx, cy)。拖拽和回归都走这一条。
+
+        拖动本身是「想挪到哪」，但挪过去可能让格子翻过来（映射自交，
+        画面先起褶子再花屏）。所以按比例二分：翻就退回不翻的最大那一步，
+        手感是「拖到边界拖不动了」，而不是「画面突然糊成一片」。
+        """
         m = ctx["mesh"]
         if not (0 <= idx < len(m.nodes)):
             return
         j, i = divmod(idx, m.cols + 1)
         n = m.node(i, j)
-        n["x"] = min(max(cx * k, 0.0), w - 1.0)
-        n["y"] = min(max(cy * k, 0.0), h - 1.0)
-        m.auto_refresh()                        # 自动把手跟着新位置重算
+        ox, oy = n["x"], n["y"]
+        tx = min(max(cx * k, 0.0), w - 1.0)
+        ty = min(max(cy * k, 0.0), h - 1.0)
+
+        def apply(f):
+            n["x"] = ox + (tx - ox) * f
+            n["y"] = oy + (ty - oy) * f
+            m.auto_refresh()                     # 自动把手跟着新位置重算
+
+        ctx["clipped"] = not MWM.apply_guarded(m, m.cells_around(i, j), apply)
 
     def set_handle(axis, sign, cx, cy):
         """把选中节点的把手拖到画布坐标 (cx, cy)（对称：两端一起动）。"""
@@ -622,17 +668,65 @@ def build_dialog(config, image, drawable, w, h):
             tx, ty = (0.5 * tx / ln if ln else 0.0,
                       0.5 * ty / ln if ln else 0.0)
         if axis == "u":
-            n["ux"], n["uy"] = tx, ty
+            ox, oy = n["ux"], n["uy"]
         else:
-            n["vx"], n["vy"] = tx, ty
-        n["a"] = 0                              # 手拖过之后不再自动
+            ox, oy = n["vx"], n["vy"]
+
+        def apply(f):
+            hx = ox + (tx - ox) * f
+            hy = oy + (ty - oy) * f
+            if axis == "u":
+                n["ux"], n["uy"] = hx, hy
+            else:
+                n["vx"], n["vy"] = hx, hy
+            n["a"] = 0                           # 手拖过之后不再自动
+
+        ctx["clipped"] = not MWM.apply_guarded(m, m.cells_around(i, j), apply)
+
+    def bend_node_from_drag(idx, cx, cy):
+        """Shift+拖方块：位置不动，把两根把手往拖动方向掰。
+
+        为什么留这条路：精确点中 7 px 的小圆点本身就难，而「拐弯」恰恰是
+        最常用的动作。按住 Shift 拖方块，等于把方块当方向盘——横拖弯竖着的
+        那两根把手，竖拖弯横着的两根，位置一点不动。
+        """
+        m = ctx["mesh"]
+        if not (0 <= idx < len(m.nodes)):
+            return
+        j, i = divmod(idx, m.cols + 1)
+        n = m.node(i, j)
+        sx, sy = ctx.get("bend_start") or (cx, cy)
+        dx = (cx - sx) * k                   # 画布像素 → 图像像素
+        dy = (cy - sy) * k
+        ux0, uy0 = n["ux"], n["uy"]
+        vx0, vy0 = n["vx"], n["vy"]
+        # 把手拖 1 px，切向要加 3/格宽（把手画在 1/3 格处）
+        tu_x = ux0 + 3.0 * dx / max(1e-6, m.cell_width(i))
+        tv_y = vy0 + 3.0 * dy / max(1e-6, m.cell_height(j))
+
+        def apply(f):
+            n["ux"] = ux0 + (tu_x - ux0) * f
+            n["uy"] = uy0
+            n["vx"] = vx0
+            n["vy"] = vy0 + (tv_y - vy0) * f
+            n["a"] = 0
+
+        ctx["clipped"] = not MWM.apply_guarded(m, m.cells_around(i, j), apply)
 
     def on_motion(_area, ev):
         drag = ctx["drag"]
         if not drag:
-            return False
+            # 没在拖：维护 hover，让鼠标划过的节点亮出把手
+            idx = hit_node(ev.x, ev.y)
+            if idx != ctx["hover"]:
+                ctx["hover"] = idx
+                schedule(0)
+            return True
         if drag[0] == "node":
-            set_node_pos(drag[1], ev.x, ev.y)
+            if drag[2]:
+                bend_node_from_drag(drag[1], ev.x, ev.y)
+            else:
+                set_node_pos(drag[1], ev.x, ev.y)
         else:
             set_handle(drag[1], drag[2], ev.x, ev.y)
         schedule(70)
@@ -641,6 +735,7 @@ def build_dialog(config, image, drawable, w, h):
     def on_release(_area, _ev):
         if ctx["drag"]:
             ctx["drag"] = None
+            ctx["clipped"] = False
             render()
         return True
 

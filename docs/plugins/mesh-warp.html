@@ -76,9 +76,16 @@
   <div class="dl-grid">
     <div class="dl" id="zh-sec-1">
       <div class="dl-head"><h3>怎么用</h3><span class="pill">拖点、再拖把手</span></div>
-      <p>选图层 → 菜单 → 直接<b>拖网格交点</b>就是变了形。点一下交点选中它，
-         周围会冒出<b>四个小圆点</b>——那是把手的两端（对称，拖哪头都一样），
-         按住拖，网格线就弯成曲线。</p>
+      <p>选图层 → 菜单 → 直接<b>拖网格交点</b>就是变了形。<b>鼠标划过哪个交点，
+         它的四个把手圆点就亮出来</b>，不用先点一下选中；圆点就是把手，按住拖，
+         网格线弯成曲线——「拐弯」靠的就是这一步。</p>
+      <p><b>把手很小不好点？按住 Shift 拖交点。</b>位置不动，直接把两个把手
+         往拖动方向掰：横拖弯竖着的线，竖拖弯横着的线。这是「只想拐弯、不想
+         挪位置」时最顺的一条路。</p>
+      <p><b>拖到边界会停住。</b>网格一旦自交，映射就不再一一对应，画面会先起褶子、
+         再大一点整片花掉（白区里散着断线）。所以拖动时实时检查格子有没有翻过去：
+         要翻就把这一步收回到不翻的位置，手感是「顶住了」，而不是「突然糊了」。
+         把手弯到 90° 都不算翻，正常拐弯不会被拦。</p>
       <p><b>右键点交点</b>把那个点复位，选中后按 Delete 也行；右边有「重置选中」
          和「全部重置」。<b>网格密度</b>可以换 2×2 到 6×6 格——PS 默认那档是 3×3；
          不够用就 <b>Alt+点击</b>自己加线（见下）。</p>
@@ -209,7 +216,7 @@
     <div class="dl-head"><h3>自由变形（网格 + 把手）…</h3><span class="pill">.py · 免编译</span></div>
     <p>包里是一个 <code>.py</code>、一份安装说明，以及 <code>_shared/</code> 与 <code>locale/</code>。整包解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，但界面只有英文。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-mesh-warp.zip">下载 自由变形（网格 + 把手）…</a>
-    <p class="muted small">85.6 KB · 校验：<code>SHA256 c142b9131e8bb082540eba913ee4de79…</code></p>
+    <p class="muted small">88.4 KB · 校验：<code>SHA256 d54c26b643e68c77d2d6570b4899eba1…</code></p>
   </div>
 </section>
 
@@ -258,9 +265,18 @@
   <div class="dl-grid">
     <div class="dl" id="en-sec-1">
       <div class="dl-head"><h3>Using it</h3><span class="pill">points, then handles</span></div>
-      <p>Pick a layer → menu → <b>drag a grid point</b> and the picture deforms. Click a
-         point to select it: <b>four small dots</b> appear around it — the two ends of its
-         handles (symmetric, either end drags the same). Drag one and the grid line bends.</p>
+      <p>Pick a layer → menu → <b>drag a grid point</b> and the picture deforms.
+         <b>Hover a point and its four handle dots light up</b> — no click needed first.
+         Those dots are the handles: drag one and the grid line bends. That is where
+         curves come from.</p>
+      <p><b>Handles too small to hit? Shift+drag the point.</b> It stays put and the two
+         handles are pulled toward the drag: sideways bends the vertical lines, up-down
+         bends the horizontal ones. This is the quickest way to “bend without moving”.</p>
+      <p><b>Dragging stops at the edge.</b> Once the grid self-intersects the mapping is no
+         longer one-to-one: first a crease appears, then the picture tears into stray
+         fragments. So every drag is checked cell by cell and pulled back to the last
+         position that does not fold the patch — the feel is “it hit a wall”, not “it went
+         to mush”. Handles turned 90° are not folded; normal bending is never blocked.</p>
       <p><b>Right-click a point</b> to reset it; Delete does the same for the selected one,
          and the sidebar has <i>Reset selected</i> / <i>Reset all</i>. <b>Grid density</b>
          goes from 2×2 to 6×6 cells — Photoshop's default is 3×3. When that is not
@@ -417,7 +433,7 @@
     <div class="dl-head"><h3>Free Transform (Mesh)</h3><span class="pill">.py · no compile</span></div>
     <p>The archive holds a single <code>.py</code>, an install note and the <code>_shared/</code> + <code>locale/</code> pair. Unpack all of it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register. Without <code>_shared/</code> and <code>locale/</code> it still runs, but only in English.</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-mesh-warp.zip">Download Free Transform (Mesh)</a>
-    <p class="muted small">85.6 KB · checksum: <code>SHA256 c142b9131e8bb082540eba913ee4de79…</code></p>
+    <p class="muted small">88.4 KB · checksum: <code>SHA256 d54c26b643e68c77d2d6570b4899eba1…</code></p>
   </div>
 </section>
 
@@ -452,7 +468,7 @@
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">52afc29</span>
+    <span class="muted">69cf0ad</span>
   </div>
 </footer>
 <script>

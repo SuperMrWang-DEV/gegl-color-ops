@@ -41,6 +41,9 @@ NEWTON_STEP = 0.75
 ZERO_EPS = 1e-6
 # 网格最大格数。再密就没有手拖的意义了。
 MAX_CELLS = 12
+# 一格里有超过这个比例的采样点雅可比变号，就认为网格自交了（会花屏）。
+# 实测：把手转 90° 是 0.00，转 120° 0.06，节点拖过半格 0.14，拖过邻居 0.25。
+FOLD_LIMIT = 0.10
 
 
 def have_numpy():
@@ -378,6 +381,57 @@ class Mesh(object):
             lines.append(pts)
         return lines
 
+    def cells_around(self, i, j):
+        """节点 (i,j) 一动就受影响的那几格（最多 4 个）。"""
+        return [(ci, cj) for cj in (j - 1, j) for ci in (i - 1, i)
+                if 0 <= ci < self.cols and 0 <= cj < self.rows]
+
+    def cell_fold_ratio(self, ci, cj, steps=6):
+        """这一格里「雅可比变号」的采样点占比（0 = 完全没翻）。
+
+        用 6×6 而不是 3×3：3×3 太粗，双三次片在四角附近刚翻的时候采不到，
+        反过来一个好好的 90° 把手弯曲又会被误报。实测（300 px 图、3×3 格）：
+        把手转 90° → 0.00，转 120° → 0.06，节点拖过半格 → 0.14，
+        拖过邻居 → 0.25。所以阈值取 0.10。
+        """
+        if not (0 <= ci < self.cols and 0 <= cj < self.rows):
+            return 0.0
+        bx, by = _cell_ctrl(self, ci, cj)
+        n = max(2, int(steps))
+        pos = neg = 0
+        for a in range(n + 1):
+            s = a / float(n)
+            for b in range(n + 1):
+                t = b / float(n)
+                _, _, psx, psy, ptx, pty = _patch(bx, by, s, t)
+                j = psx * pty - psy * ptx
+                if j > 0.0:
+                    pos += 1
+                elif j < 0.0:
+                    neg += 1
+        if not (pos or neg):
+            return 0.0
+        return min(pos, neg) / float(pos + neg)
+
+    def cell_folded(self, ci, cj, limit=None):
+        """这一格是不是「翻了」——翻了就意味着网格自交。
+
+        一旦自交，映射就不再是一一对应：C 那侧的反向 Newton 会解到翻转的
+        那一支，画面上先是一块捏起来的褶子，再大一点整片像素乱飞（白区里
+        散着断线和黑点）。与其在采样端猜，不如在**生成网格时**就不让它
+        翻过去——拖到快翻的位置就停住（见交互层的二分限幅）。
+        """
+        if limit is None:
+            limit = FOLD_LIMIT
+        return self.cell_fold_ratio(ci, cj) > limit
+
+    def folded(self, cells=None):
+        """任意一格翻了没有；cells 为空就查全部。"""
+        if cells is None:
+            cells = [(i, j) for j in range(self.rows)
+                     for i in range(self.cols)]
+        return any(self.cell_folded(i, j) for i, j in cells)
+
     def handle(self, i, j, axis, sign):
         """把手圆点的位置：节点 + sign·切向·格宽/3（控制点就在 1/3 格处）。"""
         n = self.node(i, j)
@@ -495,6 +549,32 @@ class Mesh(object):
 
 
 # ---- 曲面片求值 ------------------------------------------------------------
+
+def apply_guarded(mesh, cells, apply, tries=5):
+    """按比例 apply(f ∈ [0,1]) 施加一次改动，翻格就退回不翻的最大比例。
+
+    拖节点/把手是一次性给目标位置，目标可能让格子翻过来。翻了映射就不
+    一一对应，C 那边反向解出两个分支，画面先是起褶子、再大一点整片花屏。
+    这里二分找「翻之前的最大一步」，5 次后精度 1/32 格，手感正好是
+    「顶住边界」而不是「突然不动」。
+
+    apply(0.0) 必须把网格还原成改动前的样子——调用方保证。
+    返回 True = 完整施加，False = 被限幅。
+    """
+    apply(1.0)
+    if not mesh.folded(cells):
+        return True
+    lo, hi = 0.0, 1.0
+    for _ in range(max(1, int(tries))):
+        mid = (lo + hi) * 0.5
+        apply(mid)
+        if mesh.folded(cells):
+            hi = mid
+        else:
+            lo = mid
+    apply(lo)
+    return False
+
 
 def _cell_ctrl(mesh, ci, cj):
     """一个格子的 4×4 控制点网（bx, by 各 16 个，索引 a*4+b，a 沿 u、b 沿 v）。

@@ -601,9 +601,14 @@ mw_patch (const gdouble *bx, const gdouble *by, gdouble s, gdouble t,
 
 /* ---- Newton 反解（同 invert_point） -------------------------------------- */
 
+/* det_out：收敛点处的雅可比（∂P/∂s × ∂P/∂t）。
+ *   > 0 —— 正常，这一支是「正着」的；
+ *   <= 0 —— 落在翻转的那一支（网格自交），这个输出像素根本没有对应的源。
+ * 交互层现在会拦着不让网格翻过去，但 PDB / 旧脚本、手写的 mesh 串照样能
+ * 传进一个自交的网格，所以采样端还需要这道判据。 */
 static void
 mw_invert (const MwMesh *m, gdouble x, gdouble y, gdouble *u_out,
-           gdouble *v_out)
+           gdouble *v_out, gdouble *det_out)
 {
   gint cols = m->cols, rows = m->rows;
   gdouble w1 = (m->w > 1) ? m->w - 1.0 : 0.0;
@@ -649,6 +654,22 @@ mw_invert (const MwMesh *m, gdouble x, gdouble y, gdouble *u_out,
       u = CLAMP (u, 0.0, (gdouble) cols);
       v = CLAMP (v, 0.0, (gdouble) rows);
     }
+
+  /* 迭代中途的 det 可能是「上一格」的，收敛后按最终的 (u,v) 再量一次 */
+  {
+    gdouble bx[16], by[16];
+    gdouble px, py, psx, psy, ptx, pty;
+    gint ci, cj;
+    gdouble s, t;
+
+    mw_seg (m->us, cols, u, &ci, &s);
+    mw_seg (m->vs, rows, v, &cj, &t);
+    mw_cell_ctrl (m, ci, cj, bx, by);
+    mw_patch (bx, by, s, t, &px, &py, &psx, &psy, &ptx, &pty);
+    if (det_out)
+      *det_out = psx * pty - psy * ptx;
+  }
+
   *u_out = u;
   *v_out = v;
 }
@@ -683,6 +704,9 @@ mw_field_compute (const gchar *mesh_text, gint w, gint h,
 
   if (!mw_is_identity (&m))
     {
+      guchar *state = g_new0 (guchar, (gsize) nx * ny);   /* 0=坏 1=填的 2=原 */
+      gint bad = 0, pass;
+
       for (j = 0; j < ny; j++)
         {
           gdouble y = (ny > 1) ? (h - 1.0) * j / (ny - 1) : 0.0;
@@ -690,9 +714,9 @@ mw_field_compute (const gchar *mesh_text, gint w, gint h,
           for (i = 0; i < nx; i++)
             {
               gdouble x = (nx > 1) ? (w - 1.0) * i / (nx - 1) : 0.0;
-              gdouble u, v, ox, oy;
+              gdouble u, v, ox, oy, det = 1.0;
 
-              mw_invert (&m, x, y, &u, &v);
+              mw_invert (&m, x, y, &u, &v, &det);
               ox = u * kx - x;
               oy = v * ky - y;
               if (fabs (ox) < MW_ZERO_EPS)
@@ -701,8 +725,76 @@ mw_field_compute (const gchar *mesh_text, gint w, gint h,
                 oy = 0.0;
               dx[(gsize) j * nx + i] = ox;
               dy[(gsize) j * nx + i] = oy;
+              /* det <= 0：这个栅格点落在了翻转支上（网格自交）。照它算，
+               * 像素会被采到「另一个分支」去——画面就是一块捏起来的褶子
+               * 外加大片断线。先标坏，下面用邻居的偏移填掉。 */
+              if (det <= 0.0 || det != det)
+                {
+                  state[(gsize) j * nx + i] = 0;
+                  bad++;
+                }
+              else
+                {
+                  state[(gsize) j * nx + i] = 2;
+                }
             }
         }
+
+      /* 坏点用 8 邻域里「已知值」的平均填。折叠区通常只有几格宽，4 遍
+       * 就够覆盖；全坏（网格彻底废了）就整场归零——宁可不变形，也不花屏。 */
+      for (pass = 0; pass < 4 && bad > 0; pass++)
+        {
+          gint filled = 0;
+
+          for (j = 0; j < ny; j++)
+            for (i = 0; i < nx; i++)
+              {
+                gsize idx = (gsize) j * nx + i;
+                gdouble sx = 0.0, sy = 0.0;
+                gint n = 0, a, b;
+
+                if (state[idx] != 0)
+                  continue;
+                for (a = -1; a <= 1; a++)
+                  for (b = -1; b <= 1; b++)
+                    {
+                      gint ii = i + a, jj = j + b;
+                      gsize nidx;
+
+                      if ((!a && !b) || ii < 0 || jj < 0 || ii >= nx || jj >= ny)
+                        continue;
+                      nidx = (gsize) jj * nx + ii;
+                      if (state[nidx] == 0)
+                        continue;
+                      sx += dx[nidx];
+                      sy += dy[nidx];
+                      n++;
+                    }
+                if (n)
+                  {
+                    dx[idx] = sx / n;
+                    dy[idx] = sy / n;
+                    state[idx] = 1;          /* 1 = 本遍刚填（也当邻居用，
+                                              * 扫掠方向会带一点点偏，折叠区里
+                                              * 无所谓，反正马上被下一次拖动覆盖） */
+                    bad--;
+                    filled++;
+                  }
+              }
+          if (!filled)
+            break;
+          /* 1 → 2：下一遍它们就是「确定值」了 */
+          for (i = 0; i < nx * ny; i++)
+            if (state[i] == 1)
+              state[i] = 2;
+        }
+
+      if (bad > 0)                        /* 还有填不到的：整场归零（不变形） */
+        {
+          memset (dx, 0, sizeof (gdouble) * (gsize) nx * ny);
+          memset (dy, 0, sizeof (gdouble) * (gsize) nx * ny);
+        }
+      g_free (state);
     }
   else
     {

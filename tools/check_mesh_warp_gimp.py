@@ -310,7 +310,8 @@ def main():
         # 把手：位置在 节点 ± 切向/3
         hp = ctx["preview_mesh"].handle(1, 1, "u", 1)
         got = ctx["hit_handle"](hp[0], hp[1])
-        check("点得中把手圆点", got == ("u", 1), got)
+        # 现在返回 (节点索引, 轴, 方向)：拖谁的把手就自动选中谁
+        check("点得中把手圆点（带节点索引）", got == (5, "u", 1), got)
         check("把手点落在节点右侧（%.1f > %.1f）" % (hp[0], n["x"] / ctx["k"]),
               hp[0] > n["x"] / ctx["k"], (hp, n["x"]))
         hidx = (n["x"] / ctx["k"], n["y"] / ctx["k"])
@@ -326,6 +327,33 @@ def main():
         check("弯曲之后网格线离开直线（交点没动）",
               abs(ctx["preview_mesh"].eval_uv(0.5, 1)[1] - 49.7) > 1.0,
               ctx["preview_mesh"].eval_uv(0.5, 1))
+
+        # hover 的节点也要能直接拖把手（不用先点一下选中）
+        ctx["selected"] = -1
+        ctx["hover"] = 1 * (ctx["mesh"].cols + 1) + 1
+        hp2 = ctx["preview_mesh"].handle(1, 1, "v", -1)
+        check("hover 的节点把手也点得中",
+              ctx["hit_handle"](hp2[0], hp2[1]) == (5, "v", -1),
+              ctx["hit_handle"](hp2[0], hp2[1]))
+        ctx["selected"] = 5
+        ctx["hover"] = -1
+
+        # 防折叠：目标拖到邻居右边 40%（会自交），最终位置必须停在不折处
+        ctx["mesh"] = MW8.Mesh.identity(ctx["w"], ctx["h"], 4, 4)
+        ctx["selected"] = -1
+        m0 = ctx["mesh"]
+        j0, i0 = 2, 2
+        idx0 = j0 * (m0.cols + 1) + i0
+        n0 = m0.node(i0, j0)
+        x0, y0 = n0["x"], n0["y"]
+        right = m0.node(i0 + 1, j0)["x"]
+        ctx["set_node_pos"](idx0, (right + 0.4 * (right - x0)) / ctx["k"],
+                            y0 / ctx["k"])
+        moved = n0["x"] - x0
+        check("拖过邻居会被限幅（只走了 %.1f px，邻居在 %.1f）" % (moved, right - x0),
+              moved < (right - x0) * 1.05, (moved, right - x0))
+        check("限幅之后网格没有自交", not m0.folded(), m0.cell_fold_ratio(i0, j0))
+        check("限幅不是「原地不动」", moved > (right - x0) * 0.4, moved)
 
         ctx["combo_grid"].set_active_id("5")
         check("换到 5×5 格（%d）" % ctx["mesh"].cols, ctx["mesh"].cols == 5,

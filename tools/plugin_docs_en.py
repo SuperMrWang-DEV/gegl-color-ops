@@ -1773,9 +1773,18 @@ PLUGIN_EN["mesh-warp"] = dict(
     body="""  <div class="dl-grid">
     <div class="dl primary-dl">
       <div class="dl-head"><h3>Using it</h3><span class="pill">points, then handles</span></div>
-      <p>Pick a layer → menu → <b>drag a grid point</b> and the picture deforms. Click a
-         point to select it: <b>four small dots</b> appear around it — the two ends of its
-         handles (symmetric, either end drags the same). Drag one and the grid line bends.</p>
+      <p>Pick a layer → menu → <b>drag a grid point</b> and the picture deforms.
+         <b>Hover a point and its four handle dots light up</b> — no click needed first.
+         Those dots are the handles: drag one and the grid line bends. That is where
+         curves come from.</p>
+      <p><b>Handles too small to hit? Shift+drag the point.</b> It stays put and the two
+         handles are pulled toward the drag: sideways bends the vertical lines, up-down
+         bends the horizontal ones. This is the quickest way to “bend without moving”.</p>
+      <p><b>Dragging stops at the edge.</b> Once the grid self-intersects the mapping is no
+         longer one-to-one: first a crease appears, then the picture tears into stray
+         fragments. So every drag is checked cell by cell and pulled back to the last
+         position that does not fold the patch — the feel is “it hit a wall”, not “it went
+         to mush”. Handles turned 90° are not folded; normal bending is never blocked.</p>
       <p><b>Right-click a point</b> to reset it; Delete does the same for the selected one,
          and the sidebar has <i>Reset selected</i> / <i>Reset all</i>. <b>Grid density</b>
          goes from 2×2 to 6×6 cells — Photoshop's default is 3×3. When that is not

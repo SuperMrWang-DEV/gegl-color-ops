@@ -434,6 +434,63 @@ for idx in range(min(len(fA.dx), len(fB.dx))):
                                   fA.dy[idx] - fB.dy[idx]))
 ok("偏移场差异 %.2f px < 0.5（画面几乎不动）" % worst, worst < 0.5, worst)
 
+section("防折叠（拖过头不许把网格翻过去）")
+
+# 判据本身：恒等网格一点不折；拖过半格开始危险；拖过邻居必折
+g0 = MW.Mesh.identity(W, H, 3, 3)
+ok("恒等网格不折（%.3f）" % g0.cell_fold_ratio(1, 1),
+   g0.cell_fold_ratio(1, 1) == 0.0 and not g0.folded())
+
+g1 = MW.Mesh.identity(W, H, 3, 3)
+g1.node(1, 1)["x"] += 0.4 * CW
+g1.auto_refresh()
+ok("拖 40%% 格还不折（%.3f）" % g1.cell_fold_ratio(1, 1), not g1.folded())
+
+g2 = MW.Mesh.identity(W, H, 3, 3)
+g2.node(1, 1)["x"] += 1.2 * CW          # 越过右邻居
+g2.auto_refresh()
+ok("拖过邻居判折（%.3f）" % g2.cell_fold_ratio(1, 1), g2.folded())
+
+# 把手：90° 属于正常弯曲（不拦），转 150° 才开始翻
+g3 = MW.Mesh.identity(W, H, 3, 3)
+_h = g3.node(1, 1)
+_h["ux"], _h["uy"] = 0.0, CW
+_h["a"] = 0
+ok("把手转 90° 仍然放行（%.3f）" % g3.cell_fold_ratio(1, 1),
+   not g3.folded(g3.cells_around(1, 1)))
+
+# 限幅：目标是拖过邻居，最终要停在「不折」的最大位置，且不能原地不动
+g4 = MW.Mesh.identity(W, H, 3, 3)
+_n = g4.node(1, 1)
+_x0 = _n["x"]
+
+
+def _push(f, node=_n, x0=_x0, mesh=g4):
+    node["x"] = x0 + (x0 + 1.4 * CW - x0) * f
+    mesh.auto_refresh()
+
+
+kept = MW.apply_guarded(g4, g4.cells_around(1, 1), _push)
+ok("越过邻居的目标被限幅（apply_guarded 返回 False）", kept is False)
+ok("限幅后网格不再自交", not g4.folded())
+ok("限幅后确实挪了一大截（%.1f px，不是原地不动）" % (g4.node(1, 1)["x"] - _x0),
+   0.5 * CW < g4.node(1, 1)["x"] - _x0 < 1.2 * CW,
+   g4.node(1, 1)["x"] - _x0)
+
+# 正常范围内的拖动不该被拦（否则就是「拖不动」）
+g5 = MW.Mesh.identity(W, H, 3, 3)
+_n5 = g5.node(1, 1)
+_x5 = _n5["x"]
+
+
+def _push5(f, node=_n5, x0=_x5, mesh=g5):
+    node["x"] = x0 + 0.3 * CW * f
+    mesh.auto_refresh()
+
+
+ok("小位移原样通过", MW.apply_guarded(g5, g5.cells_around(1, 1), _push5) is True)
+ok("小位移精确到位（%.2f）" % (_n5["x"] - _x5), abs(_n5["x"] - _x5 - 0.3 * CW) < 1e-9)
+
 print("\n" + "=" * 60)
 if FAIL:
     print("失败 %d 项 / 通过 %d 项" % (len(FAIL), PASS))
