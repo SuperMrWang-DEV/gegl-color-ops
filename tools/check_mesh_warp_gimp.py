@@ -148,6 +148,11 @@ def main():
           "build_dialog(" in src and "show_dialog(" in src)
     check("Gimp.main 用的是 _sys.argv", "Gimp.main(" in src and
           "_sys.argv" in src)
+
+    # `_, layer = apply_filter(...)` 会把模块级翻译函数 `_` 绑成 DrawableFilter
+    # 实例，下一行 _("…") 就报「'DrawableFilter' object is not callable」。
+    check("run() 没把 `_` 覆盖成滤镜返回值",
+          "_, layer = apply_filter" not in src and "_, layer =" not in src)
     check("网格密度只给 2～6 格", "GRID_CHOICES = (2, 3, 4, 5, 6)" in src)
 
     # ---- 变形本体 ----------------------------------------------------------

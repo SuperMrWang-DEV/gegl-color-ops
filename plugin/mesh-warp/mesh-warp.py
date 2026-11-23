@@ -803,7 +803,10 @@ class MeshWarpPlugin(Gimp.PlugIn):
                                          drawable.get_height())
             output = config.get_property('output') or OUTPUT_REPLACE
             if output == OUTPUT_FILTER:
-                _, layer = apply_filter(drawable, mesh)
+                # 别用下划线去接 apply_filter 的返回值：模块级 `_` 是翻译函数，
+                # 在这里被绑成滤镜对象，下一行 _("…") 就会炸
+                # 「'DrawableFilter' object is not callable」。
+                _filt, layer = apply_filter(drawable, mesh)
                 Gimp.message(_("Attached a live mesh-warp filter to “%s” — "
                                "%d×%d cells. The pixels are untouched: adjust "
                                "the filter or run the dialog again to re-edit.")
@@ -821,6 +824,8 @@ class MeshWarpPlugin(Gimp.PlugIn):
             return procedure.new_return_values(
                 Gimp.PDBStatusType.SUCCESS, GLib.Error())
         except Exception as exc:
+            import traceback      # 出错时把栈也打出来，否则只剩一句 str(exc)
+            traceback.print_exc()
             Gimp.message("mesh-warp: %s" % exc)
             return procedure.new_return_values(
                 Gimp.PDBStatusType.EXECUTION_ERROR, GLib.Error(str(exc)))
