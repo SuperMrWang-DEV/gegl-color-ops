@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-title-zh="自由变形 · Python 插件 · gegl-color-ops" data-title-en="自由变形 · Python plug-ins · gegl-color-ops">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>自由变形 · Python 插件 · gegl-color-ops</title>
+<meta name="description" content="木偶变形是「拖内容」，这一支是「给内容套一张自由曲面」：图层上盖一张
+   网格，拖交点改形状；选中交点会露出两个把手，拖把手能把网格线弯成曲线——
+   鼓包、收腰、翻边这些直线格子做不到的形状，就靠这一步。" data-desc-zh="木偶变形是「拖内容」，这一支是「给内容套一张自由曲面」：图层上盖一张
+   网格，拖交点改形状；选中交点会露出两个把手，拖把手能把网格线弯成曲线——
+   鼓包、收腰、翻边这些直线格子做不到的形状，就靠这一步。" data-desc-en="Puppet warp pulls the content around; this one puts a free-form surface over
+   it. A Bezier grid is laid on the layer: ">
+<meta property="og:title" content="自由变形 · Python 插件 · gegl-color-ops" data-title-zh="自由变形 · Python 插件 · gegl-color-ops" data-title-en="自由变形 · Python plug-ins · gegl-color-ops">
+<meta property="og:description" content="木偶变形是「拖内容」，这一支是「给内容套一张自由曲面」：图层上盖一张
+   网格，拖交点改形状；选中交点会露出两个把手，拖把手能把网格线弯成曲线——
+   鼓包、收腰、翻边这些直线格子做不到的形状，就靠这一步。" data-desc-zh="木偶变形是「拖内容」，这一支是「给内容套一张自由曲面」：图层上盖一张
+   网格，拖交点改形状；选中交点会露出两个把手，拖把手能把网格线弯成曲线——
+   鼓包、收腰、翻边这些直线格子做不到的形状，就靠这一步。" data-desc-en="Puppet warp pulls the content around; this one puts a free-form surface over
+   it. A Bezier grid is laid on the layer: ">
+<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+<main id="main">
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> /
+    <a href="../plugins.html">插件</a> / Distort</p>
+  <h1>自由变形</h1>
+  <div class="meta">
+    <code>plugin/mesh-warp</code>
+    <span class="tag t-distort">变形</span>
+    <span>Distort</span>
+  </div>
+  <p class="lede">木偶变形是「拖内容」，这一支是「给内容套一张自由曲面」：图层上盖一张
+   网格，拖交点改形状；选中交点会露出两个把手，拖把手能把网格线弯成曲线——
+   鼓包、收腰、翻边这些直线格子做不到的形状，就靠这一步。</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="zh-overview">
+  <dt>菜单位置</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → Distort → 自由变形（网格 + 把手）…</li></ul><p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p></dd>
+  <dt>脚本调用</dt>
+  <dd><code class="pdb">lb-plugin-mesh-warp(image, drawables, mesh, output)</code><p>标准 PDB 过程，参数留空走默认值。</p></dd>
+  <dt>依赖</dt>
+  <dd><p>靠下面这些算子干活。<b>它们已经打进这个插件的下载包</b>（<code>modules-windows-x64</code> / <code>modules-linux-x64</code>），不用另外去下：</p></dd>
+</dl>
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-1">
+      <div class="dl-head"><h3>怎么用</h3><span class="pill">拖点、再拖把手</span></div>
+      <p>选图层 → 菜单 → 直接<b>拖网格交点</b>就是变了形。点一下交点选中它，
+         周围会冒出<b>四个小圆点</b>——那是把手的两端（对称，拖哪头都一样），
+         按住拖，网格线就弯成曲线。</p>
+      <p><b>右键点交点</b>把那个点复位，选中后按 Delete 也行；右边有「重置选中」
+         和「全部重置」。<b>网格密度</b>可以换 2×2 到 6×6 格——PS 默认那档是 3×3。</p>
+      <p>虚线是原位网格，实线蓝的是变形后的网格，两者差多少一眼能看出来。
+         输出两种：<b>覆盖当前图层</b>，或者<b>复制到新图层</b>。</p>
+    </div>
+    <div class="dl" id="zh-sec-2">
+      <div class="dl-head"><h3>非交互也能跑</h3></div>
+      <p>网格是过程参数 <code>mesh</code>：第一段是格数，后面按行优先每个交点
+         六个（或七个）数——
+         <code>x,y,ux,uy,vx,vy,auto</code>，前两个是交点位置，中间四个是两个
+         把手向量，最后一个 1/0 表示把手自动还是已手拖。写两个数就只给位置，
+         其余按恒等网格补齐：</p>
+      <p><code>lb-plugin-mesh-warp 图层 mesh="3,3; 100,200; 150,180" output=replace</code></p>
+      <p>对话框点应用时就是把网格写成这个字符串再跑一遍，所以脚本能完整复现。</p>
+    </div>
+  </div>
+
+  <div class="dl" id="zh-sec-3">
+    <div class="dl-head"><h3>它是怎么算的</h3><span class="pill">FFD + 双三次 Bezier 面片</span></div>
+    <p>标准做法叫 <b>FFD</b>（自由变形）：一格 = 一张 <b>4×4 控制点的双三次
+       Bezier 曲面片</b>，把参数 (u,v) 映到图像坐标。角点是交点本身，边上 8 个
+       点是「交点 ± 切向/3」——那把手的三个单位正好对应一个控制点，这也是
+       PS 里把手为什么画在离交点那么远的地方。</p>
+    <p>变形是反着做的：对每个目标像素 p，用 <b>Newton</b> 解 P(u,v) = p，
+       拿到参数 (u,v) 之后，<b>源坐标取原位格上的位置</b>，再交给重采样。
+       现场栅格（长边 140 个节点）算完后与木偶变形共用同一套
+       <code>warp_rgba</code>，所以两条变形路线在像素层面是同一段代码。</p>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-4">
+      <div class="dl-head"><h3>五个不下心就翻车的细节</h3></div>
+      <p><b>① 源坐标是 uv 在原位格上的位置，不是曲面上的位置。</b>曲面只回答
+         「这个像素该落在哪个 uv」，源图是按原尺寸铺开的。弄反了画面会整体
+         平移一次，看着像「没对齐」，很难往算法上想。</p>
+      <p><b>② 面片中间四个控制点要加 twist 项。</b>只写「± 切向/3」的话，恒等
+         网格解出来每格中心也是偏的——曲面就不再是平面了。补
+         (P11-P10-P01+P00)/9 之后，恒等网格的场精确为 0。</p>
+      <p><b>③ 把手必须自动限幅。</b>拖走中间交点 80 px，右边那格只剩 26 px 的弦
+         却还带着 66 px 的切向，控制多边形来回折、格子自交，反解出两个分支，
+         画面撕一道。所以拖节点时按邻居重算切向，并限到相邻弦长以内。</p>
+    </div>
+    <div class="dl" id="zh-sec-5">
+      <div class="dl-head"><h3>还有两个</h3></div>
+      <p><b>④ Newton 要限步。</b>曲面在交点附近被压扁时局部导数很小，一步能跨
+         掉一整格，落到隔壁导数大的地方再跳回来——实测在格界上无限来回震，
+         最后交出一个差 12 px 的解。单步限到 0.75 格就好了。</p>
+      <p><b>⑤ 换网格密度是「重新拟合」，不是无损。</b>变密几乎看不出来
+         （3→6 格误差 1.6 px），变稀（5→2）形状会明显不一样——一张 2×2 网格
+         本来就只有一格，装不下复杂曲面。建议先定密度再拖。</p>
+      <p>把手是<b>对称</b>的：一个交点的切向被左右两格共用，所以跨格 C1 连续。
+        想要尖角目前做不到（PS 的把手也是成对拖的）。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-6">
+      <div class="dl-head"><h3>实测</h3></div>
+      <p>768×1024 图层、拖一个交点 + 弯一处把手：<b>0.41 秒</b>（含读写缓冲区）。
+         1600×2400 全流程 <b>1.3 秒</b>（解场 150 ms、重采样 1.16 s）。</p>
+      <p>网格变形是<b>全局</b>的：只要动了一处，整幅画面都要重采样，所以预览按
+         480 长边算，一次约 <b>95 毫秒</b>——比木偶变形（520 长边、只重采样一小块）
+         慢，这是代价，不是没优化。</p>
+    </div>
+    <div class="dl" id="zh-sec-7">
+      <div class="dl-head"><h3>和 PS 差在哪</h3></div>
+      <p><b>有：</b>网格交点 + 贝塞尔把手、2×2～6×6 密度、原位网格虚线对照、
+         实时预览、脚本参数。<b>没有：</b>PS 的「变形预设」（弧形 / 旗帜 / 鱼眼那排）、
+         网格「拆分」，以及木偶变形那边的「深度」层级。</p>
+      <p>参照物：<b>Krita 的变形工具</b>（Warp）用的是同一类双三次曲面网格，
+         <b>GIMP 自己的 Warp Transform</b> 是「推/拉」画笔式的，都值得对照着看。
+         PhotoShop 的网格也是这个路子，所以手感能对上。</p>
+    </div>
+  </div>
+
+<section class="download" id="zh-download">
+  <h2>下载这一个</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>自由变形（网格 + 把手）…</h3><span class="pill">.py · 免编译</span></div>
+    <p>包里是一个 <code>.py</code>、一份安装说明，以及 <code>_shared/</code> 与 <code>locale/</code>。整包解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，但界面只有英文。</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-mesh-warp.zip">下载 自由变形（网格 + 把手）…</a>
+    <p class="muted small">77.7 KB · 校验：<code>SHA256 15b063d3233211437a7dca1bab094d52…</code></p>
+  </div>
+</section>
+
+<p class="note">文中「码」指 8 位图上的一个台阶：0–255 共 256 级，
+   相邻两级的差就是 1 码，等于 1/255 ≈ 0.392%%（也就是 RGB 128 与 129 之间的差）。
+   各数量级的含义与「码为什么不是感知量」的说明见
+   <a href="../guide.html#code">安装指南 · 精度里的「码」</a>。</p>
+  </article>
+  <aside class="toc">
+    <p class="toc-title">本页目录</p>
+    <ul>
+      <li><a href="#zh-overview">概览</a></li>
+<li><a href="#zh-sec-1">怎么用</a></li><li><a href="#zh-sec-2">非交互也能跑</a></li><li><a href="#zh-sec-3">它是怎么算的</a></li><li><a href="#zh-sec-4">五个不下心就翻车的细节</a></li><li><a href="#zh-sec-5">还有两个</a></li><li><a href="#zh-sec-6">实测</a></li><li><a href="#zh-sec-7">和 PS 差在哪</a></li>
+      <li><a href="#zh-download">下载</a></li>
+    </ul>
+  </aside>
+</div>
+<nav class="pager">
+  <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
+  <a class="prev" href="warp.html"><span>上一篇</span>木偶变形</a><a class="next" href="ai-frequency-separation.html"><span>下一篇</span>高低频磨皮（AI 预修）</a>
+</nav></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> /
+    <a href="../plugins.html">Plug-ins</a> / Retouch</p>
+  <h1>Free Transform (Mesh)</h1>
+  <div class="meta">
+    <code>plugin/mesh-warp</code>
+    <span class="tag t-distort">Distort</span>
+    <span>Retouch</span>
+  </div>
+  <p class="lede">Puppet warp pulls the content around; this one puts a free-form surface over
+   it. A Bezier grid is laid on the layer: drag a grid point to change the shape, select
+   a point to reveal its handles, drag a handle and the grid line bends into a curve —
+   which is how a bulge, a waist or a flipped edge becomes possible at all.</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="en-overview">
+  <dt>Menu location</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → Distort → Free Transform (Mesh)（网格 + 把手）…</li></ul><p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p></dd>
+  <dt>Scripting</dt>
+  <dd><code class="pdb">lb-plugin-mesh-warp(image, drawables, mesh, output)</code><p>A standard PDB procedure; leave an argument empty to take its default.</p></dd>
+  <dt>Dependencies</dt>
+  <dd><p>The operators below do the work. <b>They are already inside this plug-in's download</b> (<code>modules-windows-x64</code> / <code>modules-linux-x64</code>) — nothing else to fetch:</p></dd>
+</dl>
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-1">
+      <div class="dl-head"><h3>Using it</h3><span class="pill">points, then handles</span></div>
+      <p>Pick a layer → menu → <b>drag a grid point</b> and the picture deforms. Click a
+         point to select it: <b>four small dots</b> appear around it — the two ends of its
+         handles (symmetric, either end drags the same). Drag one and the grid line bends.</p>
+      <p><b>Right-click a point</b> to reset it; Delete does the same for the selected one,
+         and the sidebar has <i>Reset selected</i> / <i>Reset all</i>. <b>Grid density</b>
+         goes from 2×2 to 6×6 cells — Photoshop's default is 3×3.</p>
+      <p>The dashed lines are the original grid, the blue ones the deformed grid, so the
+         amount of movement is obvious. Output either <b>replaces the layer</b> or
+         <b>copies to a new one</b>.</p>
+    </div>
+    <div class="dl" id="en-sec-2">
+      <div class="dl-head"><h3>From a script</h3></div>
+      <p>The mesh is the <code>mesh</code> argument: the cell counts first, then six (or
+         seven) numbers per grid point, row by row —
+         <code>x,y,ux,uy,vx,vy,auto</code>: position, the two handle vectors, and 1/0 for
+         “handle derived from the neighbours” vs “dragged by hand”. Two numbers are enough
+         (position only), the rest of the lattice stays identity:</p>
+      <p><code>lb-plugin-mesh-warp layer mesh="3,3; 100,200; 150,180" output=replace</code></p>
+      <p>The dialog writes exactly this string when you press Apply, so a script can
+         replay a manual warp.</p>
+    </div>
+  </div>
+
+  <div class="dl" id="en-sec-3">
+    <div class="dl-head"><h3>How it is computed</h3><span class="pill">FFD, bicubic Bezier patches</span></div>
+    <p>The textbook name is <b>FFD</b> (free-form deformation): each cell is a
+       <b>bicubic Bezier patch with 16 control points</b> mapping (u,v) to image
+       coordinates. The corners are the grid points, the eight edge control points are
+       “point ± tangent/3” — three units of handle is exactly one control point, which is
+       also why Photoshop draws the handle that far out.</p>
+    <p>The warp runs backwards: for every destination pixel p, <b>Newton</b> solves
+       P(u,v) = p; the source coordinate is then <b>the position of (u,v) on the original
+       lattice</b>, handed to the resampler. The field is solved on a raster (140 nodes on
+       the long edge) and then goes through the very same <code>warp_rgba</code> as puppet
+       warp — one resampler for both tools.</p>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-4">
+      <div class="dl-head"><h3>Three things that quietly break it</h3></div>
+      <p><b>1. The source coordinate is the uv on the original lattice, not a point on the
+         surface.</b> The surface only answers “which uv lands on this pixel”; the source
+         image stays laid out at its own size. Get this wrong and the whole picture shifts
+         once — it looks like a misalignment, not a maths bug.</p>
+      <p><b>2. The four inner control points need the twist term.</b> With only “± tangent/3”
+         even an identity grid comes out bent at the cell centre — the surface is no longer
+         a plane. Adding (P11-P10-P01+P00)/9 makes the identity field exactly zero.</p>
+      <p><b>3. The handles must be auto-limited.</b> Drag the middle point 80 px and the
+         right cell keeps a 66 px tangent on a 26 px chord: the control polygon folds back,
+         the cell self-intersects, the inverse has two branches and the picture tears. So
+         moving a point re-derives the tangents from its neighbours and clamps them to the
+         shorter adjacent chord.</p>
+    </div>
+    <div class="dl" id="en-sec-5">
+      <div class="dl-head"><h3>…and two more</h3></div>
+      <p><b>4. Newton needs a step limit.</b> Where the surface is squashed the local
+         derivative is tiny, one step crosses a whole cell, lands where the derivative is
+         large and jumps back — measured as endless oscillation on cell boundaries, ending
+         12 px off. Limiting a step to 0.75 cell fixes it.</p>
+      <p><b>5. Changing the grid density is a re-fit, not lossless.</b> Denser is invisible
+         (3→6 cells: 1.6 px); sparser visibly changes the shape — a 2×2 grid only has one
+         cell to work with. Pick the density first, then drag.</p>
+      <p>Handles are <b>symmetric</b>: a point's tangent is shared by the cells on both
+         sides, which keeps the surface C1 across cell borders. Sharp corners are not
+         possible (Photoshop drags its handles in pairs too).</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-6">
+      <div class="dl-head"><h3>Measured</h3></div>
+      <p>768×1024 layer, one point dragged plus one handle bent: <b>0.41 s</b> including
+         buffer read and write. 1600×2400 end to end: <b>1.3 s</b> (field 150 ms,
+         resampling 1.16 s).</p>
+      <p>This warp is <b>global</b>: move one point and every pixel needs resampling. The
+         preview therefore runs at a 480 px long edge, about <b>95 ms</b> per redraw —
+         slower than puppet warp (520 px, only a patch resampled). That is the cost, not a
+         missing optimisation.</p>
+    </div>
+    <div class="dl" id="en-sec-7">
+      <div class="dl-head"><h3>Where it differs from Photoshop</h3></div>
+      <p><b>Has:</b> grid points with Bezier handles, 2×2 to 6×6 density, dashed original
+         grid for reference, live preview, a scriptable mesh. <b>Does not have:</b>
+         Photoshop's warp presets (arc / flag / fisheye), the “split” grid, or the depth
+         ordering that puppet warp itself lacks.</p>
+      <p>Useful references: <b>Krita's Warp transform</b> uses the same kind of bicubic
+         surface mesh, while <b>GIMP's own Warp Transform</b> is the push/pull brush. Both
+         are worth comparing against.</p>
+    </div>
+  </div>
+
+<section class="download" id="en-download">
+  <h2>Download this one</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>Free Transform (Mesh)</h3><span class="pill">.py · no compile</span></div>
+    <p>The archive holds a single <code>.py</code>, an install note and the <code>_shared/</code> + <code>locale/</code> pair. Unpack all of it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register. Without <code>_shared/</code> and <code>locale/</code> it still runs, but only in English.</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-mesh-warp.zip">Download Free Transform (Mesh)</a>
+    <p class="muted small">77.7 KB · checksum: <code>SHA256 15b063d3233211437a7dca1bab094d52…</code></p>
+  </div>
+</section>
+
+<p class="note">In this article a "code" means one step on an 8-bit
+   image: 0–255 is 256 levels, so the gap between neighbours is 1 code, or
+   1/255 ≈ 0.392%% (the difference between RGB 128 and 129). For the order of magnitude
+   of each figure, and why a code is not a perceptual quantity, see
+   <a href="../guide.html#code">Install guide · what a code is</a>.</p>
+  </article>
+  <aside class="toc">
+    <p class="toc-title">On this page</p>
+    <ul>
+      <li><a href="#en-overview">Overview</a></li>
+<li><a href="#en-sec-1">Using it</a></li><li><a href="#en-sec-2">From a script</a></li><li><a href="#en-sec-3">How it is computed</a></li><li><a href="#en-sec-4">Three things that quietly break it</a></li><li><a href="#en-sec-5">…and two more</a></li><li><a href="#en-sec-6">Measured</a></li><li><a href="#en-sec-7">Where it differs from Photoshop</a></li>
+      <li><a href="#en-download">Download</a></li>
+    </ul>
+  </aside>
+</div>
+<nav class="pager">
+  <a href="../plugins.html"><span>Back to</span>All plug-ins</a>
+  <a class="prev" href="warp.html"><span>Previous</span>Puppet Warp</a><a class="next" href="ai-frequency-separation.html"><span>Next</span>Frequency Separation (AI prep)</a>
+</nav></div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
+    <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
+    <span class="muted">da61b09</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
+</body>
+</html>

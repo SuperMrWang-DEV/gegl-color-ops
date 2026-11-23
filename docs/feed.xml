@@ -106,6 +106,15 @@
        零开始。</summary>
   </entry>
   <entry>
+    <title>插件 · 自由变形</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/mesh-warp.html"/>
+    <id>tag:github.com,2026:plugin-mesh-warp</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>木偶变形是「拖内容」，这一支是「给内容套一张自由曲面」：图层上盖一张
+   网格，拖交点改形状；选中交点会露出两个把手，拖把手能把网格线弯成曲线——
+   鼓包、收腰、翻边这些直线格子做不到的形状，就靠这一步。</summary>
+  </entry>
+  <entry>
     <title>插件 · 木偶变形</title>
     <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/warp.html"/>
     <id>tag:github.com,2026:plugin-warp</id>

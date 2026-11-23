@@ -1170,6 +1170,99 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
   </div>""",
     ),
     dict(
+        key='mesh-warp',
+        slug='mesh-warp',
+        title='自由变形',
+        tag=('变形', 't-distort'),
+        count='网格 + 把手',
+        menu='SuperMrWang → Distort → 自由变形（网格 + 把手）…',
+        menus=['SuperMrWang → Distort → 自由变形（网格 + 把手）…'],
+        pdb='lb-plugin-mesh-warp(image, drawables, mesh, output)',
+        lede="""木偶变形是「拖内容」，这一支是「给内容套一张自由曲面」：图层上盖一张
+   网格，拖交点改形状；选中交点会露出两个把手，拖把手能把网格线弯成曲线——
+   鼓包、收腰、翻边这些直线格子做不到的形状，就靠这一步。""",
+        body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>怎么用</h3><span class="pill">拖点、再拖把手</span></div>
+      <p>选图层 → 菜单 → 直接<b>拖网格交点</b>就是变了形。点一下交点选中它，
+         周围会冒出<b>四个小圆点</b>——那是把手的两端（对称，拖哪头都一样），
+         按住拖，网格线就弯成曲线。</p>
+      <p><b>右键点交点</b>把那个点复位，选中后按 Delete 也行；右边有「重置选中」
+         和「全部重置」。<b>网格密度</b>可以换 2×2 到 6×6 格——PS 默认那档是 3×3。</p>
+      <p>虚线是原位网格，实线蓝的是变形后的网格，两者差多少一眼能看出来。
+         输出两种：<b>覆盖当前图层</b>，或者<b>复制到新图层</b>。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>非交互也能跑</h3></div>
+      <p>网格是过程参数 <code>mesh</code>：第一段是格数，后面按行优先每个交点
+         六个（或七个）数——
+         <code>x,y,ux,uy,vx,vy,auto</code>，前两个是交点位置，中间四个是两个
+         把手向量，最后一个 1/0 表示把手自动还是已手拖。写两个数就只给位置，
+         其余按恒等网格补齐：</p>
+      <p><code>lb-plugin-mesh-warp 图层 mesh="3,3; 100,200; 150,180" output=replace</code></p>
+      <p>对话框点应用时就是把网格写成这个字符串再跑一遍，所以脚本能完整复现。</p>
+    </div>
+  </div>
+
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>它是怎么算的</h3><span class="pill">FFD + 双三次 Bezier 面片</span></div>
+    <p>标准做法叫 <b>FFD</b>（自由变形）：一格 = 一张 <b>4×4 控制点的双三次
+       Bezier 曲面片</b>，把参数 (u,v) 映到图像坐标。角点是交点本身，边上 8 个
+       点是「交点 ± 切向/3」——那把手的三个单位正好对应一个控制点，这也是
+       PS 里把手为什么画在离交点那么远的地方。</p>
+    <p>变形是反着做的：对每个目标像素 p，用 <b>Newton</b> 解 P(u,v) = p，
+       拿到参数 (u,v) 之后，<b>源坐标取原位格上的位置</b>，再交给重采样。
+       现场栅格（长边 140 个节点）算完后与木偶变形共用同一套
+       <code>warp_rgba</code>，所以两条变形路线在像素层面是同一段代码。</p>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl">
+      <div class="dl-head"><h3>五个不下心就翻车的细节</h3></div>
+      <p><b>① 源坐标是 uv 在原位格上的位置，不是曲面上的位置。</b>曲面只回答
+         「这个像素该落在哪个 uv」，源图是按原尺寸铺开的。弄反了画面会整体
+         平移一次，看着像「没对齐」，很难往算法上想。</p>
+      <p><b>② 面片中间四个控制点要加 twist 项。</b>只写「± 切向/3」的话，恒等
+         网格解出来每格中心也是偏的——曲面就不再是平面了。补
+         (P11-P10-P01+P00)/9 之后，恒等网格的场精确为 0。</p>
+      <p><b>③ 把手必须自动限幅。</b>拖走中间交点 80 px，右边那格只剩 26 px 的弦
+         却还带着 66 px 的切向，控制多边形来回折、格子自交，反解出两个分支，
+         画面撕一道。所以拖节点时按邻居重算切向，并限到相邻弦长以内。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>还有两个</h3></div>
+      <p><b>④ Newton 要限步。</b>曲面在交点附近被压扁时局部导数很小，一步能跨
+         掉一整格，落到隔壁导数大的地方再跳回来——实测在格界上无限来回震，
+         最后交出一个差 12 px 的解。单步限到 0.75 格就好了。</p>
+      <p><b>⑤ 换网格密度是「重新拟合」，不是无损。</b>变密几乎看不出来
+         （3→6 格误差 1.6 px），变稀（5→2）形状会明显不一样——一张 2×2 网格
+         本来就只有一格，装不下复杂曲面。建议先定密度再拖。</p>
+      <p>把手是<b>对称</b>的：一个交点的切向被左右两格共用，所以跨格 C1 连续。
+        想要尖角目前做不到（PS 的把手也是成对拖的）。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl">
+      <div class="dl-head"><h3>实测</h3></div>
+      <p>768×1024 图层、拖一个交点 + 弯一处把手：<b>0.41 秒</b>（含读写缓冲区）。
+         1600×2400 全流程 <b>1.3 秒</b>（解场 150 ms、重采样 1.16 s）。</p>
+      <p>网格变形是<b>全局</b>的：只要动了一处，整幅画面都要重采样，所以预览按
+         480 长边算，一次约 <b>95 毫秒</b>——比木偶变形（520 长边、只重采样一小块）
+         慢，这是代价，不是没优化。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>和 PS 差在哪</h3></div>
+      <p><b>有：</b>网格交点 + 贝塞尔把手、2×2～6×6 密度、原位网格虚线对照、
+         实时预览、脚本参数。<b>没有：</b>PS 的「变形预设」（弧形 / 旗帜 / 鱼眼那排）、
+         网格「拆分」，以及木偶变形那边的「深度」层级。</p>
+      <p>参照物：<b>Krita 的变形工具</b>（Warp）用的是同一类双三次曲面网格，
+         <b>GIMP 自己的 Warp Transform</b> 是「推/拉」画笔式的，都值得对照着看。
+         PhotoShop 的网格也是这个路子，所以手感能对上。</p>
+    </div>
+  </div>""",
+    ),
+    dict(
         key='ai-frequency',
         ai_comfy=True,
         slug='ai-frequency-separation',
@@ -1751,6 +1844,7 @@ BRIEF = {
     "cutout": "两条路：AI（RMBG）连发丝一起抠，本地版从四边泛洪吃纯色背景。",
     "refine": "选区做完了边还是糊的：六根滑杆 + 实时预览，把边缘收干净。",
     "warp": "点几个钉子拖住画面走：钉子之间平滑过渡，圈外一个字节都不动。",
+    "mesh-warp": "盖一张贝塞尔网格：拖交点改形状，选中交点拖把手把网格线弯成曲线。",
     "alpha-curves": "把颜色通道写进 alpha，再接一条三个控制点的平滑曲线："
                     "挂上去先拉满，往下拖即成形状。",
     "color-range": "色彩范围的定制对话框：选什么颜色，下面就只显示那种颜色的参数，"
@@ -1765,7 +1859,7 @@ BRIEF = {
 
 TAG_EN = {"曲线": "Curves", "磨皮": "Retouching", "选区": "Selection",
           "通道": "Channels", "蒙版": "Mask", "转换": "Convert", "AI": "AI",
-          "观察": "Inspect"}
+          "观察": "Inspect", "变形": "Distort"}
 
 TITLE_EN = {
     "ai-inpaint": "AI Inpaint",
@@ -1779,6 +1873,7 @@ TITLE_EN = {
     "cutout": "Cut Out / Remove Background",
     "refine": "Select and Mask",
     "warp": "Puppet Warp",
+    "mesh-warp": "Free Transform (Mesh)",
     "luminosity": "Luminosity Masks",
     "alpha-curves": "Alpha Curves",
     "color-range": "Color Range",
@@ -1818,6 +1913,8 @@ BRIEF_EN = {
               "live preview to clean it up.",
     "warp": "Drop a few pins and drag the picture with them: smooth in between, "
             "and byte-for-byte untouched outside the falloff.",
+    "mesh-warp": "Lay a Bezier grid on the layer: drag the points to reshape it, "
+                 "select a point and drag its handles to bend the grid lines.",
     "ai-inpaint": "Frame an area, write what should be there, and a local ComfyUI "
                   "redraws it — the answer comes back as a new masked layer.",
     "ai-frequency": "Same structure as Frequency Separation, but both layers carry a "
@@ -1886,6 +1983,7 @@ AREA = {"selection": "图层转换", "channel": "图层转换", "split": "图层
         "cutout": "Mask",
         "refine": "Mask",
         "warp": "Distort",
+        "mesh-warp": "Distort",
         "alpha-curves": "Mask", "color-range": "Mask",
         "channel-to-mask": "Mask", "max-min": "Mask"}
 
@@ -1894,6 +1992,7 @@ DEPS = {
     "cutout": [],
     "refine": [],
     "warp": [],
+    "mesh-warp": [],
     "hsv": ["lb:hsv-dual", "lb:hsv-compose", "gimp:curves"],
     "lch": ["lb:lch-dual", "lb:lch-compose", "gimp:curves"],
     "hsl": ["lb:hsl-dual", "lb:hsl-compose", "gimp:curves"],

@@ -1709,3 +1709,103 @@ PLUGIN_EN["warp"] = dict(
     </div>
   </div>""",
 )
+
+PLUGIN_EN["mesh-warp"] = dict(
+    lede="""Puppet warp pulls the content around; this one puts a free-form surface over
+   it. A Bezier grid is laid on the layer: drag a grid point to change the shape, select
+   a point to reveal its handles, drag a handle and the grid line bends into a curve —
+   which is how a bulge, a waist or a flipped edge becomes possible at all.""",
+    body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Using it</h3><span class="pill">points, then handles</span></div>
+      <p>Pick a layer → menu → <b>drag a grid point</b> and the picture deforms. Click a
+         point to select it: <b>four small dots</b> appear around it — the two ends of its
+         handles (symmetric, either end drags the same). Drag one and the grid line bends.</p>
+      <p><b>Right-click a point</b> to reset it; Delete does the same for the selected one,
+         and the sidebar has <i>Reset selected</i> / <i>Reset all</i>. <b>Grid density</b>
+         goes from 2×2 to 6×6 cells — Photoshop's default is 3×3.</p>
+      <p>The dashed lines are the original grid, the blue ones the deformed grid, so the
+         amount of movement is obvious. Output either <b>replaces the layer</b> or
+         <b>copies to a new one</b>.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>From a script</h3></div>
+      <p>The mesh is the <code>mesh</code> argument: the cell counts first, then six (or
+         seven) numbers per grid point, row by row —
+         <code>x,y,ux,uy,vx,vy,auto</code>: position, the two handle vectors, and 1/0 for
+         “handle derived from the neighbours” vs “dragged by hand”. Two numbers are enough
+         (position only), the rest of the lattice stays identity:</p>
+      <p><code>lb-plugin-mesh-warp layer mesh="3,3; 100,200; 150,180" output=replace</code></p>
+      <p>The dialog writes exactly this string when you press Apply, so a script can
+         replay a manual warp.</p>
+    </div>
+  </div>
+
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>How it is computed</h3><span class="pill">FFD, bicubic Bezier patches</span></div>
+    <p>The textbook name is <b>FFD</b> (free-form deformation): each cell is a
+       <b>bicubic Bezier patch with 16 control points</b> mapping (u,v) to image
+       coordinates. The corners are the grid points, the eight edge control points are
+       “point ± tangent/3” — three units of handle is exactly one control point, which is
+       also why Photoshop draws the handle that far out.</p>
+    <p>The warp runs backwards: for every destination pixel p, <b>Newton</b> solves
+       P(u,v) = p; the source coordinate is then <b>the position of (u,v) on the original
+       lattice</b>, handed to the resampler. The field is solved on a raster (140 nodes on
+       the long edge) and then goes through the very same <code>warp_rgba</code> as puppet
+       warp — one resampler for both tools.</p>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl">
+      <div class="dl-head"><h3>Three things that quietly break it</h3></div>
+      <p><b>1. The source coordinate is the uv on the original lattice, not a point on the
+         surface.</b> The surface only answers “which uv lands on this pixel”; the source
+         image stays laid out at its own size. Get this wrong and the whole picture shifts
+         once — it looks like a misalignment, not a maths bug.</p>
+      <p><b>2. The four inner control points need the twist term.</b> With only “± tangent/3”
+         even an identity grid comes out bent at the cell centre — the surface is no longer
+         a plane. Adding (P11-P10-P01+P00)/9 makes the identity field exactly zero.</p>
+      <p><b>3. The handles must be auto-limited.</b> Drag the middle point 80 px and the
+         right cell keeps a 66 px tangent on a 26 px chord: the control polygon folds back,
+         the cell self-intersects, the inverse has two branches and the picture tears. So
+         moving a point re-derives the tangents from its neighbours and clamps them to the
+         shorter adjacent chord.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>…and two more</h3></div>
+      <p><b>4. Newton needs a step limit.</b> Where the surface is squashed the local
+         derivative is tiny, one step crosses a whole cell, lands where the derivative is
+         large and jumps back — measured as endless oscillation on cell boundaries, ending
+         12 px off. Limiting a step to 0.75 cell fixes it.</p>
+      <p><b>5. Changing the grid density is a re-fit, not lossless.</b> Denser is invisible
+         (3→6 cells: 1.6 px); sparser visibly changes the shape — a 2×2 grid only has one
+         cell to work with. Pick the density first, then drag.</p>
+      <p>Handles are <b>symmetric</b>: a point's tangent is shared by the cells on both
+         sides, which keeps the surface C1 across cell borders. Sharp corners are not
+         possible (Photoshop drags its handles in pairs too).</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl">
+      <div class="dl-head"><h3>Measured</h3></div>
+      <p>768×1024 layer, one point dragged plus one handle bent: <b>0.41 s</b> including
+         buffer read and write. 1600×2400 end to end: <b>1.3 s</b> (field 150 ms,
+         resampling 1.16 s).</p>
+      <p>This warp is <b>global</b>: move one point and every pixel needs resampling. The
+         preview therefore runs at a 480 px long edge, about <b>95 ms</b> per redraw —
+         slower than puppet warp (520 px, only a patch resampled). That is the cost, not a
+         missing optimisation.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Where it differs from Photoshop</h3></div>
+      <p><b>Has:</b> grid points with Bezier handles, 2×2 to 6×6 density, dashed original
+         grid for reference, live preview, a scriptable mesh. <b>Does not have:</b>
+         Photoshop's warp presets (arc / flag / fisheye), the “split” grid, or the depth
+         ordering that puppet warp itself lacks.</p>
+      <p>Useful references: <b>Krita's Warp transform</b> uses the same kind of bicubic
+         surface mesh, while <b>GIMP's own Warp Transform</b> is the push/pull brush. Both
+         are worth comparing against.</p>
+    </div>
+  </div>""",
+)

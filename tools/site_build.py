@@ -2413,6 +2413,19 @@ PLUGIN_SPECS = [
                   "钉子也能用参数传，脚本可以完整复现。",
              shared=["warp_math.py", "arap.py", "mask_io.py", "refine_math.py"],
              pdb="lb-plugin-puppet-warp(image, drawables, pins, mode, radius, output)"),
+        dict(key="mesh-warp", ops=[],
+             name="gegl-color-ops-plugin-mesh-warp.zip",
+             src_dir=os.path.join(ROOT, "plugin", "mesh-warp"),
+             py="mesh-warp.py",
+             menu="自由变形 (Free Transform)",
+             menus="    SuperMrWang → Distort → 自由变形（网格 + 把手）…",
+             desc="自由变形：图层上盖一张贝塞尔网格，拖交点改形状；选中交点会露出"
+                  "两个把手，拖把手把网格线弯成曲线，鼓包、收腰、翻边这类直线格子"
+                  "做不到的形状都能出来。2×2～6×6 格可换，实时预览，网格能用参数"
+                  "传给脚本复现。",
+             shared=["mesh_warp.py", "warp_math.py", "mask_io.py",
+                     "refine_math.py"],
+             pdb="lb-plugin-mesh-warp(image, drawables, mesh, output)"),
         dict(key="ai-frequency", ops=[],
              name="gegl-color-ops-plugin-ai-frequency-separation.zip",
              src_dir=os.path.join(ROOT, "plugin", "ai-frequency-separation"),
