@@ -626,7 +626,7 @@ ComfyUI 的 `node_errors` 原样甩出来。本地那条什么都不需要。
 回归：`tools/check_cutout.py`（87 条：种子点分布、偏移换算、alpha 残影闸、
 cover 缩放、背景三选一、工作流参数、mock 端到端、节点缺失文案、模型优选项与
 报错翻译、源码约束）+
-`tools/check_cutout_gimp.py`（30 条：蒙版真的落在像素上、选区路径、三种背景、
+`tools/check_cutout_gimp.py`（35 条：蒙版真的落在像素上、选区路径、三种背景、
 cover 之后的尺寸与偏移、失败路径不留蒙版/选区）。
 
 ### Python 插件：plugin/refine-mask（选择并遮住）
