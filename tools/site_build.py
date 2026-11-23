@@ -2426,6 +2426,18 @@ PLUGIN_SPECS = [
              shared=["mesh_warp.py", "warp_math.py", "mask_io.py",
                      "refine_math.py"],
              pdb="lb-plugin-mesh-warp(image, drawables, mesh, output)"),
+        dict(key="vanishing-point", ops=[],
+             name="gegl-color-ops-plugin-vanishing-point.zip",
+             src_dir=os.path.join(ROOT, "plugin", "vanishing-point"),
+             py="vanishing-point.py",
+             menu="消失点 (Vanishing Point)",
+             menus="    SuperMrWang → Distort → 消失点（透视平面）…",
+             desc="消失点：拖一个四边形标出画面里的透视平面，网格按世界坐标等距铺开、"
+                  "自然朝消失点收敛。能沿边拖出相邻平面（垂直或同向），能把整张图透视"
+                  "贴上去，也能把这块画面拉正成矩形图层。",
+             shared=["perspective.py", "mask_io.py", "refine_math.py"],
+             pdb="lb-plugin-vanishing-point(image, drawables, planes, mode, "
+                 "along, output)"),
         dict(key="ai-frequency", ops=[],
              name="gegl-color-ops-plugin-ai-frequency-separation.zip",
              src_dir=os.path.join(ROOT, "plugin", "ai-frequency-separation"),

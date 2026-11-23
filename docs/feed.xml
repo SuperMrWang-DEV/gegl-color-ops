@@ -106,6 +106,15 @@
        零开始。</summary>
   </entry>
   <entry>
+    <title>插件 · 消失点</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/vanishing-point.html"/>
+    <id>tag:github.com,2026:plugin-vanishing-point</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>这一支不拽像素，它是**给画面标一块「有透视的平面」**：拖一个四边形，
+   它就代表三维世界里的一块矩形；网格按世界坐标等距铺开，于是自然朝消失点收敛。
+   标好之后能往回拉——把整张图透视贴上去，或者把这块画面拉正成矩形。</summary>
+  </entry>
+  <entry>
     <title>插件 · 自由变形</title>
     <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/mesh-warp.html"/>
     <id>tag:github.com,2026:plugin-mesh-warp</id>

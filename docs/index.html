@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>gegl-color-ops · GIMP 3 的 GEGL 算子与插件</title>
-<meta name="description" content="GIMP 3 的 47 个 GEGL 色彩算子 + 26 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-zh="GIMP 3 的 47 个 GEGL 色彩算子 + 26 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-en="GIMP 3 的 47 个 GEGL 色彩算子 + 26 个 Python 插件，Windows / Linux / macOS 整包直接下载。">
+<meta name="description" content="GIMP 3 的 47 个 GEGL 色彩算子 + 27 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-zh="GIMP 3 的 47 个 GEGL 色彩算子 + 27 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-en="GIMP 3 的 47 个 GEGL 色彩算子 + 27 个 Python 插件，Windows / Linux / macOS 整包直接下载。">
 <meta property="og:title" content="gegl-color-ops · GIMP 3 的 GEGL 算子与插件" data-title-zh="gegl-color-ops · GIMP 3 的 GEGL 算子与插件" data-title-en="gegl-color-ops · GEGL operators and plug-ins for GIMP 3">
-<meta property="og:description" content="GIMP 3 的 47 个 GEGL 色彩算子 + 26 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-zh="GIMP 3 的 47 个 GEGL 色彩算子 + 26 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-en="GIMP 3 的 47 个 GEGL 色彩算子 + 26 个 Python 插件，Windows / Linux / macOS 整包直接下载。">
+<meta property="og:description" content="GIMP 3 的 47 个 GEGL 色彩算子 + 27 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-zh="GIMP 3 的 47 个 GEGL 色彩算子 + 27 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-en="GIMP 3 的 47 个 GEGL 色彩算子 + 27 个 Python 插件，Windows / Linux / macOS 整包直接下载。">
 <link rel="stylesheet" href="assets/style.css?v=90a1149d22">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="feed.xml">
 <script>
@@ -45,15 +45,15 @@
   <div class="home-glow" aria-hidden="true"></div>
   <p class="eyebrow">GIMP 3.x · GEGL 0.4 · GPL-3.0</p>
   <h1><span class="l-zh">GIMP 3 的 <span class="grad">GEGL 插件</span><br>两个包，一整套调色链</span><span class="l-en">The <span class="grad">GEGL plug-in set</span><br>for GIMP 3</span></h1>
-  <p class="lede"><span class="l-zh">47 个 <code>lb:</code> 算子管算法，26 个 Python 插件管流程：
+  <p class="lede"><span class="l-zh">47 个 <code>lb:</code> 算子管算法，27 个 Python 插件管流程：
      把分量拆成层、把 alpha 画成曲线、把磨皮拆成高低频、把通道与蒙版互相倒。装完即用，
      全部能当非破坏滤镜挂在图层上，改参数不落像素。</span><span class="l-en">Two archives, the whole colour chain: 47 <code>lb:</code>
-     GEGL operators for the maths, 26 Python plug-ins for the workflow: split a component into layers,
+     GEGL operators for the maths, 27 Python plug-ins for the workflow: split a component into layers,
      draw alpha as a curve, separate skin into high and low frequency, flip channels and masks
      back and forth. Ready to use, all of it mounts as non-destructive filters.</span></p>
   <ul class="facts">
     <li><b>47</b> <span class="l-zh">个算子</span><span class="l-en">operators</span></li>
-    <li><b>26</b> <span class="l-zh">个插件</span><span class="l-en">plug-ins</span></li>
+    <li><b>27</b> <span class="l-zh">个插件</span><span class="l-en">plug-ins</span></li>
     <li><b>9</b> <span class="l-zh">个分组</span><span class="l-en">groups</span></li>
     <li><b>0</b> <span class="l-zh">依赖 · 免编译</span><span class="l-en">deps · prebuilt</span></li>
   </ul>
@@ -98,25 +98,25 @@
   <article class="door door-plug" id="plugins">
     <p class="door-kicker">02 · PLUG-INS</p>
     <h2><span class="l-zh">Python 插件</span><span class="l-en">Python plug-ins</span></h2>
-    <p class="door-lead"><span class="l-zh">26 个 Python 插件，负责把算子串成流程：五个色彩空间的分量
+    <p class="door-lead"><span class="l-zh">27 个 Python 插件，负责把算子串成流程：五个色彩空间的分量
      拆层加三条曲线、Alpha 曲线、高低频 / 双曲线 / 中性灰磨皮、图层转选区与转通道，
-     还有通道 / 选区 / 蒙版 / 路径十二个方向的互转。每个插件内部要用的算子模块已经打在包里。</span><span class="l-en">26 Python plug-ins that string the operators into a workflow: component
+     还有通道 / 选区 / 蒙版 / 路径十二个方向的互转。每个插件内部要用的算子模块已经打在包里。</span><span class="l-en">27 Python plug-ins that string the operators into a workflow: component
      split-and-curve in five colour spaces, alpha curves, frequency-separation / dodge &amp;
      burn / neutral-grey retouching, layer-to-selection and layer-to-channel, plus the
      twelve-way channel / selection / mask / path conversion. The operator modules each one
      needs are already inside.</span></p>
     <div class="door-meta">
-      <span><b>26</b> <span class="l-zh">个 .py</span><span class="l-en">scripts</span></span>
+      <span><b>27</b> <span class="l-zh">个 .py</span><span class="l-en">scripts</span></span>
       <span><b>3</b> <span class="l-zh">组磨皮</span><span class="l-en">retouching sets</span></span>
       <span><b>2</b> <span class="l-zh">处入口</span><span class="l-en">menu entries</span></span>
     </div>
     <div class="door-dl"><a class="dl-link" href="download/gegl-color-ops-plugins-windows-x64.zip">
         <span class="os"><span class="l-zh">Windows x64</span><span class="l-en">Windows x64</span></span>
-        <span class="meta"><span class="l-zh">26 个 .py · 13 个模块 · 0.8 MB</span><span class="l-en">26 .py · 13 modules · 0.8 MB</span></span>
+        <span class="meta"><span class="l-zh">27 个 .py · 13 个模块 · 0.8 MB</span><span class="l-en">27 .py · 13 modules · 0.8 MB</span></span>
         <span class="arrow" aria-hidden="true">↓</span>
       </a><a class="dl-link is-missing" href="download/gegl-color-ops-plugins-linux-x64.zip">
         <span class="os"><span class="l-zh">Linux x86_64</span><span class="l-en">Linux x86_64</span></span>
-        <span class="meta"><span class="l-zh">26 个 .py · 13 个模块 · 0.4 MB</span><span class="l-en">26 .py · 13 modules · 0.4 MB</span></span>
+        <span class="meta"><span class="l-zh">27 个 .py · 13 个模块 · 0.4 MB</span><span class="l-en">27 .py · 13 modules · 0.4 MB</span></span>
         <span class="arrow" aria-hidden="true">↓</span>
       </a><a class="dl-link" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/actions/workflows/build.yml">
         <span class="os"><span class="l-zh">macOS arm64</span><span class="l-en">macOS arm64</span></span>
@@ -125,7 +125,7 @@
       </a></div>
     
     <div class="door-foot">
-      <a href="plugins.html"><span class="l-zh">看全部 26 个插件</span><span class="l-en">Browse all 26</span> <span aria-hidden="true">→</span></a>
+      <a href="plugins.html"><span class="l-zh">看全部 27 个插件</span><span class="l-en">Browse all 27</span> <span aria-hidden="true">→</span></a>
       <a class="sub" href="guide.html"><span class="l-zh">怎么装</span><span class="l-en">How to install</span></a>
     </div>
   </article>
@@ -227,7 +227,7 @@ macOS    ~/Library/Application Support/GIMP/3.x/plug-ins</code></pre>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">da61b09</span>
+    <span class="muted">9704a03</span>
   </div>
 </footer>
 <script>

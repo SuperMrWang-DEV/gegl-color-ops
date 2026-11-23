@@ -1263,6 +1263,101 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
   </div>""",
     ),
     dict(
+        key='vanishing-point',
+        slug='vanishing-point',
+        title='消失点',
+        tag=('变形', 't-distort'),
+        count='透视平面',
+        menu='SuperMrWang → Distort → 消失点（透视平面）…',
+        menus=['SuperMrWang → Distort → 消失点（透视平面）…'],
+        pdb='lb-plugin-vanishing-point(image, drawables, planes, mode, along, output)',
+        lede="""这一支不拽像素，它是**给画面标一块「有透视的平面」**：拖一个四边形，
+   它就代表三维世界里的一块矩形；网格按世界坐标等距铺开，于是自然朝消失点收敛。
+   标好之后能往回拉——把整张图透视贴上去，或者把这块画面拉正成矩形。""",
+        body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>怎么用</h3><span class="pill">拖一个四边形</span></div>
+      <p>选图层 → 菜单 → <b>在画面上拖出一个四边形</b>。这就是一块平面。拖它的四个角，
+         让它贴住真实的墙、地面或桌面——不用很准，网格会告诉你差多少。</p>
+      <p>选中平面后，每条边的中点有一个<b>小三角</b>，拖它就能从这条边再长出一块相邻
+         平面。方向有两种：「<b>垂直于这块</b>」（PS 的墙对墙）和「<b>在同一平面里</b>」
+         （同一面墙接着铺）。新平面的两条深度线自动指向垂直方向的消失点，所以不用手调
+         就接得上。</p>
+      <p>右侧两种活：<b>透视贴图</b>把整张图按四角铺到这个平面上，平面外一个字节都不动；
+         <b>拉正</b>反过来，把这块画面展开成一张新矩形图层——拍歪的海报、路牌、名片
+         就是这么救回来的。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>从脚本</h3></div>
+      <p>平面是 <code>planes</code> 参数：每个平面 8 个数，四个角按
+         「左上、右上、右下、左下」的顺序，多个平面用 <code>|</code> 隔开。<b>第一个</b>
+         是生效的那个，其余只是留着让对话框下次还能读回来。</p>
+      <p><code>lb-plugin-vanishing-point layer|<br>
+         &nbsp;&nbsp;planes="100,120,900,80,1020,700,60,780" mode=paste output=replace</code></p>
+      <p>只给 6 个数也行，第四角补成平行四边形。对话框按「应用」时会把用过的平面串写回
+         这个参数，所以手动拖出来的东西脚本能原样重放。</p>
+    </div>
+  </div>
+
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>怎么算的</h3><span class="pill">单应 + 垂心</span></div>
+    <p>四边形四角 ↔ 世界坐标的 (0,0)/(1,0)/(1,1)/(0,1)，八个参数用四点法解一个 8×8
+       线性方程组，得到<b>单应矩阵</b> H。之后所有事都是 H 的正反用：</p>
+    <p>· <b>网格</b>：世界里 s = k/N 的等距直线，逐条投影到图像上。所以网格是真的「等距」，
+       近处稀、远处密，收敛到消失点——不是画出来的装饰线。<br>
+       · <b>贴图</b>：源图四角 ↔ 平面四角，反解每个目标像素落在源图哪儿。<br>
+       · <b>拉正</b>：反过来，输出矩形的 (s,t) 经 H 找到源坐标。</p>
+    <p>第二面墙靠一条纯射影几何的事实：<b>三个互相垂直方向的消失点，构成一个三角形，
+       而主点（画面中心）正是它的垂心</b>。所以知道平面自己的两个消失点，第三个方向
+       不用相机内参、不用焦距就算得出来——只假设主点在画面正中。</p>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl">
+      <div class="dl-head"><h3>三个非踩不可的</h3></div>
+      <p><b>1. 单应必须先用 Hartley 归一化。</b>直接拿原始像素（上千的量级）解 8×8，
+         条件数能差到 1e8，纯 Python 的高斯消元只好到 1e-3——四边形一歪，贴图就错位。
+         归一化到「质心在原点、平均距离 √2」之后，残差回到 1e-13。</p>
+      <p><b>2. 网格线要按齐次分母 w 的符号断开。</b>世界坐标往远处延伸时 w 会过零，
+         越过零点的那一段是「地平线之后」的像，跟前面的点连起来会画出一条<b>横穿画面
+         的假线</b>——看着像画面裂了一道。</p>
+      <p><b>3. 第三方向的消失点不是「另一组边的交点」。</b>拿平面另一对边去求，得到的是
+         同一个消失点，墙会贴到墙自己身上。必须是垂心关系。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>…还有两个</h3></div>
+      <p><b>4. 延伸平面的两个远角不能取同一个 t。</b>都写成 <code>p + t·(V−p)</code> 会让
+         新平面的上下两条边严格平行，u 方向消失点跑到 1e16 外面——等于把透视扔了。
+         正确解：q0 落在 p0 的射线上，q1 由「落在 p1 的射线上」和「q0q1 过共享边方向的
+         消失点」两条约束解出来。</p>
+      <p><b>5. 贴图的边界是硬边，拉正的边界会脏。</b>贴图时平面外保持原样，所以边缘是
+         一刀切；拉正时输出顶边正好压在四边形边上，双线性会混进一点外面，实测差 3 个
+         色阶——肉眼看不出来，但回归里要把边界 6 px 排除掉，否则会误报。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl">
+      <div class="dl-head"><h3>实测</h3></div>
+      <p>768×1024 图层：贴图 <b>127 ms</b>、拉正 <b>71 ms</b>。1600×2400：
+         贴图 <b>635 ms</b>、拉正 <b>356 ms</b>。比木偶变形慢，因为整块平面都要重采样；
+         但只算平面的外接框，比「整幅透视」省一半。</p>
+      <p>预览按 <b>560 长边</b>跑，一次约 <b>75 ms</b>，拖动跟得上手。纯 Python 那条路
+         大概慢 4 倍（1200×900 一秒钟），只在没装 numpy 时用。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>和 PS 的差异</h3></div>
+      <p><b>有：</b>四边形平面、朝消失点收敛的透视网格、从边延伸相邻平面（垂直 / 延续
+         两种）、透视贴图、拉正成新图层。<br>
+         <b>没有：</b>PS 最常用的那个「在平面上用图章/画笔，笔画自动贴合透视」——那要写
+         GIMP 的绘图工具类，工作量是另一件事；也没有导出 3D、没有「平面自动吸附共享
+         消失点」（我们是靠拖角对齐）。</p>
+      <p>想对照着看：Krita 的「透视辅助线」是同一类东西（但只画线、不贴图），
+         而真正的教科书名字叫 <b>homography-based image transfer</b>。</p>
+    </div>
+  </div>""",
+    ),
+    dict(
         key='ai-frequency',
         ai_comfy=True,
         slug='ai-frequency-separation',
@@ -1844,6 +1939,7 @@ BRIEF = {
     "cutout": "两条路：AI（RMBG）连发丝一起抠，本地版从四边泛洪吃纯色背景。",
     "refine": "选区做完了边还是糊的：六根滑杆 + 实时预览，把边缘收干净。",
     "warp": "点几个钉子拖住画面走：钉子之间平滑过渡，圈外一个字节都不动。",
+    "vanishing-point": "拖一个四边形标出透视平面：网格朝消失点收敛，能把图贴上去、也能拉正。",
     "mesh-warp": "盖一张贝塞尔网格：拖交点改形状，选中交点拖把手把网格线弯成曲线。",
     "alpha-curves": "把颜色通道写进 alpha，再接一条三个控制点的平滑曲线："
                     "挂上去先拉满，往下拖即成形状。",
@@ -1874,6 +1970,7 @@ TITLE_EN = {
     "refine": "Select and Mask",
     "warp": "Puppet Warp",
     "mesh-warp": "Free Transform (Mesh)",
+    "vanishing-point": "Vanishing Point",
     "luminosity": "Luminosity Masks",
     "alpha-curves": "Alpha Curves",
     "color-range": "Color Range",
@@ -1915,6 +2012,9 @@ BRIEF_EN = {
             "and byte-for-byte untouched outside the falloff.",
     "mesh-warp": "Lay a Bezier grid on the layer: drag the points to reshape it, "
                  "select a point and drag its handles to bend the grid lines.",
+    "vanishing-point": "Mark a perspective plane on the picture: the grid "
+                     "converges to the vanishing points, and you can paste "
+                     "into it or rectify it flat.",
     "ai-inpaint": "Frame an area, write what should be there, and a local ComfyUI "
                   "redraws it — the answer comes back as a new masked layer.",
     "ai-frequency": "Same structure as Frequency Separation, but both layers carry a "
@@ -1984,6 +2084,7 @@ AREA = {"selection": "图层转换", "channel": "图层转换", "split": "图层
         "refine": "Mask",
         "warp": "Distort",
         "mesh-warp": "Distort",
+        "vanishing-point": "Distort",
         "alpha-curves": "Mask", "color-range": "Mask",
         "channel-to-mask": "Mask", "max-min": "Mask"}
 
@@ -1993,6 +2094,7 @@ DEPS = {
     "refine": [],
     "warp": [],
     "mesh-warp": [],
+    "vanishing-point": [],
     "hsv": ["lb:hsv-dual", "lb:hsv-compose", "gimp:curves"],
     "lch": ["lb:lch-dual", "lb:lch-compose", "gimp:curves"],
     "hsl": ["lb:hsl-dual", "lb:hsl-compose", "gimp:curves"],

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-title-zh="消失点 · Python 插件 · gegl-color-ops" data-title-en="消失点 · Python plug-ins · gegl-color-ops">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>消失点 · Python 插件 · gegl-color-ops</title>
+<meta name="description" content="这一支不拽像素，它是**给画面标一块「有透视的平面」**：拖一个四边形，
+   它就代表三维世界里的一块矩形；网格按世界坐标等距铺开，于是自然朝消失点收敛。
+   标好之后能往回拉——把整张图透视贴上去，或者把这块画面拉正成矩形。" data-desc-zh="这一支不拽像素，它是**给画面标一块「有透视的平面」**：拖一个四边形，
+   它就代表三维世界里的一块矩形；网格按世界坐标等距铺开，于是自然朝消失点收敛。
+   标好之后能往回拉——把整张图透视贴上去，或者把这块画面拉正成矩形。" data-desc-en="This one does not drag pixels around. It marks **a plane that has perspective**
+   on the picture: drag out a quadrilate">
+<meta property="og:title" content="消失点 · Python 插件 · gegl-color-ops" data-title-zh="消失点 · Python 插件 · gegl-color-ops" data-title-en="消失点 · Python plug-ins · gegl-color-ops">
+<meta property="og:description" content="这一支不拽像素，它是**给画面标一块「有透视的平面」**：拖一个四边形，
+   它就代表三维世界里的一块矩形；网格按世界坐标等距铺开，于是自然朝消失点收敛。
+   标好之后能往回拉——把整张图透视贴上去，或者把这块画面拉正成矩形。" data-desc-zh="这一支不拽像素，它是**给画面标一块「有透视的平面」**：拖一个四边形，
+   它就代表三维世界里的一块矩形；网格按世界坐标等距铺开，于是自然朝消失点收敛。
+   标好之后能往回拉——把整张图透视贴上去，或者把这块画面拉正成矩形。" data-desc-en="This one does not drag pixels around. It marks **a plane that has perspective**
+   on the picture: drag out a quadrilate">
+<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+<main id="main">
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> /
+    <a href="../plugins.html">插件</a> / Distort</p>
+  <h1>消失点</h1>
+  <div class="meta">
+    <code>plugin/vanishing-point</code>
+    <span class="tag t-distort">变形</span>
+    <span>Distort</span>
+  </div>
+  <p class="lede">这一支不拽像素，它是**给画面标一块「有透视的平面」**：拖一个四边形，
+   它就代表三维世界里的一块矩形；网格按世界坐标等距铺开，于是自然朝消失点收敛。
+   标好之后能往回拉——把整张图透视贴上去，或者把这块画面拉正成矩形。</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="zh-overview">
+  <dt>菜单位置</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → Distort → 消失点（透视平面）…</li></ul><p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p></dd>
+  <dt>脚本调用</dt>
+  <dd><code class="pdb">lb-plugin-vanishing-point(image, drawables, planes, mode, along, output)</code><p>标准 PDB 过程，参数留空走默认值。</p></dd>
+  <dt>依赖</dt>
+  <dd><p>靠下面这些算子干活。<b>它们已经打进这个插件的下载包</b>（<code>modules-windows-x64</code> / <code>modules-linux-x64</code>），不用另外去下：</p></dd>
+</dl>
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-1">
+      <div class="dl-head"><h3>怎么用</h3><span class="pill">拖一个四边形</span></div>
+      <p>选图层 → 菜单 → <b>在画面上拖出一个四边形</b>。这就是一块平面。拖它的四个角，
+         让它贴住真实的墙、地面或桌面——不用很准，网格会告诉你差多少。</p>
+      <p>选中平面后，每条边的中点有一个<b>小三角</b>，拖它就能从这条边再长出一块相邻
+         平面。方向有两种：「<b>垂直于这块</b>」（PS 的墙对墙）和「<b>在同一平面里</b>」
+         （同一面墙接着铺）。新平面的两条深度线自动指向垂直方向的消失点，所以不用手调
+         就接得上。</p>
+      <p>右侧两种活：<b>透视贴图</b>把整张图按四角铺到这个平面上，平面外一个字节都不动；
+         <b>拉正</b>反过来，把这块画面展开成一张新矩形图层——拍歪的海报、路牌、名片
+         就是这么救回来的。</p>
+    </div>
+    <div class="dl" id="zh-sec-2">
+      <div class="dl-head"><h3>从脚本</h3></div>
+      <p>平面是 <code>planes</code> 参数：每个平面 8 个数，四个角按
+         「左上、右上、右下、左下」的顺序，多个平面用 <code>|</code> 隔开。<b>第一个</b>
+         是生效的那个，其余只是留着让对话框下次还能读回来。</p>
+      <p><code>lb-plugin-vanishing-point layer|<br>
+         &nbsp;&nbsp;planes="100,120,900,80,1020,700,60,780" mode=paste output=replace</code></p>
+      <p>只给 6 个数也行，第四角补成平行四边形。对话框按「应用」时会把用过的平面串写回
+         这个参数，所以手动拖出来的东西脚本能原样重放。</p>
+    </div>
+  </div>
+
+  <div class="dl" id="zh-sec-3">
+    <div class="dl-head"><h3>怎么算的</h3><span class="pill">单应 + 垂心</span></div>
+    <p>四边形四角 ↔ 世界坐标的 (0,0)/(1,0)/(1,1)/(0,1)，八个参数用四点法解一个 8×8
+       线性方程组，得到<b>单应矩阵</b> H。之后所有事都是 H 的正反用：</p>
+    <p>· <b>网格</b>：世界里 s = k/N 的等距直线，逐条投影到图像上。所以网格是真的「等距」，
+       近处稀、远处密，收敛到消失点——不是画出来的装饰线。<br>
+       · <b>贴图</b>：源图四角 ↔ 平面四角，反解每个目标像素落在源图哪儿。<br>
+       · <b>拉正</b>：反过来，输出矩形的 (s,t) 经 H 找到源坐标。</p>
+    <p>第二面墙靠一条纯射影几何的事实：<b>三个互相垂直方向的消失点，构成一个三角形，
+       而主点（画面中心）正是它的垂心</b>。所以知道平面自己的两个消失点，第三个方向
+       不用相机内参、不用焦距就算得出来——只假设主点在画面正中。</p>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-4">
+      <div class="dl-head"><h3>三个非踩不可的</h3></div>
+      <p><b>1. 单应必须先用 Hartley 归一化。</b>直接拿原始像素（上千的量级）解 8×8，
+         条件数能差到 1e8，纯 Python 的高斯消元只好到 1e-3——四边形一歪，贴图就错位。
+         归一化到「质心在原点、平均距离 √2」之后，残差回到 1e-13。</p>
+      <p><b>2. 网格线要按齐次分母 w 的符号断开。</b>世界坐标往远处延伸时 w 会过零，
+         越过零点的那一段是「地平线之后」的像，跟前面的点连起来会画出一条<b>横穿画面
+         的假线</b>——看着像画面裂了一道。</p>
+      <p><b>3. 第三方向的消失点不是「另一组边的交点」。</b>拿平面另一对边去求，得到的是
+         同一个消失点，墙会贴到墙自己身上。必须是垂心关系。</p>
+    </div>
+    <div class="dl" id="zh-sec-5">
+      <div class="dl-head"><h3>…还有两个</h3></div>
+      <p><b>4. 延伸平面的两个远角不能取同一个 t。</b>都写成 <code>p + t·(V−p)</code> 会让
+         新平面的上下两条边严格平行，u 方向消失点跑到 1e16 外面——等于把透视扔了。
+         正确解：q0 落在 p0 的射线上，q1 由「落在 p1 的射线上」和「q0q1 过共享边方向的
+         消失点」两条约束解出来。</p>
+      <p><b>5. 贴图的边界是硬边，拉正的边界会脏。</b>贴图时平面外保持原样，所以边缘是
+         一刀切；拉正时输出顶边正好压在四边形边上，双线性会混进一点外面，实测差 3 个
+         色阶——肉眼看不出来，但回归里要把边界 6 px 排除掉，否则会误报。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-6">
+      <div class="dl-head"><h3>实测</h3></div>
+      <p>768×1024 图层：贴图 <b>127 ms</b>、拉正 <b>71 ms</b>。1600×2400：
+         贴图 <b>635 ms</b>、拉正 <b>356 ms</b>。比木偶变形慢，因为整块平面都要重采样；
+         但只算平面的外接框，比「整幅透视」省一半。</p>
+      <p>预览按 <b>560 长边</b>跑，一次约 <b>75 ms</b>，拖动跟得上手。纯 Python 那条路
+         大概慢 4 倍（1200×900 一秒钟），只在没装 numpy 时用。</p>
+    </div>
+    <div class="dl" id="zh-sec-7">
+      <div class="dl-head"><h3>和 PS 的差异</h3></div>
+      <p><b>有：</b>四边形平面、朝消失点收敛的透视网格、从边延伸相邻平面（垂直 / 延续
+         两种）、透视贴图、拉正成新图层。<br>
+         <b>没有：</b>PS 最常用的那个「在平面上用图章/画笔，笔画自动贴合透视」——那要写
+         GIMP 的绘图工具类，工作量是另一件事；也没有导出 3D、没有「平面自动吸附共享
+         消失点」（我们是靠拖角对齐）。</p>
+      <p>想对照着看：Krita 的「透视辅助线」是同一类东西（但只画线、不贴图），
+         而真正的教科书名字叫 <b>homography-based image transfer</b>。</p>
+    </div>
+  </div>
+
+<section class="download" id="zh-download">
+  <h2>下载这一个</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>消失点（透视平面）…</h3><span class="pill">.py · 免编译</span></div>
+    <p>包里是一个 <code>.py</code>、一份安装说明，以及 <code>_shared/</code> 与 <code>locale/</code>。整包解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，但界面只有英文。</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-vanishing-point.zip">下载 消失点（透视平面）…</a>
+    <p class="muted small">69.1 KB · 校验：<code>SHA256 2addfa1dc6c3345fc39227151c86271e…</code></p>
+  </div>
+</section>
+
+<p class="note">文中「码」指 8 位图上的一个台阶：0–255 共 256 级，
+   相邻两级的差就是 1 码，等于 1/255 ≈ 0.392%%（也就是 RGB 128 与 129 之间的差）。
+   各数量级的含义与「码为什么不是感知量」的说明见
+   <a href="../guide.html#code">安装指南 · 精度里的「码」</a>。</p>
+  </article>
+  <aside class="toc">
+    <p class="toc-title">本页目录</p>
+    <ul>
+      <li><a href="#zh-overview">概览</a></li>
+<li><a href="#zh-sec-1">怎么用</a></li><li><a href="#zh-sec-2">从脚本</a></li><li><a href="#zh-sec-3">怎么算的</a></li><li><a href="#zh-sec-4">三个非踩不可的</a></li><li><a href="#zh-sec-5">…还有两个</a></li><li><a href="#zh-sec-6">实测</a></li><li><a href="#zh-sec-7">和 PS 的差异</a></li>
+      <li><a href="#zh-download">下载</a></li>
+    </ul>
+  </aside>
+</div>
+<nav class="pager">
+  <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
+  <a class="prev" href="mesh-warp.html"><span>上一篇</span>自由变形</a><a class="next" href="ai-frequency-separation.html"><span>下一篇</span>高低频磨皮（AI 预修）</a>
+</nav></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> /
+    <a href="../plugins.html">Plug-ins</a> / Retouch</p>
+  <h1>Vanishing Point</h1>
+  <div class="meta">
+    <code>plugin/vanishing-point</code>
+    <span class="tag t-distort">Distort</span>
+    <span>Retouch</span>
+  </div>
+  <p class="lede">This one does not drag pixels around. It marks **a plane that has perspective**
+   on the picture: drag out a quadrilateral and it stands for a rectangle in the 3D world.
+   The grid is laid out at even spacing in world units, so it converges to the vanishing
+   points by itself. Once the plane is marked you can use it in either direction — paste
+   the whole picture into it, or rectify that patch back to a flat rectangle.</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="en-overview">
+  <dt>Menu location</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → Distort → Vanishing Point（透视平面）…</li></ul><p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p></dd>
+  <dt>Scripting</dt>
+  <dd><code class="pdb">lb-plugin-vanishing-point(image, drawables, planes, mode, along, output)</code><p>A standard PDB procedure; leave an argument empty to take its default.</p></dd>
+  <dt>Dependencies</dt>
+  <dd><p>The operators below do the work. <b>They are already inside this plug-in's download</b> (<code>modules-windows-x64</code> / <code>modules-linux-x64</code>) — nothing else to fetch:</p></dd>
+</dl>
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-1">
+      <div class="dl-head"><h3>Using it</h3><span class="pill">drag one quadrilateral</span></div>
+      <p>Pick a layer → menu → <b>drag a quadrilateral</b> on the picture. That is a plane.
+         Drag its four corners until it sits on a real wall, floor or tabletop — it does not
+         have to be exact, the grid shows you how far off you are.</p>
+      <p>With a plane selected, every edge carries a <b>little triangle at its midpoint</b>;
+         drag it to grow a neighbouring plane from that edge. Two directions:
+         <b>perpendicular</b> (Photoshop's wall-next-to-wall) and <b>in the same plane</b>
+         (the same wall, further along). The new plane's depth lines point at the
+         perpendicular vanishing point automatically, so it joins up without hand-tuning.</p>
+      <p>Two jobs on the right: <b>paste into the plane</b> lays the whole layer onto the
+         quadrilateral, leaving everything outside untouched; <b>rectify</b> does the
+         opposite and unfolds that patch into a flat rectangular layer — how you rescue a
+         poster, street sign or business card shot at an angle.</p>
+    </div>
+    <div class="dl" id="en-sec-2">
+      <div class="dl-head"><h3>From a script</h3></div>
+      <p>The mesh is the <code>planes</code> argument: eight numbers per plane, four corners
+         in the order top-left, top-right, bottom-right, bottom-left, planes separated by
+         <code>|</code>. The <b>first</b> one is the one that acts; the rest are kept so the
+         dialog can read them back next time.</p>
+      <p><code>lb-plugin-vanishing-point layer|<br>
+         &nbsp;&nbsp;planes="100,120,900,80,1020,700,60,780" mode=paste output=replace</code></p>
+      <p>Six numbers are enough too — the fourth corner is completed as a parallelogram.
+         Pressing Apply writes the plane string back into this argument, so a script can
+         replay a hand-dragged plane exactly.</p>
+    </div>
+  </div>
+
+  <div class="dl" id="en-sec-3">
+    <div class="dl-head"><h3>How it is computed</h3><span class="pill">homography + orthocentre</span></div>
+    <p>The four corners map to world (0,0)/(1,0)/(1,1)/(0,1); eight parameters, one 8×8
+       linear system, and you have a <b>homography</b> H. Everything after that is H used
+       forwards or backwards:</p>
+    <p>· <b>Grid</b> — evenly spaced world lines s = k/N, projected one by one. So the grid
+       really is evenly spaced in the world: wide near the camera, tight far away, converging
+       to the vanishing points. It is not decoration.<br>
+       · <b>Paste</b> — the source image's four corners map to the plane's four corners;
+          every destination pixel is solved back to a source coordinate.<br>
+       · <b>Rectify</b> — the reverse: each output pixel's (s,t) goes through H to find the
+          source.</p>
+    <p>The second wall rests on one fact of projective geometry: <b>the vanishing points of
+       three mutually perpendicular directions form a triangle whose orthocentre is the
+       principal point</b> (the centre of the frame). So from a plane's own two vanishing
+       points the third direction follows with no camera intrinsics and no focal length —
+       the only assumption is that the principal point is in the middle.</p>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-4">
+      <div class="dl-head"><h3>Three things that quietly break it</h3></div>
+      <p><b>1. The homography must be solved on Hartley-normalised points.</b> Feeding raw
+         pixel coordinates (thousands) into an 8×8 system puts the condition number near
+         1e8, and plain Gaussian elimination only lands at 1e-3 — nudge one corner and the
+         paste is misaligned. Normalising to "centroid at the origin, mean distance √2"
+         brings the residual back to 1e-13.</p>
+      <p><b>2. Grid lines must break where the homogeneous denominator changes sign.</b>
+         Extending the world outward makes w cross zero; past that point you are looking at
+         the image <i>behind the horizon</i>, and joining it to the previous points draws a
+         bogus line straight across the picture — it looks like the frame has been torn.</p>
+      <p><b>3. The third vanishing point is not "the intersection of the other pair of
+         edges".</b> Doing that returns the same vanishing point you started with and the
+         wall lands on top of itself. It has to be the orthocentre relation.</p>
+    </div>
+    <div class="dl" id="en-sec-5">
+      <div class="dl-head"><h3>…and two more</h3></div>
+      <p><b>4. The two far corners of a grown plane must not share one t.</b> Writing both
+         as <code>p + t·(V−p)</code> makes the new plane's two edges exactly parallel and
+         sends its u vanishing point out past 1e16 — perspective thrown away. The correct
+         construction: q0 sits on p0's ray, and q1 comes from intersecting "on p1's ray"
+         with "q0q1 passes through the shared edge's vanishing point".</p>
+      <p><b>5. Paste has a hard edge; rectify has a dirty one.</b> Paste leaves the outside
+         untouched, so the border is a clean cut. Rectify puts its first row exactly on the
+         quadrilateral's edge, where bilinear sampling mixes in a little of the outside —
+         measured at 3 levels, invisible to the eye, but the regression has to skip 6 px at
+         the border or it reports a false failure.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-6">
+      <div class="dl-head"><h3>Measured</h3></div>
+      <p>768×1024 layer: paste <b>127 ms</b>, rectify <b>71 ms</b>. 1600×2400: paste
+         <b>635 ms</b>, rectify <b>356 ms</b>. Slower than puppet warp because the whole
+         plane is resampled — but only the plane's bounding box is touched, which halves the
+         work compared with a full-frame perspective transform.</p>
+      <p>The preview runs at a <b>560 px long edge</b>, about <b>75 ms</b> per redraw, which
+         keeps up with the drag. The pure-Python path is roughly 4× slower (one second at
+         1200×900) and only runs when numpy is missing.</p>
+    </div>
+    <div class="dl" id="en-sec-7">
+      <div class="dl-head"><h3>Where it differs from Photoshop</h3></div>
+      <p><b>Has:</b> quadrilateral planes, a grid that converges to the vanishing points,
+         growing a neighbouring plane from an edge (perpendicular or continuing), paste into
+         the plane, rectify to a new layer.<br>
+         <b>Does not have:</b> Photoshop's most-used trick — cloning and painting <i>on</i>
+         the plane with the stroke following the perspective. That needs a GIMP paint tool
+         subclass and is a job of its own. Also no 3D export, and planes do not snap to each
+         other's vanishing points (you align them by dragging corners).</p>
+      <p>Worth comparing against: <b>Krita's perspective assistants</b> are the same idea but
+         only draw guides, they do not transfer images. The textbook name for the transfer
+         itself is <b>homography-based image transfer</b>.</p>
+    </div>
+  </div>
+
+<section class="download" id="en-download">
+  <h2>Download this one</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>Vanishing Point</h3><span class="pill">.py · no compile</span></div>
+    <p>The archive holds a single <code>.py</code>, an install note and the <code>_shared/</code> + <code>locale/</code> pair. Unpack all of it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register. Without <code>_shared/</code> and <code>locale/</code> it still runs, but only in English.</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-vanishing-point.zip">Download Vanishing Point</a>
+    <p class="muted small">69.1 KB · checksum: <code>SHA256 2addfa1dc6c3345fc39227151c86271e…</code></p>
+  </div>
+</section>
+
+<p class="note">In this article a "code" means one step on an 8-bit
+   image: 0–255 is 256 levels, so the gap between neighbours is 1 code, or
+   1/255 ≈ 0.392%% (the difference between RGB 128 and 129). For the order of magnitude
+   of each figure, and why a code is not a perceptual quantity, see
+   <a href="../guide.html#code">Install guide · what a code is</a>.</p>
+  </article>
+  <aside class="toc">
+    <p class="toc-title">On this page</p>
+    <ul>
+      <li><a href="#en-overview">Overview</a></li>
+<li><a href="#en-sec-1">Using it</a></li><li><a href="#en-sec-2">From a script</a></li><li><a href="#en-sec-3">How it is computed</a></li><li><a href="#en-sec-4">Three things that quietly break it</a></li><li><a href="#en-sec-5">…and two more</a></li><li><a href="#en-sec-6">Measured</a></li><li><a href="#en-sec-7">Where it differs from Photoshop</a></li>
+      <li><a href="#en-download">Download</a></li>
+    </ul>
+  </aside>
+</div>
+<nav class="pager">
+  <a href="../plugins.html"><span>Back to</span>All plug-ins</a>
+  <a class="prev" href="mesh-warp.html"><span>Previous</span>Free Transform (Mesh)</a><a class="next" href="ai-frequency-separation.html"><span>Next</span>Frequency Separation (AI prep)</a>
+</nav></div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
+    <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
+    <span class="muted">9704a03</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
+</body>
+</html>

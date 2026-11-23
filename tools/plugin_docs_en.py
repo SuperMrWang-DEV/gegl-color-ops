@@ -1809,3 +1809,116 @@ PLUGIN_EN["mesh-warp"] = dict(
     </div>
   </div>""",
 )
+
+PLUGIN_EN["vanishing-point"] = dict(
+    lede="""This one does not drag pixels around. It marks **a plane that has perspective**
+   on the picture: drag out a quadrilateral and it stands for a rectangle in the 3D world.
+   The grid is laid out at even spacing in world units, so it converges to the vanishing
+   points by itself. Once the plane is marked you can use it in either direction — paste
+   the whole picture into it, or rectify that patch back to a flat rectangle.""",
+    body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Using it</h3><span class="pill">drag one quadrilateral</span></div>
+      <p>Pick a layer → menu → <b>drag a quadrilateral</b> on the picture. That is a plane.
+         Drag its four corners until it sits on a real wall, floor or tabletop — it does not
+         have to be exact, the grid shows you how far off you are.</p>
+      <p>With a plane selected, every edge carries a <b>little triangle at its midpoint</b>;
+         drag it to grow a neighbouring plane from that edge. Two directions:
+         <b>perpendicular</b> (Photoshop's wall-next-to-wall) and <b>in the same plane</b>
+         (the same wall, further along). The new plane's depth lines point at the
+         perpendicular vanishing point automatically, so it joins up without hand-tuning.</p>
+      <p>Two jobs on the right: <b>paste into the plane</b> lays the whole layer onto the
+         quadrilateral, leaving everything outside untouched; <b>rectify</b> does the
+         opposite and unfolds that patch into a flat rectangular layer — how you rescue a
+         poster, street sign or business card shot at an angle.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>From a script</h3></div>
+      <p>The mesh is the <code>planes</code> argument: eight numbers per plane, four corners
+         in the order top-left, top-right, bottom-right, bottom-left, planes separated by
+         <code>|</code>. The <b>first</b> one is the one that acts; the rest are kept so the
+         dialog can read them back next time.</p>
+      <p><code>lb-plugin-vanishing-point layer|<br>
+         &nbsp;&nbsp;planes="100,120,900,80,1020,700,60,780" mode=paste output=replace</code></p>
+      <p>Six numbers are enough too — the fourth corner is completed as a parallelogram.
+         Pressing Apply writes the plane string back into this argument, so a script can
+         replay a hand-dragged plane exactly.</p>
+    </div>
+  </div>
+
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>How it is computed</h3><span class="pill">homography + orthocentre</span></div>
+    <p>The four corners map to world (0,0)/(1,0)/(1,1)/(0,1); eight parameters, one 8×8
+       linear system, and you have a <b>homography</b> H. Everything after that is H used
+       forwards or backwards:</p>
+    <p>· <b>Grid</b> — evenly spaced world lines s = k/N, projected one by one. So the grid
+       really is evenly spaced in the world: wide near the camera, tight far away, converging
+       to the vanishing points. It is not decoration.<br>
+       · <b>Paste</b> — the source image's four corners map to the plane's four corners;
+          every destination pixel is solved back to a source coordinate.<br>
+       · <b>Rectify</b> — the reverse: each output pixel's (s,t) goes through H to find the
+          source.</p>
+    <p>The second wall rests on one fact of projective geometry: <b>the vanishing points of
+       three mutually perpendicular directions form a triangle whose orthocentre is the
+       principal point</b> (the centre of the frame). So from a plane's own two vanishing
+       points the third direction follows with no camera intrinsics and no focal length —
+       the only assumption is that the principal point is in the middle.</p>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl">
+      <div class="dl-head"><h3>Three things that quietly break it</h3></div>
+      <p><b>1. The homography must be solved on Hartley-normalised points.</b> Feeding raw
+         pixel coordinates (thousands) into an 8×8 system puts the condition number near
+         1e8, and plain Gaussian elimination only lands at 1e-3 — nudge one corner and the
+         paste is misaligned. Normalising to "centroid at the origin, mean distance √2"
+         brings the residual back to 1e-13.</p>
+      <p><b>2. Grid lines must break where the homogeneous denominator changes sign.</b>
+         Extending the world outward makes w cross zero; past that point you are looking at
+         the image <i>behind the horizon</i>, and joining it to the previous points draws a
+         bogus line straight across the picture — it looks like the frame has been torn.</p>
+      <p><b>3. The third vanishing point is not "the intersection of the other pair of
+         edges".</b> Doing that returns the same vanishing point you started with and the
+         wall lands on top of itself. It has to be the orthocentre relation.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>…and two more</h3></div>
+      <p><b>4. The two far corners of a grown plane must not share one t.</b> Writing both
+         as <code>p + t·(V−p)</code> makes the new plane's two edges exactly parallel and
+         sends its u vanishing point out past 1e16 — perspective thrown away. The correct
+         construction: q0 sits on p0's ray, and q1 comes from intersecting "on p1's ray"
+         with "q0q1 passes through the shared edge's vanishing point".</p>
+      <p><b>5. Paste has a hard edge; rectify has a dirty one.</b> Paste leaves the outside
+         untouched, so the border is a clean cut. Rectify puts its first row exactly on the
+         quadrilateral's edge, where bilinear sampling mixes in a little of the outside —
+         measured at 3 levels, invisible to the eye, but the regression has to skip 6 px at
+         the border or it reports a false failure.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl">
+      <div class="dl-head"><h3>Measured</h3></div>
+      <p>768×1024 layer: paste <b>127 ms</b>, rectify <b>71 ms</b>. 1600×2400: paste
+         <b>635 ms</b>, rectify <b>356 ms</b>. Slower than puppet warp because the whole
+         plane is resampled — but only the plane's bounding box is touched, which halves the
+         work compared with a full-frame perspective transform.</p>
+      <p>The preview runs at a <b>560 px long edge</b>, about <b>75 ms</b> per redraw, which
+         keeps up with the drag. The pure-Python path is roughly 4× slower (one second at
+         1200×900) and only runs when numpy is missing.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Where it differs from Photoshop</h3></div>
+      <p><b>Has:</b> quadrilateral planes, a grid that converges to the vanishing points,
+         growing a neighbouring plane from an edge (perpendicular or continuing), paste into
+         the plane, rectify to a new layer.<br>
+         <b>Does not have:</b> Photoshop's most-used trick — cloning and painting <i>on</i>
+         the plane with the stroke following the perspective. That needs a GIMP paint tool
+         subclass and is a job of its own. Also no 3D export, and planes do not snap to each
+         other's vanishing points (you align them by dragging corners).</p>
+      <p>Worth comparing against: <b>Krita's perspective assistants</b> are the same idea but
+         only draw guides, they do not transfer images. The textbook name for the transfer
+         itself is <b>homography-based image transfer</b>.</p>
+    </div>
+  </div>""",
+)
