@@ -1146,6 +1146,38 @@ python tools/i18n_blocks.py check                    # 与 git HEAD 比对代码
 映射文件里 `{"zh": "...", "en": "..."}` 由工具自动排版，`{"div": "名称"}` 生成分隔线，
 `{"tail": "..."}` 只改行尾注释，`null` 表示删除该块（用于合并重复的中英两块）。
 
+## GIMP 自带的 Python 与 numpy
+
+GIMP 3 for Windows 自带一个**精简、无 pip** 的 Python（当前 3.14.10，MSYS2/MinGW
+构建），插件跑在里面。想在插件里用 numpy，不能 `pip install`，也不能拿系统 Python
+装——两边互相看不见。
+
+```bash
+python tools/install_gimp_numpy.py           # 自动找 GIMP 与 MSYS2
+python tools/install_gimp_numpy.py --check   # 只验证
+```
+
+它会做四件事：从 MSYS2 的 `ucrt64` 拿 `mingw-w64-ucrt-x86_64-python-numpy`
+（必要时 `pacman -S`），覆盖复制进 GIMP 的 `site-packages`，把
+`.cp314-mingw_x86_64_ucrt_gnu.pyd` **改名成 `..._ucrt_llvm.pyd`**，再把
+`libopenblas / libgfortran / libgcc_s_seh / libgomp / libstdc++ / libquadmath`
+补进 `GIMP/bin`（只补缺的，不覆盖）。
+
+**为什么必须用 MinGW 构建的那一份**（两个坑，都很安静）：
+
+1. GIMP 的 `sysconfig.get_config_var('EXT_SUFFIX')` 是
+   `.cp314-mingw_x86_64_ucrt_llvm.pyd`，PyPI 官方 wheel 是 `.cp314-win_amd64.pyd`。
+   不解压改名 → `ModuleNotFoundError`；改名 → 它导入表里要 `python314.dll`，
+   GIMP 只有 `libpython3.14.dll`，于是 `DLL load failed`。
+2. 有人会想「拷一份 `libpython3.14.dll` 改名成 `python314.dll` 不就行了」——不行。
+   加载能过，但 `PyInit` 是在**另一个 CPython 实例**里创建的，返回时报
+   `initialization of _multiarray_umath did not return an extension module`。
+   MSYS2 那份链接的是 `libpython3.14.dll`，和 GIMP 是同一个实例，所以能用。
+
+装好后在 GIMP 进程内实测：`numpy 2.4.6` + OpenBLAS，`linalg.solve(1000×1000)`
+约 **0.015 秒**。GIMP 升级会换成新的 `python3.XX` 目录，**升级后要重跑一次**
+（脚本幂等，不删任何已有文件）。
+
 ## 构建
 
 **方式一：gcc 直编（Windows/MSYS2、Linux、macOS 通用，已验证）**
