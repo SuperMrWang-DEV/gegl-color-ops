@@ -2367,7 +2367,7 @@ PLUGIN_SPECS = [
              desc="AI 局部重绘：框一块地方、写一句提示词，交给本机 ComfyUI（Stable "
                   "Diffusion）重画，结果当新图层贴回原位，羽化选区做图层蒙版。同包还带"
                   "一个「AI 环境」入口：没装 ComfyUI 的人可以从那里一键装、一键起。",
-             shared=["ai_client.py", "prompt_tools.py"],
+             shared=["ai_client.py", "comfy_launcher.py", "prompt_tools.py"],
              setup=True,
              pdb="lb-plugin-ai-inpaint(image, drawables, prompt, preset, negative)\n"
                  "lb-plugin-ai-inpaint-advanced(image, drawables, prompt, preset,\n"
@@ -2385,7 +2385,7 @@ PLUGIN_SPECS = [
                   "修过一遍的参考图（ComfyUI 低重绘，或本地降采样低通），合成结果"
                   "就是那张参考图——打开文件时色块已铺平、痘印已淡掉。",
              shared=["retouch_prep.py", "retouch_math.py", "ai_client.py",
-                     "prompt_tools.py"],
+                     "comfy_launcher.py", "prompt_tools.py"],
              pdb="lb-plugin-ai-frequency-separation(image, drawables, prompt, source, "
                  "radius, denoise, server, checkpoint, steps, group)"),
         dict(key="ai-dodge", ops=[],
@@ -2399,7 +2399,7 @@ PLUGIN_SPECS = [
                   "的亮度差」预先涂好七成，浓度按每个像素自己的亮度反算。打开就能"
                   "接着补几笔。",
              shared=["retouch_prep.py", "retouch_math.py", "ai_client.py",
-                     "prompt_tools.py"],
+                     "comfy_launcher.py", "prompt_tools.py"],
              pdb="lb-plugin-ai-dodge-burn(image, drawables, prompt, source, amount, "
                  "prepaint, radius, denoise, server, checkpoint, steps, group)"),
         dict(key="ai-grey", ops=[],
@@ -2413,7 +2413,7 @@ PLUGIN_SPECS = [
                   "反解出每个像素该有的灰度，已做一轮中性灰。白笔继续提亮、黑笔压暗、"
                   "#808080 擦回去。",
              shared=["retouch_prep.py", "retouch_math.py", "ai_client.py",
-                     "prompt_tools.py"],
+                     "comfy_launcher.py", "prompt_tools.py"],
              pdb="lb-plugin-ai-neutral-grey(image, drawables, prompt, source, prepaint, "
                  "radius, denoise, server, checkpoint, steps, group)"),
         dict(key="alpha-curves", ops=["channel-range-to-alpha"],

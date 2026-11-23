@@ -885,15 +885,21 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
          画面到边了才复制边缘，补出来的那圈贴回时被蒙版挡住。</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>AI 环境</h3><span class="pill">没装 ComfyUI？</span></div>
-      <p><b>AI Environment…</b> 打开先报状态：连不连得上、什么版本、几个底模；四个按钮——
-         <b>Start ComfyUI</b> 起服务、<b>One-click install…</b> 首次装环境（约 10 GB：
-         嵌入式 Python + torch cu128 + ComfyUI + 一份底模）、<b>Model folder</b> 直接打开
-         <code>models\\checkpoints</code>、<b>Refresh</b> 重新探测。</p>
-      <p>状态区会区分「服务没开」和「根本没装」，不会只甩一句「连不上」。安装器随插件
-         走（包里的 <code>ai-setup/</code>），不需要另外去找。</p>
-      <p class="muted small">为什么不是一个 zip：torch 的 CUDA 轮子 2.5 GB、底模 2~7 GB，
-         打进包里既过不了分发许可，也没人愿意下 10 GB 的安装包。</p>
+      <div class="dl-head"><h3>AI 环境</h3><span class="pill">装在哪都行</span></div>
+      <p><b>AI Environment…</b> 打开先报状态：连不连得上、什么版本、几个底模，以及
+         <b>ComfyUI 装在哪、用的是哪个 python</b>。目录不对就点
+         <b>Choose folder…</b> 手选（含 <code>main.py</code> 的目录，或包着
+         <code>ComfyUI/</code> 的外层目录），选择会存进配置文件，下回不用再选。</p>
+      <p><b>Start</b> 起服务、<b>Stop</b> 停掉插件自己起的那个进程、
+         <b>One-click install…</b> 首次装环境（约 10 GB：嵌入式 Python + torch cu128 +
+         ComfyUI + 一份底模）、<b>Model folder</b> 直接打开
+         <code>models\\checkpoints</code>、<b>Refresh</b> 重新探测并带出日志尾几行。</p>
+      <p>默认开着「ComfyUI 没在运行时自动启动」：跑 AI 之前先探活，连不上就按选好的
+         目录在<b>后台</b>拉起来（不弹控制台，输出写 <code>comfyui.log</code>），等它就绪
+         再继续。只用手选过的目录、不去猜——猜错会拿另一个 Python 起别人的 ComfyUI。</p>
+      <p class="muted small">配置：Windows 在 <code>%APPDATA%\\SuperMrWang\\comfyui.json</code>，
+         Linux/macOS 在 <code>~/.config/SuperMrWang/comfyui.json</code>。安装器随插件走
+         （包里的 <code>ai-setup/</code>），不需要另外去找。</p>
     </div>
   </div>
 
@@ -1553,6 +1559,8 @@ BRIEF_EN = {
             "black darkens, grey paints it back.",
     "observe": "Six inspection layers, one menu item each: black & white, steep "
                "curves, wave curves, saturation, threshold, posterize.",
+    "luminosity": "Seven channels cut by luminance: three lights, three darks and "
+                  "midtones — double-click one to load it as a selection.",
     "ai-inpaint": "Frame an area, write what should be there, and a local ComfyUI "
                   "redraws it — the answer comes back as a new masked layer.",
     "ai-frequency": "Same structure as Frequency Separation, but both layers carry a "

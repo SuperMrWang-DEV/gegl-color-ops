@@ -93,6 +93,11 @@ try:
 except Exception:                  # 没带 prompt_tools.py：只用英文，不影响其他功能
     prompt_tools = None
 
+try:
+    import comfy_launcher            # 手选 ComfyUI 目录 + 连不上时自动拉起
+except Exception as _exc:            # 老包没带：退回「只连不管起」
+    comfy_launcher = None
+
 
 # ---- 常量 -------------------------------------------------------------------
 
@@ -329,6 +334,47 @@ def paste_result(image, drawable, png_path, rect, mask_channel):
 
 # ---- 主流程 / the whole thing ----------------------------------------------
 
+def _pump_events():
+    """启动 ComfyUI 那几十秒里让界面还能重画——不然用户看到的就是「卡死」。"""
+    if Gtk is None:
+        return
+    try:
+        while Gtk.events_pending():
+            Gtk.main_iteration()
+    except Exception:
+        pass
+
+
+def _autostart_comfy(server=""):
+    """AI 操作前的一次性保险：不在跑就按配置的目录拉起来。
+
+    只有**没传 client**（正常调用）时才走这里；回归脚本塞 mock client，
+    所以测试不会突然在本机起一个真 ComfyUI。
+    """
+    if comfy_launcher is None:
+        return None
+
+    def tick(msg):
+        try:
+            Gimp.progress_pulse()
+        except Exception:
+            pass
+        _pump_events()
+
+    res = comfy_launcher.ensure_running(server, on_progress=tick)
+    if not res.get("ok"):
+        lines = [_("ComfyUI is not running and could not be started: %s")
+                 % (res.get("error") or "?")]
+        log = (res.get("log") or "").strip()
+        if log:
+            lines.append(_("Last lines of the log:"))
+            lines += ["    " + r for r in log.splitlines()[-12:]]
+        lines.append(_("Fix it from SuperMrWang → AI → AI Environment… "
+                       "(pick the ComfyUI folder, or start it there)."))
+        raise RuntimeError("\n".join(lines))
+    return res
+
+
 def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
                server="", checkpoint="", steps=25, cfg=7.5, seed=-1,
                denoise=1.0, grow=8, grow_mask_by=8, feather=4.0,
@@ -403,6 +449,7 @@ def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
 
         # 5) 缩放到这个底模的舒适长边，再交给 ComfyUI
         if client is None:
+            _autostart_comfy(server)
             client = ai_client.ComfyClient(server, timeout=min(timeout, 60.0))
         checkpoint = checkpoint or client.first_checkpoint()
         target = ai_client.family_target(checkpoint)
@@ -502,8 +549,18 @@ def find_installer():
 
 
 def candidate_homes():
-    """ComfyUI 可能装在哪：环境变量 → setup 的默认目录 → 常见位置。"""
+    """ComfyUI 可能装在哪：**用户手选的目录** → 环境变量 → 常见位置。
+
+    手选的目录排在第一位并且写进配置文件（comfy_launcher.config_path()），
+    所以「装在 D:\\AI\\ComfyUI 这种谁猜不到的地方」也能一次点对，下回开机还在。
+    """
     homes = []
+    if comfy_launcher is not None:
+        cfg = comfy_launcher.load()
+        picked = (cfg.get("home") or "").strip()
+        if picked:
+            homes.append(picked)
+        homes += comfy_launcher.guess_homes()
     env = (_os.environ.get(ENV_HOME) or "").strip().strip('"')
     if env:
         homes.append(env)
@@ -511,11 +568,28 @@ def candidate_homes():
     homes += [_os.path.join(home, "SuperMrWang-AI"),
               _os.path.join(home, "ComfyUI"),
               "C:/ComfyUI", "D:/ComfyUI"]
-    return homes
+    seen, uniq = set(), []
+    for p in homes:
+        key = _os.path.normcase(_os.path.normpath(p))
+        if key not in seen:
+            seen.add(key)
+            uniq.append(_os.path.normpath(p))
+    return uniq
 
 
 def find_runtime():
-    """返回 (环境根目录, start-comfyui.bat 或 None)；都没找到就 (None, None)。"""
+    """返回 (环境根目录, start-comfyui.bat 或 None)；都没找到就 (None, None)。
+
+    有 comfy_launcher 时用它的 detect()：它认「外层目录 + 里面 ComfyUI/main.py」
+    和「只有 main.py 没有 bat」这两种，比只找 bat 宽；bat 只是最后退路。
+    """
+    if comfy_launcher is not None:
+        cfg = comfy_launcher.load()
+        home = comfy_launcher.resolve_home(cfg)
+        det = comfy_launcher.detect(home, cfg)
+        if det["ok"] or det["main"]:
+            return home, (det["bat"] or None)
+        return None, None
     for root in candidate_homes():
         if not _os.path.isdir(root):
             continue
@@ -545,12 +619,14 @@ def env_report(server=""):
     """AI 环境对话框里要显示的几行字。连不上也要说清楚为什么、下一步做什么。"""
     lines = []
     names = []
+    online = False
     if ai_client is None:
         lines.append(_("plugin/_shared/ai_client.py is missing — reinstall the "
                        "plug-in with the _shared folder"))
     else:
         client = ai_client.ComfyClient(server, timeout=1.5)
         probe = client.probe()
+        online = probe["ok"]
         if probe["ok"]:
             lines.append(_("ComfyUI: online (v%s)") % (probe["version"] or "?"))
             names = _available_checkpoints()
@@ -572,11 +648,36 @@ def env_report(server=""):
     if root:
         lines.append(_("Environment: %s") % root)
         if start_bat is None:
-            lines.append(_("  (found the source but no start script — run "
-                           "setup-ai.bat once)"))
+            lines.append(_("  (found the source but no start script — the "
+                           "plug-in can start it with main.py directly)"))
     else:
-        lines.append(_("Environment: not found — click \"One-click install\" "
-                       "(about 10 GB, one time)"))
+        lines.append(_("Environment: not found — click \"Choose folder…\" and "
+                       "pick the folder that contains ComfyUI\\main.py "
+                       "(or one-click install, about 10 GB)"))
+
+    if comfy_launcher is not None:
+        cfg = comfy_launcher.load()
+        det = comfy_launcher.detect(root or "", cfg)
+        if det["main"]:
+            lines.append(_("  main.py: %s") % det["main"])
+        if det["python"]:
+            lines.append(_("  python: %s") % det["python"])
+        elif det["bat"]:
+            lines.append(_("  launcher: %s") % det["bat"])
+        elif det["main"]:
+            lines.append(_("  python: not found — click \"Choose python…\" "
+                           "and pick the interpreter ComfyUI uses"))
+        st = comfy_launcher.status(server)
+        lines.append(_("Auto-start: %s%s")
+                     % (_("on") if st["auto_start"] else _("off"),
+                        _(" (running as a background process, pid %d)") % st["pid"]
+                        if st["pid"] else ""))
+        lines.append(_("Config file: %s") % st["config"])
+        if not online and st["tail"]:
+            lines.append(_("Last lines of the log (%s):") % st["log"])
+            for row in st["tail"].splitlines()[-8:]:
+                lines.append("    " + row)
+
     inst = find_installer()
     if inst is None:
         lines.append(_("Installer: not shipped with this copy — get "
@@ -584,8 +685,53 @@ def env_report(server=""):
     return lines, names, root, start_bat, inst
 
 
+def _pick_folder(parent, title, current=""):
+    """选目录。取消返回空串（GTK 3 的 FileChooserDialog 是模态，run() 完要 destroy）。"""
+    chooser = Gtk.FileChooserDialog(title=title, parent=parent,
+                                    action=Gtk.FileChooserAction.SELECT_FOLDER)
+    chooser.add_button(_("_Cancel"), Gtk.ResponseType.CANCEL)
+    chooser.add_button(_("_Select"), Gtk.ResponseType.OK)
+    if current and _os.path.isdir(current):
+        try:
+            chooser.set_current_folder(current)
+        except Exception:
+            pass
+    path = ""
+    if chooser.run() == Gtk.ResponseType.OK:
+        path = chooser.get_filename() or ""
+    chooser.destroy()
+    return path
+
+
+def _pick_file(parent, title, current="", patterns=()):
+    """选文件（挑 python.exe 用）。"""
+    chooser = Gtk.FileChooserDialog(title=title, parent=parent,
+                                    action=Gtk.FileChooserAction.OPEN)
+    chooser.add_button(_("_Cancel"), Gtk.ResponseType.CANCEL)
+    chooser.add_button(_("_Select"), Gtk.ResponseType.OK)
+    for pat in patterns:
+        f = Gtk.FileFilter.new()
+        f.set_name(pat)
+        f.add_pattern(pat)
+        chooser.add_filter(f)
+    if current and _os.path.isdir(current):
+        try:
+            chooser.set_current_folder(current)
+        except Exception:
+            pass
+    path = ""
+    if chooser.run() == Gtk.ResponseType.OK:
+        path = chooser.get_filename() or ""
+    chooser.destroy()
+    return path
+
+
 def run_env_dialog(server=""):
-    """菜单里的「AI 环境…」：显示状态 + 三个按钮（启动 / 安装 / 模型目录）。
+    """菜单里的「AI 环境…」：状态 + 手选目录 + 启动/停止。
+
+    两件事在这里做：**手动指定 ComfyUI 装在哪个盘**（写进配置文件，下回不用
+    再选），以及**启动 / 停止**那个后台进程。默认「连不上时自动启动」是开的：
+    多数人不想为了修图先手动开一个服务。
 
     对话框是**非模态循环**：点完「启动」不关闭，等十几秒点「刷新」就能看到
     在线状态和模型清单——用户第一次装的时候最需要的正是这个反馈。
@@ -597,12 +743,11 @@ def run_env_dialog(server=""):
 
     dlg = Gtk.Dialog.new()
     dlg.set_title(_("SuperMrWang AI — ComfyUI"))
-    dlg.set_default_size(560, 360)
+    dlg.set_default_size(620, 460)
     dlg.add_button(_("_Close"), Gtk.ResponseType.CLOSE)
-    b_start = dlg.add_button(_("Start ComfyUI"), 1)
-    b_install = dlg.add_button(_("One-click install…"), 2)
-    b_folder = dlg.add_button(_("Model folder"), 3)
-    b_refresh = dlg.add_button(_("Refresh"), 4)
+    b_start = dlg.add_button(_("Start"), 1)
+    b_stop = dlg.add_button(_("Stop"), 6)
+    dlg.add_button(_("Refresh"), 4)
 
     box = dlg.get_content_area()
     box.set_border_width(12)
@@ -619,15 +764,107 @@ def run_env_dialog(server=""):
     box.add(hint)
     box.add(lbl)
 
+    # 手选类按钮不进 action area：那里已经有 4 个了，再塞会挤成一条缝
+    row = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 6)
+    b_pick = Gtk.Button.new_with_label(_("Choose folder…"))
+    b_py = Gtk.Button.new_with_label(_("Choose python…"))
+    b_install = Gtk.Button.new_with_label(_("One-click install…"))
+    b_folder = Gtk.Button.new_with_label(_("Model folder"))
+    for w in (b_pick, b_py, b_install, b_folder):
+        row.pack_start(w, False, False, 0)
+    box.add(row)
+
+    auto = Gtk.CheckButton.new_with_label(
+        _("Start ComfyUI automatically when it is not running"))
+    auto.set_active(True)
+    box.add(auto)
+    state = {"syncing": False}
+
     def refresh(msg=""):
         lines, _names, root, start_bat, inst = env_report(server)
         lbl.set_markup("<tt>%s</tt>" % GLib.markup_escape_text("\n".join(lines)))
-        b_start.set_sensitive(bool(start_bat))
+        st = comfy_launcher.status(server) if comfy_launcher is not None else {}
+        det = st.get("detect") or {}
+        b_start.set_sensitive(bool(det.get("ok") or start_bat))
+        b_stop.set_sensitive(bool(st.get("pid")))
+        b_py.set_sensitive(bool(comfy_launcher))
+        b_pick.set_sensitive(bool(comfy_launcher))
         b_install.set_sensitive(bool(inst))
+        auto.set_sensitive(bool(comfy_launcher))
+        # 重画状态时不要把勾选当成用户操作再写一遍盘
+        state["syncing"] = True
+        auto.set_active(bool(st.get("auto_start", True)))
+        state["syncing"] = False
         hint.set_markup(GLib.markup_escape_text(msg) if msg else "")
 
     refresh()
     box.show_all()
+
+    # 手选按钮不是 dialog response，光 connect 不行——run() 卡在它自己的循环里。
+    # 做法：回调里把活干完，再 dlg.response(RESP_UX) 叫醒 run()，外层循环收到
+    # 不认识的 response 就只重画一遍，继续等下一个动作。
+    RESP_UX = 90
+
+    def _choose_folder(*_a):
+        cur = ""
+        if comfy_launcher is not None:
+            cur = comfy_launcher.load().get("home") or ""
+        cur = cur or (find_runtime()[0] or "")
+        path = _pick_folder(dlg, _("Where is ComfyUI?"), cur)
+        if path:
+            _cfg, det = comfy_launcher.set_home(path)
+            if det["ok"]:
+                refresh(_("Saved: %s") % (det["main"] or det["bat"]))
+            else:
+                refresh(_("Saved, but the folder is not usable yet: %s")
+                        % (det["note"] or _("no main.py found")))
+        dlg.response(RESP_UX)
+
+    def _choose_python(*_a):
+        cur = comfy_launcher.load().get("home") or ""
+        path = _pick_file(dlg, _("Pick the python.exe ComfyUI runs with"), cur,
+                          ("python.exe", "*.exe", "*"))
+        if path:
+            _cfg, det = comfy_launcher.set_home(
+                comfy_launcher.load().get("home") or "", python=path)
+            refresh(_("Interpreter saved: %s") % det["python"])
+        dlg.response(RESP_UX)
+
+    def _open_installer(*_a):
+        inst = find_installer()
+        if inst and _open_path(inst):
+            refresh(_("The installer runs in its own console window (about "
+                      "10 GB, one time). When it finishes, come back and press "
+                      "Start."))
+        else:
+            Gimp.message(_("Installer not found next to the plug-in. Download "
+                           "setup-ai.bat + setup_ai.py from the plug-in pack "
+                           "(ai-setup folder)."))
+        dlg.response(RESP_UX)
+
+    def _open_models(*_a):
+        root = find_runtime()[0]
+        det = comfy_launcher.detect(root) if comfy_launcher is not None else {}
+        target = det.get("models") or ""
+        if not target or not _os.path.isdir(target):
+            target = _os.path.join(root or "", "ComfyUI", "models", "checkpoints")
+        if not _os.path.isdir(target):
+            target = root or ""
+        if target:
+            if not _open_path(target):
+                Gimp.message(_("Model folder: %s") % target)
+        else:
+            Gimp.message(_("ComfyUI is not installed yet — choose the folder "
+                           "or run the one-click install first."))
+        dlg.response(RESP_UX)
+
+    if comfy_launcher is not None:
+        b_pick.connect("clicked", _choose_folder)
+        b_py.connect("clicked", _choose_python)
+        auto.connect("toggled", lambda w: None if state["syncing"]
+                     else comfy_launcher.set_auto_start(w.get_active()))
+    b_install.connect("clicked", _open_installer)
+    b_folder.connect("clicked", _open_models)
 
     while True:
         resp = dlg.run()
@@ -635,37 +872,38 @@ def run_env_dialog(server=""):
                     Gtk.ResponseType.NONE):
             break
         if resp == 1:                                  # 启动
-            _lines, _n, root, start_bat, _i = env_report(server)
-            if start_bat and _open_path(start_bat):
-                refresh(_("Starting… wait 10–30 s, then press Refresh. "
-                          "Keep its console window open while using the AI "
-                          "features."))
+            if comfy_launcher is None:
+                _lines, _n, root, start_bat, _i = env_report(server)
+                if start_bat and _open_path(start_bat):
+                    refresh(_("Starting… wait 10–30 s, then press Refresh."))
+                else:
+                    Gimp.message(_("Could not start ComfyUI — install the "
+                                   "plug-in's _shared folder (comfy_launcher)."))
             else:
-                Gimp.message(_("Could not start ComfyUI — no start-comfyui.bat "
-                               "found. Run the one-click install first."))
-        elif resp == 2:                                # 一键安装
-            inst = find_installer()
-            if inst and _open_path(inst):
-                refresh(_("The installer runs in its own console window "
-                          "(about 10 GB, one time). When it finishes, come back "
-                          "and press Start ComfyUI."))
+                res = comfy_launcher.launch(server)
+                if res["ok"]:
+                    refresh(_("Starting in the background (pid %d)… wait "
+                              "10–30 s, then press Refresh. Log: %s")
+                            % (res["pid"], res["log"]))
+                else:
+                    Gimp.message(_("Could not start ComfyUI: %s")
+                                 % res["error"])
+        elif resp == 6:                                # 停止
+            if comfy_launcher is None:
+                Gimp.message(_("Stop ComfyUI from its console window."))
             else:
-                Gimp.message(_("Installer not found next to the plug-in. "
-                               "Download setup-ai.bat + setup_ai.py from the "
-                               "plug-in pack (ai-setup folder)."))
-        elif resp == 3:                                # 模型目录
-            root = find_runtime()[0]
-            if not root:
-                Gimp.message(_("ComfyUI is not installed yet — click "
-                               "One-click install first."))
-            else:
-                cand = _os.path.join(root, "ComfyUI", "models", "checkpoints")
-                target = cand if _os.path.isdir(cand) else root
-                if not _open_path(target):
-                    Gimp.message(_("Model folder: %s") % target)
+                res = comfy_launcher.stop()
+                refresh(_("Stopped.") if res["ok"]
+                        else _("Nothing to stop — %s") % res["error"])
         refresh()
         dlg.show_all()
 
+    if comfy_launcher is not None:
+        # 关窗前把勾选存一次：勾完直接按 X 的路径最容易漏
+        try:
+            comfy_launcher.set_auto_start(auto.get_active())
+        except Exception:
+            pass
     dlg.destroy()
 
 

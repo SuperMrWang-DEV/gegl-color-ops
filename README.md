@@ -596,7 +596,7 @@ alpha 都有回滚。与算子版本的区别是**一次性应用**——想随�
 
 规则：
 
-1. AI 连不上 ComfyUI 时**自动退回本地参考**，并在提示里说清原因——不静默失败，
+1. 连不上 ComfyUI 时先按「AI 环境」里选好的目录**自动拉起服务**；还是不行就**退回本地参考**，并在提示里说清原因——不静默失败，
    也不弹一堆报错。
 2. **有选区时只在选区内预修**，选区外逐像素等于原图（参考图整层混合，选区外
    alpha=0）。
@@ -658,7 +658,7 @@ python 的退出码 + `if errorlevel 1 set EXTRA=--cpu`，稳定得多。
 | --- | --- | --- |
 | **AI Inpaint…** | 画什么（`prompt`）+ 画什么主体（`preset` 下拉）+ 不要什么（`negative`） | 日常。三个框，其余参数用默认值 |
 | **AI Inpaint (Advanced)…** | 上面三项 + `server` / `checkpoint`（下拉）/ `steps` / `cfg` / `seed` / `denoise` / `grow` / `grow-mask-by` / `feather` / `timeout` / `keep-mask` / `scale` | 要复现同一张结果、要挑底模、要调步数或降 `denoise` 保结构 |
-| **AI Environment…** | 不问你，直接报状态（连上没、版本、有哪些底模）+ 四个按钮 | 第一次装 ComfyUI、服务没起、想换模型 |
+| **AI Environment…** | 不问你，直接报状态（连上没、版本、有哪些底模）+ 手选目录 / 启动 / 停止 | 第一次装 ComfyUI、装在别的盘、服务没起、想换模型 |
 
 为什么拆两个：GIMP 的参数对话框是一次性把参数全铺开的，没法折叠。十几个采样
 参数一摆，真正要填的那个框就被埋掉了——用起来像「只能重绘、不能指定画什么」。
@@ -758,14 +758,55 @@ tools\setup-ai.bat --verify             :: 只体检已装好的环境
 
 **装了插件的人不用去找这个 bat**：菜单里 **SuperMrWang → AI → AI Environment…**
 就是它的图形入口（`lb-plugin-ai-env`，零参数，不改图）。对话框开出来先做体检，
-再给四个按钮：
+按钮分两排：
 
 | 按钮 | 干什么 |
 | --- | --- |
-| **Start ComfyUI** | 用 `start-comfyui.bat` 起服务（新开一个控制台窗口，关掉窗口就停服务） |
+| **Start** | 直接 `python main.py --listen 127.0.0.1 --port 8188` 起服务——**后台进程，不弹控制台**，输出写进 `comfyui.log`；找不到解释器时才退回 `start-comfyui.bat` |
+| **Stop** | 停掉**插件自己起的**那个进程（`taskkill /T /F`）；别人起的服务不会被误杀 |
+| **Choose folder…** | **手动指定 ComfyUI 装在哪**（选含 `main.py` 的目录，或包着 `ComfyUI/` 的外层目录），存进配置文件，下回不用再选 |
+| **Choose python…** | 目录里找不到解释器（或想指定某个 venv）时，手动指一个 `python.exe` |
 | **One-click install…** | 跑 `setup-ai.bat`（首次约 10 GB，一个窗口里跑完，跑完回来点 Start） |
 | **Model folder** | 打开 `<安装目录>\ComfyUI\models\checkpoints`，往里丢模型最省事 |
-| **Refresh** | 重新探一次：连上了没、版本、有哪些底模 |
+| **Refresh** | 重新探一次：连上了没、版本、有哪些底模，以及**日志最后几行** |
+
+下面还有一个勾选框 **「ComfyUI 没在运行时自动启动」**（默认开）。勾着的话，
+每次跑 AI 操作前插件会先探一下 `/system_stats`，连不上就按你选的目录**自己把
+服务拉起来、等它就绪**，再继续重绘——不用先手动开一个服务。启动期间 GIMP 的
+进度条会转，界面不假死；超过 180 秒没起来就把 `comfyui.log` 的尾巴端给你。
+
+**配置存在哪、长什么样**（`comfy_launcher.config_path()`）：
+
+| 平台 | 路径 |
+| --- | --- |
+| Windows | `%APPDATA%\SuperMrWang\comfyui.json` |
+| Linux / macOS | `~/.config/SuperMrWang/comfyui.json` |
+
+```json
+{
+  "auto_start": true,
+  "extra_args": "",
+  "home": "D:\\ComfyUI",
+  "python": "D:\\ComfyUI\\py312\\python.exe",
+  "url": ""
+}
+```
+
+`home` 是目录、`python` 留空就自动找（`py312/`、`python_embeded/`、`venv/Scripts/`、
+`.venv/`、外层目录的 `py3xx/` 依次试）；`url` 留空 = `http://127.0.0.1:8188`，
+也可以继续用环境变量 `LB_COMFY_URL` / `LB_COMFY_HOME` 盖掉。想手工改配置也行，
+插件下次读的就是这个文件（`LB_COMFY_CONFIG` 可以把整个路径换掉）。
+
+**自动启动只用「你手选过的目录」，不会去猜。** 猜出来的目录只出现在状态文字里
+（「这儿好像有一个，点 Choose folder 确认一下」）。原因很实在：猜错一次就是
+「拿另一个 Python 去起别人的 ComfyUI」，报错全是 `ModuleNotFoundError`，比不起
+更难查——2026-11-23 写这条时回归里就踩过一次。目录一个字都没选过时，
+`ensure_running()` 直接告诉你「去 AI Environment 里选」，然后 AI 那一路退回本地
+参考（磨皮）或报错（重绘）。
+
+没有显卡、`torch.cuda.is_available()` 为假时，ComfyUI 会在 import 阶段就退出。
+自动启动会看日志：退出且提到 CUDA → 用 `--cpu` 再来一次（慢，但出得来图）。
+`stop()` 之后 pid 也会从 `comfyui-run.json` 里清掉，不会拿着一个死 pid 乱打。
 
 上面那一块是**实时状态**：连不上会写清是「服务没开」还是「压根没装」，模型清单
 会按家族和「不认提示词」标出来（`checkpoint_note()`）。做这个入口的原因是：

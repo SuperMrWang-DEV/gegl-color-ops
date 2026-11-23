@@ -2693,3 +2693,118 @@ msgstr "明度蒙版（7 条通道）"
 
 msgid "Added %d luminosity channels: double-click one to load it as a selection."
 msgstr "已生成 %d 条明度通道：双击任意一条即可载入为选区。"
+
+msgid "ComfyUI is not running and could not be started: %s"
+msgstr "ComfyUI 没在运行，也没能启动起来：%s"
+
+msgid "Last lines of the log:"
+msgstr "日志最后几行："
+
+msgid "Fix it from SuperMrWang → AI → AI Environment… (pick the ComfyUI folder, or start it there)."
+msgstr "去 SuperMrWang → AI → AI 环境… 里处理：选一下 ComfyUI 目录，或者在那儿点启动。"
+
+msgid "  (found the source but no start script — the plug-in can start it with main.py directly)"
+msgstr "  （找到源码但没启动脚本——插件可以直接用 main.py 起）"
+
+msgid "Environment: not found — click \"Choose folder…\" and pick the folder that contains ComfyUI\\main.py (or one-click install, about 10 GB)"
+msgstr "环境：没找到——点「选择文件夹…」指到含 ComfyUI\\main.py 的目录（或跑一键安装，约 10 GB）"
+
+msgid "  main.py: %s"
+msgstr "  main.py：%s"
+
+msgid "  python: %s"
+msgstr "  python：%s"
+
+msgid "  launcher: %s"
+msgstr "  启动脚本：%s"
+
+msgid "  python: not found — click \"Choose python…\" and pick the interpreter ComfyUI uses"
+msgstr "  python：没找到——点「选择 python…」指到 ComfyUI 用的那个解释器"
+
+msgid "Auto-start: %s%s"
+msgstr "自动启动：%s%s"
+
+msgid "on"
+msgstr "开"
+
+msgid "off"
+msgstr "关"
+
+msgid " (running as a background process, pid %d)"
+msgstr "（后台进程，pid %d）"
+
+msgid "Config file: %s"
+msgstr "配置文件：%s"
+
+msgid "Last lines of the log (%s):"
+msgstr "日志最后几行（%s）："
+
+msgid "_Cancel"
+msgstr "_取消"
+
+msgid "_Select"
+msgstr "_选择"
+
+msgid "_Close"
+msgstr "_关闭"
+
+msgid "Start"
+msgstr "启动"
+
+msgid "Stop"
+msgstr "停止"
+
+msgid "Choose folder…"
+msgstr "选择文件夹…"
+
+msgid "Choose python…"
+msgstr "选择 python…"
+
+msgid "Start ComfyUI automatically when it is not running"
+msgstr "ComfyUI 没在运行时自动启动"
+
+msgid "Where is ComfyUI?"
+msgstr "ComfyUI 装在哪个文件夹？"
+
+msgid "Saved: %s"
+msgstr "已保存：%s"
+
+msgid "Saved, but the folder is not usable yet: %s"
+msgstr "已保存，但这个目录还用不了：%s"
+
+msgid "no main.py found"
+msgstr "没找到 main.py"
+
+msgid "Pick the python.exe ComfyUI runs with"
+msgstr "选出 ComfyUI 用的 python.exe"
+
+msgid "Interpreter saved: %s"
+msgstr "解释器已保存：%s"
+
+msgid "The installer runs in its own console window (about 10 GB, one time). When it finishes, come back and press Start."
+msgstr "安装程序会在它自己的控制台窗口里跑（约 10 GB，只需一次）。装完回来点「启动」。"
+
+msgid "ComfyUI is not installed yet — choose the folder or run the one-click install first."
+msgstr "ComfyUI 还没装——先选目录，或者先跑一键安装。"
+
+msgid "Starting… wait 10–30 s, then press Refresh."
+msgstr "正在启动…等 10–30 秒，再点「刷新」。"
+
+msgid "Could not start ComfyUI — install the plug-in's _shared folder (comfy_launcher)."
+msgstr "起不来——插件缺 _shared 目录（comfy_launcher）。"
+
+msgid "Starting in the background (pid %d)… wait 10–30 s, then press Refresh. Log: %s"
+msgstr "正在后台启动（pid %d）…等 10–30 秒再点「刷新」。日志：%s"
+
+msgid "Could not start ComfyUI: %s"
+msgstr "起不来：%s"
+
+msgid "Stop ComfyUI from its console window."
+msgstr "请在那个控制台窗口里停掉 ComfyUI。"
+
+msgid "Stopped."
+msgstr "已停止。"
+
+msgid "Nothing to stop — %s"
+msgstr "没有可停的进程——%s"
+

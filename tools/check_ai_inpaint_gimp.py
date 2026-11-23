@@ -327,6 +327,21 @@ try:
         env_proc = Gimp.get_pdb().lookup_procedure(mod.PROC_ENV)
         check("注册了 AI 环境过程", env_proc is not None)
 
+        # 「AI 环境」现在还要能**手选 ComfyUI 目录**并**自己起服务**：目录选择器
+        # 和自动启动钩子只要缺一个，对话框里的按钮就是死的（点了没反应），
+        # 而这类问题在 headless 里不弹窗、看不出来，所以在这里点名查。
+        check("comfy_launcher 跟着插件加载上了", mod.comfy_launcher is not None)
+        check("有目录选择器（Choose folder…）",
+              callable(getattr(mod, "_pick_folder", None)))
+        check("有解释器选择器（Choose python…）",
+              callable(getattr(mod, "_pick_file", None)))
+        check("有 AI 操作前的自动启动钩子",
+              callable(getattr(mod, "_autostart_comfy", None)))
+        check("Gtk 支持选目录的 FileChooserDialog",
+              mod.Gtk is not None
+              and hasattr(mod.Gtk, "FileChooserDialog")
+              and hasattr(mod.Gtk.FileChooserAction, "SELECT_FOLDER"))
+
     # GIMP 会把没删掉的图像当成「插件漏出来的」报到日志里，收尾清干净
     for im in (img, img2, img3, img4):
         im.delete()

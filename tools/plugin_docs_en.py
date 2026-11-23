@@ -1404,18 +1404,25 @@ so you can re-limit the area later.</code></pre>
          masked out when pasting back.</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>AI Environment</h3><span class="pill">no ComfyUI yet?</span></div>
+      <div class="dl-head"><h3>AI Environment</h3><span class="pill">any folder</span></div>
       <p><b>AI Environment…</b> opens with the state: reachable or not, which version, how
-         many checkpoints — and four buttons: <b>Start ComfyUI</b>, <b>One-click install…</b>
-         (about 10 GB the first time: embedded Python + torch cu128 + ComfyUI + one
-         checkpoint), <b>Model folder</b> (opens <code>models\\checkpoints</code>),
-         <b>Refresh</b>.</p>
-      <p>The status line tells “not running” apart from “not installed” instead of just
-         saying “cannot connect”. The installer ships with the plug-in, in the
-         <code>ai-setup/</code> folder of the zip.</p>
-      <p class="muted small">Why not one big zip: torch's CUDA wheels are 2.5 GB and a
-         checkpoint 2–7 GB — that fails distribution licensing and nobody wants a 10 GB
-         download.</p>
+         many checkpoints — and <b>where ComfyUI lives and which python it runs</b>. If the
+         path is wrong, <b>Choose folder…</b> picks it by hand (the folder holding
+         <code>main.py</code>, or the wrapper folder holding <code>ComfyUI/</code>); the
+         choice is saved, so you only do it once.</p>
+      <p><b>Start</b> / <b>Stop</b> manage the process the plug-in started,
+         <b>One-click install…</b> sets everything up the first time (about 10 GB: embedded
+         Python + torch cu128 + ComfyUI + one checkpoint), <b>Model folder</b> opens
+         <code>models\\checkpoints</code>, <b>Refresh</b> re-probes and shows the log tail.</p>
+      <p>“Start ComfyUI automatically when it is not running” is on by default: before an AI
+         pass the plug-in probes <code>/system_stats</code>, and if nothing answers it starts
+         the server <b>in the background</b> from the folder you picked (no console window,
+         output to <code>comfyui.log</code>) and waits for it. Only an explicitly chosen
+         folder is used — never a guess: guessing once meant launching someone else's
+         ComfyUI with the wrong Python.</p>
+      <p class="muted small">Config: <code>%APPDATA%\\SuperMrWang\\comfyui.json</code> on
+         Windows, <code>~/.config/SuperMrWang/comfyui.json</code> elsewhere. The installer
+         ships with the plug-in, in the <code>ai-setup/</code> folder of the zip.</p>
     </div>
   </div>
 

@@ -47,7 +47,7 @@
   <ul class="facts">
     <li><span class="l-zh"><b>22</b> 个插件</span><span class="l-en"><b>22</b> plug-ins</span></li>
     <li><span class="l-zh"><b>22</b> 个 PDB 过程</span><span class="l-en"><b>22</b> PDB procedures</span></li>
-    <li><span class="l-zh"><b>783</b> 条插件回归断言</span><span class="l-en"><b>783</b> plug-in regression assertions</span></li>
+    <li><span class="l-zh"><b>839</b> 条插件回归断言</span><span class="l-en"><b>839</b> plug-in regression assertions</span></li>
     <li><span class="l-zh"><b>0</b> 编译 · 纯 Python</span><span class="l-en"><b>0</b> to compile · pure Python</span></li>
   </ul>
 </section>
@@ -77,7 +77,7 @@
 <tr><td><a href="plugins/dodge-burn.html"><b><span class="l-zh">双曲线磨皮</span><span class="l-en">Dodge &amp; Burn</span></b></a></td><td><code>lb-plugin-dodge-burn</code></td><td class="nowrap"><span class="l-zh">磨皮</span><span class="l-en">Retouching</span></td><td><span class="l-zh">提亮 / 压暗两条曲线压在黑蒙版下：涂到哪里动哪里。</span><span class="l-en">Two curves, one lightening and one darkening, under a black mask — paint where you want them.</span></td></tr>
 <tr><td><a href="plugins/neutral-grey.html"><b><span class="l-zh">中性灰磨皮</span><span class="l-en">Neutral Grey</span></b></a></td><td><code>lb-plugin-neutral-grey</code></td><td class="nowrap"><span class="l-zh">磨皮</span><span class="l-en">Retouching</span></td><td><span class="l-zh">一层 50% 灰、柔光下恒等；白笔提亮、黑笔压暗、灰盖回去。</span><span class="l-en">A 50% grey layer is identity under soft light: white brush lightens, black darkens, grey paints it back.</span></td></tr>
 <tr><td><a href="plugins/observe.html"><b><span class="l-zh">观察层</span><span class="l-en">Inspection Layers</span></b></a></td><td><code>lb-plugin-observe-* 六个过程，全部零参数</code></td><td class="nowrap"><span class="l-zh">观察</span><span class="l-en">Inspect</span></td><td><span class="l-zh">六种观察层各一个菜单项：黑白、陡峭曲线、波浪曲线、饱和度、阈值、海报化。</span><span class="l-en">Six inspection layers, one menu item each: black & white, steep curves, wave curves, saturation, threshold, posterize.</span></td></tr>
-<tr><td><a href="plugins/luminosity.html"><b><span class="l-zh">明度蒙版</span><span class="l-en">Luminosity Masks</span></b></a></td><td><code>lb-plugin-luminosity-mask</code></td><td class="nowrap"><span class="l-zh">蒙版</span><span class="l-en">Mask</span></td><td><span class="l-zh">按亮度切七刀：亮部/暗部各 3 档 + 中间调，双击通道即变选区。</span><span class="l-en">按亮度切七刀：亮部/暗部各 3 档 + 中间调，双击通道即变选区。</span></td></tr>
+<tr><td><a href="plugins/luminosity.html"><b><span class="l-zh">明度蒙版</span><span class="l-en">Luminosity Masks</span></b></a></td><td><code>lb-plugin-luminosity-mask</code></td><td class="nowrap"><span class="l-zh">蒙版</span><span class="l-en">Mask</span></td><td><span class="l-zh">按亮度切七刀：亮部/暗部各 3 档 + 中间调，双击通道即变选区。</span><span class="l-en">Seven channels cut by luminance: three lights, three darks and midtones — double-click one to load it as a selection.</span></td></tr>
 <tr><td><a href="plugins/ai-frequency-separation.html"><b><span class="l-zh">高低频磨皮（AI 预修）</span><span class="l-en">Frequency Separation (AI prep)</span></b></a></td><td><code>lb-plugin-ai-frequency-separation</code></td><td class="nowrap"><span class="l-zh">磨皮</span><span class="l-en">Retouching</span></td><td><span class="l-zh">结构同高低频，两层的内容换成一张已经修过一遍的参考图。</span><span class="l-en">Same structure as Frequency Separation, but both layers carry a reference that was already retouched once.</span></td></tr>
 <tr><td><a href="plugins/ai-dodge-burn.html"><b><span class="l-zh">双曲线磨皮（AI 预修）</span><span class="l-en">Dodge &amp; Burn (AI prep)</span></b></a></td><td><code>lb-plugin-ai-dodge-burn</code></td><td class="nowrap"><span class="l-zh">磨皮</span><span class="l-en">Retouching</span></td><td><span class="l-zh">两条曲线的蒙版按参考图的差值预先涂好七成，打开就能继续补。</span><span class="l-en">Both curve masks come pre-painted to 70% of the measured difference, so the dodging is already started.</span></td></tr>
 <tr><td><a href="plugins/ai-neutral-grey.html"><b><span class="l-zh">中性灰磨皮（AI 预修）</span><span class="l-en">Neutral Grey (AI prep)</span></b></a></td><td><code>lb-plugin-ai-neutral-grey</code></td><td class="nowrap"><span class="l-zh">磨皮</span><span class="l-en">Retouching</span></td><td><span class="l-zh">灰层不再是平的 128：按参考图反解出偏移，已做一轮中性灰。</span><span class="l-en">The grey layer is no longer flat 128: the offset is solved from the reference, so one neutral-grey pass is already done.</span></td></tr>
@@ -121,7 +121,7 @@
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">91bac59</span>
+    <span class="muted">e66ac37</span>
   </div>
 </footer>
 <script>

@@ -31,6 +31,12 @@ import ai_client
 import retouch_math as rm
 
 try:
+    # 连不上时自动拉起 ComfyUI（目录由「AI 环境」里手选，见 comfy_launcher）
+    import comfy_launcher
+except Exception:                       # 老包没带这个模块：退回「只连不管起」
+    comfy_launcher = None
+
+try:
     from lb_i18n import _
 except Exception:                       # helper 不在：保持可用，只是不翻译
     def _(message):
@@ -236,6 +242,12 @@ def ai_reference(data, w, h, server="", checkpoint="", prompt="",
     client 参数是给回归脚本塞 mock 用的；正常留空，按 server 现建一个。
     """
     t0 = time.time()
+    if client is None and comfy_launcher is not None:
+        # 连不上 → 按用户配的目录把它拉起来（隐藏窗口，日志进 comfyui.log）。
+        # 起不来也不拦着：下面 ai_reference 会抛，调用方照样退回本地参考。
+        res = comfy_launcher.ensure_running(server)
+        if not res.get("ok"):
+            raise RuntimeError(res.get("error") or "ComfyUI is not running")
     cli = client or ai_client.ComfyClient(server)
     ckpt = checkpoint or cli.first_checkpoint()
     target = ai_client.family_target(ckpt)

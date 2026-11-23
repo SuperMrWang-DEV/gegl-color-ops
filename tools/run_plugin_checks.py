@@ -33,6 +33,7 @@ OUT = os.path.join(ROOT, "tools", "plugin_assertions.json")
 # (名字, 跑法, 脚本)。名字只用于报错和 json 的键，取脚本名去掉 .py。
 SUITES = [
     ("check_ai_inpaint", "python"),
+    ("check_comfy_launcher", "python"),
     ("check_retouch_ai", "python"),
     ("check_plugin_dialogs", "gimp"),
     ("check_retouch", "gimp"),

@@ -69,7 +69,7 @@ echo "                             最大值 / 最小值（膨胀 / 腐蚀，半
 echo "    SuperMrWang → Blend      应用图像 / 计算"
 echo "    SuperMrWang → AI         AI Inpaint（选区 + 提示词 → 本机 ComfyUI 重绘，需要 ComfyUI 在跑）"
 echo "                             AI Inpaint (Advanced)（全参数，含底模下拉）"
-echo "                             AI Environment（一键装 / 启动 ComfyUI，看模型清单）"
+echo "                             AI Environment（手选 ComfyUI 目录 / 自动启动 / 一键装 / 看模型清单）"
 echo "    SuperMrWang → Retouch    HSV·HSL·Lab·LCh·HSI Split + 高低频/双曲线/中性灰磨皮"
 echo "                             再各加一个「（AI 预修）」入口：结构 + 预修一起给"
 echo "    图层右键 → SuperMrWang → Convert / Mask / Retouch   与上面同样的分组，只留单层能用的"

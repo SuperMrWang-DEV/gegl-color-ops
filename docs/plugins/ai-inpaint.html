@@ -181,15 +181,21 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
          画面到边了才复制边缘，补出来的那圈贴回时被蒙版挡住。</p>
     </div>
     <div class="dl" id="zh-sec-7">
-      <div class="dl-head"><h3>AI 环境</h3><span class="pill">没装 ComfyUI？</span></div>
-      <p><b>AI Environment…</b> 打开先报状态：连不连得上、什么版本、几个底模；四个按钮——
-         <b>Start ComfyUI</b> 起服务、<b>One-click install…</b> 首次装环境（约 10 GB：
-         嵌入式 Python + torch cu128 + ComfyUI + 一份底模）、<b>Model folder</b> 直接打开
-         <code>models\checkpoints</code>、<b>Refresh</b> 重新探测。</p>
-      <p>状态区会区分「服务没开」和「根本没装」，不会只甩一句「连不上」。安装器随插件
-         走（包里的 <code>ai-setup/</code>），不需要另外去找。</p>
-      <p class="muted small">为什么不是一个 zip：torch 的 CUDA 轮子 2.5 GB、底模 2~7 GB，
-         打进包里既过不了分发许可，也没人愿意下 10 GB 的安装包。</p>
+      <div class="dl-head"><h3>AI 环境</h3><span class="pill">装在哪都行</span></div>
+      <p><b>AI Environment…</b> 打开先报状态：连不连得上、什么版本、几个底模，以及
+         <b>ComfyUI 装在哪、用的是哪个 python</b>。目录不对就点
+         <b>Choose folder…</b> 手选（含 <code>main.py</code> 的目录，或包着
+         <code>ComfyUI/</code> 的外层目录），选择会存进配置文件，下回不用再选。</p>
+      <p><b>Start</b> 起服务、<b>Stop</b> 停掉插件自己起的那个进程、
+         <b>One-click install…</b> 首次装环境（约 10 GB：嵌入式 Python + torch cu128 +
+         ComfyUI + 一份底模）、<b>Model folder</b> 直接打开
+         <code>models\checkpoints</code>、<b>Refresh</b> 重新探测并带出日志尾几行。</p>
+      <p>默认开着「ComfyUI 没在运行时自动启动」：跑 AI 之前先探活，连不上就按选好的
+         目录在<b>后台</b>拉起来（不弹控制台，输出写 <code>comfyui.log</code>），等它就绪
+         再继续。只用手选过的目录、不去猜——猜错会拿另一个 Python 起别人的 ComfyUI。</p>
+      <p class="muted small">配置：Windows 在 <code>%APPDATA%\SuperMrWang\comfyui.json</code>，
+         Linux/macOS 在 <code>~/.config/SuperMrWang/comfyui.json</code>。安装器随插件走
+         （包里的 <code>ai-setup/</code>），不需要另外去找。</p>
     </div>
   </div>
 
@@ -220,7 +226,7 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
     <div class="dl-head"><h3>AI Inpaint…</h3><span class="pill">.py · 免编译</span></div>
     <p>包里是一个 <code>.py</code>、一份安装说明，以及 <code>_shared/</code> 与 <code>locale/</code>。整包解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，但界面只有英文。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-ai-inpaint.zip">下载 AI Inpaint…</a>
-    <p class="muted small">79.1 KB · 校验：<code>SHA256 db4570e5eb038245bea625c7f8e74591…</code></p>
+    <p class="muted small">91.1 KB · 校验：<code>SHA256 21e885c9f5d00ef5bbe80fa3b0650db6…</code></p>
   </div>
 </section>
 
@@ -382,18 +388,25 @@ so you can re-limit the area later.</code></pre>
          masked out when pasting back.</p>
     </div>
     <div class="dl" id="en-sec-7">
-      <div class="dl-head"><h3>AI Environment</h3><span class="pill">no ComfyUI yet?</span></div>
+      <div class="dl-head"><h3>AI Environment</h3><span class="pill">any folder</span></div>
       <p><b>AI Environment…</b> opens with the state: reachable or not, which version, how
-         many checkpoints — and four buttons: <b>Start ComfyUI</b>, <b>One-click install…</b>
-         (about 10 GB the first time: embedded Python + torch cu128 + ComfyUI + one
-         checkpoint), <b>Model folder</b> (opens <code>models\checkpoints</code>),
-         <b>Refresh</b>.</p>
-      <p>The status line tells “not running” apart from “not installed” instead of just
-         saying “cannot connect”. The installer ships with the plug-in, in the
-         <code>ai-setup/</code> folder of the zip.</p>
-      <p class="muted small">Why not one big zip: torch's CUDA wheels are 2.5 GB and a
-         checkpoint 2–7 GB — that fails distribution licensing and nobody wants a 10 GB
-         download.</p>
+         many checkpoints — and <b>where ComfyUI lives and which python it runs</b>. If the
+         path is wrong, <b>Choose folder…</b> picks it by hand (the folder holding
+         <code>main.py</code>, or the wrapper folder holding <code>ComfyUI/</code>); the
+         choice is saved, so you only do it once.</p>
+      <p><b>Start</b> / <b>Stop</b> manage the process the plug-in started,
+         <b>One-click install…</b> sets everything up the first time (about 10 GB: embedded
+         Python + torch cu128 + ComfyUI + one checkpoint), <b>Model folder</b> opens
+         <code>models\checkpoints</code>, <b>Refresh</b> re-probes and shows the log tail.</p>
+      <p>“Start ComfyUI automatically when it is not running” is on by default: before an AI
+         pass the plug-in probes <code>/system_stats</code>, and if nothing answers it starts
+         the server <b>in the background</b> from the folder you picked (no console window,
+         output to <code>comfyui.log</code>) and waits for it. Only an explicitly chosen
+         folder is used — never a guess: guessing once meant launching someone else's
+         ComfyUI with the wrong Python.</p>
+      <p class="muted small">Config: <code>%APPDATA%\SuperMrWang\comfyui.json</code> on
+         Windows, <code>~/.config/SuperMrWang/comfyui.json</code> elsewhere. The installer
+         ships with the plug-in, in the <code>ai-setup/</code> folder of the zip.</p>
     </div>
   </div>
 
@@ -427,7 +440,7 @@ so you can re-limit the area later.</code></pre>
     <div class="dl-head"><h3>AI Inpaint</h3><span class="pill">.py · no compile</span></div>
     <p>The archive holds a single <code>.py</code>, an install note and the <code>_shared/</code> + <code>locale/</code> pair. Unpack all of it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register. Without <code>_shared/</code> and <code>locale/</code> it still runs, but only in English.</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-ai-inpaint.zip">Download AI Inpaint</a>
-    <p class="muted small">79.1 KB · checksum: <code>SHA256 db4570e5eb038245bea625c7f8e74591…</code></p>
+    <p class="muted small">91.1 KB · checksum: <code>SHA256 21e885c9f5d00ef5bbe80fa3b0650db6…</code></p>
   </div>
 </section>
 
@@ -458,7 +471,7 @@ so you can re-limit the area later.</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">91bac59</span>
+    <span class="muted">e66ac37</span>
   </div>
 </footer>
 <script>
