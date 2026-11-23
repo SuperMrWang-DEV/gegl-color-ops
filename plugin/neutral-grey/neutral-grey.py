@@ -125,22 +125,29 @@ def _link_alpha_mask(image, base, host):
 def _fill_grey(layer):
     """把整层写成 0.5 编码灰（8 位图即 128），不走上下文的前景色。
 
-    写完必须 flush 再 update：只改私有 buffer 而不通知核心，投影和图层
-    缩略图还停在「新建图层的空内容」上，界面上这张「中性灰」会显示成
-    一块黑（无 alpha 的图尤其明显）。导出能拿到正确像素，肉眼却是黑的
-    ——GIMP 3 的坑，和 blend 那边一样。
-    Without the flush + update the private buffer holds 0.5 but the
-    projection is never invalidated, so the layer shows up black."""
+    必须走 shadow buffer 这一条路：`get_buffer()` 是图层自己的 tile 存储，
+    改完即便 flush + update，界面上的投影和图层缩略图仍可能停在「新建
+    图层的空内容」上——一张「中性灰」在画布上显示成一块黑，导出却是对的。
+    GIMP 3 只保证 shadow → merge_shadow 会正确失效投影，blend / ai-inpaint
+    / retouch_prep 都走这条，这里原来漏了（不带 AI 的这一支和 AI 版长相
+    不一样，就出在这里）。
+    Must go through the shadow buffer: poking `get_buffer()` directly leaves
+    the projection (and the layer thumbnail) showing the empty new layer, i.e.
+    a black block on screen while the export is correct."""
     w, h = layer.get_width(), layer.get_height()
     rect = Gegl.Rectangle.new(0, 0, w, h)
-    buf = layer.get_buffer()
     if layer.has_alpha():
-        px = array.array('f', [MID_GREY, MID_GREY, MID_GREY, 1.0] * (w * h))
-        buf.set(rect, "R'G'B'A float", px.tobytes())
+        px = array.array('f', [MID_GREY, MID_GREY, MID_GREY, 1.0]) * (w * h)
+        fmt = "R'G'B'A float"
     else:
-        px = array.array('f', [MID_GREY, MID_GREY, MID_GREY] * (w * h))
-        buf.set(rect, "R'G'B' float", px.tobytes())
-    buf.flush()
+        px = array.array('f', [MID_GREY, MID_GREY, MID_GREY]) * (w * h)
+        fmt = "R'G'B' float"
+    shadow = layer.get_shadow_buffer()
+    shadow.set(rect, fmt, px.tobytes())
+    # 不 flush 的话 merge_shadow 读到的还是空 backend（GIMP 3 的坑）
+    # Without flush, merge_shadow still sees an empty backend (GIMP 3 trap)
+    shadow.flush()
+    layer.merge_shadow(True)
     layer.update(0, 0, w, h)
 
 

@@ -326,7 +326,7 @@ SuperMrWang → Convert → Channel to Selection / Selection to Channel
    的边缘压成硬边界（原生 To Path 也一样）；「路径 → 选区 / 通道 / 蒙版」出来也是
    干净的硬边。路径重名自动加序号，重跑不覆盖旧路径。
 
-回归：`tools/check_convert.py`（65 条断言，每个方向都拿原生 PDB 的结果当基准逐位
+回归：`tools/check_convert.py`（72 条断言，每个方向都拿原生 PDB 的结果当基准逐位
 比较；另覆盖 32 位线性精度、偏移图层、多图层、已有蒙版重建、无选区、三种错误分支，
 以及路径六向、羽化过路径的硬边化、路径取源兜底、重跑命名，和「路径 → 位图」的
 裁切/偏移/与原生逐位一致）。
@@ -540,7 +540,8 @@ alpha 都有回滚。与算子版本的区别是**一次性应用**——想随�
 
 ```bash
 python tools/check_retouch_ai.py          # 87 条：数学 / 柔光反解 / img2img 工作流 / mock 端到端 / 源码约束
-# 真 GIMP，45 条：结构、预涂蒙版、灰层、选区、AI 退回
+python tools/check_retouch.py             # 真 GIMP，76 条：三支磨皮的结构、滤镜、恒等、画笔、无 alpha 图
+# 真 GIMP，67 条：结构、预涂蒙版、灰层、选区、AI 退回
 gimp-console -b "exec(open('tools/check_retouch_ai_gimp.py').read())"
 ```
 
@@ -1202,7 +1203,7 @@ python tools/check_lab_levels.py            # 数值回归：LAB 色阶（gimp-c
 python tools/check_match_color.py           # 数值回归：匹配颜色（gimp-console 跑，17 项）
 python tools/check_gray_to_component.py     # 灰度转分量：九个混合模式的恒等往返，39 条
 python tools/check_xyz_multiply.py --all    # 数值回归：XYZ 正片叠底（36 组白点×叠加色×不透明度）
-python tools/check_convert.py               # 数值回归：十二向转换 vs GIMP 原生（55 项）
+python tools/check_convert.py               # 数值回归：十二向转换 vs GIMP 原生 + 路径转位图（72 项）
 python tools/check_convert_pixels.py        # 逐像素回归：十二向 × 两档精度，偏差必须为 0（24 项）
 python tools/check_max_min.py                 # 数值回归：形态学极值 vs O(r²) 暴力（27 项）
 python tools/check_max_min_plugin.py          # 插件回归：PDB / 滤镜挂载 / 蒙版写像素（12 项）
@@ -1213,9 +1214,10 @@ python tools/check_menu.py                  # 每个算子都有 id / menu-path 
 python tools/check_ai_inpaint.py            # AI 重绘的 HTTP/PNG 链路（对着 mock ComfyUI，不需要显卡）
 # 下面三条要在真 GIMP 里跑（插件已装好）；用 gimp-console，不用开界面
 gimp-console -b "exec(open('tools/check_plugin_dialogs.py').read())"   # 每个插件都能弹出参数框（145 条）
-gimp-console -b "exec(open('tools/check_retouch_ai_gimp.py').read())"  # 磨皮三支：结构 / 预涂蒙版 / 灰层 / 选区
+gimp-console -b "exec(open('tools/check_retouch.py').read())"          # 磨皮三支（非 AI）：结构 / 滤镜 / 恒等 / 画笔（76 条）
+gimp-console -b "exec(open('tools/check_retouch_ai_gimp.py').read())"  # 磨皮三支（AI 预修）：结构 / 预涂蒙版 / 灰层 / 选区（67 条）
 gimp-console -b "exec(open('tools/check_ai_inpaint_gimp.py').read())"  # AI 重绘的落位与蒙版
-python tools/run_plugin_checks.py           # 上面五条一次跑完，把条数写进 tools/plugin_assertions.json
+python tools/run_plugin_checks.py           # 上面七套一次跑完（661 条），把条数写进 tools/plugin_assertions.json
 python tools/run_plugin_checks.py --check   # 只核对：json 是不是比脚本旧了（站点构建会自动喊）
 python tools/make_dist.py                   # 把 build/ 整理成 dist/（含 manifest + 校验和）
 ./tools/check-linux.sh                      # 在 Linux/WSL 里验证 .so 能加载并渲染（不开 GIMP）

@@ -539,6 +539,44 @@ except RuntimeError:
     check(True, "图层组被拒绝")
 img.delete()
 
+# 无 alpha 的图（绝大多数照片）走的是另一支：灰层是 RGB_IMAGE，写的是
+# "R'G'B' float"。这一支以前只改 get_buffer()，投影不失效，界面上直接是
+# 一块黑——必须走 shadow buffer + merge_shadow。C1/C3 全用的带 alpha 的图，
+# 一直没盖住这里。
+print("== C7 无 alpha 的图 / images without alpha")
+for fp in (False, True):
+    img, base = make_image(float_prec=fp, with_alpha=False)
+    GREY.neutral_grey(img, base, True)
+    grey = img.get_layers()[0].get_children()[0]
+    check(not grey.has_alpha(), "灰层无 alpha" , grey.has_alpha())
+    close(read(grey)[0], 0.5, 1.0 / 255.0,
+          "%s：灰层填 0.5" % ("浮点" if fp else "8 位"))
+    ref = read(base)
+    close(worst_rgb(ref, flatten(img)), 0.0, 0.5 / 255.0,
+          "%s：无 alpha 图恒等（≤0.5 码）" % ("浮点" if fp else "8 位"))
+    img.delete()
+
+print("== C8 走 shadow buffer / merge_shadow")
+img, base = make_image(with_alpha=False)
+merged = []
+_orig_ms = Gimp.Drawable.merge_shadow
+
+
+def _spy_ms(self, undo):
+    merged.append(bool(undo))
+    return _orig_ms(self, undo)
+
+
+Gimp.Drawable.merge_shadow = _spy_ms
+try:
+    GREY.neutral_grey(img, base, True)
+finally:
+    Gimp.Drawable.merge_shadow = _orig_ms
+# 直接写 get_buffer() 不走 shadow：merge_shadow 一次都不会被调用，而投影
+# 缓存却停在新图层的空内容上（黑块）。
+check(merged == [True], "填灰层走 merge_shadow(True)", merged)
+img.delete()
+
 print("")
 if FAILS:
     print("失败 %d 项 / %d checks failed: %s"

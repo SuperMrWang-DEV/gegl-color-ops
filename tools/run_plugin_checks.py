@@ -35,6 +35,7 @@ SUITES = [
     ("check_ai_inpaint", "python"),
     ("check_retouch_ai", "python"),
     ("check_plugin_dialogs", "gimp"),
+    ("check_retouch", "gimp"),
     ("check_convert", "gimp"),
     ("check_ai_inpaint_gimp", "gimp"),
     ("check_retouch_ai_gimp", "gimp"),
@@ -47,6 +48,7 @@ COUNT_RE = [
     (re.compile(r"通过\s*(\d+)\s*项，失败\s*(\d+)\s*项"), "pass/fail"),
     (re.compile(r"（(\d+)\s*条断言）"), "one"),              # check_plugin_dialogs
     (re.compile(r"：(\d+)\s*条断言"), "one"),                # check_retouch_ai
+    (re.compile(r"全部通过：(\d+)\s*项检查"), "one"),         # check_retouch
 ]
 
 
