@@ -23,7 +23,7 @@
            PNG 部分在 plugin/_shared/ai_client.py 里，tools/check_ai_inpaint.py
            拿 mock 服务测它（不需要显卡）。
 
- note      四个坑（都已在代码里绕开）：
+ note      五个坑（都已在代码里绕开）：
            1. ComfyUI 的 LoadImage 用 **alpha 倒推** mask（mask = 1 - alpha），
               所以白＝要重绘的区域必须写成透明；直接送灰度图会得到全 0 的
               mask，跑完像素纹丝不动；
@@ -37,6 +37,12 @@
               「输入 sunglasses 却给了我这个」）。ai_client.plan_canvas_rect()
               会把画布补到 ≤2:1（优先往画面里长真像素，画布到边才复制边缘），
               补出来的那圈贴回时被蒙版挡住，不会露出来。
+           5. **短边与上下文**（2026-11-23）。只把长边对到 512 的话，1024×400
+              会变成 512×200 —— 短边远低于 SD1.5 的 512，画出来就是一排排重复
+              图形；上下文只给 32 px 时模型看不到周围是什么，也会自己编。
+              现在 crop_rect 按选区较长边的 0.75 倍带上下文（至少 64 px），
+              ai_client.work_size() 两头卡：短边抬到家族下限（SD1.5 512 /
+              SDXL 768），长边不超过上限（768 / 1024）。
 
  license   GPL-3.0-or-later，见工程根目录 LICENSE
  ==========================================================================="""
@@ -165,7 +171,12 @@ def _check_prompt(prompt, preset="none"):
 
 # 周边带多少像素一起送进模型：只给一条缝的话，模型接不上左右两边的纹理和
 # 光线；给一圈上下文，重绘处的颜色/光照才对得上。
-CONTEXT_PAD = 32
+# 上下文：选区每边至少带这么多像素，再按选区较长边的 CONTEXT_RATIO 扩。
+# 只给 32 px 时模型看到的几乎只有要重画的那块，没素材就只能自己编——编出来
+# 就是平涂和重复图形。openfill 用「每边 ≈ 选区较长边」的上下文（约 3 倍面积），
+# 这里取 0.75 折中：够模型认得出周围是什么，又不至于把选区细节缩没。
+CONTEXT_PAD = 64
+CONTEXT_RATIO = 0.75
 
 
 # ---- PDB 小工具 / PDB helpers ----------------------------------------------
@@ -282,14 +293,18 @@ def _scale_gray(data, w, h, nw, nh):
 
 # ---- 裁切框 / crop rect -----------------------------------------------------
 
-def crop_rect(image, box, grow=8, pad=CONTEXT_PAD):
+def crop_rect(image, box, grow=8, pad=None):
     """选区外接框 → 「加宽 + 对齐」后的裁切框 (x, y, w, h)。
 
     两步：先按 grow 外扩（蒙版往前提一点，接缝不会留一圈原像素），再按 pad
     带上周围上下文，最后由 ai_client.align_rect 把宽高对齐到 8 的倍数。
+    pad 缺省按选区大小给（见 CONTEXT_RATIO）：上下文越大，模型越不需要瞎编。
     """
     iw, ih = image.get_width(), image.get_height()
     x1, y1, x2, y2 = box
+    if pad is None:
+        pad = max(CONTEXT_PAD,
+                  int(round(max(x2 - x1, y2 - y1) * CONTEXT_RATIO)))
     x1 -= grow + pad
     y1 -= grow + pad
     x2 += grow + pad
@@ -452,12 +467,16 @@ def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
             _autostart_comfy(server)
             client = ai_client.ComfyClient(server, timeout=min(timeout, 60.0))
         checkpoint = checkpoint or client.first_checkpoint()
-        target = ai_client.family_target(checkpoint)
-        factor = float(scale) if float(scale) > 0 else ai_client.work_scale(w, h, target)
-        ww = max(ai_client.SIZE_ALIGN,
-                 int(round(w * factor)) // ai_client.SIZE_ALIGN * ai_client.SIZE_ALIGN)
-        hh = max(ai_client.SIZE_ALIGN,
-                 int(round(h * factor)) // ai_client.SIZE_ALIGN * ai_client.SIZE_ALIGN)
+        # 短边也要够：只把长边对到 512，1024×400 会变成 512×200，SD1.5 在
+        # 这么窄的画布上会画成一排排重复图形。work_size 两头都卡（见 ai_client）。
+        if float(scale) > 0:
+            factor = float(scale)
+            ww = max(ai_client.SIZE_ALIGN,
+                     int(round(w * factor)) // ai_client.SIZE_ALIGN * ai_client.SIZE_ALIGN)
+            hh = max(ai_client.SIZE_ALIGN,
+                     int(round(h * factor)) // ai_client.SIZE_ALIGN * ai_client.SIZE_ALIGN)
+        else:
+            ww, hh, factor = ai_client.work_size(w, h, checkpoint)
         src_work = _scale_rgba(src, w, h, ww, hh)
         gray_work = _scale_gray(gray, w, h, ww, hh)
 

@@ -90,6 +90,38 @@ def work_scale(w, h, target):
     return max(SCALE_MIN, min(SCALE_MAX, scale))
 
 
+# 每个家族的（短边下限, 长边上限）。只看长边是不够的：把 1024×400 的长边
+# 对到 512 会得到 512×200 —— 短边远低于 512，SD1.5 在这么窄的画布上会退化
+# 成一排排重复图形（2026-11-23 用户报的「平涂、重复图案」）。两头都要有闸。
+FAMILY_SIDES = {
+    "sd15": (512, 768),
+    "sdxl": (768, 1024),
+}
+
+
+def work_size(w, h, checkpoint, max_upscale=4.0):
+    """裁切框 → (工作宽, 工作高, 倍率)：短边抬到家族下限，长边压到上限。
+
+    规则同 openfill 的 working_size：长边超上限就整体缩小；否则短边不足
+    下限就整体放大（最多 max_upscale 倍），放大后长边顶到上限再退回按长边
+    缩。两边都对齐到 SIZE_ALIGN，返回的倍率按实际像素算。
+    """
+    w, h = max(1, int(w)), max(1, int(h))
+    fam = detect_family(checkpoint)
+    min_side, max_side = FAMILY_SIDES.get(fam, FAMILY_SIDES["sd15"])
+    longer, shorter = max(w, h), min(w, h)
+    scale = 1.0
+    if longer > max_side:
+        scale = max_side / float(longer)
+    elif shorter < min_side:
+        scale = min(float(max_upscale), min_side / float(shorter))
+        if longer * scale > max_side:
+            scale = max_side / float(longer)
+    ww = max(SIZE_ALIGN, int(round(w * scale)) // SIZE_ALIGN * SIZE_ALIGN)
+    hh = max(SIZE_ALIGN, int(round(h * scale)) // SIZE_ALIGN * SIZE_ALIGN)
+    return ww, hh, (ww / float(w) if w else 1.0)
+
+
 def checkpoint_note(name):
     """给下拉框用的短标注：家族 + 舒适分辨率；inpaint 专用模型单独点出来。
 

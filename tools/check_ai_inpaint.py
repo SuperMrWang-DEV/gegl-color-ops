@@ -497,6 +497,49 @@ def test_plugin_source():
        % (sorted(declared - used), sorted(used - declared)))
 
 
+
+# ---- 3d. 工作尺寸：短边也要够（2026-11-23 平涂 / 重复图案）-----------------
+
+def test_work_size():
+    print("\n工作尺寸：短边不能低于 512，否则 SD1.5 画成重复图案")
+
+    # 小框喂 SD1.5：短边 392 → 整体放大到 512
+    ww, hh, f = ai_client.work_size(432, 392, "sd15.safetensors")
+    ok("432×392 短边被抬到 512（%dx%d）" % (ww, hh), min(ww, hh) >= 512, (ww, hh))
+    ok("  → 长边不超 768", max(ww, hh) <= 768 + 8, (ww, hh))
+    ok("  → 两边都是 8 的倍数", ww % 8 == 0 and hh % 8 == 0, (ww, hh))
+    ok("  → 倍率按实际像素算", abs(f - ww / 432.0) < 1e-6, f)
+
+    # 大框：长边压到 768，短边顺带就够
+    ww, hh, f = ai_client.work_size(4000, 3000, "sd15.safetensors")
+    ok("4000×3000 长边压到 768（%dx%d）" % (ww, hh), max(ww, hh) <= 768 + 8, (ww, hh))
+    ok("  → 短边仍不低于 512", min(ww, hh) >= 512, (ww, hh))
+
+    # 已经合适的框不要动
+    ww, hh, f = ai_client.work_size(768, 512, "sd15.safetensors")
+    ok("768×512 原样不动", (ww, hh) == (768, 512), (ww, hh))
+
+    # SDXL：下限 768、上限 1024
+    ww, hh, f = ai_client.work_size(432, 392, "sdxl_model.safetensors")
+    ok("SDXL 432×392 → 短边 768（%dx%d）" % (ww, hh), min(ww, hh) >= 768, (ww, hh))
+    ok("  → 长边不超 1024", max(ww, hh) <= 1024 + 8, (ww, hh))
+    ww, hh, f = ai_client.work_size(3000, 2000, "sdxl_model.safetensors")
+    # 长边顶格时短边必然不足（比例摆在那儿），这是上限优先的正常结果
+    ok("SDXL 3000×2000 长边压到 1024（%dx%d）" % (ww, hh),
+       max(ww, hh) <= 1024 + 8 and
+       (min(ww, hh) >= 768 or max(ww, hh) >= 1024), (ww, hh))
+
+    # 放大有闸：极小框不能无限放大
+    ww, hh, f = ai_client.work_size(40, 32, "sd15.safetensors")
+    ok("40×32 放大不超过 4×（%dx%d）" % (ww, hh), f <= 4.0 + 1e-6, f)
+
+    # 极端比例（2.56:1）不是 work_size 能救的，上游必须先补画布；
+    # 这里只保证它不会把长边喂超上限。
+    ww, hh, f = ai_client.work_size(1024, 400, "sd15.safetensors")
+    ok("1024×400 长边不超 768（%dx%d，靠上游补比例）" % (ww, hh),
+       max(ww, hh) <= 768 + 8, (ww, hh))
+
+
 def main():
     test_png()
     test_mask()
@@ -504,6 +547,7 @@ def main():
     test_canvas_ratio()
     test_workflow()
     test_family()
+    test_work_size()
     test_end_to_end()
     test_errors()
     test_prompt_tools()
