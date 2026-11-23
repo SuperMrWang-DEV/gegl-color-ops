@@ -377,6 +377,39 @@ def main():
     check("两个钉子都算进去了", info7["count"] == 2 and info7["moved"] == 2,
           info7)
 
+    # ---- ARAP --------------------------------------------------------------
+    section("ARAP：真 GIMP 里能变形、对话框能切")
+    if mod.arap_ok():
+        img8, layer8 = make_image(240, 180, box=(80, 50, 160, 130))
+        images.append(img8)
+        ref8 = pixels(layer8)
+        mod.warp_drawable(layer8, [{"sx": 120, "sy": 90, "dx": 148, "dy": 96}],
+                          mode=mod.MODE_ARAP, output=mod.OUTPUT_REPLACE)
+        got8 = pixels(layer8)
+        ndiff = sum(1 for a, b in zip(got8[2], ref8[2]) if a != b)
+        check("ARAP 真的搬了像素（%d 个通道字节）" % ndiff, ndiff > 300, ndiff)
+        check("ARAP 左下角（远离钉子）没动",
+              px(got8[2], got8[0], 3, got8[1] - 3) ==
+              px(ref8[2], ref8[0], 3, ref8[1] - 3),
+              (px(got8[2], got8[0], 3, got8[1] - 3),
+               px(ref8[2], ref8[0], 3, ref8[1] - 3)))
+
+        dlg8, ctx8 = mod.build_dialog(FakeConfig(mode=mod.MODE_ARAP),
+                                      img8, layer8, 240, 180)
+        check("对话框认 ARAP 这一档",
+              ctx8["combo_mode"].get_active_id() == mod.MODE_ARAP,
+              ctx8["combo_mode"].get_active_id())
+        check("ARAP 时 Falloff 滑杆灰掉", not ctx8["s_radius"].get_sensitive())
+        ctx8["pins"].append({"sx": 120.0, "sy": 90.0, "dx": 148.0, "dy": 96.0})
+        ctx8["render"]()
+        note8 = ctx8["note"].get_text()
+        check("ARAP 预览没报错", "fail" not in note8.lower(), note8)
+        check("状态行说明 falloff 不参与", "falloff not used" in note8, note8)
+        ctx8["combo_mode"].set_active_id(mod.MODE_SIMILARITY)
+        check("切回相似档滑杆恢复", ctx8["s_radius"].get_sensitive())
+    else:
+        print("  （numpy 没装，ARAP 不可用，跳过）")
+
     for im in images:
         try:
             im.delete()

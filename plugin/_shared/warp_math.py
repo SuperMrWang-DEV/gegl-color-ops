@@ -35,6 +35,18 @@
 
 import math
 
+try:                        # numpy 是可选的加速：GIMP 自带的 Python 默认没装，
+    import numpy as _np     # 装了就自动走向量化路径（tools/install_gimp_numpy.py），
+except Exception:           # 没装就退回纯 Python。两条路的像素结果必须一致。
+    _np = None
+
+# 出问题时可以临时关掉快路径（回归里要拿两路对比）。
+USE_NUMPY = True
+
+
+def have_numpy():
+    return _np is not None and USE_NUMPY
+
 # 长边默认解多少个节点。100 → 步长约 1%，140 → 0.7%。
 GRID_NODES = 140
 # 位移小于这个值时认为「没动」，该像素直接抄原图（重采样也会得到同一个字节，
@@ -308,8 +320,153 @@ def mls_point(px, py, pins, mode="affine", radius=0.0, reverse=True,
     return fx, fy
 
 
+def _pin_arrays(pins, reverse):
+    """把钉子拆成两组 (K,2) 数组：a = 算权重的控制点，t = 要对到的目标。
+
+    reverse=True（反向场）→ a 取钉子现位 d、t 取原位 s，也就是
+    「目标像素应该从源图的哪里取样」。与 _mls_solve 的约定一致。
+    """
+    np = _np
+    a = np.empty((len(pins), 2), dtype=np.float64)
+    t = np.empty((len(pins), 2), dtype=np.float64)
+    for k, (sx, sy, dx, dy) in enumerate(pins):
+        if reverse:
+            a[k] = (dx, dy)
+            t[k] = (sx, sy)
+        else:
+            a[k] = (sx, sy)
+            t[k] = (dx, dy)
+    return a[:, 0], a[:, 1], t[:, 0], t[:, 1]
+
+
+def _mls_solve_np(px, py, ax, ay, tx, ty, mode):
+    """批量版 _mls_solve：px/py 是 (N,)，钉子数组是 (K,)，返回 8 个 (N,) 数组。
+
+    公式与标量版逐项对应，只是把「N 个点各自累加 K 个钉子」写成 (N,K) 的
+    广播求和。所以两边的结果只差浮点交换律带来的 1e-15 级噪声。
+    """
+    np = _np
+    n = ax.shape[0]
+    px = px[:, None]
+    py = py[:, None]
+    vx = px - ax[None, :]
+    vy = py - ay[None, :]
+    w = 1.0 / (vx * vx + vy * vy + 1.0)
+    sw = w.sum(axis=1)
+    mx = (w * ax[None, :]).sum(axis=1) / sw
+    my = (w * ay[None, :]).sum(axis=1) / sw
+    qx = (w * tx[None, :]).sum(axis=1) / sw
+    qy = (w * ty[None, :]).sum(axis=1) / sw
+
+    if n == 1:                          # 一个钉子：纯平移
+        one = np.ones_like(mx)
+        zero = np.zeros_like(mx)
+        return one, zero, zero, one, mx, my, qx, qy
+
+    ex = ax[None, :] - mx[:, None]
+    ey = ay[None, :] - my[:, None]
+    ux = tx[None, :] - qx[:, None]
+    uy = ty[None, :] - qy[:, None]
+
+    if mode == "similarity":
+        mu = (w * (ex * ex + ey * ey)).sum(axis=1)
+        sa = (w * (ux * ex + uy * ey)).sum(axis=1)
+        sb = (w * (uy * ex - ux * ey)).sum(axis=1)
+        ok = mu > 1e-12
+        safe = np.where(ok, mu, 1.0)
+        a = np.where(ok, sa / safe, 1.0)
+        b = np.where(ok, sb / safe, 0.0)
+        return a, -b, b, a, mx, my, qx, qy
+
+    a11 = (w * ex * ex).sum(axis=1)
+    a12 = (w * ex * ey).sum(axis=1)
+    a22 = (w * ey * ey).sum(axis=1)
+    b11 = (w * ux * ex).sum(axis=1)
+    b12 = (w * ux * ey).sum(axis=1)
+    b21 = (w * uy * ex).sum(axis=1)
+    b22 = (w * uy * ey).sum(axis=1)
+    det = a11 * a22 - a12 * a12
+    ok = np.abs(det) >= 1e-12
+    inv = np.where(ok, 1.0 / np.where(ok, det, 1.0), 0.0)
+    m00 = np.where(ok, (b11 * a22 - b12 * a12) * inv, 1.0)
+    m01 = np.where(ok, (b12 * a11 - b11 * a12) * inv, 0.0)
+    m10 = np.where(ok, (b21 * a22 - b22 * a12) * inv, 0.0)
+    m11 = np.where(ok, (b22 * a11 - b21 * a12) * inv, 1.0)
+    return m00, m01, m10, m11, mx, my, qx, qy
+
+
+def _build_field_np(field, pins, mode, radius, forward):
+    """向量化版的 build_field：一次解完 nx×ny 个节点。
+
+    纯 Python 版逐节点解 140×140 次要 1 s 起；这里全部节点一起算，
+    6 个钉子、26000 个节点大约 20 ms。
+    """
+    np = _np
+    nx, ny = field.nx, field.ny
+    gx = np.arange(nx, dtype=np.float64) * \
+        ((field.w - 1.0) / (nx - 1.0) if nx > 1 else 0.0)
+    gy = np.arange(ny, dtype=np.float64) * \
+        ((field.h - 1.0) / (ny - 1.0) if ny > 1 else 0.0)
+    mx_grid, my_grid = np.meshgrid(gx, gy)
+    cx = mx_grid.ravel()
+    cy = my_grid.ravel()
+
+    ax, ay, tx, ty = _pin_arrays(pins, reverse=not forward)
+    m00, m01, m10, m11, mx, my, qx, qy = _mls_solve_np(
+        cx, cy, ax, ay, tx, ty, mode)
+    vx = cx - mx
+    vy = cy - my
+    fx = m00 * vx + m01 * vy + qx
+    fy = m10 * vx + m11 * vy + qy
+
+    if radius > 0.0:
+        # 到**最近**钉子的距离：smoothstep 单调降，所以取 min 等价于标量版
+        # 「遍历所有钉子取最大 gate」。
+        d2 = (cx[:, None] - ax[None, :]) ** 2 + (cy[:, None] - ay[None, :]) ** 2
+        t = 1.0 - np.sqrt(d2.min(axis=1)) / radius
+        np.clip(t, 0.0, 1.0, out=t)
+        gate = t * t * (3.0 - 2.0 * t)
+        fx = cx + (fx - cx) * gate
+        fy = cy + (fy - cy) * gate
+
+    ox = fx - cx
+    oy = fy - cy
+    # 与标量版同样要把 1e-15 的浮点噪声压成 0，否则 is_identity 判不出来，
+    # 整张图会被白白重采样（字节全变）。
+    ox = np.where(np.abs(ox) < 1e-9, 0.0, ox)
+    oy = np.where(np.abs(oy) < 1e-9, 0.0, oy)
+    field.dx[:] = ox.tolist()
+    field.dy[:] = oy.tolist()
+    field.forward = forward
+    return field
+
+
+def _build_field_arap(w, h, pins, forward, nodes=None):
+    """ARAP 模式：解出网格顶点位移，直接当成偏移场。
+
+    ARAP 给的是「源顶点被推到哪」（正向）。而 warp_rgba 要的是反向场
+    （目标像素从源图哪里取样），所以反向时把钉子的原位/现位交换再解一次——
+    ARAP 不是对称能量，这个逆是近似解，但钉子处严格重合，视觉上一致，
+    而且比数值求逆稳（求逆在拉伸大的地方会翻折）。
+    """
+    import arap
+    if not arap.available():
+        raise RuntimeError("ARAP needs numpy. Run tools/install_gimp_numpy.py "
+                           "/ ARAP 需要 numpy，先跑 tools/install_gimp_numpy.py")
+    use = pins if forward else [(p[2], p[3], p[0], p[1]) for p in pins]
+    nx, ny = arap._grid_extent(w, h, nodes or arap.ARAP_NODES)
+    out = arap.solve(w, h, use, nx, ny)
+    field = identity_field(w, h, nx, ny)
+    if out is None:
+        return field
+    field.dx[:] = out[0].tolist()
+    field.dy[:] = out[1].tolist()
+    field.forward = forward
+    return field
+
+
 def build_field(w, h, pins, mode="affine", radius=0.0, forward=False,
-                nx=None, ny=None, nodes=GRID_NODES):
+                nx=None, ny=None, nodes=GRID_NODES, arap_nodes=None):
     """在栅格上解出整张位移场。
 
     forward=False（默认）→ 反向场：目标像素处存「该从源图哪里取」的偏移，
@@ -322,6 +479,10 @@ def build_field(w, h, pins, mode="affine", radius=0.0, forward=False,
     field = identity_field(w, h, nx, ny)
     if not pins:
         return field
+    if mode == "arap":
+        return _build_field_arap(w, h, pins, forward, arap_nodes)
+    if have_numpy():
+        return _build_field_np(field, pins, mode, radius, forward)
     # 拖到哪儿都离不开钉子的活动范围：先框出所有钉子的包围盒（含原位和现位），
     # 半径外直接跳过——否则 140×140 个节点全解一遍，纯 Python 要 1 s 起。
     if radius > 0.0:
@@ -357,6 +518,94 @@ def build_field(w, h, pins, mode="affine", radius=0.0, forward=False,
     return field
 
 
+def _warp_rgba_np(rgba, w, h, field, progress=None):
+    """向量化重采样：按行分块，块内只对**真的动过**的像素做双线性取样。
+
+    关键在于不要整块 4 次 (chunk,w,4) 的浮点乘法——局部变形时 99% 的像素
+    是白算的。偏移量场 (chunk,w) 便宜，先算它、拿到 mask，再 np.nonzero
+    把脏像素摊成一维，只对这几个做取样。
+    """
+    np = _np
+    nx, ny = field.nx, field.ny
+    dxa = np.asarray(field.dx, dtype=np.float64).reshape(ny, nx)
+    dya = np.asarray(field.dy, dtype=np.float64).reshape(ny, nx)
+
+    ax = (nx - 1.0) / (w - 1.0) if w > 1 else 0.0
+    ay = (ny - 1.0) / (h - 1.0) if h > 1 else 0.0
+    gx = np.arange(w, dtype=np.float64) * ax
+    gy_all = np.arange(h, dtype=np.float64) * ay
+    ix = np.clip(np.floor(gx).astype(np.int64), 0, max(0, nx - 2))
+    iy_all = np.clip(np.floor(gy_all).astype(np.int64), 0, max(0, ny - 2))
+    tx = (gx - ix)[None, :]
+    ixc = ix[None, :]
+
+    src = np.frombuffer(rgba, dtype=np.uint8).reshape(h, w, 4)
+    # 先把源图转成 float32：双线性的每个像素要读 4 个角 × 4 通道，
+    # 用 float64 的话光内存流量就是两倍，实测这一段占了 2/3 的时间。
+    # 0–255 的取值 + float32 的 24 位尾数，误差 ~3e-5，截断后最多差 1 级。
+    srcf = src.astype(np.float32)
+    out = src.copy()
+    eps = IDENTITY_EPS
+    w1 = w - 1.001
+    h1 = h - 1.001
+    chunk = max(16, min(512, int(600000 / max(1, w))))
+
+    for y0 in range(0, h, chunk):
+        y1 = min(h, y0 + chunk)
+        iy0 = iy_all[y0:y1][:, None]
+        tyr = (gy_all[y0:y1] - iy_all[y0:y1])[:, None]
+
+        a = dxa[iy0, ixc]
+        b = dxa[iy0, ixc + 1]
+        c = dxa[iy0 + 1, ixc]
+        e = dxa[iy0 + 1, ixc + 1]
+        t0 = a + (b - a) * tx
+        t1 = c + (e - c) * tx
+        odx = t0 + (t1 - t0) * tyr
+
+        a = dya[iy0, ixc]
+        b = dya[iy0, ixc + 1]
+        c = dya[iy0 + 1, ixc]
+        e = dya[iy0 + 1, ixc + 1]
+        t0 = a + (b - a) * tx
+        t1 = c + (e - c) * tx
+        ody = t0 + (t1 - t0) * tyr
+
+        mask = (np.abs(odx) > eps) | (np.abs(ody) > eps)
+        if not mask.any():
+            if progress is not None:
+                progress(y1 / float(h))
+            continue
+
+        # 脏像素摊平成一维，只处理这些。
+        yy, xx = np.nonzero(mask)
+        px = xx.astype(np.float64)
+        py = (yy + y0).astype(np.float64)
+        sx = np.clip(px + odx[yy, xx], 0.0, w1)
+        sy = np.clip(py + ody[yy, xx], 0.0, h1)
+        x0 = np.clip(np.floor(sx).astype(np.int64), 0, w - 2)
+        y0i = np.clip(np.floor(sy).astype(np.int64), 0, h - 2)
+        fx = (sx - x0).astype(np.float32)[:, None]
+        fy = (sy - y0i).astype(np.float32)[:, None]
+        ifx = 1.0 - fx
+        ify = 1.0 - fy
+
+        s00 = srcf[y0i, x0]
+        s10 = srcf[y0i, x0 + 1]
+        s01 = srcf[y0i + 1, x0]
+        s11 = srcf[y0i + 1, x0 + 1]
+        # 就地累加，少分配几个 (M,4) 临时数组
+        mix = s00 * (ifx * ify)
+        mix += s10 * (fx * ify)
+        mix += s01 * (ifx * fy)
+        mix += s11 * (fx * fy)
+        out[yy + y0, xx] = mix.astype(np.uint8)   # 与 int() 一致：截断
+        if progress is not None:
+            progress(y1 / float(h))
+
+    return out.tobytes()
+
+
 def warp_rgba(rgba, w, h, field, progress=None):
     """按反向场重采样 RGBA 字节（长度必须是 w*h*4）。
 
@@ -370,6 +619,8 @@ def warp_rgba(rgba, w, h, field, progress=None):
     out = bytearray(rgba)
     if field.is_identity():
         return bytes(out)
+    if have_numpy():
+        return _warp_rgba_np(rgba, w, h, field, progress)
 
     stride = w * 4
     nx, ny = field.nx, field.ny
@@ -397,20 +648,20 @@ def warp_rgba(rgba, w, h, field, progress=None):
 
         # ① 先按节点扫一遍，找这一行的「脏段」。节点级扫描是 nx 次，
         #    比逐像素便宜两个数量级。
+        #    判据是「是否严格为 0」而不是「是否超过 eps」：圈外/未拖动的节点
+        #    在上一步已经被压成精确的 0.0，所以整行全 0 就等于「这一行真的没动」。
+        #    这里如果用 0.5 px 当阈值，节点间距 7 px，节点之间那些 0.5~0.7 px 的
+        #    位移会被整行漏掉——和 numpy 版（逐像素判断）就对不上了。
         x0 = -1
         x1 = -1
         for i in range(nx):
             a = dxa[r0 + i]
             b = dxa[r1 + i]
             ddx = a + (b - a) * ty
-            if ddx < 0.0:
-                ddx = -ddx
             a = dya[r0 + i]
             b = dya[r1 + i]
             ddy = a + (b - a) * ty
-            if ddy < 0.0:
-                ddy = -ddy
-            if ddx > eps or ddy > eps:
+            if ddx != 0.0 or ddy != 0.0:
                 if x0 < 0:
                     x0 = i
                 x1 = i
@@ -423,8 +674,6 @@ def warp_rgba(rgba, w, h, field, progress=None):
             px0 = 0
         if px1 > w:
             px1 = w
-        if px0 == 0 and px1 == w and y == 0:
-            pass
 
         ystride = y * stride
         for x in range(px0, px1):

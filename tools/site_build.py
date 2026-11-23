@@ -2408,9 +2408,10 @@ PLUGIN_SPECS = [
              menu="木偶变形 (Puppet Warp)",
              menus="    SuperMrWang → Distort → 木偶变形（网格变形）…",
              desc="木偶变形：在图层上点钉子、拖钉子把内容拽过去，钉子之间平滑过渡，"
-                  "影响半径之外一个字节都不重采样。刚性（保形）与自由（仿射）两档，"
-                  "带网格叠加与实时预览；钉子也能用参数传，脚本可以完整复现。",
-             shared=["warp_math.py", "mask_io.py", "refine_math.py"],
+                  "影响半径之外一个字节都不重采样。刚性（MLS 相似）/ 自由（MLS 仿射）"
+                  "/ ARAP 三档——ARAP 大角度弯折不压扁，要 numpy。带网格叠加与实时预览；"
+                  "钉子也能用参数传，脚本可以完整复现。",
+             shared=["warp_math.py", "arap.py", "mask_io.py", "refine_math.py"],
              pdb="lb-plugin-puppet-warp(image, drawables, pins, mode, radius, output)"),
         dict(key="ai-frequency", ops=[],
              name="gegl-color-ops-plugin-ai-frequency-separation.zip",

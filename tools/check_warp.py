@@ -308,7 +308,111 @@ ok("坏钉子被剔掉", WM.normalized_pins(bad) == [])
 ok("nan 钉子被剔掉",
    WM.normalized_pins([{"sx": float('nan'), "sy": 1, "dx": 1, "dy": 1}]) == [])
 
-# ---- 11. 规模 --------------------------------------------------------------
+# ---- 11. numpy 快路径 ------------------------------------------------------
+
+section("numpy 快路径：和纯 Python 必须一致")
+if WM.have_numpy():
+    w, h = 320, 420
+    pins_np = [{"sx": 90, "sy": 120, "dx": 130, "dy": 140},
+               {"sx": 220, "sy": 300, "dx": 200, "dy": 330}]
+    f_last = None
+    for mode in ("affine", "similarity"):
+        WM.USE_NUMPY = True
+        f_np = WM.build_field(w, h, pins_np, mode=mode, radius=0.3 * w)
+        WM.USE_NUMPY = False
+        f_py = WM.build_field(w, h, pins_np, mode=mode, radius=0.3 * w)
+        err = max(max(abs(a - b) for a, b in zip(f_np.dx, f_py.dx)),
+                  max(abs(a - b) for a, b in zip(f_np.dy, f_py.dy)))
+        ok("%s 的场两路一致（最大差 %.1e px）" % (mode, err), err < 1e-9, err)
+        f_last = f_np
+    ok("两路的网格尺寸一致", (f_np.nx, f_np.ny) == (f_py.nx, f_py.ny),
+       (f_np.nx, f_np.ny, f_py.nx, f_py.ny))
+
+    tex = bytes(bytearray((i * 37) % 256 for i in range(w * h * 4)))
+    WM.USE_NUMPY = True
+    out_np = WM.warp_rgba(tex, w, h, f_last)
+    WM.USE_NUMPY = False
+    out_py = WM.warp_rgba(tex, w, h, f_py)
+    dmax = max(abs(a - b) for a, b in zip(out_np, out_py))
+    ndiff = sum(1 for a, b in zip(out_np, out_py) if a != b)
+    ok("两路像素最多差 1 级（实测 %d，%d 字节不同）" % (dmax, ndiff),
+       dmax <= 1, dmax)
+    ok("两路输出长度一致", len(out_np) == len(tex) == len(out_py))
+    WM.USE_NUMPY = True
+else:
+    print("  （没装 numpy，跳过。装上后这两条会自动生效）")
+
+# ---- 12. ARAP --------------------------------------------------------------
+
+section("ARAP：刚性解算")
+import arap                                                 # noqa: E402
+
+if arap.available():
+    aw, ah = 300, 400
+    still = [{"sx": 120, "sy": 160, "dx": 120, "dy": 160}]
+    fs = WM.build_field(aw, ah, still, mode="arap", forward=True)
+    worst = max(max(abs(v) for v in fs.dx), max(abs(v) for v in fs.dy))
+    ok("钉子没拖时位移接近 0（%.3f px）" % worst, worst < 0.1, worst)
+
+    moved = [{"sx": 120, "sy": 160, "dx": 160, "dy": 180}]
+    fa = WM.build_field(aw, ah, moved, mode="arap", forward=True)
+    gx_, gy_ = fa.sample(120, 160)
+    err_pin = math.hypot(gx_ - 40.0, gy_ - 20.0)
+    ok("钉子严格跟手（偏差 %.2f px）" % err_pin, err_pin < 1.5, (gx_, gy_))
+
+    far_x, far_y = fa.sample(15, 15)
+    far_d = math.hypot(far_x, far_y)
+    ok("远处（15,15）基本不动（%.2f px）" % far_d, far_d < 3.0, (far_x, far_y))
+
+    # 保形：同样的强拉伸下，ARAP 的边长畸变应明显小于 MLS 相似
+    def edge_dev(field, w, h, cols=10, rows=13):
+        devs = []
+        for j in range(rows):
+            yy = 40 + j * (h - 80) / (rows - 1)
+            for i in range(cols - 1):
+                x1 = 40 + i * (w - 80) / (cols - 1)
+                x2 = 40 + (i + 1) * (w - 80) / (cols - 1)
+                a = field.sample(x1, yy)
+                b = field.sample(x2, yy)
+                l1 = math.hypot((x2 + b[0]) - (x1 + a[0]), b[1] - a[1])
+                devs.append(abs(l1 / (x2 - x1) - 1.0))
+        devs.sort()
+        return devs[len(devs) // 2]
+
+    strong = [{"sx": 100, "sy": 140, "dx": 210, "dy": 150},
+              {"sx": 210, "sy": 150, "dx": 100, "dy": 140}]
+    d_arap = edge_dev(WM.build_field(aw, ah, strong, mode="arap",
+                                     forward=True), aw, ah)
+    d_mls = edge_dev(WM.build_field(aw, ah, strong, mode="similarity",
+                                    radius=0.6 * aw, forward=True), aw, ah)
+    ok("ARAP 边长畸变小于 MLS 相似（%.3f vs %.3f）" % (d_arap, d_mls),
+       d_arap < d_mls * 0.5, (d_arap, d_mls))
+
+    t0 = time.time()
+    WM.build_field(aw, ah, moved, mode="arap", forward=True)
+    first = time.time() - t0
+    t0 = time.time()
+    for _ in range(3):
+        WM.build_field(aw, ah, moved, mode="arap", forward=True)
+    cached = (time.time() - t0) / 3.0
+    ok("缓存后单次解算够快（首次 %.0f ms，之后 %.0f ms）" %
+       (first * 1000, cached * 1000), cached * 1000 < 150.0,
+       (first, cached))
+    # 只认钉子原位的缓存键：拖动时原位不变，才能一直复用这一次分解
+    key = arap._cache_key(aw, ah, fa.nx, fa.ny,
+                          [(120.0, 160.0, 160.0, 180.0)])
+    ok("分解结果真的进了缓存", key in arap._CACHE)
+
+    # 反向场（真正的变形用这个）：钉子处也要对上
+    fb_ = WM.build_field(aw, ah, moved, mode="arap", forward=False)
+    bx, by = fb_.sample(160, 180)
+    ok("反向场在钉子现位处回到原位（%.2f px 偏差）" %
+       math.hypot(160 + bx - 120, 180 + by - 160),
+       math.hypot(160 + bx - 120, 180 + by - 160) < 3.0, (bx, by))
+else:
+    print("  （没装 numpy，ARAP 不可用，跳过）")
+
+# ---- 13. 规模 --------------------------------------------------------------
 
 section("规模：全分辨率够用就行")
 big_w, big_h = 1600, 2400
@@ -321,7 +425,9 @@ ok("1600×2400 解场 < 300 ms（%.0f ms）" % field_ms, field_ms < 300, field_m
 t0 = time.time()
 WM.warp_rgba(big, big_w, big_h, fb)
 warp_s = time.time() - t0
-ok("1600×2400 局部变形 < 6 s（%.2f s）" % warp_s, warp_s < 6.0, warp_s)
+warp_limit = 2.5 if WM.have_numpy() else 7.0
+ok("1600×2400 局部变形 < %.1f s（%.2f s）" % (warp_limit, warp_s),
+   warp_s < warp_limit, warp_s)
 
 
 print("\n" + "=" * 60)

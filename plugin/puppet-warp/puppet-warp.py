@@ -52,10 +52,19 @@ except Exception:                  # helper 不在：保持可用，只是不翻
 import warp_math as WM                 # noqa: E402
 import mask_io as MI                  # noqa: E402
 
+try:                                   # ARAP 要 numpy；没装就只隐藏这一档
+    import arap as ARAP               # noqa: E402
+except Exception:
+    ARAP = None
+
 PROC = 'lb-plugin-puppet-warp'
 PREVIEW_EDGE = 520
+# 预览用的 ARAP 网格比应用时粗：577 个顶点、拖钉子时 ~15 ms，
+# 够跟上手；应用时再用 48 那档，细节更准。
+PREVIEW_ARAP_NODES = 34
 MODE_SIMILARITY = 'similarity'
 MODE_AFFINE = 'affine'
+MODE_ARAP = 'arap'
 OUTPUT_REPLACE = 'replace'
 OUTPUT_LAYER = 'new-layer'
 PIN_HIT = 11
@@ -109,6 +118,14 @@ def check_drawable(drawable):
                            % (drawable.get_width(), drawable.get_height()))
 
 
+def arap_ok():
+    """ARAP 这一档能不能用（要 numpy）。"""
+    try:
+        return ARAP is not None and ARAP.available() and WM.have_numpy()
+    except Exception:
+        return False
+
+
 def warp_drawable(drawable, pins, mode=MODE_SIMILARITY, radius=0.30,
                   output=OUTPUT_REPLACE, on_tick=None):
     """全分辨率变形一个图层。返回 info 字典。
@@ -128,6 +145,10 @@ def warp_drawable(drawable, pins, mode=MODE_SIMILARITY, radius=0.30,
     if not moved:
         raise RuntimeError(_("None of the pins has been dragged yet — drag a "
                              "pin away from where you placed it."))
+    if mode == MODE_ARAP and not arap_ok():
+        raise RuntimeError(_(
+            "ARAP needs numpy, which this GIMP's Python does not have. "
+            "Run tools/install_gimp_numpy.py, or pick one of the MLS modes."))
 
     field = WM.build_field(w, h, pins, mode=mode, radius=radius * long_edge)
     if field.is_identity():
@@ -249,6 +270,8 @@ def build_dialog(config, image, drawable, w, h):
     combo_mode = Gtk.ComboBoxText.new()
     combo_mode.append(MODE_SIMILARITY, _("Rigid (keeps shapes)"))
     combo_mode.append(MODE_AFFINE, _("Free (allows stretching)"))
+    if arap_ok():
+        combo_mode.append(MODE_ARAP, _("ARAP (best at bending)"))
     combo_mode.set_active_id(config.get_property('mode') or MODE_SIMILARITY)
     combo_mode.set_hexpand(True)
     mode_row.add(lbl)
@@ -329,23 +352,31 @@ def build_dialog(config, image, drawable, w, h):
         radius_prev = v["radius"] / 100.0 * max(pw, ph)
         try:
             field = WM.build_field(pw, ph, pins_prev, mode=v["mode"],
-                                   radius=radius_prev)
+                                   radius=radius_prev,
+                                   arap_nodes=PREVIEW_ARAP_NODES)
             if field.is_identity():
                 ctx["warped"] = prgba
             else:
                 ctx["warped"] = WM.warp_rgba(prgba, pw, ph, field)
             if v["show_mesh"]:
                 fwd = WM.build_field(pw, ph, pins_prev, mode=v["mode"],
-                                     radius=radius_prev, forward=True)
+                                     radius=radius_prev, forward=True,
+                                     arap_nodes=PREVIEW_ARAP_NODES)
                 ctx["mesh"] = WM.mesh_polylines(fwd, pw, ph, cols=10, rows=10)
             else:
                 ctx["mesh"] = None
             st = WM.pin_summary(v["pins"])
+            if v["mode"] == MODE_ARAP:
+                # ARAP 是全局解算，没有「影响半径」这个概念：它靠弱锚定
+                # 让远处待着，所以这一档下 falloff 滑杆是灰的。
+                tail = _("ARAP · falloff not used")
+            else:
+                tail = _("falloff %.0f px") % (v["radius"] / 100.0 * max(w, h))
             note.set_text(_("%d pins, %d dragged, max shift %.1f px\n"
-                            "preview %s of %s · %.0f ms · falloff %.0f px") % (
+                            "preview %s of %s · %.0f ms · %s") % (
                 st["count"], st["moved"], st["max_shift"],
                 _fmt_size(pw, ph), _fmt_size(w, h),
-                (time.time() - t0) * 1000.0, v["radius"] / 100.0 * max(w, h)))
+                (time.time() - t0) * 1000.0, tail))
         except Exception as exc:
             note.set_text(_("Preview failed: %s") % exc)
         area.queue_draw()
@@ -482,8 +513,15 @@ def build_dialog(config, image, drawable, w, h):
     dlg.connect("key-press-event", on_key)
     b_del.connect("clicked", delete_selected)
     b_clear.connect("clicked", clear_pins)
+
+    def sync_radius(*_a):
+        """ARAP 没有影响半径，这一档把滑杆灰掉，免得拖了没反应。"""
+        s_radius.set_sensitive(combo_mode.get_active_id() != MODE_ARAP)
+
     for widget in (combo_mode, combo_out):
         widget.connect("changed", lambda *_a: schedule(0))
+    combo_mode.connect("changed", sync_radius)
+    sync_radius()
     s_radius.connect("value-changed", lambda *_a: schedule(90))
     mesh.connect("toggled", lambda *_a: schedule(0))
 
@@ -540,6 +578,12 @@ def _add_arguments(procedure):
     mode.add(MODE_AFFINE, 1, _("Free (allows stretching)"),
              _("Full MLS affine: the picture can also shear and stretch. "
                "Better for pulling something longer, worse on faces"))
+    mode.add(MODE_ARAP, 2, _("ARAP (best at bending)"),
+             _("As-rigid-as-possible on a mesh: every patch may only rotate "
+               "and translate, so bending an arm does not squash it. The "
+               "closest to Photoshop's behaviour on big bends. Needs numpy "
+               "(run tools/install_gimp_numpy.py); Falloff is not used in this "
+               "mode"))
     procedure.add_choice_argument(
         "mode", _("Deformation"), _("How the pixels between pins are solved"),
         mode, MODE_SIMILARITY, GObject.ParamFlags.READWRITE)
