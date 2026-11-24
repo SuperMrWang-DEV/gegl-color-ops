@@ -255,10 +255,12 @@ def invert_alpha(width, height, gray):
 
 
 def decode_png(blob):
-    """PNG → (width, height, channels, bytes)。只支持 8 位、非隔行。
+    """PNG → (width, height, channels, bytes)。支持 8/16 位、非隔行。
 
     支持 colour type 0/2/4/6（灰 / RGB / 灰+A / RGBA）与全部五种行过滤。
-    调色板（type 3）和 16 位不要，ComfyUI 出来的图不会是这两种。
+    16 位取**高字节**压成 8 位——GEGL 的 png-save 默认写 16 位，回归里要读它
+    的输出跟 ctypes 预览逐像素对比，所以这条路得通。
+    调色板（type 3）不支持。
     """
     if not blob or blob[:8] != b"\x89PNG\r\n\x1a\n":
         raise ComfyError("不是 PNG 数据（前 8 字节不对）")
@@ -279,8 +281,8 @@ def decode_png(blob):
             break
     if width is None:
         raise ComfyError("PNG 缺 IHDR")
-    if depth != 8:
-        raise ComfyError("只支持 8 位 PNG，这张是 %s 位" % depth)
+    if depth not in (8, 16):
+        raise ComfyError("只支持 8/16 位 PNG，这张是 %s 位" % depth)
     if interlace:
         raise ComfyError("不支持隔行 PNG")
     channels = {0: 1, 2: 3, 4: 2, 6: 4}.get(ctype)
@@ -292,7 +294,8 @@ def decode_png(blob):
     except zlib.error as exc:
         raise ComfyError("PNG 数据解压失败: %s" % exc)
 
-    stride = width * channels
+    bpp = channels * (depth // 8)      # 每像素字节数（反 filter 的步长）
+    stride = width * bpp
     out = bytearray(stride * height)
     prev = bytearray(stride)
     p = 0
@@ -304,20 +307,20 @@ def decode_png(blob):
         line = bytearray(raw[p:p + stride])
         p += stride
         if ftype == 1:                                   # Sub
-            for i in range(channels, stride):
-                line[i] = (line[i] + line[i - channels]) & 0xff
+            for i in range(bpp, stride):
+                line[i] = (line[i] + line[i - bpp]) & 0xff
         elif ftype == 2:                                 # Up
             for i in range(stride):
                 line[i] = (line[i] + prev[i]) & 0xff
         elif ftype == 3:                                 # Average
             for i in range(stride):
-                a = line[i - channels] if i >= channels else 0
+                a = line[i - bpp] if i >= bpp else 0
                 line[i] = (line[i] + ((a + prev[i]) >> 1)) & 0xff
         elif ftype == 4:                                 # Paeth
             for i in range(stride):
-                a = line[i - channels] if i >= channels else 0
+                a = line[i - bpp] if i >= bpp else 0
                 b = prev[i]
-                c = prev[i - channels] if i >= channels else 0
+                c = prev[i - bpp] if i >= bpp else 0
                 pa, pb, pc = abs(b - c), abs(a - c), abs(a + b - 2 * c)
                 pred = a if (pa <= pb and pa <= pc) else (b if pb <= pc else c)
                 line[i] = (line[i] + pred) & 0xff
@@ -325,6 +328,15 @@ def decode_png(blob):
             raise ComfyError("未知的 PNG 行过滤类型: %s" % ftype)
         out[y * stride:(y + 1) * stride] = line
         prev = line
+
+    if depth == 16:
+        # 每通道取高字节（>>8），也就是 16 位 → 8 位
+        narrow = bytearray(width * channels * height)
+        for y in range(height):
+            for x in range(width * channels):
+                narrow[y * width * channels + x] = \
+                    out[y * stride + x * 2]          # 大端：高字节在前
+        out = narrow
     return width, height, channels, bytes(out)
 
 

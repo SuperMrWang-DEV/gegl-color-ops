@@ -130,7 +130,8 @@
     <div class="dl" id="zh-sec-4">
       <div class="dl-head"><h3>实测</h3></div>
       <p>768×1024 图层、两个钉子、影响半径 25%：全分辨率变形 <b>0.15 秒</b>（含读写
-         缓冲区，装了 numpy）。预览 520 长边 <b>58 毫秒</b>一张，拖钉子跟得上手。</p>
+         缓冲区，装了 numpy）。预览以前 520 长边 <b>58 毫秒</b>一张（numpy 重采样），
+         现在<b>直接调 C</b>：480×360 一帧 <b>19 毫秒</b>（ARAP 17 ms），拖钉子完全跟手。</p>
       <p>1600×2400 的图局部拖一处 <b>0.7 秒</b>，影响半径拉满的全图重采样 <b>1.2 秒</b>
          （纯 Python 兜底分别是 2.4 / 6.2 秒）。ARAP 的网格分解只做一次（24 ms），
          拖钉子时每帧约 20 ms。</p>
@@ -151,7 +152,7 @@
     <div class="dl-head"><h3>木偶变形（网格变形）…</h3><span class="pill">.py · 免编译</span></div>
     <p>包里是一个 <code>.py</code>、一份安装说明，以及 <code>_shared/</code> 与 <code>locale/</code>。整包解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，但界面只有英文。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-puppet-warp.zip">下载 木偶变形（网格变形）…</a>
-    <p class="muted small">76.7 KB · 校验：<code>SHA256 cc0b668be423908405e1ea71ea8bfcc5…</code></p>
+    <p class="muted small">79.6 KB · 校验：<code>SHA256 bcbeef4237fb12573c146ffce65459e5…</code></p>
   </div>
 </section>
 
@@ -266,8 +267,10 @@
     <div class="dl" id="en-sec-4">
       <div class="dl-head"><h3>Measured</h3></div>
       <p>768×1024 layer, two pins, falloff 25 %: full-resolution warp in <b>0.15 s</b>
-         including buffer read and write (with numpy). The preview runs at a 520 px long
-         edge — <b>58 ms</b> per redraw, which keeps up with the hand.</p>
+         including buffer read and write (with numpy). The preview used to take
+         <b>58 ms</b> a redraw at a 520 px long edge (numpy resampling); it now <b>calls
+         the C operator directly</b> — 480×360 in <b>19 ms</b> (ARAP 17 ms), so dragging
+         keeps up completely.</p>
       <p>On a 1600×2400 photo a local drag costs <b>0.7 s</b>; resampling everything
          (falloff 100 %) takes <b>1.2 s</b>. Pure-Python fallback: 2.4 s / 6.2 s. The ARAP
          mesh is factored once (24 ms); dragging then costs about 20 ms per frame.</p>
@@ -289,7 +292,7 @@
     <div class="dl-head"><h3>Puppet Warp</h3><span class="pill">.py · no compile</span></div>
     <p>The archive holds a single <code>.py</code>, an install note and the <code>_shared/</code> + <code>locale/</code> pair. Unpack all of it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register. Without <code>_shared/</code> and <code>locale/</code> it still runs, but only in English.</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-puppet-warp.zip">Download Puppet Warp</a>
-    <p class="muted small">76.7 KB · checksum: <code>SHA256 cc0b668be423908405e1ea71ea8bfcc5…</code></p>
+    <p class="muted small">79.6 KB · checksum: <code>SHA256 bcbeef4237fb12573c146ffce65459e5…</code></p>
   </div>
 </section>
 
@@ -324,7 +327,7 @@
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">7a38f65</span>
+    <span class="muted">f5340bf</span>
   </div>
 </footer>
 <script>

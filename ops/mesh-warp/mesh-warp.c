@@ -1150,6 +1150,119 @@ process (GeglOperation       *operation,
 
 
 
+/* ---- 给 ctypes 的纯 C 接口（Puppet/Mesh Warp 的「实时预览」） -------------
+ *
+ * 为什么要这一层：交互时每一帧都要出一张预览，走 GEGL 那条路要建 buffer、
+ * 走 babl 转格式、再整块取回，Python 侧还得 numpy 重采样一遍——480×360 实测
+ * 84 ms（解场 47 + 重采样 37），拖动明显掉帧。
+ *
+ * 这里把**同一套** mw_field_for / mw_sample 直接暴露出来，Python 用 ctypes
+ * 把源像素指针传进来，结果原地写回 dst。预览和最终烘焙走的是同一份数学，
+ * 所以不存在「预览和结果不一致」的问题（这是这套设计最要紧的一点）。
+ */
+G_MODULE_EXPORT gint
+mw_render_rgba (const gfloat *src, gint w, gint h,
+                const gchar *mesh_text, gfloat *dst)
+{
+  MwField fc = { NULL, 0, 0, NULL, NULL };
+  gint x, y;
+
+  if (!src || !dst || w < 2 || h < 2)
+    return 0;
+  if (!mw_field_for (mesh_text ? mesh_text : "", w, h, &fc))
+    return 0;
+
+  for (y = 0; y < h; y++)
+    {
+      gfloat *row = dst + (gsize) y * w * 4;
+
+      for (x = 0; x < w; x++)
+        {
+          gdouble ox, oy, sx, sy;
+
+          mw_field_offset (&fc, w, h, (gdouble) x, (gdouble) y, &ox, &oy);
+          sx = CLAMP ((gdouble) x + ox, 0.0, (gdouble) w - 1.001);
+          sy = CLAMP ((gdouble) y + oy, 0.0, (gdouble) h - 1.001);
+          mw_sample (src, w, h, sx, sy, row + (gsize) x * 4);
+        }
+    }
+
+  if (!fc.key)                        /* 私有解（全 RESERVED 时的退化路径） */
+    {
+      g_free (fc.dx);
+      g_free (fc.dy);
+    }
+  return 1;
+}
+
+/* u8 版本：插件里的预览像素本来就是 8 位 RGBA，让它自己在这边转 float。
+ * 为什么不在 Python 里转——691200 个通道逐个 /255 是纯 Python 循环，实测比
+ * 省下来的渲染时间还长（numpy 有的话很快，但 GIMP 自带的 Python 不一定装）。
+ * 转 float 就走**同一个** mw_sample，所以预览和烘焙的像素一致到浮点误差。 */
+G_MODULE_EXPORT gint
+mw_render_rgba_u8 (const guint8 *src8, gint w, gint h,
+                   const gchar *mesh_text, guint8 *dst8)
+{
+  gfloat *src, *dst;
+  gsize n, i;
+  gint ok;
+
+  if (!src8 || !dst8 || w < 2 || h < 2)
+    return 0;
+
+  n = (gsize) w * h * 4;
+  src = g_new (gfloat, n);
+  dst = g_new (gfloat, n);
+  for (i = 0; i < n; i++)
+    src[i] = src8[i] * (1.0f / 255.0f);
+
+  ok = mw_render_rgba (src, w, h, mesh_text, dst);
+  if (ok)
+    for (i = 0; i < n; i++)
+      {
+        gdouble v = dst[i] * 255.0 + 0.5;
+
+        dst8[i] = (guint8) CLAMP (v, 0.0, 255.0);
+      }
+
+  g_free (src);
+  g_free (dst);
+  return ok;
+}
+
+/* 预览用：只解场、不重采样。返回 1 = 场全 0（恒等），0 = 需要重采样，
+ * -1 = 失败。插件拿它来决定「要不要白算一遍像素」。 */
+G_MODULE_EXPORT gint
+mw_field_is_identity (const gchar *mesh_text, gint w, gint h)
+{
+  MwField fc = { NULL, 0, 0, NULL, NULL };
+  gsize n, i;
+
+  if (w < 2 || h < 2)
+    return -1;
+  if (!mw_field_for (mesh_text ? mesh_text : "", w, h, &fc))
+    return -1;
+
+  n = (gsize) fc.nx * fc.ny;
+  for (i = 0; i < n; i++)
+    if (fc.dx[i] != 0.0 || fc.dy[i] != 0.0)
+      {
+        if (!fc.key)
+          {
+            g_free (fc.dx);
+            g_free (fc.dy);
+          }
+        return 0;
+      }
+
+  if (!fc.key)
+    {
+      g_free (fc.dx);
+      g_free (fc.dy);
+    }
+  return 1;
+}
+
 static void
 gegl_op_class_init (GeglOpClass *klass)
 {

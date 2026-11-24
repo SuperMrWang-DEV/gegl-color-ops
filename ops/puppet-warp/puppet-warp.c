@@ -1430,6 +1430,101 @@ process (GeglOperation       *operation,
   return TRUE;
 }
 
+/* ---- 给 ctypes 的预览入口（同 mesh-warp 的 mw_render_rgba_u8） ----------
+ *
+ * 预览每帧都要出图，走 GEGL + numpy 一趟 480×360 要 80～100 ms，拖动掉帧。
+ * 这里直接把 process 里那段「解场 → 采样」暴露成纯 C 函数，插件用 ctypes
+ * 传像素指针调用。走的是**同一份** pw_arap_reverse_field / pw_mls_reverse /
+ * pw_sample，所以预览和烘焙的像素一致（差别只有 16 位取整）。
+ *
+ * mode 用字符串传，不依赖 glib 枚举的数值顺序。
+ */
+G_MODULE_EXPORT gint
+pw_render_rgba_u8 (const guint8 *src8, gint w, gint h,
+                   const gchar *pins_text, const gchar *mode,
+                   gdouble radius, guint8 *dst8)
+{
+  PwPinSet set;
+  PwFieldCache fc = { NULL, 0, 0, NULL, NULL };
+  gboolean similarity, arap, have_field = TRUE;
+  gdouble radius_px;
+  gfloat *src, *dst;
+  gsize n, i;
+  gint x, y;
+
+  if (!src8 || !dst8 || w < 2 || h < 2)
+    return 0;
+
+  n = (gsize) w * h * 4;
+  src = g_new (gfloat, n);
+  dst = g_new (gfloat, n);
+  for (i = 0; i < n; i++)
+    src[i] = src8[i] * (1.0f / 255.0f);
+
+  similarity = !(mode && g_strcmp0 (mode, "affine") == 0);
+  arap = (mode && g_strcmp0 (mode, "arap") == 0);
+  radius_px = radius / 100.0 * MAX (w, h);
+
+  if (!pw_parse_pins (pins_text ? pins_text : "", &set) || !set.moved)
+    {
+      /* 没钉子：直通 */
+      memcpy (dst8, src8, n);
+      g_free (src);
+      g_free (dst);
+      return 1;
+    }
+
+  if (arap)
+    {
+      have_field = pw_arap_reverse_field (pins_text ? pins_text : "",
+                                          w, h, &set, &fc);
+      if (!have_field)
+        {
+          /* ARAP 解不出来：直通，别把画面弄丢 */
+          memcpy (dst8, src8, n);
+          g_free (src);
+          g_free (dst);
+          return 1;
+        }
+    }
+
+  for (y = 0; y < h; y++)
+    {
+      gfloat *row = dst + (gsize) y * w * 4;
+
+      for (x = 0; x < w; x++)
+        {
+          gdouble sx, sy;
+
+          if (arap)
+            {
+              gdouble ox, oy;
+
+              pw_field_offset (&fc, w, h, (gdouble) x, (gdouble) y, &ox, &oy);
+              sx = x + ox;
+              sy = y + oy;
+            }
+          else
+            {
+              pw_mls_reverse ((gdouble) x, (gdouble) y, &set, similarity,
+                              radius_px, &sx, &sy);
+            }
+          pw_sample (src, w, h, sx, sy, row + (gsize) x * 4);
+        }
+    }
+
+  for (i = 0; i < n; i++)
+    {
+      gdouble v = dst[i] * 255.0 + 0.5;
+
+      dst8[i] = (guint8) CLAMP (v, 0.0, 255.0);
+    }
+
+  g_free (src);
+  g_free (dst);
+  return 1;
+}
+
 static void
 gegl_op_class_init (GeglOpClass *klass)
 {

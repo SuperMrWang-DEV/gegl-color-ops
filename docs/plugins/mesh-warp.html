@@ -145,8 +145,8 @@
     </div>
     <div class="dl" id="zh-sec-6">
       <div class="dl-head"><h3>实测</h3></div>
-      <p>插线本身是 O(节点数)，一瞬间的事；预览仍走 480 长边，一帧 100 ms 上下，多一条线
-         只多几片，手感不变。</p>
+      <p>插线本身是 O(节点数)，一瞬间的事；预览走 480 长边、由 C 直接渲染，
+         一帧 9 ms 上下，多一条线只多几片，手感不变。</p>
       <p>回归里盯的是「插线前后画面不动」：恒等网格插完线必须仍判为恒等（一个像素都不
          重采样）、新线的交点必须落在原曲面上（实测 0.00e+00 px）、两张偏移场逐节点差
          &lt; 0.5 px。</p>
@@ -197,8 +197,14 @@
       <p>768×1024 图层、拖一个交点 + 弯一处把手：<b>0.41 秒</b>（含读写缓冲区）。
          1600×2400 全流程 <b>1.3 秒</b>（解场 150 ms、重采样 1.16 s）。</p>
       <p>网格变形是<b>全局</b>的：只要动了一处，整幅画面都要重采样，所以预览按
-         480 长边算，一次约 <b>95 毫秒</b>——比木偶变形（520 长边、只重采样一小块）
-         慢，这是代价，不是没优化。</p>
+         480 长边算。以前这条在 Python/numpy 里跑，一帧 <b>84～97 毫秒</b>，拖动发涩；
+         现在<b>直接调算子里的 C</b>（ctypes 把像素指针传给 <code>mw_render_rgba_u8</code>），
+         同一张图 <b>9 毫秒</b>，快了 <b>10 倍</b>。</p>
+      <p>为什么能快这么多、又不会出现「预览和结果不一样」：预览和烘焙调的是
+         <b>同一个</b> <code>mw_field_for</code> + <code>mw_sample</code>，只是尺寸不同。
+         实测同一张图两边逐像素差<b>中位 0、最大 1 级</b>（16 位输出取整那一下）。
+         拿不到 .dll（别的机器、老版本算子）时自动退回 numpy 那条路，状态行末尾会
+         从 <code>(C)</code> 变成 <code>(py)</code>，一眼就能看出走的哪条。</p>
     </div>
     <div class="dl" id="zh-sec-11">
       <div class="dl-head"><h3>和 PS 差在哪</h3></div>
@@ -218,7 +224,7 @@
     <div class="dl-head"><h3>自由变形（网格 + 把手）…</h3><span class="pill">.py · 免编译</span></div>
     <p>包里是一个 <code>.py</code>、一份安装说明，以及 <code>_shared/</code> 与 <code>locale/</code>。整包解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，但界面只有英文。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-mesh-warp.zip">下载 自由变形（网格 + 把手）…</a>
-    <p class="muted small">88.9 KB · 校验：<code>SHA256 2115c48542986be8d9471534d7083c4d…</code></p>
+    <p class="muted small">91.9 KB · 校验：<code>SHA256 58b4bf358da57eec3f60f547d9704f4a…</code></p>
   </div>
 </section>
 
@@ -353,8 +359,9 @@
     </div>
     <div class="dl" id="en-sec-6">
       <div class="dl-head"><h3>Measured</h3></div>
-      <p>Adding a line is O(nodes) — instant. The preview still runs at a 480 px long edge,
-         around 100 ms a frame; one more line adds a few patches, not a change in feel.</p>
+      <p>Adding a line is O(nodes) — instant. The preview runs at a 480 px long edge and is
+         rendered in C now — about 9 ms a frame; one more line adds a few patches, not a
+         change in feel.</p>
       <p>The regression watches one thing: the picture must not move. An identity grid with
          an added line still has to classify as identity (not one pixel resampled), the new
          line's points must land on the existing surface (measured 0.00e+00 px), and the two
@@ -414,9 +421,16 @@
          buffer read and write. 1600×2400 end to end: <b>1.3 s</b> (field 150 ms,
          resampling 1.16 s).</p>
       <p>This warp is <b>global</b>: move one point and every pixel needs resampling. The
-         preview therefore runs at a 480 px long edge, about <b>95 ms</b> per redraw —
-         slower than puppet warp (520 px, only a patch resampled). That is the cost, not a
-         missing optimisation.</p>
+         preview runs at a 480 px long edge and used to take <b>84–97 ms</b> a frame in
+         Python/numpy, which felt sticky. It now <b>calls the operator's C</b> through
+         ctypes (<code>mw_render_rgba_u8</code>): <b>9 ms</b> for the same picture —
+         <b>10× faster</b>.</p>
+      <p>Why that does not break “preview equals result”: both paths call the same
+         <code>mw_field_for</code> + <code>mw_sample</code>, only at different sizes.
+         Measured per pixel: <b>median 0, max 1 level</b> (the 16-bit rounding). If the
+         .dll cannot be loaded (another machine, an older operator), it falls back to the
+         numpy path and the status line switches from <code>(C)</code> to <code>(py)</code>,
+         so you can always tell which one ran.</p>
     </div>
     <div class="dl" id="en-sec-11">
       <div class="dl-head"><h3>Where it differs from Photoshop</h3></div>
@@ -439,7 +453,7 @@
     <div class="dl-head"><h3>Free Transform (Mesh)</h3><span class="pill">.py · no compile</span></div>
     <p>The archive holds a single <code>.py</code>, an install note and the <code>_shared/</code> + <code>locale/</code> pair. Unpack all of it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register. Without <code>_shared/</code> and <code>locale/</code> it still runs, but only in English.</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-mesh-warp.zip">Download Free Transform (Mesh)</a>
-    <p class="muted small">88.9 KB · checksum: <code>SHA256 2115c48542986be8d9471534d7083c4d…</code></p>
+    <p class="muted small">91.9 KB · checksum: <code>SHA256 58b4bf358da57eec3f60f547d9704f4a…</code></p>
   </div>
 </section>
 
@@ -474,7 +488,7 @@
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">7a38f65</span>
+    <span class="muted">f5340bf</span>
   </div>
 </footer>
 <script>

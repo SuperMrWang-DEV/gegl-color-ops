@@ -33,6 +33,14 @@ sys.path.insert(0, os.path.join(REPO, "plugin", "_shared"))
 
 import importlib.util                                  # noqa: E402
 import mesh_warp as MW8                                # noqa: E402
+import warp_math as WM                                 # noqa: E402
+
+try:
+    import native_warp as _NWmod
+    NW = _NWmod.mesh_preview()
+except Exception as _e:                                # noqa: BLE001
+    NW = None
+    print("native_warp 不可用：", _e)
 
 PASS = 0
 FAIL = []
@@ -372,6 +380,33 @@ def main():
         ctx["render"]()
         check("5×5 也能渲染", "failed" not in ctx["note"].get_text(),
               ctx["note"].get_text()[:70])
+        # 恒等网格会被短路成 "id"（连 C 都不调），所以先把中间那个点拖开
+        _m5 = ctx["mesh"]
+        _i5, _j5 = _m5.cols // 2, _m5.rows // 2
+        _n5 = _m5.node(_i5, _j5)
+        _n5["x"] += 12.0
+        _n5["y"] -= 8.0
+        _m5.auto_refresh()
+        check("网格已经不是恒等（拖动生效）", not _m5.is_identity(),
+              _m5.is_identity())
+        ctx["render"]()
+        check("预览走 C（ctypes 直调算子）",
+              ctx.get("preview_path") == "c",
+              ctx["note"].get_text().replace("\n", " | ")[:90])
+        # 和 Python 路径（numpy）比：两边同一套数学，主要差异来自 Newton
+        # 收敛细节，只要求「95% 的通道几乎一样」。差得离谱就说明 ctypes 传的
+        # mesh 串 / 尺寸 / 坐标对不上（这类错会让整幅图错位，不是几十级噪声）。
+        try:
+            _ref = WM.warp_rgba(ctx["prgba"], ctx["pw"], ctx["ph"],
+                                MW8.build_field(ctx["preview_mesh"],
+                                                ctx["pw"], ctx["ph"]))
+            _d = sorted(abs(_ref[_i] - ctx["warped"][_i])
+                        for _i in range(0, len(_ref), 7))
+            _p95 = _d[int(len(_d) * 0.95)]
+            check("C 预览与 numpy 路径 95%% 一致（p95=%d / 最大 %d）"
+                  % (_p95, _d[-1]), _p95 <= 3, _p95)
+        except NameError as _exc:
+            check("C 预览与 numpy 路径一致", False, "缺模块: %s" % _exc)
 
         # 非方形：6 列 × 2 行。这一条就是用户要的「横线竖线分开设」。
         ctx["spin_cols"].set_value(6)

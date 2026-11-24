@@ -332,6 +332,11 @@ def main():
         ctx["pins"].append({"sx": 100.0, "sy": 75.0, "dx": 130.0, "dy": 75.0})
         ctx["render"]()
         check("拖了钉子之后预览变了", ctx["warped"] != first)
+        # 预览现在直接 ctypes 调 puppet-warp.dll 里的 pw_render_rgba_u8，
+        # 和烘焙共用同一份 pw_mls_reverse/pw_sample；退回 Python 就说明
+        # dll 没装好或没有导出符号，性能会掉回 80～100 ms。
+        check("预览走 C（ctypes 直调算子）",
+              ctx.get("preview_path") == "c", ctx.get("preview_path"))
         note = ctx["note"].get_text()
         check("状态行没有报错", "failed" not in note, note[:70])
         check("状态行里有钉子数", "1" in note, note[:70])

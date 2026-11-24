@@ -64,6 +64,11 @@ import warp_math as WM                 # noqa: E402
 import mesh_warp as MWM                # noqa: E402
 import mask_io as MI                   # noqa: E402
 
+try:
+    import native_warp as NW           # 预览直接调算子 .dll（ctypes）
+except Exception:                      # 没有就退回 numpy 那一路
+    NW = None
+
 PROC = 'lb-plugin-mesh-warp'
 # 预览长边。木偶变形用 520，这里降到 480：网格变形是**全局**的，整幅画面
 # 都要重采样（木偶变形只动一小块，大段整行抄过去），520 长边一次要 100 ms 起，
@@ -378,22 +383,41 @@ def build_dialog(config, image, drawable, w, h):
         t0 = time.time()
         mp = v["mesh"].scaled(1.0 / k)
         ctx["preview_mesh"] = mp
+        native_ms = None
         try:
-            field = MWM.build_field(mp, pw, ph)
-            if field.is_identity():
-                ctx["warped"] = prgba
+            # 先走 C：算子和烘焙共用同一套 field/采样，480×360 实测 9 ms；
+            # numpy 那条要 84～97 ms，拖动时明显掉帧。
+            path_now = "py"
+            out = None
+            if mp.is_identity():
+                out = prgba                    # 恒等：连 C 都不用调
+                path_now = "id"
+            elif NW is not None:
+                out = NW.mesh_preview().render(
+                    MWM.format_mesh_string(mp), prgba, pw, ph)
+                if out is not None:
+                    path_now = "c"
+                    native_ms = NW.mesh_preview().seconds * 1000.0
+            if out is None:
+                field = MWM.build_field(mp, pw, ph)
+                if field.is_identity():
+                    ctx["warped"] = prgba
+                else:
+                    ctx["warped"] = WM.warp_rgba(prgba, pw, ph, field)
             else:
-                ctx["warped"] = WM.warp_rgba(prgba, pw, ph, field)
+                ctx["warped"] = out
+            ctx["preview_path"] = path_now
             ctx["lines"] = mp.grid_polylines(steps=12) if v["show_mesh"] else None
             st = MWM.mesh_summary(v["mesh"])
             tail = ""
             if st["curved"]:
                 tail = _(" · %d bent") % st["curved"]
+            path = {"c": "C", "id": "id"}.get(ctx.get("preview_path"), "py")
             note.set_text(_("%d×%d cells · %d moved%s · max shift %.1f px\n"
-                            "preview %s of %s · %.0f ms") % (
+                            "preview %s of %s · %.0f ms (%s)") % (
                 st["cols"], st["rows"], st["moved"], tail, st["max_shift"],
                 _fmt_size(pw, ph), _fmt_size(w, h),
-                (time.time() - t0) * 1000.0))
+                (time.time() - t0) * 1000.0, path))
         except Exception as exc:
             note.set_text(_("Preview failed: %s") % exc)
         area.queue_draw()

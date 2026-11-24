@@ -52,6 +52,11 @@ except Exception:                  # helper 不在：保持可用，只是不翻
 import warp_math as WM                 # noqa: E402
 import mask_io as MI                  # noqa: E402
 
+try:
+    import native_warp as NW           # 预览直接调算子 .dll（ctypes）
+except Exception:                      # 没有就退回 numpy 那一路
+    NW = None
+
 try:                                   # ARAP 要 numpy；没装就只隐藏这一档
     import arap as ARAP               # noqa: E402
 except Exception:
@@ -406,13 +411,25 @@ def build_dialog(config, image, drawable, w, h):
                      for p in v["pins"]]
         radius_prev = v["radius"] / 100.0 * max(pw, ph)
         try:
-            field = WM.build_field(pw, ph, pins_prev, mode=v["mode"],
-                                   radius=radius_prev,
-                                   arap_nodes=PREVIEW_ARAP_NODES)
-            if field.is_identity():
-                ctx["warped"] = prgba
+            # 先走 C（算子里同一个 pw_mls_reverse / ARAP 场 + pw_sample）：
+            # 480×360 实测 80～100 ms 降到 10 ms 级，拖动才跟手。
+            out = None
+            if NW is not None:
+                out = NW.puppet_preview().render(
+                    WM.format_pin_string(pins_prev), prgba, pw, ph,
+                    mode=v["mode"], radius=v["radius"])
+            if out is not None:
+                ctx["warped"] = out
+                ctx["preview_path"] = "c"
             else:
-                ctx["warped"] = WM.warp_rgba(prgba, pw, ph, field)
+                field = WM.build_field(pw, ph, pins_prev, mode=v["mode"],
+                                       radius=radius_prev,
+                                       arap_nodes=PREVIEW_ARAP_NODES)
+                if field.is_identity():
+                    ctx["warped"] = prgba
+                else:
+                    ctx["warped"] = WM.warp_rgba(prgba, pw, ph, field)
+                ctx["preview_path"] = "py"
             if v["show_mesh"]:
                 fwd = WM.build_field(pw, ph, pins_prev, mode=v["mode"],
                                      radius=radius_prev, forward=True,
@@ -428,10 +445,11 @@ def build_dialog(config, image, drawable, w, h):
             else:
                 tail = _("falloff %.0f px") % (v["radius"] / 100.0 * max(w, h))
             note.set_text(_("%d pins, %d dragged, max shift %.1f px\n"
-                            "preview %s of %s · %.0f ms · %s") % (
+                            "preview %s of %s · %.0f ms · %s (%s)") % (
                 st["count"], st["moved"], st["max_shift"],
                 _fmt_size(pw, ph), _fmt_size(w, h),
-                (time.time() - t0) * 1000.0, tail))
+                (time.time() - t0) * 1000.0, tail,
+                "C" if ctx.get("preview_path") == "c" else "py"))
         except Exception as exc:
             note.set_text(_("Preview failed: %s") % exc)
         area.queue_draw()

@@ -2417,7 +2417,8 @@ PLUGIN_SPECS = [
                   "影响半径之外一个字节都不重采样。刚性（MLS 相似）/ 自由（MLS 仿射）"
                   "/ ARAP 三档——ARAP 大角度弯折不压扁，要 numpy。带网格叠加与实时预览；"
                   "钉子也能用参数传，脚本可以完整复现。",
-             shared=["warp_math.py", "arap.py", "mask_io.py", "refine_math.py"],
+             shared=["warp_math.py", "arap.py", "mask_io.py", "refine_math.py",
+                     "native_warp.py"],
              pdb="lb-plugin-puppet-warp(image, drawables, pins, mode, radius, output)"),
         dict(key="mesh-warp", ops=[],
              name="gegl-color-ops-plugin-mesh-warp.zip",
@@ -2427,10 +2428,10 @@ PLUGIN_SPECS = [
              menus="    SuperMrWang → Distort → 自由变形（网格 + 把手）…",
              desc="自由变形：图层上盖一张贝塞尔网格，拖交点改形状；选中交点会露出"
                   "两个把手，拖把手把网格线弯成曲线，鼓包、收腰、翻边这类直线格子"
-                  "做不到的形状都能出来。2×2～6×6 格可换，实时预览，网格能用参数"
+                  "做不到的形状都能出来。格数横竖分开设（各 1～12），实时预览，网格能用参数"
                   "传给脚本复现。",
              shared=["mesh_warp.py", "warp_math.py", "mask_io.py",
-                     "refine_math.py"],
+                     "refine_math.py", "native_warp.py"],
              pdb="lb-plugin-mesh-warp(image, drawables, mesh, output)"),
         dict(key="layer-style", ops=[],
              name="gegl-color-ops-plugin-layer-style.zip",
