@@ -37,3 +37,10 @@ backup/
 
 # ---- dist/ 放的是给用户直接下载的预编译包，要进仓库 ----
 !dist/**
+
+# 视频工程中间产物（成片在 ../outputs/video，不进仓库）
+tools/video/shots/
+tools/video/frames/
+tools/video/clips/
+tools/video/audio/
+tools/video/build/
