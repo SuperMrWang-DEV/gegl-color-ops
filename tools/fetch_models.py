@@ -40,7 +40,10 @@ FILES = {
          "models/text_encoders/t5xxl_fp8_e4m3fn.safetensors", 4893934904),
         ("comfyanonymous/flux_text_encoders", "clip_l.safetensors",
          "models/text_encoders/clip_l.safetensors", 246144152),
-        ("black-forest-labs/FLUX.1-schnell", "ae.safetensors",
+        # ae 必须绕开官方仓库：black-forest-labs/FLUX.1-schnell 和 FLUX.1-dev
+        # 都要登录 + 接受许可，直连返回 403，镜像也一样。camenduru/FLUX.1-dev
+        # 是同一份 ae（335,304,388 字节，逐字节一致）。
+        ("camenduru/FLUX.1-dev", "ae.safetensors",
          "models/vae/ae.safetensors", 335304388),
     ],
 }

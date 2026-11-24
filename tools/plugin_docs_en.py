@@ -1611,6 +1611,12 @@ python tools/fetch_models.py flux      # 12 GB: quality ceiling, slow</code></pr
        So when the name ends in <code>.gguf</code> or contains flux,
        <code>inpaint()</code> swaps the whole graph. Miss one of the four files and
        <code>flux_assets()</code> tells you which one and where it belongs.</p>
+    <p><b>Three tiers, measured</b> (same selection, same prompt, same floor): SD1.5
+       gives a cat whose fur is a single blob and a dog with melted legs; SDXL gets the
+       anatomy and the shadow right, but rendered “a small cream puppy” as <i>two</i> dogs —
+       adding <code>one single</code> reined it in; Flux returns one cream puppy, four legs
+       on the floor, and a cat with individual hairs and readable eyes. Cost: 74–84 s per
+       image.</p>
     <p><b>Automatic</b> prefers the SDXL inpaint tier (visibly better detail than SD1.5);
        <b>Flux is never automatic</b> — it is an order of magnitude slower and would make
        the plug-in look hung.</p>

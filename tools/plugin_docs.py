@@ -894,6 +894,10 @@ python tools/fetch_models.py flux      # 12 GB：质量上限，慢</code></pre>
        <code>cfg</code>（固定 1.0）。所以看到 <code>.gguf</code> 或名字带 flux，
        <code>inpaint()</code> 会把整张节点图换掉。四个文件缺一个都跑不起来，
        <code>flux_assets()</code> 会点名缺哪个、该放哪。</p>
+    <p><b>三档实测</b>（同选区、同提示词、同一张地板）：SD1.5 的猫毛发是一团、
+       狗的腿糊在一起；SDXL 形体和投影对了，但同一句「a small cream puppy」
+       画了两只狗，写 `one single` 才收住；Flux 给一只奶油色小狗、四条腿都在地上，
+       猫的毛尖和眼神都是清楚的。代价 74~84 秒/张。</p>
     <p><b>自动挑底模</b>优先 SDXL 那一档 inpaint（细节明显强过 SD1.5），
        <b>Flux 不进自动</b>——它慢一个数量级，自动挑会让人以为插件卡死了。</p>
   </div>

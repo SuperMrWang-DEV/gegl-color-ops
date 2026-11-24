@@ -28,6 +28,8 @@ SRC = os.environ.get("PROBE_SRC") or r"D:\ComfyUI\test-out\scene-src.png"
 OUTDIR = r"D:\ComfyUI\test-out"
 # 2026-11-24 下的 SDXL inpaint（9 通道专用，细节比 SD1.5 强一档）
 SDXL_INPAINT = "sd_xl_base_1.0_inpainting_0.1.safetensors"
+# 2026-11-24 下的 Flux.1 Fill dev（4bit），慢但质量上限那一档
+FLUX_FILL = "flux1-fill-dev-Q4_K_S.gguf"
 
 # (编号, 盒子 x/y/w/h, 预设, 细节提示词, 输出名, 说明)
 CASES = {
@@ -85,6 +87,16 @@ CASES = {
                      "under the body, photorealistic",
               out="pet9-dog-sdxl-one.png", ckpt=SDXL_INPAINT,
               note="小狗 / SDXL + 明确「只画一只」"),
+    "10": dict(box=(230, 690, 310, 320), preset="cat",
+               prompt="orange tabby cat lying on the wooden floor, looking at "
+                      "the camera, natural window light, photorealistic",
+               out="pet10-cat-flux.png", ckpt=FLUX_FILL, variations=1,
+               note="小猫 / Flux.1 Fill dev 4bit"),
+    "11": dict(box=(420, 760, 290, 250), preset="dog",
+               prompt="one cream colored puppy sitting on the wooden floor, "
+                      "photorealistic",
+               out="pet11-dog-flux.png", ckpt=FLUX_FILL, variations=1,
+               note="小狗 / Flux.1 Fill dev 4bit"),
 }
 
 sys.path.insert(0, os.path.join(REPO, "plugin", "_shared"))
@@ -113,7 +125,8 @@ for key in want:
             checkpoint=case.get("ckpt", ""), steps=25, cfg=7.5,
             seed=20261124, denoise=1.0,
             grow=8, grow_mask_by=8, feather=4.0,
-            variations=3, preset=case["preset"], variant="auto")
+            variations=case.get("variations", 3), preset=case["preset"],
+            variant="auto")
         print("耗时 %.1f s  工作尺寸 %s  倍率 %.2f" % (
             time.time() - t0, info.get("work_size"), info.get("scale") or 1.0))
         print("配方", info.get("variant"), "底模", info.get("checkpoint"))
