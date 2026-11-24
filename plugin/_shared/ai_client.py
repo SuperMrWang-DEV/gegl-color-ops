@@ -163,16 +163,18 @@ def fit_context(sel, ctx, checkpoint, canvas_w, canvas_h, min_margin=64):
 def checkpoint_note(name):
     """给下拉框用的短标注：家族 + 舒适分辨率；inpaint 专用模型单独点出来。
 
-    用户装了一堆模型时，光看文件名分不出哪个是 SD1.5、哪个是 SDXL，更看不出
-    哪个是「inpaint 专用、在 VAEEncodeForInpaint 这条路上认不出提示词」。这行
-    文字就是为了在选之前就说清楚，而不是选完才发现画出来是一团糊。
+    2026-11-24 改：inpaint 专用模型以前被标成「不认提示词，别选」——那是因为
+    当时配的是 VAEEncodeForInpaint（把洞填成灰色，等于没告诉模型洞里原来是什么）。
+    配上 InpaintModelConditioning 之后，它们才是填得最准的一档，所以现在标「推荐」。
+    普通模型还能用（noise 配方，洞外不动），但细结构附近容易留白痕。
     """
     name = name or ""
-    if "inpaint" in name.lower():
-        return "%s（inpaint 专用 · 不认提示词，别选）" % name
+    if is_inpaint_checkpoint(name):
+        return "%s（inpaint 专用 · 推荐）" % name
     fam = detect_family(name)
-    return "%s（%s · %d）" % (name, "SDXL" if fam == "sdxl" else "SD1.5",
-                             FAMILY_TARGET.get(fam, 512))
+    return "%s（%s · %d · 非 inpaint，细结构易留痕）" % (
+        name, "SDXL" if fam == "sdxl" else "SD1.5",
+        FAMILY_TARGET.get(fam, 512))
 
 
 class ComfyError(RuntimeError):
@@ -573,17 +575,17 @@ class ComfyClient(object):
             return []
 
     def first_checkpoint(self):
-        """自动挑一个底模：环境变量 > **优先普通底模**（跳过 inpaint 专用）。
+        """自动挑一个底模：环境变量 > **优先 inpaint 专用底模**。
 
-        9 通道的 inpaint 底模（sd-v1.5-inpainting 那一类）在 ComfyUI 的
-        VAEEncodeForInpaint 工作流下不认提示词：实测只把蒙版区抹平，画不出你要
-        的东西，边界还留一圈淡影（2026-11-20）。它们的文件名都带 "inpaint"，
-        所以按名字让开；真的只剩 inpaint 模型时也不拦着。
-        Prefer a plain checkpoint: 9-channel inpaint models ignore the prompt
-        on the VAEEncodeForInpaint path.
+        2026-11-24 改：以前反过来（优先普通底模），理由是「9 通道的 inpaint
+        底模在 VAEEncodeForInpaint 下不认提示词，只把蒙版区抹平」。那个观察没错，
+        但结论错在归因——抹平是因为 VAEEncodeForInpaint 把洞填成灰色、把
+        「洞里原来是什么」也丢了，不是因为模型不行。换成 InpaintModelConditioning
+        之后，inpaint 底模能顺着眉毛的方向把断口接上；普通底模（sd_xl_base）
+        在同一条路径上会把眉毛画成丝状、留几道白痕。
 
-        环境变量 LB_COMFY_CKPT 可以点名要哪个（装了多个模型、又懒得每次去
-        高级版下拉里选的人用得上）；名字对不上就退回自动挑，不报错。
+        所以现在优先 inpaint 模型，配 condition 配方（见 build_inpaint_workflow）。
+        环境变量 LB_COMFY_CKPT 仍然可以点名要哪个。
         """
         names = self.checkpoints()
         if not names:
@@ -596,8 +598,8 @@ class ComfyClient(object):
             for n in names:
                 if n == want or os.path.basename(n) == os.path.basename(want):
                     return n
-        plain = [n for n in names if "inpaint" not in n.lower()]
-        return (plain or names)[0]
+        special = [n for n in names if is_inpaint_checkpoint(n)]
+        return (special or names)[0]
 
     # ---- 主要动作 ----
     def upload_image(self, filename, png_bytes):
@@ -723,15 +725,49 @@ def _status_error(status):
 # 为什么不用 9 通道的 inpaint 专用底模（sd-v1.5-inpainting.ckpt）：在 ComfyUI
 # v0.46 上实测 InpaintModelConditioning 不生效（开关 noise_mask 都不改像素），
 # VAEEncode 只会吐一团糊；普通 SD1.5 + VAEEncodeForInpaint 才是能用的路。
+def is_inpaint_checkpoint(name):
+    """底模是不是 inpaint 专用（UNet 9 通道，训练时见过「洞」）。
+
+    文件名里带 inpaint 的都算：sd-v1.5-inpainting、*-inpaint、xxl-inpainting……
+    这类模型**必须**配 InpaintModelConditioning（或旧式 VAEEncodeForInpaint），
+    普通模型配它们那两种都会把 mask 通道丢掉。
+    """
+    return "inpaint" in (name or "").lower()
+
+
 def build_inpaint_workflow(checkpoint, image_name, mask_name, prompt,
                            negative="", steps=25, cfg=7.5, seed=0, denoise=1.0,
                            sampler="dpmpp_2m", scheduler="karras",
-                           grow_mask_by=8, prefix="lb-ai-inpaint", batch=1):
+                           grow_mask_by=8, prefix="lb-ai-inpaint", batch=1,
+                           variant="auto"):
     """inpaint 工作流。batch > 1 时用 RepeatLatentBatch 让一次采样出多张。
 
     一次出多张而不是排 N 单：模型只加载一次、两张共享同一段文本编码，
     而且同一个 prompt_id 就能把 N 张一起取回（见 all_images）。
+
+    **三种配方，必须和底模配对**（2026-11-24 实测，同一块额头、同一张蒙版）：
+
+      variant="condition"  inpaint 专用底模 + InpaintModelConditioning
+          蒙版和被挖掉的图一起进条件（9 通道），模型知道哪里是洞、洞外长什么样。
+          实测：眉毛能顺着原方向接上去，没有白痕。**这是唯一"对"的配法。**
+
+      variant="noise"      普通底模 + VAEEncode + SetLatentNoiseMask
+          洞外一个字节都不加噪。比 VAEEncodeForInpaint 稳，但模型仍然没见过洞，
+          细结构（眉毛、发丝、栏杆）附近还会留白痕。
+
+      variant="legacy"     旧的 VAEEncodeForInpaint + denoise 1.0
+          通用底模下会「乱画」：把 260×100 的一块额头重绘出丝状眉毛和几道白痕，
+          边界一条直线（实测）。留着只为了能退回旧行为做对比。
+
+    为什么以前反着配：9 通道模型配 VAEEncodeForInpaint 时只把蒙版区抹平、
+    不认提示词，于是当时的结论是「inpaint 模型不能用」。真正的原因是条件给错了
+    ——VAEEncodeForInpaint 是给 inpaint 模型用的老式编码，但它把洞填成灰色，
+    等于把「洞里原来是什么」也一起丢了。InpaintModelConditioning 保留 masked
+    image，才是这些模型训练时见过的输入。
     """
+    if variant in (None, "auto", ""):
+        variant = "condition" if is_inpaint_checkpoint(checkpoint) else "noise"
+
     wf = {
         "1": {"class_type": "CheckpointLoaderSimple",
               "inputs": {"ckpt_name": checkpoint}},
@@ -741,9 +777,6 @@ def build_inpaint_workflow(checkpoint, image_name, mask_name, prompt,
               "inputs": {"text": prompt, "clip": ["1", 1]}},
         "5": {"class_type": "CLIPTextEncode",
               "inputs": {"text": negative or "", "clip": ["1", 1]}},
-        "6": {"class_type": "VAEEncodeForInpaint",
-              "inputs": {"pixels": ["2", 0], "vae": ["1", 2], "mask": ["3", 1],
-                         "grow_mask_by": int(grow_mask_by)}},
         "7": {"class_type": "KSampler",
               "inputs": {"model": ["1", 0], "positive": ["4", 0],
                          "negative": ["5", 0], "latent_image": ["6", 0],
@@ -755,11 +788,37 @@ def build_inpaint_workflow(checkpoint, image_name, mask_name, prompt,
         "9": {"class_type": "SaveImage",
               "inputs": {"images": ["8", 0], "filename_prefix": prefix}},
     }
+
+    if variant == "legacy":
+        wf["6"] = {"class_type": "VAEEncodeForInpaint",
+                   "inputs": {"pixels": ["2", 0], "vae": ["1", 2],
+                              "mask": ["3", 1],
+                              "grow_mask_by": int(grow_mask_by)}}
+        latent_src = ["6", 0]
+    elif variant == "condition":
+        # 三个输出：positive / negative / latent。latent 已经带了 masked image，
+        # 所以 KSampler 直接吃它，别再套一层 SetLatentNoiseMask。
+        wf["6"] = {"class_type": "InpaintModelConditioning",
+                   "inputs": {"positive": ["4", 0], "negative": ["5", 0],
+                              "vae": ["1", 2], "pixels": ["2", 0],
+                              "mask": ["3", 1], "noise_mask": True}}
+        wf["7"]["inputs"]["positive"] = ["6", 0]
+        wf["7"]["inputs"]["negative"] = ["6", 1]
+        latent_src = ["6", 2]
+    else:                                   # noise
+        wf["6"] = {"class_type": "VAEEncode",
+                   "inputs": {"pixels": ["2", 0], "vae": ["1", 2]}}
+        wf["10"] = {"class_type": "SetLatentNoiseMask",
+                    "inputs": {"samples": ["6", 0], "mask": ["3", 1]}}
+        latent_src = ["10", 0]
+
+    wf["7"]["inputs"]["latent_image"] = latent_src
+
     batch = max(1, int(batch))
     if batch > 1:
-        wf["10"] = {"class_type": "RepeatLatentBatch",
-                    "inputs": {"samples": ["6", 0], "amount": batch}}
-        wf["7"]["inputs"]["latent_image"] = ["10", 0]
+        wf["11"] = {"class_type": "RepeatLatentBatch",
+                    "inputs": {"samples": latent_src, "amount": batch}}
+        wf["7"]["inputs"]["latent_image"] = ["11", 0]
     return wf
 
 
@@ -849,22 +908,27 @@ def all_images(entry):
 def inpaint(client, image_png, mask_png_bytes, prompt, negative="",
             checkpoint="", steps=25, cfg=7.5, seed=0, denoise=1.0,
             grow_mask_by=8, sampler="dpmpp_2m", scheduler="karras",
-            timeout=600.0, prefix="lb-ai-inpaint", on_tick=None, batch=1):
+            timeout=600.0, prefix="lb-ai-inpaint", on_tick=None, batch=1,
+            variant="auto"):
     """一整套「传图 → 排队 → 等 → 取回」；返回 ([png_bytes, …], info)。
 
     image_png / mask_png_bytes 都是 PNG 字节，尺寸必须一致（调用方保证）。
     batch > 1 时一次出多张候选，由调用方挑（见 quality.rank）。
+    variant 见 build_inpaint_workflow：auto 会按底模自己配对。
     """
     t0 = time.time()
     src_name, _ = client.upload_image("lb-inpaint-src.png", image_png)
     msk_name, _ = client.upload_image("lb-inpaint-mask.png", mask_png_bytes)
     ckpt = checkpoint or client.first_checkpoint()
+    recipe = variant
+    if recipe in (None, "auto", ""):
+        recipe = "condition" if is_inpaint_checkpoint(ckpt) else "noise"
 
     wf = build_inpaint_workflow(ckpt, src_name, msk_name, prompt,
                                negative=negative, steps=steps, cfg=cfg,
                                seed=seed, denoise=denoise, sampler=sampler,
                                scheduler=scheduler, grow_mask_by=grow_mask_by,
-                               prefix=prefix, batch=batch)
+                               prefix=prefix, batch=batch, variant=recipe)
     pid = client.queue(wf)
     entry = client.wait(pid, timeout=timeout, on_tick=on_tick)
     images = all_images(entry)
@@ -875,7 +939,7 @@ def inpaint(client, image_png, mask_png_bytes, prompt, negative="",
     return blobs, {"prompt_id": pid, "checkpoint": ckpt,
                    "seconds": round(time.time() - t0, 2),
                    "filename": images[0].get("filename", ""),
-                   "count": len(blobs)}
+                   "count": len(blobs), "variant": recipe}
 
 
 def random_seed():

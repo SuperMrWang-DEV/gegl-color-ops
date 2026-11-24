@@ -488,7 +488,7 @@ def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
                denoise=1.0, grow=8, grow_mask_by=8, feather=4.0,
                timeout=600.0, keep_mask=True, scale=0.0, client=None,
                on_tick=None, preset="none", variations=VARIATIONS,
-               fix_seams=True, match_grain=True):
+               fix_seams=True, match_grain=True, variant="auto"):
     """选区 → AI 重绘 → 新图层。返回 (layer, info)。
 
     client 参数是给回归脚本塞 mock 用的；正常情况留空，按 server 现建一个。
@@ -592,7 +592,7 @@ def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
             steps=int(steps), cfg=float(cfg), seed=seed,
             denoise=float(denoise), grow_mask_by=int(grow_mask_by),
             timeout=float(timeout), on_tick=on_tick or Gimp.progress_pulse,
-            batch=batch)
+            batch=batch, variant=variant)
 
         # 6) 落盘 → 当图层读回来（GIMP 自己解 PNG，比手写解码靠谱）
         #    贴的是**工作画布**的位置：补边那圈像素会被下面的选区蒙版整圈挡掉
@@ -1115,20 +1115,21 @@ def _available_checkpoints(timeout=1.5):
 def _add_checkpoint_argument(procedure):
     """底模下拉：装了几个模型就在列表里选。
 
-    为什么不只留「自动」：自动挑的是**按名字排序后第一个非 inpaint 模型**，
-    装了十个模型的人永远轮不到自己想用的那个。ComfyUI 在跑就把清单列出来；
-    没跑（或回复慢）就退回老文本框，让用户手写文件名——绝不让注册菜单这一步
-    因为连不上服务而变慢或报错。
+    为什么不只留「自动」：自动挑的是**第一个 inpaint 专用模型**（没有就第一个
+    模型），装了十个模型的人永远轮不到自己想用的那个。ComfyUI 在跑就把清单
+    列出来；没跑（或回复慢）就退回老文本框，让用户手写文件名——绝不让注册菜单
+    这一步因为连不上服务而变慢或报错。
     """
-    help_text = _("Empty / Automatic picks the first model that is not an "
-                  "inpaint-only one. Add more models with the "
-                  "\"AI Environment\" menu entry.")
+    help_text = _("Automatic prefers an inpaint-only model: it is the one that "
+                  "was trained with holes in the picture. A plain model still "
+                  "works, but thin structures nearby may keep a visible seam. "
+                  "Add more models with the \"AI Environment\" menu entry.")
     names = _available_checkpoints()
     if names:
         try:
             choice = Gimp.Choice.new()
             choice.add(AUTO_CKPT, 0, _("Automatic (recommended)"),
-                       _("First model that is not an inpaint-only one"))
+                       _("Prefers an inpaint-only model"))
             for idx, name in enumerate(names, 1):
                 # nick 必须是**存进配置**的那个字符串本身（就是文件名）
                 choice.add(name, idx, ai_client.checkpoint_note(name),

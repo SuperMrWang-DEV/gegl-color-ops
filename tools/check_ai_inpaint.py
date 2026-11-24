@@ -9,8 +9,10 @@
   2. 「白＝要重绘」这条约定：mask_png 把白色写成**透明**（ComfyUI 的
      LoadImage 用 mask = 1 - alpha），写反了整条链路就白跑；
   3. 裁切框对齐到 8（VAE 8× 下采样，尺寸不整除会截断 → 贴回去错位）；
-  4. 工作流结构：走 VAEEncodeForInpaint（不是 InpaintModelConditioning），
-     蒙版接 LoadImage 的 MASK 输出；
+  4. 工作流结构：**三种配方必须和底模配对**——inpaint 专用模型走
+     InpaintModelConditioning（蒙版和被挖掉的图一起进条件），普通模型走
+     VAEEncode + SetLatentNoiseMask（洞外不加噪），legacy 才用
+     VAEEncodeForInpaint。蒙版都接 LoadImage 的 MASK 输出；
   5. 对着 mock 服务跑完整流程：上传 → 排队 → 轮询 → 取图，像素对得上
      （蒙版区内变成 mock 的填充色，区外一字不动）；
   6. 错误路径：服务没起、服务拒绝、节点校验失败，三种都要给人话；
@@ -249,29 +251,81 @@ def test_canvas_ratio():
 
 def test_workflow():
     print("\n工作流结构")
+    # 普通底模：VAEEncode + SetLatentNoiseMask（洞外一个字节都不加噪）
     wf = ai_client.build_inpaint_workflow("m.safetensors", "src.png", "mask.png",
                                           "a cat", negative="dog", steps=12,
                                           cfg=6.5, seed=7, grow_mask_by=12)
     kinds = {n["class_type"] for n in wf.values()}
-    ok("用 VAEEncodeForInpaint", "VAEEncodeForInpaint" in kinds)
-    ok("不用 InpaintModelConditioning",
+    ok("普通底模用 VAEEncode", "VAEEncode" in kinds)
+    ok("普通底模配 SetLatentNoiseMask", "SetLatentNoiseMask" in kinds)
+    ok("普通底模不再用 VAEEncodeForInpaint",
+       "VAEEncodeForInpaint" not in kinds, sorted(kinds))
+    ok("普通底模不用 InpaintModelConditioning",
        "InpaintModelConditioning" not in kinds)
-    enc = next(n for n in wf.values()
-               if n["class_type"] == "VAEEncodeForInpaint")
-    mask_node = wf[enc["inputs"]["mask"][0]]
-    ok("蒙版接 LoadImage 的 MASK 输出",
-       mask_node["class_type"] == "LoadImage" and enc["inputs"]["mask"][1] == 1)
-    ok("蒙版节点读的是 mask.png", mask_node["inputs"]["image"] == "mask.png")
+    enc = next(n for n in wf.values() if n["class_type"] == "VAEEncode")
+    mask_node = wf[enc["inputs"]["pixels"][0]]
+    ok("编码吃的是原图", mask_node["class_type"] == "LoadImage" and
+       mask_node["inputs"]["image"] == "src.png")
+    nsm = next(n for n in wf.values() if n["class_type"] == "SetLatentNoiseMask")
+    m_node = wf[nsm["inputs"]["mask"][0]]
+    ok("噪声蒙版接 LoadImage 的 MASK 输出",
+       m_node["class_type"] == "LoadImage" and nsm["inputs"]["mask"][1] == 1)
+    ok("蒙版节点读的是 mask.png", m_node["inputs"]["image"] == "mask.png")
     ks = next(n for n in wf.values() if n["class_type"] == "KSampler")
     ok("步数/种子/CFG 传进去了",
        (ks["inputs"]["steps"], ks["inputs"]["seed"], ks["inputs"]["cfg"]) ==
        (12, 7, 6.5))
-    ok("grow_mask_by 是整数", isinstance(enc["inputs"]["grow_mask_by"], int))
+    ok("KSampler 吃的是加了噪声蒙版的 latent",
+       wf[ks["inputs"]["latent_image"][0]]["class_type"] == "SetLatentNoiseMask")
     ok("有 SaveImage 才取得到图",
        any(n["class_type"] == "SaveImage" for n in wf.values()))
     ok("默认 batch=1 时不加 RepeatLatentBatch",
        "RepeatLatentBatch" not in kinds, sorted(kinds))
 
+    # inpaint 专用底模：InpaintModelConditioning（mask 进条件，KSampler 吃它的 latent）
+    wf2 = ai_client.build_inpaint_workflow(
+        "sd-v1-5-inpainting.ckpt", "src.png", "mask.png", "a cat")
+    kinds2 = {n["class_type"] for n in wf2.values()}
+    ok("inpaint 底模自动用 InpaintModelConditioning",
+       "InpaintModelConditioning" in kinds2, sorted(kinds2))
+    ok("  → 不再套 SetLatentNoiseMask", "SetLatentNoiseMask" not in kinds2)
+    ok("  → 也不用 VAEEncodeForInpaint", "VAEEncodeForInpaint" not in kinds2)
+    imc = next(n for n in wf2.values()
+               if n["class_type"] == "InpaintModelConditioning")
+    ok("  → masked image 是原图", wf2[imc["inputs"]["pixels"][0]]["inputs"]
+       .get("image") == "src.png")
+    ok("  → mask 接 LoadImage 的 MASK", imc["inputs"]["mask"] == ["3", 1])
+    ok("  → noise_mask 打开", imc["inputs"]["noise_mask"] is True)
+    ks2 = next(n for n in wf2.values() if n["class_type"] == "KSampler")
+    ok("  → KSampler 的正负条件来自条件节点",
+       ks2["inputs"]["positive"] == ["6", 0] and
+       ks2["inputs"]["negative"] == ["6", 1])
+    ok("  → KSampler 的 latent 是条件节点的第 3 个输出",
+       ks2["inputs"]["latent_image"] == ["6", 2])
+
+    # legacy：显式要旧行为时才走 VAEEncodeForInpaint，grow_mask_by 才有效
+    wf_old = ai_client.build_inpaint_workflow(
+        "m.safetensors", "s.png", "m.png", "a cat", grow_mask_by=12,
+        variant="legacy")
+    enc_old = next(n for n in wf_old.values()
+                   if n["class_type"] == "VAEEncodeForInpaint")
+    ok("variant=legacy 才用 VAEEncodeForInpaint", isinstance(
+        enc_old["inputs"]["grow_mask_by"], int))
+    ok("grow_mask_by 传进去了", enc_old["inputs"]["grow_mask_by"] == 12)
+
+    # 名字判断
+    ok("认得出 inpaint 专用底模",
+       ai_client.is_inpaint_checkpoint("sd-v1-5-inpainting.ckpt") and
+       ai_client.is_inpaint_checkpoint("SDXL-inpaint-v2.safetensors"))
+    ok("普通底模不会被误判",
+       not ai_client.is_inpaint_checkpoint("sd_xl_base_1.0.safetensors") and
+       not ai_client.is_inpaint_checkpoint("dreamshaper_8.safetensors"))
+    ok("下拉里的 inpaint 模型标「推荐」",
+       "推荐" in ai_client.checkpoint_note("sd-v1-5-inpainting.ckpt"))
+    ok("普通模型标「非 inpaint」",
+       "非 inpaint" in ai_client.checkpoint_note("sd_xl_base_1.0.safetensors"))
+
+    # batch：复制的必须是「采样起点」，不是编码结果
     wf3 = ai_client.build_inpaint_workflow("m.safetensors", "s.png", "m.png",
                                            "a cat", batch=3)
     kinds3 = {n["class_type"] for n in wf3.values()}
@@ -283,12 +337,16 @@ def test_workflow():
     ks3 = next(n for n in wf3.values() if n["class_type"] == "KSampler")
     ok("  → KSampler 吃的是复制后的 latent",
        wf3[ks3["inputs"]["latent_image"][0]]["class_type"] == "RepeatLatentBatch")
-    enc3 = next(n for n in wf3.values()
-                if n["class_type"] == "VAEEncodeForInpaint")
-    ok("  → 复制的源还是编码后的 latent",
-       rep["inputs"]["samples"] == ["6", 0] or
-       wf3[rep["inputs"]["samples"][0]]["class_type"] == "VAEEncodeForInpaint",
+    ok("  → 复制的源是噪声蒙版之后的 latent",
+       wf3[rep["inputs"]["samples"][0]]["class_type"] == "SetLatentNoiseMask",
        rep["inputs"]["samples"])
+
+    wf4 = ai_client.build_inpaint_workflow("sd-v1-5-inpainting.ckpt", "s.png",
+                                           "m.png", "a cat", batch=2)
+    rep4 = next(n for n in wf4.values() if n["class_type"] == "RepeatLatentBatch")
+    ok("inpaint 底模 batch 复制条件节点的 latent",
+       wf4[rep4["inputs"]["samples"][0]]["class_type"] == "InpaintModelConditioning"
+       and rep4["inputs"]["samples"][1] == 2, rep4["inputs"]["samples"])
 
 
 # ---- 5. 端到端（mock）------------------------------------------------------

@@ -842,7 +842,7 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
         <tr><td><code>server</code></td><td>空</td>
             <td>ComfyUI 不在 127.0.0.1:8188 时填；空则读 <code>$LB_COMFY_URL</code></td></tr>
         <tr><td><code>checkpoint</code></td><td>自动</td>
-            <td>下拉，选项当场问 ComfyUI 要；「自动」= 第一个非 inpaint 专用底模</td></tr>
+            <td>下拉，选项当场问 ComfyUI 要；「自动」优先挑 inpaint 专用底模</td></tr>
         <tr><td><code>steps</code></td><td>25</td>
             <td>要更细的质感往上加，25–30 之后收益很小</td></tr>
         <tr><td><code>cfg</code></td><td>7.5</td>
@@ -875,9 +875,12 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
          会得到全 0 蒙版，跑完像素纹丝不动。</p>
       <p><b>2. 8× 对齐。</b>裁剪框宽高不是 8 的倍数就会被截断，回来的图比请求的小，
          贴回去整块错位。</p>
-      <p><b>3. inpaint 专用底模不认提示词。</b>9 通道模型在 ComfyUI 的
-         <code>VAEEncodeForInpaint</code> 路径上只会把蒙版区抹平，边界还留一圈淡影。
-         工作流走普通底模，下拉里也把 inpaint 专用模型单独标出来。</p>
+      <p><b>3. 模型必须和条件节点配对，配错就乱画。</b>inpaint 专用底模训练时见过
+         「洞」，要配 <code>InpaintModelConditioning</code>（蒙版和被挖掉的图一起进条件）；
+         普通底模配 <code>VAEEncode</code> + <code>SetLatentNoiseMask</code>。用普通底模
+         走 <code>VAEEncodeForInpaint</code> 加 denoise 1.0 时，一块 260×100 的额头
+         会被重绘出丝状眉毛和几道白痕、边界一条直线——这是 2026-11-24 的实测。
+         换成 inpaint 底模 + 条件节点，同一块区域眉毛顺着原方向接上。</p>
       <p><b>4. 画幅比例。</b>SD 只在自己训练过的比例附近画得对。选区是眼睛那样一条
          1024×400（2.56:1）时，SDXL 会把整块画成平涂海报——一句
          <code>sunglasses</code> 出来是一块绿底配重复白色箭头。

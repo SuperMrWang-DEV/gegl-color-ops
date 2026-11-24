@@ -1595,10 +1595,15 @@ so you can re-limit the area later.</code></pre>
          and not one pixel moves.</p>
       <p><b>2. Align to 8.</b>A crop whose sides are not multiples of 8 gets truncated, comes
          back smaller than requested and pastes out of place.</p>
-      <p><b>3. Inpaint-only checkpoints ignore the prompt.</b>A 9-channel model on
-         ComfyUI's <code>VAEEncodeForInpaint</code> path only flattens the masked area and
-         leaves a pale rim. The workflow uses a plain checkpoint, and the dropdown labels
-         inpaint-only models so you can avoid them.</p>
+      <p><b>3. The model has to match the conditioning node.</b>An inpaint-only
+         checkpoint was trained with holes in the picture and needs
+         <code>InpaintModelConditioning</code> (mask and the masked image both go into the
+         conditioning); a plain checkpoint takes <code>VAEEncode</code> +
+         <code>SetLatentNoiseMask</code>. Pair a plain model with
+         <code>VAEEncodeForInpaint</code> at denoise 1.0 and a 260×100 patch of forehead
+         comes back with stringy eyebrow hairs, a few white streaks and a straight seam —
+         measured 2026-11-24. With an inpaint model and the conditioning node, the same
+         patch grows the eyebrow along its original direction.</p>
       <p><b>4. Aspect ratio.</b>SD only draws well near the ratios it was trained on. A
          1024×400 (2.56:1) strip across the eyes makes SDXL fall back to flat poster art — a
          prompt of <code>sunglasses</code> came back as a green board with repeated white

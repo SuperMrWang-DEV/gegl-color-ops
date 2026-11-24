@@ -1112,9 +1112,10 @@ python 的退出码 + `if errorlevel 1 set EXTRA=--cpu`，稳定得多。
 
 1. 本机跑着 ComfyUI（默认 `http://127.0.0.1:8188`，可用环境变量
    `LB_COMFY_URL` 或对话框里的「ComfyUI address」盖掉）；
-2. `models/checkpoints/` 里有一份 SD1.5 底模。自动挑底模时会**优先挑名字里不带
-   `inpaint` 的**——9 通道的 inpaint 专用模型在 `VAEEncodeForInpaint` 这条路上
-   不认提示词，只会把蒙版区抹平。
+2. `models/checkpoints/` 里有一份底模。自动挑底模时会**优先挑 inpaint 专用模型**
+   （文件名带 `inpaint`）——它训练时见过「洞」，配上 `InpaintModelConditioning`
+   才能顺着周围纹理把断口接上；没有的话普通模型也能用，走
+   `VAEEncode` + `SetLatentNoiseMask`。
 
 流程（`ai_inpaint()` 是模块级函数，`tools/check_ai_inpaint_gimp.py` 直接调它做回归）：
 
@@ -1170,9 +1171,13 @@ python 的退出码 + `if errorlevel 1 set EXTRA=--cpu`，稳定得多。
   的 mask，跑完像素纹丝不动（2026-11-20 踩过）。`ai_client.mask_png()` 负责这件事。
 - **对齐到 8**：VAE 是 8× 下采样，裁切框宽高不是 8 的倍数时 ComfyUI 会截断，
   回来的图比请求的小一圈，贴回去整体错位。`ai_client.align_rect()` 负责这件事。
-- **别用 inpaint 专用底模**：`InpaintModelConditioning` 在 ComfyUI v0.46 上不生效
-  （开关 `noise_mask` 都不改像素），`VAEEncode` 只吐糊团；工作流走普通 SD1.5 +
-  `VAEEncodeForInpaint`。
+- **模型必须和条件节点配对**：inpaint 专用底模（9 通道）配
+  `InpaintModelConditioning`，普通底模配 `VAEEncode` + `SetLatentNoiseMask`。
+  配错了不报错，只会「乱画」——2026-11-24 实测：通用 SDXL 走
+  `VAEEncodeForInpaint` + denoise 1.0，把一块 260×100 的额头重绘出丝状眉毛和几
+  道白痕、边界一条直线；换成 `sd-v1-5-inpainting` + 条件节点，同一块区域眉毛
+  顺着原方向接上，接缝分 23.0 → 17.5。之前那条「条件节点在 v0.46 不生效」是
+  蒙版/编码配错导致的误判，已复测推翻。
 - **画幅比例别超过 2:1**：SD 只在自己训练过的比例附近画得对。眼睛那样的一条
   1024×400（2.56:1）送进 SDXL，整块会被画成「平涂海报 + 重复图形」——2026-11-23
   用户报的「输入 `sunglasses` 却给我一块绿色路牌」（绿底、白色箭头、两辆车）就是
@@ -1248,7 +1253,7 @@ tools\setup-ai.bat --verify             :: 只体检已装好的环境
 `stop()` 之后 pid 也会从 `comfyui-run.json` 里清掉，不会拿着一个死 pid 乱打。
 
 上面那一块是**实时状态**：连不上会写清是「服务没开」还是「压根没装」，模型清单
-会按家族和「不认提示词」标出来（`checkpoint_note()`）。做这个入口的原因是：
+会按家族和「inpaint 专用 / 非 inpaint」标出来（`checkpoint_note()`）。做这个入口的原因是：
 拿到单支插件包的人只有一个 zip，既不知道仓库在哪、也不会去开终端翻 `tools/`。
 
 安装器跟着插件走：`install-plugin.sh` 会把 `tools/setup-ai.bat` + `setup_ai.py`
@@ -1279,14 +1284,14 @@ tools\setup-ai.bat --verify             :: 只体检已装好的环境
 
 **多个模型时怎么选**（高级版的 `checkpoint` 是下拉，不是手打文件名）：
 
-1. **自动（推荐）** —— 默认值 `auto`。按名字排序挑第一个**不带 `inpaint`** 的
-   模型：9 通道 inpaint 专用模型在 `VAEEncodeForInpaint` 上不认提示词，只会把
-   蒙版区抹平，所以自动挑会让开它们（`first_checkpoint()`）。
+1. **自动（推荐）** —— 默认值 `auto`。优先挑 **inpaint 专用**模型，一个都没有
+   才挑第一个普通模型（`first_checkpoint()`）。选中的模型决定走哪条条件路径，
+   见上面「模型必须和条件节点配对」。
 2. **点名要哪个** —— 下拉里的候选项是**当场问 ComfyUI 要的**
    （`/object_info/CheckpointLoaderSimple`），每项后面标着家族和舒适尺寸：
    `juggernautXL_v9.safetensors（SDXL · 1024）`、
    `dreamshaper_8.safetensors（SD1.5 · 512）`、
-   `sd-v1-5-inpainting.ckpt（inpaint 专用 · 不认提示词，别选）`。
+   `sd-v1-5-inpainting.ckpt（inpaint 专用 · 推荐）`。
    选谁就用谁，`family_target()` 据此决定送 1024 还是 512。
 3. **不想每次选** —— 环境变量 `LB_COMFY_CKPT` 写完整文件名，自动挑就固定用它；
    名字对不上时安静退回自动挑，不报错。
