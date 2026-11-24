@@ -872,13 +872,23 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
   </div>
 
   <div class="dl primary-dl">
-    <div class="dl-head"><h3>模型：两档「更高质量」，一条命令下完</h3><span class="pill">2026-11-24</span></div>
-    <p>本地只装 <code>sd-v1-5-inpainting</code> 时，在空房间地板上画猫是能画出来，
-       但<b>细节像糊的</b>——正面尤其明显、狗的四条腿会糊成一团。补两档就够，
-       <code>tools/fetch_models.py</code> 带断点续传，断了重跑接着下：</p>
-    <pre><code>python tools/fetch_models.py --check   # 看缺哪些、多大
-python tools/fetch_models.py sdxl      # 6.9 GB：日常用这档
-python tools/fetch_models.py flux      # 12 GB：质量上限，慢</code></pre>
+    <div class="dl-head"><h3>依赖：一条命令下齐（模型 / 节点包 / 权重）</h3><span class="pill">2026-11-24</span></div>
+    <p>插件是压缩包，可 AI 那几个功能要的东西都在 ComfyUI 那一侧：模型分五个目录、
+       Flux 要 <code>ComfyUI-GGUF</code>、按名称选区要 <code>ComfyUI-RMBG</code> 和
+       1.1 GB 权重。让用户照着文档放文件是这个项目最容易失败的地方，所以有一条入口
+       包干——先体检，再下缺的：</p>
+    <pre><code>python tools/setup_comfy.py --check     # 缺什么、多大、装在哪
+python tools/setup_comfy.py             # 默认：inpaint 两档 + 选区 + 抠图
+python tools/setup_comfy.py --tier min  # 最小：只 SD1.5-inpaint（4.3 GB）
+python tools/setup_comfy.py --tier full # 再加 Flux.1 Fill（12 GB）</code></pre>
+    <p>它自己找 ComfyUI（便携包 / 源码目录 / <code>setup_ai.py</code> 装的
+       <code>py/</code> 布局都认，目录来自 <code>--home</code> → 插件里选过的那个 →
+       常见路径）；节点包和它的 pip 依赖成对装（少了依赖那个节点会静默消失，比不装
+       更难查）；下载先写 <code>.part</code> 再改名，<code>hf-mirror</code> →
+       <code>huggingface.co</code> 换源不丢进度，<b>落盘尺寸对不上就重下</b>；
+       开跑前算磁盘；最后只有节点/补丁变了才重启，重启会等到
+       <code>/system_stats</code> 真的通，再回读 <code>/object_info</code> 确认
+       「底模几个、gguf 主干几个、节点加载了没」。</p>
     <p><b>sdxl</b>：<code>sd_xl_base_1.0_inpainting_0.1.safetensors</code> 丢进
        <code>models/checkpoints/</code> 就能用——「inpaint 专用」和「SDXL」两个条件
        同时凑齐，8 GB 卡 30~40 秒一张，<b>不用装任何扩展</b>。同一块选区、同一句

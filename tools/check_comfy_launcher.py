@@ -184,6 +184,13 @@ def main():
     embed = mk_tree("embed", python_rel="python_embeded/python.exe")
     ok("python_embeded 里的解释器也认", CL.detect(embed)["ok"], CL.detect(embed))
 
+    # tools/setup_ai.py 装出来的布局是 root/py/python.exe（目录就叫 py，
+    # 不是 py312）。2026-11-24 之前这里没认，导致「用它装的 ComfyUI」在插件
+    # 里被判定成有 main.py 没解释器，自动启动完全失效。
+    pybare = mk_tree("pybare", python_rel="py/python.exe")
+    ok("setup_ai.py 的 py/python.exe 也认", CL.detect(pybare)["ok"],
+       CL.detect(pybare))
+
     batty = mk_tree("batty", python_rel="", bat=True)
     ok("没解释器但有 start-comfyui.bat → 可启动", CL.detect(batty)["ok"],
        CL.detect(batty))

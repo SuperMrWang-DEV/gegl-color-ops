@@ -198,6 +198,10 @@ def resolve_home(cfg=None):
 def _python_names():
     if os.name == "nt":
         return ["python.exe", os.path.join("python", "python.exe"),
+                # tools/setup_ai.py 装出来的就是这个布局：root/py/python.exe
+                # 少了这一条，「用它装的 ComfyUI」在插件里会被判成
+                # 「找到 main.py 但没有解释器」，自动启动直接失效。
+                os.path.join("py", "python.exe"),
                 os.path.join("python_embeded", "python.exe"),
                 os.path.join("venv", "Scripts", "python.exe"),
                 os.path.join(".venv", "Scripts", "python.exe"),

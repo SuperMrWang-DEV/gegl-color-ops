@@ -55,9 +55,14 @@ fi
 
 # 一键装 ComfyUI 的安装器：插件里「AI 环境…」这个菜单项按 <插件目录>/ai-setup/
 # 找它，找不到就只能让用户自己去翻仓库。所以安装时一定跟着拷过去。
+# setup_comfy.py 是「补模型 / 装节点包」那条路（setup_ai 装完 ComfyUI 会调它），
+# 单独拷一份是因为拿到单支插件包的人没有仓库里的 tools/。
 if [ -f "$ROOT/tools/setup-ai.bat" ] && [ -f "$ROOT/tools/setup_ai.py" ]; then
   mkdir -p "$DST/plug-ins/ai-setup"
   cp "$ROOT/tools/setup-ai.bat" "$ROOT/tools/setup_ai.py" "$DST/plug-ins/ai-setup/"
+  for f in setup_comfy.py setup-comfy.bat; do
+    [ -f "$ROOT/tools/$f" ] && cp "$ROOT/tools/$f" "$DST/plug-ins/ai-setup/"
+  done
   echo "· 已复制 AI 安装器 → $DST/plug-ins/ai-setup/（菜单 SuperMrWang → AI → AI Environment）"
 fi
 echo "· 重启 GIMP 后生效（菜单栏顶层多一个 SuperMrWang，与「颜色」「图层」平级）："

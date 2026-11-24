@@ -34,6 +34,7 @@ OUT = os.path.join(ROOT, "tools", "plugin_assertions.json")
 SUITES = [
     ("check_ai_inpaint", "python"),
     ("check_comfy_launcher", "python"),
+    ("check_setup_comfy", "python"),
     ("check_cutout", "python"),
     ("check_refine", "python"),
     ("check_warp", "python"),

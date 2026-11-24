@@ -1115,17 +1115,18 @@ python 的退出码 + `if errorlevel 1 set EXTRA=--cpu`，稳定得多。
 调色、局部模糊、抠图都能接着用，这一步本身不动任何像素。实测（744×1120 人像、
 `sam2.1_hiera_tiny`）：**5.8 秒**出选区，框出 74×102 的耳朵，和手描的边界一致。
 
-**一次性安装**（约 1.2 GB 权重，走 hf-mirror）：
+**一次性安装**（约 1.2 GB 权重 + 节点包，走 hf-mirror）：
 
-    python tools/setup_comfy_sam2.py          # --check 只看缺什么
-    然后重启 ComfyUI
+    python tools/setup_comfy.py --only select   # 或 python tools/setup_comfy_sam2.py
+    装完会自动重启 ComfyUI 并确认 SAM2Segment 已加载
 
-它做三件事：装 `groundingdino-py` / `hydra-core` / `omegaconf`；把 SAM2-tiny、
-GroundingDINO-SwinT、bert-base-uncased 下到 `models/` 对应目录；写一个
-`custom_nodes/zz_bert_shim` 补丁——transformers 5.x 删掉了
+它做四件事：装 `ComfyUI-RMBG` 节点包和它要的 `groundingdino-py` / `hydra-core` /
+`omegaconf` / `iopath`；把 SAM2-tiny、GroundingDINO-SwinT、bert-base-uncased 下到
+`models/` 对应目录；写一个 `custom_nodes/zz_bert_shim` 补丁——transformers 5.x 删掉了
 `BertModel.invert_attention_mask`，而 groundingdino 的 bertwarper 直接取它，
 不补的话一跑就 `AttributeError`（2026-11-24 踩的，ComfyUI-RMBG 自带的
-`patch_transformers_bert()` 只补了另外两个方法）。
+`patch_transformers_bert()` 只补了另外两个方法）；最后回读 `/object_info` 确认节点
+真的加载了（节点包是启动时注册的，不重启等于没装）。
 
 **两条使用规则**：
 
@@ -1311,10 +1312,15 @@ tools\setup-ai.bat --verify             :: 只体检已装好的环境
 会按家族和「inpaint 专用 / 非 inpaint」标出来（`checkpoint_note()`）。做这个入口的原因是：
 拿到单支插件包的人只有一个 zip，既不知道仓库在哪、也不会去开终端翻 `tools/`。
 
-安装器跟着插件走：`install-plugin.sh` 会把 `tools/setup-ai.bat` + `setup_ai.py`
-复制成 `plug-ins/ai-setup/`，插件按 `<插件目录>/ai-setup/`、`../ai-setup/`、
-`../../tools/` 依次找（`find_installer()`）。没有 Windows 桌面时
-（`os.startfile` 不可用）只报路径，不假装成功。
+安装器跟着插件走：`install-plugin.sh` 会把 `tools/setup-ai.bat` + `setup_ai.py` +
+`setup_comfy.py` + `setup-comfy.bat` 复制成 `plug-ins/ai-setup/`，插件按
+`<插件目录>/ai-setup/`、`../ai-setup/`、`../../tools/` 依次找（`find_installer()`）。
+没有 Windows 桌面时（`os.startfile` 不可用）只报路径，不假装成功。
+
+两个 bat 分工：`setup-ai.bat` 是「连 ComfyUI 都没有」——装嵌入式 Python、torch、
+ComfyUI 和一份底模；`setup-comfy.bat` 是「已经有 ComfyUI，只缺模型/节点包」——
+先体检、问一句「现在下载吗」，再交给 `setup_comfy.py`。它默认只下 `--tier min`
+（4.3 GB），要 SDXL / 选区 / 抠图再给 `--assets std`。
 
 它自己下载一份嵌入式 Python（不碰系统环境），再装 torch cu128、ComfyUI 和一份
 底模，最后起服务自检一遍。**为什么不是一个 zip**：torch 的 CUDA 轮子 2.5 GB、
@@ -1334,34 +1340,63 @@ tools\setup-ai.bat --verify             :: 只体检已装好的环境
 **换模型**：把 `.safetensors` 丢进 `<安装目录>\ComfyUI\models\checkpoints\`，
 重启服务即可。
 
-### 两档「更高质量」的模型，一条命令下完
+### 一条命令把 ComfyUI 那边的依赖下齐
 
-2026-11-24 实测：本地只有 `sd-v1-5-inpainting`，画出来的猫形体对但**细节像是
-糊的**（正面尤其明显），狗的四肢会糊成一团。补两档就够，`tools/fetch_models.py`
-带断点续传，断了重跑接着下：
+插件本身是个压缩包，但 AI 那几个功能真正要的东西都在 ComfyUI 那一侧：模型要放进
+五个不同目录、Flux 还要一个自定义节点包、按名称选区还要另一个节点包和 1.1 GB
+权重。**让用户自己对着文档放文件，是这个项目最容易失败的地方**，所以有一条
+入口把这件事包干：
 
 ```bash
-python tools/fetch_models.py --check   # 先看缺哪些、多大
-python tools/fetch_models.py sdxl      # 6.9 GB：日常用这档
-python tools/fetch_models.py flux      # 12 GB：质量上限，慢
+python tools/setup_comfy.py --check     # 先体检：缺什么、多大、装在哪
+python tools/setup_comfy.py             # 默认档：inpaint 两档 + 选区 + 抠图
+python tools/setup_comfy.py --tier min  # 最小可用：只 SD1.5-inpaint（4.3 GB）
+python tools/setup_comfy.py --tier full # 再加 Flux.1 Fill（12 GB）
 ```
 
-| 档 | 文件 | 放哪 | 代价 |
-|---|---|---|---|
-| `sdxl` | `sd_xl_base_1.0_inpainting_0.1.safetensors`（6.9 GB） | `models/checkpoints/` | 直接把「inpaint 专用 + SDXL」两个条件凑齐，8 GB 卡能跑，**不用装任何扩展** |
-| `flux` | `flux1-fill-dev-Q4_K_S.gguf` + `t5xxl_fp8_e4m3fn` + `clip_l` + `ae.safetensors` | 主干 → `models/diffusion_models/`，T5/CLIP-L → `models/text_encoders/`，ae → `models/vae/` | 还要装 `custom_nodes/ComfyUI-GGUF`（`pip install gguf sentencepiece protobuf`）；8 GB 卡单张 1~3 分钟；**许可禁止商用** |
+它会做六件事，少一件用户就会卡住：
 
-Flux 不是「换个底模」那么简单，整张节点图都不一样：主干走 `UnetLoaderGGUF`，
+1. **自己找 ComfyUI。** 便携包（`ComfyUI/` + `python_embeded/`）、直接指到源码、
+   以及 `tools/setup_ai.py` 装的（`py/` + `ComfyUI/`）三种布局都认；目录来源是
+   `--home` → 插件里选过的那个（`comfyui.json`）→ 常见路径。找不到解释器时不再
+   瞎猜，直接列「该填哪个 python.exe」。——`detect()` 之前不认 `py/python.exe`，
+   于是用它装的 ComfyUI 在插件里被判成「有 main.py 没解释器」，自动启动全废。
+2. **装节点包，并且和它的 pip 依赖成对。** `ComfyUI-GGUF`（Flux 的 `.gguf`
+   主干）+ `gguf/sentencepiece/protobuf`；`ComfyUI-RMBG`（SAM2Segment / RMBG）
+   + `groundingdino-py/hydra-core/omegaconf/iopath`。装了节点包却漏了 pip 依赖，
+   ComfyUI 启动时那个节点直接消失——比不装更难查。没有 `git` 或 GitHub 不通时
+   走源码 zip + 代理前缀。
+3. **权重带断点续传、能换镜像。** 先写 `.part` 再改名，半截文件不会让 ComfyUI
+   读到；`hf-mirror.com` → `huggingface.co` 按顺序试，换源不丢进度（两边是同一份
+   文件）；落盘尺寸和台账对不上就重下——**尺寸是「装好了没」的唯一判据**。
+4. **开跑前算磁盘**，别下到 90% 才写不进去。
+5. **只有节点/补丁变了才重启**（模型文件是扫目录的，新增不用重启），重启会等到
+   `/system_stats` 真的通，不是 spawn 完就宣布成功。
+6. **回读服务端**：`/object_info` 里看不见的模型等于没装，所以最后会问一遍
+   「底模几个、gguf 主干几个、节点加载了没」。停旧进程时不信 `comfyui-run.json`
+   里的 pid，端口还占着就按端口找真身（`netstat`/`lsof`）。
+
+Flux 那一档不是换个底模那么简单，整张节点图都不一样：主干走 `UnetLoaderGGUF`，
 文本编码器拆成 T5-XXL + CLIP-L 两个（`DualCLIPLoader`，`type=flux`），解码用单独的
-`ae`，提示词强度由 `FluxGuidance`（默认 30）管而不是 `cfg`（Flux 是蒸馏模型，
-`cfg` 固定 1.0）。所以 `inpaint()` 一看到底模是 `.gguf` 或名字带 flux，就整张换掉
-（`build_flux_inpaint_workflow()`），不会拿 SD 的图去凑。
+`ae`，提示词强度由 `FluxGuidance`（默认 30）管而不是 `cfg`（固定 1.0）。所以
+`inpaint()` 一看到 `.gguf` 或名字带 flux 就整张换掉
+（`build_flux_inpaint_workflow()`），不会拿 SD 的图去凑；四个文件缺一个都跑不起来，
+`flux_assets()` 会点名缺哪个、该放哪个目录。
 
-**Flux 的四个文件缺一个都跑不起来**，`flux_assets()` 会按名字点名缺哪个、该放哪个
-目录，不用对着一句 KeyError 猜。插件按文件名认家族：带 `xl` / `sdxl` 的按 **1024** 长边送图，其余
-按 **512**；裁切框先缩放到这个尺寸、回来再缩回原尺寸贴（`detect_family()` /
-`work_scale()`，倍率限制在 0.25×–4×）。所以「换模型」不需要改代码，只需要一份
-文件。
+| 档 | 下什么 | 大小 | 值得知道 |
+|---|---|---|---|
+| `min` | `sd-v1-5-inpainting.ckpt` | 4.3 GB | 9 通道专用，能跑就够 |
+| `std`（默认） | + `sd_xl_base_1.0_inpainting_0.1.safetensors`、SAM2 + GroundingDINO + BERT、RMBG-2.0 | 12.4 GB | 「自动」优先挑这档 SDXL |
+| `full` | + Flux.1 Fill（主干 / T5 / CLIP-L / ae） | 24 GB | 8 GB 卡单张 1~3 分钟，**许可禁止商用** |
+
+老的 `tools/fetch_models.py sdxl|flux` 和 `tools/setup_comfy_sam2.py` 还在，它们
+现在只是把参数转发给 `setup_comfy.py --only …`（老文档、老习惯都不用改）。
+
+插件按文件名认家族：带 `xl` / `sdxl` 的按 **1024** 长边送图，其余按 **512**；
+裁切框先缩放到这个尺寸、回来再缩回原尺寸贴（`detect_family()` / `work_scale()`，
+倍率限制在 0.25×–4×）。所以「换模型」不需要改代码，只需要一份文件。
+
+
 
 **多个模型时怎么选**（高级版的 `checkpoint` 是下拉，不是手打文件名）：
 
@@ -1912,6 +1947,8 @@ python tools/normalize_headers.py           # 预览文件头/命名重排，加
 python tools/set_menu_group.py --check      # 核对菜分组映射表与 ops 目录是否一一对应
 python tools/check_menu.py                  # 每个算子都有 id / menu-path / menu-label，且路径与分组表一致
 python tools/check_ai_inpaint.py            # AI 重绘的 HTTP/PNG 链路（对着 mock ComfyUI，不需要显卡）
+python tools/check_setup_comfy.py           # AI 依赖安装器：台账 / 档位 / 找 ComfyUI / 断点续传 / 体检（53 条）
+python tools/check_comfy_launcher.py        # ComfyUI 目录探测、自动启动、真起进程（54 条）
 # 下面三条要在真 GIMP 里跑（插件已装好）；用 gimp-console，不用开界面
 gimp-console -b "exec(open('tools/check_plugin_dialogs.py').read())"   # 每个插件都能弹出参数框（145 条）
 gimp-console -b "exec(open('tools/check_retouch.py').read())"          # 磨皮三支（非 AI）：结构 / 滤镜 / 恒等 / 画笔（76 条）

@@ -1,18 +1,19 @@
 {
   "note": "由 tools/run_plugin_checks.py 生成，勿手改。站点构建读 total。",
-  "generated": "2026-11-24 09:43:30",
+  "generated": "2026-11-24 13:24:31",
   "suites": {
-    "check_ai_inpaint": 238,
-    "check_comfy_launcher": 53,
+    "check_ai_inpaint": 293,
+    "check_comfy_launcher": 54,
+    "check_setup_comfy": 53,
     "check_cutout": 87,
     "check_refine": 61,
     "check_warp": 58,
-    "check_mesh_warp": 79,
+    "check_mesh_warp": 86,
     "check_layer_style": 152,
     "check_perspective": 50,
     "check_scene3d": 41,
     "check_retouch_ai": 87,
-    "check_plugin_dialogs": 180,
+    "check_plugin_dialogs": 182,
     "check_retouch": 76,
     "check_observe": 57,
     "check_luminosity_mask": 51,
@@ -24,8 +25,8 @@
     "check_layer_style_gegl": 30,
     "check_perspective_gimp": 61,
     "check_convert": 72,
-    "check_ai_inpaint_gimp": 57,
+    "check_ai_inpaint_gimp": 75,
     "check_retouch_ai_gimp": 67
   },
-  "total": 1854
+  "total": 1990
 }

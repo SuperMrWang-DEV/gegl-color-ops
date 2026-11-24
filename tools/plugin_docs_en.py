@@ -1587,14 +1587,26 @@ so you can re-limit the area later.</code></pre>
   </div>
 
   <div class="dl primary-dl">
-    <div class="dl-head"><h3>Models: two better tiers, one command</h3><span class="pill">2026-11-24</span></div>
-    <p>With only <code>sd-v1-5-inpainting</code> installed, painting a cat on an empty
-       wooden floor does work, but the <b>detail looks smeared</b> — front views worst,
-       and a dog's legs melt into a blob. Two tiers fix it;
-       <code>tools/fetch_models.py</code> resumes interrupted downloads:</p>
-    <pre><code>python tools/fetch_models.py --check   # what is missing, how big
-python tools/fetch_models.py sdxl      # 6.9 GB: the everyday tier
-python tools/fetch_models.py flux      # 12 GB: quality ceiling, slow</code></pre>
+    <div class="dl-head"><h3>Dependencies: one command, everything</h3><span class="pill">2026-11-24</span></div>
+    <p>The plug-in ships as a zip, but everything the AI features need lives on the
+       ComfyUI side: models in five different folders, <code>ComfyUI-GGUF</code> for Flux,
+       <code>ComfyUI-RMBG</code> plus 1.1 GB of weights for select-by-name. Telling users
+       to copy files by hand is the most likely failure in this project, so there is one
+       entry point that checks first and downloads only what is missing:</p>
+    <pre><code>python tools/setup_comfy.py --check     # what is missing, how big, where
+python tools/setup_comfy.py             # default: both inpaints + select + cutout
+python tools/setup_comfy.py --tier min  # minimal: SD1.5-inpaint only (4.3 GB)
+python tools/setup_comfy.py --tier full # add Flux.1 Fill (12 GB)</code></pre>
+    <p>It locates ComfyUI itself (portable package, source tree, or the
+       <code>py/</code> layout <code>setup_ai.py</code> creates; <code>--home</code> →
+       the folder picked in the plug-in → common paths); installs node packs together with
+       their pip dependencies (a pack without its dependency vanishes silently at startup,
+       which is worse than not installing it); writes downloads to <code>.part</code> and
+       renames only when the size matches, retrying across <code>hf-mirror</code> →
+       <code>huggingface.co</code> without losing progress; checks free disk first;
+       restarts only when a node or patch changed, and waits for
+       <code>/system_stats</code> before reading <code>/object_info</code> back to confirm
+       what the server can actually see.</p>
     <p><b>sdxl</b>: drop <code>sd_xl_base_1.0_inpainting_0.1.safetensors</code> into
        <code>models/checkpoints/</code> and you are done — it satisfies “inpaint-only”
        and “SDXL” at once, 30–40 s per image on an 8 GB card, <b>no extensions needed</b>.

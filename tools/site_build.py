@@ -2673,9 +2673,16 @@ GPL-3.0-or-later
 -------------------------------------------------------------
 这个插件要一个在跑的 ComfyUI 才干活。包里的 ai-setup\\ 就是安装器：
 
-    ai-setup\\setup-ai.bat    双击跑，无人值守装好嵌入式 Python + torch(CUDA)
-                              + ComfyUI + 一份底模（约 10 GB，只跑一次）
-    ai-setup\\setup_ai.py     它的实现，不用手点
+    ai-setup\\setup-ai.bat    还没有 ComfyUI：双击跑，无人值守装好嵌入式
+                              Python + torch(CUDA) + ComfyUI + 一份底模
+                              （约 10 GB，只跑一次），最后顺手下 inpaint 模型
+    ai-setup\\setup-comfy.bat  已经有 ComfyUI、只缺模型/节点包：双击跑，先体检
+                              再问一句要不要下（默认只下 SD1.5-inpaint 4.3 GB，
+                              要 SDXL / 按名称选区 / 抠图就用 --assets std）
+    ai-setup\\setup_ai.py      上面两个的实现，不用手点
+    ai-setup\\setup_comfy.py   同上；命令行用法：
+                                setup_comfy.py --check
+                                setup_comfy.py --tier std --home D:\\ComfyUI
 
 装的位置默认是 %USERPROFILE%\\SuperMrWang-AI（可用 --dir 换盘）。
 装完之后在 GIMP 里走  SuperMrWang → AI → AI Environment…，
@@ -3344,9 +3351,12 @@ def _zip_add_i18n(z, prefix):
                           % (prefix, lang))
 
 def _zip_add_setup(z, prefix):
-    """AI 插件的安装器：setup-ai.bat 双击用，setup_ai.py 是它的实现。
-    两个都必须在，否则「一键安装」按钮点下去只能报找不到脚本。"""
-    for name in ("setup-ai.bat", "setup_ai.py"):
+    """AI 插件的安装器：setup-ai.bat 双击用，setup_ai.py 是它的实现；
+    setup-comfy.bat / setup_comfy.py 是「已经有 ComfyUI，只缺模型和节点包」
+    那条路（setup_ai.py 装完也会调它）。少一个，「一键安装」点下去就只会报
+    找不到脚本，而这正是用户拿到插件后最容易卡住的地方。"""
+    for name in ("setup-ai.bat", "setup_ai.py",
+                 "setup-comfy.bat", "setup_comfy.py"):
         src = os.path.join(ROOT, "tools", name)
         if os.path.exists(src):
             _zip_add_file(z, src, prefix + name)
@@ -3615,7 +3625,8 @@ def main():
         need = [sp["py"]] + ["_shared/" + f for f in
                              ["lb_i18n.py", "lb_dialog.py"] + (sp.get("shared") or [])]
         if sp.get("setup"):
-            need += ["ai-setup/setup-ai.bat", "ai-setup/setup_ai.py"]
+            need += ["ai-setup/setup-ai.bat", "ai-setup/setup_ai.py",
+                     "ai-setup/setup-comfy.bat", "ai-setup/setup_comfy.py"]
         for n in need:
             if n not in names:
                 bad.append("%s 缺少 %s" % (sp["name"], n))

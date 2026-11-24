@@ -71,6 +71,11 @@ TORCH_INDEX = {
     "cpu": "https://download.pytorch.org/whl/cpu",
 }
 
+# 装完 ComfyUI 之后要不要顺手把插件要的 AI 资产也下齐（转发给 setup_comfy.py）。
+# 默认只下「能填充」那一档：一张 4.3 GB 的 SD1.5-inpaint。SDXL / 按名称选区 /
+# 抠图加起来再多 7.7 GB，让用户自己决定什么时候补。
+ASSET_TIERS = ("none", "min", "std", "full")
+
 # 普通 PyPI 包走国内镜像：直连 pypi.org 在多数国内网络下是几十 KB/s，
 # 32 个依赖能装半小时。CUDA 轮子例外——torch 的 cu128 轮子只有官方源有。
 PYPI_MIRROR = os.environ.get("LB_PYPI_MIRROR",
@@ -421,6 +426,34 @@ pause
     return bat
 
 
+def asset_bytes(tier):
+    """这一档 AI 资产大约要占多少字节（用来提前算磁盘够不够）。"""
+    if tier == "none":
+        return 0
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import setup_comfy as S
+        assets, _groups = S.select_assets(tier)
+        return sum(a["size"] for a in assets)
+    except Exception:                                             # noqa: BLE001
+        return {"min": 4 * 1 << 30, "std": 12 * 1 << 30,
+                "full": 24 * 1 << 30}.get(tier, 0)
+
+
+def install_assets(root, py, tier):
+    """把资产下载转发给 setup_comfy.py（它才是唯一那份台账）。
+
+    用 --no-restart：这个脚本最后自己会起一次服务做自检，两边抢 8188 端口
+    就会互相踩。节点包需要重启才注册，所以自检那次启动正好把新节点带起来。
+    """
+    script = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                          "setup_comfy.py")
+    cmd = [sys.executable, script, "--home", root, "--python", py,
+           "--tier", tier, "--no-restart"]
+    say("  → %s" % " ".join(cmd[1:]))
+    return subprocess.run(cmd).returncode == 0
+
+
 def probe_server(url="http://127.0.0.1:8188", timeout=3.0):
     try:
         with urllib.request.urlopen(url + "/system_stats", timeout=timeout) as r:
@@ -505,6 +538,9 @@ def main():
                     help="装哪个底模（默认 sdxl；sd15 体积小一半、速度约 3 倍）")
     ap.add_argument("--cpu", action="store_true", help="没有 N 卡时用")
     ap.add_argument("--no-model", action="store_true", help="先不下载底模")
+    ap.add_argument("--assets", choices=ASSET_TIERS, default="min",
+                    help="顺手下插件要的 AI 资产：min 只 SD1.5-inpaint（默认），"
+                         "std 加 SDXL/选区/抠图，full 再加 Flux，none 不下")
     ap.add_argument("--verify", action="store_true", help="只体检，不装")
     args = ap.parse_args()
 
@@ -531,7 +567,9 @@ def main():
             die("这里还没装过（找不到 %s）" % py)
         return 0 if verify(root, py, comfy) else 1
 
-    total = 6 if not args.no_model else 5
+    # 1 硬件 / 2 Python / 3 pip / 4 ComfyUI / 5 底模 / 6 资产 / 7 启动脚本+自检
+    do_assets = args.assets != "none"
+    total = 7 if do_assets else 6
 
     # 1) 硬件
     step(1, total, "检查硬件")
@@ -557,10 +595,16 @@ def main():
                 "  其余 47 个算子不受影响，AI Inpaint 单独不可用而已。")
 
     need = MIN_FREE_GB if not args.no_model else 8
+    extra = asset_bytes(args.assets)
+    if extra:
+        need += extra / (1024.0 ** 3)
     free = free_gb(root)
-    say("  磁盘：%s 剩 %.1f GB" % (os.path.splitdrive(root)[0] or "?", free))
+    say("  磁盘：%s 剩 %.1f GB（这一趟要 %.1f GB）"
+        % (os.path.splitdrive(root)[0] or "?", free, need))
     if free < need:
-        die("空间不够：要 %.0f GB，只剩 %.1f GB" % (need, free))
+        die("空间不够：要 %.0f GB，只剩 %.1f GB。\n"
+            "  省一点可以加 --assets none（只装 ComfyUI，模型后用 "
+            "tools/setup_comfy.py 补）" % (need, free))
 
     # 2) Python
     step(2, total, "准备独立 Python")
@@ -584,8 +628,17 @@ def main():
         step(5, total, "下载底模")
         install_model(comfy, args.model)
 
-    # 6) 启动脚本 + 自检
-    step(6, total, "写启动脚本并自检")
+    # 6) 插件要的 AI 资产（inpaint 模型 / 选区 / 抠图 / 节点包）
+    n = 6
+    if do_assets:
+        step(n, total, "下载插件要的 AI 资产（%s 档）" % args.assets)
+        if not install_assets(root, py, args.assets):
+            warn("资产没下全，之后可以重跑：python tools/setup_comfy.py "
+                 "--home \"%s\" --tier %s" % (root, args.assets))
+        n += 1
+
+    # 7) 启动脚本 + 自检
+    step(n, total, "写启动脚本并自检")
     bat = write_launcher(root, variant)
     say("  启动脚本：%s" % bat)
     good = verify(root, py, comfy)
@@ -600,6 +653,15 @@ def main():
     say("  1. 双击 %s" % bat)
     say("  2. 在 GIMP 里跑 SuperMrWang -> AI -> AI Inpaint")
     say("     （插件用默认地址 http://127.0.0.1:8188 就会连上）")
+    say("")
+    if not do_assets:
+        say("模型还没下。补的话跑一条命令：")
+        say("  python tools/setup_comfy.py --home \"%s\" --tier std" % root)
+    elif args.assets == "min":
+        say("现在只有 SD1.5-inpaint。想要 SDXL / 按名称选区 / 抠图：")
+        say("  python tools/setup_comfy.py --home \"%s\" --tier std" % root)
+        say("想再要 Flux.1 Fill（质量上限，单张 1~3 分钟）：")
+        say("  python tools/setup_comfy.py --home \"%s\" --tier full" % root)
     say("")
     say("换模型：把 .safetensors 丢进")
     say("  %s" % os.path.join(comfy, "models", "checkpoints"))
