@@ -408,6 +408,9 @@ def build_dialog(procedure, config, image, drawable, space):
 
 def show_dialog(procedure, config, image, drawable, space):
     dlg, ctx = build_dialog(procedure, config, image, drawable, space)
+    # GTK3 里控件默认不显示，`dlg.run()` 只 show 对话框自己，不会递归 show 子控件
+    # —— 少了这一句，弹出来就只有一个标题栏加「取消/应用」，正文整块是空的。
+    dlg.show_all()
     try:
         gi.require_version('GimpUi', '3.0')
         from gi.repository import GimpUi

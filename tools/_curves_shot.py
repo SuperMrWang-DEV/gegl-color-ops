@@ -94,6 +94,9 @@ for space, chan, text, title in CASES:
 
     # 对话框是 toplevel，塞不进 OffscreenWindow（"Can't set a parent on a
     # toplevel widget"）。只把 content_area 的主体搬出来，action area 不要。
+    # 注意：这一句 show_all 会**掩盖**插件自身忘写 show_all 的 bug —— 早先四张
+    # 截图看起来都正常，实际菜单里弹出来只有一个空壳。要验真实显示效果用
+    # tools/_curves_dialog_e2e.py（走 show_dialog 的真实路径）。
     dlg.show_all()
     pump(4)
     body = dlg.get_content_area().get_children()[0]

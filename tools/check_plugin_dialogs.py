@@ -101,6 +101,13 @@ def test_static():
         # 取消时必须返回 CANCEL，否则用户点「取消」照样会跑一遍
         ok("%s 取消时返回 CANCEL" % rel,
            "PDBStatusType.CANCEL" in src)
+        # GTK3 的控件默认不可见，`dlg.run()` 只 show 对话框自己、不递归 show 子控件。
+        # 自己 new 出来的 Gtk.Dialog 少了 show_all，弹出来就只剩标题栏和
+        # 「取消/应用」两个按钮，正文整块空白——参数注册、控件创建全都正常，
+        # 回归里也只有把对话框截图出来才看得见。曲线插件空过一版就是这么来的。
+        if "Gtk.Dialog.new()" in src:
+            ok("%s 自建的对话框 show_all" % rel, "show_all(" in src,
+               "GTK3 不会自动显示子控件")
 
 
 def test_runtime():
