@@ -1546,6 +1546,20 @@ so you can re-limit the area later.</code></pre>
          line if you want a stylised result.</p>
     </div>
     <div class="dl">
+      <div class="dl-head"><h3>Several candidates, pick one</h3><span class="pill">variations</span></div>
+      <p>One run can draw 2–4 candidates (<code>variations</code>, 3 by default). They are
+         scored on seam sharpness, how soft or busy the fill is, the colour step across the
+         edge, changes outside the selection and structure density — then a <b>thumbnail
+         picker</b> opens: side by side, numbered, scored, click to choose, and only the
+         chosen one stays visible.</p>
+      <p>Thumbnails are cropped to “selection + 30% margin”. A candidate layer is often
+         several times taller than the selection, and scaling the whole layer down made all
+         three look identical. Untick “keep the other candidates” to delete them, or leave
+         them hidden on the layer stack and click an eye to swap.</p>
+      <p class="muted small">Batch runs and “repeat last” never open it — a batch job waiting
+         for a mouse click is a hung batch job. Turning <code>pick</code> off does the same.</p>
+    </div>
+    <div class="dl">
       <div class="dl-head"><h3>The parameter dialog</h3></div>
       <p>GIMP 3 does not build a dialog for a plug-in — the plug-in has to. This one calls
          <code>_shared/lb_dialog.py</code> from <code>run()</code>: interactive runs get a
@@ -1585,6 +1599,18 @@ so you can re-limit the area later.</code></pre>
             <td>Keep the “AI Mask” channel, or turn it off for a clean result</td></tr>
         <tr><td><code>scale</code></td><td>0</td>
             <td>0 = send at the model's comfy size (SD1.5 512 / SDXL 1024); 1.0 = send as is</td></tr>
+        <tr><td><code>variations</code></td><td>3</td>
+            <td>How many to draw at once (1–4). Also in the simple version. Picking one of
+                three beats betting on one, at the price of a longer sample</td></tr>
+        <tr><td><code>pick</code></td><td>on</td>
+            <td>Show the picker when several are drawn. Off = silently keep the top score;
+                batch runs never show it anyway</td></tr>
+        <tr><td><code>variations</code></td><td>3</td>
+            <td>How many to draw at once (1–4). Also in the simple version. Picking one of
+                three beats betting on one, at the price of a longer sample</td></tr>
+        <tr><td><code>pick</code></td><td>on</td>
+            <td>Show the picker when several are drawn. Off = silently keep the top score;
+                batch runs never show it anyway</td></tr>
       </tbody>
     </table></div>
   </div>
@@ -1735,9 +1761,10 @@ python tools/setup_comfy.py --tier full # add Flux.1 Fill (12 GB)</code></pre>
          mock service (no GPU needed): mask direction, 8× alignment, canvas padding, scale
          limits, checkpoint family detection, workflow nodes and wiring, Chinese-to-English
          prompt handling, candidate scoring (insert and erase rules), failure paths.</p>
-      <p><code>tools/check_ai_inpaint_gimp.py</code> runs the procedure inside real GIMP 3.2:
-         selection → prompt → new layer, mask and channel, and a bogus checkpoint name being
-         rejected by the dropdown.</p>
+      <p><code>tools/check_ai_inpaint_gimp.py</code> (107 assertions) runs the procedure inside
+         real GIMP 3.2: selection → prompt → new layer, mask and channel, the candidate
+         picker's cropping and selection, and a bogus checkpoint name being rejected by the
+         dropdown.</p>
       <p>Speed (RTX 3070 Ti, SDXL, 25 steps, 1024×512): <b>8.7 s</b>. The same size on CPU
          fallback is <b>94 s</b> (measured at 384×256) — it works, but not for batches.</p>
     </div>

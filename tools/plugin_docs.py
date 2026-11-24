@@ -832,6 +832,17 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
          这是修图插件，先让模型别往矢量插画跑；想要画风自己改这一栏。</p>
     </div>
     <div class="dl">
+      <div class="dl-head"><h3>多候选：出三张，自己挑</h3><span class="pill">variations</span></div>
+      <p>一次采样可以出 2~4 张（<code>variations</code>，默认 3），先按接缝、糊／碎、
+         跨边缘色台阶、选区外改动、结构密度打分，然后弹一个<b>缩略图挑选窗</b>：
+         几张并排、标着序号和分数，点一下换一张，确认后只留选中的那张。</p>
+      <p>缩略图只看「选区 + 30% 边距」——候选图层往往比选区高好几倍，整块缩下去
+         三张会长得一模一样。勾掉「保留其余候选」就把没选中的删掉，默认留下当
+         隐藏图层，随时点眼睛换回来。</p>
+      <p class="muted small">批处理与「重复上次」不弹窗，直接用打分最优那张：
+         一个会等鼠标的批处理任务等于卡死。<code>pick</code> 关掉也是这个行为。</p>
+    </div>
+    <div class="dl">
       <div class="dl-head"><h3>参数框</h3></div>
       <p>GIMP 3 不会替插件生成参数对话框，得插件自己建。这一支在 <code>run()</code> 里
          调 <code>_shared/lb_dialog.py</code>：交互模式弹框、取消就是取消，
@@ -870,6 +881,10 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
             <td>要不要留 "AI Mask" 通道；只想要干净结果就关掉</td></tr>
         <tr><td><code>scale</code></td><td>0</td>
             <td>0 = 按底模的舒适尺寸送（SD1.5 512 / SDXL 1024）；1.0 = 原样送</td></tr>
+        <tr><td><code>variations</code></td><td>3</td>
+            <td>一次出几张（1~4）。简版也有。3 张里挑一张比赌一张稳得多，代价是采样时间乘上张数</td></tr>
+        <tr><td><code>pick</code></td><td>开</td>
+            <td>出多张时弹不弹挑选窗。关掉就静默用最优那张；批处理本来就不弹</td></tr>
       </tbody>
     </table></div>
   </div>
@@ -994,8 +1009,9 @@ python tools/setup_comfy.py --tier full # 再加 Flux.1 Fill（12 GB）</code></
       <p><code>tools/check_ai_inpaint.py</code> <b>298 条</b>断言跑在本地 mock 服务上
          （不需要显卡）：蒙版方向、8× 对齐、画布补边、缩放倍率上下限、底模家族判定、
          工作流节点与连线、提示词中英转换、候选打分（插入 / 抹除两套判据）、失败退路。</p>
-      <p><code>tools/check_ai_inpaint_gimp.py</code> 在真实 GIMP 3.2 里把过程跑一遍：
-         选区 → 提示词 → 新图层、蒙版与通道、乱填的底模名被下拉拒回。</p>
+      <p><code>tools/check_ai_inpaint_gimp.py</code>（107 条）在真实 GIMP 3.2 里把过程跑一遍：
+         选区 → 提示词 → 新图层、蒙版与通道、候选挑选窗的裁切与选择、乱填的底模名
+         被下拉拒回。</p>
       <p>速度（RTX 3070 Ti，SDXL，25 步，1024×512）：<b>8.7 秒</b>。同一尺寸走 CPU
          兜底是 <b>94 秒</b>（384×256 实测），能跑但不适合批量。</p>
     </div>

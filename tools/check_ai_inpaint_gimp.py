@@ -284,6 +284,125 @@ try:
     check("普通预设 → 不误判成抹除", info6.get("removal") is False,
           info6.get("removal"))
 
+    # ---------------- 6. 候选挑选窗 ----------------
+    # 多候选以前只是图层面板里几个隐藏图层（名字带罚分），不点眼睛看不见。
+    # 现在给一个能点的窗口：缩略图并排、默认选中打分最优那张、确认后重排图层。
+    picker = mod._picker
+    check("挑选器模块加载上了", picker is not None)
+    if picker is not None:
+        check("GIMP 里能建 GTK 窗口（pycairo 在）", picker.available() is True)
+
+        # 缩略图裁切：候选图层通常是「选区的好几倍高」，整块缩下去三张一模一样
+        lw, lh = 744, 496
+        box = picker._crop_box(lw, lh, (10, 376, 470, 120))
+        check("裁切窗口存在", box is not None, str(box))
+        if box:
+            bx, by, bw, bh = box
+            inside = (bx <= 10 and by <= 376 and bx + bw >= 480
+                      and by + bh >= 496)
+            check("裁切窗口包住整个选区", inside, "%s vs 选区 10,376,470,120" % (box,))
+            check("裁切窗口不越出图层",
+                  0 <= bx and 0 <= by and bx + bw <= lw and by + bh <= lh, str(box))
+            check("裁切窗口比整层小（真的裁了）", bw * bh < lw * lh,
+                  "%dx%d < %dx%d" % (bw, bh, lw, lh))
+        check("整层就是选区时退回整层（不做无意义的裁切）",
+              picker._crop_box(100, 100, (0, 0, 100, 100)) is None)
+        check("没有选区信息就返回 None", picker._crop_box(100, 100, None) is None)
+        check("零尺寸选区不炸", picker._crop_box(100, 100, (5, 5, 0, 0)) is None)
+        # 选区贴在图层角上：窗口要被夹回图层内，而不是算出负坐标
+        edge = picker._crop_box(300, 200, (0, 0, 20, 20))
+        check("选区贴角时窗口不越界",
+              edge is None or (edge[0] >= 0 and edge[1] >= 0
+                               and edge[0] + edge[2] <= 300
+                               and edge[1] + edge[3] <= 200), str(edge))
+
+        # ---- 建窗：默认选中、点击切换、保留开关 ----
+        img7 = Gimp.Image.new(160, 120, Gimp.ImageBaseType.RGB)
+        cands7 = []
+        for i, col in enumerate(((200, 60, 60), (60, 200, 60), (60, 60, 200))):
+            lay = Gimp.Layer.new(img7, "cand%d" % i, 160, 120,
+                                 Gimp.ImageType.RGBA_IMAGE, 100.0,
+                                 Gimp.LayerMode.NORMAL)
+            img7.insert_layer(lay, None, 0)
+            shadow = lay.get_shadow_buffer()
+            shadow.set(Gegl.Rectangle.new(0, 0, 160, 120), "R'G'B'A u8",
+                       bytes((col[0], col[1], col[2], 255)) * (160 * 120))
+            shadow.flush()
+            lay.merge_shadow(True)
+            cands7.append(lay)
+
+        dlg, pctx = picker.build_dialog(cands7, [1, 0, 2], [1.20, 2.00, 3.00],
+                                        focus=(40, 40, 60, 40))
+        check("窗口建出来了（不 run）", dlg is not None)
+        check("默认选中打分最优那张（order[0]）",
+              pctx["values"]()["index"] == 1, str(pctx["values"]()))
+        check("三个缩略图都画好了", len(pctx["areas"]) == 3, str(len(pctx["areas"])))
+        check("默认保留其余候选", pctx["values"]()["keep_all"] is True)
+        pctx["select"](2)
+        check("点第三张就选中第三张", pctx["values"]()["index"] == 2,
+              str(pctx["values"]()))
+        pctx["select"](99)
+        check("越界点击不改变选择", pctx["values"]()["index"] == 2,
+              str(pctx["values"]()))
+        pctx["select"](-5)
+        check("负数下标不改变选择", pctx["values"]()["index"] == 2,
+              str(pctx["values"]()))
+        pctx["keep"].set_active(False)
+        check("取消勾选 → 其余候选会被删",
+              pctx["values"]()["keep_all"] is False, str(pctx["values"]()))
+        labels = [lb.get_text() for lb in pctx["labels"]]
+        check("标签写了序号", labels[0].startswith("#1"), str(labels))
+        check("标签带分数", "2.00" in labels[0] or "1.20" in labels[0], str(labels))
+        dlg.destroy()
+        img7.delete()
+
+    # ---- 用户挑了非最优那张：图层要按选择重排 / 删减 ----
+    if picker is not None:
+        orig_choose = picker.choose
+        img8, l8 = new_image(200, 160, (150, 150, 150))
+        img8.select_rectangle(Gimp.ChannelOps.REPLACE, 70, 50, 60, 50)
+        try:
+            picker.choose = lambda *a, **kw: {"index": 1, "keep_all": True}
+            out8, info8 = mod.ai_inpaint(
+                img8, l8, "a red apple", client=client, grow=0, feather=0,
+                steps=4, timeout=30, variations=3, pick="auto",
+                fix_seams=False, match_grain=False)
+        finally:
+            picker.choose = orig_choose
+        kept = [it for it in img8.get_layers()
+                if it.get_name().startswith("AI Inpaint")]
+        check("保留其余候选：三张都在", len(kept) == 3, len(kept))
+        check("可见的是用户选的那张", out8 is kept[1] and out8.get_visible(),
+              out8.get_name())
+        check("其余候选是隐藏的",
+              not any(it.get_visible() for it in kept if it is not out8))
+        check("picked 记下了是用户挑的",
+              info8.get("picked", {}).get("by") == "user", str(info8.get("picked")))
+        img8.delete()
+
+        # 同一批候选，用户勾掉「保留其余」→ 只留一张，名字不带序号
+        orig_choose = picker.choose
+        img9, l9 = new_image(200, 160, (150, 150, 150))
+        img9.select_rectangle(Gimp.ChannelOps.REPLACE, 70, 50, 60, 50)
+        try:
+            picker.choose = lambda *a, **kw: {"index": 2, "keep_all": False}
+            out9, info9 = mod.ai_inpaint(
+                img9, l9, "a red apple", client=client, grow=0, feather=0,
+                steps=4, timeout=30, variations=3, pick="auto",
+                fix_seams=False, match_grain=False)
+        finally:
+            picker.choose = orig_choose
+        left = [it for it in img9.get_layers()
+                if it.get_name().startswith("AI Inpaint")]
+        check("不保留 → 只留一张", len(left) == 1, [it.get_name() for it in left])
+        check("留下的是用户选的那张", out9 is left[0] and out9.get_visible())
+        check("单张名字不带序号",
+              left[0].get_name().startswith("AI Inpaint ("), left[0].get_name())
+        check("picked 记下了索引", info9.get("picked", {}).get("index") == 2,
+              str(info9.get("picked")))
+        check("picked 记下了没保留", info9.get("picked", {}).get("kept_all") is False)
+        img9.delete()
+
     # ---------------- 5. 两个入口的参数装配 ----------------
     # 简版只声明了 prompt / preset / negative，run() 里却要拼出完整参数表：
     # 少兜一个默认值就是 TypeError，用户看到的是「点菜单直接报错」。
@@ -330,6 +449,8 @@ try:
         check("简版 steps 默认 25", args[6] == 25, str(args[6]))
         check("简版 keep-mask 默认 True", args[14] is True, str(args[14]))
         check("简版 scale 默认 0", args[15] == 0.0, str(args[15]))
+        # 批处理 / 重复上次绝不能弹挑选窗（弹了就是卡住的批处理任务）
+        check("批处理不弹挑选窗", kw.get("pick") == "off", str(kw.get("pick")))
 
     st, seen = _wire(mod.PROC_ADVANCED,
                      {"prompt": "empty table", "preset": "none", "negative": "text",

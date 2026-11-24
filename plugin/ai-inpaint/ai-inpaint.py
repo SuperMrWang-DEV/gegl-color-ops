@@ -105,6 +105,11 @@ except Exception:                  # 老包没带 quality.py：只用单张，�
     quality = None
 
 try:
+    import candidate_picker as _picker   # 多候选时的缩略图挑选窗
+except Exception:                  # 没 pycairo / 老包：退回「用最优那张」
+    _picker = None
+
+try:
     import prompt_tools
 except Exception:                  # 没带 prompt_tools.py：只用英文，不影响其他功能
     prompt_tools = None
@@ -494,7 +499,7 @@ def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
                denoise=1.0, grow=8, grow_mask_by=8, feather=4.0,
                timeout=600.0, keep_mask=True, scale=0.0, client=None,
                on_tick=None, preset="none", variations=VARIATIONS,
-               fix_seams=True, match_grain=True, variant="auto"):
+               fix_seams=True, match_grain=True, variant="auto", pick="off"):
     """选区 → AI 重绘 → 新图层。返回 (layer, info)。
 
     client 参数是给回归脚本塞 mock 用的；正常情况留空，按 server 现建一个。
@@ -506,6 +511,8 @@ def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
     "a small cat, fluffy fur, detailed eyes"，用户写的细节再接在后面。
     erase 预设不塞提示词，只把「这张要在选区里留空」告诉打分器：候选按
     「和周围一样才算好」排序，而不是「画得越多越好」（见 quality.score）。
+    pick="auto" 时，多张候选会弹一个缩略图窗口让人自己挑（只有交互模式才
+    传 auto；批处理、`重复上次`、回归都走 off，也就是「用打分最优那张」）。
     """
     if ai_client is None:
         raise RuntimeError(_("plugin/_shared/ai_client.py is missing: install the _shared "
@@ -622,13 +629,57 @@ def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
         removal = (not prompt.strip()) or (preset or "none") == "erase"
         order, scores = rank_layers(src, gray, layers, w, h,
                                     removal=removal)
+        best = order[0] if order else 0
+
+        # 7b) 交互模式下让人自己挑：缩略图并排、点击切换、确认后重排图层。
+        #     挑不出来（没 GTK / 用户按了「用最优那张」）就退回打分结果。
+        #     用户取消挑选 ≠ 取消填充：采样已经花掉了，直接采用最优那张，
+        #     和「根本不弹窗」是同一种结果，不会让用户白等一次。
+        chosen = best
+        keep_others = True
+        picked_by = "auto"
+        if pick == "auto" and _picker is not None and len(layers) > 1:
+            # 缩略图只看「选区 + 一点上下文」：候选图层通常是选区的好几倍高，
+            # 整块缩下去三张会一模一样，挑不出差别。
+            focus = (sel[0] - cx, sel[1] - cy,
+                     max(1, sel[2] - sel[0]), max(1, sel[3] - sel[1]))
+            try:
+                choice = _picker.choose(layers, order, scores, focus=focus)
+            except Exception as exc:              # 窗口炸了不能丢结果
+                choice = None
+                info["pick_error"] = str(exc)
+            if choice:
+                chosen = max(0, min(len(layers) - 1, int(choice.get("index", best))))
+                keep_others = bool(choice.get("keep_all", True))
+                picked_by = "user"
+
+        # 分数要在重排图层之前取：删掉其余候选后下标就变了
+        chosen_score = (scores[chosen].total
+                        if scores and 0 <= chosen < len(scores) else None)
+        picked_index = chosen
+
+        if not keep_others and len(layers) > 1:
+            for i, layer in enumerate(layers):
+                if i != chosen:
+                    image.remove_layer(layer)
+            layers = [layers[chosen]]
+            chosen = 0
+
         for i, layer in enumerate(layers):
-            layer.set_visible(i == order[0])
+            layer.set_visible(i == chosen)
             if len(layers) > 1:
+                # 多张：名字带自己的分数，方便在图层面板里对照
                 layer.set_name("%s %d (%s)" % (
                     RESULT_LAYER, i + 1,
-                    "%.2f" % scores[i].total if scores else "?"))
-        result = layers[order[0]]
+                    "%.2f" % scores[i].total if scores and i < len(scores) else "?"))
+            else:
+                # 只剩一张就别留「3」这种序号（候选被删到一张时）。
+                # 本来就是单张（variations=1）的保持老名字，别多一个 (?)。
+                if batch > 1:
+                    layer.set_name("%s (%s)" % (
+                        RESULT_LAYER,
+                        "?" if chosen_score is None else "%.2f" % chosen_score))
+        result = layers[chosen]
 
         # 8) 只修胜出的那张：接缝色差 + 颗粒。失败就当没修，绝不丢结果。
         cleanup = {}
@@ -641,8 +692,11 @@ def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
 
         info["rect"] = (cx, cy, cw, ch)
         info["variations"] = len(layers)
+        info["drawn"] = batch          # 这次采样出了几张（删候选后仍可查）
         info["order"] = order
         info["scores"] = [round(sc.total, 3) for sc in scores]
+        info["picked"] = {"by": picked_by, "index": picked_index,
+                          "kept_all": keep_others}
         info["removal"] = removal
         info["source_rect"] = rect
         info["pads"] = (pl, pt, pr, pb)
@@ -1310,6 +1364,13 @@ class AiInpaintPlugin(Gimp.PlugIn):
               "layer stack, hidden: click their eye to swap. 1 = old behaviour, "
               "one shot, no ranking."),
             1, VARIATIONS_MAX, VARIATIONS, GObject.ParamFlags.READWRITE)
+        procedure.add_boolean_argument(
+            "pick", _("Pick from candidates"),
+            _("With 2 or more variations, show the results side by side and "
+              "let you choose which one to keep. Untick it to go straight to "
+              "the top-scored one. Only interactive runs ask — batch and "
+              "\"Repeat last\" never open a window."),
+            True, GObject.ParamFlags.READWRITE)
 
         if name == PROC_ADVANCED:
             self._add_advanced_arguments(procedure)
@@ -1390,6 +1451,12 @@ class AiInpaintPlugin(Gimp.PlugIn):
             return procedure.new_return_values(
                 Gimp.PDBStatusType.CANCEL, None)
         adv = procedure.get_name() == PROC_ADVANCED
+        # 挑选窗只在「用户真的在现场点菜单」时弹：批处理与「重复上次」都静默。
+        want_pick = config.get_property('pick')
+        if want_pick is None:
+            want_pick = True
+        pick_mode = ("auto" if (run_mode == Gimp.RunMode.INTERACTIVE
+                                and want_pick) else "off")
 
         def prop(key, fallback):
             # 简版没有这些参数，get_property 会返回 NULL，直接喂给 ai_inpaint
@@ -1418,7 +1485,8 @@ class AiInpaintPlugin(Gimp.PlugIn):
                        preset=config.get_property('preset') or "none",
                        # variations 两个入口都有，不走 prop()（那是给「只有高级
                        # 版才有」的参数用的）
-                       variations=config.get_property('variations') or VARIATIONS)
+                       variations=config.get_property('variations') or VARIATIONS,
+                       pick=pick_mode)
             return procedure.new_return_values(
                 Gimp.PDBStatusType.SUCCESS, GLib.Error())
         except Exception as exc:

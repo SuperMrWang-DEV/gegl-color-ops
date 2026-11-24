@@ -2375,12 +2375,14 @@ PLUGIN_SPECS = [
                   "Diffusion）重画，结果当新图层贴回原位，羽化选区做图层蒙版。同包还带"
                   "一个「AI 环境」入口：没装 ComfyUI 的人可以从那里一键装、一键起。",
              shared=["ai_client.py", "comfy_launcher.py", "prompt_tools.py",
-                     "mask_io.py", "quality.py"],
+                     "mask_io.py", "quality.py", "candidate_picker.py"],
              setup=True,
-             pdb="lb-plugin-ai-inpaint(image, drawables, prompt, preset, negative)\n"
+             pdb="lb-plugin-ai-inpaint(image, drawables, prompt, preset, negative,\n"
+                 "    variations, pick)\n"
                  "lb-plugin-ai-inpaint-advanced(image, drawables, prompt, preset,\n"
-                 "    negative, server, checkpoint, steps, cfg, seed, denoise, grow,\n"
-                 "    grow-mask-by, feather, timeout, keep-mask, scale)\n"
+                 "    negative, variations, pick, server, checkpoint, steps, cfg,\n"
+                 "    seed, denoise, grow, grow-mask-by, feather, timeout,\n"
+                 "    keep-mask, scale)\n"
                  "lb-plugin-ai-env(image)"),
         dict(key="cutout", ops=[],
              name="gegl-color-ops-plugin-cutout.zip",

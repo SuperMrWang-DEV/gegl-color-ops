@@ -1095,8 +1095,8 @@ python 的退出码 + `if errorlevel 1 set EXTRA=--cpu`，稳定得多。
 
 | 菜单项 | 问你的东西 | 什么时候用 |
 | --- | --- | --- |
-| **AI Inpaint…** | 画什么（`prompt`）+ 画什么主体（`preset` 下拉）+ 不要什么（`negative`） | 日常。三个框，其余参数用默认值 |
-| **AI Inpaint (Advanced)…** | 上面三项 + `server` / `checkpoint`（下拉）/ `steps` / `cfg` / `seed` / `denoise` / `grow` / `grow-mask-by` / `feather` / `timeout` / `keep-mask` / `scale` | 要复现同一张结果、要挑底模、要调步数或降 `denoise` 保结构 |
+| **AI Inpaint…** | 画什么（`prompt`）+ 画什么主体（`preset` 下拉）+ 不要什么（`negative`）+ 出几张（`variations`）+ 要不要挑（`pick`） | 日常。几个框，其余参数用默认值 |
+| **AI Inpaint (Advanced)…** | 上面几项 + `server` / `checkpoint`（下拉）/ `steps` / `cfg` / `seed` / `denoise` / `grow` / `grow-mask-by` / `feather` / `timeout` / `keep-mask` / `scale` | 要复现同一张结果、要挑底模、要调步数或降 `denoise` 保结构 |
 | **AI Select by Name…** | 要选什么（`object`，英文名词）+ SAM2 档位 / 阈值 / 外扩 / **平移** | 不想手描（头发、耳垂、衣服边缘），或者想让选区精确贴住一个物体 |
 | **AI Environment…** | 不问你，直接报状态（连上没、版本、有哪些底模）+ 手选目录 / 启动 / 停止 | 第一次装 ComfyUI、装在别的盘、服务没起、想换模型 |
 
@@ -1164,11 +1164,19 @@ python 的退出码 + `if errorlevel 1 set EXTRA=--cpu`，稳定得多。
    带偏移时，界外取到的是下面的图层，不是黑色；
 5. 选区存成蒙版 PNG 交给 ComfyUI，等 `/history` 报完成；
 6. 结果 PNG 读回成图层，插在原图层正上方、偏移对回裁切框原点；羽化后的选区
-   存成 `AI Mask` 通道，同时用作图层蒙版（`keep-mask` 关掉就只留蒙版不收通道）。
+   存成 `AI Mask` 通道，同时用作图层蒙版（`keep-mask` 关掉就只留蒙版不收通道）；
+7. 要了多张（`variations` ≥ 2）就先打分，再**弹一个挑选窗**：几张缩略图并排、
+   标着序号和分数、点一下换一张，确认后只留选中的那张（其余默认留成隐藏图层，
+   勾掉开关就删掉）。批处理与「重复上次」不弹窗，直接用打分最优那张。
 
-高级版参数：`prompt` / `preset` / `negative` / `server` / `checkpoint` /
-`steps`(25) / `cfg`(7.5) / `seed`(-1=每次随机) / `denoise`(1.0) / `grow`(8) /
-`grow-mask-by`(8) / `feather`(4) / `timeout`(600s) / `keep-mask` / `scale`(0=按底模)。
+挑选窗只看「选区 + 30% 边距」（`candidate_picker._crop_box`）：候选图层通常
+是选区的好几倍高，整块缩到 380 px 的话三张会一模一样，挑不出差别。窗口长边
+有 340 px 下限，太小的选区不会被放大到糊。
+
+高级版参数：`prompt` / `preset` / `negative` / `variations`(3, 1~4) / `pick` /
+`server` / `checkpoint` / `steps`(25) / `cfg`(7.5) / `seed`(-1=每次随机) /
+`denoise`(1.0) / `grow`(8) / `grow-mask-by`(8) / `feather`(4) /
+`timeout`(600s) / `keep-mask` / `scale`(0=按底模)。
 
 ### 提示词怎么写（这是最影响效果的一件事）
 
@@ -1476,8 +1484,9 @@ python tools/check_ai_inpaint.py
 "D:/fastsoftware/GIMP 3/bin/gimp-console-3.2.exe" -i -c -d -f \
     --batch-interpreter=python-fu-eval \
     -b "exec(open(r'<repo>/tools/check_ai_inpaint_gimp.py', encoding='utf-8').read())" --quit
-# 77 条：真 GIMP 里的选区→蒙版→贴回、中文/预设提示词、抹除预设的判据开关、
-#        简版与高级版的参数装配、按名称选区与蒙版平移
+# 107 条：真 GIMP 里的选区→蒙版→贴回、中文/预设提示词、抹除预设的判据开关、
+#         候选挑选窗（裁切窗口 / 默认选中 / 点击换张 / 保留与删除）、
+#         简版与高级版的参数装配、按名称选区与蒙版平移
 ```
 
 `tools/mock_comfy.py` 也能单独起一个假服务（不带参数就监听 8188），想在没有模型
