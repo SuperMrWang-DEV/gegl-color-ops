@@ -17,7 +17,7 @@
        直接执行、不弹参数框；另外一条 Path to Bitmap 把路径或矢量图层落成像素。原生菜单里这些路分散在四处，而且「蒙版 → 通道」
        「" data-desc-en="Channels, selections, layer masks and paths, converted in every direction: twelve
    menu items plus Path to Bitmap, eac">
-<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
+<link rel="stylesheet" href="../assets/style.css?v=00b514e0ae">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <script>
 (function () {
@@ -67,6 +67,11 @@
 <p class="native-note"><b>只是原生方式的便捷实现</b>　这里没有新算法：
    像素结果全部出自 GIMP 自带的 PDB 过程，插件只负责把散在三处菜单、要跨三四步的动作
    收成一次点击，并保证与手点原生菜单得到的结果逐位相同。</p>
+<figure class="shot">
+  <img src="../assets/plugins/convert/shot.png" width="950" height="323"
+       loading="lazy" alt="效果对比 / original vs result">
+  <figcaption>左：原图　右：插件做的事 —— 选区转通道：圆选区变成一条黑白通道。</figcaption>
+</figure>
 <div class="article-layout">
   <article class="prose">
 <dl class="spec" id="zh-overview">
@@ -218,6 +223,11 @@
    no new algorithms here: every pixel comes out of GIMP's own PDB procedures. The plug-in just
    folds a detour that lives in three different menus and takes three or four steps into a
    single click, and keeps the result bit-for-bit identical to doing it by hand.</p>
+<figure class="shot">
+  <img src="../assets/plugins/convert/shot.png" width="950" height="323"
+       loading="lazy" alt="效果对比 / original vs result">
+  <figcaption>Left: the test card. Right: what the plug-in does — selection to channel: the round selection becomes a black-and-white channel.</figcaption>
+</figure>
 <div class="article-layout">
   <article class="prose">
 <dl class="spec" id="en-overview">
@@ -379,7 +389,7 @@
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">59d16f6</span>
+    <span class="muted">7fb03c8</span>
   </div>
 </footer>
 <script>

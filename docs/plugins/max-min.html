@@ -17,7 +17,7 @@
        最大值把亮区往外推、吞掉暗处的小点；最小值收亮区、啃掉残留的白边。
        GIMP 3 已经不带这个功能了——gegl:dilate " data-desc-en="Photoshop&#x27;s Maximum / Minimum filter: every pixel takes the largest or smallest
    value in its neighbourhood. Maximum p">
-<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
+<link rel="stylesheet" href="../assets/style.css?v=00b514e0ae">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <script>
 (function () {
@@ -65,6 +65,11 @@
        没被编进官方构建，<code>plug-in-dilate</code> 也早在 2.10 之后移除。
        所以这里用的是本项目自己的算子 <code>lb:max-min</code>。</p>
 </section>
+<figure class="shot plugin-shot">
+  <img src="../assets/plugins/max-min/dialog.png" width="528" height="485"
+       loading="lazy" alt="对话框截图 / dialog screenshot">
+  <figcaption>插件真实的参数对话框 —— 半径、取最大还是最小、通道模式。</figcaption>
+</figure>
 <div class="article-layout">
   <article class="prose">
 <dl class="spec" id="zh-overview">
@@ -190,6 +195,11 @@
    Windows binaries and <code>plug-in-dilate</code> was removed after 2.10 — so this uses the
    project's own <code>lb:max-min</code> operator.</p>
 </section>
+<figure class="shot plugin-shot">
+  <img src="../assets/plugins/max-min/dialog.png" width="528" height="485"
+       loading="lazy" alt="对话框截图 / dialog screenshot">
+  <figcaption>The real parameter dialog — radius, maximum or minimum, channel mode.</figcaption>
+</figure>
 <div class="article-layout">
   <article class="prose">
 <dl class="spec" id="en-overview">
@@ -324,7 +334,7 @@
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">59d16f6</span>
+    <span class="muted">7fb03c8</span>
   </div>
 </footer>
 <script>

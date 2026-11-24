@@ -1,0 +1,222 @@
+{
+ "ai-dodge-burn": {
+  "en": "AI shading map, strength, skin protection",
+  "h": 629,
+  "title": "AI 双曲线",
+  "w": 528,
+  "zh": "AI 生成明暗图、强度与肤色保护"
+ },
+ "ai-expand": {
+  "en": "direction and amount, prompt, seam handling",
+  "h": 417,
+  "title": "AI 扩图",
+  "w": 778,
+  "zh": "扩展方向与像素、提示词、接缝处理"
+ },
+ "ai-frequency-separation": {
+  "en": "AI smoothing radius, detail restore",
+  "h": 555,
+  "title": "AI 分频磨皮",
+  "w": 528,
+  "zh": "AI 平滑半径、细节回填量"
+ },
+ "ai-inpaint": {
+  "en": "prompt, denoise strength, mask source",
+  "h": 380,
+  "title": "AI 消除 / 重绘",
+  "w": 864,
+  "zh": "提示词、去噪强度、蒙版来源"
+ },
+ "ai-neutral-grey": {
+  "en": "AI zones, grey layer blend mode",
+  "h": 592,
+  "title": "AI 中性灰",
+  "w": 528,
+  "zh": "AI 分区、灰度层混合方式"
+ },
+ "ai-upscale": {
+  "en": "scale factor, model, tile size",
+  "h": 367,
+  "title": "AI 放大",
+  "w": 528,
+  "zh": "放大倍数、模型、分块大小"
+ },
+ "alpha-curves": {
+  "en": "alpha curve and its range",
+  "h": 281,
+  "title": "Alpha 曲线",
+  "w": 562,
+  "zh": "alpha 通道的曲线与作用范围"
+ },
+ "channel-to-mask": {
+  "en": "which channel, black/white points, invert",
+  "h": 255,
+  "title": "通道转蒙版",
+  "w": 528,
+  "zh": "取哪个通道、怎么处理黑白点"
+ },
+ "color-range": {
+  "en": "sample colours to build a selection, with a red overlay preview",
+  "h": 362,
+  "title": "色彩范围",
+  "w": 531,
+  "zh": "按颜色取样建选区，带红色叠加预览"
+ },
+ "convert": {
+  "en": "selection to channel: the round selection becomes a black-and-white channel",
+  "h": 323,
+  "kind": "effect",
+  "title": "转换",
+  "w": 950,
+  "zh": "选区转通道：圆选区变成一条黑白通道"
+ },
+ "curves": {
+  "en": "one curve per component in Lab / LCh / HSV / CMYK, with a live preview",
+  "h": 722,
+  "title": "曲线",
+  "w": 1041,
+  "zh": "四个色彩空间（Lab / LCh / HSV / CMYK）各三条曲线，右侧是实时预览"
+ },
+ "cutout": {
+  "en": "AI or local flood, tolerance, mask or alpha output",
+  "h": 644,
+  "title": "抠图",
+  "w": 528,
+  "zh": "AI 还是本地泛洪、容差、输出为蒙版或 alpha"
+ },
+ "dodge-burn": {
+  "en": "dodge/burn curves, skin protection, mask smoothing",
+  "h": 255,
+  "title": "双曲线磨皮（加亮加深）",
+  "w": 528,
+  "zh": "加亮/加深两条曲线、保护肤色、蒙版平滑"
+ },
+ "frequency-separation": {
+  "en": "split radius, low/high-frequency curves, blend amount",
+  "h": 255,
+  "title": "双曲线磨皮（分频）",
+  "w": 528,
+  "zh": "分离半径、低频/高频的曲线与混合量"
+ },
+ "hsi-split-curves": {
+  "en": "the dialog has a single option — group the result; the curves themselves are edited on the generated layers with GIMP's own Curves",
+  "h": 218,
+  "title": "HSI 分通道曲线",
+  "w": 528,
+  "zh": "对话框只有一个选项：结果是否收进图层组；曲线本身在生成的那几层上用 GIMP 的曲线改"
+ },
+ "hsl-split-curves": {
+  "en": "the dialog has a single option — group the result; the curves themselves are edited on the generated layers with GIMP's own Curves",
+  "h": 218,
+  "title": "HSL 分通道曲线",
+  "w": 528,
+  "zh": "对话框只有一个选项：结果是否收进图层组；曲线本身在生成的那几层上用 GIMP 的曲线改"
+ },
+ "hsv-split-curves": {
+  "en": "the dialog has a single option — group the result; the curves themselves are edited on the generated layers with GIMP's own Curves",
+  "h": 218,
+  "title": "HSV 分通道曲线",
+  "w": 528,
+  "zh": "对话框只有一个选项：结果是否收进图层组；曲线本身在生成的那几层上用 GIMP 的曲线改"
+ },
+ "lab-split-curves": {
+  "en": "the dialog has a single option — group the result; the curves themselves are edited on the generated layers with GIMP's own Curves",
+  "h": 218,
+  "title": "Lab 分通道曲线",
+  "w": 528,
+  "zh": "对话框只有一个选项：结果是否收进图层组；曲线本身在生成的那几层上用 GIMP 的曲线改"
+ },
+ "layer-style": {
+  "en": "effect list, parameters, live preview",
+  "h": 754,
+  "title": "图层样式",
+  "w": 1080,
+  "zh": "左侧效果列表、右侧参数，实时预览"
+ },
+ "layer-to-channel": {
+  "en": "channel name, invert, keep the source",
+  "h": 255,
+  "title": "图层转通道",
+  "w": 528,
+  "zh": "通道名、反相、是否保留源图层"
+ },
+ "layer-to-selection": {
+  "en": "target, invert, hide the source layer",
+  "h": 292,
+  "title": "图层转选区",
+  "w": 528,
+  "zh": "目标类型、是否反相、是否隐藏源图层"
+ },
+ "lch-split-curves": {
+  "en": "the dialog has a single option — group the result; the curves themselves are edited on the generated layers with GIMP's own Curves",
+  "h": 218,
+  "title": "LCh 分通道曲线",
+  "w": 528,
+  "zh": "对话框只有一个选项：结果是否收进图层组；曲线本身在生成的那几层上用 GIMP 的曲线改"
+ },
+ "luminosity": {
+  "en": "eight luminance masks in one go; Lights 1 is shown here",
+  "h": 323,
+  "kind": "effect",
+  "title": "明度蒙版",
+  "w": 950,
+  "zh": "一次生成八条明度蒙版，这里显示其中的 Lights 1"
+ },
+ "max-min": {
+  "en": "radius, maximum or minimum, channel mode",
+  "h": 485,
+  "title": "最大值 / 最小值",
+  "w": 528,
+  "zh": "半径、取最大还是最小、通道模式"
+ },
+ "mesh-warp": {
+  "en": "drag a node or its handles to bend along Bezier patches",
+  "h": 507,
+  "title": "自由变形",
+  "w": 1090,
+  "zh": "拖节点或它的把手，按 Bezier 面片弯曲"
+ },
+ "neutral-grey": {
+  "en": "a single option: group the result",
+  "h": 218,
+  "title": "中性灰观察层",
+  "w": 528,
+  "zh": "对话框只有一个选项：是否收进图层组"
+ },
+ "observe": {
+  "en": "a desaturated copy on top; structure and blemishes read as pure brightness",
+  "h": 323,
+  "kind": "effect",
+  "title": "观察层",
+  "w": 950,
+  "zh": "顶部加一层去色副本，结构和脏点在纯明暗下最清楚"
+ },
+ "refine": {
+  "en": "preview on the left; radius, smooth, feather and decontaminate on the right",
+  "h": 514,
+  "title": "选择并遮住",
+  "w": 874,
+  "zh": "左侧预览、右侧半径/平滑/羽化/去色边，边缘实时重算"
+ },
+ "split-channels": {
+  "en": "which components, keep alpha, hide the original",
+  "h": 294,
+  "title": "拆通道",
+  "w": 528,
+  "zh": "拆成哪几个分量、是否带上 alpha、是否隐藏原图"
+ },
+ "vanishing-point": {
+  "en": "mark one perspective plane, then paste or rectify onto it",
+  "h": 637,
+  "title": "消失点",
+  "w": 957,
+  "zh": "在画面上标一个透视平面，再贴图或拉正"
+ },
+ "warp": {
+  "en": "pin the joints, drag to bend; snapping radius and mesh density",
+  "h": 490,
+  "title": "木偶变形",
+  "w": 924,
+  "zh": "钉住关节再拖动，右侧是吸附半径与网格密度"
+ }
+}

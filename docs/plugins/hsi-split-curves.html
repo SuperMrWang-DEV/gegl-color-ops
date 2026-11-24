@@ -17,7 +17,7 @@
        模式一条也对不上，连「借 HSV 色相换角」都会把 I 带走 22 码。于是三个分量
        合进同一层：红=S、绿=I、蓝=色相，三条曲" data-desc-en="HSI&#x27;s I is (R+G+B)/3 and its hue comes from a cosine definition, so none of GIMP&#x27;s
    six component modes match — even b">
-<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
+<link rel="stylesheet" href="../assets/style.css?v=00b514e0ae">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <script>
 (function () {
@@ -63,6 +63,11 @@
        模式一条也对不上，连「借 HSV 色相换角」都会把 I 带走 22 码。于是三个分量
        合进同一层：红=S、绿=I、蓝=色相，三条曲线各管一个分量。</p>
 </section>
+<figure class="shot plugin-shot">
+  <img src="../assets/plugins/hsi-split-curves/dialog.png" width="528" height="218"
+       loading="lazy" alt="对话框截图 / dialog screenshot">
+  <figcaption>插件真实的参数对话框 —— 对话框只有一个选项：结果是否收进图层组；曲线本身在生成的那几层上用 GIMP 的曲线改。</figcaption>
+</figure>
 <div class="article-layout">
   <article class="prose">
 <dl class="spec" id="zh-overview">
@@ -148,6 +153,11 @@
    All three components therefore share one layer: red = S, green = I, blue = hue, one curve
    each.</p>
 </section>
+<figure class="shot plugin-shot">
+  <img src="../assets/plugins/hsi-split-curves/dialog.png" width="528" height="218"
+       loading="lazy" alt="对话框截图 / dialog screenshot">
+  <figcaption>The real parameter dialog — the dialog has a single option — group the result; the curves themselves are edited on the generated layers with GIMP's own Curves.</figcaption>
+</figure>
 <div class="article-layout">
   <article class="prose">
 <dl class="spec" id="en-overview">
@@ -242,7 +252,7 @@
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">59d16f6</span>
+    <span class="muted">7fb03c8</span>
   </div>
 </footer>
 <script>

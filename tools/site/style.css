@@ -820,6 +820,14 @@ figure.shot figcaption {
   margin-top: 9px; font-size: 12.5px; line-height: 1.55; color: var(--muted);
 }
 figure.shot figcaption code { font-size: 11.5px; }
+/* 插件页的对话框截图：按自身像素出图（宽 520~1090 不等），不拉到 950，
+   否则 528 宽的那几张会被放大成糊的。 */
+figure.shot.plugin-shot { max-width: 100%; }
+figure.shot.plugin-shot img {
+  width: auto; max-width: 100%; height: auto;
+  margin: 0 auto;                 /* 528 宽的小框靠左会和右边留一大块空白 */
+  background: #f6f6f8;
+}
 .prose h1 { font-size: 26px; margin: 40px 0 12px; letter-spacing: -.024em; }
 .prose h2 {
   font-size: 22px; letter-spacing: -.022em; margin: 48px 0 12px; padding-top: 22px;

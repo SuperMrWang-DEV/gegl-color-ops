@@ -1476,6 +1476,22 @@ def shots():
     return _SHOTS
 
 
+_PLUGIN_SHOTS = {}
+
+
+def plugin_shots():
+    """插件页那张「真实对话框」截图的说明，由 tools/make_plugin_shots*.py 写到
+    site/plugin_shots.json。同样只写一次，页面读。"""
+    if not _PLUGIN_SHOTS:
+        path = os.path.join(SRC, "plugin_shots.json")
+        try:
+            with open(path, encoding="utf-8") as fh:
+                _PLUGIN_SHOTS.update(json.load(fh))
+        except Exception:
+            pass
+    return _PLUGIN_SHOTS
+
+
 def build_article(op, version):
     md = open(op["readme"], encoding="utf-8").read()
     en = load_en(op)
@@ -3108,6 +3124,44 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
 
     def one_lang(lang):
         en_ = lang == "en"
+
+        def figure():
+            """页头下面那张真实对话框截图（tools/make_plugin_shots*.py 生成）。
+
+            图不放大：对话框按自身尺寸出图，宽 520~1090 不等，拉到 950 只会
+            糊。CSS 里 `.plugin-shot img` 用原宽 + max-width:100%。
+            没截到图的插件整块不出现，不留空框。
+            """
+            meta = plugin_shots().get(p["slug"])
+            if not meta:
+                return ""
+            # 两种图：dialog = 真实参数框；effect = 原图→结果对比条（零参数的
+            # 插件没有参数框可截，硬截只有一个按钮的空壳）。
+            effect = meta.get("kind") == "effect"
+            fname = "shot.png" if effect else "dialog.png"
+            img = os.path.join(SRC, "plugin-shots", p["slug"], fname)
+            if not os.path.exists(img):
+                return ""
+            if effect:
+                if en_:
+                    cap = ("Left: the test card. Right: what the plug-in does — %s."
+                           % meta.get("en", ""))
+                else:
+                    cap = ("左：原图　右：插件做的事 —— %s。" % meta.get("zh", ""))
+            elif en_:
+                cap = "The real parameter dialog — %s." % meta.get("en", "")
+            else:
+                cap = "插件真实的参数对话框 —— %s。" % meta.get("zh", "")
+            return """<figure class="shot%s">
+  <img src="../assets/plugins/%s/%s" width="%d" height="%d"
+       loading="lazy" alt="%s">
+  <figcaption>%s</figcaption>
+</figure>
+""" % ("" if effect else " plugin-shot", p["slug"], fname,
+       meta.get("w") or 950, meta.get("h") or 400,
+       "效果对比 / original vs result" if effect
+       else "对话框截图 / dialog screenshot", cap)
+
         dn = (p.get("deps_note_en") if en_ else "") or p["deps_note"]
         if p["deps"]:
             dep_html = ('<p>%s</p>\n      <ul class="deps">%s</ul>'
@@ -3313,7 +3367,7 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
   </div>
   <p class="lede">%s</p>
 </section>
-%s<div class="article-layout">
+%s%s<div class="article-layout">
   <article class="prose">
 %s
 
@@ -3337,7 +3391,7 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
              p.get("tag_en") if en_ else p["tag"][0],
              p.get("area_en") if en_ else p["area"],
              (p.get("lede_en") or p["lede"]) if en_ else p["lede"],
-             native, arts, dl, note_code,
+             native, figure(), arts, dl, note_code,
              "On this page" if en_ else "本页目录",
              lang, "Overview" if en_ else "概览", toc_li,
              lang, "Download" if en_ else "下载") + "\n" + pager
@@ -3615,6 +3669,13 @@ def main():
     for f in os.listdir(SRC):
         if os.path.isfile(os.path.join(SRC, f)):
             shutil.copy2(os.path.join(SRC, f), os.path.join(DOCS, "assets", f))
+
+    # 插件页的对话框截图（源在 tools/site/plugin-shots，构建时整目录拷进 docs——
+    # docs/ 每次都被清空，图不能只放在那儿）
+    plug_shots = os.path.join(SRC, "plugin-shots")
+    if os.path.isdir(plug_shots):
+        shutil.copytree(plug_shots, os.path.join(DOCS, "assets", "plugins"),
+                        dirs_exist_ok=True)
 
     # 每个算子：文章页 + 截图
     for op in ops:

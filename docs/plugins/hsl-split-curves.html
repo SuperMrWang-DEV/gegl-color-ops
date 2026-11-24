@@ -17,7 +17,7 @@
        HSL 的色相入口。这个插件不拿 HSV 近似 HSL，而是把三者精确换算后打包进
        一张数据图，三条曲线各管一个分量。" data-desc-en="GIMP ships component blend modes for HSV and LCh but not for HSL, and there is no
    HSL hue entry point either. This pl">
-<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
+<link rel="stylesheet" href="../assets/style.css?v=00b514e0ae">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <script>
 (function () {
@@ -63,6 +63,11 @@
        HSL 的色相入口。这个插件不拿 HSV 近似 HSL，而是把三者精确换算后打包进
        一张数据图，三条曲线各管一个分量。</p>
 </section>
+<figure class="shot plugin-shot">
+  <img src="../assets/plugins/hsl-split-curves/dialog.png" width="528" height="218"
+       loading="lazy" alt="对话框截图 / dialog screenshot">
+  <figcaption>插件真实的参数对话框 —— 对话框只有一个选项：结果是否收进图层组；曲线本身在生成的那几层上用 GIMP 的曲线改。</figcaption>
+</figure>
 <div class="article-layout">
   <article class="prose">
 <dl class="spec" id="zh-overview">
@@ -156,6 +161,11 @@ multi    HSL split            组 · 穿透（带 alpha 时组上还有蒙版）
    HSL hue entry point either. This plug-in does not approximate HSL with HSV: it converts
    exactly, packs the three components into one data image and gives each its own curve.</p>
 </section>
+<figure class="shot plugin-shot">
+  <img src="../assets/plugins/hsl-split-curves/dialog.png" width="528" height="218"
+       loading="lazy" alt="对话框截图 / dialog screenshot">
+  <figcaption>The real parameter dialog — the dialog has a single option — group the result; the curves themselves are edited on the generated layers with GIMP's own Curves.</figcaption>
+</figure>
 <div class="article-layout">
   <article class="prose">
 <dl class="spec" id="en-overview">
@@ -255,7 +265,7 @@ multi   HSL split group · pass-through (plus a mask when there is alpha)
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">59d16f6</span>
+    <span class="muted">7fb03c8</span>
   </div>
 </footer>
 <script>

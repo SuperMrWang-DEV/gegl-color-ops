@@ -17,7 +17,7 @@
        而且一次只能伺候一个图层。这个插件把顺序倒过来：先在通道面板选一条，
        再在图层面板选中要挂蒙版的图层，右键一次就好——多选几个就一次" data-desc-en="The native route is Layer → Mask → Add Layer Mask → Channel, then picking a
    channel in the dialog — one layer at a ti">
-<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
+<link rel="stylesheet" href="../assets/style.css?v=00b514e0ae">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <script>
 (function () {
@@ -67,6 +67,11 @@
 <p class="native-note"><b>只是原生方式的便捷实现</b>　这里没有新算法：
    像素结果全部出自 GIMP 自带的 PDB 过程，插件只负责把散在三处菜单、要跨三四步的动作
    收成一次点击，并保证与手点原生菜单得到的结果逐位相同。</p>
+<figure class="shot plugin-shot">
+  <img src="../assets/plugins/channel-to-mask/dialog.png" width="528" height="255"
+       loading="lazy" alt="对话框截图 / dialog screenshot">
+  <figcaption>插件真实的参数对话框 —— 取哪个通道、怎么处理黑白点。</figcaption>
+</figure>
 <div class="article-layout">
   <article class="prose">
 <dl class="spec" id="zh-overview">
@@ -162,6 +167,11 @@
    no new algorithms here: every pixel comes out of GIMP's own PDB procedures. The plug-in just
    folds a detour that lives in three different menus and takes three or four steps into a
    single click, and keeps the result bit-for-bit identical to doing it by hand.</p>
+<figure class="shot plugin-shot">
+  <img src="../assets/plugins/channel-to-mask/dialog.png" width="528" height="255"
+       loading="lazy" alt="对话框截图 / dialog screenshot">
+  <figcaption>The real parameter dialog — which channel, black/white points, invert.</figcaption>
+</figure>
 <div class="article-layout">
   <article class="prose">
 <dl class="spec" id="en-overview">
@@ -257,7 +267,7 @@
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">59d16f6</span>
+    <span class="muted">7fb03c8</span>
   </div>
 </footer>
 <script>
