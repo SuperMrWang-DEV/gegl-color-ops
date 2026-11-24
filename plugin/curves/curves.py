@@ -61,9 +61,10 @@ PROC2SPACE = dict(PROCS)
 OUTPUT_FILTER = 'filter'
 OUTPUT_REPLACE = 'replace'
 
-PREVIEW_EDGE = 340
-GRAPH = 268            # 曲线画布边长
-HIT = 11               # 抓点的半径（px）
+PREVIEW_EDGE = 560     # 预览长边：和曲线画布同高，横图约 560×373，不再留一大块空
+GRAPH = 380            # 曲线画布边长：曲线要能看出过冲和折点的位置
+GPAD = 9               # 画布内边距：端点画在 0/1 上，不留边会被框裁掉半个圆
+HIT = 12               # 抓点的半径（px）
 DEBOUNCE_MS = 70       # 拖动时预览的去抖间隔
 
 
@@ -123,6 +124,13 @@ def preview_rgba(image, drawable, op, curves_str, edge=PREVIEW_EDGE):
     try:
         tmp = drawable.copy()
         image.insert_layer(tmp, None, 0)
+        # 先在 C 里缩到预览尺寸再挂滤镜：整幅复制 + 整幅烘焙，4000×6000 要几秒；
+        # 缩完只在几十万像素上算，滤镜那一步可以忽略。缩放本身是毫秒级。
+        if (tmp.get_width(), tmp.get_height()) != (pw, ph):
+            try:
+                tmp.scale(pw, ph, False)
+            except Exception:
+                pass
         filt = Gimp.DrawableFilter.new(tmp, op, "curves preview")
         filt.get_config().set_property('curves', curves_str)
         filt.update()
@@ -197,6 +205,22 @@ def draw_graph(cr, s, points, lut, ring, accent=(0.95, 0.78, 0.25)):
         cr.stroke()
 
 
+def _label(text, bold=False, dim=False, xalign=0.0):
+    """带点层次的标签。GTK 里没有现成的「小节标题」样式，用 Pango 标记最省事。"""
+    gi.require_version('Gtk', '3.0')
+    from gi.repository import Gtk, GLib
+    lbl = Gtk.Label.new()
+    esc = GLib.markup_escape_text(text)
+    if bold:
+        lbl.set_markup("<b>%s</b>" % esc)
+    elif dim:
+        lbl.set_markup("<small><span alpha='62%%'>%s</span></small>" % esc)
+    else:
+        lbl.set_text(text)
+    lbl.set_xalign(xalign)
+    return lbl
+
+
 # ---- 对话框 -----------------------------------------------------------------
 
 def build_dialog(procedure, config, image, drawable, space):
@@ -219,32 +243,49 @@ def build_dialog(procedure, config, image, drawable, space):
     dlg.set_default_response(Gtk.ResponseType.OK)
     dlg.set_resizable(False)
 
-    outer = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 12)
-    outer.set_border_width(10)
+    outer = Gtk.Box.new(Gtk.Orientation.VERTICAL, 14)
+    outer.set_border_width(16)
     dlg.get_content_area().add(outer)
 
+    top = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 18)
+    outer.add(top)
+
     # 左：预览
-    left = Gtk.Box.new(Gtk.Orientation.VERTICAL, 6)
+    left = Gtk.Box.new(Gtk.Orientation.VERTICAL, 8)
+    head_row = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 8)
+    plabel = _label(_("Preview"), bold=True)
+    plabel.set_hexpand(True)
+    head_row.add(plabel)
+    head_row.add(_label("%d × %d" % (drawable.get_width(),
+                                     drawable.get_height()), dim=True,
+                        xalign=1.0))
+    left.add(head_row)
+
     pframe = Gtk.Frame.new()
+    pframe.set_border_width(3)
     parea = Gtk.DrawingArea.new()
     pw, ph = _fit(drawable.get_width(), drawable.get_height(), PREVIEW_EDGE)
     parea.set_size_request(pw, ph)
     pframe.add(parea)
     left.add(pframe)
-    plabel = Gtk.Label.new(_("Preview"))
-    plabel.set_xalign(0.0)
-    left.add(plabel)
-    outer.add(left)
+    top.add(left)
+
+    # 中间：一道竖线，把「看图」和「调曲线」分开
+    top.add(Gtk.Separator.new(Gtk.Orientation.VERTICAL))
 
     # 右：曲线画布
-    right = Gtk.Box.new(Gtk.Orientation.VERTICAL, 8)
-    outer.add(right)
+    right = Gtk.Box.new(Gtk.Orientation.VERTICAL, 12)
+    right.set_hexpand(True)
+    right.set_valign(Gtk.Align.CENTER)
+    top.add(right)
 
-    chan_row = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 6)
+    chan_row = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 8)
+    chan_row.add(_label(_("Channel"), bold=True))
     combo = Gtk.ComboBoxText.new()
     for name, ring in parts:
         combo.append(name, name + (_("  (hue shift)") if ring else ""))
     combo.set_active(0)
+    combo.set_hexpand(True)
     chan_row.add(combo)
 
     reset = Gtk.Button.new_with_label(_("Reset"))
@@ -252,7 +293,11 @@ def build_dialog(procedure, config, image, drawable, space):
     right.add(chan_row)
 
     gframe = Gtk.Frame.new()
+    gframe.set_border_width(3)
     garea = Gtk.DrawingArea.new()
+    # 画布是正方形，尺寸固定；多出来的高度靠整列居中吸收，而不是把画布拉成长条
+    # （拉长会让曲线在图里只剩中间一小块，四周全是暗边）。竖图时左栏更高，
+    # 右列居中即可，不会在画布下面留一大块空白。
     garea.set_size_request(GRAPH, GRAPH)
     garea.set_can_focus(True)
     garea.add_events(Gdk.EventMask.BUTTON_PRESS_MASK |
@@ -261,23 +306,28 @@ def build_dialog(procedure, config, image, drawable, space):
     gframe.add(garea)
     right.add(gframe)
 
-    hint = Gtk.Label.new(_("Click to add a point · drag to bend · right-click "
-                           "a point to remove it"))
-    hint.set_xalign(0.0)
-    hint.set_line_wrap(True)
-    hint.set_max_width_chars(34)
-    right.add(hint)
+    # 底栏：左侧提示，右侧输出方式。拉到全宽，两栏的视觉高度才对得齐
+    outer.add(Gtk.Separator.new(Gtk.Orientation.HORIZONTAL))
+    bottom = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 12)
+    outer.add(bottom)
 
-    out_row = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 6)
-    out_lbl = Gtk.Label.new(_("Output"))
-    out_lbl.set_xalign(0.0)
+    hint = _label(_("Click to add a point · drag to bend · right-click "
+                    "a point to remove it"), dim=True)
+    hint.set_hexpand(True)
+    hint.set_line_wrap(True)
+    hint.set_max_width_chars(56)
+    hint.set_valign(Gtk.Align.CENTER)
+    bottom.add(hint)
+
+    out_row = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 8)
+    out_row.add(_label(_("Output"), bold=True))
     combo_out = Gtk.ComboBoxText.new()
     combo_out.append(OUTPUT_FILTER, _("Live filter (re-editable)"))
     combo_out.append(OUTPUT_REPLACE, _("Bake into this layer"))
     combo_out.set_active_id(config.get_property('output') or OUTPUT_FILTER)
-    out_row.add(out_lbl)
+    combo_out.set_size_request(240, -1)
     out_row.add(combo_out)
-    right.add(out_row)
+    bottom.add(out_row)
 
     ctx = {
         'dlg': dlg, 'state': state, 'space': space, 'op': op,
@@ -315,32 +365,52 @@ def build_dialog(procedure, config, image, drawable, space):
     def redraw_graph():
         garea.queue_draw()
 
+    def geom(area):
+        """画布可以用多大：取分配尺寸里最大的正方形，居中。"""
+        aw, ah = area.get_allocated_width(), area.get_allocated_height()
+        side = float(max(GRAPH, min(aw, ah)))
+        return (aw - side) / 2.0, (ah - side) / 2.0, side - 2 * GPAD
+
     def on_draw_graph(_area, cr):
         lut, _id = CM.build(current())
-        draw_graph(cr, GRAPH, current(), lut, ring_of(ctx['chan']))
+        x0, y0, side = geom(garea)
+        cr.translate(x0 + GPAD, y0 + GPAD)
+        draw_graph(cr, side, current(), lut, ring_of(ctx['chan']))
         return False
 
     def on_draw_preview(_area, cr):
-        if ctx['pixbuf'] is not None:
+        # 底色跟曲线画布一致，图比画布小时留边而不是露出窗口灰
+        cr.set_source_rgb(0.20, 0.20, 0.20)
+        cr.paint()
+        pb = ctx['pixbuf']
+        if pb is not None:
             from gi.repository import Gdk
-            Gdk.cairo_set_source_pixbuf(cr, ctx['pixbuf'], 0, 0)
+            w, h = _area.get_allocated_width(), _area.get_allocated_height()
+            cr.save()
+            cr.translate((w - pb.get_width()) / 2.0,
+                         (h - pb.get_height()) / 2.0)
+            Gdk.cairo_set_source_pixbuf(cr, pb, 0, 0)
             cr.paint()
+            cr.restore()
         return False
 
     # -- 鼠标：加点 / 拖点 / 右键删点
     def hit_index(mx, my):
         pts = current()
+        x0, y0, side = geom(garea)
         best, bd = None, HIT * HIT
         for i, (x, y) in enumerate(pts):
-            dx, dy = x * GRAPH - mx, (1.0 - y) * GRAPH - my
+            dx = x0 + GPAD + x * side - mx
+            dy = y0 + GPAD + (1.0 - y) * side - my
             d = dx * dx + dy * dy
             if d <= bd:
                 best, bd = i, d
         return best
 
     def to_data(mx, my):
-        return (min(max(mx / GRAPH, 0.0), 1.0),
-                min(max(1.0 - my / GRAPH, 0.0), 1.0))
+        x0, y0, side = geom(garea)
+        return (min(max((mx - x0 - GPAD) / side, 0.0), 1.0),
+                min(max(1.0 - (my - y0 - GPAD) / side, 0.0), 1.0))
 
     def on_press(_area, ev):
         pts = current()

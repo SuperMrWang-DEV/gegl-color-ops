@@ -69,10 +69,20 @@ def main():
             "pixbuf": ctx["pixbuf"] is not None,
         }
         print("窗口状态", state)
+        pb = ctx["pixbuf"]
+        preview_edge = max(pb.get_width(), pb.get_height()) if pb else 0
+        # 尺寸下限：预览缩回 300 多、曲线画布缩回 260 都会被这条挡住
+        too_small = []
+        if preview_edge < 500:
+            too_small.append("预览长边 %d < 500" % preview_edge)
+        if state["garea_alloc"][0] < 360:
+            too_small.append("曲线画布 %d < 360" % state["garea_alloc"][0])
         RESULT["ok"] = (state["body_visible"] and state["garea_visible"]
                         and state["garea_alloc"][0] > 100
-                        and state["win"] and state["win"][1] > 200)
-        RESULT["why"] = "" if RESULT["ok"] else "正文没铺开"
+                        and state["win"] and state["win"][1] > 200
+                        and not too_small)
+        RESULT["why"] = "；".join(too_small) or (
+            "" if RESULT["ok"] else "正文没铺开")
         # 顺手存一张真正的窗口截图，肉眼再确认一次
         if win and state["win"][0] > 1:
             try:
