@@ -29,6 +29,16 @@ INF = 1 << 20
 # （或只画了极小一块）。低于这个距离就降权，让「真的画了东西」的那张胜出。
 PROMPT_CONTENT = 0.35
 
+# 抹除（removal）用的一组数：选区内「强梯度像素」占比，用来判「模型是不是
+# 自己编了个主体出来」。抹除的正确答案是一片像周围的表面，噪声可以有，但
+# 不该有成片的边缘（手指、条纹、补丁）。
+#   2026-11-24 在两组真实候选上定的（见 tools/_erase_rank_eval.py）：
+#   干净白布 0.111 / 条纹补丁 0.159 / 编出来的手指 0.267、0.397。
+#   基线取 0.12（略高于干净布），权重 14 让「手指」那档一定翻不过去。
+STRUCTURE_EDGE = 0.02
+STRUCTURE_FLOOR = 0.12
+STRUCTURE_WEIGHT = 14.0
+
 
 @dataclass(frozen=True)
 class Buffer:
@@ -64,6 +74,7 @@ class Score:
     frame: float       # 跨过边缘的颜色台阶（内侧一圈 vs 外侧一圈）
     colour: float      # 选区内 vs 周围环的颜色距离（均值 + 0.5×离散度）
     leak: float        # 选区外被改动量的均值：应该接近 0
+    structure: float   # 选区内强梯度像素占比（只看抹除，判有没有编出主体）
     total: float       # 加权罚分，小的胜
 
 
@@ -132,6 +143,17 @@ def _mean(values):
     return sum(values) / len(values) if values else 0.0
 
 
+def _edge_density(grad, indices, threshold=STRUCTURE_EDGE):
+    """这些像素里「梯度超过阈值」的占比：成片边缘（手指、条纹、补丁）会偏高。
+
+    用绝对阈值而不是「和周围比」：周围的环带只有 2~10 px 宽，紧贴选区，
+    头发丝和残留的花边都会进来，拿它当基准会把这指标抹平。
+    """
+    if not indices:
+        return 0.0
+    return sum(1 for i in indices if grad[i] > threshold) / float(len(indices))
+
+
 def _var(values):
     if not values:
         return 0.0
@@ -190,16 +212,23 @@ def score(original, candidate, mask, removal, distance=None):
                       for a, b in zip(candidate.rgb(i), original.rgb(i))])
 
     penalty = 2.0 * max(0.0, seam - 1.0)          # 接缝比周围更硬
-    penalty += 0.6 * max(0.0, -math.log(max(lap_ratio, 1e-6)))   # 比周围糊
+    structure = 0.0
     if removal:
-        # 移除物体：选区内比周围更「碎」说明模型自己编了个新东西出来
+        # 移除物体：填出来该是「和周围一样的表面」，所以
+        #   · 「比周围平」不是缺点（布、墙、天空本来就平），不罚；
+        #   · 只有「比周围碎」才罚，那多半是自己编了个东西；
+        #   · 另外量一下选区内成片边缘的占比：手指/条纹/补丁这类「编出来的
+        #     主体」会明显高出基线（见 STRUCTURE_EDGE 那组注释）。
+        structure = _edge_density(grad, inner)
         penalty += 0.6 * max(0.0, math.log(max(lap_ratio, 1e-6) / 1.5))
         penalty += 3.0 * colour
+        penalty += STRUCTURE_WEIGHT * max(0.0, structure - STRUCTURE_FLOOR)
     else:
-        # 带提示词：几乎和周围一样 = 什么都没画
+        # 带提示词：几乎和周围一样 = 什么都没画；比周围糊 = 画成一团
+        penalty += 0.6 * max(0.0, -math.log(max(lap_ratio, 1e-6)))
         penalty += 3.0 * max(0.0, PROMPT_CONTENT - colour)
     penalty += 6.0 * frame + 8.0 * leak
-    return Score(seam, lap_ratio, frame, colour, leak, penalty)
+    return Score(seam, lap_ratio, frame, colour, leak, structure, penalty)
 
 
 def rank(original, candidates, mask, removal):

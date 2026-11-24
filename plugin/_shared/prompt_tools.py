@@ -215,6 +215,10 @@ def has_cjk(text):
 
 PRESETS = [
     ("none", "None (write my own)", ""),
+    # 这个预设不往提示词里塞字，只把「我在抹东西」这个意图告诉调用方：
+    # 候选打分要换成「和周围一样才算好」的那套（见 quality.score 的 removal）。
+    # 抹除的提示词仍然要写「这块该长成什么样」，例如 empty wooden table。
+    ("erase", "Erase (keep the background)", ""),
     ("cat", "A small cat",
      "a small cat, fluffy fur, detailed eyes, sitting on the ground, "
      "soft contact shadow underneath"),

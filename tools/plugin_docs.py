@@ -823,7 +823,10 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
          常用词可以直接写中文，<code>prompt_tools</code> 翻成英文再送（SD 本身只读英文，
          中文提示词在它那里等于噪声）。</p>
       <p><b>What to paint（preset）—— 主体下拉。</b>猫 / 狗 / 人 / 花 / 树 / 咖啡 /
-         食物 / 车。选了以后提示词只补细节（颜色、姿态、环境）。</p>
+         食物 / 车。选了以后提示词只补细节（颜色、姿态、环境）。
+         <b>抹掉东西就选 Erase（keep the background）</b>：它不往提示词里加字，
+         作用是告诉候选打分器「这一格要留空」——三张候选里「填得最平」的那张
+         才会胜出，而不是「画得最多」的那张。</p>
       <p><b>Negative prompt —— 不要什么。</b>默认已把画风压向照片：
          <code>illustration, cartoon, flat graphic, poster, vector art, cgi</code>。
          这是修图插件，先让模型别往矢量插画跑；想要画风自己改这一栏。</p>
@@ -988,9 +991,9 @@ python tools/setup_comfy.py --tier full # 再加 Flux.1 Fill（12 GB）</code></
   <div class="dl-grid">
     <div class="dl primary-dl">
       <div class="dl-head"><h3>实测</h3><span class="pill">check_ai_inpaint*.py</span></div>
-      <p><code>tools/check_ai_inpaint.py</code> <b>168 条</b>断言跑在本地 mock 服务上
+      <p><code>tools/check_ai_inpaint.py</code> <b>298 条</b>断言跑在本地 mock 服务上
          （不需要显卡）：蒙版方向、8× 对齐、画布补边、缩放倍率上下限、底模家族判定、
-         工作流节点与连线、提示词中英转换、失败退路。</p>
+         工作流节点与连线、提示词中英转换、候选打分（插入 / 抹除两套判据）、失败退路。</p>
       <p><code>tools/check_ai_inpaint_gimp.py</code> 在真实 GIMP 3.2 里把过程跑一遍：
          选区 → 提示词 → 新图层、蒙版与通道、乱填的底模名被下拉拒回。</p>
       <p>速度（RTX 3070 Ti，SDXL，25 步，1024×512）：<b>8.7 秒</b>。同一尺寸走 CPU

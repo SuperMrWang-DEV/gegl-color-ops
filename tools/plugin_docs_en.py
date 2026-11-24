@@ -1536,7 +1536,10 @@ so you can re-limit the area later.</code></pre>
          to it.</p>
       <p><b>What to paint (preset) — a subject drop-down.</b>Cat / dog / person / flower /
          tree / coffee / food / car. Pick one and the prompt only needs the details
-         (colour, pose, surroundings).</p>
+         (colour, pose, surroundings). <b>Removing something? Pick “Erase (keep the
+         background)”.</b> It adds no words to the prompt — it tells the candidate scorer
+         that this box should end up empty, so the <i>flattest</i> of the three candidates
+         wins instead of the one that invented the most.</p>
       <p><b>Negative prompt — what must not appear.</b>The default already leans photo:
          <code>illustration, cartoon, flat graphic, poster, vector art, cgi</code>. This is a
          retouching plug-in, so the model is told not to drift into vector art; change the
@@ -1728,10 +1731,10 @@ python tools/setup_comfy.py --tier full # add Flux.1 Fill (12 GB)</code></pre>
   <div class="dl-grid">
     <div class="dl primary-dl">
       <div class="dl-head"><h3>Measured</h3><span class="pill">check_ai_inpaint*.py</span></div>
-      <p><code>tools/check_ai_inpaint.py</code> runs <b>168 assertions</b> against a local
+      <p><code>tools/check_ai_inpaint.py</code> runs <b>298 assertions</b> against a local
          mock service (no GPU needed): mask direction, 8× alignment, canvas padding, scale
          limits, checkpoint family detection, workflow nodes and wiring, Chinese-to-English
-         prompt handling, failure paths.</p>
+         prompt handling, candidate scoring (insert and erase rules), failure paths.</p>
       <p><code>tools/check_ai_inpaint_gimp.py</code> runs the procedure inside real GIMP 3.2:
          selection → prompt → new layer, mask and channel, and a bogus checkpoint name being
          rejected by the dropdown.</p>

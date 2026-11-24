@@ -592,6 +592,29 @@ def test_quality():
        quality.rank(base, [bad, good], mask, True))
     ok("只有一张时不排序", quality.rank(base, [good], mask, True) == [0])
 
+    # 抹除的坑（2026-11-24 实测）：模型编出来一个「有结构的主体」（手指、
+    # 条纹补丁）时，它比干净填色更像「周围有纹理」，老判据反而给它低罚分。
+    # 现在抹除模式会量选区内成片边缘的占比，压过干净填色就算输。
+    flat_px = bytearray(_flat(w, h, 128))
+    subj_px = bytearray(flat_px)
+    for y in range(h):
+        for x in range(w):
+            i = y * w + x
+            if mask[i] and (x // 3) % 2:          # 竖条纹＝编出来的「主体」
+                o = i * 4
+                subj_px[o:o + 3] = bytes([96, 96, 96])
+    flat_c = quality.Buffer(w, h, bytes(flat_px), 4)
+    subj_c = quality.Buffer(w, h, bytes(subj_px), 4)
+    sc_flat = quality.score(base, flat_c, mask, removal=True)
+    sc_subj = quality.score(base, subj_c, mask, removal=True)
+    ok("抹除：报出结构密度差", sc_subj.structure > sc_flat.structure + 0.3,
+       "%.3f vs %.3f" % (sc_subj.structure, sc_flat.structure))
+    ok("抹除：编出主体的罚分更高", sc_flat.total < sc_subj.total,
+       "%.3f vs %.3f" % (sc_flat.total, sc_subj.total))
+    ok("抹除：干净填色排第一",
+       quality.rank(base, [subj_c, flat_c], mask, True) == [1, 0],
+       quality.rank(base, [subj_c, flat_c], mask, True))
+
     # 边缘距离：选区内 <=0、边界 0、外面 >0
     d = quality.signed_distance(w, h, mask)
     ok("选区中心距离为负", d[32 * w + 32] < 0, d[32 * w + 32])
@@ -710,6 +733,13 @@ def test_prompt_tools():
        prompt_tools.compose("空的木桌", "none"))
     ok("未知预设 id 当 none 处理", prompt_tools.compose("", "no-such") == "",
        prompt_tools.compose("", "no-such"))
+
+    # 抹除预设：不往提示词里加一个字，用户的「背景描述」原样送出去；
+    # 它的作用只是让打分器知道「这一格要留空」（见 quality.score 的 removal）
+    ok("erase 预设不塞提示词",
+       prompt_tools.compose("空的木桌", "erase") == "empty wooden table",
+       prompt_tools.compose("空的木桌", "erase"))
+    ok("erase 在预设表里", "erase" in [pid for pid, _l, _p in prompt_tools.PRESETS])
 
     # 词表必须干净：重复键会被后者覆盖，改一个翻不动另一个
     zhs = [pid for pid, _l, _p in prompt_tools.PRESETS]

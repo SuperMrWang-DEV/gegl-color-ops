@@ -504,6 +504,8 @@ def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
     fix_seams / match_grain 是对胜出那张做接缝色差补偿与颗粒匹配。
     preset 是「菜里先放一份主料」：选「小猫」就相当于提示词前面带上
     "a small cat, fluffy fur, detailed eyes"，用户写的细节再接在后面。
+    erase 预设不塞提示词，只把「这张要在选区里留空」告诉打分器：候选按
+    「和周围一样才算好」排序，而不是「画得越多越好」（见 quality.score）。
     """
     if ai_client is None:
         raise RuntimeError(_("plugin/_shared/ai_client.py is missing: install the _shared "
@@ -614,9 +616,12 @@ def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
 
         # 7) 多张就打分：接缝硬不硬、比周围糊还是碎、跨边缘有没有色台阶、
         #    周围有没有被改动。胜出的显示，其余隐藏但留在图层面板里（想换
-        #    一张点眼睛就行）。removal = 没写提示词，判据要反过来。
+        #    一张点眼睛就行）。
+        #    removal = 「这一格要留空」：空提示词（历史行为）或者选了 erase
+        #    预设。抹除的判据是反的——填得平是好事，编出主体才是坏事。
+        removal = (not prompt.strip()) or (preset or "none") == "erase"
         order, scores = rank_layers(src, gray, layers, w, h,
-                                    removal=not prompt.strip())
+                                    removal=removal)
         for i, layer in enumerate(layers):
             layer.set_visible(i == order[0])
             if len(layers) > 1:
@@ -638,6 +643,7 @@ def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
         info["variations"] = len(layers)
         info["order"] = order
         info["scores"] = [round(sc.total, 3) for sc in scores]
+        info["removal"] = removal
         info["source_rect"] = rect
         info["pads"] = (pl, pt, pr, pb)
         info["seed"] = seed
@@ -1087,16 +1093,23 @@ def _add_preset_argument(procedure):
             # gimp_choice_add(choice, nick, id, label, help)：id 是整数、nick
             # 才是配置里存的那个字符串。参数给错只会在运行时抛 TypeError，
             # 静默退化成文本框——界面上看不出区别，只是下拉没了。
-            choice.add(pid, idx, _(label), "")   # help 不能给 None，会 TypeError
+            help_text = ""
+            if pid == "erase":
+                # 抹除不往提示词里加字，用户还是得写「这块该长什么样」。
+                help_text = _("Erase what is in the box: describe the background "
+                              "that should be left behind, e.g. "
+                              "\"empty wooden table, wood grain\"")
+            choice.add(pid, idx, _(label), help_text)   # help 不能给 None
         procedure.add_choice_argument(
             "preset", _("What to paint"),
             _("Pick a subject and the prompt starts from it — the prompt box "
-              "then only needs the details (colour, pose, surroundings)"),
+              "then only needs the details (colour, pose, surroundings). "
+              "Choose \"Erase\" when the box should end up empty."),
             choice, "none", GObject.ParamFlags.READWRITE)
     except Exception:
         procedure.add_string_argument(
-            "preset", _("What to paint (none / cat / dog / person / flower / "
-                        "tree / coffee / food / car)"),
+            "preset", _("What to paint (none / erase / cat / dog / person / "
+                        "flower / tree / coffee / food / car)"),
             _("Leave empty for none"), "none", GObject.ParamFlags.READWRITE)
 
 

@@ -265,6 +265,25 @@ try:
     check("DEFAULT_PROMPT 为空（不预填内容）", mod.DEFAULT_PROMPT == "",
           repr(mod.DEFAULT_PROMPT))
 
+    # ---------------- erase 预设：把「这一格要留空」传到打分器 --------------
+    # 抹除的候选判据和插入相反（填得平是好事）。判据开关由 preset 决定，
+    # 别指望「提示词为空」——提示词是必填的，那条老路永远走不到。
+    img5, l5 = new_image(200, 160, (150, 150, 150))
+    img5.select_rectangle(Gimp.ChannelOps.REPLACE, 70, 50, 60, 50)
+    _o5, info5 = mod.ai_inpaint(img5, l5, "empty grey wall", client=client,
+                                grow=0, feather=0, steps=4, timeout=30,
+                                variations=1, preset="erase")
+    check("erase 预设 → 走抹除判据", info5.get("removal") is True,
+          info5.get("removal"))
+
+    img6, l6 = new_image(200, 160, (150, 150, 150))
+    img6.select_rectangle(Gimp.ChannelOps.REPLACE, 70, 50, 60, 50)
+    _o6, info6 = mod.ai_inpaint(img6, l6, "a red apple", client=client,
+                                grow=0, feather=0, steps=4, timeout=30,
+                                variations=1, preset="none")
+    check("普通预设 → 不误判成抹除", info6.get("removal") is False,
+          info6.get("removal"))
+
     # ---------------- 5. 两个入口的参数装配 ----------------
     # 简版只声明了 prompt / preset / negative，run() 里却要拼出完整参数表：
     # 少兜一个默认值就是 TypeError，用户看到的是「点菜单直接报错」。

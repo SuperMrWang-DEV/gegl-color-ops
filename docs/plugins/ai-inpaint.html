@@ -118,7 +118,10 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
          常用词可以直接写中文，<code>prompt_tools</code> 翻成英文再送（SD 本身只读英文，
          中文提示词在它那里等于噪声）。</p>
       <p><b>What to paint（preset）—— 主体下拉。</b>猫 / 狗 / 人 / 花 / 树 / 咖啡 /
-         食物 / 车。选了以后提示词只补细节（颜色、姿态、环境）。</p>
+         食物 / 车。选了以后提示词只补细节（颜色、姿态、环境）。
+         <b>抹掉东西就选 Erase（keep the background）</b>：它不往提示词里加字，
+         作用是告诉候选打分器「这一格要留空」——三张候选里「填得最平」的那张
+         才会胜出，而不是「画得最多」的那张。</p>
       <p><b>Negative prompt —— 不要什么。</b>默认已把画风压向照片：
          <code>illustration, cartoon, flat graphic, poster, vector art, cgi</code>。
          这是修图插件，先让模型别往矢量插画跑；想要画风自己改这一栏。</p>
@@ -283,9 +286,9 @@ python tools/setup_comfy.py --tier full # 再加 Flux.1 Fill（12 GB）</code></
   <div class="dl-grid">
     <div class="dl" id="zh-sec-10">
       <div class="dl-head"><h3>实测</h3><span class="pill">check_ai_inpaint*.py</span></div>
-      <p><code>tools/check_ai_inpaint.py</code> <b>168 条</b>断言跑在本地 mock 服务上
+      <p><code>tools/check_ai_inpaint.py</code> <b>298 条</b>断言跑在本地 mock 服务上
          （不需要显卡）：蒙版方向、8× 对齐、画布补边、缩放倍率上下限、底模家族判定、
-         工作流节点与连线、提示词中英转换、失败退路。</p>
+         工作流节点与连线、提示词中英转换、候选打分（插入 / 抹除两套判据）、失败退路。</p>
       <p><code>tools/check_ai_inpaint_gimp.py</code> 在真实 GIMP 3.2 里把过程跑一遍：
          选区 → 提示词 → 新图层、蒙版与通道、乱填的底模名被下拉拒回。</p>
       <p>速度（RTX 3070 Ti，SDXL，25 步，1024×512）：<b>8.7 秒</b>。同一尺寸走 CPU
@@ -307,7 +310,7 @@ python tools/setup_comfy.py --tier full # 再加 Flux.1 Fill（12 GB）</code></
     <div class="dl-head"><h3>AI Inpaint…</h3><span class="pill">.py · 免编译</span></div>
     <p>包里是一个 <code>.py</code>、一份安装说明，以及 <code>_shared/</code> 与 <code>locale/</code>。整包解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，但界面只有英文。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-ai-inpaint.zip">下载 AI Inpaint…</a>
-    <p class="muted small">145.3 KB · 校验：<code>SHA256 0278d793d99aa146ab948abf9ec3feac…</code></p>
+    <p class="muted small">146.6 KB · 校验：<code>SHA256 180ce9a5d795ffea881a6fc44de12a54…</code></p>
   </div>
 </section>
 
@@ -401,7 +404,10 @@ so you can re-limit the area later.</code></pre>
          to it.</p>
       <p><b>What to paint (preset) — a subject drop-down.</b>Cat / dog / person / flower /
          tree / coffee / food / car. Pick one and the prompt only needs the details
-         (colour, pose, surroundings).</p>
+         (colour, pose, surroundings). <b>Removing something? Pick “Erase (keep the
+         background)”.</b> It adds no words to the prompt — it tells the candidate scorer
+         that this box should end up empty, so the <i>flattest</i> of the three candidates
+         wins instead of the one that invented the most.</p>
       <p><b>Negative prompt — what must not appear.</b>The default already leans photo:
          <code>illustration, cartoon, flat graphic, poster, vector art, cgi</code>. This is a
          retouching plug-in, so the model is told not to drift into vector art; change the
@@ -593,10 +599,10 @@ python tools/setup_comfy.py --tier full # add Flux.1 Fill (12 GB)</code></pre>
   <div class="dl-grid">
     <div class="dl" id="en-sec-10">
       <div class="dl-head"><h3>Measured</h3><span class="pill">check_ai_inpaint*.py</span></div>
-      <p><code>tools/check_ai_inpaint.py</code> runs <b>168 assertions</b> against a local
+      <p><code>tools/check_ai_inpaint.py</code> runs <b>298 assertions</b> against a local
          mock service (no GPU needed): mask direction, 8× alignment, canvas padding, scale
          limits, checkpoint family detection, workflow nodes and wiring, Chinese-to-English
-         prompt handling, failure paths.</p>
+         prompt handling, candidate scoring (insert and erase rules), failure paths.</p>
       <p><code>tools/check_ai_inpaint_gimp.py</code> runs the procedure inside real GIMP 3.2:
          selection → prompt → new layer, mask and channel, and a bogus checkpoint name being
          rejected by the dropdown.</p>
@@ -620,7 +626,7 @@ python tools/setup_comfy.py --tier full # add Flux.1 Fill (12 GB)</code></pre>
     <div class="dl-head"><h3>AI Inpaint</h3><span class="pill">.py · no compile</span></div>
     <p>The archive holds a single <code>.py</code>, an install note and the <code>_shared/</code> + <code>locale/</code> pair. Unpack all of it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register. Without <code>_shared/</code> and <code>locale/</code> it still runs, but only in English.</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-ai-inpaint.zip">Download AI Inpaint</a>
-    <p class="muted small">145.3 KB · checksum: <code>SHA256 0278d793d99aa146ab948abf9ec3feac…</code></p>
+    <p class="muted small">146.6 KB · checksum: <code>SHA256 180ce9a5d795ffea881a6fc44de12a54…</code></p>
   </div>
 </section>
 
@@ -651,7 +657,7 @@ python tools/setup_comfy.py --tier full # add Flux.1 Fill (12 GB)</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">a467dfc</span>
+    <span class="muted">17e45a3</span>
   </div>
 </footer>
 <script>
