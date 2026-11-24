@@ -491,6 +491,30 @@ def _push5(f, node=_n5, x0=_x5, mesh=g5):
 ok("小位移原样通过", MW.apply_guarded(g5, g5.cells_around(1, 1), _push5) is True)
 ok("小位移精确到位（%.2f）" % (_n5["x"] - _x5), abs(_n5["x"] - _x5 - 0.3 * CW) < 1e-9)
 
+# ---- 预览尺寸 --------------------------------------------------------------
+# 预览写死 480 长边的时候，对话框里只有巴掌大一块，网格节点挤在一起、把手
+# 点不中。现在按屏幕可用区算——但只有 C 快路才敢开大，纯 Python 兜底得收回来。
+print("\n-- 预览尺寸 --")
+import preview_geom as PG                                  # noqa: E402
+
+_pw, _ph = 4000, 3000
+_nw, _nh = PG.preview_size(_pw, _ph, native=True)
+ok("C 快路可用时预览不再是一小块（%d×%d）" % (_nw, _nh), max(_nw, _nh) >= 900,
+   (_nw, _nh))
+ok("预览不超过像素上限（%d px ≤ %d）" % (_nw * _nh, PG.MAX_PIXELS),
+   _nw * _nh <= PG.MAX_PIXELS * 1.02)
+ok("预览保持原图宽高比",
+   abs(_nw / float(_nh) - _pw / float(_ph)) < 0.02, _nw / float(_nh))
+_fw, _fh = PG.preview_size(_pw, _ph, native=False)
+ok("C 不可用时收回到旧的长边（%d×%d）" % (_fw, _fh), max(_fw, _fh) <= 520)
+ok("小图不放大", PG.preview_size(200, 150, native=True) == (200, 150),
+   PG.preview_size(200, 150, native=True))
+_root = os.path.join(ROOT, "plugin")
+for _name in ("mesh-warp/mesh-warp.py", "puppet-warp/puppet-warp.py"):
+    _src = open(os.path.join(_root, _name), encoding="utf-8").read()
+    ok("%s 的预览尺寸按屏幕算（不写死）" % _name.split("/")[0],
+       "preview_geom" in _src and "PG.preview_size(" in _src)
+
 print("\n" + "=" * 60)
 if FAIL:
     print("失败 %d 项 / 通过 %d 项" % (len(FAIL), PASS))

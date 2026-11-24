@@ -1747,10 +1747,11 @@ PLUGIN_EN["warp"] = dict(
     <div class="dl">
       <div class="dl-head"><h3>Measured</h3></div>
       <p>768×1024 layer, two pins, falloff 25 %: full-resolution warp in <b>0.15 s</b>
-         including buffer read and write (with numpy). The preview used to take
-         <b>58 ms</b> a redraw at a 520 px long edge (numpy resampling); it now <b>calls
-         the C operator directly</b> — 480×360 in <b>19 ms</b> (ARAP 17 ms), so dragging
-         keeps up completely.</p>
+         including buffer read and write (with numpy). The preview used to be squeezed
+         into a 520 px long edge at <b>58 ms</b> a redraw (numpy resampling); it now
+         <b>calls the C operator directly</b> and takes the room the screen allows: a
+         1600×1200 picture previews at 1064×798 in <b>6–10 ms</b>, so dragging keeps up
+         completely.</p>
       <p>On a 1600×2400 photo a local drag costs <b>0.7 s</b>; resampling everything
          (falloff 100 %) takes <b>1.2 s</b>. Pure-Python fallback: 2.4 s / 6.2 s. The ARAP
          mesh is factored once (24 ms); dragging then costs about 20 ms per frame.</p>
@@ -1861,9 +1862,11 @@ PLUGIN_EN["mesh-warp"] = dict(
     </div>
     <div class="dl">
       <div class="dl-head"><h3>Measured</h3></div>
-      <p>Adding a line is O(nodes) — instant. The preview runs at a 480 px long edge and is
-         rendered in C now — about 9 ms a frame; one more line adds a few patches, not a
-         change in feel.</p>
+      <p>Adding a line is O(nodes) — instant. The preview is rendered in C now, about
+         40 ms a frame; one more line adds a few patches, not a change in feel. The
+         preview size follows the screen: a 1600×1200 picture gets 1064×798, more than
+         twice the old 480 px long edge, which is what makes the nodes and handles
+         comfortable to hit.</p>
       <p>The regression watches one thing: the picture must not move. An identity grid with
          an added line still has to classify as identity (not one pixel resampled), the new
          line's points must land on the existing surface (measured 0.00e+00 px), and the two
@@ -1922,11 +1925,16 @@ PLUGIN_EN["mesh-warp"] = dict(
       <p>768×1024 layer, one point dragged plus one handle bent: <b>0.41 s</b> including
          buffer read and write. 1600×2400 end to end: <b>1.3 s</b> (field 150 ms,
          resampling 1.16 s).</p>
-      <p>This warp is <b>global</b>: move one point and every pixel needs resampling. The
-         preview runs at a 480 px long edge and used to take <b>84–97 ms</b> a frame in
-         Python/numpy, which felt sticky. It now <b>calls the operator's C</b> through
-         ctypes (<code>mw_render_rgba_u8</code>): <b>9 ms</b> for the same picture —
-         <b>10× faster</b>.</p>
+      <p>This warp is <b>global</b>: move one point and every pixel needs resampling, so
+         the preview size decides how expensive a frame is. It used to be pinned to a
+         <b>480 px long edge</b> — not because that was enough, but because the
+         Python/numpy path cost <b>84–97 ms</b> a frame and anything bigger felt sticky;
+         the dialog showed a postage stamp with the nodes bunched together and the
+         handle dots almost impossible to hit. It now <b>calls the operator's C</b>
+         through ctypes (<code>mw_render_rgba_u8</code>): <b>9 ms</b> for the same
+         480×360, so <code>preview_geom</code> sizes the preview from the available
+         screen area — a 1600×1200 picture gets <b>1064×798</b> at 43 ms a frame, and
+         dragging still keeps up.</p>
       <p>Why that does not break “preview equals result”: both paths call the same
          <code>mw_field_for</code> + <code>mw_sample</code>, only at different sizes.
          Measured per pixel: <b>median 0, max 1 level</b> (the 16-bit rounding). If the

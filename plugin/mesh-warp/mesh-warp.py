@@ -69,11 +69,18 @@ try:
 except Exception:                      # 没有就退回 numpy 那一路
     NW = None
 
+try:
+    import preview_geom as PG         # 预览尺寸按屏幕余量算，不再写死 480
+except Exception:
+    PG = None
+
 PROC = 'lb-plugin-mesh-warp'
-# 预览长边。木偶变形用 520，这里降到 480：网格变形是**全局**的，整幅画面
-# 都要重采样（木偶变形只动一小块，大段整行抄过去），520 长边一次要 100 ms 起，
-# 拖动会发黏；480 长边约 95 ms，够跟上手。
-PREVIEW_EDGE = 480
+# 预览尺寸不再写死。原来固定 480 长边：网格变形是**全局**的，整幅都要重采样，
+# numpy 那路 520 要 100 ms 起、480 约 95 ms，只能缩着用；代价是对话框里只有
+# 一小块，网格节点挤成一团、把手点不中。
+# 现在预览走 C（mw_render_rgba_u8，9 ms），尺寸交给 preview_geom：按屏幕可用区
+# 减掉右边参数栏和按钮条，能开多大开多大；只有 C 不可用时才收回到 480。
+PREVIEW_EDGE = 480     # 兜底值：preview_geom 不在、或 C 那条路不可用时用
 NODE_HIT = 10         # 交点的点击半径（画布像素）
 # 把手的点击半径。原来是 8、圆点画成 5 px，在 480 长边的预览里只有指甲盖
 # 那么大，落点差 3 px 就落到节点上变成「平移」——这就是用户说的「只能平移、
@@ -241,6 +248,24 @@ def _checker(cr, w, h, size=10):
     cr.fill()
 
 
+def _read_preview(drawable, w, h):
+    """图层 → 预览像素。尺寸按屏幕余量算，**只有 C 快路才敢开大**。
+
+    纯 Python 兜底时 preview_geom 会自己收回 480 长边——那不是保守，是
+    numpy 那条路 520 就要 100 ms 起，再大拖一下半秒。
+    """
+    if PG is None:
+        return MI.read_drawable_rgba(drawable, PREVIEW_EDGE)
+    native = False
+    if NW is not None:
+        try:
+            native = NW.mesh_preview().available
+        except Exception:
+            native = False
+    tw, th = PG.preview_size(w, h, native=native)
+    return MI.read_drawable_rgba(drawable, max(tw, th), exact=(tw, th))
+
+
 def build_dialog(config, image, drawable, w, h):
     """建出对话框，返回 (dlg, ctx)。**故意不 run()**：无头回归直接调
     ctx["render"]() 就能验证「拖了把手之后预览真的变了」。
@@ -251,7 +276,7 @@ def build_dialog(config, image, drawable, w, h):
     gi.require_version('Gtk', '3.0')
     from gi.repository import Gtk, Gdk
 
-    pw, ph, prgba = MI.read_drawable_rgba(drawable, PREVIEW_EDGE)
+    pw, ph, prgba = _read_preview(drawable, w, h)
     k = float(w) / max(pw, 1)
 
     dlg = Gtk.Dialog.new()
@@ -423,7 +448,10 @@ def build_dialog(config, image, drawable, w, h):
         area.queue_draw()
         return False
 
-    def schedule(delay=70):
+    def schedule(delay=45):
+        # 拖一下会连来一串 motion 事件，等手停 45 ms 再算。以前是 70：那时一帧
+        # 只有 9 ms，防抖占大头；现在预览开大到一千多像素，一帧 40～50 ms，
+        # 再压 70 ms 就明显发木了。
         if ctx["id"]:
             GLib.source_remove(ctx["id"])
         ctx["id"] = GLib.timeout_add(delay, render)
@@ -493,8 +521,10 @@ def build_dialog(config, image, drawable, w, h):
                         hx, hy = m.handle(i, j, axis, sign)
                         cr.set_source_rgba(1.0, 0.96, 0.86,
                                            0.96 if strong else 0.55)
-                        cr.arc(hx, hy, HANDLE_HIT * 0.58 if strong
-                               else HANDLE_HIT * 0.40, 0, 2 * _math.pi)
+                        # 预览开大以后画面细了，圆点跟着长一点：原来 4.8 / 7 px
+                        # 在 1064 宽的画布上像针尖，手上分不清是「线头」还是「可拖的点」。
+                        cr.arc(hx, hy, HANDLE_HIT * 0.58 + 1.5 if strong
+                               else HANDLE_HIT * 0.40 + 1.2, 0, 2 * _math.pi)
                         cr.fill_preserve()
                         cr.set_source_rgba(0.72, 0.24, 0.05,
                                            0.95 if strong else 0.45)

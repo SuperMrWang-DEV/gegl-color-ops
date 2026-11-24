@@ -57,12 +57,19 @@ try:
 except Exception:                      # 没有就退回 numpy 那一路
     NW = None
 
+try:
+    import preview_geom as PG         # 预览尺寸按屏幕余量算，不再写死 520
+except Exception:
+    PG = None
+
 try:                                   # ARAP 要 numpy；没装就只隐藏这一档
     import arap as ARAP               # noqa: E402
 except Exception:
     ARAP = None
 
 PROC = 'lb-plugin-puppet-warp'
+# 兜底值。真实尺寸由 preview_geom 按屏幕可用区算，C 快路可用时才放开；
+# 原来固定 520 是为了让 numpy 那路跟得上手，代价是预览只有一小块。
 PREVIEW_EDGE = 520
 # 预览用的 ARAP 网格比应用时粗：577 个顶点、拖钉子时 ~15 ms，
 # 够跟上手；应用时再用 48 那档，细节更准。
@@ -271,6 +278,21 @@ def _checker(cr, w, h, size=10):
     cr.fill()
 
 
+def _read_preview(drawable, w, h):
+    """图层 → 预览像素。尺寸按屏幕余量算；C 不可用时 preview_geom 自己收回
+    520 长边（numpy 那路再大就跟不上手了）。"""
+    if PG is None:
+        return MI.read_drawable_rgba(drawable, PREVIEW_EDGE)
+    native = False
+    if NW is not None:
+        try:
+            native = NW.puppet_preview().available
+        except Exception:
+            native = False
+    tw, th = PG.preview_size(w, h, native=native)
+    return MI.read_drawable_rgba(drawable, max(tw, th), exact=(tw, th))
+
+
 def build_dialog(config, image, drawable, w, h):
     """建出对话框，返回 (dlg, ctx)。**故意不 run()**：无头回归直接调
     ctx["render"]() 就能验证「拖了钉子之后预览真的变了」。
@@ -281,7 +303,7 @@ def build_dialog(config, image, drawable, w, h):
     gi.require_version('Gtk', '3.0')
     from gi.repository import Gtk, Gdk
 
-    pw, ph, prgba = MI.read_drawable_rgba(drawable, PREVIEW_EDGE)
+    pw, ph, prgba = _read_preview(drawable, w, h)
     k = float(w) / max(pw, 1)
 
     dlg = Gtk.Dialog.new()
@@ -455,7 +477,9 @@ def build_dialog(config, image, drawable, w, h):
         area.queue_draw()
         return False
 
-    def schedule(delay=70):
+    def schedule(delay=45):
+        # 预览开大以后一帧 20～50 ms，防抖要跟着压下来（原来 70 是按 9 ms
+        # 一帧定的，现在再等 70 ms 手会觉得拖泥带水）。
         if ctx["id"]:
             GLib.source_remove(ctx["id"])
         ctx["id"] = GLib.timeout_add(delay, render)
