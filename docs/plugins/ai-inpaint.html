@@ -127,6 +127,17 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
          这是修图插件，先让模型别往矢量插画跑；想要画风自己改这一栏。</p>
     </div>
     <div class="dl" id="zh-sec-4">
+      <div class="dl-head"><h3>多候选：出三张，自己挑</h3><span class="pill">variations</span></div>
+      <p>一次采样可以出 2~4 张（<code>variations</code>，默认 3），先按接缝、糊／碎、
+         跨边缘色台阶、选区外改动、结构密度打分，然后弹一个<b>缩略图挑选窗</b>：
+         几张并排、标着序号和分数，点一下换一张，确认后只留选中的那张。</p>
+      <p>缩略图只看「选区 + 30% 边距」——候选图层往往比选区高好几倍，整块缩下去
+         三张会长得一模一样。勾掉「保留其余候选」就把没选中的删掉，默认留下当
+         隐藏图层，随时点眼睛换回来。</p>
+      <p class="muted small">批处理与「重复上次」不弹窗，直接用打分最优那张：
+         一个会等鼠标的批处理任务等于卡死。<code>pick</code> 关掉也是这个行为。</p>
+    </div>
+    <div class="dl" id="zh-sec-5">
       <div class="dl-head"><h3>参数框</h3></div>
       <p>GIMP 3 不会替插件生成参数对话框，得插件自己建。这一支在 <code>run()</code> 里
          调 <code>_shared/lb_dialog.py</code>：交互模式弹框、取消就是取消，
@@ -136,7 +147,7 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
     </div>
   </div>
 
-  <div class="dl" id="zh-sec-5">
+  <div class="dl" id="zh-sec-6">
     <div class="dl-head"><h3>高级版多出来的参数</h3><span class="pill">按需改，不是都得填</span></div>
     <div class="table-wrap"><table class="op-table">
       <thead><tr><th>参数</th><th>默认</th><th>什么时候动它</th></tr></thead>
@@ -165,11 +176,15 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
             <td>要不要留 "AI Mask" 通道；只想要干净结果就关掉</td></tr>
         <tr><td><code>scale</code></td><td>0</td>
             <td>0 = 按底模的舒适尺寸送（SD1.5 512 / SDXL 1024）；1.0 = 原样送</td></tr>
+        <tr><td><code>variations</code></td><td>3</td>
+            <td>一次出几张（1~4）。简版也有。3 张里挑一张比赌一张稳得多，代价是采样时间乘上张数</td></tr>
+        <tr><td><code>pick</code></td><td>开</td>
+            <td>出多张时弹不弹挑选窗。关掉就静默用最优那张；批处理本来就不弹</td></tr>
       </tbody>
     </table></div>
   </div>
 
-  <div class="dl" id="zh-sec-6">
+  <div class="dl" id="zh-sec-7">
     <div class="dl-head"><h3>依赖：一条命令下齐（模型 / 节点包 / 权重）</h3><span class="pill">2026-11-24</span></div>
     <p>插件是压缩包，可 AI 那几个功能要的东西都在 ComfyUI 那一侧：模型分五个目录、
        Flux 要 <code>ComfyUI-GGUF</code>、按名称选区要 <code>ComfyUI-RMBG</code> 和
@@ -211,7 +226,7 @@ python tools/setup_comfy.py --tier full # 再加 Flux.1 Fill（12 GB）</code></
   </div>
 
   <div class="dl-grid">
-    <div class="dl" id="zh-sec-7">
+    <div class="dl" id="zh-sec-8">
       <div class="dl-head"><h3>六个坑</h3><span class="pill">都在代码里绕开了</span></div>
       <p><b>1. 蒙版方向是反的。</b>ComfyUI 的 <code>LoadImage</code> 用 alpha 倒推蒙版
          （<code>mask = 1 - alpha</code>），所以「要重绘」必须写成<b>透明</b>。直接送灰度图
@@ -244,7 +259,7 @@ python tools/setup_comfy.py --tier full # 再加 Flux.1 Fill（12 GB）</code></
          <b>颗粒匹配</b>（周围是颗粒感照片就补噪点，干净照片不加）。<code>Variations</code>
          设成 1 就是原来的一枪定生死。</p>
     </div>
-    <div class="dl" id="zh-sec-8">
+    <div class="dl" id="zh-sec-9">
       <div class="dl-head"><h3>按名称自动选区</h3><span class="pill">不手描</span></div>
       <p><b>AI Select by Name…</b> 不描边，只写名字：<code>ear</code>、<code>left
          eye</code>、<code>the white shirt</code>。它把图层送去 ComfyUI，走
@@ -264,7 +279,7 @@ python tools/setup_comfy.py --tier full # 再加 Flux.1 Fill（12 GB）</code></
          再写一个 <code>custom_nodes/zz_bert_shim</code> 补丁（transformers 5.x 删掉了
          <code>BertModel.invert_attention_mask</code>，补上才能跑）。装完重启 ComfyUI。</p>
     </div>
-    <div class="dl" id="zh-sec-9">
+    <div class="dl" id="zh-sec-10">
       <div class="dl-head"><h3>AI 环境</h3><span class="pill">装在哪都行</span></div>
       <p><b>AI Environment…</b> 打开先报状态：连不连得上、什么版本、几个底模，以及
          <b>ComfyUI 装在哪、用的是哪个 python</b>。目录不对就点
@@ -284,17 +299,18 @@ python tools/setup_comfy.py --tier full # 再加 Flux.1 Fill（12 GB）</code></
   </div>
 
   <div class="dl-grid">
-    <div class="dl" id="zh-sec-10">
+    <div class="dl" id="zh-sec-11">
       <div class="dl-head"><h3>实测</h3><span class="pill">check_ai_inpaint*.py</span></div>
       <p><code>tools/check_ai_inpaint.py</code> <b>298 条</b>断言跑在本地 mock 服务上
          （不需要显卡）：蒙版方向、8× 对齐、画布补边、缩放倍率上下限、底模家族判定、
          工作流节点与连线、提示词中英转换、候选打分（插入 / 抹除两套判据）、失败退路。</p>
-      <p><code>tools/check_ai_inpaint_gimp.py</code> 在真实 GIMP 3.2 里把过程跑一遍：
-         选区 → 提示词 → 新图层、蒙版与通道、乱填的底模名被下拉拒回。</p>
+      <p><code>tools/check_ai_inpaint_gimp.py</code>（107 条）在真实 GIMP 3.2 里把过程跑一遍：
+         选区 → 提示词 → 新图层、蒙版与通道、候选挑选窗的裁切与选择、乱填的底模名
+         被下拉拒回。</p>
       <p>速度（RTX 3070 Ti，SDXL，25 步，1024×512）：<b>8.7 秒</b>。同一尺寸走 CPU
          兜底是 <b>94 秒</b>（384×256 实测），能跑但不适合批量。</p>
     </div>
-    <div class="dl" id="zh-sec-11">
+    <div class="dl" id="zh-sec-12">
       <div class="dl-head"><h3>前提</h3></div>
       <p>一个在跑的 ComfyUI + 一份底模。插件只用标准库发 HTTP，不装任何 Python 依赖；
          HTTP 与 PNG 编解码都在 <code>plugin/_shared/ai_client.py</code> 里，
@@ -310,7 +326,7 @@ python tools/setup_comfy.py --tier full # 再加 Flux.1 Fill（12 GB）</code></
     <div class="dl-head"><h3>AI Inpaint…</h3><span class="pill">.py · 免编译</span></div>
     <p>包里是一个 <code>.py</code>、一份安装说明，以及 <code>_shared/</code> 与 <code>locale/</code>。整包解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，但界面只有英文。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-ai-inpaint.zip">下载 AI Inpaint…</a>
-    <p class="muted small">146.6 KB · 校验：<code>SHA256 180ce9a5d795ffea881a6fc44de12a54…</code></p>
+    <p class="muted small">153.5 KB · 校验：<code>SHA256 3a46f08277733d5766368e64ed7ce06f…</code></p>
   </div>
 </section>
 
@@ -320,7 +336,7 @@ python tools/setup_comfy.py --tier full # 再加 Flux.1 Fill（12 GB）</code></
     <p class="toc-title">本页目录</p>
     <ul>
       <li><a href="#zh-overview">概览</a></li>
-<li><a href="#zh-sec-1">一次点击做了什么</a></li><li><a href="#zh-sec-2">选区要紧</a></li><li><a href="#zh-sec-3">三个框</a></li><li><a href="#zh-sec-4">参数框</a></li><li><a href="#zh-sec-5">高级版多出来的参数</a></li><li><a href="#zh-sec-6">依赖：一条命令下齐（模型 / 节点包 / 权重）</a></li><li><a href="#zh-sec-7">六个坑</a></li><li><a href="#zh-sec-8">按名称自动选区</a></li><li><a href="#zh-sec-9">AI 环境</a></li><li><a href="#zh-sec-10">实测</a></li><li><a href="#zh-sec-11">前提</a></li>
+<li><a href="#zh-sec-1">一次点击做了什么</a></li><li><a href="#zh-sec-2">选区要紧</a></li><li><a href="#zh-sec-3">三个框</a></li><li><a href="#zh-sec-4">多候选：出三张，自己挑</a></li><li><a href="#zh-sec-5">参数框</a></li><li><a href="#zh-sec-6">高级版多出来的参数</a></li><li><a href="#zh-sec-7">依赖：一条命令下齐（模型 / 节点包 / 权重）</a></li><li><a href="#zh-sec-8">六个坑</a></li><li><a href="#zh-sec-9">按名称自动选区</a></li><li><a href="#zh-sec-10">AI 环境</a></li><li><a href="#zh-sec-11">实测</a></li><li><a href="#zh-sec-12">前提</a></li>
       <li><a href="#zh-download">下载</a></li>
     </ul>
   </aside>
@@ -414,6 +430,20 @@ so you can re-limit the area later.</code></pre>
          line if you want a stylised result.</p>
     </div>
     <div class="dl" id="en-sec-4">
+      <div class="dl-head"><h3>Several candidates, pick one</h3><span class="pill">variations</span></div>
+      <p>One run can draw 2–4 candidates (<code>variations</code>, 3 by default). They are
+         scored on seam sharpness, how soft or busy the fill is, the colour step across the
+         edge, changes outside the selection and structure density — then a <b>thumbnail
+         picker</b> opens: side by side, numbered, scored, click to choose, and only the
+         chosen one stays visible.</p>
+      <p>Thumbnails are cropped to “selection + 30% margin”. A candidate layer is often
+         several times taller than the selection, and scaling the whole layer down made all
+         three look identical. Untick “keep the other candidates” to delete them, or leave
+         them hidden on the layer stack and click an eye to swap.</p>
+      <p class="muted small">Batch runs and “repeat last” never open it — a batch job waiting
+         for a mouse click is a hung batch job. Turning <code>pick</code> off does the same.</p>
+    </div>
+    <div class="dl" id="en-sec-5">
       <div class="dl-head"><h3>The parameter dialog</h3></div>
       <p>GIMP 3 does not build a dialog for a plug-in — the plug-in has to. This one calls
          <code>_shared/lb_dialog.py</code> from <code>run()</code>: interactive runs get a
@@ -424,7 +454,7 @@ so you can re-limit the area later.</code></pre>
     </div>
   </div>
 
-  <div class="dl" id="en-sec-5">
+  <div class="dl" id="en-sec-6">
     <div class="dl-head"><h3>What the advanced version adds</h3><span class="pill">change on demand</span></div>
     <div class="table-wrap"><table class="op-table">
       <thead><tr><th>Parameter</th><th>Default</th><th>When to touch it</th></tr></thead>
@@ -453,11 +483,23 @@ so you can re-limit the area later.</code></pre>
             <td>Keep the “AI Mask” channel, or turn it off for a clean result</td></tr>
         <tr><td><code>scale</code></td><td>0</td>
             <td>0 = send at the model's comfy size (SD1.5 512 / SDXL 1024); 1.0 = send as is</td></tr>
+        <tr><td><code>variations</code></td><td>3</td>
+            <td>How many to draw at once (1–4). Also in the simple version. Picking one of
+                three beats betting on one, at the price of a longer sample</td></tr>
+        <tr><td><code>pick</code></td><td>on</td>
+            <td>Show the picker when several are drawn. Off = silently keep the top score;
+                batch runs never show it anyway</td></tr>
+        <tr><td><code>variations</code></td><td>3</td>
+            <td>How many to draw at once (1–4). Also in the simple version. Picking one of
+                three beats betting on one, at the price of a longer sample</td></tr>
+        <tr><td><code>pick</code></td><td>on</td>
+            <td>Show the picker when several are drawn. Off = silently keep the top score;
+                batch runs never show it anyway</td></tr>
       </tbody>
     </table></div>
   </div>
 
-  <div class="dl" id="en-sec-6">
+  <div class="dl" id="en-sec-7">
     <div class="dl-head"><h3>Dependencies: one command, everything</h3><span class="pill">2026-11-24</span></div>
     <p>The plug-in ships as a zip, but everything the AI features need lives on the
        ComfyUI side: models in five different folders, <code>ComfyUI-GGUF</code> for Flux,
@@ -506,7 +548,7 @@ python tools/setup_comfy.py --tier full # add Flux.1 Fill (12 GB)</code></pre>
   </div>
 
   <div class="dl-grid">
-    <div class="dl" id="en-sec-7">
+    <div class="dl" id="en-sec-8">
       <div class="dl-head"><h3>Six traps</h3><span class="pill">all worked around</span></div>
       <p><b>1. The mask is inverted.</b>ComfyUI's <code>LoadImage</code> derives the mask
          from alpha (<code>mask = 1 - alpha</code>), so “repaint here” has to be
@@ -549,7 +591,7 @@ python tools/setup_comfy.py --tier full # add Flux.1 Fill (12 GB)</code></pre>
          untouched) and <b>grain matching</b> (adds noise on grainy photos, nothing on
          clean ones). Set <code>Variations</code> to 1 for the old one-shot behaviour.</p>
     </div>
-    <div class="dl" id="en-sec-8">
+    <div class="dl" id="en-sec-9">
       <div class="dl-head"><h3>Select by name</h3><span class="pill">no tracing</span></div>
       <p><b>AI Select by Name…</b> never asks you to trace anything: type
          <code>ear</code>, <code>left eye</code>, <code>the white shirt</code>. The layer
@@ -573,7 +615,7 @@ python tools/setup_comfy.py --tier full # add Flux.1 Fill (12 GB)</code></pre>
          dropped <code>BertModel.invert_attention_mask</code>, which GroundingDINO calls).
          Restart ComfyUI afterwards.</p>
     </div>
-    <div class="dl" id="en-sec-9">
+    <div class="dl" id="en-sec-10">
       <div class="dl-head"><h3>AI Environment</h3><span class="pill">any folder</span></div>
       <p><b>AI Environment…</b> opens with the state: reachable or not, which version, how
          many checkpoints — and <b>where ComfyUI lives and which python it runs</b>. If the
@@ -597,19 +639,20 @@ python tools/setup_comfy.py --tier full # add Flux.1 Fill (12 GB)</code></pre>
   </div>
 
   <div class="dl-grid">
-    <div class="dl" id="en-sec-10">
+    <div class="dl" id="en-sec-11">
       <div class="dl-head"><h3>Measured</h3><span class="pill">check_ai_inpaint*.py</span></div>
       <p><code>tools/check_ai_inpaint.py</code> runs <b>298 assertions</b> against a local
          mock service (no GPU needed): mask direction, 8× alignment, canvas padding, scale
          limits, checkpoint family detection, workflow nodes and wiring, Chinese-to-English
          prompt handling, candidate scoring (insert and erase rules), failure paths.</p>
-      <p><code>tools/check_ai_inpaint_gimp.py</code> runs the procedure inside real GIMP 3.2:
-         selection → prompt → new layer, mask and channel, and a bogus checkpoint name being
-         rejected by the dropdown.</p>
+      <p><code>tools/check_ai_inpaint_gimp.py</code> (107 assertions) runs the procedure inside
+         real GIMP 3.2: selection → prompt → new layer, mask and channel, the candidate
+         picker's cropping and selection, and a bogus checkpoint name being rejected by the
+         dropdown.</p>
       <p>Speed (RTX 3070 Ti, SDXL, 25 steps, 1024×512): <b>8.7 s</b>. The same size on CPU
          fallback is <b>94 s</b> (measured at 384×256) — it works, but not for batches.</p>
     </div>
-    <div class="dl" id="en-sec-11">
+    <div class="dl" id="en-sec-12">
       <div class="dl-head"><h3>Requirements</h3></div>
       <p>A running ComfyUI and one checkpoint. The plug-in uses only the standard library
          over HTTP — no Python dependencies; the HTTP and PNG code lives in
@@ -626,7 +669,7 @@ python tools/setup_comfy.py --tier full # add Flux.1 Fill (12 GB)</code></pre>
     <div class="dl-head"><h3>AI Inpaint</h3><span class="pill">.py · no compile</span></div>
     <p>The archive holds a single <code>.py</code>, an install note and the <code>_shared/</code> + <code>locale/</code> pair. Unpack all of it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register. Without <code>_shared/</code> and <code>locale/</code> it still runs, but only in English.</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-ai-inpaint.zip">Download AI Inpaint</a>
-    <p class="muted small">146.6 KB · checksum: <code>SHA256 180ce9a5d795ffea881a6fc44de12a54…</code></p>
+    <p class="muted small">153.5 KB · checksum: <code>SHA256 3a46f08277733d5766368e64ed7ce06f…</code></p>
   </div>
 </section>
 
@@ -636,7 +679,7 @@ python tools/setup_comfy.py --tier full # add Flux.1 Fill (12 GB)</code></pre>
     <p class="toc-title">On this page</p>
     <ul>
       <li><a href="#en-overview">Overview</a></li>
-<li><a href="#en-sec-1">What one click does</a></li><li><a href="#en-sec-2">Keep the selection tight</a></li><li><a href="#en-sec-3">Three boxes</a></li><li><a href="#en-sec-4">The parameter dialog</a></li><li><a href="#en-sec-5">What the advanced version adds</a></li><li><a href="#en-sec-6">Dependencies: one command, everything</a></li><li><a href="#en-sec-7">Six traps</a></li><li><a href="#en-sec-8">Select by name</a></li><li><a href="#en-sec-9">AI Environment</a></li><li><a href="#en-sec-10">Measured</a></li><li><a href="#en-sec-11">Requirements</a></li>
+<li><a href="#en-sec-1">What one click does</a></li><li><a href="#en-sec-2">Keep the selection tight</a></li><li><a href="#en-sec-3">Three boxes</a></li><li><a href="#en-sec-4">Several candidates, pick one</a></li><li><a href="#en-sec-5">The parameter dialog</a></li><li><a href="#en-sec-6">What the advanced version adds</a></li><li><a href="#en-sec-7">Dependencies: one command, everything</a></li><li><a href="#en-sec-8">Six traps</a></li><li><a href="#en-sec-9">Select by name</a></li><li><a href="#en-sec-10">AI Environment</a></li><li><a href="#en-sec-11">Measured</a></li><li><a href="#en-sec-12">Requirements</a></li>
       <li><a href="#en-download">Download</a></li>
     </ul>
   </aside>
@@ -657,7 +700,7 @@ python tools/setup_comfy.py --tier full # add Flux.1 Fill (12 GB)</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">17e45a3</span>
+    <span class="muted">5fdfdf2</span>
   </div>
 </footer>
 <script>
