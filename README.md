@@ -1332,21 +1332,51 @@ tools\setup-ai.bat --verify             :: 只体检已装好的环境
   `... was unexpected at this time`。全用 `goto`。
 
 **换模型**：把 `.safetensors` 丢进 `<安装目录>\ComfyUI\models\checkpoints\`，
-重启服务即可。插件按文件名认家族：带 `xl` / `sdxl` 的按 **1024** 长边送图，其余
+重启服务即可。
+
+### 两档「更高质量」的模型，一条命令下完
+
+2026-11-24 实测：本地只有 `sd-v1-5-inpainting`，画出来的猫形体对但**细节像是
+糊的**（正面尤其明显），狗的四肢会糊成一团。补两档就够，`tools/fetch_models.py`
+带断点续传，断了重跑接着下：
+
+```bash
+python tools/fetch_models.py --check   # 先看缺哪些、多大
+python tools/fetch_models.py sdxl      # 6.9 GB：日常用这档
+python tools/fetch_models.py flux      # 12 GB：质量上限，慢
+```
+
+| 档 | 文件 | 放哪 | 代价 |
+|---|---|---|---|
+| `sdxl` | `sd_xl_base_1.0_inpainting_0.1.safetensors`（6.9 GB） | `models/checkpoints/` | 直接把「inpaint 专用 + SDXL」两个条件凑齐，8 GB 卡能跑，**不用装任何扩展** |
+| `flux` | `flux1-fill-dev-Q4_K_S.gguf` + `t5xxl_fp8_e4m3fn` + `clip_l` + `ae.safetensors` | 主干 → `models/diffusion_models/`，T5/CLIP-L → `models/text_encoders/`，ae → `models/vae/` | 还要装 `custom_nodes/ComfyUI-GGUF`（`pip install gguf sentencepiece protobuf`）；8 GB 卡单张 1~3 分钟；**许可禁止商用** |
+
+Flux 不是「换个底模」那么简单，整张节点图都不一样：主干走 `UnetLoaderGGUF`，
+文本编码器拆成 T5-XXL + CLIP-L 两个（`DualCLIPLoader`，`type=flux`），解码用单独的
+`ae`，提示词强度由 `FluxGuidance`（默认 30）管而不是 `cfg`（Flux 是蒸馏模型，
+`cfg` 固定 1.0）。所以 `inpaint()` 一看到底模是 `.gguf` 或名字带 flux，就整张换掉
+（`build_flux_inpaint_workflow()`），不会拿 SD 的图去凑。
+
+**Flux 的四个文件缺一个都跑不起来**，`flux_assets()` 会按名字点名缺哪个、该放哪个
+目录，不用对着一句 KeyError 猜。插件按文件名认家族：带 `xl` / `sdxl` 的按 **1024** 长边送图，其余
 按 **512**；裁切框先缩放到这个尺寸、回来再缩回原尺寸贴（`detect_family()` /
 `work_scale()`，倍率限制在 0.25×–4×）。所以「换模型」不需要改代码，只需要一份
 文件。
 
 **多个模型时怎么选**（高级版的 `checkpoint` 是下拉，不是手打文件名）：
 
-1. **自动（推荐）** —— 默认值 `auto`。优先挑 **inpaint 专用**模型，一个都没有
-   才挑第一个普通模型（`first_checkpoint()`）。选中的模型决定走哪条条件路径，
-   见上面「模型必须和条件节点配对」。
+1. **自动（推荐）** —— 默认值 `auto`。优先挑 **inpaint 专用**模型，其中再优先
+   SDXL 那一档（细节和语义理解明显强过 SD1.5，2026-11-24 在同一块地板上画猫
+   对比出来的），一个 inpaint 模型都没有才挑第一个普通模型（`first_checkpoint()`）。
+   选中的模型决定走哪条条件路径，见上面「模型必须和条件节点配对」。
+   **Flux 不进自动**：它慢一个数量级，自动挑会让人以为插件卡死了。
 2. **点名要哪个** —— 下拉里的候选项是**当场问 ComfyUI 要的**
-   （`/object_info/CheckpointLoaderSimple`），每项后面标着家族和舒适尺寸：
+   （SD 系问 `/object_info/CheckpointLoaderSimple`，Flux 系问
+   `UnetLoaderGGUF`，两张表合成一张，见 `models()`），每项后面标着家族和舒适尺寸：
    `juggernautXL_v9.safetensors（SDXL · 1024）`、
    `dreamshaper_8.safetensors（SD1.5 · 512）`、
-   `sd-v1-5-inpainting.ckpt（inpaint 专用 · 推荐）`。
+   `sd-v1-5-inpainting.ckpt（inpaint 专用 · 推荐）`、
+   `flux1-fill-dev-Q4_K_S.gguf（Flux · 质量最好，慢）`。
    选谁就用谁，`family_target()` 据此决定送 1024 还是 512。
 3. **不想每次选** —— 环境变量 `LB_COMFY_CKPT` 写完整文件名，自动挑就固定用它；
    名字对不上时安静退回自动挑，不报错。
@@ -1365,6 +1395,7 @@ tools\setup-ai.bat --verify             :: 只体检已装好的环境
 |---|---|---|---|---|
 | SD1.5 fp16 | 2.1 GB | 512 | 5.7 s | 小面积补背景稳；大面积会糊成色块 |
 | SDXL base 1.0 | 6.9 GB | 856×1024 | 17.5 s | 能画出木纹/陶盆这类材质，颜色更听提示词；但**上下文一致性**仍会崩（见下） |
+| SDXL inpaint 0.1 | 6.9 GB | 1024×768 | 30~42 s | 9 通道专用：地板上画猫能画出趴姿、毛色分层、接触阴影，接缝看不出来（SD1.5 那版是「糊的正面坐姿」） |
 
 **「换大模型」能解决的和你以为的不一样。** 实拍图上去掉一只苹果，SD1.5 给的是
 一团糊，SDXL 给的是一块**纹理清楚、方向不对**的木头——清晰度上去了，但它不理解
@@ -1378,12 +1409,14 @@ Flux.1-Fill 这类**专门为 inpaint 训练**的模型（12B，8 GB 显存要�
 回归（两套，都不需要显卡）：
 
 ```bash
-# 116 条：PNG 编解码、蒙版方向、对齐、工作流、mock 端到端、中文词表与预设
+# 293 条：PNG 编解码、蒙版方向、对齐、工作流（SD / Flux 两套图）、mock 端到端、
+#        中文词表与预设、Flux 资产挑选与缺文件提示
 python tools/check_ai_inpaint.py
 "D:/fastsoftware/GIMP 3/bin/gimp-console-3.2.exe" -i -c -d -f \
     --batch-interpreter=python-fu-eval \
     -b "exec(open(r'<repo>/tools/check_ai_inpaint_gimp.py', encoding='utf-8').read())" --quit
-# 43 条：真 GIMP 里的选区→蒙版→贴回、中文/预设提示词、简版与高级版的参数装配
+# 75 条：真 GIMP 里的选区→蒙版→贴回、中文/预设提示词、简版与高级版的参数装配、
+#        按名称选区与蒙版平移
 ```
 
 `tools/mock_comfy.py` 也能单独起一个假服务（不带参数就监听 8188），想在没有模型

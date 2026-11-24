@@ -26,6 +26,8 @@ from gi.repository import Gimp, Gio
 REPO = r"C:\Users\Administrator\WorkBuddy\2026-11-10-21-12-59\SuperMrWang"
 SRC = os.environ.get("PROBE_SRC") or r"D:\ComfyUI\test-out\scene-src.png"
 OUTDIR = r"D:\ComfyUI\test-out"
+# 2026-11-24 下的 SDXL inpaint（9 通道专用，细节比 SD1.5 强一档）
+SDXL_INPAINT = "sd_xl_base_1.0_inpainting_0.1.safetensors"
 
 # (编号, 盒子 x/y/w/h, 预设, 细节提示词, 输出名, 说明)
 CASES = {
@@ -67,6 +69,22 @@ CASES = {
               prompt="orange tabby, looking at the camera, natural window light",
               out="pet6-cat-preset.png",
               note="小猫 / 只用新预设 + 一句短细节"),
+    "7": dict(box=(230, 690, 310, 320), preset="cat",
+              prompt="orange tabby, looking at the camera, natural window light",
+              out="pet7-cat-sdxl.png", ckpt=SDXL_INPAINT,
+              note="小猫 / 同一选区同一提示词，换 SDXL inpaint"),
+    "8": dict(box=(420, 760, 290, 250), preset="dog",
+              prompt="a small cream puppy standing on the wooden floor, paws "
+                     "resting on the boards, dark soft contact shadow under "
+                     "the body, photorealistic",
+              out="pet8-dog-sdxl.png", ckpt=SDXL_INPAINT,
+              note="小狗 / 同一选区同一提示词，换 SDXL inpaint"),
+    "9": dict(box=(420, 760, 290, 250), preset="dog",
+              prompt="one single cream colored puppy, standing on the wooden "
+                     "floor, four legs on the boards, dark contact shadow "
+                     "under the body, photorealistic",
+              out="pet9-dog-sdxl-one.png", ckpt=SDXL_INPAINT,
+              note="小狗 / SDXL + 明确「只画一只」"),
 }
 
 sys.path.insert(0, os.path.join(REPO, "plugin", "_shared"))
@@ -92,7 +110,8 @@ for key in want:
     try:
         result, info = mod.ai_inpaint(
             img, layer, case["prompt"],
-            checkpoint="", steps=25, cfg=7.5, seed=20261124, denoise=1.0,
+            checkpoint=case.get("ckpt", ""), steps=25, cfg=7.5,
+            seed=20261124, denoise=1.0,
             grow=8, grow_mask_by=8, feather=4.0,
             variations=3, preset=case["preset"], variant="auto")
         print("耗时 %.1f s  工作尺寸 %s  倍率 %.2f" % (

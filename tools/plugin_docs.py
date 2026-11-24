@@ -846,7 +846,7 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
         <tr><td><code>server</code></td><td>空</td>
             <td>ComfyUI 不在 127.0.0.1:8188 时填；空则读 <code>$LB_COMFY_URL</code></td></tr>
         <tr><td><code>checkpoint</code></td><td>自动</td>
-            <td>下拉，选项当场问 ComfyUI 要；「自动」优先挑 inpaint 专用底模</td></tr>
+            <td>下拉，选项当场问 ComfyUI 要（SD 系 + Flux 系合一张表）；「自动」优先挑 SDXL inpaint</td></tr>
         <tr><td><code>steps</code></td><td>25</td>
             <td>要更细的质感往上加，25–30 之后收益很小</td></tr>
         <tr><td><code>cfg</code></td><td>7.5</td>
@@ -869,6 +869,33 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
             <td>0 = 按底模的舒适尺寸送（SD1.5 512 / SDXL 1024）；1.0 = 原样送</td></tr>
       </tbody>
     </table></div>
+  </div>
+
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>模型：两档「更高质量」，一条命令下完</h3><span class="pill">2026-11-24</span></div>
+    <p>本地只装 <code>sd-v1-5-inpainting</code> 时，在空房间地板上画猫是能画出来，
+       但<b>细节像糊的</b>——正面尤其明显、狗的四条腿会糊成一团。补两档就够，
+       <code>tools/fetch_models.py</code> 带断点续传，断了重跑接着下：</p>
+    <pre><code>python tools/fetch_models.py --check   # 看缺哪些、多大
+python tools/fetch_models.py sdxl      # 6.9 GB：日常用这档
+python tools/fetch_models.py flux      # 12 GB：质量上限，慢</code></pre>
+    <p><b>sdxl</b>：<code>sd_xl_base_1.0_inpainting_0.1.safetensors</code> 丢进
+       <code>models/checkpoints/</code> 就能用——「inpaint 专用」和「SDXL」两个条件
+       同时凑齐，8 GB 卡 30~40 秒一张，<b>不用装任何扩展</b>。同一块选区、同一句
+       提示词，SD1.5 给的是「糊的正面坐姿猫」，SDXL 给的是一只趴着、带接触阴影、
+       接缝看不出来的橘猫。</p>
+    <p><b>flux</b>：<code>flux1-fill-dev-Q4_K_S.gguf</code>（→
+       <code>models/diffusion_models/</code>）+ <code>t5xxl_fp8_e4m3fn</code> 和
+       <code>clip_l</code>（→ <code>models/text_encoders/</code>）+ <code>ae.safetensors</code>
+       （→ <code>models/vae/</code>），还要装 <code>custom_nodes/ComfyUI-GGUF</code>。
+       8 GB 卡一张 1~3 分钟，<b>许可禁止商用</b>。它不是「换个底模」那么简单：
+       主干走 <code>UnetLoaderGGUF</code>、文本编码器拆成 T5+CLIP-L 两个、解码用单独的
+       <code>ae</code>、提示词强度由 <code>FluxGuidance</code>（默认 30）管而不是
+       <code>cfg</code>（固定 1.0）。所以看到 <code>.gguf</code> 或名字带 flux，
+       <code>inpaint()</code> 会把整张节点图换掉。四个文件缺一个都跑不起来，
+       <code>flux_assets()</code> 会点名缺哪个、该放哪。</p>
+    <p><b>自动挑底模</b>优先 SDXL 那一档 inpaint（细节明显强过 SD1.5），
+       <b>Flux 不进自动</b>——它慢一个数量级，自动挑会让人以为插件卡死了。</p>
   </div>
 
   <div class="dl-grid">

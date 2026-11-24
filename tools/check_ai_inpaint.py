@@ -348,6 +348,131 @@ def test_workflow():
        wf4[rep4["inputs"]["samples"][0]]["class_type"] == "InpaintModelConditioning"
        and rep4["inputs"]["samples"][1] == 2, rep4["inputs"]["samples"])
 
+    # ---- Flux：不是「换个底模」，是另一张图 ----------------------------------
+    ok("flux 家族认得出（gguf / 名字带 flux）",
+       ai_client.detect_family("flux1-fill-dev-Q4_K_S.gguf") == "flux" and
+       ai_client.is_flux_model("FLUX.1-dev-fp8.safetensors"))
+    ok("flux 不被当成 SDXL",
+       ai_client.family_target("flux1-fill-dev-Q4_K_S.gguf") == 1024)
+    ok("flux 的下拉标注点明「质量最好，慢」",
+       "Flux" in ai_client.checkpoint_note("flux1-fill-dev-Q4_K_S.gguf") and
+       "慢" in ai_client.checkpoint_note("flux1-fill-dev-Q4_K_S.gguf"))
+    ok("flux 不算 inpaint 专用（它自带 fill）",
+       not ai_client.is_inpaint_checkpoint("flux1-fill-dev-Q4_K_S.gguf"))
+
+    assets = {"unet": "flux1-fill-dev-Q4_K_S.gguf",
+              "t5": "t5xxl_fp8_e4m3fn.safetensors",
+              "clip_l": "clip_l.safetensors", "vae": "ae.safetensors"}
+    wfx = ai_client.build_flux_inpaint_workflow(assets, "s.png", "m.png",
+                                                "a cat", seed=9, steps=20,
+                                                batch=2)
+    kindsx = {n["class_type"] for n in wfx.values()}
+    ok("flux 用 UnetLoaderGGUF 加载主干", "UnetLoaderGGUF" in kindsx, sorted(kindsx))
+    ok("  → 不再有 CheckpointLoaderSimple", "CheckpointLoaderSimple" not in kindsx)
+    ok("  → 有 FluxGuidance", "FluxGuidance" in kindsx)
+    dual = next(n for n in wfx.values() if n["class_type"] == "DualCLIPLoader")
+    ok("  → 双编码器 type=flux", dual["inputs"]["type"] == "flux")
+    ok("  → T5 在前、CLIP-L 在后",
+       dual["inputs"]["clip_name1"] == assets["t5"] and
+       dual["inputs"]["clip_name2"] == assets["clip_l"], dual["inputs"])
+    vl = next(n for n in wfx.values() if n["class_type"] == "VAELoader")
+    ok("  → 单独的 ae 解码器", vl["inputs"]["vae_name"] == "ae.safetensors")
+    fg = next(n for n in wfx.values() if n["class_type"] == "FluxGuidance")
+    ok("  → guidance 默认 30", abs(fg["inputs"]["guidance"] - 30.0) < 1e-6,
+       fg["inputs"]["guidance"])
+    ok("  → 正向条件先过 FluxGuidance",
+       wfx[fg["inputs"]["conditioning"][0]]["class_type"] == "CLIPTextEncode")
+    imcx = next(n for n in wfx.values()
+                if n["class_type"] == "InpaintModelConditioning")
+    ok("  → fill 条件节点 noise_mask 打开", imcx["inputs"]["noise_mask"] is True)
+    ok("  → 条件节点的 vae 来自 VAELoader（不是主干）",
+       wfx[imcx["inputs"]["vae"][0]]["class_type"] == "VAELoader")
+    ksx = next(n for n in wfx.values() if n["class_type"] == "KSampler")
+    ok("  → Flux 用 cfg=1.0", abs(ksx["inputs"]["cfg"] - 1.0) < 1e-6,
+       ksx["inputs"]["cfg"])
+    ok("  → euler + simple",
+       (ksx["inputs"]["sampler_name"], ksx["inputs"]["scheduler"]) ==
+       ("euler", "simple"))
+    ok("  → 解出来的 latent 走 ae", 
+       wfx[next(n for n in wfx.values() if n["class_type"] == "VAEDecode")
+           ["inputs"]["vae"][0]]["class_type"] == "VAELoader")
+    repx = next(n for n in wfx.values() if n["class_type"] == "RepeatLatentBatch")
+    ok("  → batch 复制条件节点第 3 路输出",
+       repx["inputs"]["samples"] == ["6", 2], repx["inputs"]["samples"])
+
+    # 资产挑选：一堆相似名字里得挑对
+    class _Info:
+        def __init__(self, table):
+            self.table = table
+
+        def _request(self, path, timeout=None):
+            return self.table[path]
+
+    table = {
+        "/object_info/UnetLoaderGGUF": {"UnetLoaderGGUF": {"input": {
+            "required": {"unet_name": [["flux1-dev-fp8.safetensors",
+                                        "flux1-fill-dev-Q4_K_S.gguf"]]}}}},
+        "/object_info/DualCLIPLoader": {"DualCLIPLoader": {"input": {
+            "required": {"clip_name1": [["t5xxl_fp16.safetensors",
+                                         "t5xxl_fp8_e4m3fn.safetensors"]],
+                         "clip_name2": [["clip_l.safetensors"]]}}}},
+        "/object_info/VAELoader": {"VAELoader": {"input": {
+            "required": {"vae_name": [["flux_ae.safetensors",
+                                       "ae.safetensors"]]}}}},
+    }
+    got = ai_client.flux_assets(_Info(table))
+    ok("flux_assets 挑 fill 那一档主干",
+       got["unet"] == "flux1-fill-dev-Q4_K_S.gguf", got)
+    ok("flux_assets 挑 fp8 的 T5（8 GB 卡 fp16 会爆）",
+       got["t5"] == "t5xxl_fp8_e4m3fn.safetensors", got)
+    ok("flux_assets 挑 clip_l 和 ae", 
+       got["clip_l"] == "clip_l.safetensors" and got["vae"] == "ae.safetensors", got)
+
+    missing = {"_request": lambda path, timeout=None: {}}
+    try:
+        ai_client.flux_assets(missing)
+        ok("flux 缺文件时抛错", False)
+    except ai_client.ComfyError as exc:
+        msg = str(exc)
+        ok("flux 缺文件时点名要什么（主干缺失就直说 GGUF 没装好）",
+           "Flux" in msg and "GGUF" in msg and "models" in msg, msg[:80])
+
+    # inpaint() 的分派：光看名字就该换图，不能还走 SD 那张
+    class _Recorder:
+        def __init__(self):
+            self.wf = None
+            self.info = None
+
+        def upload_image(self, name, blob):
+            return name, None
+
+        def first_checkpoint(self):
+            return "x.gguf"
+
+        def queue(self, wf):
+            self.wf = wf
+            return "pid"
+
+        def wait(self, pid, timeout=None, on_tick=None):
+            return {"outputs": {"9": {"images": [{"filename": "a.png"}]}}}
+
+        def download(self, *a, **kw):
+            return b"png"
+
+        def _request(self, path, timeout=None):
+            return table[path]
+
+    rec = _Recorder()
+    blobs, info = ai_client.inpaint(rec, b"src", b"mask", "a cat",
+                                    checkpoint="flux1-fill-dev-Q4_K_S.gguf")
+    ok("inpaint() 见到 flux 就换图",
+       info["variant"] == "flux" and
+       any(n["class_type"] == "UnetLoaderGGUF" for n in rec.wf.values()),
+       info["variant"])
+    ok("  → 没混进 CheckpointLoaderSimple",
+       all(n["class_type"] != "CheckpointLoaderSimple"
+           for n in rec.wf.values()))
+
 
 # ---- 5. 端到端（mock）------------------------------------------------------
 

@@ -1561,7 +1561,7 @@ so you can re-limit the area later.</code></pre>
         <tr><td><code>server</code></td><td>empty</td>
             <td>ComfyUI is not on 127.0.0.1:8188; empty reads <code>$LB_COMFY_URL</code></td></tr>
         <tr><td><code>checkpoint</code></td><td>automatic</td>
-            <td>Dropdown filled by asking ComfyUI; “automatic” is the first non-inpaint model</td></tr>
+            <td>Dropdown filled by asking ComfyUI (SD and Flux in one list); “automatic” prefers SDXL inpaint</td></tr>
         <tr><td><code>steps</code></td><td>25</td>
             <td>More for finer texture; little gain past 25–30</td></tr>
         <tr><td><code>cfg</code></td><td>7.5</td>
@@ -1584,6 +1584,36 @@ so you can re-limit the area later.</code></pre>
             <td>0 = send at the model's comfy size (SD1.5 512 / SDXL 1024); 1.0 = send as is</td></tr>
       </tbody>
     </table></div>
+  </div>
+
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>Models: two better tiers, one command</h3><span class="pill">2026-11-24</span></div>
+    <p>With only <code>sd-v1-5-inpainting</code> installed, painting a cat on an empty
+       wooden floor does work, but the <b>detail looks smeared</b> — front views worst,
+       and a dog's legs melt into a blob. Two tiers fix it;
+       <code>tools/fetch_models.py</code> resumes interrupted downloads:</p>
+    <pre><code>python tools/fetch_models.py --check   # what is missing, how big
+python tools/fetch_models.py sdxl      # 6.9 GB: the everyday tier
+python tools/fetch_models.py flux      # 12 GB: quality ceiling, slow</code></pre>
+    <p><b>sdxl</b>: drop <code>sd_xl_base_1.0_inpainting_0.1.safetensors</code> into
+       <code>models/checkpoints/</code> and you are done — it satisfies “inpaint-only”
+       and “SDXL” at once, 30–40 s per image on an 8 GB card, <b>no extensions needed</b>.
+       Same selection and prompt: SD1.5 returns a smeared front-facing cat, SDXL returns a
+       lying cat with a contact shadow and an invisible seam.</p>
+    <p><b>flux</b>: <code>flux1-fill-dev-Q4_K_S.gguf</code> (→
+       <code>models/diffusion_models/</code>) plus <code>t5xxl_fp8_e4m3fn</code> and
+       <code>clip_l</code> (→ <code>models/text_encoders/</code>) and <code>ae.safetensors</code>
+       (→ <code>models/vae/</code>), plus <code>custom_nodes/ComfyUI-GGUF</code>.
+       1–3 minutes per image on 8 GB; <b>the licence forbids commercial use</b>. It is not
+       just another checkpoint: the trunk loads through <code>UnetLoaderGGUF</code>, text
+       goes through T5 + CLIP-L, decoding uses a separate <code>ae</code>, and prompt
+       strength is <code>FluxGuidance</code> (30) rather than <code>cfg</code> (fixed 1.0).
+       So when the name ends in <code>.gguf</code> or contains flux,
+       <code>inpaint()</code> swaps the whole graph. Miss one of the four files and
+       <code>flux_assets()</code> tells you which one and where it belongs.</p>
+    <p><b>Automatic</b> prefers the SDXL inpaint tier (visibly better detail than SD1.5);
+       <b>Flux is never automatic</b> — it is an order of magnitude slower and would make
+       the plug-in look hung.</p>
   </div>
 
   <div class="dl-grid">

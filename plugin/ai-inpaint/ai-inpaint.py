@@ -1120,7 +1120,9 @@ def _available_checkpoints(timeout=1.5):
     if ai_client is None:
         return []
     try:
-        names = ai_client.ComfyClient(timeout=timeout).checkpoints()
+        # models() 是 SD 系 + Flux 系的合表：Flux 的主干在 diffusion_models 下，
+        # 只看 checkpoints 目录会漏掉它（2026-11-24 加）。
+        names = ai_client.ComfyClient(timeout=timeout).models()
     except Exception:                  # 连不上 / 返回结构不对：都当没有
         return []
     return names

@@ -53,6 +53,7 @@ SIZE_ALIGN = 8
 FAMILY_TARGET = {
     "sd15": 512,
     "sdxl": 1024,
+    "flux": 1024,
 }
 
 # 缩放倍率的上下限：小选区放大太多会把周围上下文拉变形，大选区缩小太多
@@ -68,9 +69,22 @@ SCALE_MAX = 4.0
 MAX_WORK_RATIO = 2.0
 
 
+def is_flux_model(name):
+    """Flux 系（含 4bit 量化）：文件名以 .gguf 结尾，或者带 flux 字样。
+
+    Flux 和 SD 系的差别不只是画质——**加载方式都不一样**：主干走 UnetLoaderGGUF，
+    文本编码器是 T5+CLIP-L 两个、还要一个单独的 ae 解码器，提示词也要过
+    FluxGuidance。所以「是不是 flux」决定了整张节点图，不能只当成换个底模。
+    """
+    n = (name or "").lower()
+    return n.endswith(".gguf") or "flux" in n
+
+
 def detect_family(checkpoint):
-    """按文件名猜底模家族：'sd15' 或 'sdxl'。认不出来就当 SD1.5。"""
+    """按文件名猜底模家族：'sd15' / 'sdxl' / 'flux'。认不出来就当 SD1.5。"""
     name = (checkpoint or "").lower()
+    if is_flux_model(name):
+        return "flux"
     if "xl" in name or "sdxl" in name:
         return "sdxl"
     return "sd15"
@@ -97,6 +111,8 @@ def work_scale(w, h, target):
 FAMILY_SIDES = {
     "sd15": (512, 768),
     "sdxl": (768, 1024),
+    # Flux 的原生分辨率是 1MP：短边 768 以下会糊、1024 以上 8 GB 卡会爆显存
+    "flux": (768, 1024),
 }
 
 
@@ -125,7 +141,7 @@ def work_size(w, h, checkpoint, max_upscale=4.0):
 
 # 工作缩放的最低倍率：低于它，宁肯把上下文收窄（少看一点周围），也不把
 # 原图细节缩没。openfill 用 0.6 / 0.75，同一套数。
-MIN_WORK_SCALE = {"sd15": 0.6, "sdxl": 0.75}
+MIN_WORK_SCALE = {"sd15": 0.6, "sdxl": 0.75, "flux": 0.75}
 
 
 def fit_context(sel, ctx, checkpoint, canvas_w, canvas_h, min_margin=64):
@@ -169,6 +185,8 @@ def checkpoint_note(name):
     普通模型还能用（noise 配方，洞外不动），但细结构附近容易留白痕。
     """
     name = name or ""
+    if is_flux_model(name):
+        return "%s（Flux · 质量最好，慢）" % name
     if is_inpaint_checkpoint(name):
         return "%s（inpaint 专用 · 推荐）" % name
     fam = detect_family(name)
@@ -574,6 +592,23 @@ class ComfyClient(object):
         except (KeyError, IndexError, TypeError):
             return []
 
+    def models(self, timeout=6.0):
+        """下拉框用的模型总表：SD 系（checkpoints）+ Flux 系（diffusion_models）。
+
+        两边加载方式完全不同（见 build_flux_inpaint_workflow），但对用户来说都只是
+        「选一个模型」，所以合成一张表；inpaint() 按名字自己分派。Flux 排在前面
+        ——它质量最好，装了就是拿来用的；不方便的是慢（8 GB 卡 1~3 分钟）
+        和要独占一份 T5，用户自己会权衡。
+        """
+        names = []
+        try:
+            names = self.checkpoints()
+        except ComfyError:
+            names = []
+        flux = [n for n in flux_unets(self, timeout=timeout)
+                if is_flux_model(n)]
+        return flux + [n for n in names if n not in flux]
+
     def first_checkpoint(self):
         """自动挑一个底模：环境变量 > **优先 inpaint 专用底模**。
 
@@ -599,7 +634,14 @@ class ComfyClient(object):
                 if n == want or os.path.basename(n) == os.path.basename(want):
                     return n
         special = [n for n in names if is_inpaint_checkpoint(n)]
-        return (special or names)[0]
+        # inpaint 专用模型里再按家族排一次：SDXL inpaint 的细节和语义理解明显
+        # 强过 SD1.5 inpaint（2026-11-24 在空房间地板上画猫，SD1.5 出得来形体
+        # 但正面像糊的，SDXL 一档能画出毛色分层和眼神）。SD1.5 仍然排在普通
+        # 底模前面——至少它见过「洞」。
+        if special:
+            special.sort(key=lambda n: 0 if detect_family(n) == "sdxl" else 1)
+            return special[0]
+        return names[0]
 
     # ---- 主要动作 ----
     def upload_image(self, filename, png_bytes):
@@ -733,6 +775,151 @@ def is_inpaint_checkpoint(name):
     普通模型配它们那两种都会把 mask 通道丢掉。
     """
     return "inpaint" in (name or "").lower()
+
+
+# ---- Flux Fill（4bit 量化） -------------------------------------------------
+# Flux 不是「换个底模」，是另一张图：主干要 UnetLoaderGGUF（普通 CheckpointLoader
+# 读不了 .gguf），文本编码器拆成 T5-XXL + CLIP-L 两个，解码要单独的 ae，
+# 提示词的强度由 FluxGuidance 那个旋钮管（不是 cfg）。所以只要底模是 flux，
+# 整张节点图换掉，别想着在 SD 的图上打个补丁。
+FLUX_UNET_NODE = "UnetLoaderGGUF"
+FLUX_DUAL_NODE = "DualCLIPLoader"
+FLUX_GUIDANCE = 30.0
+FLUX_STEPS = 20
+
+
+def _object_info(client, node, timeout=6.0):
+    """探一个节点的 /object_info；节点没注册（没装 GGUF 扩展）就给空表。
+
+    故意吞掉所有异常：这个函数在「列出模型」这种不该失败的地方用，节点不存在、
+    服务没起、mock 客户端没有 _request —— 都等价于「没有这个节点」。
+    """
+    try:
+        return client._request("/object_info/" + node, timeout=timeout) or {}
+    except Exception:
+        return {}
+
+
+def flux_unets(client, timeout=6.0):
+    """服务上 UnetLoaderGGUF 能看到的模型（= diffusion_models/unet 目录里的）。"""
+    return _combo_values(_object_info(client, FLUX_UNET_NODE, timeout),
+                         FLUX_UNET_NODE, "unet_name")
+
+
+def _pick(names, *hints, prefer=()):
+    """在候选里按关键词挑一个：先满足 all(h in name)，再看 prefer 加分。
+
+    prefer 里越靠前权重越高；名字**完全等于**某个 prefer 时直接胜出——否则
+    「ae.safetensors」会被「flux_ae.safetensors」这种同样带 ae 的抢走。
+    """
+    best, best_score = "", -1
+    for n in names:
+        low = n.lower().replace("\\", "/")
+        if hints and not all(h in low for h in hints):
+            continue
+        score = 0
+        for i, k in enumerate(prefer):
+            if low.rsplit("/", 1)[-1] == k:
+                score += 100
+            elif k in low:
+                score += len(prefer) - i
+        if score > best_score:
+            best, best_score = n, score
+    return best
+
+
+def flux_assets(client, unet="", timeout=8.0):
+    """凑齐 Flux 跑一次要的四样东西：主干 / T5 / CLIP-L / VAE。
+
+    挑不到的照着名字报缺什么，别让用户对着一句 KeyError 猜。
+    """
+    unets = flux_unets(client, timeout=timeout)
+    if not unets:
+        raise ComfyError(
+            "ComfyUI 里没有 Flux 主干（UnetLoaderGGUF 的列表是空的）。\n"
+            "确认 custom_nodes/ComfyUI-GGUF 已装好、模型放在 "
+            "models/diffusion_models\\ 下，然后重启 ComfyUI。")
+    unet = unet or _pick(unets, "flux", prefer=("fill", "q4"))
+    if not unet:
+        unet = _pick(unets, prefer=("fill",))
+
+    def combo(node, key):
+        return _combo_values(_object_info(client, node, timeout), node, key)
+
+    # DualCLIPLoader 的两个下拉共用一个候选池（目录相同），但 ComfyUI 只把
+    # 全部文件名挂在 clip_name1 上；顺手把 clip_name2 也取来并一次，谁列在哪
+    # 都能挑到。
+    clips = combo(FLUX_DUAL_NODE, "clip_name1")
+    for extra in combo(FLUX_DUAL_NODE, "clip_name2"):
+        if extra not in clips:
+            clips.append(extra)
+    t5 = _pick(clips, "t5", prefer=("xxl", "fp8"))
+    clip_l = _pick(clips, "clip_l") or _pick(clips, "clip-l")
+    vae_name = _pick(combo("VAELoader", "vae_name"), "ae",
+                     prefer=("ae.safetensors",))
+    missing = []
+    if not unet:
+        missing.append("主干 flux*.gguf（models/diffusion_models）")
+    if not t5:
+        missing.append("t5xxl_fp8_e4m3fn.safetensors（models/text_encoders）")
+    if not clip_l:
+        missing.append("clip_l.safetensors（models/text_encoders）")
+    if not vae_name:
+        missing.append("ae.safetensors（models/vae）")
+    if missing:
+        raise ComfyError("Flux 缺文件：" + "；".join(missing) +
+                         "。可以跑 tools/fetch_models.py flux 自动下。")
+    return {"unet": unet, "t5": t5, "clip_l": clip_l, "vae": vae_name}
+
+
+def build_flux_inpaint_workflow(assets, image_name, mask_name, prompt,
+                                negative="", steps=FLUX_STEPS, seed=0,
+                                guidance=FLUX_GUIDANCE, prefix="lb-ai-inpaint",
+                                batch=1):
+    """Flux Fill 的填充图：UnetLoaderGGUF + DualCLIPLoader + InpaintModelConditioning。
+
+    cfg 固定 1.0 —— Flux 是蒸馏模型，cfg>1 会把画面往「过饱和 + 硬边」推；
+    提示词强度改用 FluxGuidance（默认 30，高了更像提示词、低了更随原图）。
+    sampler 用 euler + simple，这是 Flux 的常规搭配。
+    """
+    wf = {
+        "10": {"class_type": FLUX_UNET_NODE,
+               "inputs": {"unet_name": assets["unet"]}},
+        "11": {"class_type": FLUX_DUAL_NODE,
+               "inputs": {"clip_name1": assets["t5"],
+                          "clip_name2": assets["clip_l"], "type": "flux"}},
+        "12": {"class_type": "VAELoader",
+               "inputs": {"vae_name": assets["vae"]}},
+        "2": {"class_type": "LoadImage", "inputs": {"image": image_name}},
+        "3": {"class_type": "LoadImage", "inputs": {"image": mask_name}},
+        "4": {"class_type": "CLIPTextEncode",
+              "inputs": {"text": prompt, "clip": ["11", 0]}},
+        "5": {"class_type": "CLIPTextEncode",
+              "inputs": {"text": negative or "", "clip": ["11", 0]}},
+        "13": {"class_type": "FluxGuidance",
+               "inputs": {"conditioning": ["4", 0],
+                          "guidance": float(guidance)}},
+        "6": {"class_type": "InpaintModelConditioning",
+              "inputs": {"positive": ["13", 0], "negative": ["5", 0],
+                         "vae": ["12", 0], "pixels": ["2", 0],
+                         "mask": ["3", 1], "noise_mask": True}},
+        "7": {"class_type": "KSampler",
+              "inputs": {"model": ["10", 0], "positive": ["6", 0],
+                         "negative": ["6", 1], "latent_image": ["6", 2],
+                         "seed": int(seed), "steps": int(steps), "cfg": 1.0,
+                         "sampler_name": "euler", "scheduler": "simple",
+                         "denoise": 1.0}},
+        "8": {"class_type": "VAEDecode",
+              "inputs": {"samples": ["7", 0], "vae": ["12", 0]}},
+        "9": {"class_type": "SaveImage",
+              "inputs": {"images": ["8", 0], "filename_prefix": prefix}},
+    }
+    batch = max(1, int(batch))
+    if batch > 1:
+        wf["14"] = {"class_type": "RepeatLatentBatch",
+                    "inputs": {"samples": ["6", 2], "amount": batch}}
+        wf["7"]["inputs"]["latent_image"] = ["14", 0]
+    return wf
 
 
 def build_inpaint_workflow(checkpoint, image_name, mask_name, prompt,
@@ -922,13 +1109,25 @@ def inpaint(client, image_png, mask_png_bytes, prompt, negative="",
     ckpt = checkpoint or client.first_checkpoint()
     recipe = variant
     if recipe in (None, "auto", ""):
-        recipe = "condition" if is_inpaint_checkpoint(ckpt) else "noise"
+        if is_flux_model(ckpt):
+            recipe = "flux"
+        else:
+            recipe = "condition" if is_inpaint_checkpoint(ckpt) else "noise"
 
-    wf = build_inpaint_workflow(ckpt, src_name, msk_name, prompt,
-                               negative=negative, steps=steps, cfg=cfg,
-                               seed=seed, denoise=denoise, sampler=sampler,
-                               scheduler=scheduler, grow_mask_by=grow_mask_by,
-                               prefix=prefix, batch=batch, variant=recipe)
+    if recipe == "flux":
+        # Flux 的四个文件要先凑齐（主干 / T5 / CLIP-L / ae），缺哪个当场点名。
+        assets = flux_assets(client, ckpt)
+        wf = build_flux_inpaint_workflow(assets, src_name, msk_name, prompt,
+                                         negative=negative, steps=steps,
+                                         seed=seed, prefix=prefix,
+                                         batch=batch)
+    else:
+        wf = build_inpaint_workflow(ckpt, src_name, msk_name, prompt,
+                                    negative=negative, steps=steps, cfg=cfg,
+                                    seed=seed, denoise=denoise, sampler=sampler,
+                                    scheduler=scheduler,
+                                    grow_mask_by=grow_mask_by,
+                                    prefix=prefix, batch=batch, variant=recipe)
     pid = client.queue(wf)
     entry = client.wait(pid, timeout=timeout, on_tick=on_tick)
     images = all_images(entry)
