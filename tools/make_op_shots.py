@@ -270,8 +270,8 @@ CASES = [
      "色彩强度 60%（与参考图匹配）",
      "Colour intensity 60% (match a reference)", None),
     ("layer-style", "lb:layer-style",
-     {"shadow-distance": 18, "shadow-size": 26, "shadow-opacity": 85,
-      "glow-on": "true", "glow-size": 30, "glow-opacity": 70},
+     {"shadow-distance": 24, "shadow-size": 34, "shadow-opacity": 90,
+      "glow-on": "true", "glow-size": 26, "glow-opacity": 45},
      "投影 距离 18 / 大小 26 / 不透明度 85%，外加外发光",
      "Drop shadow 18/26/85% plus an outer glow", None),
     # ---- 变形 ----
