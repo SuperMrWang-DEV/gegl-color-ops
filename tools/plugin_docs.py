@@ -763,14 +763,18 @@ multi    Lab split            组 · 穿透（带 alpha 时组上还有蒙版）
         menu='SuperMrWang → AI → AI Inpaint…',
         menus=['SuperMrWang → AI → AI Inpaint…（简版：只问画什么）',
                'SuperMrWang → AI → AI Inpaint (Advanced)…（全参数）',
+               'SuperMrWang → AI → AI Select by Name…（按名称自动选区）',
                'SuperMrWang → AI → AI Environment…（装 / 起 ComfyUI，看底模）'],
         menus_en=['SuperMrWang → AI → AI Inpaint… (three boxes)',
                   'SuperMrWang → AI → AI Inpaint (Advanced)… (every knob)',
+                  'SuperMrWang → AI → AI Select by Name… (SAM2 selection)',
                   'SuperMrWang → AI → AI Environment… (install / start ComfyUI)'],
         pdb='lb-plugin-ai-inpaint(\n    image, drawables, prompt, preset, negative)\n'
             'lb-plugin-ai-inpaint-advanced(\n    image, drawables, prompt, preset, negative,\n'
             '    server, checkpoint, steps, cfg, seed, denoise,\n'
             '    grow, grow-mask-by, feather, timeout, keep-mask, scale)\n'
+            'lb-plugin-ai-select(\n    image, drawables, object, sam2-model,\n'
+            '    threshold, grow, shift-x, shift-y, server, timeout)\n'
             'lb-plugin-ai-env(image)',
         spec_note="处理对象是<b>当前选区</b>：先框出要改的地方，插件把这块连同周围一圈"
                   "裁下来交给 ComfyUI，回来的图当新图层贴回原位，羽化过的选区做图层蒙版。"
@@ -900,6 +904,26 @@ keep-mask 打开时，另存一条 "AI Mask" 通道，
          那张再做两步收尾：<b>接缝色差补偿</b>（只补低频偏移，生成细节不动）和
          <b>颗粒匹配</b>（周围是颗粒感照片就补噪点，干净照片不加）。<code>Variations</code>
          设成 1 就是原来的一枪定生死。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>按名称自动选区</h3><span class="pill">不手描</span></div>
+      <p><b>AI Select by Name…</b> 不描边，只写名字：<code>ear</code>、<code>left
+         eye</code>、<code>the white shirt</code>。它把图层送去 ComfyUI，走
+         ComfyUI-RMBG 的 <b>SAM2Segment</b>——GroundingDINO 先把文字变成候选框，
+         SAM2 再按框切出蒙版——蒙版回来变成<b>普通 GIMP 选区</b>。这一步不改一个
+         像素，后面的 AI 填充、调色、局部模糊、抠图都能接着用。</p>
+      <p>实测 744×1120 的人像、<code>sam2.1_hiera_tiny</code> 档：<b>5.8 秒</b>选中
+         74×102 的耳朵，边界和手描的一致。档位越大边缘越准（<code>base_plus</code>
+         在杂乱背景上更稳），代价是慢一些。</p>
+      <p><b>要在物体旁边加东西，记得平移选区。</b>SAM2 给的是物体轮廓、不含周围的
+         留白：框住整只耳朵再写 <code>earring</code>，出来的是压在耳朵上的金环和一个
+         黑洞；把 <code>Shift selection Y</code> 调 +58、让选区落到耳垂下方之后，
+         才是一枚挂在耳垂上的金环。改物体本身（换衣服、去掉图案）就直接用原框。</p>
+      <p>一次性准备：<code>python tools/setup_comfy_sam2.py</code>——装
+         <code>groundingdino-py</code> / <code>hydra-core</code> / <code>omegaconf</code>、
+         下 SAM2-tiny + GroundingDINO + bert-base-uncased（约 1.2 GB，走 hf-mirror）、
+         再写一个 <code>custom_nodes/zz_bert_shim</code> 补丁（transformers 5.x 删掉了
+         <code>BertModel.invert_attention_mask</code>，补上才能跑）。装完重启 ComfyUI。</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>AI 环境</h3><span class="pill">装在哪都行</span></div>

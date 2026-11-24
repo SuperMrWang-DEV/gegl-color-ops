@@ -1097,11 +1097,46 @@ python 的退出码 + `if errorlevel 1 set EXTRA=--cpu`，稳定得多。
 | --- | --- | --- |
 | **AI Inpaint…** | 画什么（`prompt`）+ 画什么主体（`preset` 下拉）+ 不要什么（`negative`） | 日常。三个框，其余参数用默认值 |
 | **AI Inpaint (Advanced)…** | 上面三项 + `server` / `checkpoint`（下拉）/ `steps` / `cfg` / `seed` / `denoise` / `grow` / `grow-mask-by` / `feather` / `timeout` / `keep-mask` / `scale` | 要复现同一张结果、要挑底模、要调步数或降 `denoise` 保结构 |
+| **AI Select by Name…** | 要选什么（`object`，英文名词）+ SAM2 档位 / 阈值 / 外扩 / **平移** | 不想手描（头发、耳垂、衣服边缘），或者想让选区精确贴住一个物体 |
 | **AI Environment…** | 不问你，直接报状态（连上没、版本、有哪些底模）+ 手选目录 / 启动 / 停止 | 第一次装 ComfyUI、装在别的盘、服务没起、想换模型 |
 
 为什么拆两个：GIMP 的参数对话框是一次性把参数全铺开的，没法折叠。十几个采样
 参数一摆，真正要填的那个框就被埋掉了——用起来像「只能重绘、不能指定画什么」。
 简版只留「画什么 / 画哪个主体 / 不要什么」。
+
+### 按名称自动选区（AI Select by Name…）
+
+手描「耳朵」「头发边缘」很难描准，写一句英文名词反而更贴：
+
+    SuperMrWang → AI → AI Select by Name…    object = ear
+
+它把当前图层送去 ComfyUI，走 ComfyUI-RMBG 里的 **SAM2Segment**：GroundingDINO
+把文字变成候选框，SAM2 按框切出蒙版，蒙版转成**普通 GIMP 选区**——之后 AI 填充、
+调色、局部模糊、抠图都能接着用，这一步本身不动任何像素。实测（744×1120 人像、
+`sam2.1_hiera_tiny`）：**5.8 秒**出选区，框出 74×102 的耳朵，和手描的边界一致。
+
+**一次性安装**（约 1.2 GB 权重，走 hf-mirror）：
+
+    python tools/setup_comfy_sam2.py          # --check 只看缺什么
+    然后重启 ComfyUI
+
+它做三件事：装 `groundingdino-py` / `hydra-core` / `omegaconf`；把 SAM2-tiny、
+GroundingDINO-SwinT、bert-base-uncased 下到 `models/` 对应目录；写一个
+`custom_nodes/zz_bert_shim` 补丁——transformers 5.x 删掉了
+`BertModel.invert_attention_mask`，而 groundingdino 的 bertwarper 直接取它，
+不补的话一跑就 `AttributeError`（2026-11-24 踩的，ComfyUI-RMBG 自带的
+`patch_transformers_bert()` 只补了另外两个方法）。
+
+**两条使用规则**：
+
+- **想改这个物体本身**（换掉耳朵、去掉衣服上的字）：直接用选出来的框。
+- **想在它旁边加东西**（耳环挂在耳垂下面、挂钩钉在墙上）：把 `Shift selection
+  X / Y` 调一调，让选区落到物体**旁边那块留白**上。SAM2 给的是物体轮廓、不含
+  留白，框住整只耳朵再写 `earring`，出来的是压在耳朵上的金环加一个黑洞——
+  实测两次都是这样；选区往下挪 58 px 之后就正常了。
+
+名字写常见名词（`ear` / `eye` / `cup` / `shoe` / `shirt`），一次一个物体。选不到
+就把 `Detection threshold` 降到 0.2 试试——GroundingDINO 只认它见过的类别。
 
 **注册顺序有个坑**：`add_menu_path()` 必须写在 `set_menu_label()` 之后。反过来
 写，GIMP 会静默把菜单路径丢掉——PDB 里查得到过程、插件看着像装好了，但菜单里
@@ -1747,7 +1782,8 @@ SuperMrWang → Levels    → <算子>   （7 个色阶）
 SuperMrWang → Component → <算子>   （10 个 dual / compose + 灰度转分量）
 SuperMrWang → Tone / Color / Blend / Mask → <算子>
 SuperMrWang → Sharpen / Noise / Distort → <算子>
-SuperMrWang → AI        → AI Inpaint… / AI Inpaint (Advanced)… / AI Environment…
+SuperMrWang → AI        → AI Inpaint… / AI Inpaint (Advanced)… /
+                          AI Select by Name… / AI Environment…
 SuperMrWang → Retouch   → 高低频 / 双曲线 / 中性灰磨皮
                           各自再加一个「（AI 预修）」入口
 SuperMrWang → Observe   → 黑白 / 陡峭曲线 / 波浪曲线 / 饱和度 / 阈值 / 海报化

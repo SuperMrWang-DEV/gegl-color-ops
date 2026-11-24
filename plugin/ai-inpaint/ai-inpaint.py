@@ -12,6 +12,7 @@
 
  menu      SuperMrWang → AI → AI Inpaint…（简版：只问画什么）
            SuperMrWang → AI → AI Inpaint (Advanced)…（全参数）
+           SuperMrWang → AI → AI Select by Name…（写个名词，SAM2 自动选区）
 
  usage     1. 先建选区（选区可以粗糙，边缘由 grow / feather 收拾）；
            2. 跑本插件，填提示词——常用词可以直接写中文（prompt_tools
@@ -107,6 +108,11 @@ try:
     import prompt_tools
 except Exception:                  # 没带 prompt_tools.py：只用英文，不影响其他功能
     prompt_tools = None
+
+try:
+    import mask_io as MI           # 蒙版 ↔ 选区（按名称自动选区那条路要用）
+except Exception:
+    MI = None
 
 try:
     import comfy_launcher            # 手选 ComfyUI 目录 + 连不上时自动拉起
@@ -670,6 +676,14 @@ def ai_inpaint(image, drawable, prompt, negative=DEFAULT_NEGATIVE,
 PROC_QUICK = 'lb-plugin-ai-inpaint'
 PROC_ADVANCED = 'lb-plugin-ai-inpaint-advanced'
 PROC_ENV = 'lb-plugin-ai-env'
+PROC_SELECT = 'lb-plugin-ai-select'
+
+# 按名称自动选区：送去 SAM2 的长边。SAM2 内部就是把图缩到 1024 处理的，
+# 送 1280 已经足够；4000×6000 原尺寸上传只是白等网络。
+SELECT_EDGE = 1280
+# 选完往外出几个像素：后面要填充/羽化时，边界那一条最容易露原来的像素。
+SELECT_GROW = 4
+SELECT_THRESHOLD = 0.30
 
 
 # ---- AI 环境 / environment helper -------------------------------------------
@@ -1145,13 +1159,87 @@ def _add_checkpoint_argument(procedure):
         GObject.ParamFlags.READWRITE)
 
 
+# ---- 按名称自动选区（SAM2 + GroundingDINO）----------------------------------
+# 让人手描「耳朵」很难描得准，尤其羽毛状的边缘；写一句 "ear" 交给模型切，
+# 反而更贴。这条路走 ComfyUI 里 ComfyUI-RMBG 的 SAM2Segment：
+#   LoadImage → SAM2Segment（GroundingDINO 找框 → SAM2 出蒙版）→ MaskToImage
+# 拿回来的蒙版再 mask_io.selection_from_mask() 变成画布上的选区，之后
+# 「AI 填充」「AI 抠图」「调色」都能接着用。
+def _shift_mask(gray, w, h, dx, dy):
+    """整块蒙版平移（px）。移出画布的部分丢掉，空出来的地方是 0。
+
+    为什么要平移：SAM2 给的是**物体轮廓**。要把东西「加在它旁边」（耳环挂在
+    耳垂下面、帽子戴在头顶），选区得落在物体之外的留白上，否则模型会把整个
+    物体连同它一起重画——实测框住整只耳朵再写 earring，出来的是压在耳朵上的
+    金环加一个黑洞。挪一下选区是最省事的做法。
+    """
+    dx, dy = int(round(dx)), int(round(dy))
+    if not dx and not dy:
+        return gray
+    out = bytearray(w * h)
+    for y in range(h):
+        sy = y - dy
+        if sy < 0 or sy >= h:
+            continue
+        row = gray[sy * w:(sy + 1) * w]
+        if dx >= 0:
+            if dx < w:
+                out[y * w + dx:y * w + w] = row[:w - dx]
+        else:
+            k = -dx
+            if k < w:
+                out[y * w:y * w + w - k] = row[k:]
+    return bytes(out)
+
+
+def ai_select_object(image, drawable, thing, server="", sam2_model="",
+                     threshold=SELECT_THRESHOLD, grow=SELECT_GROW,
+                     shift_x=0, shift_y=0, timeout=300.0, client=None):
+    """按名称选中对象：文字 → 蒙版 → 选区。返回 info（cover/empty/seconds）。
+
+    找不到（名字写错、图里真没有）时**不动**原来的选区，返回 empty=True，
+    由调用方去提示——静默清空选区比报错更让人困惑。
+    """
+    if ai_client is None:
+        raise RuntimeError(_("plugin/_shared/ai_client.py is missing: install "
+                             "the _shared folder next to the plug-in"))
+    if MI is None:
+        raise RuntimeError(_("plugin/_shared/mask_io.py is missing: install "
+                             "the _shared folder next to the plug-in"))
+    thing = (thing or "").strip()
+    if not thing:
+        raise RuntimeError(
+            _("Type what to select: an English noun phrase like \"ear\", "
+              "\"left eye\", \"the white shirt\". One object at a time works "
+              "best — \"ear\" finds ears, \"ear and nose\" usually finds "
+              "nothing."))
+    if client is None:
+        client = ai_client.ComfyClient(server or "")
+
+    pw, ph, rgba = MI.read_drawable_rgba(drawable, SELECT_EDGE)
+    png = ai_client.rgba_png(pw, ph, rgba)
+    mw, mh, gray, info = ai_client.segment(
+        client, png, thing, sam2_model=sam2_model,
+        threshold=float(threshold), timeout=float(timeout))
+    if info.get("empty"):
+        return info
+    # 平移量按「画布像素」给，蒙版是缩过的，换算过去再挪
+    canvas_w = max(1, image.get_width())
+    gray = _shift_mask(gray, mw, mh, int(shift_x) * mw / canvas_w,
+                       int(shift_y) * mh / max(1, image.get_height()))
+    MI.selection_from_mask(image, gray, mw, mh)
+    if int(grow) > 0:
+        _pdb('gimp-selection-grow', image=image, steps=int(grow))
+    return info
+
+
 class AiInpaintPlugin(Gimp.PlugIn):
 
     def do_set_i18n(self, procname):
         return True, 'gegl-color-ops', None
 
     def do_query_procedures(self):
-        return [PROC_QUICK, PROC_ADVANCED, PROC_ENV]
+        return [PROC_QUICK, PROC_ADVANCED, PROC_SELECT, PROC_ENV]
 
     def do_create_procedure(self, name):
         if name == PROC_ENV:
@@ -1171,6 +1259,9 @@ class AiInpaintPlugin(Gimp.PlugIn):
                 name)
             procedure.add_menu_path("<Image>/SuperMrWang/AI")
             return procedure
+
+        if name == PROC_SELECT:
+            return self._create_select_procedure(name)
 
         procedure = Gimp.ImageProcedure.new(
             self, name, Gimp.PDBProcType.PLUGIN, self.run, None)
@@ -1317,6 +1408,122 @@ class AiInpaintPlugin(Gimp.PlugIn):
                 Gimp.PDBStatusType.SUCCESS, GLib.Error())
         except Exception as exc:
             Gimp.message("ai-inpaint: %s" % exc)
+            return procedure.new_return_values(
+                Gimp.PDBStatusType.EXECUTION_ERROR, GLib.Error(str(exc)))
+
+    def _create_select_procedure(self, name):
+        """「按名称选区…」：只说一句要选什么，选区由 SAM2 切。
+
+        模型档位写死成 ComfyUI-RMBG 支持的那四档，注册时**不问服务**——
+        问一次就要等连接超时，等于把 GIMP 启动拖慢，而这里的候选是固定的。
+        """
+        procedure = Gimp.ImageProcedure.new(
+            self, name, Gimp.PDBProcType.PLUGIN, self.run_select, None)
+        procedure.set_image_types("RGB*")
+        procedure.set_sensitivity_mask(Gimp.ProcedureSensitivityMask.DRAWABLE |
+                                       Gimp.ProcedureSensitivityMask.DRAWABLES)
+        procedure.set_attribution("SuperMrWang", "SuperMrWang", "2026")
+        procedure.add_string_argument(
+            "object", _("Select what"),
+            _("An English noun phrase naming ONE thing to select: \"ear\", "
+              "\"left eye\", \"the white shirt\", \"hair\". The result is a "
+              "normal selection — AI Inpaint, colour work and everything else "
+              "can follow. Nothing is painted here."),
+            "", GObject.ParamFlags.READWRITE)
+
+        models = ()
+        if ai_client is not None:
+            models = tuple(getattr(ai_client, "SEG_MODELS", ()) or ())
+        if models:
+            notes = {
+                "sam2.1_hiera_tiny": _("Tiny — fastest, fine for one clean object"),
+                "sam2.1_hiera_small": _("Small — a bit more accurate, still quick"),
+                "sam2.1_hiera_base_plus": _("Base+ — slower, better on cluttered photos"),
+                "sam2.1_hiera_large": _("Large — slowest, best edges"),
+            }
+            choice = Gimp.Choice.new()
+            for idx, mid in enumerate(models, 1):
+                choice.add(mid, idx, notes.get(mid, mid),
+                           _("Weights in models\\sam2"))
+            procedure.add_choice_argument(
+                "sam2-model", _("SAM2 model"),
+                _("Bigger = better edges, slower. Tiny is enough for a clear "
+                  "object; try Base+ when hair or clutter gets in the way."),
+                choice, models[0], GObject.ParamFlags.READWRITE)
+        else:
+            procedure.add_string_argument(
+                "sam2-model", _("SAM2 model"),
+                _("ComfyUI-RMBG not found — leave empty"), "",
+                GObject.ParamFlags.READWRITE)
+
+        procedure.add_double_argument(
+            "threshold", _("Detection threshold"),
+            _("How sure GroundingDINO must be before it proposes a box. Lower "
+              "finds more (and more wrong) objects; raise it to 0.4 if the "
+              "selection grabs things you did not name."),
+            0.05, 0.95, SELECT_THRESHOLD, GObject.ParamFlags.READWRITE)
+        procedure.add_int_argument(
+            "grow", _("Grow selection"),
+            _("Pixels to expand after selecting (4 is a good default; keeps the "
+              "old edge from showing when you fill or feather afterwards)"),
+            0, 64, SELECT_GROW, GObject.ParamFlags.READWRITE)
+        procedure.add_int_argument(
+            "shift-x", _("Shift selection X"),
+            _("Move the finished selection sideways. SAM2 outlines the object "
+              "itself; to ADD something next to it (a hook on the wall, an "
+              "earring under the lobe) shift the selection onto the empty spot "
+              "first, otherwise the model repaints the object too."),
+            -2000, 2000, 0, GObject.ParamFlags.READWRITE)
+        procedure.add_int_argument(
+            "shift-y", _("Shift selection Y"),
+            _("Move the finished selection up/down. Positive = down. Use it "
+              "with Shift X to aim at the empty area where the new thing goes."),
+            -2000, 2000, 0, GObject.ParamFlags.READWRITE)
+        procedure.add_string_argument(
+            "server", _("ComfyUI address"),
+            _("Empty = $LB_COMFY_URL, else http://127.0.0.1:8188"),
+            "", GObject.ParamFlags.READWRITE)
+        procedure.add_int_argument(
+            "timeout", _("Timeout (s)"),
+            _("How long to wait before giving up (first run also loads "
+              "GroundingDINO + SAM2, which takes a while)"),
+            30, 3600, 300, GObject.ParamFlags.READWRITE)
+
+        procedure.set_menu_label(_("AI Select by Name…"))
+        procedure.set_documentation(
+            _("AI Select by Name: type what to select, get a selection"),
+            _("Uploads the layer to ComfyUI, runs SAM2 (with GroundingDINO for "
+              "the text-to-box step) and turns the mask into a normal GIMP "
+              "selection. Needs ComfyUI-RMBG plus the SAM2 / GroundingDINO "
+              "weights; nothing in the image is modified."),
+            name)
+        procedure.add_menu_path("<Image>/SuperMrWang/AI")
+        return procedure
+
+    def run_select(self, procedure, run_mode, image, drawables, config, data):
+        """选区模式的「确定」：只改选区，不动像素，所以不用 undo group。"""
+        try:
+            info = ai_select_object(
+                image, drawables[0],
+                config.get_property('object') or "",
+                config.get_property('server') or "",
+                config.get_property('sam2-model') or "",
+                config.get_property('threshold') or SELECT_THRESHOLD,
+                config.get_property('grow') if config.get_property('grow')
+                is not None else SELECT_GROW,
+                config.get_property('shift-x') or 0,
+                config.get_property('shift-y') or 0,
+                config.get_property('timeout') or 300)
+            if info.get("empty"):
+                Gimp.message(
+                    _("Nothing matched. GroundingDINO puts a box around what it "
+                      "recognises, so try a plainer noun (\"ear\", \"shoe\", "
+                      "\"cup\"), lower the threshold to ~0.2, or check that the "
+                      "thing is actually in the picture."))
+            return procedure.new_return_values(
+                Gimp.PDBStatusType.SUCCESS, GLib.Error())
+        except Exception as exc:
+            Gimp.message("ai-select: %s" % exc)
             return procedure.new_return_values(
                 Gimp.PDBStatusType.EXECUTION_ERROR, GLib.Error(str(exc)))
 

@@ -366,6 +366,51 @@ try:
               and hasattr(mod.Gtk, "FileChooserDialog")
               and hasattr(mod.Gtk.FileChooserAction, "SELECT_FOLDER"))
 
+    # ---- 按名称自动选区（SAM2）：注册 + 蒙版平移 ----
+    sel_proc = Gimp.get_pdb().lookup_procedure(mod.PROC_SELECT)
+    check("注册了「按名称选区」过程", sel_proc is not None)
+    if sel_proc is not None:
+        scfg = sel_proc.create_config()
+        names = {p.name for p in scfg.list_properties()}
+        for key in ("object", "sam2-model", "threshold", "grow",
+                    "shift-x", "shift-y", "server", "timeout"):
+            check("  参数齐了：%s" % key, key in names, ",".join(sorted(names)))
+        check("  默认不平移", scfg.get_property("shift-y") == 0)
+        check("  默认阈值 0.30", abs(scfg.get_property("threshold") - 0.30) < 1e-9)
+        try:
+            mod.ai_select_object(img, img.get_layers()[0], "")
+            check("空名字要报错（不能静默乱选）", False)
+        except RuntimeError as exc:
+            check("空名字要报错（不能静默乱选）", "Type what to select" in str(exc),
+                  str(exc)[:60])
+
+    # 蒙版平移：右移 / 下移 / 越界 / 零位移
+    W, H = 4, 3
+    base = bytes([1, 2, 3, 4,
+                  5, 6, 7, 8,
+                  9, 10, 11, 12])
+    got = mod._shift_mask(base, W, H, 1, 0)
+    check("平移 x=+1：整行右移、左边补 0",
+          list(got) == [0, 1, 2, 3,
+                        0, 5, 6, 7,
+                        0, 9, 10, 11], list(got))
+    got = mod._shift_mask(base, W, H, 0, 1)
+    check("平移 y=+1：整行下移、最上面补 0",
+          list(got) == [0, 0, 0, 0,
+                        1, 2, 3, 4,
+                        5, 6, 7, 8], list(got))
+    got = mod._shift_mask(base, W, H, -1, 0)
+    check("平移 x=-1：整行左移、右边补 0",
+          list(got) == [2, 3, 4, 0,
+                        6, 7, 8, 0,
+                        10, 11, 12, 0], list(got))
+    check("位移超过画布宽度就整块清空",
+          set(mod._shift_mask(base, W, H, W + 1, 0)) == {0})
+    check("零位移原样返回（省一次拷贝）",
+          mod._shift_mask(base, W, H, 0, 0) is base)
+    check("shift-x/y 是对话框参数（画布像素）",
+          mod.ai_select_object.__defaults__ is not None)
+
     # GIMP 会把没删掉的图像当成「插件漏出来的」报到日志里，收尾清干净
     for im in (img, img2, img3, img4):
         im.delete()

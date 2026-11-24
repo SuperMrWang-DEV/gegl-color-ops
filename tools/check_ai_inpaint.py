@@ -757,12 +757,63 @@ def test_fit_context():
                              "sd15.safetensors", 400, 300) == (0, 0, 300, 200))
 
 
+def test_segment():
+    """按名称自动选区：工作流结构 + 蒙版平移 + 报错翻译。"""
+    print("\n按名称自动选区（SAM2）")
+
+    wf = ai_client.build_segment_workflow("src.png", "ear")
+    kinds = {n["class_type"] for n in wf.values()}
+    ok("走 SAM2Segment 节点", "SAM2Segment" in kinds, sorted(kinds))
+    ok("蒙版过 MaskToImage 才能存盘", "MaskToImage" in kinds)
+    ok("提示词传进去了",
+       next(n for n in wf.values() if n["class_type"] == "SAM2Segment")
+       ["inputs"]["prompt"] == "ear")
+    seg = next(n for n in wf.values() if n["class_type"] == "SAM2Segment")
+    ok("取的是 SAM2 的第 2 路（MASK）",
+       [n for n in wf.values() if n["class_type"] == "MaskToImage"][0]
+       ["inputs"]["mask"] == ["2", 1])
+    ok("默认用 tiny 档（够用又快）", seg["inputs"]["sam2_model"] ==
+       "sam2.1_hiera_tiny", seg["inputs"]["sam2_model"])
+    ok("不抠前景（background=Alpha 只影响第 1 路）",
+       seg["inputs"]["background"] == "Alpha")
+    ok("threshold 传进去了",
+       seg["inputs"]["threshold"] == ai_client.SEG_DEFAULT_THRESHOLD)
+    wf2 = ai_client.build_segment_workflow("s.png", "left eye",
+                                           sam2_model="sam2.1_hiera_base_plus",
+                                           threshold=0.5, mask_offset=6)
+    seg2 = next(n for n in wf2.values() if n["class_type"] == "SAM2Segment")
+    ok("档位和膨胀量能改",
+       seg2["inputs"]["sam2_model"] == "sam2.1_hiera_base_plus" and
+       seg2["inputs"]["mask_offset"] == 6)
+
+    # 下拉值的抠取：list 与 dict 两种形态都要认
+    fake = {"SAM2Segment": {"input": {"required": {
+        "sam2_model": [["sam2.1_hiera_tiny", "sam2.1_hiera_large"], {}]}}}}
+    ok("从 /object_info 读出模型档位",
+       ai_client._combo_values(fake, "SAM2Segment", "sam2_model") ==
+       ["sam2.1_hiera_tiny", "sam2.1_hiera_large"])
+    ok("节点没有时返回空表，不抛",
+       ai_client._combo_values({}, "SAM2Segment", "sam2_model") == [])
+
+    # 报错翻译：缺包要说清楚装哪个 PyPI 名字
+    msg = ai_client.explain_segment_error(
+        "ComfyUI 执行出错：SAM2Segment: No module named 'groundingdino'")
+    ok("缺 groundingdino 时给出 PyPI 名",
+       "groundingdino-py" in msg, msg[:80])
+    msg2 = ai_client.explain_segment_error(
+        "ComfyUI 执行出错：SAM2Segment: No module named 'hydra'")
+    ok("缺 hydra 时提示 hydra-core", "hydra-core" in msg2, msg2[:80])
+    ok("认不出的错误原样返回",
+       ai_client.explain_segment_error("炸了") == "炸了")
+
+
 def main():
     test_png()
     test_mask()
     test_align()
     test_canvas_ratio()
     test_workflow()
+    test_segment()
     test_family()
     test_work_size()
     test_fit_context()

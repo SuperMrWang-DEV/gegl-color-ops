@@ -1142,3 +1142,166 @@ def cutout(client, image_png, model="", sensitivity=1.0, process_res=1024,
                   "seconds": round(time.time() - t0, 2),
                   "filename": img.get("filename", "")}
 
+
+# ---- 按名称自动选区（SAM2 + GroundingDINO）---------------------------------
+# 还是 ComfyUI-RMBG 这个节点包，只不过用的是里面的 SAM2Segment：文字描述 →
+# GroundingDINO 找出候选框 → SAM2 按框切出蒙版。这样「把耳朵选中」不用手描，
+# 写一句 "ear" 就行。
+#
+# 和抠图的区别：抠图给的是「整个前景」，这个给的是「你点名的那个东西」，
+# 而且能给出多块（比如两只眼睛）。蒙版直接转成 GIMP 选区，后面的填充/
+# 调色/局部模糊都能接着用。
+SEG_NODE = "SAM2Segment"
+SEG_MASK_NODE = "MaskToImage"
+SEG_PREFIX = "lb-ai-seg"
+SEG_DINO = "GroundingDINO_SwinT_OGC (694MB)"
+SEG_MODELS = ("sam2.1_hiera_tiny", "sam2.1_hiera_small",
+              "sam2.1_hiera_base_plus", "sam2.1_hiera_large")
+SEG_DEFAULT_THRESHOLD = 0.30
+
+
+def build_segment_workflow(image_name, prompt, sam2_model=SEG_MODELS[0],
+                           dino_model=SEG_DINO,
+                           threshold=SEG_DEFAULT_THRESHOLD, mask_offset=0,
+                           prefix=SEG_PREFIX):
+    """LoadImage → SAM2Segment → MaskToImage → SaveImage。
+
+    只取 SAM2Segment 的**第 2 路**（MASK，0..1 浮点），过 MaskToImage 变成
+    IMAGE 存盘——第 1 路是「抠出来的前景」，第 3 路是带背景色的预览图，
+    对我们都没用。
+    mask_offset 是节点的「膨胀/收缩」，正数往外出：给填充留一圈余量时有用。
+    threshold 越低框越多（0.30 对小东西比默认 0.35 稳一点）。
+    """
+    return {
+        "1": {"class_type": "LoadImage", "inputs": {"image": image_name}},
+        "2": {"class_type": SEG_NODE,
+              "inputs": {"image": ["1", 0], "prompt": prompt,
+                         "sam2_model": sam2_model, "dino_model": dino_model,
+                         "device": "Auto",
+                         "threshold": float(threshold),
+                         "mask_offset": int(mask_offset),
+                         "invert_output": False, "unload_model": False,
+                         "background": "Alpha"}},
+        "3": {"class_type": SEG_MASK_NODE, "inputs": {"mask": ["2", 1]}},
+        "4": {"class_type": "SaveImage",
+              "inputs": {"images": ["3", 0], "filename_prefix": prefix}},
+    }
+
+
+def _combo_values(object_info, node_id, key):
+    """从 /object_info 里抠某个下拉的候选值（值可能是 list 也可能是 dict）。"""
+    try:
+        spec = object_info[node_id]["input"]
+        for group in ("required", "optional"):
+            item = (spec.get(group) or {}).get(key)
+            if isinstance(item, (list, tuple)) and item:
+                values = item[0]
+                if isinstance(values, (list, tuple)):
+                    return [str(v) for v in values]
+                if isinstance(values, dict):
+                    return [str(v) for v in values]
+    except (KeyError, TypeError, AttributeError, IndexError):
+        pass
+    return []
+
+
+def segment_models(client, timeout=2.0):
+    """服务上 SAM2Segment 支持的模型档位；节点没注册就空表（不抛）。"""
+    try:
+        info = client._request("/object_info/" + SEG_NODE, timeout=timeout)
+    except ComfyError:
+        return []
+    return _combo_values(info, SEG_NODE, "sam2_model")
+
+
+def segment_available(client, timeout=2.0):
+    """SAM2Segment 这个节点在不在（决定菜单里显不显示「按名称选区」）。"""
+    return bool(segment_models(client, timeout=timeout))
+
+
+def explain_segment_error(message):
+    """把 SAM2 / GroundingDINO 的报错翻成「缺什么、装什么」。
+
+    这一段最容易踩的坑是**权重走 huggingface.co 直连**：节点自己会下载，
+    但国内直连是 0 字节卡死（不是慢，是不动），看起来像「ComfyUI 卡住了」。
+    所以除了缺 Python 包，还要把「权重放哪」写清楚。
+    """
+    text = str(message or "")
+    low = text.lower()
+    tips = []
+    mod = re.search(r"no module named '([\w.\-]+)'", low)
+    if mod:
+        pkg = mod.group(1).split(".")[0]
+        alias = {"groundingdino": "groundingdino-py", "hydra": "hydra-core",
+                 "omegaconf": "omegaconf", "addict": "addict",
+                 "supervision": "supervision", "iopath": "iopath"}
+        tips.append("缺 Python 包 %s：\n    <ComfyUI>\\py312\\python.exe -m pip "
+                    "install %s\n装完**重启 ComfyUI**（节点是启动时注册的）。"
+                    % (pkg, alias.get(pkg, pkg)))
+    if "download" in low or "http" in low or "0 字节" in text:
+        tips.append(
+            "SAM2 / GroundingDINO 的权重是它们自己从 huggingface.co 下的，"
+            "国内直连会卡在 0 字节。手动放到这两个目录即可（文件名必须一致）：\n"
+            "    models\\sam2\\sam2.1_hiera_tiny-fp16.safetensors   (~78 MB)\n"
+            "    models\\grounding-dino\\groundingdino_swint_ogc.safetensors"
+            "   (~700 MB)\n"
+            "    models\\grounding-dino\\GroundingDINO_SwinT_OGC.cfg.py")
+    timed_out = ("还没跑完" in text) or ("timed out" in low) or ("timeout" in low)
+    if timed_out and not tips:
+        tips.append("这次是等超时。首次运行要先加载 GroundingDINO(≈1.5 GB 显存)"
+                    "+ SAM2，头一次会慢一些；再跑一次通常就快了。")
+    if not tips:
+        return text
+    return text + "\n\n" + "\n\n".join(tips)
+
+
+def segment(client, image_png, prompt, sam2_model="", dino_model="",
+            threshold=SEG_DEFAULT_THRESHOLD, mask_offset=0,
+            timeout=300.0, on_tick=None):
+    """传图 → 按名称切出蒙版 → 取回。返回 (w, h, gray_bytes, info)。
+
+    gray_bytes 是单通道蒙版（255 = 选中的对象），尺寸和送进去的图一致——
+    调用方负责再缩放回画布（mask_io.selection_from_mask 会做）。
+    一个对象都没找到时 gray 全 0，info["empty"] 为 True，不抛异常：这是
+    正常结果（名字写错了、图里没有），让插件去提示比抛错友好。
+    """
+    t0 = time.time()
+    models = segment_models(client, timeout=3.0)
+    if not models:
+        raise ComfyError(
+            "ComfyUI 里没有 SAM2Segment 节点。按名称选区需要 ComfyUI-RMBG "
+            "节点包（0.40 以上版本才有 SAM2 这部分）：\n"
+            "  1. 打开 ComfyUI 的 custom_nodes 目录；\n"
+            "  2. git clone https://github.com/1038lab/ComfyUI-RMBG\n"
+            "  3. <ComfyUI>\\py312\\python.exe -m pip install groundingdino-py "
+            "hydra-core omegaconf iopath\n"
+            "  4. 把 SAM2 / GroundingDINO 权重放进 models\\sam2 与 "
+            "models\\grounding-dino\n"
+            "  5. 重启 ComfyUI\n"
+            "（只想要抠图的话不需要这些，抠图那条路早就在跑。）")
+    want = (sam2_model or "").strip()
+    if want not in models:
+        want = SEG_MODELS[0] if SEG_MODELS[0] in models else models[0]
+
+    src_name, _ = client.upload_image("lb-ai-seg-src.png", image_png)
+    wf = build_segment_workflow(src_name, prompt, sam2_model=want,
+                               dino_model=dino_model or SEG_DINO,
+                               threshold=threshold, mask_offset=mask_offset)
+    pid = client.queue(wf)
+    try:
+        entry = client.wait(pid, timeout=timeout, on_tick=on_tick)
+    except ComfyError as exc:
+        raise ComfyError(explain_segment_error(str(exc))) from None
+    img = first_image(entry)
+    blob = client.download(img.get("filename", ""), img.get("subfolder", ""),
+                           img.get("type", "output"))
+    w, h, ch, data = decode_png(blob)
+    gray = data[0::ch] if ch > 1 else data          # MaskToImage 存的是灰度 RGB
+    hit = sum(1 for v in gray[::7] if v > 127) * 7
+    info = {"prompt_id": pid, "model": want,
+            "seconds": round(time.time() - t0, 2),
+            "filename": img.get("filename", ""),
+            "cover": round(hit / float(max(1, w * h)), 4),
+            "empty": hit < 32}
+    return w, h, gray, info
+

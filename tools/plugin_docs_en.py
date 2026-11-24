@@ -1631,6 +1631,30 @@ so you can re-limit the area later.</code></pre>
          clean ones). Set <code>Variations</code> to 1 for the old one-shot behaviour.</p>
     </div>
     <div class="dl">
+      <div class="dl-head"><h3>Select by name</h3><span class="pill">no tracing</span></div>
+      <p><b>AI Select by Name…</b> never asks you to trace anything: type
+         <code>ear</code>, <code>left eye</code>, <code>the white shirt</code>. The layer
+         goes to ComfyUI and runs ComfyUI-RMBG's <b>SAM2Segment</b> — GroundingDINO turns
+         the words into candidate boxes, SAM2 cuts a mask from them — and the mask comes
+         back as a <b>plain GIMP selection</b>. Not a pixel is touched, so AI Inpaint,
+         colour work, local blur and cut-out all work on it afterwards.</p>
+      <p>Measured on a 744×1120 portrait with <code>sam2.1_hiera_tiny</code>:
+         <b>5.8 s</b> for the 74×102 ear, edges matching a hand-drawn selection. Larger
+         tiers give cleaner edges on busy backgrounds and take longer.</p>
+      <p><b>To add something next to the object, shift the selection.</b>SAM2 outlines
+         the object itself, not the empty space around it: select the whole ear and ask
+         for an <code>earring</code> and you get a gold ring pressed onto the ear plus a
+         black hole. Set <code>Shift selection Y</code> to +58 so the selection sits below
+         the lobe, and it becomes a hoop hanging from the ear. To change the object itself
+         (swap a shirt, erase a print), use the box as it is.</p>
+      <p>One-time setup: <code>python tools/setup_comfy_sam2.py</code> — installs
+         <code>groundingdino-py</code> / <code>hydra-core</code> / <code>omegaconf</code>,
+         downloads SAM2-tiny + GroundingDINO + bert-base-uncased (~1.2 GB via hf-mirror),
+         and writes a <code>custom_nodes/zz_bert_shim</code> patch (transformers 5.x
+         dropped <code>BertModel.invert_attention_mask</code>, which GroundingDINO calls).
+         Restart ComfyUI afterwards.</p>
+    </div>
+    <div class="dl">
       <div class="dl-head"><h3>AI Environment</h3><span class="pill">any folder</span></div>
       <p><b>AI Environment…</b> opens with the state: reachable or not, which version, how
          many checkpoints — and <b>where ComfyUI lives and which python it runs</b>. If the

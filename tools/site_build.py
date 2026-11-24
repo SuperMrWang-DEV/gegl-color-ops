@@ -2369,11 +2369,13 @@ PLUGIN_SPECS = [
              menu="AI 局部重绘 (AI Inpaint)",
              menus="    SuperMrWang → AI → AI Inpaint…（简版：只问画什么）\n"
                    "    SuperMrWang → AI → AI Inpaint (Advanced)…（全参数）\n"
+                   "    SuperMrWang → AI → AI Select by Name…（按名称自动选区）\n"
                    "    SuperMrWang → AI → AI Environment…（装 / 起 ComfyUI，看底模）",
              desc="AI 局部重绘：框一块地方、写一句提示词，交给本机 ComfyUI（Stable "
                   "Diffusion）重画，结果当新图层贴回原位，羽化选区做图层蒙版。同包还带"
                   "一个「AI 环境」入口：没装 ComfyUI 的人可以从那里一键装、一键起。",
-             shared=["ai_client.py", "comfy_launcher.py", "prompt_tools.py"],
+             shared=["ai_client.py", "comfy_launcher.py", "prompt_tools.py",
+                     "mask_io.py", "quality.py"],
              setup=True,
              pdb="lb-plugin-ai-inpaint(image, drawables, prompt, preset, negative)\n"
                  "lb-plugin-ai-inpaint-advanced(image, drawables, prompt, preset,\n"
