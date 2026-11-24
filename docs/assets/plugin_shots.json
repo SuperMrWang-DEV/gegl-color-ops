@@ -1,59 +1,59 @@
 {
  "ai-dodge-burn": {
-  "en": "AI shading map, strength, skin protection",
+  "en": "what it should look like, where the reference comes from, strength and denoise",
   "h": 629,
   "title": "AI 双曲线",
   "w": 528,
-  "zh": "AI 生成明暗图、强度与肤色保护"
+  "zh": "修成什么样的描述、参考图来源、强度与去噪幅度"
  },
  "ai-expand": {
-  "en": "direction and amount, prompt, seam handling",
+  "en": "which sides to grow and by how much, prompt, number of candidates",
   "h": 417,
   "title": "AI 扩图",
   "w": 778,
-  "zh": "扩展方向与像素、提示词、接缝处理"
+  "zh": "扩展方向与像素、提示词、候选数量"
  },
  "ai-frequency-separation": {
-  "en": "AI smoothing radius, detail restore",
+  "en": "what it should look like, where the reference comes from, split radius and denoise",
   "h": 555,
   "title": "AI 分频磨皮",
   "w": 528,
-  "zh": "AI 平滑半径、细节回填量"
+  "zh": "修成什么样的描述、参考图来源、分离半径与去噪幅度"
  },
  "ai-inpaint": {
-  "en": "prompt, denoise strength, mask source",
+  "en": "prompt, preset, negative prompt, number of candidates",
   "h": 380,
   "title": "AI 消除 / 重绘",
   "w": 864,
-  "zh": "提示词、去噪强度、蒙版来源"
+  "zh": "提示词、画什么（预设）、反向提示词、候选数量"
  },
  "ai-neutral-grey": {
-  "en": "AI zones, grey layer blend mode",
+  "en": "what it should look like, AI or local reference, denoise and sampling steps",
   "h": 592,
   "title": "AI 中性灰",
   "w": 528,
-  "zh": "AI 分区、灰度层混合方式"
+  "zh": "修成什么样的描述、参考图来源（AI / 本地）、去噪幅度与采样步数"
  },
  "ai-upscale": {
-  "en": "scale factor, model, tile size",
+  "en": "upscale model, scale factor, ComfyUI address and timeout",
   "h": 367,
   "title": "AI 放大",
   "w": 528,
-  "zh": "放大倍数、模型、分块大小"
+  "zh": "放大模型、倍数、ComfyUI 地址与超时"
  },
  "alpha-curves": {
-  "en": "alpha curve and its range",
+  "en": "source channel and starting curve",
   "h": 281,
   "title": "Alpha 曲线",
   "w": 562,
-  "zh": "alpha 通道的曲线与作用范围"
+  "zh": "源通道与初始曲线"
  },
  "channel-to-mask": {
-  "en": "which channel, black/white points, invert",
+  "en": "channel name and invert",
   "h": 255,
   "title": "通道转蒙版",
   "w": 528,
-  "zh": "取哪个通道、怎么处理黑白点"
+  "zh": "通道名与是否反相"
  },
  "color-range": {
   "en": "sample colours to build a selection, with a red overlay preview",
@@ -78,25 +78,25 @@
   "zh": "四个色彩空间（Lab / LCh / HSV / CMYK）各三条曲线，右侧是实时预览"
  },
  "cutout": {
-  "en": "AI or local flood, tolerance, mask or alpha output",
+  "en": "background threshold, seeds per edge, edge shrink and feather, how the background is output",
   "h": 644,
   "title": "抠图",
   "w": 528,
-  "zh": "AI 还是本地泛洪、容差、输出为蒙版或 alpha"
+  "zh": "背景阈值、每条边的种子点数、边缘收缩与羽化、背景怎么输出"
  },
  "dodge-burn": {
-  "en": "dodge/burn curves, skin protection, mask smoothing",
+  "en": "strength and grouping; the two curves are edited on the generated layers",
   "h": 255,
   "title": "双曲线磨皮（加亮加深）",
   "w": 528,
-  "zh": "加亮/加深两条曲线、保护肤色、蒙版平滑"
+  "zh": "强度、是否收进图层组；两条曲线在生成的两层上改"
  },
  "frequency-separation": {
-  "en": "split radius, low/high-frequency curves, blend amount",
+  "en": "split radius and grouping; the curves are edited on the two generated layers",
   "h": 255,
   "title": "双曲线磨皮（分频）",
   "w": 528,
-  "zh": "分离半径、低频/高频的曲线与混合量"
+  "zh": "分离半径、是否收进图层组；曲线在生成的两层上改"
  },
  "hsi-split-curves": {
   "en": "the dialog has a single option — group the result; the curves themselves are edited on the generated layers with GIMP's own Curves",
@@ -134,18 +134,18 @@
   "zh": "左侧效果列表、右侧参数，实时预览"
  },
  "layer-to-channel": {
-  "en": "channel name, invert, keep the source",
+  "en": "channel name, invert and whether the source is kept",
   "h": 255,
   "title": "图层转通道",
   "w": 528,
-  "zh": "通道名、反相、是否保留源图层"
+  "zh": "通道名、反相与是否保留源图层"
  },
  "layer-to-selection": {
-  "en": "target, invert, hide the source layer",
+  "en": "channel, invert and combine mode",
   "h": 292,
   "title": "图层转选区",
   "w": 528,
-  "zh": "目标类型、是否反相、是否隐藏源图层"
+  "zh": "通道、反相与合并方式"
  },
  "lch-split-curves": {
   "en": "the dialog has a single option — group the result; the curves themselves are edited on the generated layers with GIMP's own Curves",
@@ -163,11 +163,11 @@
   "zh": "一次生成八条明度蒙版，这里显示其中的 Lights 1"
  },
  "max-min": {
-  "en": "radius, maximum or minimum, channel mode",
+  "en": "maximum or minimum, radius, square or disc, affect alpha",
   "h": 485,
   "title": "最大值 / 最小值",
   "w": 528,
-  "zh": "半径、取最大还是最小、通道模式"
+  "zh": "取最大还是最小、半径、方形或圆形、是否影响 alpha"
  },
  "mesh-warp": {
   "en": "drag a node or its handles to bend along Bezier patches",
@@ -199,11 +199,11 @@
   "zh": "左侧预览、右侧半径/平滑/羽化/去色边，边缘实时重算"
  },
  "split-channels": {
-  "en": "which components, keep alpha, hide the original",
+  "en": "keep alpha, hide the source, name prefix",
   "h": 294,
   "title": "拆通道",
   "w": 528,
-  "zh": "拆成哪几个分量、是否带上 alpha、是否隐藏原图"
+  "zh": "是否带上 alpha、是否隐藏原图、图层名前缀"
  },
  "vanishing-point": {
   "en": "mark one perspective plane, then paste or rectify onto it",
