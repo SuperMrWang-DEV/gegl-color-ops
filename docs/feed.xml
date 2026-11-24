@@ -316,6 +316,13 @@
     <summary>Photoshop 图层样式的非破坏版本。参数挂在滤镜栈上，改一个滑杆只是让这条滤镜重新算一遍；原像素一个字节都没动过，随时可以整体关掉或删掉。</summary>
   </entry>
   <entry>
+    <title>Mesh Warp (live)</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/mesh-warp/README.md"/>
+    <id>tag:github.com,2026:lb:mesh-warp</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>自由变形（PS 的「变形/网格变形」那一路）：一张 cols×rows 的Bezier 控制网，每个交点带 u/v 两个方向的切向，反解时用 Newton把目标像素解回参数 (u,v)，再取原位网格上的颜色。非破坏——网格串挂在滤镜栈上，重新打开对话框能接着拖。</summary>
+  </entry>
+  <entry>
     <title>Puppet Warp (live)</title>
     <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/puppet-warp/README.md"/>
     <id>tag:github.com,2026:lb:puppet-warp</id>

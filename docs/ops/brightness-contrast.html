@@ -7,7 +7,7 @@
 <meta name="description" content="复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面" data-desc-zh="复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面" data-desc-en="复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面">
 <meta property="og:title" content="Brightness/Contrast · gegl-color-ops" data-title-zh="Brightness/Contrast · gegl-color-ops" data-title-en="Brightness/Contrast · gegl-color-ops">
 <meta property="og:description" content="复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面" data-desc-zh="复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面" data-desc-en="复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>逐像素</span>
   </div>
   <p class="lede">复刻 经典图像编辑器「亮度/对比度」，新版与旧版（「使用旧版」复选框）两套行为都在里面</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/brightness-contrast/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:brightness-contrast</code> 处理后的输出 —— 亮度 +30、对比 +28（新版曲线）。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>按黑盒标定得到的 经典图像编辑器的「亮度/对比度」，<strong>新版与旧版（对话框里的「使用旧版」）两套行为都在里面</strong>。同一张标定图分别过经典图像编辑器26.10 和本算子，逐像素对比见文末「验收」。</p>
 <ul><li>GEGL id：<code>lb:brightness-contrast</code></li><li>菜单：<code>Colors → SuperMrWang → Tone → Brightness/Contrast</code></li><li>类型：<code>GeglOperationPointFilter</code>（逐像素，无邻域）</li><li>参数：<code>brightness</code>（−150…150）、<code>contrast</code>（−50…100）、<code>legacy</code>（默认关＝新版）</li></ul>
@@ -150,7 +155,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>per-pixel</span>
   </div>
   <p class="lede">The classic editor's Brightness/Contrast, matched by black-box measurement — both the current and the legacy ("Use Legacy") behaviour live in one operator.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/brightness-contrast/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:brightness-contrast</code> — Brightness +30, Contrast +28 (modern curve).</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>the classic editor's <strong>Brightness/Contrast</strong>, matched by black-box measurement. <strong>Both the current and the legacy behaviour</strong> (the "Use Legacy" checkbox in the dialog) are in here. The same calibration chart was pushed through the classic editor 26.10 and through this operator and compared pixel by pixel; see the acceptance numbers at the end.</p>
 <ul><li>GEGL id: <code>lb:brightness-contrast</code></li><li>Menu: <code>Colors → SuperMrWang → Tone → Brightness/Contrast</code></li><li>Type: <code>GeglOperationPointFilter</code> (per-pixel, no neighbourhood)</li><li>Parameters: <code>brightness</code> (−150…150), <code>contrast</code> (−50…100), <code>legacy</code> (off = current)</li></ul>
@@ -216,7 +226,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

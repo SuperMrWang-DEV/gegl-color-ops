@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-title-zh="Mesh Warp (live) · gegl-color-ops" data-title-en="Mesh Warp (live) · gegl-color-ops">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mesh Warp (live) · gegl-color-ops</title>
+<meta name="description" content="自由变形（PS 的「变形/网格变形」那一路）：一张 cols×rows 的Bezier 控制网，每个交点带 u/v 两个方向的切向，反解时用 Newton把目标像素解回参数 (u,v)，再取原位网格上的颜色。非破坏——网格串挂在滤镜栈上，重" data-desc-zh="自由变形（PS 的「变形/网格变形」那一路）：一张 cols×rows 的Bezier 控制网，每个交点带 u/v 两个方向的切向，反解时用 Newton把目标像素解回参数 (u,v)，再取原位网格上的颜色。非破坏——网格串挂在滤镜栈上，重" data-desc-en="自由变形（PS 的「变形/网格变形」那一路）：一张 cols×rows 的Bezier 控制网，每个交点带 u/v 两个方向的切向，反解时用 Newton把目标像素解回参数 (u,v)，再取原位网格上的颜色。非破坏——网格串挂在滤镜栈上，重">
+<meta property="og:title" content="Mesh Warp (live) · gegl-color-ops" data-title-zh="Mesh Warp (live) · gegl-color-ops" data-title-en="Mesh Warp (live) · gegl-color-ops">
+<meta property="og:description" content="自由变形（PS 的「变形/网格变形」那一路）：一张 cols×rows 的Bezier 控制网，每个交点带 u/v 两个方向的切向，反解时用 Newton把目标像素解回参数 (u,v)，再取原位网格上的颜色。非破坏——网格串挂在滤镜栈上，重" data-desc-zh="自由变形（PS 的「变形/网格变形」那一路）：一张 cols×rows 的Bezier 控制网，每个交点带 u/v 两个方向的切向，反解时用 Newton把目标像素解回参数 (u,v)，再取原位网格上的颜色。非破坏——网格串挂在滤镜栈上，重" data-desc-en="自由变形（PS 的「变形/网格变形」那一路）：一张 cols×rows 的Bezier 控制网，每个交点带 u/v 两个方向的切向，反解时用 Newton把目标像素解回参数 (u,v)，再取原位网格上的颜色。非破坏——网格串挂在滤镜栈上，重">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body class="article">
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+<main id="main">
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 扭曲</p>
+  <h1>Mesh Warp (live)</h1>
+  <div class="meta">
+    <code>lb:mesh-warp</code>
+    <span class="tag t-distort">扭曲</span>
+    <span>整块区域</span>
+  </div>
+  <p class="lede">自由变形（PS 的「变形/网格变形」那一路）：一张 cols×rows 的Bezier 控制网，每个交点带 u/v 两个方向的切向，反解时用 Newton把目标像素解回参数 (u,v)，再取原位网格上的颜色。非破坏——网格串挂在滤镜栈上，重新打开对话框能接着拖。</p>
+</section><figure class="shot">
+  <img src="../assets/ops/mesh-warp/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:mesh-warp</code> 处理后的输出 —— 3×3 网格，内侧交点下移 72 px（网格变形）。</figcaption>
+</figure>
+<div class="article-layout">
+  <article class="prose">
+<p><code>plugin/mesh-warp</code> 的 C 版：FFD + 双三次 Bezier 面片，挂成<strong>图层上的实时滤镜</strong>。网格串存在滤镜上，像素不动，重跑对话框会读回来接着拖。</p>
+<pre><code>图层 ──▶ ┌──────────────────────────┐ ──▶ 画布
+         │ lb:mesh-warp（滤镜栈里） │      网格串 = 唯一属性
+         └──────────────────────────┘</code></pre>
+<blockquote><p>菜单：<code>SuperMrWang → Distort → Mesh Warp (live)…</code>。破坏性那版是 Python 的「自由变形（网格 + 把手）」，两者并存。</p></blockquote>
+<h2 id="属性">属性</h2>
+<p>只有一个 <code>mesh</code> 字符串：</p>
+<pre><code>cols,rows; x,y,ux,uy,vx,vy[,auto]; …        # 默认 U 分割线
+u:0,1,2,3                                   # 自己加过线时才写
+v:0,1,2</code></pre>
+<p><code>x,y</code> 是交点位置，<code>ux,uy</code> / <code>vx,vy</code> 是两个方向的切向（每参数单位）， <code>auto=1</code> 表示把手按邻居自动重算并限幅。格式与 <code>plugin/_shared/mesh_warp.py</code> 的 <code>format_mesh_string</code> 一致，两边互读。</p>
+<h2 id="算法要点">算法要点</h2>
+<ul><li>每格用 16 个控制点的 Bezier 面片（PS 的网格变形同款），目标像素用 Newton 反解 <code>(u,v)</code>，<strong>源坐标取 uv 在原位格上的位置</strong>——弄反了整幅图会平移一次。</li><li>Newton 必须限步（0.75 格）并钳在 <code>[0,cols]×[0,rows]</code>，否则在格界上无限震荡。</li><li>反解初值按<strong>目标画布</strong>的 w/h 归一化；拿 mesh 自己的 w 会在预览与应用两路 收敛到不同分支（实测差 28 px）。</li><li>把手要按邻居弦长自动限幅，否则片会甩过头、格子自交，画面上撕一道。</li><li>与 Python 版在<strong>折点</strong>附近 Newton 可能落到另一支：逐像素对拍 mean ≈ 0.2 级， 十几个像素最大差 ~110 级，属已知口径差，回归按这个容差卡。</li></ul>
+<h2 id="cli">CLI</h2>
+<pre><code class="language-bash">gegl in.png -o out.png -- lb:mesh-warp mesh="3,3;10,10,60,0,0,45,1;…"</code></pre>
+<p>值里不能有空格（GEGL CLI 按空格拆参数），写错只会拿到原图、不报错。</p><div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>mesh-warp.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/mesh-warp.dll">下载 mesh-warp.dll<span class="size">Windows x64</span></a></div>
+</div><nav class="pager"><a class="prev" href="puppet-warp.html"><span>上一个</span>Puppet Warp (live)</a><a class="next" href="layer-style.html"><span>下一个</span>Layer Style (live)</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#属性">属性</a></li>
+<li class="l2"><a href="#算法要点">算法要点</a></li>
+<li class="l2"><a href="#cli">CLI</a></li></ul>
+</aside>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Distort</p>
+  <h1>Mesh Warp (live)</h1>
+  <div class="meta">
+    <code>lb:mesh-warp</code>
+    <span class="tag t-distort">Distort</span>
+    <span>area</span>
+  </div>
+  <p class="lede">The free-transform grid (FFD with bicubic Bezier patches) as a live GEGL filter — one mesh string on the filter stack, pixels untouched, re-running the dialog reads it back.</p>
+</section><figure class="shot">
+  <img src="../assets/ops/mesh-warp/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:mesh-warp</code> — 3×3 mesh, inner handles pulled down 72 px.</figcaption>
+</figure>
+<div class="article-layout">
+  <article class="prose">
+<p>The C version of <code>plugin/mesh-warp</code>: free-form deformation with bicubic Bezier patches, attached as a <strong>real-time filter on the layer</strong>. The grid string lives on the filter, the pixels stay untouched, and running the dialog again reads the grid back so you can keep dragging.</p>
+<pre><code>layer ──▶ ┌──────────────────────────┐ ──▶ canvas
+          │ lb:mesh-warp (filter)    │      the mesh string is the only property
+          └──────────────────────────┘</code></pre>
+<blockquote><p>Menu: <code>SuperMrWang → Distort → Mesh Warp (live)…</code>. The destructive version is the Python “Free Transform (Mesh + Handles)”; both stay available.</p></blockquote>
+<h2 id="property">Property</h2>
+<p>A single <code>mesh</code> string:</p>
+<pre><code>cols,rows; x,y,ux,uy,vx,vy[,auto]; …        # default U breakpoints
+u:0,1,2,3                                   # written only after you add lines
+v:0,1,2</code></pre>
+<p><code>x,y</code> is the intersection point, <code>ux,uy</code> / <code>vx,vy</code> the two tangent vectors (per parameter unit), and <code>auto=1</code> means the handles follow their neighbours and are clamped automatically. The format matches <code>format_mesh_string</code> in <code>plugin/_shared/mesh_warp.py</code>, so both directions read each other.</p>
+<h2 id="algorithm-notes">Algorithm notes</h2>
+<ul><li>Each cell is a Bezier patch with 16 control points (the same construction as Photoshop's mesh warp). Target pixels are inverted to <code>(u,v)</code> with Newton, and the <strong>source coordinate is taken from the uv position in the original grid</strong> — swap that around and the whole image shifts once.</li><li>Newton must clamp its step (0.75 cell) and stay inside <code>[0,cols]×[0,rows]</code>, otherwise it oscillates forever on a cell boundary.</li><li>The inversion's initial guess is normalised by the <strong>target canvas</strong> width and height; using the mesh's own width makes the preview and the full-resolution pass converge to different branches (28 px apart in measurement).</li><li>Handles are clamped to the neighbouring chord lengths, otherwise a patch overshoots, cells self-intersect and a tear appears on screen.</li><li>Near fold points the C and Python solvers may land on different Newton branches: pixel-by-pixel agreement is mean ≈ 0.2 levels with a dozen pixels off by up to ~110 levels. That is a known difference in convention, and the regression allows for it.</li></ul>
+<h2 id="cli">CLI</h2>
+<pre><code class="language-bash">gegl in.png -o out.png -- lb:mesh-warp mesh="3,3;10,10,60,0,0,45,1;…"</code></pre>
+<p>The value cannot contain spaces (the GEGL CLI splits on whitespace); a wrong form just hands back the original image without an error.</p><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>mesh-warp.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/mesh-warp.dll">Download mesh-warp.dll<span class="size">Windows x64</span></a></div>
+</div><nav class="pager"><a class="prev" href="puppet-warp.html"><span>Previous</span>Puppet Warp (live)</a><a class="next" href="layer-style.html"><span>Next</span>Layer Style (live)</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#property">Property</a></li>
+<li class="l2"><a href="#algorithm-notes">Algorithm notes</a></li>
+<li class="l2"><a href="#cli">CLI</a></li></ul>
+</aside>
+</div></div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
+    <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
+    <span class="muted">29c1fb1</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
+</body>
+</html>

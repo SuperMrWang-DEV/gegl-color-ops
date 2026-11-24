@@ -7,7 +7,7 @@
 <meta name="description" content="等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。" data-desc-zh="等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。" data-desc-en="等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。">
 <meta property="og:title" content="Shadows/Highlights · gegl-color-ops" data-title-zh="Shadows/Highlights · gegl-color-ops" data-title-en="Shadows/Highlights · gegl-color-ops">
 <meta property="og:description" content="等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。" data-desc-zh="等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。" data-desc-en="等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按邻域亮度分别提亮阴影、压暗高光，而不是只看像素值本身。">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -88,7 +88,12 @@ window.addEventListener("DOMContentLoaded", function () {
   </div>
   <p class="slow-note"><b>不推荐日常使用</b>　邻域双边加 4 次高斯，半径 30 时每像素约 1.4 µs：2048×1536 默认参数净耗时 0.7 s、含解码 2.1 s，在 GIMP 里拖一次滑杆就重算一遍整图。整体明暗改用 <a href="levels.html">色阶</a> / <a href="lab-levels.html">LAB 色阶</a>；确实需要「周围亮就少提」的局部行为再回来用它，半径压到 10–15 会快很多。详见 <code>ops/shadows-highlights/.discouraged</code>。</p>
   <p class="lede">等价于经典图像编辑器「图像 → 调整 → 阴影/高光」：按<strong>邻域</strong>亮度分别提亮阴影、压暗高光，而不是只看像素值本身。</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/shadows-highlights/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:shadows-highlights</code> 处理后的输出 —— 阴影 +60、高光 −45、半径 25。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>按黑盒标定得到的 经典图像编辑器的「图像 → 调整 → 阴影/高光」。和另外十几个算子的最大区别是<strong>它看邻域</strong>：同样一个 128 的像素，周围暗就多提、周围亮就少提，所以不可能简化成一条 LUT，必须做空间域滤波。</p>
 <ul><li>GEGL id：<code>lb:shadows-highlights</code></li><li>菜单：<code>Colors → SuperMrWang → Tone → Shadows/Highlights</code></li><li>类型：<code>GeglOperationFilter</code>（空间域，按 192 行一条带处理）</li><li>参数（默认值照抄 经典图像编辑器）：阴影 <code>amount 35 / width 50 / radius 30</code>、高光 <code>0 / 50 / 30</code>、 <code>color-correction 20</code>、<code>midtone-contrast 0</code>、<code>black-clip 0.01</code>、<code>white-clip 0.01</code></li></ul>
@@ -186,7 +191,12 @@ y'' = y_2 + k\,(y_2-0.5)\bigl(4y_2(1-y_2)\bigr)^p$$</div>
   </div>
   <p class="slow-note"><b>Not recommended for daily use</b> — bilateral over four Gaussian passes costs about 1.4 µs per pixel at radius 30: 0.7 s for a 2048×1536 image at defaults, 2.1 s including decode, and every slider drag in GIMP recomputes the whole image. For overall brightness use <a href="levels.html">Levels</a> / <a href="lab-levels.html">LAB Levels</a>; come back here only when you need the local “lift less where the surroundings are bright” behaviour, and drop the radius to 10–15 for a big speedup. See <code>ops/shadows-highlights/.discouraged</code>.</p>
   <p class="lede">The classic editor's Shadows/Highlights — an edge-aware neighbourhood algorithm, so it cannot be a LUT. Accurate, but it is a spatial filter and costs like one.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/shadows-highlights/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:shadows-highlights</code> — Shadows +60, Highlights −45, radius 25.</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>the classic editor's <code>Image → Adjustments → Shadows/Highlights</code>, matched as a black box. What sets it apart from the other operators is that <strong>it looks at the neighbourhood</strong>: the same 128 pixel is lifted more when its surroundings are dark and less when they are bright, so it cannot collapse into a LUT and needs a spatial filter.</p>
 <ul><li>GEGL id: <code>lb:shadows-highlights</code></li><li>Menu: <code>Colors → SuperMrWang → Tone → Shadows/Highlights</code></li><li>Type: <code>GeglOperationFilter</code> (spatial, processed in strips of 192 rows)</li><li>Parameters (defaults copied from the classic editor): shadows <code>amount 35 / width 50 / radius 30</code>, highlights <code>0 / 50 / 30</code>, <code>color-correction 20</code>, <code>midtone-contrast 0</code>, <code>black-clip 0.01</code>, <code>white-clip 0.01</code></li></ul>
@@ -284,7 +294,7 @@ y'' = y_2 + k\,(y_2-0.5)\bigl(4y_2(1-y_2)\bigr)^p$$</div>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

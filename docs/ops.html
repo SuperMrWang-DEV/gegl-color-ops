@@ -7,7 +7,7 @@
 <meta name="description" content="全部算子的清单与一句话说明" data-desc-zh="全部算子的清单与一句话说明" data-desc-en="Every operator with a one-line description: levels, component pairs, tone, colour, blend and mask.">
 <meta property="og:title" content="算子清单 · gegl-color-ops" data-title-zh="算子清单 · gegl-color-ops" data-title-en="Operators · gegl-color-ops">
 <meta property="og:description" content="全部算子的清单与一句话说明" data-desc-zh="全部算子的清单与一句话说明" data-desc-en="Every operator with a one-line description: levels, component pairs, tone, colour, blend and mask.">
-<link rel="stylesheet" href="assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="feed.xml">
 <script>
 (function () {
@@ -42,7 +42,7 @@
 <main id="main">
 <section class="page-head">
   <p class="eyebrow"><a href="index.html"><span class="l-zh">首页</span><span class="l-en">Home</span></a> / <span class="l-zh">算子清单</span><span class="l-en">Operators</span></p>
-  <h1><span class="l-zh">53 个算子</span><span class="l-en">53 operators</span></h1>
+  <h1><span class="l-zh">54 个算子</span><span class="l-en">54 operators</span></h1>
   <p class="lede"><span class="l-zh">按 GIMP 菜单里的分组排列。点名字进算法说明。</span><span class="l-en">Grouped the way the GIMP menu is. Open a name for the algorithm notes.</span></p>
 </section>
 <section class="prose wide">
@@ -142,6 +142,7 @@
 <thead><tr><th><span class="l-zh">菜单名</span><span class="l-en">Menu name</span></th><th>GEGL id</th><th><span class="l-zh">类型</span><span class="l-en">Type</span></th><th><span class="l-zh">做什么</span><span class="l-en">What it does</span></th></tr></thead><tbody>
 <tr><td><a href="ops/displace.html"><b><span class="l-zh">Displace</span><span class="l-en">Displace</span></b></a></td><td><code>lb:displace</code></td><td class="nowrap"><span class="l-zh">双输入</span><span class="l-en">two inputs</span></td><td><span class="l-zh">按位移图重采样图像。相对 GEGL 自带的 gegl:displace，这里修掉四件事：单张图同时给水平/垂直、位移图不强制乘 alpha…</span><span class="l-en">Resample the image through a displacement map: one RGBA map drives…</span></td></tr>
 <tr><td><a href="ops/puppet-warp.html"><b><span class="l-zh">Puppet Warp (live)</span><span class="l-en">Puppet Warp (live)</span></b></a></td><td><code>lb:puppet-warp</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">木偶变形的<strong>非破坏</strong>版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉子点应用时写的也…</span><span class="l-en">The puppet-warp solver (MLS similarity, MLS affine, ARAP) as a live…</span></td></tr>
+<tr><td><a href="ops/mesh-warp.html"><b><span class="l-zh">Mesh Warp (live)</span><span class="l-en">Mesh Warp (live)</span></b></a></td><td><code>lb:mesh-warp</code></td><td class="nowrap"><span class="l-zh">整块区域</span><span class="l-en">area</span></td><td><span class="l-zh">自由变形（PS 的「变形/网格变形」那一路）：一张 cols×rows 的Bezier 控制网，每个交点带 u/v 两个方向的切向，反解时用…</span><span class="l-en">The free-transform grid (FFD with bicubic Bezier patches) as a live…</span></td></tr>
 </tbody></table></div>
 <h2 id="g-Layer"><span class="tag t-layer"><span class="l-zh">图层</span><span class="l-en">Layer</span></span></h2>
 <p class="group-desc"><span class="l-zh">挂在图层上的效果：图层样式做成 GEGL 运算，参数存在滤镜栈里，改一根滑杆就重算一遍，原像素不动。</span><span class="l-en">Effects attached to the layer: layer styles as a GEGL operation, with the parameters living on the filter stack — one slider move recomputes it, and the pixels stay untouched.</span></p>
@@ -162,7 +163,7 @@
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

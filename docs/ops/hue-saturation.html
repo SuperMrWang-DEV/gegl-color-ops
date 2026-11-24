@@ -7,7 +7,7 @@
 <meta name="description" content="全局或按红/黄/绿/青/蓝/品红六个色相区间调整色相、饱和度、明度" data-desc-zh="全局或按红/黄/绿/青/蓝/品红六个色相区间调整色相、饱和度、明度" data-desc-en="全局或按红/黄/绿/青/蓝/品红六个色相区间调整色相、饱和度、明度">
 <meta property="og:title" content="Hue/Saturation · gegl-color-ops" data-title-zh="Hue/Saturation · gegl-color-ops" data-title-en="Hue/Saturation · gegl-color-ops">
 <meta property="og:description" content="全局或按红/黄/绿/青/蓝/品红六个色相区间调整色相、饱和度、明度" data-desc-zh="全局或按红/黄/绿/青/蓝/品红六个色相区间调整色相、饱和度、明度" data-desc-en="全局或按红/黄/绿/青/蓝/品红六个色相区间调整色相、饱和度、明度">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>逐像素</span>
   </div>
   <p class="lede">全局或按红/黄/绿/青/蓝/品红六个色相区间调整色相、饱和度、明度</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/hue-saturation/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:hue-saturation</code> 处理后的输出 —— 整体色相 +25°、饱和度 +30。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>仿 GIMP「色相-饱和度」滤镜的 GEGL point filter，在 <strong>HSL</strong> 空间逐像素调整，工作于感知（非线性）RGB 格式 <code>R~G~B~A float</code>，自动跟随源色彩空间。</p>
 <h2 id="功能">功能</h2>
@@ -152,7 +157,12 @@ drawable.merge_filter(filter)             # 非破坏性；Gimp.displays_flush()
     <span>per-pixel</span>
   </div>
   <p class="lede">GIMP-style Hue/Saturation — a master control plus six hue ranges, all offsets added in HSL.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/hue-saturation/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:hue-saturation</code> — Hue +25°, Saturation +30 (whole image).</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>A GEGL point filter modelled on GIMP's Hue-Saturation filter: per-pixel adjustments in <strong>HSL</strong>, working on the perceptual (non-linear) <code>R~G~B~A float</code> format and following the source colour space automatically.</p>
 <h2 id="features">Features</h2>
@@ -204,7 +214,7 @@ drawable.merge_filter(filter)             # non-destructive; Gimp.displays_flush
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

@@ -7,7 +7,7 @@
 <meta name="description" content="经典图像编辑器 2026「色彩与自然饱和度」里的色温 / 色调：中性灰跟着偏蓝-黄、绿-洋红，黑白两端不动" data-desc-zh="经典图像编辑器 2026「色彩与自然饱和度」里的色温 / 色调：中性灰跟着偏蓝-黄、绿-洋红，黑白两端不动" data-desc-en="经典图像编辑器 2026「色彩与自然饱和度」里的色温 / 色调：中性灰跟着偏蓝-黄、绿-洋红，黑白两端不动">
 <meta property="og:title" content="Color Temperature &amp; Tint · gegl-color-ops" data-title-zh="Color Temperature &amp; Tint · gegl-color-ops" data-title-en="Color Temperature &amp; Tint the classic editor · gegl-color-ops">
 <meta property="og:description" content="经典图像编辑器 2026「色彩与自然饱和度」里的色温 / 色调：中性灰跟着偏蓝-黄、绿-洋红，黑白两端不动" data-desc-zh="经典图像编辑器 2026「色彩与自然饱和度」里的色温 / 色调：中性灰跟着偏蓝-黄、绿-洋红，黑白两端不动" data-desc-en="经典图像编辑器 2026「色彩与自然饱和度」里的色温 / 色调：中性灰跟着偏蓝-黄、绿-洋红，黑白两端不动">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>逐像素</span>
   </div>
   <p class="lede">经典图像编辑器 2026「色彩与自然饱和度」里的色温 / 色调：中性灰跟着偏蓝-黄、绿-洋红，黑白两端不动</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/color-temperature-tint/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:color-temperature-tint</code> 处理后的输出 —— 色温 +45（偏暖）、色调 +12（偏洋红）。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>按黑盒标定得到的 classic image editor 2026「色彩与自然饱和度」调整图层里的<strong>色温</strong>和<strong>色调</strong>两个滑块。经典图像编辑器 27.0 把这两个滑块塞进了原来的 vibrance 图层（官方名 Color and vibrance），Action Manager 里还是老的 <code>vibrance</code> 类，只是多带 <code>temperature</code> / <code>tint</code> 两个整数键，所以这里把白平衡部分单独拆成一个算子，便于叠加到任何管线里。</p>
 <ul><li>GEGL id：<code>lb:color-temperature-tint</code></li><li>菜单：<code>Colors → SuperMrWang → Color → Color Temperature &amp; Tint 经典图像编辑器</code></li><li>类型：<code>GeglOperationPointFilter</code>（逐像素，无邻域）</li><li>参数：<code>temperature</code>（−100…100，负冷正暖）、<code>tint</code>（−100…100，负绿正洋红）</li></ul>
@@ -152,7 +157,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>per-pixel</span>
   </div>
   <p class="lede">The temperature and tint sliders from classic image editor 2026's Color and Vibrance layer, matched by black-box measurement into a 33³ LUT.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/color-temperature-tint/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:color-temperature-tint</code> — Temperature +45 (warmer), Tint +12 (magenta).</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>The <strong>temperature</strong> and <strong>tint</strong> sliders of classic image editor 2026's <em>Color and vibrance</em> adjustment layer, matched by black-box measurement. the classic editor 27.0 folded both sliders into the old vibrance layer (officially "Color and vibrance"); the Action Manager still uses the old <code>vibrance</code> class with two extra integer keys, <code>temperature</code> and <code>tint</code>. The white-balance part is split out into its own operator so it can be stacked into any pipeline.</p>
 <ul><li>GEGL id: <code>lb:color-temperature-tint</code></li><li>Menu: <code>Colors → SuperMrWang → Color → Color Temperature &amp; Tint the classic editor</code></li><li>Type: <code>GeglOperationPointFilter</code> (per-pixel, no neighbourhood)</li><li>Parameters: <code>temperature</code> (−100…100, negative = cooler), <code>tint</code> (−100…100, negative = green, positive = magenta)</li></ul>
@@ -220,7 +230,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

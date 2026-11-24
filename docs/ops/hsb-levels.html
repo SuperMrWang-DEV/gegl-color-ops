@@ -7,7 +7,7 @@
 <meta name="description" content="HSB（=HSV）三个分量各自设输入 / 输出黑白场与伽马" data-desc-zh="HSB（=HSV）三个分量各自设输入 / 输出黑白场与伽马" data-desc-en="HSB（=HSV）三个分量各自设输入 / 输出黑白场与伽马">
 <meta property="og:title" content="HSB Levels · gegl-color-ops" data-title-zh="HSB Levels · gegl-color-ops" data-title-en="HSB Levels · gegl-color-ops">
 <meta property="og:description" content="HSB（=HSV）三个分量各自设输入 / 输出黑白场与伽马" data-desc-zh="HSB（=HSV）三个分量各自设输入 / 输出黑白场与伽马" data-desc-en="HSB（=HSV）三个分量各自设输入 / 输出黑白场与伽马">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>整块区域</span>
   </div>
   <p class="lede">HSB（=HSV）三个分量各自设输入 / 输出黑白场与伽马</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/hsb-levels/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:hsb-levels</code> 处理后的输出 —— S 输入黑场 12、B 输入白场 240、H gamma 1.3。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>菜单：<code>SuperMrWang → Levels → HSB Levels</code>（Filter 类）</p>
 <h2 id="概述">概述</h2>
@@ -146,7 +151,12 @@ S_{\text{out}} = (\text{ob}-\text{oa}) \bmod 360$$</div>
     <span>area</span>
   </div>
   <p class="lede">Levels on H, S and B (the numbers your colour picker shows) — nearly identical to HSL Levels, but S and V are different quantities.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/hsb-levels/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:hsb-levels</code> — S black point 12, B white point 240, H gamma 1.3.</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>Menu: <code>Colors → SuperMrWang → Tone → HSB Levels</code> (a filter op)</p>
 <h2 id="overview">Overview</h2>
@@ -208,7 +218,7 @@ S_{\text{out}} = (\text{ob}-\text{oa}) \bmod 360$$</div>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

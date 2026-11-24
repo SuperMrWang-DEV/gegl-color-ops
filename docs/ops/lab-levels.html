@@ -7,7 +7,7 @@
 <meta name="description" content="LAB 三通道各自设输入 / 输出黑白场与伽马" data-desc-zh="LAB 三通道各自设输入 / 输出黑白场与伽马" data-desc-en="LAB 三通道各自设输入 / 输出黑白场与伽马">
 <meta property="og:title" content="LAB Levels · gegl-color-ops" data-title-zh="LAB Levels · gegl-color-ops" data-title-en="LAB Levels · gegl-color-ops">
 <meta property="og:description" content="LAB 三通道各自设输入 / 输出黑白场与伽马" data-desc-zh="LAB 三通道各自设输入 / 输出黑白场与伽马" data-desc-en="LAB 三通道各自设输入 / 输出黑白场与伽马">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>整块区域</span>
   </div>
   <p class="lede">LAB 三通道各自设输入 / 输出黑白场与伽马</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/lab-levels/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:lab-levels</code> 处理后的输出 —— a 输入 −20–100、b 白场 95（暖调收窄）。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>菜单：<code>SuperMrWang → Levels → LAB Levels</code>（Filter 类）</p>
 <h2 id="概述">概述</h2>
@@ -137,7 +142,12 @@ o_{\text{hi}}\,u_{+}^{1/\gamma}, &amp; x \ge 0,\quad u_{+} = \dfrac{x}{i_{\text{
     <span>area</span>
   </div>
   <p class="lede">Levels on CIELAB L, a and b — perceptual lightness and the two colour axes, each with its own curve.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/lab-levels/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:lab-levels</code> — a input −20–100, b white point 95.</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>Menu: <code>Colors → SuperMrWang → Tone → LAB Levels</code> (a filter op)</p>
 <h2 id="overview">Overview</h2>
@@ -190,7 +200,7 @@ o_{\text{hi}}\,u_{+}^{1/\gamma}, &amp; x \ge 0,\quad u_{+} = \dfrac{x}{i_{\text{
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

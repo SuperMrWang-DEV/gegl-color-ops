@@ -7,7 +7,7 @@
 <meta name="description" content="木偶变形的非破坏版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉子点应用时写的也是这里的 pins 串，重跑对话框会从滤镜里把钉子读回来。" data-desc-zh="木偶变形的非破坏版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉子点应用时写的也是这里的 pins 串，重跑对话框会从滤镜里把钉子读回来。" data-desc-en="木偶变形的非破坏版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉子点应用时写的也是这里的 pins 串，重跑对话框会从滤镜里把钉子读回来。">
 <meta property="og:title" content="Puppet Warp (live) · gegl-color-ops" data-title-zh="Puppet Warp (live) · gegl-color-ops" data-title-en="Puppet Warp (live) · gegl-color-ops">
 <meta property="og:description" content="木偶变形的非破坏版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉子点应用时写的也是这里的 pins 串，重跑对话框会从滤镜里把钉子读回来。" data-desc-zh="木偶变形的非破坏版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉子点应用时写的也是这里的 pins 串，重跑对话框会从滤镜里把钉子读回来。" data-desc-en="木偶变形的非破坏版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉子点应用时写的也是这里的 pins 串，重跑对话框会从滤镜里把钉子读回来。">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>整块区域</span>
   </div>
   <p class="lede">木偶变形的<strong>非破坏</strong>版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉子点应用时写的也是这里的 pins 串，重跑对话框会从滤镜里把钉子读回来。</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/puppet-warp/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:puppet-warp</code> 处理后的输出 —— 一个钉子从 (480,320) 拖到 (545,430)，保形模式。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>把 <code>plugin/puppet-warp</code> 那套解算（MLS 相似 / MLS 仿射 / ARAP）搬进 C，做成一条<strong>挂在图层上的实时滤镜</strong>：钉子串存在滤镜上，原像素一个字节都不动。</p>
 <pre><code>图层 ──▶ ┌──────────────────────────┐ ──▶ 画布
@@ -106,7 +111,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <p>Windows 模块 <code>puppet-warp.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/puppet-warp.dll">下载 puppet-warp.dll<span class="size">Windows x64</span></a></div>
-</div><nav class="pager"><a class="prev" href="displace.html"><span>上一个</span>Displace</a><a class="next" href="layer-style.html"><span>下一个</span>Layer Style (live)</a></nav>
+</div><nav class="pager"><a class="prev" href="displace.html"><span>上一个</span>Displace</a><a class="next" href="mesh-warp.html"><span>下一个</span>Mesh Warp (live)</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
@@ -124,7 +129,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>area</span>
   </div>
   <p class="lede">The puppet-warp solver (MLS similarity, MLS affine, ARAP) as a live GEGL filter on the layer — the pin list lives on the filter stack, not in the pixels.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/puppet-warp/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:puppet-warp</code> — One pin dragged from (480,320) to (545,430), similarity mode.</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>The solver behind <code>plugin/puppet-warp</code> (MLS similarity / MLS affine / ARAP) moved into C and attached to the layer as a <strong>real-time filter</strong>: the pin list is stored on the filter, and not a single pixel of the layer is written.</p>
 <pre><code>layer ──▶ ┌──────────────────────────┐ ──▶ canvas
@@ -143,7 +153,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <p>Windows module <code>puppet-warp.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/puppet-warp.dll">Download puppet-warp.dll<span class="size">Windows x64</span></a></div>
-</div><nav class="pager"><a class="prev" href="displace.html"><span>Previous</span>Displace</a><a class="next" href="layer-style.html"><span>Next</span>Layer Style (live)</a></nav>
+</div><nav class="pager"><a class="prev" href="displace.html"><span>Previous</span>Displace</a><a class="next" href="mesh-warp.html"><span>Next</span>Mesh Warp (live)</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">On this page</p>
@@ -164,7 +174,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

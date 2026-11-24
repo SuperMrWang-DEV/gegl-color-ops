@@ -7,7 +7,7 @@
 <meta name="description" content="按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价于经典图像编辑器「颜色查找」调整图层；强度按 0..1 与原图线性混合" data-desc-zh="按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价于经典图像编辑器「颜色查找」调整图层；强度按 0..1 与原图线性混合" data-desc-en="按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价于经典图像编辑器「颜色查找」调整图层；强度按 0..1 与原图线性混合">
 <meta property="og:title" content="Color Lookup · gegl-color-ops" data-title-zh="Color Lookup · gegl-color-ops" data-title-en="Color Lookup · gegl-color-ops">
 <meta property="og:description" content="按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价于经典图像编辑器「颜色查找」调整图层；强度按 0..1 与原图线性混合" data-desc-zh="按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价于经典图像编辑器「颜色查找」调整图层；强度按 0..1 与原图线性混合" data-desc-en="按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价于经典图像编辑器「颜色查找」调整图层；强度按 0..1 与原图线性混合">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>整块区域</span>
   </div>
   <p class="lede">按 .cube 3D LUT（可带 1D shaper）做颜色查找，等价于经典图像编辑器「颜色查找」调整图层；强度按 0..1 与原图线性混合</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/color-lookup/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:color-lookup</code> 处理后的输出 —— 载入一张暖调 3D LUT、强度 100%。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>按 Adobe Cube LUT 规范实现的「颜色查找」，对应 经典图像编辑器的「颜色查找」调整图层。经典图像编辑器 那侧只能手动跑脚本标定（见文末），所以这一支的数值验收先对齐<strong>独立写的 Python 参考实现</strong>，而不是经典图像编辑器输出。</p>
 <ul><li>GEGL id：<code>lb:color-lookup</code></li><li>菜单：<code>Colors → SuperMrWang → Blend → Color Lookup</code></li><li>类型：<code>GeglOperationFilter</code>（按行扫描；LUT 在 <code>prepare()</code> 里加载并缓存）</li><li>参数：<code>file</code>（.cube 路径）、<code>strength</code>（0…1，默认 1）、 <code>interpolation</code>（<code>trilinear</code> 默认 / <code>tetrahedral</code>）</li></ul>
@@ -148,7 +153,12 @@ python tools/check_color_lookup.py x.cube     # 额外比对指定文件</code><
     <span>area</span>
   </div>
   <p class="lede">The classic editor's Color Lookup adjustment built on the Adobe Cube LUT spec — trilinear or tetrahedral interpolation, with strength.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/color-lookup/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:color-lookup</code> — Warm 3D LUT at full strength.</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>An implementation of "Color Lookup" following the Adobe Cube LUT specification, matching the classic editor's Color Lookup adjustment layer. the classic editor can only be calibrated with a manually-run script here (see the end), so numeric acceptance targets an <strong>independently written Python reference</strong> rather than the classic editor output.</p>
 <ul><li>GEGL id: <code>lb:color-lookup</code></li><li>Menu: <code>Colors → SuperMrWang → Blend → Color Lookup</code></li><li>Type: <code>GeglOperationFilter</code> (row scan; the LUT is loaded and cached in <code>prepare()</code>)</li><li>Parameters: <code>file</code> (a .cube path), <code>strength</code> (0…1, default 1), <code>interpolation</code> (<code>trilinear</code> default / <code>tetrahedral</code>)</li></ul>
@@ -213,7 +223,7 @@ python tools/check_color_lookup.py x.cube     # additionally compare a given fil
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

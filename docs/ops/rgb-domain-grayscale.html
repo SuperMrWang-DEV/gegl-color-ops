@@ -7,7 +7,7 @@
 <meta name="description" content="经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色" data-desc-zh="经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色" data-desc-en="经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色">
 <meta property="og:title" content="Black &amp; White · gegl-color-ops" data-title-zh="Black &amp; White · gegl-color-ops" data-title-en="Black &amp; White · gegl-color-ops">
 <meta property="og:description" content="经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色" data-desc-zh="经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色" data-desc-en="经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>逐像素</span>
   </div>
   <p class="lede">经典图像编辑器 黑白：六个色相滑块（红/黄/绿/青/蓝/品红）加权转灰，可着色</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/rgb-domain-grayscale/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:rgb-domain-grayscale</code> 处理后的输出 —— 按色系加权的黑白：红/洋红重、蓝轻。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <h2 id="算法">算法</h2>
 <p>六个色相滑杆（红 / 黄 / 绿 / 青 / 蓝 / 品红）决定每种颜色对灰度的贡献，结果还可以着色——就是 经典图像编辑器的「黑白」对话框：把蓝拉低压暗天空，把黄推高提亮肤色，其余部分不受影响。</p>
@@ -149,7 +154,12 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <span>per-pixel</span>
   </div>
   <p class="lede">The classic editor's Black & White — six hue sliders decide how much each colour contributes to grey, with an optional tint.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/rgb-domain-grayscale/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:rgb-domain-grayscale</code> — Hue-weighted black & white: red/magenta heavy, blue light.</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p><code>lb:rgb-domain-grayscale</code> · menu <strong>Colors → SuperMrWang → Tone → Black &amp; White</strong> · <code>GeglOperationPointFilter</code> (per-pixel)</p>
 <h2 id="what-it-does">What it does</h2>
@@ -216,7 +226,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

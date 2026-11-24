@@ -7,7 +7,7 @@
 <meta name="description" content="LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L、G = 彩度 C、B = 色相/360」的数据图，一张图同时携带三个分量" data-desc-zh="LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L、G = 彩度 C、B = 色相/360」的数据图，一张图同时携带三个分量" data-desc-en="LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L、G = 彩度 C、B = 色相/360」的数据图，一张图同时携带三个分量">
 <meta property="og:title" content="LCh Dual Extract · gegl-color-ops" data-title-zh="LCh Dual Extract · gegl-color-ops" data-title-en="LCh Dual Extract · gegl-color-ops">
 <meta property="og:description" content="LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L、G = 彩度 C、B = 色相/360」的数据图，一张图同时携带三个分量" data-desc-zh="LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L、G = 彩度 C、B = 色相/360」的数据图，一张图同时携带三个分量" data-desc-en="LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L、G = 彩度 C、B = 色相/360」的数据图，一张图同时携带三个分量">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>整块区域</span>
   </div>
   <p class="lede">LCh 分量曲线工作流的提取器：把一张图拆成「R = 明度 L<em>、G = 彩度 C</em>、B = 色相/360」的数据图，一张图同时携带三个分量</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/lch-dual/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:lch-dual</code> 处理后的输出 —— 打包成数据图：R=L/100、G=C/140、B=色相/360。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>把一张图打包成<strong>一张数据图</strong>：<code>R = 明度 L*/100</code>、<code>G = 彩度 C*/140</code>、 <code>B = 色相/360</code>，全部 0…1。alpha 恒为 1。</p>
 <pre><code>原图 ──lb:lch-dual──&gt; (R=L/100, G=C/140, B=h/360)
@@ -131,7 +136,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>area</span>
   </div>
   <p class="lede">Packs lightness, chroma and hue into one data image in polar form — so a curve can add chroma or rotate hue without dragging the other two along.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/lch-dual/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:lch-dual</code> — Packed data image: R=L/100, G=C/140, B=H/360.</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>Menu: <code>Colors → SuperMrWang → Component → LCh Dual Extract</code> (a filter op)</p>
 <h2 id="overview">Overview</h2>
@@ -181,7 +191,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

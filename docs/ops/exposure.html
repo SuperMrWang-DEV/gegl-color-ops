@@ -7,7 +7,7 @@
 <meta name="description" content="经典图像编辑器 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）" data-desc-zh="经典图像编辑器 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）" data-desc-en="经典图像编辑器 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）">
 <meta property="og:title" content="Exposure EV · gegl-color-ops" data-title-zh="Exposure EV · gegl-color-ops" data-title-en="Exposure EV · gegl-color-ops">
 <meta property="og:description" content="经典图像编辑器 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）" data-desc-zh="经典图像编辑器 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）" data-desc-en="经典图像编辑器 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>整块区域</span>
   </div>
   <p class="lede">经典图像编辑器 曝光：EV、偏移、伽马三段式调整（按 EV 计曝光档位）</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/exposure/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:exposure</code> 处理后的输出 —— 曝光 +0.8 EV、偏移 +0.02（线性光里加）。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <h2 id="两条公式按输入精度自动选路">两条公式，按输入精度自动选路</h2>
 <p><code>precision</code> 属性：<code>auto</code>（默认）/ <code>encoded</code>（强制 8 位）/ <code>linear</code>（强制 32 位）。 auto 读输入 pad 的源格式：整数格式（<code>u8</code> / <code>u16</code>）走分支一，浮点格式（<code>float</code> / <code>half</code> / <code>double</code>）走分支二。16 位图同样是伽马编码，所以和 8 位共用分支一。</p>
@@ -153,7 +158,12 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <span>area</span>
   </div>
   <p class="lede">The classic editor's Exposure adjustment with two formulas — 8-bit sRGB and 32-bit linear — chosen automatically from the input precision.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/exposure/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:exposure</code> — Exposure +0.8 EV, Offset +0.02 (added in linear light).</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>Menu: <code>Colors → SuperMrWang → Tone → Exposure EV</code></p>
 <h2 id="two-formulas-picked-from-the-input-precision">Two formulas, picked from the input precision</h2>
@@ -213,7 +223,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

@@ -1,0 +1,54 @@
+add-noise	lb:add-noise	amount distribution monochrome seed
+apply-image	lb:apply-image	blend-mode scale offset opacity target-channel source-channel mask-enabled=FALSE mask-from mask-channel invert-mask=FALSE preserve-transparency=FALSE output-mode
+brightness-contrast	lb:brightness-contrast	brightness contrast legacy
+calculations	lb:calculations	source1-channel invert-source1=FALSE source2-channel invert-source2=FALSE blend-mode scale offset opacity mask-enabled=FALSE mask-channel invert-mask=FALSE output-mode
+channel-mixer-plus	lb:channel-mixer-plus	monochrome mono-r=0.330000 mono-g=0.330000 mono-b=0.340000 mono-offset=0.000000 rr-gain=1.000000 rg-gain=0.000000 rb-gain=0.000000 r-offset=0.000000 gr-gain=0.000000 gg-gain=1.000000 gb-gain=0.000000 g-offset=0.000000 br-gain=0.000000 bg-gain=0.000000 bb-gain=1.000000 b-offset=0.000000
+channel-range-to-alpha	lb:channel-range-to-alpha	channel
+cmyk-curves	lb:cmyk-curves	curves
+cmyk-levels	lb:cmyk-levels	c-in-black c-in-white c-gamma c-out-black c-out-white=100.000000 m-in-black m-in-white m-gamma m-out-black m-out-white=100.000000 y-in-black y-in-white y-gamma y-out-black y-out-white=100.000000 k-in-black k-in-white k-gamma k-out-black k-out-white=100.000000
+cmyk-primary-correction	lb:cmyk-primary-correction	absolute
+color-balance	lb:color-balance	shadow-cr=0.000000 shadow-mg shadow-yb=0.000000 midtone-cr=0.000000 midtone-mg midtone-yb highlight-cr=0.000000 highlight-mg highlight-yb preserve-luminosity
+color-grading	lb:color-grading	global-hue=0.000000 global-sat=0.000000 global-lum=0.000000 shadow-hue=0.000000 shadow-sat=0.000000 shadow-lum=0.000000 mid-hue=0.000000 mid-sat=0.000000 mid-lum=0.000000 high-hue=0.000000 high-sat=0.000000 high-lum=0.000000 blending balance
+color-lookup	lb:color-lookup	file="" strength=1.000000 interpolation
+color-mask-select	lb:color-mask-select	mask-mode custom-color preview-red-mask fuzziness shadows-limit highlights-limit midtone-low=64 midtone-high=192 saturation-min invert
+color-temperature-tint	lb:color-temperature-tint	temperature tint
+colorize-hsl	lb:colorize-hsl	hue saturation=25.000000 lightness
+displace	lb:displace	amount-x amount-y units map-mode map-channel black-point=0.000000 midpoint white-point=1.000000 alpha-weight abyss resampling
+dust-scratches	lb:dust-scratches	radius threshold
+exposure	lb:exposure	exposure offset gamma=1.000000 precision
+gray-to-component	lb:gray-to-component	mode input-space sat-hue color-sat lch-l lch-c lch-h chroma-scale
+hsb-levels	lb:hsb-levels	h-in-black h-in-white h-gamma h-out-black h-out-white s-in-black s-in-white s-gamma s-out-black s-out-white=100.000000 b-in-black b-in-white b-gamma b-out-black b-out-white=100.000000
+hsi-compose	lb:hsi-compose	
+hsi-dual	lb:hsi-dual	
+hsi-levels	lb:hsi-levels	h-in-black h-in-white h-gamma h-out-black h-out-white s-in-black s-in-white s-gamma s-out-black s-out-white=100.000000 i-in-black i-in-white i-gamma i-out-black i-out-white=100.000000
+hsl-bands	lb:hsl-bands	hue-feather=12.000000 saturation-min
+hsl-compose	lb:hsl-compose	
+hsl-dual	lb:hsl-dual	
+hsl-levels	lb:hsl-levels	h-in-black h-in-white h-gamma h-out-black h-out-white s-in-black s-in-white s-gamma s-out-black s-out-white=100.000000 l-in-black l-in-white l-gamma l-out-black l-out-white=100.000000
+hsv-compose	lb:hsv-compose	
+hsv-curves	lb:hsv-curves	curves
+hsv-dual	lb:hsv-dual	
+hue-range-basic	lb:hue-range-basic	channel range-low range-inner-low range-inner-high range-high hue saturation lightness
+hue-saturation	lb:hue-saturation	hue=0.000000 saturation=0.000000 lightness=0.000000 overlap red-hue=0.000000 yellow-hue=0.000000 green-hue=0.000000 cyan-hue=0.000000 blue-hue=0.000000 magenta-hue=0.000000
+hue-saturation-basic	lb:hue-saturation-basic	hue saturation lightness
+lab-compose	lb:lab-compose	
+lab-curves	lb:lab-curves	curves
+lab-dual	lb:lab-dual	
+lab-levels	lb:lab-levels	a-in-black=-128.000000 a-in-white=127.000000 a-gamma a-out-black a-out-white b-in-black=-128.000000 b-in-white=127.000000 b-gamma b-out-black b-out-white
+layer-style	lb:layer-style	global-angle global-altitude shadow-distance=5.000000 shadow-spread glow-range
+lch-compose	lb:lch-compose	
+lch-curves	lb:lch-curves	curves
+lch-dual	lb:lch-dual	
+lch-levels	lb:lch-levels	l-in-black l-in-white l-gamma l-out-black l-out-white=100.000000 c-in-black c-in-white c-gamma c-out-black c-out-white=132.000000 h-in-black h-in-white h-gamma h-out-black h-out-white
+levels	lb:levels	in-low in-gamma=1.000000 in-high out-low=0.000000 out-high=255.000000 red-in-low=0.000000 red-in-gamma=1.000000 red-in-high=255.000000 red-out-low=0.000000 red-out-high=255.000000 green-in-low=0.000000 green-in-gamma=1.000000 green-in-high=255.000000 green-out-low=0.000000 green-out-high=255.000000 blue-in-low=0.000000 blue-in-gamma=1.000000 blue-in-high=255.000000 blue-out-low=0.000000 blue-out-high=255.000000
+match-color	lb:match-color	method luminance color-intensity=100.000000 fade=0.000000 neutralize refresh
+max-min	lb:max-min	mode shape radius affect-alpha
+mesh-warp	NONE	
+puppet-warp	lb:puppet-warp	pins mode radius
+reduce-noise	lb:reduce-noise	strength detail radius per-channel
+rgb-domain-grayscale	lb:rgb-domain-grayscale	red yellow green cyan blue magenta tint-enabled=FALSE tint-color tint-strength
+shadows-highlights	lb:shadows-highlights	shadows-amount shadows-width shadows-radius highlights-amount highlights-width=50.000000 highlights-radius color-correction midtone-contrast=0.000000 black-clip white-clip
+unsharp-mask	lb:unsharp-mask	radius amount threshold fringe
+vibrance	lb:vibrance	vibrance protect-reds compensate-lightness
+vibrance-hyper	lb:vibrance-hyper	vibrance saturation attenuation skin-protect
+xyz-multiply	lb:xyz-multiply	overlay-color white-mode opacity preserve-luminosity

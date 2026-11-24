@@ -7,7 +7,7 @@
 <meta name="description" content="红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，经典 RAW 编辑器风格" data-desc-zh="红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，经典 RAW 编辑器风格" data-desc-en="红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，经典 RAW 编辑器风格">
 <meta property="og:title" content="HSL 8 Bands · gegl-color-ops" data-title-zh="HSL 8 Bands · gegl-color-ops" data-title-en="HSL 8 Bands · gegl-color-ops">
 <meta property="og:description" content="红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，经典 RAW 编辑器风格" data-desc-zh="红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，经典 RAW 编辑器风格" data-desc-en="红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，经典 RAW 编辑器风格">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>逐像素</span>
   </div>
   <p class="lede">红/橙/黄/绿/青/蓝/紫/洋红八段色相各自调 H/S/L，经典 RAW 编辑器风格</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/hsl-bands/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:hsl-bands</code> 处理后的输出 —— 红域色相 −50°、饱和 +35；色相过渡 30°。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <blockquote><p>2026-11-12：按 RAW 编辑器 8 段混色器补齐洋红段——原紫段 0.78~0.92 对半拆为紫 0.78~0.85 与洋红 0.85~0.92。旧 7 段属性名与边界行为不变。</p></blockquote>
 <blockquote><p>2026-11-18：算子 id 由 <code>lb:hsl-seven</code> 改为 <code>lb:hsl-bands</code>。补洋红段之后「seven」已经名不副实，新名字也不再承诺段数。旧 XCF 里的 <code>lb:hsl-seven</code> 滤镜会失效；暂时保留旧的 <code>hsl-seven.dll</code> 可以让老工程照常打开，两个 id 互不冲突。</p></blockquote>
@@ -145,7 +150,12 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <span>per-pixel</span>
   </div>
   <p class="lede">Eight hue bands (red, orange, yellow, green, cyan, blue, purple, magenta), each with its own H/S/L shift — the RAW editor's HSL panel.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/hsl-bands/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:hsl-bands</code> — Reds: hue −50°, saturation +35; hue feather 30°.</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p><code>lb:hsl-bands</code> · menu <strong>SuperMrWang → Color → HSL 8 Bands</strong> · <code>GeglOperationPointFilter</code> (per-pixel)</p>
 <h2 id="what-it-does">What it does</h2>
@@ -207,7 +217,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

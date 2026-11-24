@@ -7,7 +7,7 @@
 <meta name="description" content="Photoshop「锐化 → USM 锐化 / 智能锐化」的等价物：用模糊版做参考，把原图与模糊版的差值按百分比加回去。" data-desc-zh="Photoshop「锐化 → USM 锐化 / 智能锐化」的等价物：用模糊版做参考，把原图与模糊版的差值按百分比加回去。" data-desc-en="Photoshop「锐化 → USM 锐化 / 智能锐化」的等价物：用模糊版做参考，把原图与模糊版的差值按百分比加回去。">
 <meta property="og:title" content="Unsharp Mask / Smart Sharpen · gegl-color-ops" data-title-zh="Unsharp Mask / Smart Sharpen · gegl-color-ops" data-title-en="Unsharp Mask · gegl-color-ops">
 <meta property="og:description" content="Photoshop「锐化 → USM 锐化 / 智能锐化」的等价物：用模糊版做参考，把原图与模糊版的差值按百分比加回去。" data-desc-zh="Photoshop「锐化 → USM 锐化 / 智能锐化」的等价物：用模糊版做参考，把原图与模糊版的差值按百分比加回去。" data-desc-en="Photoshop「锐化 → USM 锐化 / 智能锐化」的等价物：用模糊版做参考，把原图与模糊版的差值按百分比加回去。">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>AreaFilter</span>
   </div>
   <p class="lede">Photoshop「锐化 → USM 锐化 / 智能锐化」的等价物：用模糊版做参考，把原图与模糊版的差值按百分比加回去。</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/unsharp-mask/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:unsharp-mask</code> 处理后的输出 —— 半径 2.5、数量 180%、阈值 0。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <blockquote><p><code>lb:unsharp-mask</code> · 菜单 <strong>SuperMrWang → Sharpen → Unsharp Mask</strong> · 单输入</p></blockquote>
 <p>用「原图 − 模糊图」的差值把边缘加陡，是 Photoshop「锐化 → USM 锐化」的等价物，并且把「智能锐化」真正想要的那件事——<strong>不让硬边长出白边</strong>——做成了一个滑杆。</p>
@@ -129,7 +134,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>AreaFilter</span>
   </div>
   <p class="lede">Sharpen against a blurred copy with the amount, radius and threshold of Photoshop's Unsharp Mask, plus a halo stage that keeps hard edges from growing white fringes.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/unsharp-mask/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:unsharp-mask</code> — Radius 2.5, Amount 180%, Threshold 0.</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p><code>lb:unsharp-mask</code> · menu <strong>SuperMrWang → Sharpen → Unsharp Mask</strong> · one input</p>
 <p>Steepens edges by adding back the difference between the image and a blurred copy — Photoshop's Unsharp Mask, plus the one thing Smart Sharpen is really after, as a slider.</p>
@@ -174,7 +184,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

@@ -7,7 +7,7 @@
 <meta name="description" content="按 经典图像编辑器「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱和主动收手、红带（肤色）额外保护、浅色少给一点，色相与明度不动" data-desc-zh="按 经典图像编辑器「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱和主动收手、红带（肤色）额外保护、浅色少给一点，色相与明度不动" data-desc-en="按 经典图像编辑器「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱和主动收手、红带（肤色）额外保护、浅色少给一点，色相与明度不动">
 <meta property="og:title" content="Vibrance · gegl-color-ops" data-title-zh="Vibrance · gegl-color-ops" data-title-en="Vibrance · gegl-color-ops">
 <meta property="og:description" content="按 经典图像编辑器「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱和主动收手、红带（肤色）额外保护、浅色少给一点，色相与明度不动" data-desc-zh="按 经典图像编辑器「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱和主动收手、红带（肤色）额外保护、浅色少给一点，色相与明度不动" data-desc-en="按 经典图像编辑器「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱和主动收手、红带（肤色）额外保护、浅色少给一点，色相与明度不动">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>逐像素</span>
   </div>
   <p class="lede">按 经典图像编辑器「自然饱和度」的实测响应改饱和度：低饱和吃得饱、高饱和主动收手、红带（肤色）额外保护、浅色少给一点，色相与明度不动</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/vibrance/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:vibrance</code> 处理后的输出 —— 自然饱和度 +65（低饱和加得多、红色受保护）。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>按黑盒标定得到的 经典图像编辑器的「自然饱和度」，不是凭经验的近似。同一张标定图分别过经典图像编辑器 26.10 和本算子，像素级逐位对比见文末「验收」。</p>
 <ul><li>GEGL id：<code>lb:vibrance</code></li><li>菜单：<code>Colors → SuperMrWang → Color → Vibrance</code></li><li>类型：<code>GeglOperationPointFilter</code>（逐像素，无邻域）</li><li>参数：<code>vibrance</code>（−100…100）、<code>protect_reds</code>、<code>compensate_lightness</code></li></ul>
@@ -145,7 +150,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>per-pixel</span>
   </div>
   <p class="lede">The classic editor's Vibrance, matched by black-box measurement — measured tables, red-band protection, lightness compensation, and no white balance mixed in.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/vibrance/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:vibrance</code> — Vibrance +65 (low-saturation colours gain most, reds protected).</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>the classic editor's <strong>Vibrance</strong>, matched by black-box measurement rather than approximated. The same calibration chart was pushed through the classic editor 26.10 and through this operator; the pixel-level comparison is in the acceptance section.</p>
 <ul><li>GEGL id: <code>lb:vibrance</code></li><li>Menu: <code>Colors → SuperMrWang → Color → Vibrance</code></li><li>Type: <code>GeglOperationPointFilter</code> (per-pixel, no neighbourhood)</li><li>Parameters: <code>vibrance</code> (−100…100), <code>protect_reds</code>, <code>compensate_lightness</code></li></ul>
@@ -206,7 +216,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

@@ -17,7 +17,7 @@
        六个色彩空间的色阶家族，却一条曲线都没有：这是这套算子最明显的缺口。
        GIMP 3 自带 gegl:curves，但它只有复合通道与单色" data-desc-en="Levels gives you three points; a curve is any shape you like — which is why the curve
    is the first thing anyone reach">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <script>
 (function () {
@@ -132,10 +132,10 @@
 <section class="download" id="zh-download">
   <h2>下载这一个</h2>
   <div class="dl primary-dl">
-    <div class="dl-head"><h3>LAB / LCh / HSV / CMYK Curves…</h3><span class="pill">.py · 免编译</span></div>
-    <p>包里是一个 <code>.py</code>、一份安装说明，以及 <code>_shared/</code> 与 <code>locale/</code>。整包解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，但界面只有英文。 Linux 端的 cmyk-curves.dll、cmyk-curves.so、hsv-curves.dll、hsv-curves.so、lab-curves.dll、lab-curves.so、lch-curves.dll、lch-curves.so 还没进预编译包，要用 Linux 就 <code>./build.sh</code> 自己编一份（Windows 端齐全）。</p>
+    <div class="dl-head"><h3>LAB / LCh / HSV / CMYK Curves…</h3><span class="pill">含 4 个模块 · 免编译</span></div>
+    <p>包里有一个 <code>.py</code>、4 个算子模块和一份安装说明，外加 <code>_shared/</code> 与 <code>locale/</code>。<b>算子依赖已经附在里面，不用另外去下。</b><code>.py</code> 进 GIMP 的 <code>plug-ins</code>，模块进 GEGL 的 <code>gegl-0.4/plug-ins</code>——两个目录不一样，包内说明分步写了。<code>_shared/</code> 和 <code>locale/</code> 要跟 <code>.py</code> 放同一处，否则菜单文案只能是英文。 Linux 端的 cmyk-curves.so、hsv-curves.so、lab-curves.so、lch-curves.so 还没进预编译包，要用 Linux 就 <code>./build.sh</code> 自己编一份（Windows 端齐全）。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-curves.zip">下载 LAB / LCh / HSV / CMYK Curves…</a>
-    <p class="muted small">55.2 KB · 校验：<code>SHA256 0f01aaef4b70d1e8756ea8c97d5bb8a4…</code></p>
+    <p class="muted small">208.6 KB · 校验：<code>SHA256 c25b9f01e7c14ecd6d9eb45fad143880…</code></p>
   </div>
 </section>
 
@@ -247,10 +247,10 @@
 <section class="download" id="en-download">
   <h2>Download this one</h2>
   <div class="dl primary-dl">
-    <div class="dl-head"><h3>Curves</h3><span class="pill">.py · no compile</span></div>
-    <p>The archive holds a single <code>.py</code>, an install note and the <code>_shared/</code> + <code>locale/</code> pair. Unpack all of it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register. Without <code>_shared/</code> and <code>locale/</code> it still runs, but only in English. The Linux side of cmyk-curves.dll, cmyk-curves.so, hsv-curves.dll, hsv-curves.so, lab-curves.dll, lab-curves.so, lch-curves.dll, lch-curves.so is not in the prebuilt bundle yet; if you need Linux, build it with <code>./build.sh</code> (Windows is complete).</p>
+    <div class="dl-head"><h3>Curves</h3><span class="pill">4 modules included · no compile</span></div>
+    <p>The archive holds one <code>.py</code>, 4 operator modules, an install note, plus <code>_shared/</code> and <code>locale/</code>. <b>The operator dependencies are already inside, nothing else to download.</b> The <code>.py</code> goes into GIMP's <code>plug-ins</code>, the modules into GEGL's <code>gegl-0.4/plug-ins</code> — two different directories, and the note inside walks through both. Keep <code>_shared/</code> and <code>locale/</code> next to the <code>.py</code> or the menu labels stay English. The Linux side of cmyk-curves.so, hsv-curves.so, lab-curves.so, lch-curves.so is not in the prebuilt bundle yet; if you need Linux, build it with <code>./build.sh</code> (Windows is complete).</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-curves.zip">Download Curves</a>
-    <p class="muted small">55.2 KB · checksum: <code>SHA256 0f01aaef4b70d1e8756ea8c97d5bb8a4…</code></p>
+    <p class="muted small">208.6 KB · checksum: <code>SHA256 c25b9f01e7c14ecd6d9eb45fad143880…</code></p>
   </div>
 </section>
 
@@ -285,7 +285,7 @@
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

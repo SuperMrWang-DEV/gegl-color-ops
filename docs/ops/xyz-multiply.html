@@ -7,7 +7,7 @@
 <meta name="description" content="经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。" data-desc-zh="经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。" data-desc-en="经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。">
 <meta property="og:title" content="Photo Filter · gegl-color-ops" data-title-zh="Photo Filter · gegl-color-ops" data-title-en="Photo Filter · gegl-color-ops">
 <meta property="og:description" content="经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。" data-desc-zh="经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。" data-desc-en="经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>逐像素</span>
   </div>
   <p class="lede">经典图像编辑器「照片滤镜」的复刻：滤镜色在 XYZ 域做正片叠底，密度当不透明度，另有保留明度开关。</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/xyz-multiply/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:xyz-multiply</code> 处理后的输出 —— 照片滤镜色 暖橙、密度 85%、保留明度。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <h2 id="这个算子就是-经典图像编辑器的照片滤镜-this-is-the-classic-editors-photo-filter">这个算子就是 经典图像编辑器的「照片滤镜」/ This is the classic editor's Photo Filter</h2>
 <p>经典图像编辑器的照片滤镜（<code>滤镜 → 调整 → 照片滤镜</code>）内部等价于「纯色填充 + 正片叠底 + 密度」，本算子按实测把整条链路复刻出来。参数一一对应：</p>
@@ -147,7 +152,12 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <span>per-pixel</span>
   </div>
   <p class="lede">The classic editor's Photo Filter, reproduced end to end — colour fill + multiply + density in linear sRGB, with W3C preserve-luminosity.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/xyz-multiply/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:xyz-multiply</code> — Photo-filter colour warm orange, density 85%, preserve luminosity.</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>This operator <strong>is</strong> the classic editor's Photo Filter. Internally the classic editor's <code>Filter → Adjustments → Photo Filter</code> is equivalent to "solid colour fill + multiply + density", and this operator reproduces the whole chain from measurement. The parameters map one for one:</p>
 <div class="table-wrap"><table><thead><tr><th>the classic editor Photo Filter</th><th><code>lb:xyz-multiply</code></th><th>Notes</th></tr></thead><tbody><tr><td>Filter colour</td><td><code>overlay_color</code></td><td>the classic editor's twenty-odd presets are shortcuts; it is still a colour underneath</td></tr><tr><td>Density 0–100%</td><td><code>opacity</code> 0–1</td><td>divided by 100</td></tr><tr><td>Preserve Luminosity</td><td><code>preserve_luminosity</code></td><td><strong>on by default</strong>, matching the classic editor's factory setting</td></tr><tr><td>— (the classic editor has none)</td><td><code>white_mode</code></td><td>reference white point, <strong>D50 by default</strong> (the classic editor's Lab white)</td></tr></tbody></table></div>
@@ -212,7 +222,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

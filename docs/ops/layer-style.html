@@ -7,7 +7,7 @@
 <meta name="description" content="Photoshop 图层样式的非破坏版本。参数挂在滤镜栈上，改一个滑杆只是让这条滤镜重新算一遍；原像素一个字节都没动过，随时可以整体关掉或删掉。" data-desc-zh="Photoshop 图层样式的非破坏版本。参数挂在滤镜栈上，改一个滑杆只是让这条滤镜重新算一遍；原像素一个字节都没动过，随时可以整体关掉或删掉。" data-desc-en="Photoshop 图层样式的非破坏版本。参数挂在滤镜栈上，改一个滑杆只是让这条滤镜重新算一遍；原像素一个字节都没动过，随时可以整体关掉或删掉。">
 <meta property="og:title" content="Layer Style (live) · gegl-color-ops" data-title-zh="Layer Style (live) · gegl-color-ops" data-title-en="Layer Style (live) · gegl-color-ops">
 <meta property="og:description" content="Photoshop 图层样式的非破坏版本。参数挂在滤镜栈上，改一个滑杆只是让这条滤镜重新算一遍；原像素一个字节都没动过，随时可以整体关掉或删掉。" data-desc-zh="Photoshop 图层样式的非破坏版本。参数挂在滤镜栈上，改一个滑杆只是让这条滤镜重新算一遍；原像素一个字节都没动过，随时可以整体关掉或删掉。" data-desc-en="Photoshop 图层样式的非破坏版本。参数挂在滤镜栈上，改一个滑杆只是让这条滤镜重新算一遍；原像素一个字节都没动过，随时可以整体关掉或删掉。">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>整块区域</span>
   </div>
   <p class="lede">Photoshop 图层样式的<strong>非破坏</strong>版本。参数挂在滤镜栈上，改一个滑杆只是让这条滤镜重新算一遍；原像素一个字节都没动过，随时可以整体关掉或删掉。</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/layer-style/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:layer-style</code> 处理后的输出 —— 投影 距离 18 / 大小 26 / 不透明度 85%，外加外发光。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>PS 的「图层 → 图层样式」那十个效果，做成一条<strong>挂在图层上的实时滤镜</strong>：</p>
 <pre><code>图层 ──▶ ┌──────────────────────────┐ ──▶ 画布
@@ -144,7 +149,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <p>Windows 模块 <code>layer-style.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/layer-style.dll">下载 layer-style.dll<span class="size">Windows x64</span></a></div>
-</div><nav class="pager"><a class="prev" href="puppet-warp.html"><span>上一个</span>Puppet Warp (live)</a></nav>
+</div><nav class="pager"><a class="prev" href="mesh-warp.html"><span>上一个</span>Mesh Warp (live)</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">本页目录</p>
@@ -166,7 +171,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>area</span>
   </div>
   <p class="lede">Photoshop's ten layer effects as a live GEGL filter — drop shadow, inner shadow, both glows, bevel and emboss, satin, three overlays, stroke. The style lives on the filter stack, so nothing is baked into the pixels.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/layer-style/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:layer-style</code> — Drop shadow 18/26/85% plus an outer glow.</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>Photoshop's <strong>Layer → Layer Style</strong> set as one real-time filter attached to the layer:</p>
 <pre><code>layer ──▶ ┌──────────────────────────┐ ──▶ canvas
@@ -222,7 +232,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <p>Windows module <code>layer-style.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/layer-style.dll">Download layer-style.dll<span class="size">Windows x64</span></a></div>
-</div><nav class="pager"><a class="prev" href="puppet-warp.html"><span>Previous</span>Puppet Warp (live)</a></nav>
+</div><nav class="pager"><a class="prev" href="mesh-warp.html"><span>Previous</span>Mesh Warp (live)</a></nav>
   </article>
   <aside class="toc">
   <p class="toc-title">On this page</p>
@@ -247,7 +257,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

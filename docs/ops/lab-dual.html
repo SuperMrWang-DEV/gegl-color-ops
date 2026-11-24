@@ -7,7 +7,7 @@
 <meta name="description" content="Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量" data-desc-zh="Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量" data-desc-en="Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量">
 <meta property="og:title" content="Lab Dual Extract · gegl-color-ops" data-title-zh="Lab Dual Extract · gegl-color-ops" data-title-en="Lab Dual Extract · gegl-color-ops">
 <meta property="og:description" content="Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量" data-desc-zh="Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量" data-desc-en="Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>整块区域</span>
   </div>
   <p class="lede">Lab 分量曲线工作流的提取器：把一张图拆成「R = a、G = b、B = L」的数据图，一张图同时携带三个分量</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/lab-dual/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:lab-dual</code> 处理后的输出 —— 打包成数据图：R=a*、G=b*、B=L*。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>把一张图打包成<strong>一张数据图</strong>：<code>R = a*</code>、<code>G = b*</code>、<code>B = L*</code>，全部 0…1。alpha 恒为 1。</p>
 <pre><code>原图 ──lb:lab-dual──&gt; (R=a, G=b, B=L)
@@ -143,7 +148,12 @@ L' = L* / 100</code></pre>
     <span>area</span>
   </div>
   <p class="lede">Packs a* and b* into two channels of one data image so two curves can move them independently — Lab's axes have no blend mode of their own in GIMP.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/lab-dual/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:lab-dual</code> — Packed data image: R=a*, G=b*, B=L*.</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>Menu: <code>Colors → SuperMrWang → Component → Lab Dual Extract</code> (a filter op)</p>
 <h2 id="overview">Overview</h2>
@@ -204,7 +214,7 @@ L' = L* / 100</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

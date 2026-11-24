@@ -27,6 +27,7 @@ main /docs。docs/ 里放了 .nojekyll，免掉 Jekyll 预处理（它会吞掉�
 
 import hashlib
 import html
+import json
 import os
 import re
 import shutil
@@ -1457,6 +1458,24 @@ def pager_html(op, lang):
     return "".join(nav)
 
 
+_SHOTS = {}
+
+
+def shots():
+    """算子对比图每张的参数说明，由 tools/make_op_shots.py 写到 site/shots.json。
+
+    参数只在生成脚本里写一次，页面从这儿读 —— 免得改了参数表忘了改文案。
+    """
+    if not _SHOTS:
+        path = os.path.join(SRC, "shots.json")
+        try:
+            with open(path, encoding="utf-8") as fh:
+                _SHOTS.update(json.load(fh))
+        except Exception:
+            pass
+    return _SHOTS
+
+
 def build_article(op, version):
     md = open(op["readme"], encoding="utf-8").read()
     en = load_en(op)
@@ -1562,16 +1581,44 @@ def build_article(op, version):
 </section>""" % (eyebrow, html.escape(name), meta, wip_note(op, lang),
                 warn_en if en_ else warn_zh, blurb)
 
+    def figure_html(lang):
+        """页面顶部的效果对比图：左原图、右同一张测试卡的输出。
+
+        图是 tools/make_op_shots.py 生成的，参数说明从 site/shots.json 读。
+        没有图的算子（多输入、要坐标串的）就整块不出现，不留空框。
+        """
+        meta = shots().get(op["dir"])
+        if not meta:
+            return ""
+        if not os.path.exists(os.path.join(op["assets"], "shot.png")):
+            return ""
+        if lang == "en":
+            cap = ("Left: the shared test card. Right: the same card through "
+                   "<code>%s</code> — %s." % (html.escape(op["id"]),
+                                              meta.get("en", "")))
+        else:
+            cap = ("左：原图　右：同一张测试卡经 <code>%s</code> 处理后的输出"
+                   " —— %s。" % (html.escape(op["id"]), meta.get("zh", "")))
+        return """<figure class="shot">
+  <img src="../assets/ops/%s/shot.png" width="950" height="323" loading="lazy"
+       alt="%s">
+  <figcaption>%s</figcaption>
+</figure>
+""" % (op["dir"], "原图 / 结果 · original / result", cap)
+
     def one_lang(lang):
         en_ = lang == "en"
         art = (en_html if en_ else body_html) + download_html(op, lang) \
             + pager_html(op, lang) + legacy_details(lang)
-        return """%s<div class="article-layout">
+        # 插图放在两栏布局外面：塞进 prose 只有 736 px 宽，两格各 350，
+        # Original / Result 的小字就糊了。全宽给到 950，正好是图的原尺寸。
+        return """%s%s<div class="article-layout">
   <article class="prose">
 %s
   </article>
   %s
-</div>""" % (head_block(lang), art, toc_block(en_toc if en_ else toc, lang))
+</div>""" % (head_block(lang), figure_html(lang), art,
+              toc_block(en_toc if en_ else toc, lang))
 
     if op.get("deprecated"):
         warn_zh = ('\n  <p class="dep-note"><b>已废弃</b>　本算子不再编译、不进安装包，'

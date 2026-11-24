@@ -7,7 +7,7 @@
 <meta name="description" content="通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue /Saturation / Lightness / LCh 系）读取还原，全程非破坏" data-desc-zh="通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue /Saturation / Lightness / LCh 系）读取还原，全程非破坏" data-desc-en="通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue /Saturation / Lightness / LCh 系）读取还原，全程非破坏">
 <meta property="og:title" content="Gray To Component · gegl-color-ops" data-title-zh="Gray To Component · gegl-color-ops" data-title-en="Gray to Component · gegl-color-ops">
 <meta property="og:description" content="通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue /Saturation / Lightness / LCh 系）读取还原，全程非破坏" data-desc-zh="通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue /Saturation / Lightness / LCh 系）读取还原，全程非破坏" data-desc-en="通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue /Saturation / Lightness / LCh 系）读取还原，全程非破坏">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>整块区域</span>
   </div>
   <p class="lede">通道灰度调色工作流的编码器：把分解出的分量灰度重新编码成「携带该分量」的彩色图层，供 GIMP 分量混合模式（Hue /Saturation / Lightness / LCh 系）读取还原，全程非破坏</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/gray-to-component/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:gray-to-component</code> 处理后的输出 —— 灰度图按默认映射编码成彩色分量。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>通道灰度调色工作流里的<strong>编码器</strong>：把分解出来的分量灰度层，重新编码成「携带该分量」的彩色层，交给 GIMP 的分量混合模式读回去。</p>
 <p>它是 <code>HSV Split (Curves)</code> / <code>LCh Split (Curves)</code> 两个插件的最后一步——把原来「scale 加三条 gimp:curves」压成<strong>一个滤镜</strong>，图层面板里每张分量层只剩 extract → curve → encode 三条。</p>
@@ -164,7 +169,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>area</span>
   </div>
   <p class="lede">The encoder behind HSV/LCh Split (Curves): turns a component grey layer into the colour layer a blend mode can read, in one filter instead of three curves.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/gray-to-component/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:gray-to-component</code> — Encode a greyscale image into colour components (default mapping).</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>The <strong>encoder</strong> of the channel-grey grading workflow: take a decomposed component grey layer and re-encode it into a colour layer "carrying" that component, so GIMP's component blend modes can read it back.</p>
 <p>It is the last step of the <code>HSV Split (Curves)</code> / <code>LCh Split (Curves)</code> plugins: one filter replaces the old "scale + three <code>gimp:curves</code>" stack, so each component layer is just <strong>extract → curve → encode</strong>.</p>
@@ -244,7 +254,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

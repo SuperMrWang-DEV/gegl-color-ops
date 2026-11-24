@@ -7,7 +7,7 @@
 <meta name="description" content="HSL 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色" data-desc-zh="HSL 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色" data-desc-en="HSL 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色">
 <meta property="og:title" content="HSL Compose · gegl-color-ops" data-title-zh="HSL Compose · gegl-color-ops" data-title-en="HSL Compose · gegl-color-ops">
 <meta property="og:description" content="HSL 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色" data-desc-zh="HSL 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色" data-desc-en="HSL 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>整块区域</span>
   </div>
   <p class="lede">HSL 分量曲线工作流的合成器：把「R = 饱和度、G = 明度、B = 色相/360」的数据图还原成真实颜色</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/hsl-compose/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:hsl-compose</code> 处理后的输出 —— 把 (S, L, H/360) 数据图还原成颜色。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>把数据图还原成真实颜色：<code>R = 饱和度</code>、<code>G = 明度</code>、<code>B = 色相/360</code>（都是 0…1），输出对应的 HSL 颜色，alpha 恒为 1。</p>
 <pre><code>(R=S, G=L, B=H/360) ──lb:hsl-compose──&gt; 真实颜色</code></pre>
@@ -127,7 +132,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>area</span>
   </div>
   <p class="lede">Turns the HSL data image back into real colour. The mirror half of HSL Dual Extract — without it the packed channels mean nothing.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/hsl-compose/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:hsl-compose</code> — Turn the packed (S, L, H/360) data back into colour.</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>Menu: <code>Colors → SuperMrWang → Component → HSL Compose</code> (a filter op)</p>
 <h2 id="overview">Overview</h2>
@@ -173,7 +183,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

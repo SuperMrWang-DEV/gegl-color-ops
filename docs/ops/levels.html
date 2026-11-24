@@ -7,7 +7,7 @@
 <meta name="description" content="经典图像编辑器 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 经典图像编辑器 对话框的数字框一一对应" data-desc-zh="经典图像编辑器 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 经典图像编辑器 对话框的数字框一一对应" data-desc-en="经典图像编辑器 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 经典图像编辑器 对话框的数字框一一对应">
 <meta property="og:title" content="Levels · gegl-color-ops" data-title-zh="Levels · gegl-color-ops" data-title-en="Levels · gegl-color-ops">
 <meta property="og:description" content="经典图像编辑器 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 经典图像编辑器 对话框的数字框一一对应" data-desc-zh="经典图像编辑器 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 经典图像编辑器 对话框的数字框一一对应" data-desc-en="经典图像编辑器 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 经典图像编辑器 对话框的数字框一一对应">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>逐像素</span>
   </div>
   <p class="lede">经典图像编辑器 色阶：复合 + R/G/B 四组「输入黑场 / 灰点 / 白场 + 输出黑场 /白场」，数值刻度 0–255，与 经典图像编辑器 对话框的数字框一一对应</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/levels/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:levels</code> 处理后的输出 —— 输入 22–232、中间调 gamma 1.2。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>经典图像编辑器「色阶」对话框的复刻：<strong>复合 + R/G/B 四组</strong>，每组都是「输入黑场 / 输入灰点 / 输入白场 + 输出黑场 / 输出白场」五个数，刻度 0–255，和 经典图像编辑器的数字框一一对应。</p>
 <p>对应面板：<code>Colors → SuperMrWang → Levels → Levels</code>。</p>
@@ -140,7 +145,12 @@ t' = t^{1/\gamma},
     <span>per-pixel</span>
   </div>
   <p class="lede">The classic editor's Levels dialog — composite plus R/G/B, five numbers each, 0–255 scale, with the classic editor's gamma direction.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/levels/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:levels</code> — Input 22–232, midtone gamma 1.2.</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>A reproduction of the classic editor's <strong>Levels</strong> dialog: <strong>composite plus R/G/B</strong>, four groups of five numbers each — input black, input grey, input white, output black, output white — on a 0–255 scale that matches the classic editor's numeric fields one for one.</p>
 <p>Panel: <code>Colors → SuperMrWang → Tone → Levels</code>.</p>
@@ -196,7 +206,7 @@ t' = t^{1/\gamma},
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

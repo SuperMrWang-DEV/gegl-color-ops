@@ -7,7 +7,7 @@
 <meta name="description" content="LCh 三通道各自一条曲线（色相用偏移曲线）" data-desc-zh="LCh 三通道各自一条曲线（色相用偏移曲线）" data-desc-en="LCh 三通道各自一条曲线（色相用偏移曲线）">
 <meta property="og:title" content="LCh Curves · gegl-color-ops" data-title-zh="LCh Curves · gegl-color-ops" data-title-en="LCh Curves · gegl-color-ops">
 <meta property="og:description" content="LCh 三通道各自一条曲线（色相用偏移曲线）" data-desc-zh="LCh 三通道各自一条曲线（色相用偏移曲线）" data-desc-en="LCh 三通道各自一条曲线（色相用偏移曲线）">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>整块区域</span>
   </div>
   <p class="lede">LCh 三通道各自一条曲线（色相用偏移曲线）</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/lch-curves/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:lch-curves</code> 处理后的输出 —— C 中段抬到 0.72、色相偏移曲线（红橙段 +18°）。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>菜单：<code>SuperMrWang → Curves → LCh Curves</code>（Filter 类）</p>
 <h2 id="概述">概述</h2>
@@ -117,9 +122,9 @@ m_i \leftarrow t\,a\,d_i,\ m_{i+1} \leftarrow t\,b\,d_i$$</div>
 gegl in.png -o out.png -- lb:lch-curves curves="L 0,0 0.5,0.7 1,1"</code></pre><div class="op-dl">
   <div>
     <h3>只要这一个</h3>
-    <p>这一版还没把这个模块打进预编译包，可以 <code>./build.sh</code> 自己编一个，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
+    <p>Windows 模块 <code>lch-curves.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
-  <div class="btns"></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lch-curves.dll">下载 lch-curves.dll<span class="size">Windows x64</span></a></div>
 </div><nav class="pager"><a class="prev" href="lab-curves.html"><span>上一个</span>LAB Curves</a><a class="next" href="color-mask-select.html"><span>下一个</span>Mask by Color</a></nav>
   </article>
   <aside class="toc">
@@ -141,7 +146,12 @@ gegl in.png -o out.png -- lb:lch-curves curves="L 0,0 0.5,0.7 1,1"</code></pre><
     <span>area</span>
   </div>
   <p class="lede"></p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/lch-curves/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:lch-curves</code> — C lifted to 0.72 mid-range, hue offset curve (+18° on reds).</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <h1>LCh Curves (lb:lch-curves)</h1>
 <p>Menu: <code>SuperMrWang → Curves → LCh Curves</code> (Filter)</p>
@@ -173,9 +183,9 @@ gegl in.png -o out.png -- lb:lch-curves curves="L 0,0 0.5,0.7 1,1"</code></pre><
 gegl in.png -o out.png -- lb:lch-curves curves="L 0,0 0.5,0.7 1,1"</code></pre><div class="op-dl">
   <div>
     <h3>Just this one</h3>
-    <p>This module is not in the prebuilt bundle yet — build it with <code>./build.sh</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+    <p>Windows module <code>lch-curves.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
-  <div class="btns"></div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lch-curves.dll">Download lch-curves.dll<span class="size">Windows x64</span></a></div>
 </div><nav class="pager"><a class="prev" href="lab-curves.html"><span>Previous</span>LAB Curves</a><a class="next" href="color-mask-select.html"><span>Next</span>Mask by Color</a></nav>
   </article>
   <aside class="toc">
@@ -201,7 +211,7 @@ gegl in.png -o out.png -- lb:lch-curves curves="L 0,0 0.5,0.7 1,1"</code></pre><
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

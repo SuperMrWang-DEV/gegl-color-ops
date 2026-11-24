@@ -1,0 +1,210 @@
+{
+ "add-noise": {
+  "zh": "数量 45%、单色、种子 7",
+  "en": "Amount 45%, monochromatic, seed 7"
+ },
+ "apply-image": {
+  "zh": "以正片叠底把自己的内容叠回自身",
+  "en": "Multiply blended onto itself"
+ },
+ "brightness-contrast": {
+  "zh": "亮度 +30、对比 +28（新版曲线）",
+  "en": "Brightness +30, Contrast +28 (modern curve)"
+ },
+ "calculations": {
+  "zh": "红通道 × 亮度（正片叠底）",
+  "en": "Red channel × luminance (multiply)"
+ },
+ "channel-mixer-plus": {
+  "zh": "输出 R 取 1.18R+0.12G、G 混 0.08R、B 压到 0.82",
+  "en": "R = 1.18R + 0.12G, G mixes 0.08R, B scaled to 0.82"
+ },
+ "channel-range-to-alpha": {
+  "zh": "LAB 亮度低于 20 或高于 140 的部分变透明",
+  "en": "LAB L below 20 or above 140 becomes transparent"
+ },
+ "cmyk-curves": {
+  "zh": "Y 中段下压到 0.35→0.62（褪黄）",
+  "en": "Y pushed down to 0.35→0.62 (less yellow)"
+ },
+ "cmyk-levels": {
+  "zh": "C 输入黑场 45、Y 输入白场 190、M gamma 1.3",
+  "en": "C black 45, Y white 190, M gamma 1.3"
+ },
+ "cmyk-primary-correction": {
+  "zh": "红往青 +50、减洋红 −25，蓝加黄 +40",
+  "en": "Reds +50 towards cyan, magenta −25, blues +40 towards yellow"
+ },
+ "color-balance": {
+  "zh": "中间调 青←→红 +35、黄←→蓝 −20，保留明度",
+  "en": "Midtone Cyan–Red +35, Yellow–Blue −20, preserve luminosity"
+ },
+ "color-grading": {
+  "zh": "全局色相 200°、饱和 +25；阴影压暗、高光提亮",
+  "en": "Global hue 200°, sat +25; shadows −15, highlights +10"
+ },
+ "color-lookup": {
+  "zh": "载入一张暖调 3D LUT、强度 100%",
+  "en": "Warm 3D LUT at full strength"
+ },
+ "color-mask-select": {
+  "zh": "红色域蒙版、容差 55",
+  "en": "Red range mask, fuzziness 55"
+ },
+ "color-temperature-tint": {
+  "zh": "色温 +45（偏暖）、色调 +12（偏洋红）",
+  "en": "Temperature +45 (warmer), Tint +12 (magenta)"
+ },
+ "colorize-hsl": {
+  "zh": "色相 35°、饱和 45%（单色调上色）",
+  "en": "Hue 35°, Saturation 45% (monochrome tint)"
+ },
+ "dust-scratches": {
+  "zh": "半径 4、阈值 60",
+  "en": "Radius 4, Threshold 60"
+ },
+ "exposure": {
+  "zh": "曝光 +0.8 EV、偏移 +0.02（线性光里加）",
+  "en": "Exposure +0.8 EV, Offset +0.02 (added in linear light)"
+ },
+ "gray-to-component": {
+  "zh": "灰度图按默认映射编码成彩色分量",
+  "en": "Encode a greyscale image into colour components (default mapping)"
+ },
+ "hsb-levels": {
+  "zh": "S 输入黑场 12、B 输入白场 240、H gamma 1.3",
+  "en": "S black point 12, B white point 240, H gamma 1.3"
+ },
+ "hsi-compose": {
+  "zh": "把 (S, I, H/360) 数据图还原成颜色",
+  "en": "Turn the packed (S, I, H/360) data back into colour"
+ },
+ "hsi-dual": {
+  "zh": "打包成数据图：R=饱和度、G=强度、B=色相/360",
+  "en": "Packed data image: R=S, G=I, B=H/360"
+ },
+ "hsi-levels": {
+  "zh": "S 输入黑场 15、I gamma 1.25",
+  "en": "S black point 15, I gamma 1.25"
+ },
+ "hsl-bands": {
+  "zh": "红域色相 −50°、饱和 +35；色相过渡 30°",
+  "en": "Reds: hue −50°, saturation +35; hue feather 30°"
+ },
+ "hsl-compose": {
+  "zh": "把 (S, L, H/360) 数据图还原成颜色",
+  "en": "Turn the packed (S, L, H/360) data back into colour"
+ },
+ "hsl-dual": {
+  "zh": "打包成数据图：R=饱和度、G=明度、B=色相/360",
+  "en": "Packed data image: R=S, G=L, B=H/360"
+ },
+ "hsl-levels": {
+  "zh": "S 输入黑场 15、L gamma 1.25",
+  "en": "S black point 15, L gamma 1.25"
+ },
+ "hsv-compose": {
+  "zh": "把 (S, V, H/360) 数据图还原成颜色",
+  "en": "Turn the packed (S, V, H/360) data back into colour"
+ },
+ "hsv-curves": {
+  "zh": "S 中段抬到 0.62（低饱和加得多）",
+  "en": "S raised to 0.62 in the low/mid range"
+ },
+ "hsv-dual": {
+  "zh": "打包成数据图：R=饱和度、G=明度、B=色相/360",
+  "en": "Packed data image: R=S, G=V, B=H/360"
+ },
+ "hue-range-basic": {
+  "zh": "锁定红色域：色相 −45°、饱和 +25、明度 +8",
+  "en": "Reds range: hue −45°, saturation +25, lightness +8"
+ },
+ "hue-saturation": {
+  "zh": "整体色相 +25°、饱和度 +30",
+  "en": "Hue +25°, Saturation +30 (whole image)"
+ },
+ "hue-saturation-basic": {
+  "zh": "整体色相 +30°、饱和度 +35",
+  "en": "Hue +30°, Saturation +35"
+ },
+ "lab-compose": {
+  "zh": "把 (a*, b*, L*) 数据图还原成颜色",
+  "en": "Turn the packed (a*, b*, L*) data back into colour"
+ },
+ "lab-curves": {
+  "zh": "L 通道 S 形（0.3→0.2、0.75→0.85）",
+  "en": "S-curve on L (0.3→0.2, 0.75→0.85)"
+ },
+ "lab-dual": {
+  "zh": "打包成数据图：R=a*、G=b*、B=L*",
+  "en": "Packed data image: R=a*, G=b*, B=L*"
+ },
+ "lab-levels": {
+  "zh": "a 输入 −20–100、b 白场 95（暖调收窄）",
+  "en": "a input −20–100, b white point 95"
+ },
+ "layer-style": {
+  "zh": "投影 距离 18 / 大小 26 / 不透明度 85%，外加外发光",
+  "en": "Drop shadow 18/26/85% plus an outer glow"
+ },
+ "lch-compose": {
+  "zh": "把 (L, C, H/360) 数据图还原成颜色",
+  "en": "Turn the packed (L, C, H/360) data back into colour"
+ },
+ "lch-curves": {
+  "zh": "C 中段抬到 0.72、色相偏移曲线（红橙段 +18°）",
+  "en": "C lifted to 0.72 mid-range, hue offset curve (+18° on reds)"
+ },
+ "lch-dual": {
+  "zh": "打包成数据图：R=L/100、G=C/140、B=色相/360",
+  "en": "Packed data image: R=L/100, G=C/140, B=H/360"
+ },
+ "lch-levels": {
+  "zh": "C 白场 100、L 黑场 8、H gamma 1.2",
+  "en": "C white 100, L black 8, H gamma 1.2"
+ },
+ "levels": {
+  "zh": "输入 22–232、中间调 gamma 1.2",
+  "en": "Input 22–232, midtone gamma 1.2"
+ },
+ "max-min": {
+  "zh": "最小值（腐蚀）、圆形、半径 4",
+  "en": "Minimum (erode), round, radius 4"
+ },
+ "mesh-warp": {
+  "zh": "3×3 网格，内侧交点下移 72 px（网格变形）",
+  "en": "3×3 mesh, inner handles pulled down 72 px"
+ },
+ "puppet-warp": {
+  "zh": "一个钉子从 (480,320) 拖到 (545,430)，保形模式",
+  "en": "One pin dragged from (480,320) to (545,430), similarity mode"
+ },
+ "reduce-noise": {
+  "zh": "强度 85、保留细节 15、半径 3",
+  "en": "Strength 85, Preserve detail 15, Radius 3"
+ },
+ "rgb-domain-grayscale": {
+  "zh": "按色系加权的黑白：红/洋红重、蓝轻",
+  "en": "Hue-weighted black & white: red/magenta heavy, blue light"
+ },
+ "shadows-highlights": {
+  "zh": "阴影 +60、高光 −45、半径 25",
+  "en": "Shadows +60, Highlights −45, radius 25"
+ },
+ "unsharp-mask": {
+  "zh": "半径 2.5、数量 180%、阈值 0",
+  "en": "Radius 2.5, Amount 180%, Threshold 0"
+ },
+ "vibrance": {
+  "zh": "自然饱和度 +65（低饱和加得多、红色受保护）",
+  "en": "Vibrance +65 (low-saturation colours gain most, reds protected)"
+ },
+ "vibrance-hyper": {
+  "zh": "自然饱和度 +70、饱和度 +15",
+  "en": "Vibrance +70, Saturation +15"
+ },
+ "xyz-multiply": {
+  "zh": "照片滤镜色 暖橙、密度 85%、保留明度",
+  "en": "Photo-filter colour warm orange, density 85%, preserve luminosity"
+ }
+}

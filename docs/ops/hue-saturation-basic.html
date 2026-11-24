@@ -7,7 +7,7 @@
 <meta name="description" content="三滑杆公式：全局色相旋转、饱和度相对缩放、明度向白/黑混合。" data-desc-zh="三滑杆公式：全局色相旋转、饱和度相对缩放、明度向白/黑混合。" data-desc-en="三滑杆公式：全局色相旋转、饱和度相对缩放、明度向白/黑混合。">
 <meta property="og:title" content="Hue/Saturation (Basic) · gegl-color-ops" data-title-zh="Hue/Saturation (Basic) · gegl-color-ops" data-title-en="Hue/Saturation (Basic) · gegl-color-ops">
 <meta property="og:description" content="三滑杆公式：全局色相旋转、饱和度相对缩放、明度向白/黑混合。" data-desc-zh="三滑杆公式：全局色相旋转、饱和度相对缩放、明度向白/黑混合。" data-desc-en="三滑杆公式：全局色相旋转、饱和度相对缩放、明度向白/黑混合。">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -88,7 +88,12 @@ window.addEventListener("DOMContentLoaded", function () {
   </div>
   <p class="wip-note"><b>施工中</b>　三滑杆的逐像素实现还在和参考实现一项项对表：±180° 色相绕回、明度向白/黑混合的边界值都可能再动，先别拿它跑批处理。</p>
   <p class="lede">三滑杆公式：全局色相旋转、饱和度相对缩放、明度向白/黑混合。</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/hue-saturation-basic/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:hue-saturation-basic</code> 处理后的输出 —— 整体色相 +30°、饱和度 +35。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>三滑杆版本：全局色相旋转、饱和度相对缩放、明度向白/黑混合。不含「着色」复选框，也没有分色相区间。行为上与常见图像软件的「色相/饱和度」对话框三根滑杆一致。</p>
 <ul><li>GEGL id：<code>lb:hue-saturation-basic</code></li><li>菜单：<code>Colors → SuperMrWang → Color → Hue/Saturation (Basic)</code></li><li>类型：<code>GeglOperationPointFilter</code>（逐像素，无邻域）</li><li>参数：<code>hue</code>（−180…180°）、<code>saturation</code>（−100…100）、<code>lightness</code>（−100…100）</li></ul>
@@ -151,7 +156,12 @@ python tools/analyze_hue_sat_basic.py          # 三条曲线的行为体检</co
   </div>
   <p class="wip-note"><b>Work in progress</b>　The three-slider point filter is still being checked slider by slider against the reference implementation. The ±180° hue wrap and the lightness mix at the ends can still move, so don&#x27;t put it in a batch pipeline yet.</p>
   <p class="lede">Three sliders — global hue rotation, relative saturation scaling, lightness mixed toward white or black. No Colorize, no hue ranges.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/hue-saturation-basic/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:hue-saturation-basic</code> — Hue +30°, Saturation +35.</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>The three-slider variant: global hue rotation, relative saturation scaling, and lightness mixed toward white or black. No Colorize checkbox and no per-hue ranges. Behaviour matches the three sliders of the familiar Hue/Saturation dialog.</p>
 <ul><li>GEGL id: <code>lb:hue-saturation-basic</code></li><li>Menu: <code>Colors → SuperMrWang → Color → Hue/Saturation (Basic)</code></li><li>Type: <code>GeglOperationPointFilter</code> (per-pixel, no neighbourhood)</li><li>Parameters: <code>hue</code> (−180…180°), <code>saturation</code> (−100…100), <code>lightness</code> (−100…100)</li></ul>
@@ -215,7 +225,7 @@ python tools/analyze_hue_sat_basic.py          # behaviour checks on the three c
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

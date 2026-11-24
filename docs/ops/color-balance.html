@@ -7,7 +7,7 @@
 <meta name="description" content="经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴" data-desc-zh="经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴" data-desc-en="经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴">
 <meta property="og:title" content="Color Balance · gegl-color-ops" data-title-zh="Color Balance · gegl-color-ops" data-title-en="Color Balance · gegl-color-ops">
 <meta property="og:description" content="经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴" data-desc-zh="经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴" data-desc-en="经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>整块区域</span>
   </div>
   <p class="lede">经典图像编辑器 色彩平衡：阴影 / 中间调 / 高光各自调 C-R、M-G、Y-B 三对色轴</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/color-balance/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:color-balance</code> 处理后的输出 —— 中间调 青←→红 +35、黄←→蓝 −20，保留明度。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>对应 经典图像编辑器的「色彩平衡」调整。两个模式：</p>
 <ul><li><strong>不保留明度（默认）</strong>：经典图像编辑器的逐通道曲线，见下面「算法」一节。</li><li><strong>保留明度</strong>：MATLAB 零和矩阵（系数减中位数 → 高光 <code>in/(1−α)</code> → 阴影 <code>(in−α)/(1−α)</code> → 中间调 <code>in^γ</code>），与经典图像编辑器实测最大差 3.0 码，未做改动。</li></ul>
@@ -139,7 +144,12 @@ y_1 = 255\,H^{G},\qquad
     <span>area</span>
   </div>
   <p class="lede">The classic editor's Color Balance — one merged levels-style curve per channel, measured against the classic editor to 0.3 code values, plus the legacy preserve-luminosity mode.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/color-balance/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:color-balance</code> — Midtone Cyan–Red +35, Yellow–Blue −20, preserve luminosity.</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>the classic editor's <strong>Color Balance</strong>, in two modes:</p>
 <ul><li><strong>Preserve luminosity off (default)</strong>: the classic editor's per-channel curve, see "Algorithm" below.</li><li><strong>Preserve luminosity on</strong>: the MATLAB zero-sum matrix (subtract the median from the coefficients → highlights <code>in/(1−α)</code> → shadows <code>(in−α)/(1−α)</code> → midtones <code>in^γ</code>), left unchanged; max 3.0 code values from the classic editor.</li></ul>
@@ -191,7 +201,7 @@ y_1 = 255\,H^{G},\qquad
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

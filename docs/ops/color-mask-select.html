@@ -7,7 +7,7 @@
 <meta name="description" content="经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览" data-desc-zh="经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览" data-desc-en="经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览">
 <meta property="og:title" content="Mask by Color · gegl-color-ops" data-title-zh="Mask by Color · gegl-color-ops" data-title-en="Mask by Color · gegl-color-ops">
 <meta property="og:description" content="经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览" data-desc-zh="经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览" data-desc-en="经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>逐像素</span>
   </div>
   <p class="lede">经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/color-mask-select/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:color-mask-select</code> 处理后的输出 —— 红色域蒙版、容差 55。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <h2 id="行为变更记录2026-11-12-重写">行为变更记录（2026-11-12 重写）</h2>
 <p>旧实现有一个致命 bug：默认 <code>Min Saturation = 0</code> 时饱和度门限退化成 <code>smooth_step(s, 0, 0)</code>，对灰阶像素（s = 0）做 0/0 得 NaN，alpha 落盘即 0——所有灰阶在任何模式下都被判成透明，白/黑/中间调三个模式整体报废；<code>fuzziness = 0</code> 时同样 NaN。判定公式（通道差值 + 负起点过渡带）也让「容差」的含义随模式漂移。</p>
@@ -183,7 +188,12 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <span>per-pixel</span>
   </div>
   <p class="lede">The classic editor's Color Range as a mask operator — colour presets, custom colour, and highlight/shadow/midtone modes calibrated against the classic editor 2025.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/color-mask-select/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:color-mask-select</code> — Red range mask, fuzziness 55.</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <h2 id="behaviour-change-rewritten-2026-11-12">Behaviour change (rewritten 2026-11-12)</h2>
 <p>The old implementation had a fatal bug: with the default <code>Min Saturation = 0</code> the saturation gate degenerated into <code>smooth_step(s, 0, 0)</code>, which is 0/0 for a grey pixel (s = 0) and yields NaN; alpha was written as 0, so <strong>every grey pixel was judged transparent in every mode</strong> — the white, black and midtone modes were entirely broken — and <code>fuzziness = 0</code> produced NaN too. The match formula (channel difference plus a negative-start transition band) also made "tolerance" mean something different in each mode.</p>
@@ -265,7 +275,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

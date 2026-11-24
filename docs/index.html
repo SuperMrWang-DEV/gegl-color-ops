@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>gegl-color-ops · GIMP 3 的 GEGL 算子与插件</title>
-<meta name="description" content="GIMP 3 的 53 个 GEGL 色彩算子 + 31 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-zh="GIMP 3 的 53 个 GEGL 色彩算子 + 31 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-en="GIMP 3 的 53 个 GEGL 色彩算子 + 31 个 Python 插件，Windows / Linux / macOS 整包直接下载。">
+<meta name="description" content="GIMP 3 的 54 个 GEGL 色彩算子 + 31 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-zh="GIMP 3 的 54 个 GEGL 色彩算子 + 31 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-en="GIMP 3 的 54 个 GEGL 色彩算子 + 31 个 Python 插件，Windows / Linux / macOS 整包直接下载。">
 <meta property="og:title" content="gegl-color-ops · GIMP 3 的 GEGL 算子与插件" data-title-zh="gegl-color-ops · GIMP 3 的 GEGL 算子与插件" data-title-en="gegl-color-ops · GEGL operators and plug-ins for GIMP 3">
-<meta property="og:description" content="GIMP 3 的 53 个 GEGL 色彩算子 + 31 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-zh="GIMP 3 的 53 个 GEGL 色彩算子 + 31 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-en="GIMP 3 的 53 个 GEGL 色彩算子 + 31 个 Python 插件，Windows / Linux / macOS 整包直接下载。">
-<link rel="stylesheet" href="assets/style.css?v=90a1149d22">
+<meta property="og:description" content="GIMP 3 的 54 个 GEGL 色彩算子 + 31 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-zh="GIMP 3 的 54 个 GEGL 色彩算子 + 31 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-en="GIMP 3 的 54 个 GEGL 色彩算子 + 31 个 Python 插件，Windows / Linux / macOS 整包直接下载。">
+<link rel="stylesheet" href="assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="feed.xml">
 <script>
 (function () {
@@ -45,14 +45,14 @@
   <div class="home-glow" aria-hidden="true"></div>
   <p class="eyebrow">GIMP 3.x · GEGL 0.4 · GPL-3.0</p>
   <h1><span class="l-zh">GIMP 3 的 <span class="grad">GEGL 插件</span><br>两个包，一整套调色链</span><span class="l-en">The <span class="grad">GEGL plug-in set</span><br>for GIMP 3</span></h1>
-  <p class="lede"><span class="l-zh">53 个 <code>lb:</code> 算子管算法，31 个 Python 插件管流程：
+  <p class="lede"><span class="l-zh">54 个 <code>lb:</code> 算子管算法，31 个 Python 插件管流程：
      把分量拆成层、把 alpha 画成曲线、把磨皮拆成高低频、把通道与蒙版互相倒。装完即用，
-     全部能当非破坏滤镜挂在图层上，改参数不落像素。</span><span class="l-en">Two archives, the whole colour chain: 53 <code>lb:</code>
+     全部能当非破坏滤镜挂在图层上，改参数不落像素。</span><span class="l-en">Two archives, the whole colour chain: 54 <code>lb:</code>
      GEGL operators for the maths, 31 Python plug-ins for the workflow: split a component into layers,
      draw alpha as a curve, separate skin into high and low frequency, flip channels and masks
      back and forth. Ready to use, all of it mounts as non-destructive filters.</span></p>
   <ul class="facts">
-    <li><b>53</b> <span class="l-zh">个算子</span><span class="l-en">operators</span></li>
+    <li><b>54</b> <span class="l-zh">个算子</span><span class="l-en">operators</span></li>
     <li><b>31</b> <span class="l-zh">个插件</span><span class="l-en">plug-ins</span></li>
     <li><b>10</b> <span class="l-zh">个分组</span><span class="l-en">groups</span></li>
     <li><b>0</b> <span class="l-zh">依赖 · 免编译</span><span class="l-en">deps · prebuilt</span></li>
@@ -62,22 +62,22 @@
   <article class="door door-ops" id="ops">
     <p class="door-kicker">01 · OPERATORS</p>
     <h2><span class="l-zh">GEGL 算子</span><span class="l-en">GEGL operators</span></h2>
-    <p class="door-lead"><span class="l-zh">53 个单文件 C 模块，一个模块一个滤镜。
+    <p class="door-lead"><span class="l-zh">54 个单文件 C 模块，一个模块一个滤镜。
      色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版生成都在里面，按
-     <b>Levels / Component / Tone / Color / Blend / Mask / Sharpen / Noise / Distort</b> 九组排在顶层菜单下。</span><span class="l-en">53 single-file C modules, one filter each. Levels, colour balance,
+     <b>Levels / Component / Tone / Color / Blend / Mask / Sharpen / Noise / Distort</b> 九组排在顶层菜单下。</span><span class="l-en">54 single-file C modules, one filter each. Levels, colour balance,
      vibrance, white balance, channel mixing, mask building, sharpening, noise and
      displacement, arranged in nine groups —
      <b>Levels / Component / Tone / Color / Blend / Mask / Sharpen / Noise / Distort</b> —
      under one top-level menu.</span></p>
     <div class="door-meta">
-      <span><b>50</b> <span class="l-zh">个 Windows 模块</span><span class="l-en">Windows modules</span></span>
+      <span><b>54</b> <span class="l-zh">个 Windows 模块</span><span class="l-en">Windows modules</span></span>
       <span><b>47</b> <span class="l-zh">个 Linux 模块</span><span class="l-en">Linux modules</span></span>
       <span><b>0</b> <span class="l-zh">个 macOS 模块</span><span class="l-en">macOS modules</span></span>
       <span><b>10</b> <span class="l-zh">个分组</span><span class="l-en">groups</span></span>
     </div>
     <div class="door-dl"><a class="dl-link" href="download/gegl-color-ops-windows-x64.zip">
         <span class="os"><span class="l-zh">Windows x64</span><span class="l-en">Windows x64</span></span>
-        <span class="meta"><span class="l-zh">50 个 .dll · 2.2 MB</span><span class="l-en">50 .dll · 2.2 MB</span></span>
+        <span class="meta"><span class="l-zh">54 个 .dll · 2.3 MB</span><span class="l-en">54 .dll · 2.3 MB</span></span>
         <span class="arrow" aria-hidden="true">↓</span>
       </a><a class="dl-link is-missing" href="download/gegl-color-ops-linux-x64.zip">
         <span class="os"><span class="l-zh">Linux x86_64</span><span class="l-en">Linux x86_64</span></span>
@@ -88,13 +88,13 @@
         <span class="meta"><span class="l-zh">待合并 · 可从 Actions 下载</span><span class="l-en">pending — grab it from Actions</span></span>
         <span class="arrow" aria-hidden="true">↓</span>
       </a></div>
-    <p class="door-note"><span class="l-zh">Linux 端少 3 个分量模块（各空间的
+    <p class="door-note"><span class="l-zh">Linux 端少 7 个分量模块（各空间的
       dual / compose 与 gray-to-component），要用就 <code>./build.sh</code> 自编；
-      Windows 端 50 个齐全。</span><span class="l-en">The Linux bundle is missing 3
+      Windows 端 54 个齐全。</span><span class="l-en">The Linux bundle is missing 7
       component modules (dual / compose for each space, plus gray-to-component) — build
-      them with <code>./build.sh</code>. The Windows bundle has all 50.</span></p>
+      them with <code>./build.sh</code>. The Windows bundle has all 54.</span></p>
     <div class="door-foot">
-      <a href="ops.html"><span class="l-zh">看全部 53 个算子</span><span class="l-en">Browse all 53</span> <span aria-hidden="true">→</span></a>
+      <a href="ops.html"><span class="l-zh">看全部 54 个算子</span><span class="l-en">Browse all 54</span> <span aria-hidden="true">→</span></a>
       <a class="sub" href="overview.html#download"><span class="l-zh">单个模块</span><span class="l-en">One module at a time</span></a>
     </div>
   </article>
@@ -116,7 +116,7 @@
     </div>
     <div class="door-dl"><a class="dl-link" href="download/gegl-color-ops-plugins-windows-x64.zip">
         <span class="os"><span class="l-zh">Windows x64</span><span class="l-en">Windows x64</span></span>
-        <span class="meta"><span class="l-zh">31 个 .py · 13 个模块 · 0.9 MB</span><span class="l-en">31 .py · 13 modules · 0.9 MB</span></span>
+        <span class="meta"><span class="l-zh">31 个 .py · 17 个模块 · 1.1 MB</span><span class="l-en">31 .py · 17 modules · 1.1 MB</span></span>
         <span class="arrow" aria-hidden="true">↓</span>
       </a><a class="dl-link is-missing" href="download/gegl-color-ops-plugins-linux-x64.zip">
         <span class="os"><span class="l-zh">Linux x86_64</span><span class="l-en">Linux x86_64</span></span>
@@ -234,7 +234,7 @@ macOS    ~/Library/Application Support/GIMP/3.x/plug-ins</code></pre>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

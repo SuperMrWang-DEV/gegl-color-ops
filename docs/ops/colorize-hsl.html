@@ -7,7 +7,7 @@
 <meta name="description" content="复刻 经典图像编辑器「色相/饱和度」里的「着色」复选框" data-desc-zh="复刻 经典图像编辑器「色相/饱和度」里的「着色」复选框" data-desc-en="复刻 经典图像编辑器「色相/饱和度」里的「着色」复选框">
 <meta property="og:title" content="Colorize · gegl-color-ops" data-title-zh="Colorize · gegl-color-ops" data-title-en="Colorize · gegl-color-ops">
 <meta property="og:description" content="复刻 经典图像编辑器「色相/饱和度」里的「着色」复选框" data-desc-zh="复刻 经典图像编辑器「色相/饱和度」里的「着色」复选框" data-desc-en="复刻 经典图像编辑器「色相/饱和度」里的「着色」复选框">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>逐像素</span>
   </div>
   <p class="lede">复刻 经典图像编辑器「色相/饱和度」里的「着色」复选框</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/colorize-hsl/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:colorize-hsl</code> 处理后的输出 —— 色相 35°、饱和 45%（单色调上色）。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>复刻 经典图像编辑器的「色相/饱和度」对话框里的<strong>「着色」复选框</strong>，按实测标定，不是凭经验的近似（旧版实现用「颜色填充层 + Overlay 叠灰」，与经典图像编辑器无关，偏差很大，已废弃）。标定过程与数据见 <code>colorize-cal/RESULTS.md</code>。</p>
 <ul><li>GEGL id：<code>lb:colorize-hsl</code></li><li>菜单：<code>Colors → SuperMrWang → Color → Colorize</code></li><li>类型：<code>GeglOperationPointFilter</code>（逐像素，无邻域）</li><li>参数：<code>hue</code>（0…360，绝对色相）、<code>saturation</code>（0…100，绝对值）、<code>lightness</code>（−100…100）</li></ul>
@@ -133,7 +138,12 @@ L, &amp; t = 0
     <span>per-pixel</span>
   </div>
   <p class="lede">The classic editor's Colorize checkbox from Hue/Saturation — input hue and saturation are discarded, only lightness survives.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/colorize-hsl/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:colorize-hsl</code> — Hue 35°, Saturation 45% (monochrome tint).</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>Reproduces the <strong>"Colorize" checkbox</strong> in the classic editor's Hue/Saturation dialog, calibrated against measurements rather than approximated (the old build used a fill layer plus an Overlay grey and had nothing to do with the classic editor; it is gone). The calibration data is in <code>colorize-cal/RESULTS.md</code>.</p>
 <ul><li>GEGL id: <code>lb:colorize-hsl</code></li><li>Menu: <code>Colors → SuperMrWang → Color → Colorize</code></li><li>Type: <code>GeglOperationPointFilter</code> (per-pixel, no neighbourhood)</li><li>Parameters: <code>hue</code> (0…360, absolute hue), <code>saturation</code> (0…100, absolute), <code>lightness</code> (−100…100)</li></ul>
@@ -182,7 +192,7 @@ L, &amp; t = 0
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

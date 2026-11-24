@@ -1,3 +1,25 @@
+/* ===========================================================================
+ * SuperMrWang · GEGL 算子 / GEGL Operation
+ * ---------------------------------------------------------------------------
+ * id         lb:mesh-warp
+ * menu       Mesh Warp (live)
+ * where      GIMP 里在 SuperMrWang → Distort 下，紧挨着 Puppet Warp
+ * purpose    自由变形（PS 的「变形/网格变形」那一路）：一张 cols×rows 的
+ *            Bezier 控制网，每个交点带 u/v 两个方向的切向，反解时用 Newton
+ *            把目标像素解回参数 (u,v)，再取原位网格上的颜色。非破坏——网格
+ *            串挂在滤镜栈上，重新打开对话框能接着拖。
+ *            Free-form mesh warp: a cols×rows Bezier control net, inverse
+ *            mapped with Newton per pixel. Non-destructive, the mesh string
+ *            lives on the filter.
+ * type       GeglOperationFilter（每像素 Newton 反解 + 双线性取样）
+ * why C      GIMP 3 的非破坏编辑只认 GEGL 算子（见 lb:layer-style 头注释）。
+ * 坑         ① 反解初值按目标画布 w/h 归一化，用 mesh 自己的 w 会在预览与
+ *            应用两路收敛到不同分支（实测差 28 px）；② Newton 必须限步
+ *            0.75 格并钳在 [0,cols]×[0,rows]，否则在格界上无限震荡；
+ *            ③ 把手按邻居弦长自动限幅，不限幅片会甩过头、格子自交。
+ * license    GPL-3.0-or-later，见工程根目录 LICENSE
+ * =========================================================================== */
+
 #include "config.h"
 #include <glib/gi18n-lib.h>
 #include <math.h>

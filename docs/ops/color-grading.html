@@ -7,7 +7,7 @@
 <meta name="description" content="等价 经典 RAW 编辑器的「颜色分级」：阴影 / 中间调 / 高光 / 全局四个轮盘（色相 + 饱和度）加各自的明度滑杆，按亮度分带给画面上色。" data-desc-zh="等价 经典 RAW 编辑器的「颜色分级」：阴影 / 中间调 / 高光 / 全局四个轮盘（色相 + 饱和度）加各自的明度滑杆，按亮度分带给画面上色。" data-desc-en="等价 经典 RAW 编辑器的「颜色分级」：阴影 / 中间调 / 高光 / 全局四个轮盘（色相 + 饱和度）加各自的明度滑杆，按亮度分带给画面上色。">
 <meta property="og:title" content="Color Grading · gegl-color-ops" data-title-zh="Color Grading · gegl-color-ops" data-title-en="Color Grading · gegl-color-ops">
 <meta property="og:description" content="等价 经典 RAW 编辑器的「颜色分级」：阴影 / 中间调 / 高光 / 全局四个轮盘（色相 + 饱和度）加各自的明度滑杆，按亮度分带给画面上色。" data-desc-zh="等价 经典 RAW 编辑器的「颜色分级」：阴影 / 中间调 / 高光 / 全局四个轮盘（色相 + 饱和度）加各自的明度滑杆，按亮度分带给画面上色。" data-desc-en="等价 经典 RAW 编辑器的「颜色分级」：阴影 / 中间调 / 高光 / 全局四个轮盘（色相 + 饱和度）加各自的明度滑杆，按亮度分带给画面上色。">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>逐像素</span>
   </div>
   <p class="lede">等价 经典 RAW 编辑器的「颜色分级」：阴影 / 中间调 / 高光 / 全局四个轮盘（色相 + 饱和度）加各自的明度滑杆，按亮度分带给画面上色。</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/color-grading/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:color-grading</code> 处理后的输出 —— 全局色相 200°、饱和 +25；阴影压暗、高光提亮。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>2026-11-12 新增。复刻 classic RAW editors 的 <strong>Color Grading（颜色分级）</strong>面板：阴影 / 中间调 / 高光 / 全局四个轮盘（色相 + 饱和度），各带独立的明度滑杆，外加 Blending 与 Balance。</p>
 <h2 id="菜单位置">菜单位置</h2>
@@ -144,7 +149,12 @@ python tools/smoke.sh                  # 全算子冒烟</code></pre>
     <span>per-pixel</span>
   </div>
   <p class="lede">The RAW editor's Color Grading panel — shadow, midtone, highlight and global wheels with per-band luminance, plus Blending and Balance.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/color-grading/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:color-grading</code> — Global hue 200°, sat +25; shadows −15, highlights +10.</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>Added 2026-11-12. Reproduces the <strong>Color Grading</strong> panel of the RAW editor / the classic RAW editor: shadow, midtone, highlight and global wheels (hue + saturation), each with its own luminance slider, plus Blending and Balance.</p>
 <h2 id="menu">Menu</h2>
@@ -205,7 +215,7 @@ python tools/smoke.sh                  # smoke test for every operator</code></p
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

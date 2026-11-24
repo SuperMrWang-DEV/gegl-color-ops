@@ -7,7 +7,7 @@
 <meta name="description" content="Photoshop「滤镜 → 杂色 → 蒙尘与划痕」的等价物：把与周围差得太远的孤立像素（灰尘、划痕、传感器坏点）用邻域中值替换，同时尽量不动真实的边缘与细节。" data-desc-zh="Photoshop「滤镜 → 杂色 → 蒙尘与划痕」的等价物：把与周围差得太远的孤立像素（灰尘、划痕、传感器坏点）用邻域中值替换，同时尽量不动真实的边缘与细节。" data-desc-en="Photoshop「滤镜 → 杂色 → 蒙尘与划痕」的等价物：把与周围差得太远的孤立像素（灰尘、划痕、传感器坏点）用邻域中值替换，同时尽量不动真实的边缘与细节。">
 <meta property="og:title" content="Dust &amp; Scratches · gegl-color-ops" data-title-zh="Dust &amp; Scratches · gegl-color-ops" data-title-en="Dust &amp; Scratches · gegl-color-ops">
 <meta property="og:description" content="Photoshop「滤镜 → 杂色 → 蒙尘与划痕」的等价物：把与周围差得太远的孤立像素（灰尘、划痕、传感器坏点）用邻域中值替换，同时尽量不动真实的边缘与细节。" data-desc-zh="Photoshop「滤镜 → 杂色 → 蒙尘与划痕」的等价物：把与周围差得太远的孤立像素（灰尘、划痕、传感器坏点）用邻域中值替换，同时尽量不动真实的边缘与细节。" data-desc-en="Photoshop「滤镜 → 杂色 → 蒙尘与划痕」的等价物：把与周围差得太远的孤立像素（灰尘、划痕、传感器坏点）用邻域中值替换，同时尽量不动真实的边缘与细节。">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>AreaFilter</span>
   </div>
   <p class="lede">Photoshop「滤镜 → 杂色 → 蒙尘与划痕」的等价物：把与周围差得太远的孤立像素（灰尘、划痕、传感器坏点）用邻域中值替换，同时尽量不动真实的边缘与细节。</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/dust-scratches/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:dust-scratches</code> 处理后的输出 —— 半径 4、阈值 60。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <blockquote><p><code>lb:dust-scratches</code> · 菜单 <strong>SuperMrWang → Noise → Dust &amp; Scratches</strong> · 单输入</p></blockquote>
 <p>把与周围差得太远的孤立像素（灰尘、划痕、传感器坏点）用邻域中值替换，同时尽量不动真实的边缘与细节。PS「杂色 → 蒙尘与划痕」的等价物。</p>
@@ -130,7 +135,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>AreaFilter</span>
   </div>
   <p class="lede">Replaces isolated specks with the median of the neighbours that are within the threshold, so dust disappears and real edges stay put.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/dust-scratches/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:dust-scratches</code> — Radius 4, Threshold 60.</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p><code>lb:dust-scratches</code> · menu <strong>SuperMrWang → Noise → Dust &amp; Scratches</strong> · one input</p>
 <p>Replaces pixels that differ too much from their surroundings — dust, scratches, sensor defects — with the median of the neighbourhood, while leaving real edges alone. Photoshop's Dust &amp; Scratches, with one deliberate difference explained below.</p>
@@ -176,7 +186,7 @@ window.addEventListener("DOMContentLoaded", function () {
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

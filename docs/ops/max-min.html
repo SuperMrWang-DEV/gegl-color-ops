@@ -7,7 +7,7 @@
 <meta name="description" content="形态学的两个基本算子，也是 Photoshop「最大值 / 最小值」滤镜的等价物：每个像素取邻域内最大（膨胀）或最小值（腐蚀）。最大值把亮区向外推、吞掉暗处的小点；最小值反过来收亮区、啃掉残留的白边。蒙版精修、去灰尘点、发光底图都用它。" data-desc-zh="形态学的两个基本算子，也是 Photoshop「最大值 / 最小值」滤镜的等价物：每个像素取邻域内最大（膨胀）或最小值（腐蚀）。最大值把亮区向外推、吞掉暗处的小点；最小值反过来收亮区、啃掉残留的白边。蒙版精修、去灰尘点、发光底图都用它。" data-desc-en="形态学的两个基本算子，也是 Photoshop「最大值 / 最小值」滤镜的等价物：每个像素取邻域内最大（膨胀）或最小值（腐蚀）。最大值把亮区向外推、吞掉暗处的小点；最小值反过来收亮区、啃掉残留的白边。蒙版精修、去灰尘点、发光底图都用它。">
 <meta property="og:title" content="Maximum / Minimum · gegl-color-ops" data-title-zh="Maximum / Minimum · gegl-color-ops" data-title-en="Maximum / Minimum · gegl-color-ops">
 <meta property="og:description" content="形态学的两个基本算子，也是 Photoshop「最大值 / 最小值」滤镜的等价物：每个像素取邻域内最大（膨胀）或最小值（腐蚀）。最大值把亮区向外推、吞掉暗处的小点；最小值反过来收亮区、啃掉残留的白边。蒙版精修、去灰尘点、发光底图都用它。" data-desc-zh="形态学的两个基本算子，也是 Photoshop「最大值 / 最小值」滤镜的等价物：每个像素取邻域内最大（膨胀）或最小值（腐蚀）。最大值把亮区向外推、吞掉暗处的小点；最小值反过来收亮区、啃掉残留的白边。蒙版精修、去灰尘点、发光底图都用它。" data-desc-en="形态学的两个基本算子，也是 Photoshop「最大值 / 最小值」滤镜的等价物：每个像素取邻域内最大（膨胀）或最小值（腐蚀）。最大值把亮区向外推、吞掉暗处的小点；最小值反过来收亮区、啃掉残留的白边。蒙版精修、去灰尘点、发光底图都用它。">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>AreaFilter</span>
   </div>
   <p class="lede">形态学的两个基本算子，也是 Photoshop「最大值 / 最小值」滤镜的等价物：每个像素取邻域内最大（膨胀）或最小值（腐蚀）。最大值把亮区向外推、吞掉暗处的小点；最小值反过来收亮区、啃掉残留的白边。蒙版精修、去灰尘点、发光底图都用它。</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/max-min/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:max-min</code> 处理后的输出 —— 最小值（腐蚀）、圆形、半径 4。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>两个方向、四个参数、一份在缓冲自身精度里跑的滑动极值。下面从「GIMP 为什么已经没有它」讲起，再讲算法、精度、边界，最后是验证方法与实现里踩过的两个坑。</p>
 <pre><code>        ┌─────────────┐               ┌─────────────┐
@@ -160,7 +165,12 @@ $ strings libgegl-0.4-0.dll | grep gegl:dilate   # 空</code></pre>
     <span>AreaFilter</span>
   </div>
   <p class="lede">Morphological dilate and erode — Photoshop's Maximum / Minimum filter. Grows or shrinks bright areas, radius 1–100, square or disc, compared in the buffer's own precision.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/max-min/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:max-min</code> — Minimum (erode), round, radius 4.</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>The two basic morphological operators, and the equivalent of Photoshop's <strong>Maximum / Minimum</strong> filter: every output pixel takes the <strong>largest</strong> value in its neighbourhood (dilate) or the <strong>smallest</strong> (erode).</p>
 <pre><code>        ┌─────────────┐               ┌─────────────┐
@@ -236,7 +246,7 @@ $ strings libgegl-0.4-0.dll | grep gegl:dilate  # empty</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

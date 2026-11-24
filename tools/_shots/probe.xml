@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<gegl>
+  <node operation='lb:displace'>
+    <params>
+      <param name='amount-x'>40</param>
+      <param name='amount-y'>18</param>
+    </params>
+    <input name='input'>
+      <node operation='gegl:load'>
+        <params><param name='path'>C:/Users/Administrator/WorkBuddy/2026-11-10-21-12-59/SuperMrWang/tools/_testcard.png</param></params>
+      </node>
+    </input>
+    <input name='aux'>
+      <node operation='gegl:load'>
+        <params><param name='path'>C:/Users/Administrator/WorkBuddy/2026-11-10-21-12-59/SuperMrWang/tools/_testcard.png</param></params>
+      </node>
+    </input>
+  </node>
+</gegl>

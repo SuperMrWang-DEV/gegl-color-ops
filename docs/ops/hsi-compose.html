@@ -7,7 +7,7 @@
 <meta name="description" content="HSI 分量曲线工作流的合成器：把「R = 饱和度、G = 强度、B = 色相/360」的数据图还原成真实颜色" data-desc-zh="HSI 分量曲线工作流的合成器：把「R = 饱和度、G = 强度、B = 色相/360」的数据图还原成真实颜色" data-desc-en="HSI 分量曲线工作流的合成器：把「R = 饱和度、G = 强度、B = 色相/360」的数据图还原成真实颜色">
 <meta property="og:title" content="HSI Compose · gegl-color-ops" data-title-zh="HSI Compose · gegl-color-ops" data-title-en="HSI Compose · gegl-color-ops">
 <meta property="og:description" content="HSI 分量曲线工作流的合成器：把「R = 饱和度、G = 强度、B = 色相/360」的数据图还原成真实颜色" data-desc-zh="HSI 分量曲线工作流的合成器：把「R = 饱和度、G = 强度、B = 色相/360」的数据图还原成真实颜色" data-desc-en="HSI 分量曲线工作流的合成器：把「R = 饱和度、G = 强度、B = 色相/360」的数据图还原成真实颜色">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>整块区域</span>
   </div>
   <p class="lede">HSI 分量曲线工作流的合成器：把「R = 饱和度、G = 强度、B = 色相/360」的数据图还原成真实颜色</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/hsi-compose/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:hsi-compose</code> 处理后的输出 —— 把 (S, I, H/360) 数据图还原成颜色。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p><code>lb:hsi-dual</code> 的逆运算：把「<code>R = 饱和度</code>、<code>G = 强度</code>、<code>B = 色相/360</code>」的数据图还原成真实颜色。alpha 被忽略，输出恒不透明。</p>
 <pre><code>(R=S, G=I, B=H/360) ──lb:hsi-compose──&gt; sRGB</code></pre>
@@ -125,7 +130,12 @@ H  &lt; 240°   轮转 120°，R 取低值
     <span>area</span>
   </div>
   <p class="lede">The inverse of HSI Triple Extract, using HSI's cosine inverse rather than HSV's linear sectors — the two are not the same basis on the constant-luminance plane.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/hsi-compose/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:hsi-compose</code> — Turn the packed (S, I, H/360) data back into colour.</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <p>Menu: <code>Colors → SuperMrWang → Component → HSI Compose</code> (a filter op)</p>
 <h2 id="overview">Overview</h2>
@@ -169,7 +179,7 @@ otherwise   rotate by 240°, G takes the low value</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>

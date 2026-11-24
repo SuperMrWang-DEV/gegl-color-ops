@@ -7,7 +7,7 @@
 <meta name="description" content="自然饱和度：提升低饱和区，抑制高饱和与肤色，不破坏色相" data-desc-zh="自然饱和度：提升低饱和区，抑制高饱和与肤色，不破坏色相" data-desc-en="自然饱和度：提升低饱和区，抑制高饱和与肤色，不破坏色相">
 <meta property="og:title" content="Natural Saturation · gegl-color-ops" data-title-zh="Natural Saturation · gegl-color-ops" data-title-en="Vibrance (Lab) · gegl-color-ops">
 <meta property="og:description" content="自然饱和度：提升低饱和区，抑制高饱和与肤色，不破坏色相" data-desc-zh="自然饱和度：提升低饱和区，抑制高饱和与肤色，不破坏色相" data-desc-en="自然饱和度：提升低饱和区，抑制高饱和与肤色，不破坏色相">
-<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="stylesheet" href="../assets/style.css?v=af8950c5d4">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -87,7 +87,12 @@ window.addEventListener("DOMContentLoaded", function () {
     <span>逐像素</span>
   </div>
   <p class="lede">自然饱和度：提升低饱和区，抑制高饱和与肤色，不破坏色相</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/vibrance-hyper/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>左：原图　右：同一张测试卡经 <code>lb:vibrance-hyper</code> 处理后的输出 —— 自然饱和度 +70、饱和度 +15。</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <h2 id="算法说明2026-11-重写">算法说明（2026-11 重写）</h2>
 <p>在 LAB（D65）空间处理，工作于线性 sRGB，自动跟随输入色彩空间。</p>
@@ -128,7 +133,12 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <span>per-pixel</span>
   </div>
   <p class="lede">An appearance-based vibrance in Lab — hyperbolic chroma mask, skin-tone protection and gamut mapping that never shifts hue.</p>
-</section><div class="article-layout">
+</section><figure class="shot">
+  <img src="../assets/ops/vibrance-hyper/shot.png" width="950" height="323" loading="lazy"
+       alt="原图 / 结果 · original / result">
+  <figcaption>Left: the shared test card. Right: the same card through <code>lb:vibrance-hyper</code> — Vibrance +70, Saturation +15.</figcaption>
+</figure>
+<div class="article-layout">
   <article class="prose">
 <h2 id="algorithm-rewritten-2026-11">Algorithm (rewritten 2026-11)</h2>
 <p>Everything happens in LAB (D65) on linear sRGB, following the input colour space automatically.</p>
@@ -177,7 +187,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">63fef29</span>
+    <span class="muted">29c1fb1</span>
   </div>
 </footer>
 <script>
