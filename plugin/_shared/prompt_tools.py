@@ -205,17 +205,33 @@ def has_cjk(text):
 # ---- 主体预设 ---------------------------------------------------------------
 # 「菜单里能直接选一只小猫」比「自己拼一句英文」重要得多：用户点下拉、
 # 点确定，出来的就是猫。preset 只是打底，用户写的提示词接在后面做细节。
+#
+# 2026-11-24 实测（空房间木地板上画猫/狗）：只说 "a small cat, detailed eyes"，
+# 出来的形体没问题，但**像是抠图贴上去的**——身体下面一点暗部都没有，眼睛
+# 自动判定为「浮在地板上方」。把「贴地 + 接触阴影 / 环境光遮蔽」写进预设之后，
+# 同一块选区、同一个种子，猫身下就带出一圈柔和暗部，落地的感觉立刻对了。
+# 所以凡是「站在某个东西上面」的主体，预设都自带一句 grounding；预设也不写
+# 具体的底（floor/ground 用通用词），让用户自己的细节去接管。
 
 PRESETS = [
     ("none", "None (write my own)", ""),
-    ("cat", "A small cat", "a small cat, fluffy fur, detailed eyes"),
-    ("dog", "A small dog", "a small dog, soft fur, detailed eyes"),
-    ("person", "A person", "a person, natural pose, detailed face"),
+    ("cat", "A small cat",
+     "a small cat, fluffy fur, detailed eyes, sitting on the ground, "
+     "soft contact shadow underneath"),
+    ("dog", "A small dog",
+     "a small dog, soft fur, detailed eyes, standing on the ground, "
+     "soft contact shadow underneath"),
+    ("person", "A person",
+     "a person, natural pose, detailed face, standing on the ground, "
+     "soft contact shadow underneath"),
     ("flower", "Flowers", "a bouquet of fresh flowers, soft petals"),
-    ("tree", "A tree", "a leafy green tree, soft daylight"),
+    ("tree", "A tree",
+     "a leafy green tree, soft daylight, rooted in the ground"),
     ("coffee", "A coffee cup", "a cup of coffee on a saucer, gentle steam"),
     ("food", "A plate of food", "a plate of food, appetizing, detailed"),
-    ("car", "A car", "a modern car, glossy paint, clean background"),
+    ("car", "A car",
+     "a modern car, glossy paint, wheels resting on the ground, "
+     "soft shadow underneath"),
 ]
 
 PRESET_IDS = [p[0] for p in PRESETS]

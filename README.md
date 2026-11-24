@@ -1186,9 +1186,17 @@ GroundingDINO-SwinT、bert-base-uncased 下到 `models/` 对应目录；写一�
    送下去。日文/韩文不在表里，仍然会被拦。
 3. **懒得写就选 `preset`。** 「画什么主体」是一个真正的下拉框：小猫 / 小狗 /
    人 / 花 / 树 / 咖啡 / 食物 / 汽车。选了「小猫」就相当于提示词前面自动带上
-   `a small cat, fluffy fur, detailed eyes`，你在 `prompt` 里补细节就行
-   （`戴着一顶帽子` → `a small cat, fluffy fur, detailed eyes, wearing hat`）。
+   `a small cat, fluffy fur, detailed eyes, sitting on the ground, soft contact
+   shadow underneath`，你在 `prompt` 里补细节就行
+   （`戴着一顶帽子` → `a small cat, …, soft contact shadow underneath, wearing hat`）。
    只选主体、`prompt` 留空也能跑。
+   预设里那半句「贴地 + 接触阴影」是 2026-11-24 加上的，原因见下一条。
+4. **画立在地上的东西，一定要把「落地」写出来。** 同一块选区、同一个种子，
+   `a small cat, detailed eyes` 出来是一只形体完整、但**像抠图贴上去**的猫 ——
+   身体下方一点暗部都没有；补上 `sitting on the ground, soft contact shadow
+   underneath` 之后，猫身下就带出一圈柔和暗部，立刻坐实了。地面反光强的场景
+   （白墙、浅色木地板、雪地）尤其明显。同理：框的下沿要让在地面的接触线上，
+   别贴着物体本身裁 —— 接触阴影需要那块地才能画。
 
 以前的默认值是一句 `clean background, seamless, photorealistic, sharp focus`，
 结果点开菜单直接点确定的人（很正常的行为）会得到一块跟画面毫无关系的干净色块，
