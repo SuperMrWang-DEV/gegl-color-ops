@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-title-zh="AI 扩图 · Python 插件 · gegl-color-ops" data-title-en="AI 扩图 · Python plug-ins · gegl-color-ops">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 扩图 · Python 插件 · gegl-color-ops</title>
+<meta name="description" content="把画布往外扩一圈，让本机 ComfyUI 把新长出来的地方画满——Photoshop 的
+       Generative Expand 就是这件事。走的还是 AI 填充那条 inpaint 管道，不新增任何节点；
+       区别只在" data-desc-zh="把画布往外扩一圈，让本机 ComfyUI 把新长出来的地方画满——Photoshop 的
+       Generative Expand 就是这件事。走的还是 AI 填充那条 inpaint 管道，不新增任何节点；
+       区别只在" data-desc-en="Grow the canvas and let a local ComfyUI paint what is missing — Photoshop&#x27;s
+   Generative Expand. It runs on the very sa">
+<meta property="og:title" content="AI 扩图 · Python 插件 · gegl-color-ops" data-title-zh="AI 扩图 · Python 插件 · gegl-color-ops" data-title-en="AI 扩图 · Python plug-ins · gegl-color-ops">
+<meta property="og:description" content="把画布往外扩一圈，让本机 ComfyUI 把新长出来的地方画满——Photoshop 的
+       Generative Expand 就是这件事。走的还是 AI 填充那条 inpaint 管道，不新增任何节点；
+       区别只在" data-desc-zh="把画布往外扩一圈，让本机 ComfyUI 把新长出来的地方画满——Photoshop 的
+       Generative Expand 就是这件事。走的还是 AI 填充那条 inpaint 管道，不新增任何节点；
+       区别只在" data-desc-en="Grow the canvas and let a local ComfyUI paint what is missing — Photoshop&#x27;s
+   Generative Expand. It runs on the very sa">
+<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+<main id="main">
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> /
+    <a href="../plugins.html">插件</a> / AI</p>
+  <h1>AI 扩图</h1>
+  <div class="meta">
+    <code>plugin/ai-expand</code>
+    <span class="tag t-noise">AI</span>
+    <span>AI</span>
+  </div>
+  <p class="lede">把画布往外扩一圈，让本机 <b>ComfyUI</b> 把新长出来的地方画满——Photoshop 的
+       Generative Expand 就是这件事。走的还是 AI 填充那条 inpaint 管道，不新增任何节点；
+       区别只在蒙版是算出来的，不是手画的。</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="zh-overview">
+  <dt>菜单位置</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → AI → AI Expand (Outpaint)…（四周 / 左右 / 单边）</li><li>SuperMrWang → AI → AI Expand (Outpaint, Advanced)…（底模 / 种子 / 羽化）</li></ul><p>处理对象是<b>整张画布</b>：把画布往外扩，扩出来的那一圈当成蒙版交给 ComfyUI 画满。原图层一个像素都不重采样——结果是一层新图层，靠羽化蒙版把自己盖在旧画布之外。</p></dd>
+  <dt>脚本调用</dt>
+  <dd><code class="pdb">lb-plugin-ai-expand(
+    image, drawables, prompt, negative, edges, amount,
+    variations, pick)
+lb-plugin-ai-expand-advanced(
+    image, drawables, prompt, negative,
+    edges, amount, variations, pick, server,
+    checkpoint, steps, cfg, seed, feather, timeout)</code><p>标准 PDB 过程，参数留空走默认值。</p></dd>
+  <dt>依赖</dt>
+  <dd><p>不依赖任何自研算子，也不用编译：扩出来的那一圈由你自己那台 ComfyUI 画，插件负责算蒙版、补边、发 HTTP、贴回。需要 <code>plugin/_shared/</code> 里的 <code>ai_client.py</code> / <code>comfy_ui.py</code> / <code>mask_io.py</code>（下载包里带上了），以及一个在跑的 ComfyUI——没有的话菜单里的 <b>AI 环境…</b> 可以一键装。</p></dd>
+</dl>
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-1">
+      <div class="dl-head"><h3>扩哪几边、扩多少</h3><span class="pill">七种组合</span></div>
+      <p><b>四周 / 左右 / 上下 / 只左边 / 只右边 / 只上边 / 只下边</b>，每边一个像素数
+         （默认 256）。选「左右」时上下就是 0——不会顺手把画布长高，让人以为插件自己
+         乱动。</p>
+      <p>提示词描述的是<b>整张图应该长什么样</b>，不是只描述新区域：「黄昏的海边、湿沙、
+         远处的崖壁」。画布之外是什么模型看不见，只能靠这句话告诉它。</p>
+    </div>
+    <div class="dl" id="zh-sec-2">
+      <div class="dl-head"><h3>原图不动</h3></div>
+      <p>新区域用<b>边缘像素复制</b>当起点（黑边会让模型把旁边的肤色一起压暗）；交界处
+         是 <b>±24 px 的羽化斜坡</b>，硬边会被模型画成一条笔直的接缝。</p>
+      <p>结果贴回后自动做两级修补：<b>接缝低频色差补偿</b>与<b>颗粒匹配</b>，都用的是多
+         候选打分那套 <code>quality.py</code>。多张候选同样会弹缩略图挑选窗。</p>
+    </div>
+    <div class="dl" id="zh-sec-3">
+      <div class="dl-head"><h3>尺寸的实话</h3></div>
+      <p>扩完的整张画布要送进模型，而 SD 只在自己训练过的分辨率上画得对：744×1120 左右
+         各扩 240 之后是 1224×1120，SDXL 会按 1024 长边画，新带子回来要放大两三倍。
+         <b>想要锐就用 Flux</b>，或者一次只扩一边、扩得少一点。</p>
+      <p>实测（RTX 3070 Ti）：1224×1120 / 左右各 240，SDXL 两张候选 <b>35 秒</b>，Flux
+         一张 <b>81 秒</b>。纯色平面上能看出一条很细的接缝线，纹理复杂的地方看不到。</p>
+    </div>
+  </div>
+
+<section class="download" id="zh-download">
+  <h2>下载这一个</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>AI Expand (Outpaint)…</h3><span class="pill">.py · 免编译</span></div>
+    <p>包里是一个 <code>.py</code>、一份安装说明，以及 <code>_shared/</code> 与 <code>locale/</code>。整包解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，但界面只有英文。</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-ai-expand.zip">下载 AI Expand (Outpaint)…</a>
+    <p class="muted small">105.7 KB · 校验：<code>SHA256 d7898814708c7b930d07137c8cf4c8e5…</code></p>
+  </div>
+</section>
+
+
+  </article>
+  <aside class="toc">
+    <p class="toc-title">本页目录</p>
+    <ul>
+      <li><a href="#zh-overview">概览</a></li>
+<li><a href="#zh-sec-1">扩哪几边、扩多少</a></li><li><a href="#zh-sec-2">原图不动</a></li><li><a href="#zh-sec-3">尺寸的实话</a></li>
+      <li><a href="#zh-download">下载</a></li>
+    </ul>
+  </aside>
+</div>
+<nav class="pager">
+  <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
+  <a class="prev" href="ai-inpaint.html"><span>上一篇</span>AI 局部重绘</a><a class="next" href="ai-upscale.html"><span>下一篇</span>AI 超分放大</a>
+</nav></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> /
+    <a href="../plugins.html">Plug-ins</a> / AI</p>
+  <h1>AI Expand (Outpaint)</h1>
+  <div class="meta">
+    <code>plugin/ai-expand</code>
+    <span class="tag t-noise">AI</span>
+    <span>AI</span>
+  </div>
+  <p class="lede">Grow the canvas and let a local <b>ComfyUI</b> paint what is missing — Photoshop's
+   Generative Expand. It runs on the very same inpaint pipeline as AI Inpaint and adds no
+   new nodes; the only difference is that the mask is computed from the canvas edge instead
+   of drawn by hand.</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="en-overview">
+  <dt>Menu location</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → AI → AI Expand (Outpaint)… (four sides / left-right / one)</li><li>SuperMrWang → AI → AI Expand (Outpaint, Advanced)… (model / seed / feather)</li></ul><p>It works on <b>the whole canvas</b>: grow it, then hand the new ring to ComfyUI as a mask. The original pixels are never resampled — the result is a new layer whose feathered mask only covers the band outside the old canvas.</p></dd>
+  <dt>Scripting</dt>
+  <dd><code class="pdb">lb-plugin-ai-expand(
+    image, drawables, prompt, negative, edges, amount,
+    variations, pick)
+lb-plugin-ai-expand-advanced(
+    image, drawables, prompt, negative,
+    edges, amount, variations, pick, server,
+    checkpoint, steps, cfg, seed, feather, timeout)</code><p>A standard PDB procedure; leave an argument empty to take its default.</p></dd>
+  <dt>Dependencies</dt>
+  <dd><p>The operators below do the work. <b>They are already inside this plug-in's download</b> (<code>modules-windows-x64</code> / <code>modules-linux-x64</code>) — nothing else to fetch:</p></dd>
+</dl>
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-1">
+      <div class="dl-head"><h3>Which sides, how much</h3><span class="pill">seven choices</span></div>
+      <p><b>All four / left and right / top and bottom / left / right / top / bottom</b>, with a
+         pixel amount per side (256 by default). Choosing “left and right” leaves the top and
+         bottom at exactly 0 — the canvas never grows where you did not ask it to.</p>
+      <p>The prompt describes <b>the finished picture</b>, not just the new band: “a quiet beach
+         at sunset, wet sand, distant cliffs”. The model cannot see past the canvas, so this is
+         the only place to say what belongs there.</p>
+    </div>
+    <div class="dl" id="en-sec-2">
+      <div class="dl-head"><h3>Original pixels stay put</h3></div>
+      <p>The new area starts from <b>replicated edge pixels</b> — a black border makes the model
+         darken the skin next to it — and the join is a <b>±24 px feathered ramp</b>, because a
+         hard edge gets painted as a straight seam.</p>
+      <p>After pasting, the result gets the same two clean-up passes AI Inpaint uses:
+         <b>low-frequency seam compensation</b> and <b>grain matching</b>, both from
+         <code>quality.py</code>. Several candidates open the same thumbnail picker.</p>
+    </div>
+    <div class="dl" id="en-sec-3">
+      <div class="dl-head"><h3>The honest bit about size</h3></div>
+      <p>The whole grown canvas goes into the model, and SD only draws well near the resolution
+         it was trained on: 744×1120 grown to 1224×1120 is drawn at 1024 on the long side, so the
+         new band comes back and gets enlarged two or three times. <b>Use Flux if you want it
+         crisp</b>, or grow one side at a time, and less.</p>
+      <p>Measured (RTX 3070 Ti): 1224×1120 with 240 px on each side, SDXL two candidates
+         <b>35 s</b>, Flux one candidate <b>81 s</b>. On a flat wall you can find a very thin
+         seam line; on textured areas you cannot.</p>
+    </div>
+  </div>
+
+<section class="download" id="en-download">
+  <h2>Download this one</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>AI Expand (Outpaint)</h3><span class="pill">.py · no compile</span></div>
+    <p>The archive holds a single <code>.py</code>, an install note and the <code>_shared/</code> + <code>locale/</code> pair. Unpack all of it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register. Without <code>_shared/</code> and <code>locale/</code> it still runs, but only in English.</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-ai-expand.zip">Download AI Expand (Outpaint)</a>
+    <p class="muted small">105.7 KB · checksum: <code>SHA256 d7898814708c7b930d07137c8cf4c8e5…</code></p>
+  </div>
+</section>
+
+
+  </article>
+  <aside class="toc">
+    <p class="toc-title">On this page</p>
+    <ul>
+      <li><a href="#en-overview">Overview</a></li>
+<li><a href="#en-sec-1">Which sides, how much</a></li><li><a href="#en-sec-2">Original pixels stay put</a></li><li><a href="#en-sec-3">The honest bit about size</a></li>
+      <li><a href="#en-download">Download</a></li>
+    </ul>
+  </aside>
+</div>
+<nav class="pager">
+  <a href="../plugins.html"><span>Back to</span>All plug-ins</a>
+  <a class="prev" href="ai-inpaint.html"><span>Previous</span>AI Inpaint</a><a class="next" href="ai-upscale.html"><span>Next</span>AI Upscale</a>
+</nav></div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
+    <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
+    <span class="muted">9ac06ca</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
+</body>
+</html>

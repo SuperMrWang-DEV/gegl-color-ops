@@ -1026,6 +1026,102 @@ python tools/setup_comfy.py --tier full # 再加 Flux.1 Fill（12 GB）</code></
   </div>""",
     ),
     dict(
+        key='ai-expand',
+        slug='ai-expand',
+        title='AI 扩图',
+        tag=('AI', 't-noise'),
+        count='画布 + 提示词',
+        menu='SuperMrWang → AI → AI Expand (Outpaint)…',
+        menus=['SuperMrWang → AI → AI Expand (Outpaint)…（四周 / 左右 / 单边）',
+               'SuperMrWang → AI → AI Expand (Outpaint, Advanced)…（底模 / 种子 / 羽化）'],
+        menus_en=['SuperMrWang → AI → AI Expand (Outpaint)… (four sides / left-right / one)',
+                  'SuperMrWang → AI → AI Expand (Outpaint, Advanced)… (model / seed / feather)'],
+        pdb='lb-plugin-ai-expand(\n    image, drawables, prompt, negative, edges, amount,\n'
+            '    variations, pick)\n'
+            'lb-plugin-ai-expand-advanced(\n    image, drawables, prompt, negative,\n'
+            '    edges, amount, variations, pick, server,\n'
+            '    checkpoint, steps, cfg, seed, feather, timeout)',
+        spec_note="处理对象是<b>整张画布</b>：把画布往外扩，扩出来的那一圈当成蒙版交给 "
+                  "ComfyUI 画满。原图层一个像素都不重采样——结果是一层新图层，靠羽化"
+                  "蒙版把自己盖在旧画布之外。",
+        spec_note_en="It works on <b>the whole canvas</b>: grow it, then hand the new ring to "
+                     "ComfyUI as a mask. The original pixels are never resampled — the result "
+                     "is a new layer whose feathered mask only covers the band outside the old "
+                     "canvas.",
+        no_code_note=True,
+        lede="""把画布往外扩一圈，让本机 <b>ComfyUI</b> 把新长出来的地方画满——Photoshop 的
+       Generative Expand 就是这件事。走的还是 AI 填充那条 inpaint 管道，不新增任何节点；
+       区别只在蒙版是算出来的，不是手画的。""",
+        body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>扩哪几边、扩多少</h3><span class="pill">七种组合</span></div>
+      <p><b>四周 / 左右 / 上下 / 只左边 / 只右边 / 只上边 / 只下边</b>，每边一个像素数
+         （默认 256）。选「左右」时上下就是 0——不会顺手把画布长高，让人以为插件自己
+         乱动。</p>
+      <p>提示词描述的是<b>整张图应该长什么样</b>，不是只描述新区域：「黄昏的海边、湿沙、
+         远处的崖壁」。画布之外是什么模型看不见，只能靠这句话告诉它。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>原图不动</h3></div>
+      <p>新区域用<b>边缘像素复制</b>当起点（黑边会让模型把旁边的肤色一起压暗）；交界处
+         是 <b>±24 px 的羽化斜坡</b>，硬边会被模型画成一条笔直的接缝。</p>
+      <p>结果贴回后自动做两级修补：<b>接缝低频色差补偿</b>与<b>颗粒匹配</b>，都用的是多
+         候选打分那套 <code>quality.py</code>。多张候选同样会弹缩略图挑选窗。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>尺寸的实话</h3></div>
+      <p>扩完的整张画布要送进模型，而 SD 只在自己训练过的分辨率上画得对：744×1120 左右
+         各扩 240 之后是 1224×1120，SDXL 会按 1024 长边画，新带子回来要放大两三倍。
+         <b>想要锐就用 Flux</b>，或者一次只扩一边、扩得少一点。</p>
+      <p>实测（RTX 3070 Ti）：1224×1120 / 左右各 240，SDXL 两张候选 <b>35 秒</b>，Flux
+         一张 <b>81 秒</b>。纯色平面上能看出一条很细的接缝线，纹理复杂的地方看不到。</p>
+    </div>
+  </div>""",
+    ),
+    dict(
+        key='ai-upscale',
+        slug='ai-upscale',
+        title='AI 超分放大',
+        tag=('AI', 't-noise'),
+        count='2–4 倍',
+        menu='SuperMrWang → AI → AI Upscale…',
+        menus=['SuperMrWang → AI → AI Upscale…'],
+        menus_en=['SuperMrWang → AI → AI Upscale…'],
+        pdb='lb-plugin-ai-upscale(\n    image, drawables, model, factor, server, timeout)',
+        spec_note="处理对象是<b>当前图层</b>：放大结果是一层新图层，位置按倍率对齐原图层，"
+                  "原图层原样留着。和「图像 → 缩放图像」不是一回事。",
+        spec_note_en="It works on <b>the current layer</b>: the result is a new layer placed at "
+                     "the scaled offset, and the original stays untouched. This is not "
+                     "Image → Scale Image.",
+        no_code_note=True,
+        lede="""用放大网络（4x-UltraSharp 一类 ESRGAN）把图层放大 2~4 倍——放大的是<b>细节</b>，
+       不是插值出来的糊。GIMP 自己的缩放只会变平滑，这块是硬缺口。节点是 ComfyUI 自带的，
+       只需要一个 <b>64 MB</b> 的权重，不用装任何扩展。""",
+        body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>倍率怎么来的</h3><span class="pill">原生 4 倍</span></div>
+      <p>ESRGAN 一类都是 <b>4 倍网络</b>：要 2 倍就先 4 倍再 lanczos 缩一半，比直接 2 倍
+         插值清楚得多，也快（时间只跟原图大小有关）。3 倍同理。</p>
+      <p>放大只对「本来有信息、只是分辨率不够」的图有用；严重失焦或压缩到发糊的图，
+         放大会把噪点和块效应一起放大。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>先算像素，再动手</h3></div>
+      <p>4000×3000 放 4 倍是 <b>1.9 亿</b>像素，GIMP 拖不动、内存也扛不住。插件在发请求
+         之前就把结果尺寸算出来，超了直接说清楚「用更小的倍率，或者先裁出你要的那块」，
+         而不是跑到一半崩掉。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>实测</h3></div>
+      <p>744×1120 → 1488×2240（2 倍，实际走 4 倍再回缩）：<b>10 秒</b>（RTX 3070 Ti，
+         4x-UltraSharp）。皮肤会略微「干净」一点，发丝与布料边缘明显变实，没有出现
+         塑料感或白边。</p>
+      <p>换模型只要把权重丢进 <code>models/upscale_models/</code>，下拉里就会出现；
+         没装的话跑一次 <code>tools/setup_comfy.py --only upscale</code>。</p>
+    </div>
+  </div>""",
+    ),
+    dict(
         key='cutout',
         slug='cutout',
         title='抠图 / 移除背景',
@@ -2311,6 +2407,8 @@ BRIEF = {
     "observe": "六种观察层各一个菜单项：黑白、陡峭曲线、波浪曲线、饱和度、阈值、海报化。",
     "luminosity": "按亮度切七刀：亮部/暗部各 3 档 + 中间调，双击通道即变选区。",
     "ai-inpaint": "框一块地方、写一句提示词，交给本机 ComfyUI 重画，结果当新图层贴回原位。",
+    "ai-expand": "把画布往外扩一圈，让 AI 把新长出来的地方画满，原图一个像素都不动。",
+    "ai-upscale": "放大网络把图层放大 2~4 倍：放大的是细节，不是插值出来的糊。",
     "ai-frequency": "结构同高低频，两层的内容换成一张已经修过一遍的参考图。",
     "ai-dodge": "两条曲线的蒙版按参考图的差值预先涂好七成，打开就能继续补。",
     "ai-grey": "灰层不再是平的 128：按参考图反解出偏移，已做一轮中性灰。",
@@ -2338,6 +2436,8 @@ TAG_EN = {"曲线": "Curves", "磨皮": "Retouching", "选区": "Selection",
 
 TITLE_EN = {
     "ai-inpaint": "AI Inpaint",
+    "ai-expand": "AI Expand (Outpaint)",
+    "ai-upscale": "AI Upscale",
     "frequency": "Frequency Separation",
     "ai-frequency": "Frequency Separation (AI prep)",
     "ai-dodge": "Dodge & Burn (AI prep)",
@@ -2360,6 +2460,8 @@ TITLE_EN = {
 }
 
 BRIEF_EN = {
+    "ai-expand": "Grow the canvas and let AI paint the new band; not one original pixel moves.",
+    "ai-upscale": "2–4× with a real upscaler network: new detail, not interpolation.",
     "selection": "Right-click any layer and turn it into the current selection: "
                  "Gray / R / G / B / Alpha, four combine modes, optional invert.",
     "channel": "Right-click any layer and turn it into a grayscale alpha channel — "
@@ -2464,6 +2566,8 @@ AREA = {"selection": "图层转换", "channel": "图层转换", "split": "图层
         "convert": "图层转换",
         "layer-style": "Layer",
         "ai-inpaint": "AI",
+        "ai-expand": "AI",
+        "ai-upscale": "AI",
         "cutout": "Mask",
         "refine": "Mask",
         "warp": "Distort",
@@ -2474,6 +2578,8 @@ AREA = {"selection": "图层转换", "channel": "图层转换", "split": "图层
 
 DEPS = {
     "ai-inpaint": [],
+    "ai-expand": [],
+    "ai-upscale": [],
     "cutout": [],
     "refine": [],
     "warp": [],
@@ -2502,6 +2608,15 @@ DEPS = {
 }
 
 DEPS_NOTE = {
+    "ai-expand": "不依赖任何自研算子，也不用编译：扩出来的那一圈由你自己那台 ComfyUI "
+                 "画，插件负责算蒙版、补边、发 HTTP、贴回。需要 <code>plugin/_shared/"
+                 "</code> 里的 <code>ai_client.py</code> / <code>comfy_ui.py</code> / "
+                 "<code>mask_io.py</code>（下载包里带上了），以及一个在跑的 ComfyUI——"
+                 "没有的话菜单里的 <b>AI 环境…</b> 可以一键装。",
+    "ai-upscale": "不依赖任何自研算子，也不用编译：放大走 ComfyUI 自带的 "
+                  "<code>UpscaleModelLoader</code> / <code>ImageUpscaleWithModel</code>，"
+                  "只需要 <code>models/upscale_models/</code> 里有一个权重（4x-UltraSharp "
+                  "64 MB）。补权重跑一次 <code>tools/setup_comfy.py --only upscale</code>。",
     "ai-inpaint": "不依赖任何自研算子，也不用编译：像素由你自己那台 ComfyUI 里的 "
                   "Stable Diffusion 画，插件只负责裁图、发 HTTP、贴回。需要 "
                   "<code>plugin/_shared/</code> 里的 <code>ai_client.py</code> 与 "

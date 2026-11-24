@@ -551,8 +551,95 @@ try:
     check("shift-x/y 是对话框参数（画布像素）",
           mod.ai_select_object.__defaults__ is not None)
 
-    # GIMP 会把没删掉的图像当成「插件漏出来的」报到日志里，收尾清干净
-    for im in (img, img2, img3, img4):
+    # ---- AI 扩图：真 GIMP 里长画布 + 蒙版 ----
+    exp_path = os.path.join(ROOT, "plugin", "ai-outpaint", "ai-outpaint.py")
+    espec = importlib.util.spec_from_file_location("ai_expand_plugin", exp_path)
+    emod = importlib.util.module_from_spec(espec)
+    espec.loader.exec_module(emod)
+
+    check("扩图：选「左右」时上下是 0", emod.plan_edges("horizontal", 100)
+          == (100, 0, 100, 0), emod.plan_edges("horizontal", 100))
+    check("扩图：选「上下」时左右是 0", emod.plan_edges("vertical", 64)
+          == (0, 64, 0, 64), emod.plan_edges("vertical", 64))
+    check("扩图：「四周」四条边都给", emod.plan_edges("all", 32)
+          == (32, 32, 32, 32))
+    check("扩图：不认识的边当 all", emod.plan_edges("sideways", 8)
+          == (8, 8, 8, 8))
+    check("扩图：0 像素 = 什么都不扩", emod.plan_edges("all", 0) == (0, 0, 0, 0))
+
+    ex_img, ex_lay = new_image(60, 40, (210, 180, 150))
+    corner = px(ex_lay, 0, 0)
+    ex_info = emod.ai_expand(ex_img, ex_lay, "a calm sea, low horizon",
+                           edges="left", amount=20, variations=1, pick="off",
+                           client=client, timeout=30)
+    check("扩图：画布宽 60 → 80", ex_img.get_width() == 80,
+          ex_img.get_width())
+    check("扩图：画布高没变", ex_img.get_height() == 40, ex_img.get_height())
+    off = ex_lay.get_offsets()
+    check("扩图：原图层整体右移 20 px", (off[1], off[2]) == (20, 0),
+          (off[1], off[2]))
+    check("扩图：原图左上角像素一个字节都没动", px(ex_lay, 0, 0) == corner,
+          (px(ex_lay, 0, 0), corner))
+    ex_top = ex_img.get_layers()[0]
+    check("扩图：结果层铺满新画布",
+          (ex_top.get_width(), ex_top.get_height()) == (80, 40),
+          (ex_top.get_width(), ex_top.get_height()))
+    check("扩图：结果层带图层蒙版（原图区域被挡住）",
+          ex_top.get_mask() is not None)
+    check("扩图：info 里记下了前后尺寸",
+          ex_info["canvas"] == (80, 40) and ex_info["before"] == (60, 40),
+          (ex_info["canvas"], ex_info["before"]))
+    check("扩图：info 里记下了每边扩多少",
+          ex_info["edges"] == (20, 0, 0, 0), ex_info["edges"])
+    try:
+        emod.ai_expand(ex_img, ex_lay, "x", edges="all", amount=0, client=client)
+        check("扩图：0 像素要报错（不能静默跑一趟）", False)
+    except RuntimeError as exc:
+        check("扩图：0 像素要报错（不能静默跑一趟）",
+              "Nothing to expand" in str(exc), str(exc)[:50])
+
+    # ---- AI 超分：2 倍出层、偏移跟着放大 ----
+    up_path = os.path.join(ROOT, "plugin", "ai-upscale", "ai-upscale.py")
+    uspec = importlib.util.spec_from_file_location("ai_upscale_plugin", up_path)
+    umod = importlib.util.module_from_spec(uspec)
+    uspec.loader.exec_module(umod)
+
+    check("超分：20×12 放 2 倍 = 40×24", umod.plan_target(20, 12, 2) == (40, 24))
+    try:
+        umod.plan_target(9000, 9000, 4)
+        check("超分：像素爆掉要提前报错", False)
+    except RuntimeError as exc:
+        check("超分：像素爆掉要提前报错", "megapixels" in str(exc),
+              str(exc)[:50])
+
+    up_img, up_lay = new_image(24, 16, (120, 90, 60))
+    up_lay.set_offsets(5, 7)
+    up_layer, up_info = umod.ai_upscale(up_img, up_lay, factor=2, client=client,
+                                      timeout=30)
+    check("超分：新层是 48×32",
+          (up_layer.get_width(), up_layer.get_height()) == (48, 32),
+          (up_layer.get_width(), up_layer.get_height()))
+    upo = up_layer.get_offsets()
+    check("超分：偏移按倍率一起放大 (5,7) → (10,14)",
+          (upo[1], upo[2]) == (10, 14), (upo[1], upo[2]))
+    check("超分：原图层原样留着（放大是新建一层）",
+          (up_lay.get_width(), up_lay.get_height()) == (24, 16))
+    check("超分：新层在原图之上", up_img.get_item_position(up_layer) <
+          up_img.get_item_position(up_lay),
+          (up_img.get_item_position(up_layer), up_img.get_item_position(up_lay)))
+    check("超分：info 记下了模型与倍率",
+          up_info["factor"] == 2 and up_info["model"] == mock_comfy.UPSCALE_MODEL,
+          (up_info["factor"], up_info["model"]))
+
+    # 两个新过程都要注册进 PDB，否则菜单里点了没反应
+    for proc_name, label in ((emod.PROC, "AI 扩图"), (umod.PROC, "AI 超分")):
+        check("%s：注册进 PDB" % label,
+              Gimp.get_pdb().lookup_procedure(proc_name) is not None, proc_name)
+
+    # GIMP 会把没删掉的图像当成「插件漏出来的」报到日志里，收尾清干净。
+    # 不按变量名逐个删：中途有用例复用了同名变量（img3 建过两次），漏掉的
+    # 就是旧的那个——按「此刻还剩什么」删才收得干净。
+    for im in list(Gimp.get_images()):
         im.delete()
 finally:
     srv.stop()

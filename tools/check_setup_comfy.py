@@ -159,8 +159,11 @@ def test_tiers():
     full_a, full_g = S.select_assets("full")
     ok("min ⊂ std ⊂ full",
        set(min_g) < set(std_g) < set(full_g), (min_g, std_g, full_g))
-    ok("min 只下 SD1.5 inpaint", [a["key"] for a in min_a] == ["sd15-inpaint"],
+    ok("min = SD1.5 inpaint + 64 MB 的超分权重",
+       {a["key"] for a in min_a} == {"sd15-inpaint", "upscale-4x"},
        [a["key"] for a in min_a])
+    ok("超分权重在每个档位都在（它只有 64 MB，缺了插件就废一条）",
+       all("upscale" in g for g in (min_g, std_g, full_g)), (min_g, std_g, full_g))
     ok("std 含 SDXL / 选区 / 抠图",
        {"sdxl", "select", "rmbg"} <= {a["group"] for a in std_a})
     ok("full 才含 flux", "flux" not in {a["group"] for a in std_a} and

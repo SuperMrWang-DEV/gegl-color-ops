@@ -46,6 +46,7 @@ import ai_client  # noqa: E402
 FILL_RGB = (30, 144, 255)
 
 CHECKPOINT = "mock-sd15.safetensors"
+UPSCALE_MODEL = "4x-UltraSharp.pth"
 
 
 class MockState(object):
@@ -106,16 +107,40 @@ class MockState(object):
         loads = {}
         prefix = "mock"
         is_cutout = False
+        is_upscale = False
+        scale_to = None
         for node in workflow.values():
             kind = node.get("class_type")
             if kind == "LoadImage":
                 loads[node["inputs"].get("image", "")] = node["inputs"].get("image")
             elif kind == "RMBG":
                 is_cutout = True
+            elif kind in ("ImageUpscaleWithModel", "UpscaleModelLoader"):
+                is_upscale = True
+            elif kind == "ImageScale":
+                ti = node.get("inputs") or {}
+                try:
+                    if int(ti.get("width") or 0) and int(ti.get("height") or 0):
+                        scale_to = (int(ti["width"]), int(ti["height"]))
+                except (TypeError, ValueError):
+                    scale_to = None
             elif kind == "SaveImage":
                 prefix = node["inputs"].get("filename_prefix") or "mock"
 
         names = [n for n in loads if n in self.inputs]
+        if is_upscale and len(names) == 1:
+            sw, sh, sch, spix = ai_client.decode_png(self.inputs[names[0]])
+            tw, th = scale_to or (sw * 4, sh * 4)      # ESRGAN 原生 4 倍
+            out = bytearray(tw * th * 4)
+            for y in range(th):
+                sy = min(sh - 1, int(y * sh / th))
+                for x in range(tw):
+                    sx = min(sw - 1, int(x * sw / tw))
+                    i = (sy * sw + sx) * sch
+                    o = (y * tw + x) * 4
+                    out[o:o + 3] = spix[i:i + 3]
+                    out[o + 3] = spix[i + 3] if sch == 4 else 255
+            return self._emit(prefix, tw, th, bytes(out))
         if is_cutout and len(names) == 1:
             sw, sh, sch, spix = ai_client.decode_png(self.inputs[names[0]])
             out = bytearray(sw * sh * 4)
@@ -224,6 +249,12 @@ def _make_handler(state):
                               "optional": {}},
                     "output": ["IMAGE", "MASK", "IMAGE"],
                     "output_name": ["IMAGE", "MASK", "MASK_IMAGE"]}})
+
+            if path == "/object_info/UpscaleModelLoader":
+                return self._send(200, {"UpscaleModelLoader": {
+                    "input": {"required": {"model_name": [[UPSCALE_MODEL]]},
+                              "optional": {}},
+                    "output": ["UPSCALE_MODEL"]}})
 
             if path.startswith("/history/"):
                 pid = path.rsplit("/", 1)[-1]

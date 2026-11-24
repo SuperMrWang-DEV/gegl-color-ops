@@ -2384,6 +2384,35 @@ PLUGIN_SPECS = [
                  "    seed, denoise, grow, grow-mask-by, feather, timeout,\n"
                  "    keep-mask, scale)\n"
                  "lb-plugin-ai-env(image)"),
+        dict(key="ai-expand", ops=[],
+             name="gegl-color-ops-plugin-ai-expand.zip",
+             src_dir=os.path.join(ROOT, "plugin", "ai-outpaint"),
+             py="ai-outpaint.py",
+             menu="AI 扩图 (AI Expand / Outpaint)",
+             menus="    SuperMrWang → AI → AI Expand (Outpaint)…\n"
+                   "    SuperMrWang → AI → AI Expand (Outpaint, Advanced)…",
+             desc="AI 扩图：把画布往外扩一圈，让本机 ComfyUI 把新长出来的地方画满，"
+                  "原图一个像素都不动（扩出来的那一圈用羽化蒙版挡住原图）。走的是和"
+                  "AI 填充同一条 inpaint 管道，不新增任何节点。",
+             shared=["ai_client.py", "comfy_launcher.py", "comfy_ui.py",
+                     "mask_io.py", "quality.py", "candidate_picker.py"],
+             pdb="lb-plugin-ai-expand(image, drawables, prompt, negative, edges,\n"
+                 "    amount, variations, pick)\n"
+                 "lb-plugin-ai-expand-advanced(image, drawables, prompt, negative,\n"
+                 "    edges, amount, variations, pick, server, checkpoint, steps,\n"
+                 "    cfg, seed, feather, timeout)"),
+        dict(key="ai-upscale", ops=[],
+             name="gegl-color-ops-plugin-ai-upscale.zip",
+             src_dir=os.path.join(ROOT, "plugin", "ai-upscale"),
+             py="ai-upscale.py",
+             menu="AI 超分放大 (AI Upscale)",
+             menus="    SuperMrWang → AI → AI Upscale…",
+             desc="AI 超分放大：用放大网络（4x-UltraSharp 一类）把图层放大 2~4 倍，"
+                  "放大的是细节不是插值出来的糊。结果是新图层，原层原样留着。节点是"
+                  "ComfyUI 自带的，只需要一个 64 MB 的权重。",
+             shared=["ai_client.py", "comfy_launcher.py", "comfy_ui.py"],
+             pdb="lb-plugin-ai-upscale(image, drawables, model, factor, server,\n"
+                 "    timeout)"),
         dict(key="cutout", ops=[],
              name="gegl-color-ops-plugin-cutout.zip",
              src_dir=os.path.join(ROOT, "plugin", "cutout"),

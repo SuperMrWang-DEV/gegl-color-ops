@@ -82,6 +82,8 @@ echo "    SuperMrWang → Distort    Displace（按位移图重采样）/ 木偶
                              消失点（拖四边形标出透视平面：贴图进去 / 拉正成矩形 / 折成台阶）"
 echo "    SuperMrWang → AI         AI Inpaint（选区 + 提示词 → 本机 ComfyUI 重绘，需要 ComfyUI 在跑）"
 echo "                             AI Inpaint (Advanced)（全参数，含底模下拉）"
+echo "                             AI Expand（扩画布，扩出来的那圈让 AI 画满）"
+echo "                             AI Upscale（超分放大 2~4 倍，需 upscale_models 里有权重）"
 echo "                             AI Environment（手选 ComfyUI 目录 / 自动启动 / 一键装 / 看模型清单）"
 echo "    SuperMrWang → Retouch    HSV·HSL·Lab·LCh·HSI Split + 高低频/双曲线/中性灰磨皮"
 echo "                             再各加一个「（AI 预修）」入口：结构 + 预修一起给"

@@ -819,6 +819,9 @@ def _pick(names, *hints, prefer=()):
             continue
         score = 0
         for i, k in enumerate(prefer):
+            # k 也要转小写：prefer 里写的是给人看的文件名（4x-UltraSharp.pth），
+            # 而 low 已经全小写了，不统一就永远比不中（2026-11-24 实测）。
+            k = k.lower()
             if low.rsplit("/", 1)[-1] == k:
                 score += 100
             elif k in low:
@@ -1388,17 +1391,30 @@ def build_segment_workflow(image_name, prompt, sam2_model=SEG_MODELS[0],
 
 
 def _combo_values(object_info, node_id, key):
-    """从 /object_info 里抠某个下拉的候选值（值可能是 list 也可能是 dict）。"""
+    """从 /object_info 里抠某个下拉的候选值。
+
+    三种写法都见过（同一台机器上并存，因为节点包各写各的）：
+      ["a.safetensors", "b.safetensors"]        ← 老写法，直接就是列表
+      [["a", "b"], {"tooltip": "..."}]          ← 列表 + 选项字典
+      ["COMBO", {"options": ["a", "b"]}]        ← 新写法（ComfyUI 2025 起）
+    只认第一种的话，UpscaleModelLoader 会在真机上一直返回空表——mock 里是
+    老写法，测试看不出来（2026-11-24 实测）。
+    """
     try:
         spec = object_info[node_id]["input"]
         for group in ("required", "optional"):
             item = (spec.get(group) or {}).get(key)
-            if isinstance(item, (list, tuple)) and item:
-                values = item[0]
-                if isinstance(values, (list, tuple)):
-                    return [str(v) for v in values]
-                if isinstance(values, dict):
-                    return [str(v) for v in values]
+            if not isinstance(item, (list, tuple)) or not item:
+                continue
+            values = item[0]
+            if isinstance(values, str) and values.upper() == "COMBO":
+                opts = item[1] if len(item) > 1 else {}
+                values = (opts or {}).get("options") if isinstance(opts, dict) \
+                    else None
+            if isinstance(values, (list, tuple)):
+                return [str(v) for v in values]
+            if isinstance(values, dict):
+                return [str(v) for v in values]
     except (KeyError, TypeError, AttributeError, IndexError):
         pass
     return []
@@ -1504,3 +1520,192 @@ def segment(client, image_png, prompt, sam2_model="", dino_model="",
             "empty": hit < 32}
     return w, h, gray, info
 
+
+
+# ---- 扩图 / outpaint --------------------------------------------------------
+# 扩图和「局部重绘」是同一台机器：把画布往外扩一圈，让扩出来的那一圈当蒙版，
+# 模型把空出来的地方画满。区别只在**谁决定蒙版**——重绘是用户画的选区，扩图
+# 是画布边界。所以这里不新增工作流，只负责算对两样东西：补边后的图、蒙版。
+
+OUTPAINT_PROMPT = ("seamless continuation of the scene, matching the existing "
+                   "lighting, perspective and texture")
+OUTPAINT_FEATHER = 24        # 新旧交界处羽化的半宽（px）
+
+
+def expand_mask(w, h, left, top, right, bottom, feather=OUTPAINT_FEATHER):
+    """扩图用的蒙版：返回 (nw, nh, gray)。原图之外 255，原图之内 0，交界羽化。
+
+    为什么不是硬边：硬边等于告诉模型「从这里开始是全新的」，它会在交界处重画
+    一条笔直的边；羽化之后模型看到的是一段渐变，会把接缝揉进原来那层里。
+    为什么不是全图 255：那样原图也会被重画，等于整张重新生成——用户要的是
+    「往外长」，不是「换一张」。
+
+    实现按 x / y 两个方向分别算一维斜坡再取 max：矩形是轴对齐的，这样每个像
+    素都只用一次比较，1 Mpx 的图也不用 Python 逐点算距离。
+    """
+    left, top, right, bottom = (max(0, int(v)) for v in (left, top, right, bottom))
+    feather = max(1, int(feather))
+    nw, nh = w + left + right, h + top + bottom
+    if not (left or top or right or bottom):
+        return nw, nh, bytes(nw * nh)
+
+    span = 2.0 * feather
+
+    def level(d):
+        """带符号距离 → 0..255；0 是交界，正值往外、负值往原图里。"""
+        v = 0.5 + d / span
+        return 0 if v <= 0.0 else (255 if v >= 1.0 else int(round(v * 255)))
+
+    def side_ramps(pos, size, before, after):
+        """某一个轴上「两侧各自往外」的浓度。
+
+        **没有扩的那一侧必须给 0**：早期版本把「到原图边界的距离」当成浓度，
+        于是上下不扩图时，原图最上一行也会被判成 50% 要重绘——等于整张图都被
+        轻轻重画了一遍（实测把干净的背景糊了一层）。
+        """
+        best = 0
+        if before > 0:                       # 交界在 pos = before
+            v = level(before - pos)
+            if v > best:
+                best = v
+        if after > 0:                        # 交界在 pos = size - after
+            v = level(pos - (size - after) + 1)
+            if v > best:
+                best = v
+        return best
+
+    xs = bytes(side_ramps(x, nw, left, right) for x in range(nw))
+    out = bytearray()
+    full = b"\xff" * nw
+    for y in range(nh):
+        vy = side_ramps(y, nh, top, bottom)
+        if vy >= 255:
+            out += full
+        elif vy == 0:
+            out += xs
+        elif not any(xs):
+            out += bytes([vy]) * nw
+        else:                                   # 羽化带：逐像素取 max
+            out += bytes([max(a, vy) for a in xs])
+    return nw, nh, bytes(out)
+
+
+def expand_canvas(data, w, h, left, top, right, bottom):
+    """RGBA 原图 → 补边后的 RGBA（用边缘像素复制，不是黑边）。
+
+    黑边对模型来说是「一块不认识的深色区域」，会把扩出来的地方整体压暗；
+    边缘复制至少给了它一个连续的起点。返回 (nw, nh, bytes)。
+    """
+    return pad_edge_rgba(data, w, h, left, top, right, bottom)
+
+
+# ---- 超分 / upscale ---------------------------------------------------------
+# GIMP 自己的缩放是插值：放大只会变糊，不会变清楚。ComfyUI 这边是 ESRGAN 一类
+# 的放大网络，靠 64 MB 的权重就能把 1024 边长放到 4096。节点是 ComfyUI 自带
+# 的（UpscaleModelLoader / ImageUpscaleWithModel），不用装任何扩展。
+
+UPSCALE_LOADER = "UpscaleModelLoader"
+UPSCALE_NODE = "ImageUpscaleWithModel"
+SCALE_NODE = "ImageScale"
+UPSCALE_PREFER = ("4x-UltraSharp.pth", "4x-UltraSharp", "RealESRGAN_x4plus.pth")
+UPSCALE_NATIVE = 4.0        # ESRGAN 系列基本都是 4 倍；模型自己决定，这里只做默认
+
+
+def upscale_models(client, timeout=2.0):
+    """服务上 UpscaleModelLoader 能看到的模型（= models/upscale_models 里的）。"""
+    return _combo_values(_object_info(client, UPSCALE_LOADER, timeout),
+                         UPSCALE_LOADER, "model_name")
+
+
+def preferred_upscale(models, want=""):
+    """挑一个放大模型：认 prefer 里的名字，其次任何带 4x/esrgan 的。"""
+    want = (want or "").strip()
+    if want and want in models:
+        return want
+    if want:                                   # 用户填了但没装：交给上层报错
+        return want
+    # 关键词放在 prefer 尾部：它们只是「加分项」，不该盖过精确文件名。
+    # _pick 在没有一个命中时会返回第一个候选，所以兜底还得再判一次。
+    best = _pick(models, prefer=UPSCALE_PREFER + ("4x", "esrgan", "ultrasharp"))
+    if best:
+        return best
+    best = _pick(models, "4x") or _pick(models, "esrgan") or _pick(models, "swinir")
+    return best or (models[0] if models else "")
+
+
+def build_upscale_workflow(model, image_name, target_w=0, target_h=0,
+                           prefix="lb-ai-upscale", method="lanczos"):
+    """LoadImage → UpscaleModelLoader → ImageUpscaleWithModel → [ImageScale] → SaveImage。
+
+    target_w/h 给了就再插一步 ImageScale 缩到精确尺寸：4x 权重只能出 4 倍，
+    用户要 2 倍时（4000×3000 的图 4 倍就是 16000，GIMP 里根本拖不动）先放大
+    再 lanczos 缩一半，比直接 2 倍插值清楚。
+    """
+    wf = {
+        "1": {"class_type": "LoadImage", "inputs": {"image": image_name}},
+        "2": {"class_type": UPSCALE_LOADER,
+              "inputs": {"model_name": model}},
+        "3": {"class_type": UPSCALE_NODE,
+              "inputs": {"upscale_model": ["2", 0], "image": ["1", 0]}},
+    }
+    last = "3"
+    if target_w and target_h:
+        wf["4"] = {"class_type": SCALE_NODE,
+                   "inputs": {"image": ["3", 0], "upscale_method": method,
+                              "width": int(target_w), "height": int(target_h),
+                              "crop": "disabled"}}
+        last = "4"
+    wf[str(int(last) + 1)] = {"class_type": "SaveImage",
+                              "inputs": {"images": [last, 0],
+                                         "filename_prefix": prefix}}
+    return wf
+
+
+def explain_upscale_error(message, models=()):
+    """把「节点不存在 / 模型列表空的」翻成下一步该干什么。"""
+    text = str(message or "")
+    if "UpscaleModelLoader" in text or "not found" in text.lower() \
+            or "does not exist" in text.lower():
+        return (str(message) + "\n\n"
+                "超分用的是 ComfyUI 自带节点，报这个多半是 ComfyUI 版本太老："
+                "确认它至少是 2024 年之后的版本（有 UpscaleModelLoader）。")
+    if not models:
+        return (str(message) + "\n\n"
+                "models\\upscale_models\\ 里没有放大模型。装一个 4x-UltraSharp"
+                "（64 MB）即可：\n"
+                "  SuperMrWang → AI → AI Environment… → 勾上「超分权重」那一档，"
+                "或者直接跑 tools/setup_comfy.py --with upscale")
+    return str(message)
+
+
+def upscale(client, image_png, model="", factor=UPSCALE_NATIVE,
+            target=(0, 0), timeout=300.0, prefix="lb-ai-upscale", on_tick=None):
+    """整张图过一遍放大网络；返回 (png_bytes, info)。
+
+    factor 只用来算 target：给了 target（精确像素）就以 target 为准。
+    """
+    t0 = time.time()
+    models = upscale_models(client, timeout=3.0)
+    want = preferred_upscale(models, model)
+    if not want:
+        raise ComfyError(explain_upscale_error(
+            "ComfyUI 里没有可用的放大模型（UpscaleModelLoader 的列表是空的）。",
+            models))
+    src_name, _ = client.upload_image("lb-upscale-src.png", image_png)
+    tw, th = (int(target[0]), int(target[1])) if target else (0, 0)
+    wf = build_upscale_workflow(want, src_name, target_w=tw, target_h=th,
+                                prefix=prefix)
+    pid = client.queue(wf)
+    try:
+        entry = client.wait(pid, timeout=timeout, on_tick=on_tick)
+    except ComfyError as exc:
+        raise ComfyError(explain_upscale_error(str(exc), models)) from None
+    img = first_image(entry)
+    blob = client.download(img.get("filename", ""), img.get("subfolder", ""),
+                           img.get("type", "output"))
+    w, h, _ch, _px = decode_png(blob)
+    info = {"prompt_id": pid, "model": want, "scale": float(factor),
+            "width": w, "height": h,
+            "seconds": round(time.time() - t0, 2),
+            "filename": img.get("filename", "")}
+    return blob, info

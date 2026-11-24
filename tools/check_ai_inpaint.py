@@ -793,6 +793,134 @@ def test_env_entry():
 
 # ---- 8. 插件源码静态检查 ----------------------------------------------------
 
+def test_outpaint():
+    print("\n扩图：补边与蒙版")
+    w, h = 40, 30
+    nw, nh, g = ai_client.expand_mask(w, h, 10, 8, 6, 4, feather=8)
+    ok("画布 = 原图 + 四边", (nw, nh) == (56, 42), (nw, nh))
+    ok("蒙版尺寸与画布一致", len(g) == nw * nh)
+    ok("新长出来的地方要重绘（255）", g[0] == 255 and g[nh - 1] == 255)
+    ok("蒙版在 0..255 之间", min(g) >= 0 and max(g) <= 255)
+
+    # 交界处是斜坡不是硬边：从新区域往原图里走，浓度必须单调不增
+    row = g[(8 + 2) * nw:(8 + 3) * nw]            # 原图第一行往上两行
+    left_band = list(row[0:10])
+    ok("左边带越靠外越浓", left_band == sorted(left_band, reverse=True),
+       left_band[:6])
+    ok("交界两侧都不是 0 或 255（羽化）", 0 < row[10] < 255, row[10])
+
+    # 只有扩了的那一侧才有浓度。这条是 2026-11-24 的 bug：早期版本按「到原图
+    # 边界的距离」算，于是上下不扩图时最上一行也被判成一半要重绘。
+    nw2, nh2, g2 = ai_client.expand_mask(w, h, 10, 0, 0, 0, feather=8)
+    # 羽化带就是 feather 宽：交界往里 8 px 之内是斜坡，再往里必须彻底是 0
+    inside = max(g2[y * nw2 + x] for y in range(nh2)
+                 for x in range(10 + 9, nw2))
+    ok("只扩左边时，远离接缝的原图不被重绘", inside == 0, inside)
+    ok("斜坡不会蔓延到整张图",
+       g2[(nh2 // 2) * nw2 + 10] > 0 and g2[(nh2 // 2) * nw2 + 30] == 0)
+    ok("只扩左边时，左右两条边不产生浓度",
+       max(g2[y * nw2] for y in range(nh2)) == 255 and
+       max(g2[y * nw2 + nw2 - 1] for y in range(nh2)) == 0)
+
+    # 不扩就不该改画布
+    ok("四边都是 0 时画布不变",
+       ai_client.expand_mask(w, h, 0, 0, 0, 0) == (w, h, bytes(w * h)))
+
+    # 补边：用边缘像素复制，不是黑边（黑边会把旁边一起压暗）
+    src = bytearray(w * h * 4)
+    for y in range(h):
+        for x in range(w):
+            i = (y * w + x) * 4
+            src[i:i + 4] = bytes((x * 5 % 256, y * 7 % 256, 90, 255))
+    ew, eh, ext = ai_client.expand_canvas(bytes(src), w, h, 10, 8, 6, 4)
+    ok("补边后画布尺寸一致", (ew, eh) == (nw, nh))
+    ok("左上角复制的是原图左上角像素", ext[0:3] == src[0:3])
+    ok("右下角复制的是原图右下角像素",
+       ext[((eh - 1) * ew + ew - 1) * 4:((eh - 1) * ew + ew - 1) * 4 + 3] ==
+       src[((h - 1) * w + w - 1) * 4:((h - 1) * w + w - 1) * 4 + 3])
+    ok("原图区域原样保留",
+       ext[(8 * ew + 10) * 4:(8 * ew + 10) * 4 + 3] == src[0:3])
+
+    # 送出去的是「白=要重绘」，mask_png 会把白写成透明（LoadImage 用 1-alpha）
+    png = ai_client.mask_png(nw, nh, g)
+    pw, ph, pch, pix = ai_client.decode_png(png)
+    ok("蒙版 PNG 尺寸不变", (pw, ph) == (nw, nh))
+    ok("新区域 = 透明（会被重绘）", pix[(0 * pw + 0) * pch + 3] == 0)
+    ok("原图深处 = 不透明（不动）",
+       pix[((nh // 2) * pw + nw // 2) * pch + 3] == 255)
+
+
+def test_upscale():
+    print("\n超分：工作流与端到端")
+    wf = ai_client.build_upscale_workflow("4x-UltraSharp.pth", "src.png",
+                                          target_w=48, target_h=32)
+    kinds = {n["class_type"] for n in wf.values()}
+    ok("有 UpscaleModelLoader", ai_client.UPSCALE_LOADER in kinds)
+    ok("有 ImageUpscaleWithModel", ai_client.UPSCALE_NODE in kinds)
+    ok("给了 target 就插 ImageScale", ai_client.SCALE_NODE in kinds)
+    ok("有 SaveImage", "SaveImage" in kinds)
+    loader = next(n for n in wf.values()
+                  if n["class_type"] == ai_client.UPSCALE_LOADER)
+    ok("模型名传进去了", loader["inputs"]["model_name"] == "4x-UltraSharp.pth")
+    up = next(n for n in wf.values()
+              if n["class_type"] == ai_client.UPSCALE_NODE)
+    ok("放大吃 LoadImage 的 IMAGE 输出", up["inputs"]["image"][1] == 0)
+    ok("放大吃 loader 的模型输出", wf[up["inputs"]["upscale_model"][0]]
+       ["class_type"] == ai_client.UPSCALE_LOADER)
+    sc = next(n for n in wf.values() if n["class_type"] == ai_client.SCALE_NODE)
+    ok("ImageScale 用精确宽高", (sc["inputs"]["width"], sc["inputs"]["height"])
+       == (48, 32))
+    ok("ImageScale 不裁剪（crop=disabled）", sc["inputs"]["crop"] == "disabled")
+
+    plain = ai_client.build_upscale_workflow("m.pth", "src.png")
+    ok("不给 target 时不插 ImageScale",
+       ai_client.SCALE_NODE not in {n["class_type"] for n in plain.values()})
+
+    ok("preferred_upscale 认 4x-UltraSharp",
+       ai_client.preferred_upscale(["RealESRGAN_x4plus.pth",
+                                    "4x-UltraSharp.pth"]) ==
+       "4x-UltraSharp.pth")
+    ok("preferred_upscale 没有首选时退到任何 4x",
+       ai_client.preferred_upscale(["swin2SR.pth", "4xNomos8k.pth"])
+       == "4xNomos8k.pth")
+    ok("空列表时给出空模型名（由上层报错）",
+       ai_client.preferred_upscale([]) == "")
+
+    # /object_info 的下拉有三种写法，同一台机器上并存（节点包各写各的）。
+    # 新写法 ["COMBO", {"options": [...]}] 不认的话，真机上放大模型列表一直是
+    # 空的，而 mock 里是老写法——测试全绿、功能全废。
+    shapes = {
+        "老写法（直接列表）": {"N": {"input": {"required": {"k": [["a", "b"]]}}}},
+        "列表 + 选项字典": {"N": {"input": {"required": {
+            "k": [["a", "b"], {"tooltip": "x"}]}}}},
+        "新写法 COMBO/options": {"N": {"input": {"required": {
+            "k": ["COMBO", {"options": ["a", "b"]}]}}}},
+    }
+    for label, payload in shapes.items():
+        ok("认 /object_info 的%s" % label,
+           ai_client._combo_values(payload, "N", "k") == ["a", "b"],
+           ai_client._combo_values(payload, "N", "k"))
+
+    src = bytearray(24 * 16 * 4)
+    for i in range(24 * 16):
+        src[i * 4:i * 4 + 4] = bytes((i % 256, 100, 200, 255))
+    png = ai_client.rgba_png(24, 16, bytes(src))
+    with mock_comfy.start_mock() as srv:
+        client = ai_client.ComfyClient(srv.url, timeout=10)
+        ok("mock 上列出放大模型",
+           ai_client.upscale_models(client) == [mock_comfy.UPSCALE_MODEL])
+        blob, info = ai_client.upscale(client, png, target=(48, 32))
+        ow, oh, _och, _opx = ai_client.decode_png(blob)
+        ok("按请求的尺寸回来（2 倍）", (ow, oh) == (48, 32), (ow, oh))
+        ok("info 记下了模型与耗时",
+           info["model"] == mock_comfy.UPSCALE_MODEL and info["seconds"] >= 0)
+
+        blob4, info4 = ai_client.upscale(client, png)      # 不给 target = 原生 4 倍
+        ow4, oh4, _c4, _p4 = ai_client.decode_png(blob4)
+        ok("不给 target 时出原生 4 倍", (ow4, oh4) == (96, 64), (ow4, oh4))
+        ok("info 里带输出尺寸", info4["width"] == 96 and info4["height"] == 64)
+
+
 def test_plugin_source():
     print("\n插件源码")
     plugins = []
@@ -973,6 +1101,8 @@ def main():
     test_work_size()
     test_fit_context()
     test_end_to_end()
+    test_outpaint()
+    test_upscale()
     test_quality()
     test_errors()
     test_prompt_tools()

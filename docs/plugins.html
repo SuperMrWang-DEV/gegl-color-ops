@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Python 插件 · gegl-color-ops</title>
-<meta name="description" content="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮，AI 局部重绘——免编译，解压即用" data-desc-zh="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮，AI 局部重绘——免编译，解压即用" data-desc-en="28 compile-free GIMP 3 plug-ins: layer to selection or channel, HSV / LCh / HSL / Lab / HSI component curves, frequency separation, dodge &amp; burn, neutral grey, AI inpaint.">
+<meta name="description" content="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮，AI 局部重绘——免编译，解压即用" data-desc-zh="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮，AI 局部重绘——免编译，解压即用" data-desc-en="30 compile-free GIMP 3 plug-ins: layer to selection or channel, HSV / LCh / HSL / Lab / HSI component curves, frequency separation, dodge &amp; burn, neutral grey, AI inpaint.">
 <meta property="og:title" content="Python 插件 · gegl-color-ops" data-title-zh="Python 插件 · gegl-color-ops" data-title-en="Python plug-ins · gegl-color-ops">
-<meta property="og:description" content="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮，AI 局部重绘——免编译，解压即用" data-desc-zh="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮，AI 局部重绘——免编译，解压即用" data-desc-en="28 compile-free GIMP 3 plug-ins: layer to selection or channel, HSV / LCh / HSL / Lab / HSI component curves, frequency separation, dodge &amp; burn, neutral grey, AI inpaint.">
+<meta property="og:description" content="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮，AI 局部重绘——免编译，解压即用" data-desc-zh="GIMP 3 Python 插件：图层转选区 / Alpha 通道，HSV / LCh / HSL / Lab / HSI 分量分层曲线，高低频 / 双曲线 / 中性灰磨皮，AI 局部重绘——免编译，解压即用" data-desc-en="30 compile-free GIMP 3 plug-ins: layer to selection or channel, HSV / LCh / HSL / Lab / HSI component curves, frequency separation, dodge &amp; burn, neutral grey, AI inpaint.">
 <link rel="stylesheet" href="assets/style.css?v=90a1149d22">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="feed.xml">
 <script>
@@ -42,24 +42,26 @@
 <main id="main">
 <section class="page-head">
   <p class="eyebrow"><a href="index.html"><span class="l-zh">首页</span><span class="l-en">Home</span></a> / <span class="l-zh">Python 插件</span><span class="l-en">Python plug-ins</span></p>
-  <h1><span class="l-zh">28 个 Python 插件</span><span class="l-en">28 Python plug-ins</span></h1>
+  <h1><span class="l-zh">30 个 Python 插件</span><span class="l-en">30 Python plug-ins</span></h1>
   <p class="lede"><span class="l-zh">免编译的 GIMP 3 插件，装进 <code>plug-ins</code> 目录、重启即用。两处入口：菜单栏顶层的 <b>SuperMrWang</b>（全部都在），以及<b>图层右键 → SuperMrWang</b>。只有 AI 那一支要额外起一个本机的 <b>ComfyUI</b>——没装的话它自己带着安装器。</span><span class="l-en">Compile-free GIMP 3 plug-ins: drop them into the <code>plug-ins</code> folder and restart. Two entry points: the top-level <b>SuperMrWang</b> menu (all of them) and <b>layer right-click → SuperMrWang</b>. Only the AI one needs a local <b>ComfyUI</b> — and it ships its own installer.</span></p>
   <ul class="facts">
-    <li><span class="l-zh"><b>28</b> 个插件</span><span class="l-en"><b>28</b> plug-ins</span></li>
-    <li><span class="l-zh"><b>28</b> 个 PDB 过程</span><span class="l-en"><b>28</b> PDB procedures</span></li>
-    <li><span class="l-zh"><b>2027</b> 条插件回归断言</span><span class="l-en"><b>2027</b> plug-in regression assertions</span></li>
+    <li><span class="l-zh"><b>30</b> 个插件</span><span class="l-en"><b>30</b> plug-ins</span></li>
+    <li><span class="l-zh"><b>30</b> 个 PDB 过程</span><span class="l-en"><b>30</b> PDB procedures</span></li>
+    <li><span class="l-zh"><b>2107</b> 条插件回归断言</span><span class="l-en"><b>2107</b> plug-in regression assertions</span></li>
     <li><span class="l-zh"><b>0</b> 编译 · 纯 Python</span><span class="l-en"><b>0</b> to compile · pure Python</span></li>
   </ul>
 </section>
 
 <div class="prose wide">
 <h2 id="g-ai" class="plug-group"><span class="tag t-noise"><span class="l-zh">AI</span><span class="l-en">AI</span></span>
-    <span class="count"><span class="l-zh">1 个</span><span class="l-en">1</span></span></h2>
+    <span class="count"><span class="l-zh">3 个</span><span class="l-en">3</span></span></h2>
   <p class="group-desc"><span class="l-zh">把选区交给本机的 Stable Diffusion 重画，外加装 / 起 ComfyUI 的入口。</span><span class="l-en">Hands a selection to Stable Diffusion on your own machine, plus the entry that installs and starts ComfyUI.</span></p>
   <div class="table-wrap"><table class="op-table plug-table">
     <thead><tr><th><span class="l-zh">插件</span><span class="l-en">Plug-in</span></th><th>PDB</th><th><span class="l-zh">类型</span><span class="l-en">Type</span></th><th><span class="l-zh">做什么</span><span class="l-en">What it does</span></th></tr></thead>
     <tbody>
     <tr><td><a href="plugins/ai-inpaint.html"><b><span class="l-zh">AI 局部重绘</span><span class="l-en">AI Inpaint</span></b></a></td><td><code>lb-plugin-ai-inpaint</code></td><td class="nowrap"><span class="l-zh">AI</span><span class="l-en">AI</span></td><td><span class="l-zh">框一块地方、写一句提示词，交给本机 ComfyUI 重画，结果当新图层贴回原位。</span><span class="l-en">Frame an area, write what should be there, and a local ComfyUI redraws it — the answer comes back as a new masked layer.</span></td></tr>
+<tr><td><a href="plugins/ai-expand.html"><b><span class="l-zh">AI 扩图</span><span class="l-en">AI Expand (Outpaint)</span></b></a></td><td><code>lb-plugin-ai-expand</code></td><td class="nowrap"><span class="l-zh">AI</span><span class="l-en">AI</span></td><td><span class="l-zh">把画布往外扩一圈，让 AI 把新长出来的地方画满，原图一个像素都不动。</span><span class="l-en">Grow the canvas and let AI paint the new band; not one original pixel moves.</span></td></tr>
+<tr><td><a href="plugins/ai-upscale.html"><b><span class="l-zh">AI 超分放大</span><span class="l-en">AI Upscale</span></b></a></td><td><code>lb-plugin-ai-upscale</code></td><td class="nowrap"><span class="l-zh">AI</span><span class="l-en">AI</span></td><td><span class="l-zh">放大网络把图层放大 2~4 倍：放大的是细节，不是插值出来的糊。</span><span class="l-en">2–4× with a real upscaler network: new detail, not interpolation.</span></td></tr>
     </tbody>
   </table></div>
 <h2 id="g-shortcut" class="plug-group"><span class="tag t-color"><span class="l-zh">Retouch</span><span class="l-en">Retouch</span></span>
@@ -134,7 +136,7 @@
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">5fdfdf2</span>
+    <span class="muted">9ac06ca</span>
   </div>
 </footer>
 <script>

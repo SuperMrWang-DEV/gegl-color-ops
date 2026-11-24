@@ -2377,3 +2377,70 @@ PLUGIN_EN["layer-style"] = dict(
     </div>
   </div>""",
 )
+
+PLUGIN_EN["ai-expand"] = dict(
+    lede="""Grow the canvas and let a local <b>ComfyUI</b> paint what is missing — Photoshop's
+   Generative Expand. It runs on the very same inpaint pipeline as AI Inpaint and adds no
+   new nodes; the only difference is that the mask is computed from the canvas edge instead
+   of drawn by hand.""",
+    body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Which sides, how much</h3><span class="pill">seven choices</span></div>
+      <p><b>All four / left and right / top and bottom / left / right / top / bottom</b>, with a
+         pixel amount per side (256 by default). Choosing “left and right” leaves the top and
+         bottom at exactly 0 — the canvas never grows where you did not ask it to.</p>
+      <p>The prompt describes <b>the finished picture</b>, not just the new band: “a quiet beach
+         at sunset, wet sand, distant cliffs”. The model cannot see past the canvas, so this is
+         the only place to say what belongs there.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Original pixels stay put</h3></div>
+      <p>The new area starts from <b>replicated edge pixels</b> — a black border makes the model
+         darken the skin next to it — and the join is a <b>±24 px feathered ramp</b>, because a
+         hard edge gets painted as a straight seam.</p>
+      <p>After pasting, the result gets the same two clean-up passes AI Inpaint uses:
+         <b>low-frequency seam compensation</b> and <b>grain matching</b>, both from
+         <code>quality.py</code>. Several candidates open the same thumbnail picker.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>The honest bit about size</h3></div>
+      <p>The whole grown canvas goes into the model, and SD only draws well near the resolution
+         it was trained on: 744×1120 grown to 1224×1120 is drawn at 1024 on the long side, so the
+         new band comes back and gets enlarged two or three times. <b>Use Flux if you want it
+         crisp</b>, or grow one side at a time, and less.</p>
+      <p>Measured (RTX 3070 Ti): 1224×1120 with 240 px on each side, SDXL two candidates
+         <b>35 s</b>, Flux one candidate <b>81 s</b>. On a flat wall you can find a very thin
+         seam line; on textured areas you cannot.</p>
+    </div>
+  </div>""",
+)
+
+PLUGIN_EN["ai-upscale"] = dict(
+    lede="""Upscale a layer 2–4× with a real upscaler network (4x-UltraSharp and friends) —
+   new <b>detail</b>, not interpolation. GIMP's own scaling only smooths, which is the gap this
+   fills. The nodes ship with ComfyUI; all you need is a <b>64 MB</b> weight file.""",
+    body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Where the factor comes from</h3><span class="pill">native 4×</span></div>
+      <p>ESRGAN-class models are <b>4× networks</b>: asking for 2× means rendering 4× and scaling
+         down with lanczos, which stays sharper than a direct 2× interpolation and costs the same
+         time (time depends on the source size only). 3× works the same way.</p>
+      <p>It only helps where the information is there and merely under-sampled; a badly defocused
+         or over-compressed image will have its noise and blocking enlarged too.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Pixel budget first</h3></div>
+      <p>4000×3000 at 4× is <b>190 megapixels</b> — GIMP cannot hold that layer. The plug-in
+         computes the result size before sending anything and says “use a smaller factor, or crop
+         the part you need” instead of dying halfway through.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Measured</h3></div>
+      <p>744×1120 → 1488×2240 (2×, rendered at 4× then scaled): <b>10 s</b> on a 3070 Ti with
+         4x-UltraSharp. Skin gets slightly cleaner, hair and fabric edges get visibly tighter; no
+         plastic look, no white halos.</p>
+      <p>Drop another weight into <code>models/upscale_models/</code> and it appears in the
+         drop-down; if there is none, run <code>tools/setup_comfy.py --only upscale</code>.</p>
+    </div>
+  </div>""",
+)

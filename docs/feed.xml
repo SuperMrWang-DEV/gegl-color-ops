@@ -161,6 +161,24 @@
    分开，本地那条对付纯色和渐变背景是毫秒级的。</summary>
   </entry>
   <entry>
+    <title>插件 · AI 超分放大</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/ai-upscale.html"/>
+    <id>tag:github.com,2026:plugin-ai-upscale</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>用放大网络（4x-UltraSharp 一类 ESRGAN）把图层放大 2~4 倍——放大的是细节，
+       不是插值出来的糊。GIMP 自己的缩放只会变平滑，这块是硬缺口。节点是 ComfyUI 自带的，
+       只需要一个 64 MB 的权重，不用装任何扩展。</summary>
+  </entry>
+  <entry>
+    <title>插件 · AI 扩图</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/ai-expand.html"/>
+    <id>tag:github.com,2026:plugin-ai-expand</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>把画布往外扩一圈，让本机 ComfyUI 把新长出来的地方画满——Photoshop 的
+       Generative Expand 就是这件事。走的还是 AI 填充那条 inpaint 管道，不新增任何节点；
+       区别只在蒙版是算出来的，不是手画的。</summary>
+  </entry>
+  <entry>
     <title>插件 · AI 局部重绘</title>
     <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/ai-inpaint.html"/>
     <id>tag:github.com,2026:plugin-ai-inpaint</id>

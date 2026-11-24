@@ -161,13 +161,19 @@ ASSETS = [
            "models/RMBG/RMBG-2.0/birefnet.py", 91320, "RMBG-2.0 网络结构（随仓库走）"),
     _asset("rmbg-arc", "rmbg", "1038lab/RMBG-2.0", "BiRefNet_config.py",
            "models/RMBG/RMBG-2.0/BiRefNet_config.py", 298, "RMBG-2.0 网络配置"),
+    # —— 超分放大（ComfyUI 自带节点，只要一个 64 MB 的 ESRGAN 权重） ——
+    _asset("upscale-4x", "upscale", "uwg/upscaler",
+           "ESRGAN/4x-UltraSharp.pth",
+           "models/upscale_models/4x-UltraSharp.pth", 66961958,
+           "4x-UltraSharp：4 倍放大，1024 边长约 3 秒；GIMP 自带缩放没有 AI 这一档",
+           repos=("uwg/upscaler", "Kim2091/UltraSharp")),
 ]
 
 # 档位 = 要哪些 group。min 只保证「能填充」，std 是日常，full 加质量上限。
 TIERS = {
-    "min": ["sd15"],
-    "std": ["sd15", "sdxl", "select", "rmbg"],
-    "full": ["sd15", "sdxl", "select", "rmbg", "flux"],
+    "min": ["sd15", "upscale"],
+    "std": ["sd15", "sdxl", "select", "rmbg", "upscale"],
+    "full": ["sd15", "sdxl", "select", "rmbg", "flux", "upscale"],
 }
 GROUP_TITLE = {
     "sd15": "SD1.5 inpaint（最小可用）",
@@ -175,6 +181,7 @@ GROUP_TITLE = {
     "flux": "Flux.1 Fill（质量上限，慢）",
     "select": "按名称选区（SAM2 + GroundingDINO）",
     "rmbg": "抠图（RMBG-2.0）",
+    "upscale": "超分放大（4x-UltraSharp，64 MB）",
 }
 GROUP_BY_ASSET = {a["group"] for a in ASSETS}
 
