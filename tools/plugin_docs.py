@@ -1043,11 +1043,13 @@ python tools/setup_comfy.py --tier full # 再加 Flux.1 Fill（12 GB）</code></
             '    checkpoint, steps, cfg, seed, feather, timeout)',
         spec_note="处理对象是<b>整张画布</b>：把画布往外扩，扩出来的那一圈当成蒙版交给 "
                   "ComfyUI 画满。原图层一个像素都不重采样——结果是一层新图层，靠羽化"
-                  "蒙版把自己盖在旧画布之外。",
+                  "蒙版把自己盖在旧画布之外。<b>送出去的是硬蒙版</b>（0/255，并往原图里"
+                  "多吃一圈），羽化斜坡只留给图层蒙版。",
         spec_note_en="It works on <b>the whole canvas</b>: grow it, then hand the new ring to "
                      "ComfyUI as a mask. The original pixels are never resampled — the result "
                      "is a new layer whose feathered mask only covers the band outside the old "
-                     "canvas.",
+                     "canvas. <b>The mask sent out is hard</b> (0/255, grown into the original); "
+                     "the feathered ramp is only used by the layer mask.",
         no_code_note=True,
         lede="""把画布往外扩一圈，让本机 <b>ComfyUI</b> 把新长出来的地方画满——Photoshop 的
        Generative Expand 就是这件事。走的还是 AI 填充那条 inpaint 管道，不新增任何节点；
@@ -1062,11 +1064,14 @@ python tools/setup_comfy.py --tier full # 再加 Flux.1 Fill（12 GB）</code></
          远处的崖壁」。画布之外是什么模型看不见，只能靠这句话告诉它。</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>原图不动</h3></div>
-      <p>新区域用<b>边缘像素复制</b>当起点（黑边会让模型把旁边的肤色一起压暗）；交界处
-         是 <b>±24 px 的羽化斜坡</b>，硬边会被模型画成一条笔直的接缝。</p>
-      <p>结果贴回后自动做两级修补：<b>接缝低频色差补偿</b>与<b>颗粒匹配</b>，都用的是多
-         候选打分那套 <code>quality.py</code>。多张候选同样会弹缩略图挑选窗。</p>
+      <div class="dl-head"><h3>两张蒙版</h3></div>
+      <p>新区域用<b>边缘像素复制</b>当起点（黑边会让模型把旁边的肤色一起压暗）。喂给模型
+         的是<b>硬蒙版</b>：只有 0 和 255，还往原图里多吃一圈。因为 ComfyUI 那条工作流
+         的终点是解码出图、<b>没有合成节点</b>，给它一张半透明的软蒙版，模型会把交界当成
+         「半褪色的区域」重建，亮度被拉起来——贴回去就是一圈亮边。</p>
+      <p><b>±24 px 的羽化斜坡只留给图层蒙版</b>，这样整条链路只混合一次。结果贴回后还会
+         自动做两级修补：<b>接缝低频色差补偿</b>与<b>颗粒匹配</b>，都用的是多候选打分那套
+         <code>quality.py</code>。</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>尺寸的实话</h3></div>
@@ -1074,7 +1079,9 @@ python tools/setup_comfy.py --tier full # 再加 Flux.1 Fill（12 GB）</code></
          各扩 240 之后是 1224×1120，SDXL 会按 1024 长边画，新带子回来要放大两三倍。
          <b>想要锐就用 Flux</b>，或者一次只扩一边、扩得少一点。</p>
       <p>实测（RTX 3070 Ti）：1224×1120 / 左右各 240，SDXL 两张候选 <b>35 秒</b>，Flux
-         一张 <b>81 秒</b>。纯色平面上能看出一条很细的接缝线，纹理复杂的地方看不到。</p>
+         一张 <b>81 秒</b>。纯色平面上的<b>亮度亮边</b>已经修掉（跨交界的亮度爬坡从 25 级
+         降到 3 级以内）；还剩一条 48 px 混合带里看得出「模型延续的内容没对齐」的影子，
+         尤其规则几何（窗框、地砖）——那是这种做法的下限，不是色差。</p>
     </div>
   </div>""",
     ),

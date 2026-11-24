@@ -591,6 +591,24 @@ try:
           (ex_info["canvas"], ex_info["before"]))
     check("扩图：info 里记下了每边扩多少",
           ex_info["edges"] == (20, 0, 0, 0), ex_info["edges"])
+
+    # 喂给采样器的蒙版必须是硬的。ComfyUI 那条工作流没有合成节点，软蒙版会让
+    # 模型把交界当成半褪色区域重建，贴回去就是一圈亮边（2026-11-24 修）。
+    mblob = srv.state.inputs.get("lb-inpaint-mask.png")
+    if mblob:
+        mw, mh, mch, mpix = ai_client.decode_png(mblob)
+        alphas = set(mpix[3::mch])
+        check("扩图：喂模型的蒙版是硬的（alpha 只有 0/255）",
+              alphas <= {0, 255}, sorted(alphas)[:6])
+        check("扩图：硬蒙版左侧仍是重绘区",
+              mpix[(mh // 2) * mw * mch + 3] == 0,
+              mpix[(mh // 2) * mw * mch + 3])
+        check("扩图：硬蒙版不碰原图深处",
+              mpix[((mh // 2) * mw + mw // 2) * mch + 3] == 255,
+              mpix[((mh // 2) * mw + mw // 2) * mch + 3])
+    else:
+        check("扩图：mock 收到了蒙版上传", False, "state.inputs 里没有 mask")
+
     try:
         emod.ai_expand(ex_img, ex_lay, "x", edges="all", amount=0, client=client)
         check("扩图：0 像素要报错（不能静默跑一趟）", False)

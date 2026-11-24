@@ -1530,13 +1530,15 @@ def segment(client, image_png, prompt, sam2_model="", dino_model="",
 OUTPAINT_PROMPT = ("seamless continuation of the scene, matching the existing "
                    "lighting, perspective and texture")
 OUTPAINT_FEATHER = 24        # 新旧交界处羽化的半宽（px）
+OUTPAINT_GROW = 24           # 硬蒙版往原图里多吃多少（给模型留过渡空间）
 
 
 def expand_mask(w, h, left, top, right, bottom, feather=OUTPAINT_FEATHER):
-    """扩图用的蒙版：返回 (nw, nh, gray)。原图之外 255，原图之内 0，交界羽化。
+    """**给 GIMP 图层蒙版**的软蒙版：返回 (nw, nh, gray)。
 
-    为什么不是硬边：硬边等于告诉模型「从这里开始是全新的」，它会在交界处重画
-    一条笔直的边；羽化之后模型看到的是一段渐变，会把接缝揉进原来那层里。
+    原图之外 255，原图之内 0，交界处一段斜坡。这张只用来在 GIMP 里把候选
+    图层贴回原图，**不要**拿去喂模型——喂模型请用 expand_model_mask()。
+
     为什么不是全图 255：那样原图也会被重画，等于整张重新生成——用户要的是
     「往外长」，不是「换一张」。
 
@@ -1588,6 +1590,51 @@ def expand_mask(w, h, left, top, right, bottom, feather=OUTPAINT_FEATHER):
         else:                                   # 羽化带：逐像素取 max
             out += bytes([max(a, vy) for a in xs])
     return nw, nh, bytes(out)
+
+
+def expand_model_mask(iw, ih, left, top, right, bottom, ww=None, hh=None,
+                      grow=OUTPAINT_GROW):
+    """**给采样器**的硬蒙版：255 = 重绘，0 = 保留。返回 (ww, hh, bytes)。
+
+    只给 0/255，一点斜坡都不给，而且往原图里多吃 grow px。
+
+    为什么必须硬边：ComfyUI 那条 inpaint 工作流的终点是 VAEDecode → SaveImage，
+    **没有合成节点**，返回的是模型对整幅画布的重绘。给它一张 50% 的软蒙版，
+    模型看到的是一个「半褪色」的区域，会顺手把它重建（提亮、补纹理），而这段
+    重绘正好落在羽化带里；GIMP 再按同一条斜坡贴回去，交界处就浮出一圈亮边
+    （实测平墙面上偏亮 4~8 级，一眼就能看出是个矩形）。硬边之后模型只在真的
+    空白区作画，原图那块几乎原样吐回来，色差只剩模型本身的整体漂移。
+    斜坡仍然要，但只由 GIMP 的图层蒙版做——一次混合，不会有脊线。
+
+    往原图里多吃 grow 的原因：硬边界会让模型在交界内侧留一条「不敢碰」的窄带，
+    多吃一点正好把这条窄带盖掉，斜坡混合时才没有缝可对。
+
+    尺寸直接按 ww/hh 用比例算，不走 GIMP 缩放——二值蒙版过一遍双三次就又是
+    灰的了，等于白做。
+    """
+    iw, ih = max(1, int(iw)), max(1, int(ih))
+    left, top, right, bottom = (max(0, int(v)) for v in (left, top, right, bottom))
+    nw, nh = iw + left + right, ih + top + bottom
+    ww = nw if ww is None else max(1, int(ww))
+    hh = nh if hh is None else max(1, int(hh))
+    sx, sy = ww / float(nw), hh / float(nh)
+
+    # 只有真的往外扩过的那一侧才有交界，没扩的方向不能顺手多吃。
+    # 夹到原图 1/4：小图配大 grow 会把整张原图都判成重绘区（等于换一张）。
+    gx = min(max(0, int(grow)), max(1, iw // 4))
+    gy = min(max(0, int(grow)), max(1, ih // 4))
+    gl = gx if left else 0
+    gr = gx if right else 0
+    gt = gy if top else 0
+    gb = gy if bottom else 0
+    x0 = min(ww, max(0, int(round((left + gl) * sx))))
+    x1 = min(ww, max(x0, int(round((left + iw - gr) * sx))))
+    y0 = min(hh, max(0, int(round((top + gt) * sy))))
+    y1 = min(hh, max(y0, int(round((top + ih - gb) * sy))))
+
+    full = b"\xff" * ww
+    inner = b"\xff" * x0 + b"\x00" * (x1 - x0) + b"\xff" * (ww - x1)
+    return ww, hh, full * y0 + inner * (y1 - y0) + full * (hh - y1)
 
 
 def expand_canvas(data, w, h, left, top, right, bottom):

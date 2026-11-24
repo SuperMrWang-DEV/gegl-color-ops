@@ -850,6 +850,54 @@ def test_outpaint():
        pix[((nh // 2) * pw + nw // 2) * pch + 3] == 255)
 
 
+def test_outpaint_model_mask():
+    """给采样器的硬蒙版：只给 0/255，并往原图里多吃 grow px。"""
+    print("\n扩图：喂模型的硬蒙版")
+    w, h = 40, 30
+    grow = 8
+    gx = min(grow, max(1, w // 4))        # 函数会把 grow 夹到原图 1/4
+    gy = min(grow, max(1, h // 4))
+    nw, nh, m = ai_client.expand_model_mask(w, h, 10, 8, 6, 4, grow=grow)
+    ok("尺寸 = 补边后的画布", (nw, nh) == (56, 42), (nw, nh))
+    ok("只有 0 和 255（一点斜坡都不给）", set(m) == {0, 255}, sorted(set(m)))
+    mid = 8 + h // 2
+    # 内矩形从 left+grow 起：grow 往里多吃，交界内侧不留「不敢碰」的窄带
+    ok("左侧硬边界在 left+grow", m[mid * nw + 10] == 255 and
+       m[mid * nw + (10 + gx)] == 0, m[mid * nw + (10 + gx)])
+    ok("左侧边界前一像素仍是 255", m[mid * nw + (10 + gx - 1)] == 255)
+    ok("右侧硬边界在 left+iw-grow",
+       m[mid * nw + (10 + w - gx)] == 255 and
+       m[mid * nw + (10 + w - gx - 1)] == 0)
+    ok("上方硬边界在 top+grow", m[(8 + gy) * nw + 30] == 0 and
+       m[(8 + gy - 1) * nw + 30] == 255)
+    ok("原图中心不被重绘", m[mid * nw + nw // 2] == 0)
+
+    # 没有扩的那一侧不许跟着多吃：否则会把干净的边啃掉
+    _a, _b, m2 = ai_client.expand_model_mask(w, h, 10, 0, 0, 0, grow=grow)
+    nw2 = w + 10
+    rows = [m2[y * nw2 + (10 + gx + 2)] for y in range(0, h, 7)]
+    ok("只扩左边时，右侧整列都不重绘", set(rows) == {0}, set(rows))
+    ok("只扩左边时上边不产生重绘", m2[0 * nw2 + w + 8] == 0)
+
+    # 工作尺寸：直接按比例算，不过 GIMP 缩放（二值蒙版过一遍双三次就又是灰的）
+    ww, hh, mw = ai_client.expand_model_mask(w, h, 10, 8, 6, 4, 112, 84,
+                                             grow=grow)
+    ok("工作尺寸生效", (ww, hh) == (112, 84), (ww, hh))
+    ok("缩放后仍然只有 0/255", set(mw) == {0, 255}, sorted(set(mw)))
+    ok("缩放后边界跟着走", mw[(84 // 2) * ww + int(round((10 + gx) * 2))] == 0
+       and mw[(84 // 2) * ww + int(round((10 + gx) * 2)) - 1] == 255)
+
+    # 小图配大 grow 不能把整张原图都吃掉（否则等于换一张）
+    _c, _d, m3 = ai_client.expand_model_mask(20, 20, 4, 0, 0, 0, grow=99)
+    nw3 = 24
+    ok("grow 被夹到原图 1/4", m3[(10 * nw3) + 4 + 5 + 1] == 0,
+       m3[(10 * nw3) + 4 + 5 + 1])
+    ok("夹完仍留得住原图中心", m3[(10 * nw3) + 20] == 0)
+
+    ok("四边都不扩时全是 0（没有重绘区）",
+       set(ai_client.expand_model_mask(w, h, 0, 0, 0, 0)[2]) == {0})
+
+
 def test_upscale():
     print("\n超分：工作流与端到端")
     wf = ai_client.build_upscale_workflow("4x-UltraSharp.pth", "src.png",
@@ -1102,6 +1150,7 @@ def main():
     test_fit_context()
     test_end_to_end()
     test_outpaint()
+    test_outpaint_model_mask()
     test_upscale()
     test_quality()
     test_errors()

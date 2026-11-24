@@ -2394,13 +2394,17 @@ PLUGIN_EN["ai-expand"] = dict(
          the only place to say what belongs there.</p>
     </div>
     <div class="dl">
-      <div class="dl-head"><h3>Original pixels stay put</h3></div>
+      <div class="dl-head"><h3>Two masks, not one</h3></div>
       <p>The new area starts from <b>replicated edge pixels</b> — a black border makes the model
-         darken the skin next to it — and the join is a <b>±24 px feathered ramp</b>, because a
-         hard edge gets painted as a straight seam.</p>
-      <p>After pasting, the result gets the same two clean-up passes AI Inpaint uses:
+         darken the skin next to it. What the model receives is a <b>hard mask</b>: strict 0 and
+         255, grown a little into the original. ComfyUI's workflow ends at decode — there is
+         <b>no composite node</b> — so a half-transparent mask reads as “a faded region to
+         rebuild”, the model brightens it, and that repaint lands in exactly the band where the
+         feather blends. The result was a visible bright frame.</p>
+      <p><b>The ±24 px ramp is only used by the layer mask</b>, so the whole chain blends once.
+         After pasting, the result gets the same two clean-up passes AI Inpaint uses:
          <b>low-frequency seam compensation</b> and <b>grain matching</b>, both from
-         <code>quality.py</code>. Several candidates open the same thumbnail picker.</p>
+         <code>quality.py</code>.</p>
     </div>
     <div class="dl">
       <div class="dl-head"><h3>The honest bit about size</h3></div>
@@ -2409,8 +2413,11 @@ PLUGIN_EN["ai-expand"] = dict(
          new band comes back and gets enlarged two or three times. <b>Use Flux if you want it
          crisp</b>, or grow one side at a time, and less.</p>
       <p>Measured (RTX 3070 Ti): 1224×1120 with 240 px on each side, SDXL two candidates
-         <b>35 s</b>, Flux one candidate <b>81 s</b>. On a flat wall you can find a very thin
-         seam line; on textured areas you cannot.</p>
+         <b>35 s</b>, Flux one candidate <b>81 s</b>. The <b>brightness ridge</b> across the join
+         is gone (the ramp went from 25 levels to under 3); what is left is a 48 px blend band
+         where the model's continuation does not quite line up with the original — most visible
+         on regular geometry such as window frames. That is the limit of the technique, not a
+         colour error.</p>
     </div>
   </div>""",
 )

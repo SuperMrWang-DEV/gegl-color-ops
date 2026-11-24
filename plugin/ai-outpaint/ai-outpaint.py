@@ -310,14 +310,19 @@ def ai_expand(image, drawable, prompt, negative=DEFAULT_NEGATIVE, edges="all",
     checkpoint = checkpoint or _client_first_checkpoint(client)
     ww, hh, _fac = ai_client.work_size(ew, eh, checkpoint)
     src_work = _scale_rgba(ext, ew, eh, ww, hh)
-    mask_work = _scale_gray(mask, ew, eh, ww, hh)
+    # 喂模型的是硬蒙版（0/255、往原图里多吃 grow px），不是那条软斜坡：
+    # 工作流没有合成节点，软蒙版会让模型把交界当成半褪色区域重建，亮度被
+    # 拉起来，贴回去就是一圈亮边。斜坡留给下面的图层蒙版，只混一次。
+    _mw, _mh, model_mask = ai_client.expand_model_mask(
+        iw, ih, left, top, right, bottom, ww, hh,
+        grow=max(1, int(round(feather))))
 
     seed = ai_client.random_seed() if int(seed) < 0 else int(seed)
     batch = max(1, min(VARIATIONS_MAX, int(variations or 1)))
     blobs, info = ai_client.inpaint(
         client,
         ai_client.rgba_png(ww, hh, src_work),
-        ai_client.mask_png(ww, hh, mask_work),
+        ai_client.mask_png(ww, hh, model_mask),
         prompt, negative=negative or "", checkpoint=checkpoint,
         steps=int(steps), cfg=float(cfg), seed=seed, denoise=1.0,
         timeout=float(timeout), on_tick=on_tick or Gimp.progress_pulse,
