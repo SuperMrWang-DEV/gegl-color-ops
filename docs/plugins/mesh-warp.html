@@ -87,8 +87,10 @@
          要翻就把这一步收回到不翻的位置，手感是「顶住了」，而不是「突然糊了」。
          把手弯到 90° 都不算翻，正常拐弯不会被拦。</p>
       <p><b>右键点交点</b>把那个点复位，选中后按 Delete 也行；右边有「重置选中」
-         和「全部重置」。<b>网格密度</b>可以换 2×2 到 6×6 格——PS 默认那档是 3×3；
-         不够用就 <b>Alt+点击</b>自己加线（见下）。</p>
+         和「全部重置」。<b>网格密度</b>是<b>两个数字框：「横 × 竖」</b>，各 1～12 格，
+         <b>横竖分开设</b>——做横向的带子就 8×2、做竖高的瓶子就 2×8，不必再迁就
+         正方形。PS 默认那档是 3×3；只是想局部多几根线，就 <b>Alt+点击</b>加(
+         见下），那才是无损的。</p>
       <p>虚线是原位网格，实线蓝的是变形后的网格，两者差多少一眼能看出来。</p>
       <p>输出三档，第一档是 <b>非破坏滤镜</b>（对话框默认）：网格挂在
          <code>lb:mesh-warp</code> 这条滤镜上，<b>像素一个字节都不动</b>，随时能改参数
@@ -200,7 +202,7 @@
     </div>
     <div class="dl" id="zh-sec-11">
       <div class="dl-head"><h3>和 PS 差在哪</h3></div>
-      <p><b>有：</b>网格交点 + 贝塞尔把手、2×2～6×6 密度、Alt+点击自己加分割线、
+      <p><b>有：</b>网格交点 + 贝塞尔把手、横竖分开的 1～12 格密度、Alt+点击自己加分割线、
          原位网格虚线对照、实时预览、脚本参数。<b>没有：</b>PS 的「变形预设」
          （弧形 / 旗帜 / 鱼眼那排），也没有「拆分 / 合并格子」（加线是重新拟合，
          不是保留原控制点的精确细分），以及木偶变形那边的「深度」层级。</p>
@@ -216,7 +218,7 @@
     <div class="dl-head"><h3>自由变形（网格 + 把手）…</h3><span class="pill">.py · 免编译</span></div>
     <p>包里是一个 <code>.py</code>、一份安装说明，以及 <code>_shared/</code> 与 <code>locale/</code>。整包解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，但界面只有英文。</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-mesh-warp.zip">下载 自由变形（网格 + 把手）…</a>
-    <p class="muted small">88.4 KB · 校验：<code>SHA256 d54c26b643e68c77d2d6570b4899eba1…</code></p>
+    <p class="muted small">88.9 KB · 校验：<code>SHA256 2115c48542986be8d9471534d7083c4d…</code></p>
   </div>
 </section>
 
@@ -279,7 +281,10 @@
          to mush”. Handles turned 90° are not folded; normal bending is never blocked.</p>
       <p><b>Right-click a point</b> to reset it; Delete does the same for the selected one,
          and the sidebar has <i>Reset selected</i> / <i>Reset all</i>. <b>Grid density</b>
-         goes from 2×2 to 6×6 cells — Photoshop's default is 3×3. When that is not
+         is <b>two number boxes, across × down</b>, 1 to 12 cells each and
+         <b>independent of one another</b> — an 8×2 grid for a horizontal band, 2×8 for a
+         tall bottle. The old single 2×2…6×6 dropdown forced square cells, which is why
+         the counts could not be set separately. Photoshop's default is 3×3. When that is not
          enough, <b>Alt+click</b> to add lines of your own (below).</p>
       <p>The dashed lines are the original grid, the blue ones the deformed grid, so the
          amount of movement is obvious. Output either <b>replaces the layer</b> or
@@ -307,8 +312,8 @@
       <div class="dl-head"><h3>Adding your own split lines</h3><span class="pill">Alt + click</span></div>
       <p>When dragging points is not enough, <b>hold Alt and click on the picture</b> and a
          grid line appears right there — its direction follows whichever line is nearest
-         (a vertical one means a new vertical line). The density drop-down switches to
-         <b>custom</b>, because the cells are no longer square. Twelve lines is the cap.</p>
+         (a vertical one means a new vertical line). The two density boxes follow along
+         and show the real cell counts. Twelve lines is the cap.</p>
       <p>That is what Photoshop's Alt+drag on a grid line does: <b>local refinement</b>.
          Split column one in half and column three stays whole — the grid does not get
          denser everywhere.</p>
@@ -415,7 +420,8 @@
     </div>
     <div class="dl" id="en-sec-11">
       <div class="dl-head"><h3>Where it differs from Photoshop</h3></div>
-      <p><b>Has:</b> grid points with Bezier handles, 2×2 to 6×6 density, Alt+click to add
+      <p><b>Has:</b> grid points with Bezier handles, independent 1–12 across/down
+         density, Alt+click to add
          split lines of your own, a dashed original grid for reference, live preview and a
          scriptable mesh. <b>Does not have:</b> Photoshop's warp presets (arc / flag /
          fisheye), nor splitting / merging cells into a new topology (adding a line is a
@@ -433,7 +439,7 @@
     <div class="dl-head"><h3>Free Transform (Mesh)</h3><span class="pill">.py · no compile</span></div>
     <p>The archive holds a single <code>.py</code>, an install note and the <code>_shared/</code> + <code>locale/</code> pair. Unpack all of it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register. Without <code>_shared/</code> and <code>locale/</code> it still runs, but only in English.</p>
     <a class="btn primary" href="../download/gegl-color-ops-plugin-mesh-warp.zip">Download Free Transform (Mesh)</a>
-    <p class="muted small">88.4 KB · checksum: <code>SHA256 d54c26b643e68c77d2d6570b4899eba1…</code></p>
+    <p class="muted small">88.9 KB · checksum: <code>SHA256 2115c48542986be8d9471534d7083c4d…</code></p>
   </div>
 </section>
 
@@ -468,7 +474,7 @@
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">69cf0ad</span>
+    <span class="muted">7a38f65</span>
   </div>
 </footer>
 <script>

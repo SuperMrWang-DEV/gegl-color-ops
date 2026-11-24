@@ -153,7 +153,14 @@ def main():
     # 实例，下一行 _("…") 就报「'DrawableFilter' object is not callable」。
     check("run() 没把 `_` 覆盖成滤镜返回值",
           "_, layer = apply_filter" not in src and "_, layer =" not in src)
-    check("网格密度只给 2～6 格", "GRID_CHOICES = (2, 3, 4, 5, 6)" in src)
+    # 密度必须分「列」和「行」两个自由度。以前只有 2..6 的方形下拉，
+    # 而且 resample(want, want) 把行列绑死，所以 6×2 这种根本设不出来。
+    check("密度是列/行两个独立数字框",
+          "spin_cols" in src and "spin_rows" in src
+          and "resample(want, want)" not in src)
+    check("行列上限用 MAX_CELLS 而不是写死 6",
+          "new_with_range(1, MWM.MAX_CELLS, 1)" in src
+          and "GRID_CHOICES = (2, 3, 4, 5, 6)" not in src)
 
     # ---- 变形本体 ----------------------------------------------------------
     section("变形：像素真的被搬走了")
@@ -355,14 +362,39 @@ def main():
         check("限幅之后网格没有自交", not m0.folded(), m0.cell_fold_ratio(i0, j0))
         check("限幅不是「原地不动」", moved > (right - x0) * 0.4, moved)
 
-        ctx["combo_grid"].set_active_id("5")
-        check("换到 5×5 格（%d）" % ctx["mesh"].cols, ctx["mesh"].cols == 5,
-              ctx["mesh"].cols)
+        ctx["spin_cols"].set_value(5)
+        ctx["spin_rows"].set_value(5)
+        check("换到 5×5 格（%d×%d）" % (ctx["mesh"].cols, ctx["mesh"].rows),
+              ctx["mesh"].cols == 5 and ctx["mesh"].rows == 5,
+              (ctx["mesh"].cols, ctx["mesh"].rows))
         check("换密度之后交点数量对", len(ctx["mesh"].nodes) == 36,
               len(ctx["mesh"].nodes))
         ctx["render"]()
         check("5×5 也能渲染", "failed" not in ctx["note"].get_text(),
               ctx["note"].get_text()[:70])
+
+        # 非方形：6 列 × 2 行。这一条就是用户要的「横线竖线分开设」。
+        ctx["spin_cols"].set_value(6)
+        ctx["spin_rows"].set_value(2)
+        check("能设成 6 列 × 2 行（%d×%d）" % (ctx["mesh"].cols, ctx["mesh"].rows),
+              ctx["mesh"].cols == 6 and ctx["mesh"].rows == 2,
+              (ctx["mesh"].cols, ctx["mesh"].rows))
+        check("6×2 交点数量对（7×3=21）", len(ctx["mesh"].nodes) == 21,
+              len(ctx["mesh"].nodes))
+        ctx["render"]()
+        check("6×2 也能渲染", "failed" not in ctx["note"].get_text(),
+              ctx["note"].get_text()[:70])
+        # 恒等网格换密度后画面必须还是恒等（不能因为重新拟合走样）
+        ctx["reset_all"]()
+        ctx["render"]()
+        check("6×2 恒等网格仍是恒等",
+              ctx["warped"] is ctx["prgba"], None)
+        # 改回 3×3：后面的断言都按 3×3 写，顺便验证能来回改
+        ctx["spin_cols"].set_value(3)
+        ctx["spin_rows"].set_value(3)
+        check("能改回 3×3（%d×%d）" % (ctx["mesh"].cols, ctx["mesh"].rows),
+              ctx["mesh"].cols == 3 and ctx["mesh"].rows == 3,
+              (ctx["mesh"].cols, ctx["mesh"].rows))
 
         ctx["reset_all"]()
         ctx["render"]()
@@ -371,12 +403,13 @@ def main():
 
         vals = ctx["values"]()
         check("values() 带回网格/输出/显示开关",
-              vals["mesh"].cols == 5 and vals["output"] == mod.OUTPUT_REPLACE
+              vals["mesh"].cols == 3 and vals["mesh"].rows == 3
+              and vals["output"] == mod.OUTPUT_REPLACE
               and vals["show_mesh"] is True and vals["show_handles"] is True,
               (vals["mesh"].cols, vals["output"]))
         s = mod.MWM.format_mesh_string(vals["mesh"])
         check("网格字符串能被解析回来",
-              mod.MWM.parse_mesh_string(s, 200, 150).cols == 5, s[:24])
+              mod.MWM.parse_mesh_string(s, 200, 150).cols == 3, s[:24])
         dlg.destroy()
         dlg = None
     except Exception as exc:
@@ -407,8 +440,12 @@ def main():
               abs(m8.us[0]) < 1e-9
               and abs(m8.us[-1] - m8.cols) < 1e-9,
               (m8.us, m8.cols))
-        check("下拉变成 custom", ctx8["combo_grid"].get_active_id() == "0",
-              ctx8["combo_grid"].get_active_id())
+        check("数字框跟着插线更新（%d×%d）"
+              % (ctx8["spin_cols"].get_value(), ctx8["spin_rows"].get_value()),
+              int(ctx8["spin_cols"].get_value()) == m8.cols
+              and int(ctx8["spin_rows"].get_value()) == m8.rows,
+              (ctx8["spin_cols"].get_value(), ctx8["spin_rows"].get_value(),
+               m8.cols, m8.rows))
         ctx8["render"]()
         check("插线后网格线多了一根",
               ctx8["lines"] and len(ctx8["lines"]) > 8,

@@ -74,7 +74,6 @@ NODE_HIT = 10         # 交点的点击半径（画布像素）
 # 那么大，落点差 3 px 就落到节点上变成「平移」——这就是用户说的「只能平移、
 # 拐不出弯」。现在画 7 px、命中 12 px，并且鼠标划过节点也会把它的把手亮出来。
 HANDLE_HIT = 12
-GRID_CHOICES = (2, 3, 4, 5, 6)
 OUTPUT_FILTER = 'filter'
 OUTPUT_REPLACE = 'replace'
 OUTPUT_LAYER = 'new-layer'
@@ -289,26 +288,30 @@ def build_dialog(config, image, drawable, w, h):
     title.set_markup("<b>%s</b>" % GLib.markup_escape_text(_("Mesh")))
     right.add(title)
 
+    # 密度：列（竖线数）和行（横线数）**分开**给，不再绑成 N×N。
+    # 之前只有一个「3 × 3 cells」下拉，选项还是 2..6 的方形，所以设不出
+    # 「6 列 × 2 行」这种横向带子的网格——这就是「横线竖线数量改不了」。
     grid_row = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 8)
     glbl = Gtk.Label.new(_("Grid"))
     glbl.set_xalign(0.0)
     glbl.set_size_request(96, -1)
-    combo_grid = Gtk.ComboBoxText.new()
-    for n in GRID_CHOICES:
-        combo_grid.append(str(n), _("%d × %d cells") % (n, n))
-    # 「custom」= 自己 Alt+点击加过线，格数不再是正方形
-    combo_grid.append("0", _("custom (you added lines)"))
-    combo_grid.set_active_id("3")
-    combo_grid.set_hexpand(True)
+    spin_cols = Gtk.SpinButton.new_with_range(1, MWM.MAX_CELLS, 1)
+    spin_rows = Gtk.SpinButton.new_with_range(1, MWM.MAX_CELLS, 1)
+    for sp in (spin_cols, spin_rows):
+        sp.set_numeric(True)
+        sp.set_width_chars(3)
+        sp.set_tooltip_text(_("Number of cells across / down. "
+                              "Cells, not lines — 4 cells means 5 lines."))
     grid_row.add(glbl)
-    grid_row.add(combo_grid)
+    grid_row.add(spin_cols)
+    grid_row.add(Gtk.Label.new("×"))
+    grid_row.add(spin_rows)
+    grid_row.add(Gtk.Label.new(_("cells (across × down)")))
     right.add(grid_row)
 
     mesh = MWM.parse_mesh_string(config.get_property('mesh') or "", w, h)
-    if mesh.uniform() and mesh.cols == mesh.rows and mesh.cols in GRID_CHOICES:
-        combo_grid.set_active_id(str(mesh.cols))
-    else:
-        combo_grid.set_active_id("0")
+    spin_cols.set_value(mesh.cols)
+    spin_rows.set_value(mesh.rows)
 
     show_mesh = Gtk.CheckButton.new_with_label(_("Show the mesh"))
     show_mesh.set_active(True)
@@ -352,14 +355,16 @@ def build_dialog(config, image, drawable, w, h):
         "prgba": prgba, "pw": pw, "ph": ph, "k": k, "w": w, "h": h,
         "warped": prgba, "lines": None, "id": 0, "preview_mesh": None,
         "area": area, "note": note, "dialog": dlg,
-        "combo_grid": combo_grid, "combo_out": combo_out,
+        "combo_out": combo_out,
+        "spin_cols": spin_cols, "spin_rows": spin_rows,
         "check_mesh": show_mesh, "check_handles": show_handles,
     }
 
     def values():
         return {
             "mesh": ctx["mesh"].copy(),
-            "grid": int(combo_grid.get_active_id() or 3),
+            "grid": int(spin_cols.get_value()),
+            "grid_rows": int(spin_rows.get_value()),
             "output": combo_out.get_active_id() or OUTPUT_FILTER,
             "show_mesh": bool(show_mesh.get_active()),
             "show_handles": bool(show_handles.get_active()),
@@ -577,10 +582,7 @@ def build_dialog(config, image, drawable, w, h):
         ctx["mesh"] = new
         ctx["selected"] = -1
         ctx["drag"] = None
-        gid = str(new.cols) if (new.cols == new.rows
-                                and new.cols in GRID_CHOICES) else "0"
-        if combo_grid.get_active_id() != gid:
-            combo_grid.set_active_id(gid)
+        sync_grid(new)                        # 插线后格数变了，数字框跟上
         schedule(0)
         return True
 
@@ -766,16 +768,31 @@ def build_dialog(config, image, drawable, w, h):
         ctx["drag"] = None
         schedule(0)
 
-    def on_grid(_b=None):
-        gid = combo_grid.get_active_id()
-        if gid in (None, "", "0"):               # 「custom」= 自己加过线
+    def sync_grid(m):
+        """把数字框调成网格的真实格数。block 信号，避免回调自己再触发一次。"""
+        for sp, val in ((spin_cols, m.cols), (spin_rows, m.rows)):
+            if int(sp.get_value()) != int(val):
+                sp.handler_block_by_func(on_density)
+                sp.set_value(int(val))
+                sp.handler_unblock_by_func(on_density)
+
+    def on_density(_b=None):
+        """列数 / 行数任一改动：按当前曲面重采样成新密度。"""
+        want_c = int(spin_cols.get_value())
+        want_r = int(spin_rows.get_value())
+        m = ctx["mesh"]
+        if want_c == m.cols and want_r == m.rows:
             return
-        want = int(gid)
-        if want == ctx["mesh"].cols and want == ctx["mesh"].rows:
-            return
-        ctx["mesh"] = ctx["mesh"].resample(want, want)
+        had_lines = bool(m.us or m.vs)
+        ctx["mesh"] = m.resample(want_c, want_r)
         ctx["selected"] = -1
         ctx["drag"] = None
+        if had_lines:
+            # resample 是按曲面重新拟合，原来的分割线（Alt+点击加的）不留
+            note.set_text(_("Density changed to %d × %d — the extra lines you "
+                            "added were re-fitted away.") % (want_c, want_r))
+        if not show_mesh.get_active():
+            show_mesh.set_active(True)        # 改密度就是想看格子，替用户勾上
         schedule(0)
 
     area.connect("draw", draw)
@@ -785,7 +802,8 @@ def build_dialog(config, image, drawable, w, h):
     dlg.connect("key-press-event", on_key)
     b_reset.connect("clicked", reset_selected)
     b_clear.connect("clicked", reset_all)
-    combo_grid.connect("changed", on_grid)
+    spin_cols.connect("value-changed", on_density)
+    spin_rows.connect("value-changed", on_density)
     combo_out.connect("changed", lambda *_a: None)
     show_mesh.connect("toggled", lambda *_a: schedule(0))
     def on_show_handles(*_a):

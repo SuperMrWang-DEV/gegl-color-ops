@@ -1787,7 +1787,10 @@ PLUGIN_EN["mesh-warp"] = dict(
          to mush”. Handles turned 90° are not folded; normal bending is never blocked.</p>
       <p><b>Right-click a point</b> to reset it; Delete does the same for the selected one,
          and the sidebar has <i>Reset selected</i> / <i>Reset all</i>. <b>Grid density</b>
-         goes from 2×2 to 6×6 cells — Photoshop's default is 3×3. When that is not
+         is <b>two number boxes, across × down</b>, 1 to 12 cells each and
+         <b>independent of one another</b> — an 8×2 grid for a horizontal band, 2×8 for a
+         tall bottle. The old single 2×2…6×6 dropdown forced square cells, which is why
+         the counts could not be set separately. Photoshop's default is 3×3. When that is not
          enough, <b>Alt+click</b> to add lines of your own (below).</p>
       <p>The dashed lines are the original grid, the blue ones the deformed grid, so the
          amount of movement is obvious. Output either <b>replaces the layer</b> or
@@ -1815,8 +1818,8 @@ PLUGIN_EN["mesh-warp"] = dict(
       <div class="dl-head"><h3>Adding your own split lines</h3><span class="pill">Alt + click</span></div>
       <p>When dragging points is not enough, <b>hold Alt and click on the picture</b> and a
          grid line appears right there — its direction follows whichever line is nearest
-         (a vertical one means a new vertical line). The density drop-down switches to
-         <b>custom</b>, because the cells are no longer square. Twelve lines is the cap.</p>
+         (a vertical one means a new vertical line). The two density boxes follow along
+         and show the real cell counts. Twelve lines is the cap.</p>
       <p>That is what Photoshop's Alt+drag on a grid line does: <b>local refinement</b>.
          Split column one in half and column three stays whole — the grid does not get
          denser everywhere.</p>
@@ -1923,7 +1926,8 @@ PLUGIN_EN["mesh-warp"] = dict(
     </div>
     <div class="dl">
       <div class="dl-head"><h3>Where it differs from Photoshop</h3></div>
-      <p><b>Has:</b> grid points with Bezier handles, 2×2 to 6×6 density, Alt+click to add
+      <p><b>Has:</b> grid points with Bezier handles, independent 1–12 across/down
+         density, Alt+click to add
          split lines of your own, a dashed original grid for reference, live preview and a
          scriptable mesh. <b>Does not have:</b> Photoshop's warp presets (arc / flag /
          fisheye), nor splitting / merging cells into a new topology (adding a line is a
