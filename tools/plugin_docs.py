@@ -2399,6 +2399,8 @@ except ImportError:  # 直接 import 的场合（tools 不在 sys.path）
 # 卡片只放一句（plugins.html 就只剩十块方格），长的都在文章页里。
 
 BRIEF = {
+    "curves": "四个空间各一条任意曲线（Lab / LCh / HSV / CMYK），自绘编辑器拖动即预览；色相是偏移曲线，整体旋转不留接缝。",
+    "curves": "四个空间各一条任意曲线（Lab / LCh / HSV / CMYK），自绘编辑器拖动即预览；色相是偏移曲线，整体旋转不留接缝。",
     "selection": "右键任意图层，把它转成当前选区：Gray / R / G / B / Alpha，"
                  "四种组合方式，可反相。",
     "channel": "右键任意图层，把它变成一条灰度 Alpha 通道，可反相、可自定义名。",
@@ -2437,11 +2439,13 @@ BRIEF = {
                "就完事，不弹参数框；另加一条路径 / 矢量图层转位图。",
 }
 
-TAG_EN = {"曲线": "Curves", "磨皮": "Retouching", "选区": "Selection",
+TAG_EN = {"曲线": "Curves", "调色": "Color", "磨皮": "Retouching",
+          "选区": "Selection",
           "通道": "Channels", "蒙版": "Mask", "转换": "Convert", "AI": "AI",
           "观察": "Inspect", "变形": "Distort", "图层": "Layer"}
 
 TITLE_EN = {
+    "curves": "Curves",
     "ai-inpaint": "AI Inpaint",
     "ai-expand": "AI Expand (Outpaint)",
     "ai-upscale": "AI Upscale",
@@ -2529,7 +2533,7 @@ BRIEF_EN = {
 
 AREA_EN = {"图层转换": "Convert", "Mask": "Mask", "Retouch 修饰": "Retouch",
            "Layer": "Layer",
-           "AI": "AI"}
+           "AI": "AI", "Color": "Color"}
 
 DEPS_NOTE_EN = {
     "ai-inpaint": "No operator modules and nothing to compile: the pixels are painted "
@@ -2581,7 +2585,8 @@ AREA = {"selection": "图层转换", "channel": "图层转换", "split": "图层
         "mesh-warp": "Distort",
         "vanishing-point": "Distort",
         "alpha-curves": "Mask", "color-range": "Mask",
-        "channel-to-mask": "Mask", "max-min": "Mask"}
+        "channel-to-mask": "Mask", "max-min": "Mask",
+        "curves": "Color"}
 
 DEPS = {
     "ai-inpaint": [],
@@ -2609,6 +2614,10 @@ DEPS = {
     "color-range": ["lb:color-mask-select"],
     "channel-to-mask": [],
     "max-min": ["lb:max-min"],
+    "curves": ["lb:lab-curves", "lb:lch-curves", "lb:hsv-curves",
+               "lb:cmyk-curves"],
+    "curves": ["lb:lab-curves", "lb:lch-curves", "lb:hsv-curves",
+               "lb:cmyk-curves"],
     "convert": [],
     "layer-style": [],
     "split": [],
@@ -2653,6 +2662,75 @@ DEPS_NOTE = {
     "max-min": "用本项目自己的算子 lb:max-min（GIMP 3 已不带 dilate / erode）。"
                "插件包里已附带这个模块，按 readme 放进 GEGL 模块目录即可。",
 }
+
+PAGES.append(dict(
+    key='curves',
+    slug='curves',
+    title='曲线（Curves）',
+    tag=('调色', 't-curves'),
+    count='四个空间',
+    menu='SuperMrWang → Curves → LAB / LCh / HSV / CMYK Curves…',
+    menus=['SuperMrWang → Curves → LAB / LCh / HSV / CMYK Curves…'],
+    menus_en=['SuperMrWang → Curves → LAB / LCh / HSV / CMYK Curves…'],
+    pdb='lb-plugin-curves-lab(image, drawable, curves, output)',
+    lede="""色阶只有三个点，曲线是任意形状——所以曲线才是调色的第一入口。本项目已经有
+       六个色彩空间的<b>色阶</b>家族，却一条<b>曲线</b>都没有：这是这套算子最明显的缺口。
+       GIMP 3 自带 <code>gegl:curves</code>，但它只有复合通道与单色通道两档，给不了
+       Lab 的 a/b 轴，也给不了 LCh 的彩度与色相。这里补齐四个空间，一条内核。""",
+    body="""<div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>一个内核，四个空间</h3><span class="pill">common/curve.h</span></div>
+      <p><code>lb:lab-curves</code> / <code>lch-curves</code> / <code>hsv-curves</code> /
+         <code>cmyk-curves</code> 共用同一份曲线内核：控制点解析、单调三次插值、1024 点
+         LUT、采样。每个算子只负责声明 babl 格式与分量量程。</p>
+      <p>量程按 babl 的真实内部单位走，这一条踩过坑：<code>CIE LCH(ab) float</code> 是
+         物理量（L 0–100、C 0–132、h 0–360），而 <code>HSVA</code> 与 <code>CMYKA</code>
+         内部是 <b>0–1</b>。照 <code>color-levels.h</code> 的属性量程去写，HSV 的色相
+         偏移会完全不动——因为写回去的 18 被当成 18 个整圈。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>为什么是单调三次，不是样条</h3></div>
+      <p>自然样条与 Catmull-Rom 在控制点之间会<b>过冲</b>：画一条「先陡后平」的曲线，
+         样条会在平台段打出一个比控制点还亮的包。落在明度上是灰阶断层，落在 a/b 上就是
+         中性灰附近冒出一圈本不存在的色光。</p>
+      <p>这里用 Fritsch–Carlson：每一对切线被夹进半径 3·|割线| 的圆里，插值就再也
+         越不出相邻控制点的上下界。<code>check_curves.py</code> 里专门有一组陡缓曲线
+         验证平台段不越界。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>色相不是曲线，是偏移曲线</h3><span class="pill">0.5 = 不偏</span></div>
+      <p>色相是环形的，这两条路都走不通：照对角线画，首尾映射到不同高度，0° 与 360°
+         之间会撞出一条硬接缝；把首尾强行对齐，又做不了整体旋转——而整体旋转恰恰是
+         色相最常用的用法。</p>
+      <p>所以 LCh 与 HSV 的色相分量改用<b>偏移曲线</b>：横轴是输入色相，纵轴 0.5 表示
+         不偏。<b>水平线换高度</b> = 整体旋转（±180°），<b>曲线在中间弯</b> = 只动某几个
+         色带。两种用法都天然连续，不存在接缝。偏移量夹在 ±0.5，再多就等价于反着转。</p>
+      <p>零彩度像素直接跳过：灰阶没有色相，给它算一个随机角度只会引入噪点。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>对话框画的 = 算子算的</h3></div>
+      <p>曲线编辑器是 Python 自绘的，像素计算全在 GEGL 那一侧。为了让两条路不可能漂移，
+         <code>_shared/curve_math.py</code> 按 <code>common/curve.h</code> 逐函数复刻了
+         一遍，回归里把同一串控制点喂给两边逐点比对（灰阶 64 级，最大差 ≤ 2 码）。</p>
+      <p>改任何一侧都必须同时改另一侧，否则那条对拍会红。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>预览怎么来的</h3></div>
+      <p>GEGL 滤镜是<b>显示层</b>：直接读 drawable 拿到的是没有滤镜的原始像素。所以预览
+         走「复制图层 → 挂滤镜 → <code>merge_filter</code> 烘焙 → 读像素 → 删副本」，
+         整段关掉 undo（临时图层不该出现在用户的历史里）。拖动时按 70 ms 去抖，
+         不是为了省算力，是为了别让每秒几十次图层复制把界面拖住。</p>
+    </div>
+  </div>
+  <p class="note">结果是图层上的<b>活滤镜</b>：原像素一个字节不动，重开对话框会把曲线
+     读回来接着改；也可以选「烘焙进本层」直接落到像素。回归：
+     <code>check_curves.py</code> 26 项（恒等 / 语义 / 不过冲 / 透明 / 容错 / C–Python 对拍）。
+     算子本身也能从命令行单独跑：<code>gegl in.png -o out.png -- lb:lab-curves
+     curves="L 0,0 0.5,0.7 1,1"</code>。</p>""",
+))
 
 for _p in PAGES:
     _p["brief"] = BRIEF[_p["key"]]

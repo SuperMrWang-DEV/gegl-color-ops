@@ -26,6 +26,16 @@
     <summary>GIMP 自带的 gegl:displace 能跑，但它的性格被一行公式写死了。我们重写了一个，顺手把「透明处静默失效」这类坑逐个填掉。</summary>
   </entry>
   <entry>
+    <title>插件 · 曲线（Curves）</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/curves.html"/>
+    <id>tag:github.com,2026:plugin-curves</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>色阶只有三个点，曲线是任意形状——所以曲线才是调色的第一入口。本项目已经有
+       六个色彩空间的色阶家族，却一条曲线都没有：这是这套算子最明显的缺口。
+       GIMP 3 自带 gegl:curves，但它只有复合通道与单色通道两档，给不了
+       Lab 的 a/b 轴，也给不了 LCh 的彩度与色相。这里补齐四个空间，一条内核。</summary>
+  </entry>
+  <entry>
     <title>插件 · 图层样式</title>
     <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/layer-style.html"/>
     <id>tag:github.com,2026:plugin-layer-style</id>
@@ -367,6 +377,34 @@
     <id>tag:github.com,2026:lb:color-mask-select</id>
     <updated>2026-11-15T00:00:00Z</updated>
     <summary>经典图像编辑器 色彩范围：按指定色 + 容差 + 羽化生成蒙版，可红色叠加预览</summary>
+  </entry>
+  <entry>
+    <title>LCh Curves</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/lch-curves/README.md"/>
+    <id>tag:github.com,2026:lb:lch-curves</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>LCh 三通道各自一条曲线（色相用偏移曲线）</summary>
+  </entry>
+  <entry>
+    <title>LAB Curves</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/lab-curves/README.md"/>
+    <id>tag:github.com,2026:lb:lab-curves</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>LAB 三通道各自一条任意曲线</summary>
+  </entry>
+  <entry>
+    <title>HSV Curves</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/hsv-curves/README.md"/>
+    <id>tag:github.com,2026:lb:hsv-curves</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>HSV 三通道各自一条曲线（色相用偏移曲线）</summary>
+  </entry>
+  <entry>
+    <title>CMYK Curves</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/cmyk-curves/README.md"/>
+    <id>tag:github.com,2026:lb:cmyk-curves</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>CMYK 四版各自一条曲线</summary>
   </entry>
   <entry>
     <title>Color Lookup</title>

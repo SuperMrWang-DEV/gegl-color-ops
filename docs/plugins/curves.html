@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-title-zh="曲线（Curves） · Python 插件 · gegl-color-ops" data-title-en="曲线（Curves） · Python plug-ins · gegl-color-ops">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>曲线（Curves） · Python 插件 · gegl-color-ops</title>
+<meta name="description" content="色阶只有三个点，曲线是任意形状——所以曲线才是调色的第一入口。本项目已经有
+       六个色彩空间的色阶家族，却一条曲线都没有：这是这套算子最明显的缺口。
+       GIMP 3 自带 gegl:curves，但它只有复合通道与单色" data-desc-zh="色阶只有三个点，曲线是任意形状——所以曲线才是调色的第一入口。本项目已经有
+       六个色彩空间的色阶家族，却一条曲线都没有：这是这套算子最明显的缺口。
+       GIMP 3 自带 gegl:curves，但它只有复合通道与单色" data-desc-en="Levels gives you three points; a curve is any shape you like — which is why the curve
+   is the first thing anyone reach">
+<meta property="og:title" content="曲线（Curves） · Python 插件 · gegl-color-ops" data-title-zh="曲线（Curves） · Python 插件 · gegl-color-ops" data-title-en="曲线（Curves） · Python plug-ins · gegl-color-ops">
+<meta property="og:description" content="色阶只有三个点，曲线是任意形状——所以曲线才是调色的第一入口。本项目已经有
+       六个色彩空间的色阶家族，却一条曲线都没有：这是这套算子最明显的缺口。
+       GIMP 3 自带 gegl:curves，但它只有复合通道与单色" data-desc-zh="色阶只有三个点，曲线是任意形状——所以曲线才是调色的第一入口。本项目已经有
+       六个色彩空间的色阶家族，却一条曲线都没有：这是这套算子最明显的缺口。
+       GIMP 3 自带 gegl:curves，但它只有复合通道与单色" data-desc-en="Levels gives you three points; a curve is any shape you like — which is why the curve
+   is the first thing anyone reach">
+<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+<main id="main">
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> /
+    <a href="../plugins.html">插件</a> / Color</p>
+  <h1>曲线（Curves）</h1>
+  <div class="meta">
+    <code>plugin/curves</code>
+    <span class="tag t-curves">调色</span>
+    <span>Color</span>
+  </div>
+  <p class="lede">色阶只有三个点，曲线是任意形状——所以曲线才是调色的第一入口。本项目已经有
+       六个色彩空间的<b>色阶</b>家族，却一条<b>曲线</b>都没有：这是这套算子最明显的缺口。
+       GIMP 3 自带 <code>gegl:curves</code>，但它只有复合通道与单色通道两档，给不了
+       Lab 的 a/b 轴，也给不了 LCh 的彩度与色相。这里补齐四个空间，一条内核。</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="zh-overview">
+  <dt>菜单位置</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → Curves → LAB / LCh / HSV / CMYK Curves…</li></ul><p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p></dd>
+  <dt>脚本调用</dt>
+  <dd><code class="pdb">lb-plugin-curves-lab(image, drawable, curves, output)</code><p>标准 PDB 过程，参数留空走默认值。</p></dd>
+  <dt>依赖</dt>
+  <dd><p>靠下面这些算子干活。<b>它们已经打进这个插件的下载包</b>（<code>modules-windows-x64</code> / <code>modules-linux-x64</code>），不用另外去下：</p>
+      <ul class="deps"><li><code>lb:lab-curves</code></li><li><code>lb:lch-curves</code></li><li><code>lb:hsv-curves</code></li><li><code>lb:cmyk-curves</code></li></ul></dd>
+</dl>
+<div class="dl-grid">
+    <div class="dl" id="zh-sec-1">
+      <div class="dl-head"><h3>一个内核，四个空间</h3><span class="pill">common/curve.h</span></div>
+      <p><code>lb:lab-curves</code> / <code>lch-curves</code> / <code>hsv-curves</code> /
+         <code>cmyk-curves</code> 共用同一份曲线内核：控制点解析、单调三次插值、1024 点
+         LUT、采样。每个算子只负责声明 babl 格式与分量量程。</p>
+      <p>量程按 babl 的真实内部单位走，这一条踩过坑：<code>CIE LCH(ab) float</code> 是
+         物理量（L 0–100、C 0–132、h 0–360），而 <code>HSVA</code> 与 <code>CMYKA</code>
+         内部是 <b>0–1</b>。照 <code>color-levels.h</code> 的属性量程去写，HSV 的色相
+         偏移会完全不动——因为写回去的 18 被当成 18 个整圈。</p>
+    </div>
+    <div class="dl" id="zh-sec-2">
+      <div class="dl-head"><h3>为什么是单调三次，不是样条</h3></div>
+      <p>自然样条与 Catmull-Rom 在控制点之间会<b>过冲</b>：画一条「先陡后平」的曲线，
+         样条会在平台段打出一个比控制点还亮的包。落在明度上是灰阶断层，落在 a/b 上就是
+         中性灰附近冒出一圈本不存在的色光。</p>
+      <p>这里用 Fritsch–Carlson：每一对切线被夹进半径 3·|割线| 的圆里，插值就再也
+         越不出相邻控制点的上下界。<code>check_curves.py</code> 里专门有一组陡缓曲线
+         验证平台段不越界。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-3">
+      <div class="dl-head"><h3>色相不是曲线，是偏移曲线</h3><span class="pill">0.5 = 不偏</span></div>
+      <p>色相是环形的，这两条路都走不通：照对角线画，首尾映射到不同高度，0° 与 360°
+         之间会撞出一条硬接缝；把首尾强行对齐，又做不了整体旋转——而整体旋转恰恰是
+         色相最常用的用法。</p>
+      <p>所以 LCh 与 HSV 的色相分量改用<b>偏移曲线</b>：横轴是输入色相，纵轴 0.5 表示
+         不偏。<b>水平线换高度</b> = 整体旋转（±180°），<b>曲线在中间弯</b> = 只动某几个
+         色带。两种用法都天然连续，不存在接缝。偏移量夹在 ±0.5，再多就等价于反着转。</p>
+      <p>零彩度像素直接跳过：灰阶没有色相，给它算一个随机角度只会引入噪点。</p>
+    </div>
+    <div class="dl" id="zh-sec-4">
+      <div class="dl-head"><h3>对话框画的 = 算子算的</h3></div>
+      <p>曲线编辑器是 Python 自绘的，像素计算全在 GEGL 那一侧。为了让两条路不可能漂移，
+         <code>_shared/curve_math.py</code> 按 <code>common/curve.h</code> 逐函数复刻了
+         一遍，回归里把同一串控制点喂给两边逐点比对（灰阶 64 级，最大差 ≤ 2 码）。</p>
+      <p>改任何一侧都必须同时改另一侧，否则那条对拍会红。</p>
+    </div>
+    <div class="dl" id="zh-sec-5">
+      <div class="dl-head"><h3>预览怎么来的</h3></div>
+      <p>GEGL 滤镜是<b>显示层</b>：直接读 drawable 拿到的是没有滤镜的原始像素。所以预览
+         走「复制图层 → 挂滤镜 → <code>merge_filter</code> 烘焙 → 读像素 → 删副本」，
+         整段关掉 undo（临时图层不该出现在用户的历史里）。拖动时按 70 ms 去抖，
+         不是为了省算力，是为了别让每秒几十次图层复制把界面拖住。</p>
+    </div>
+  </div>
+  <p class="note">结果是图层上的<b>活滤镜</b>：原像素一个字节不动，重开对话框会把曲线
+     读回来接着改；也可以选「烘焙进本层」直接落到像素。回归：
+     <code>check_curves.py</code> 26 项（恒等 / 语义 / 不过冲 / 透明 / 容错 / C–Python 对拍）。
+     算子本身也能从命令行单独跑：<code>gegl in.png -o out.png -- lb:lab-curves
+     curves="L 0,0 0.5,0.7 1,1"</code>。</p>
+
+<section class="download" id="zh-download">
+  <h2>下载这一个</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>LAB / LCh / HSV / CMYK Curves…</h3><span class="pill">.py · 免编译</span></div>
+    <p>包里是一个 <code>.py</code>、一份安装说明，以及 <code>_shared/</code> 与 <code>locale/</code>。整包解压到 GIMP 的 <code>plug-ins</code> 目录（Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>，Linux <code>~/.config/GIMP/3.x/plug-ins</code>），<b>重启 GIMP</b> 才注册。少了 <code>_shared/</code> 和 <code>locale/</code> 也能跑，但界面只有英文。 Linux 端的 cmyk-curves.dll、cmyk-curves.so、hsv-curves.dll、hsv-curves.so、lab-curves.dll、lab-curves.so、lch-curves.dll、lch-curves.so 还没进预编译包，要用 Linux 就 <code>./build.sh</code> 自己编一份（Windows 端齐全）。</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-curves.zip">下载 LAB / LCh / HSV / CMYK Curves…</a>
+    <p class="muted small">55.2 KB · 校验：<code>SHA256 0f01aaef4b70d1e8756ea8c97d5bb8a4…</code></p>
+  </div>
+</section>
+
+<p class="note">文中「码」指 8 位图上的一个台阶：0–255 共 256 级，
+   相邻两级的差就是 1 码，等于 1/255 ≈ 0.392%%（也就是 RGB 128 与 129 之间的差）。
+   各数量级的含义与「码为什么不是感知量」的说明见
+   <a href="../guide.html#code">安装指南 · 精度里的「码」</a>。</p>
+  </article>
+  <aside class="toc">
+    <p class="toc-title">本页目录</p>
+    <ul>
+      <li><a href="#zh-overview">概览</a></li>
+<li><a href="#zh-sec-1">一个内核，四个空间</a></li><li><a href="#zh-sec-2">为什么是单调三次，不是样条</a></li><li><a href="#zh-sec-3">色相不是曲线，是偏移曲线</a></li><li><a href="#zh-sec-4">对话框画的 = 算子算的</a></li><li><a href="#zh-sec-5">预览怎么来的</a></li>
+      <li><a href="#zh-download">下载</a></li>
+    </ul>
+  </aside>
+</div>
+<nav class="pager">
+  <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
+  <a class="prev" href="layer-style.html"><span>上一篇</span>图层样式</a>
+</nav></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> /
+    <a href="../plugins.html">Plug-ins</a> / Color</p>
+  <h1>Curves</h1>
+  <div class="meta">
+    <code>plugin/curves</code>
+    <span class="tag t-curves">Color</span>
+    <span>Color</span>
+  </div>
+  <p class="lede">Levels gives you three points; a curve is any shape you like — which is why the curve
+   is the first thing anyone reaches for. This project already had a <b>levels</b> family across
+   six colour spaces and not a single <b>curve</b>: the most obvious gap in the set. GIMP ships
+   <code>gegl:curves</code>, but it only offers the composite and one channel — no Lab a/b, no
+   LCh chroma or hue. Four spaces here, one kernel.</p>
+</section>
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="en-overview">
+  <dt>Menu location</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → Curves → LAB / LCh / HSV / CMYK Curves…</li></ul><p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p></dd>
+  <dt>Scripting</dt>
+  <dd><code class="pdb">lb-plugin-curves-lab(image, drawable, curves, output)</code><p>A standard PDB procedure; leave an argument empty to take its default.</p></dd>
+  <dt>Dependencies</dt>
+  <dd><p>The operators below do the work. <b>They are already inside this plug-in's download</b> (<code>modules-windows-x64</code> / <code>modules-linux-x64</code>) — nothing else to fetch:</p>
+      <ul class="deps"><li><code>lb:lab-curves</code></li><li><code>lb:lch-curves</code></li><li><code>lb:hsv-curves</code></li><li><code>lb:cmyk-curves</code></li></ul></dd>
+</dl>
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-1">
+      <div class="dl-head"><h3>One kernel, four spaces</h3><span class="pill">common/curve.h</span></div>
+      <p><code>lb:lab-curves</code>, <code>lch-curves</code>, <code>hsv-curves</code> and
+         <code>cmyk-curves</code> share one kernel: point parsing, monotone cubic interpolation,
+         a 1024-entry LUT, sampling. Each operator only declares its babl format and the range of
+         its components.</p>
+      <p>Ranges follow babl's real internal units, and that cost an afternoon:
+         <code>CIE LCH(ab) float</code> holds physical values (L 0–100, C 0–132, h 0–360) while
+         <code>HSVA</code> and <code>CMYKA</code> are <b>0–1</b> internally. Writing to HSV as if
+         it were 0–360 makes the hue shift do nothing — 18 gets read as eighteen full turns.</p>
+    </div>
+    <div class="dl" id="en-sec-2">
+      <div class="dl-head"><h3>Why monotone cubic, not a spline</h3></div>
+      <p>Natural splines and Catmull-Rom <b>overshoot</b> between control points: draw a
+         “steep then flat” curve and the spline bulges above the flat section. On lightness that
+         is a banding step; on a/b it is a ring of colour that was never in the picture.</p>
+      <p>Fritsch–Carlson keeps each tangent pair inside a circle of radius 3·|secant|, so the
+         interpolant cannot leave the box between neighbouring points. One group in
+         <code>check_curves.py</code> is exactly that curve.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-3">
+      <div class="dl-head"><h3>Hue is an offset curve, not a curve</h3><span class="pill">0.5 = no shift</span></div>
+      <p>Hue is circular, and both obvious approaches fail: a diagonal curve maps 0 and 1 to
+         different heights and leaves a hard seam where 0° meets 360°; forcing the ends together
+         kills whole-ring rotation, which is the main thing you want from a hue curve.</p>
+      <p>So the hue component of LCh and HSV uses an <b>offset curve</b>: x is the input hue,
+         0.5 means no shift. <b>A flat line at another height</b> rotates the whole ring (±180°);
+         <b>a bent line</b> moves only some bands. Both stay continuous by construction. The shift
+         is clamped to ±0.5 — beyond that it is just turning the other way.</p>
+      <p>Zero-chroma pixels are skipped: grey has no hue, and inventing an angle for it only adds
+         noise.</p>
+    </div>
+    <div class="dl" id="en-sec-4">
+      <div class="dl-head"><h3>What the dialog draws is what the operator computes</h3></div>
+      <p>The editor is drawn in Python; every pixel is computed in the GEGL operation. So that the
+         two cannot drift, <code>_shared/curve_math.py</code> mirrors
+         <code>common/curve.h</code> function by function, and the regression feeds the same
+         control points to both and compares them point by point (64-step grey ramp, max
+         difference ≤ 2 codes).</p>
+      <p>Change either side and you have to change the other, or that check goes red.</p>
+    </div>
+    <div class="dl" id="en-sec-5">
+      <div class="dl-head"><h3>How the preview works</h3></div>
+      <p>A GEGL filter is a <b>display layer</b>: reading a drawable gives you the pixels without
+         it. The preview therefore copies the layer, attaches the filter,
+         <code>merge_filter</code>s it, reads the pixels and deletes the copy — all with undo
+         disabled, because a temporary layer has no business in the user's history. Dragging is
+         debounced at 70 ms, not to save CPU but to keep dozens of layer copies per second from
+         stalling the UI.</p>
+    </div>
+  </div>
+  <p class="note">The result is a <b>live filter</b> on the layer: pixels stay untouched and
+     re-running the dialog reads the curves back. “Bake into this layer” writes them into the
+     pixels instead. Regression: <code>check_curves.py</code>, 26 checks (identity, semantics,
+     no overshoot, alpha, tolerance, C–Python parity). The operators also run from the command
+     line: <code>gegl in.png -o out.png -- lb:lab-curves curves="L 0,0 0.5,0.7 1,1"</code>.</p>
+
+<section class="download" id="en-download">
+  <h2>Download this one</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>Curves</h3><span class="pill">.py · no compile</span></div>
+    <p>The archive holds a single <code>.py</code>, an install note and the <code>_shared/</code> + <code>locale/</code> pair. Unpack all of it into GIMP's <code>plug-ins</code> directory (Windows <code>%%APPDATA%%\GIMP\3.x\plug-ins</code>, Linux <code>~/.config/GIMP/3.x/plug-ins</code>) and <b>restart GIMP</b> for it to register. Without <code>_shared/</code> and <code>locale/</code> it still runs, but only in English. The Linux side of cmyk-curves.dll, cmyk-curves.so, hsv-curves.dll, hsv-curves.so, lab-curves.dll, lab-curves.so, lch-curves.dll, lch-curves.so is not in the prebuilt bundle yet; if you need Linux, build it with <code>./build.sh</code> (Windows is complete).</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-curves.zip">Download Curves</a>
+    <p class="muted small">55.2 KB · checksum: <code>SHA256 0f01aaef4b70d1e8756ea8c97d5bb8a4…</code></p>
+  </div>
+</section>
+
+<p class="note">In this article a "code" means one step on an 8-bit
+   image: 0–255 is 256 levels, so the gap between neighbours is 1 code, or
+   1/255 ≈ 0.392%% (the difference between RGB 128 and 129). For the order of magnitude
+   of each figure, and why a code is not a perceptual quantity, see
+   <a href="../guide.html#code">Install guide · what a code is</a>.</p>
+  </article>
+  <aside class="toc">
+    <p class="toc-title">On this page</p>
+    <ul>
+      <li><a href="#en-overview">Overview</a></li>
+<li><a href="#en-sec-1">One kernel, four spaces</a></li><li><a href="#en-sec-2">Why monotone cubic, not a spline</a></li><li><a href="#en-sec-3">Hue is an offset curve, not a curve</a></li><li><a href="#en-sec-4">What the dialog draws is what the operator computes</a></li><li><a href="#en-sec-5">How the preview works</a></li>
+      <li><a href="#en-download">Download</a></li>
+    </ul>
+  </aside>
+</div>
+<nav class="pager">
+  <a href="../plugins.html"><span>Back to</span>All plug-ins</a>
+  <a class="prev" href="layer-style.html"><span>Previous</span>Layer Style</a>
+</nav></div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
+    <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
+    <span class="muted">63fef29</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
+</body>
+</html>

@@ -2440,6 +2440,21 @@ PLUGIN_SPECS = [
              shared=["refine_math.py", "mask_io.py"],
              pdb="lb-plugin-refine-mask(image, drawables, radius, smart, smooth,\n"
                  "    feather, contrast, shift, decontaminate, output, work-size)"),
+        dict(key="curves", ops=["lab-curves", "lch-curves", "hsv-curves",
+                                "cmyk-curves"],
+             name="gegl-color-ops-plugin-curves.zip",
+             src_dir=os.path.join(ROOT, "plugin", "curves"),
+             py="curves.py",
+             menu="曲线 (Curves)",
+             menus="    SuperMrWang → Curves → LAB / LCh / HSV / CMYK Curves…",
+             desc="曲线：四个空间各一条任意曲线，自绘编辑器可直接在图上加点、拖点、"
+                  "右键删点，预览随拖动实时更新。像素计算全在 GEGL 算子那一侧，"
+                  "所以对话框画出来的曲线和最终结果必然是同一条。色相分量是"
+                  "<b>偏移曲线</b>（0.5 = 不偏），整体旋转不会在 0°/360° 留接缝。"
+                  "结果是图层上的活滤镜，重开对话框能读回来接着改。",
+             shared=["curve_math.py", "mask_io.py"],
+             pdb="lb-plugin-curves-lab(image, drawable, curves, output)\n"
+                 "    lb-plugin-curves-lch / -hsv / -cmyk 同签名"),
         dict(key="warp", ops=[],
              name="gegl-color-ops-plugin-puppet-warp.zip",
              src_dir=os.path.join(ROOT, "plugin", "puppet-warp"),

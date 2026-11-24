@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-title-zh="CMYK Curves · gegl-color-ops" data-title-en="CMYK Curves · gegl-color-ops">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CMYK Curves · gegl-color-ops</title>
+<meta name="description" content="CMYK 四版各自一条曲线" data-desc-zh="CMYK 四版各自一条曲线" data-desc-en="CMYK 四版各自一条曲线">
+<meta property="og:title" content="CMYK Curves · gegl-color-ops" data-title-zh="CMYK Curves · gegl-color-ops" data-title-en="CMYK Curves · gegl-color-ops">
+<meta property="og:description" content="CMYK 四版各自一条曲线" data-desc-zh="CMYK 四版各自一条曲线" data-desc-en="CMYK 四版各自一条曲线">
+<link rel="stylesheet" href="../assets/style.css?v=90a1149d22">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body class="article">
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+<main id="main">
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 混合与通道</p>
+  <h1>CMYK Curves</h1>
+  <div class="meta">
+    <code>lb:cmyk-curves</code>
+    <span class="tag t-blend">混合与通道</span>
+    <span>整块区域</span>
+  </div>
+  <p class="lede">CMYK 四版各自一条曲线</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p>菜单：<code>SuperMrWang → Curves → CMYK Curves</code>（Filter 类）</p>
+<h2 id="概述">概述</h2>
+<p>CMYK 四个墨版各自一条曲线。四色印刷的常规动作：<strong>K 版压中间调</strong>控制整体厚度、<strong>C/M/Y 单独压某一版</strong>修偏色，而不去动其它三版。色阶做不到这种「只改一版的形状」，只能改它的黑白场。</p>
+<p>曲线与色阶的分工：色阶是<strong>三点映射</strong>（黑场、灰点、白场），曲线是<strong>任意形状</strong>。需要「只提亮中间调、压住两端」或者「把某个亮度区间整段抬起来」时，三点不够用。</p>
+<p>曲线内核在 <code>common/curve.h</code>，四个曲线算子共用：控制点解析、单调三次插值、 1024 点 LUT、采样。算子本身只负责声明 babl 格式与分量量程。</p>
+<h2 id="色彩空间">色彩空间</h2>
+<p>直接工作在 babl 的 <code>CMYKA float</code> 上，与 <code>lb:cmyk-levels</code>、 <code>lb:cmyk-primary-correction</code> 同一套分色口径——<strong>babl 的 CMYKA 内部是 0…1</strong>，不是 0–100 的百分比。这不是 ICC 特性文件分色，结果只在这个工作空间内自洽。</p>
+<div class="table-wrap"><table><thead><tr><th>分量</th><th>量程</th><th>说明</th></tr></thead><tbody><tr><td>C</td><td>0…1</td><td>青版墨量</td></tr><tr><td>M</td><td>0…1</td><td>洋红版墨量</td></tr><tr><td>Y</td><td>0…1</td><td>黄版墨量</td></tr><tr><td>K</td><td>0…1</td><td>黑版墨量</td></tr></tbody></table></div>
+<h2 id="插值">插值</h2>
+<p>用 <strong>Fritsch–Carlson 单调三次 Hermite</strong>，不是自然样条。</p>
+<p>样条在控制点之间会过冲：画一条「先陡后平」的曲线，平台段会被顶出一个比控制点还高的包。落在明度上是可见的灰阶断层，落在 a/b 上就是中性灰附近冒出一圈本不存在的色光。Fritsch–Carlson 把每一对切线夹进半径 <span class="math">$3|d|$</span> 的圆里（<span class="math">$d$</span> 为割线斜率），插值因此不会越出相邻控制点的上下界。</p>
+<div class="math-display">$$t = \frac{3}{\sqrt{a^2+b^2}},\quad
+a = \frac{m_i}{d_i},\quad b = \frac{m_{i+1}}{d_i},\quad
+m_i \leftarrow t\,a\,d_i,\ m_{i+1} \leftarrow t\,b\,d_i$$</div>
+<p>仅在 <span class="math">$a^2+b^2 &gt; 9$</span> 时收缩。</p>
+<h2 id="参数">参数</h2>
+<p>只有一个字符串参数 <code>curves</code>，按分量分段，段间用 <code>|</code>，段内是 <code>x,y</code> 控制点：</p>
+<pre><code>curves="C 0,0 0.5,0.42 1,1|M 0,0 1,1|Y 0,0 1,1|K 0,0 1,1"</code></pre>
+<ul><li>坐标一律<strong>归一到 0…1</strong>；物理量程的换算在算子内部完成。</li><li>没写到的分量保持恒等（环形分量保持零偏移）。</li><li>端点缺失自动补 <code>(0,0)</code> / <code>(1,1)</code>；同 <code>x</code> 只留后一个；坏 token 跳过而不是整体 失效——这个串存在滤镜参数里，允许人手改。</li><li>少于两个有效点时整条退化为恒等。</li></ul>
+<p>@@hue@@</p>
+<h2 id="坑">坑</h2>
+<ul><li><strong>量程按 babl 的内部单位走</strong>，不是属性单位。<code>CIE LCH(ab) float</code> 是物理量 （L 0–100、C 0–132、h 0–360），而 <code>HSVA</code> / <code>CMYKA</code> 内部是 <strong>0–1</strong>。 照 <code>color-levels.h</code> 的属性量程去写，色相偏移会完全不动（写回去的 18 被当成 18 个整圈）。</li><li><strong>透明像素原样透传</strong>：alpha ≤ 0 的像素不做映射。</li><li><strong>曲线是 0…1 的严格映射</strong>，不像色阶那样允许输出黑白场交叉做负片。要负片请用色阶。</li></ul>
+<h2 id="回归">回归</h2>
+<p><code>tools/check_curves.py</code>：恒等、语义方向、<strong>不过冲</strong>、透明、解析容错，以及 C 算子与 Python 曲线实现的逐点对拍（<code>plugin/_shared/curve_math.py</code>，最大差 ≤ 2 码）。</p>
+<pre><code class="language-bash">python tools/check_curves.py
+gegl in.png -o out.png -- lb:cmyk-curves curves="L 0,0 0.5,0.7 1,1"</code></pre><div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>这一版还没把这个模块打进预编译包，可以 <code>./build.sh</code> 自己编一个，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
+  </div>
+  <div class="btns"></div>
+</div><nav class="pager"><a class="prev" href="color-lookup.html"><span>上一个</span>Color Lookup</a><a class="next" href="hsv-curves.html"><span>下一个</span>HSV Curves</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#概述">概述</a></li>
+<li class="l2"><a href="#色彩空间">色彩空间</a></li>
+<li class="l2"><a href="#插值">插值</a></li>
+<li class="l2"><a href="#参数">参数</a></li>
+<li class="l2"><a href="#坑">坑</a></li>
+<li class="l2"><a href="#回归">回归</a></li></ul>
+</aside>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Blend</p>
+  <h1>CMYK Curves</h1>
+  <div class="meta">
+    <code>lb:cmyk-curves</code>
+    <span class="tag t-blend">Blend</span>
+    <span>area</span>
+  </div>
+  <p class="lede"></p>
+</section><div class="article-layout">
+  <article class="prose">
+<h1>CMYK Curves (lb:cmyk-curves)</h1>
+<p>Menu: <code>SuperMrWang → Curves → CMYK Curves</code> (Filter)</p>
+<h2 id="overview">Overview</h2>
+<p>One curve per ink plate. The usual four-colour moves: <strong>shape the K midtones</strong> to control overall density, and <strong>shape a single plate</strong> (C, M or Y) to correct a cast without disturbing the other three. Levels cannot do this — it only moves a plate's black and white points, not its shape.</p>
+<p>Levels maps three points (black, midtone, white); a curve maps any shape you like. "Lift only the midtones and hold both ends" is not something three points can do.</p>
+<p>The kernel lives in <code>common/curve.h</code> and is shared by all four curve operators: point parsing, monotone cubic interpolation, a 1024-entry LUT, sampling. Each operator only declares its babl format and component ranges.</p>
+<h2 id="colour-space">Colour space</h2>
+<p>Works directly in babl's <code>CMYKA float</code>, the same separation basis as <code>lb:cmyk-levels</code> and <code>lb:cmyk-primary-correction</code> — <strong>babl keeps CMYKA in 0…1</strong>, not 0–100 percent. This is not an ICC-profile separation, so the result is only self-consistent inside this working space.</p>
+<div class="table-wrap"><table><thead><tr><th>Component</th><th>Range</th><th>Notes</th></tr></thead><tbody><tr><td>C</td><td>0…1</td><td>cyan ink</td></tr><tr><td>M</td><td>0…1</td><td>magenta ink</td></tr><tr><td>Y</td><td>0…1</td><td>yellow ink</td></tr><tr><td>K</td><td>0…1</td><td>black ink</td></tr></tbody></table></div>
+<h2 id="interpolation">Interpolation</h2>
+<p><strong>Fritsch–Carlson monotone cubic Hermite</strong>, not a natural spline.</p>
+<p>A spline overshoots between control points: draw a curve that rises steeply and then flattens and the flat part bulges above its control points. On lightness that is a visible banding step; on a/b it is a ring of colour that was never in the picture. Fritsch–Carlson keeps each tangent pair inside a circle of radius <span class="math">$3|d|$</span> (<span class="math">$d$</span> being the secant slope), so the interpolant cannot leave the box between neighbouring points.</p>
+<h2 id="parameters">Parameters</h2>
+<p>One string argument, <code>curves</code>, split into components by <code>|</code>, each holding <code>x,y</code> control points:</p>
+<pre><code>curves="C 0,0 0.5,0.42 1,1|M 0,0 1,1|Y 0,0 1,1|K 0,0 1,1"</code></pre>
+<ul><li>Coordinates are always normalised to 0…1; the operator does the physical mapping.</li><li>An omitted component stays unchanged (a circular one stays at zero shift).</li><li>Missing ends are filled with <code>(0,0)</code> / <code>(1,1)</code>; duplicate <code>x</code> keeps the last point; a bad token is skipped rather than rejecting the whole string — this string lives in a filter property and is meant to be hand-edited.</li><li>Fewer than two valid points falls back to identity.</li></ul>
+<h2 id="pitfalls">Pitfalls</h2>
+<ul><li><strong>Ranges follow babl's internal units, not the property units.</strong> <code>CIE LCH(ab) float</code> holds physical values (L 0–100, C 0–132, h 0–360), while <code>HSVA</code> and <code>CMYKA</code> are <strong>0–1</strong> internally. Writing HSV as if it were 0–360 makes a hue shift do nothing: the value 18 is read as eighteen full turns.</li><li><strong>Transparent pixels pass through</strong>: alpha ≤ 0 is never remapped.</li><li><strong>The curve is a strict 0…1 map</strong>, unlike levels it cannot cross the output black and white points to invert. Use levels for a negative.</li></ul>
+<h2 id="checks">Checks</h2>
+<p><code>tools/check_curves.py</code>: identity, semantics, <strong>no overshoot</strong>, alpha, parsing tolerance, plus a point-by-point cross-check between the C operator and the Python curve implementation (<code>plugin/_shared/curve_math.py</code>, max difference ≤ 2 codes).</p>
+<pre><code class="language-bash">python tools/check_curves.py
+gegl in.png -o out.png -- lb:cmyk-curves curves="L 0,0 0.5,0.7 1,1"</code></pre><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>This module is not in the prebuilt bundle yet — build it with <code>./build.sh</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"></div>
+</div><nav class="pager"><a class="prev" href="color-lookup.html"><span>Previous</span>Color Lookup</a><a class="next" href="hsv-curves.html"><span>Next</span>HSV Curves</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#overview">Overview</a></li>
+<li class="l2"><a href="#colour-space">Colour space</a></li>
+<li class="l2"><a href="#interpolation">Interpolation</a></li>
+<li class="l2"><a href="#parameters">Parameters</a></li>
+<li class="l2"><a href="#pitfalls">Pitfalls</a></li>
+<li class="l2"><a href="#checks">Checks</a></li></ul>
+</aside>
+</div></div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
+    <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
+    <span class="muted">63fef29</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
+</body>
+</html>

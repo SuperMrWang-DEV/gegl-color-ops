@@ -3,9 +3,9 @@
 [![GIMP 3](https://img.shields.io/badge/GIMP-3.x-5C5543?logo=gimp&logoColor=white)](https://www.gimp.org/)
 [![GEGL 0.4](https://img.shields.io/badge/GEGL-0.4-2C4C6B)](https://gegl.org/)
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
-[![Operations](https://img.shields.io/badge/operations-47-brightgreen)](#算子清单)
+[![Operations](https://img.shields.io/badge/operations-54-brightgreen)](#算子清单)
 
-一组自研的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **47 个**，统一 `lb:` 命名空间，
+一组自研的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **54 个**，统一 `lb:` 命名空间，
 在 GIMP 里收在菜单栏顶层的 **SuperMrWang** 菜单下（和「颜色」「图层」平级）。算法按公开公式与可观察的行为实现，
 不含任何商业软件的代码或素材；文中出现的产品名仅用于说明某个算子参照了哪种行为，
 与各厂商无隶属关系（详见文末「版权与商标」）。
@@ -155,6 +155,11 @@ Python 插件走另一条线，两种取法都行：
 | `lb:layer-style` | Layer Style (live) | Layer Style (live) | Layer | Area | PS 图层样式的**非破坏**版：十个效果（投影 / 内阴影 / 外发光 / 内发光 / 斜面和浮雕 / 光泽 / 三种叠加 / 描边）挂在图层滤镜栈上——改滑杆实时重算，参数随 XCF 存盘、重开还能改，原像素一个字节不动。破坏性的 Python 版见 `plugin/layer-style` |
 | `lb:puppet-warp` | Puppet Warp (live) | Puppet Warp (live) | Distort | Filter | 木偶变形的**非破坏**版：钉子串挂在图层滤镜栈上，MLS（相似/仿射）与 ARAP 三档解算，钉子上严格插值、影响圈外逐字节恒等；对话框点应用只写滤镜参数，重跑会把钉子读回来接着拖。破坏性的 Python 版见 `plugin/puppet-warp` |
 | `lb:mesh-warp` | Mesh Warp (live) | Mesh Warp (live) | Distort | Filter | 自由变形的**非破坏**版：FFD + 双三次 Bezier 面片，一个 `mesh` 串挂在滤镜上，Newton 反解格内参数、把手自动限幅；重跑对话框从滤镜读回网格。破坏性的 Python 版见 `plugin/mesh-warp` |
+
+| `lb:lab-curves` | LAB Curves | LAB Curves | Curves | Point | LAB 三通道各一条任意曲线：L 管明暗、a/b 管色轴，**动 L 不带动色偏**。单调三次插值（Fritsch–Carlson），不过冲 |
+| `lb:lch-curves` | LCh Curves | LCh Curves | Curves | Point | LCh 三通道各一条曲线：改彩度不串色相。**色相是偏移曲线**（0.5 = 不偏，水平线换高度即整体旋转），环形上不留接缝 |
+| `lb:hsv-curves` | HSV Curves | HSV Curves | Curves | Point | HSV 三通道各一条曲线；babl 内部量程是 0…1（不是 0–360/100）。色相同样走偏移曲线 |
+| `lb:cmyk-curves` | CMYK Curves | CMYK Curves | Curves | Point | CMYK 四版各一条曲线，可只改一版的形状（色阶只能改黑白场）；babl 分色，非 ICC |
 
 每个算子的算法说明、参数含义见 `ops/<算子名>/README.md`（原始文档）。
 
@@ -1558,7 +1563,7 @@ python tools/check_ai_inpaint.py
 python tools/mock_comfy.py --port 8188        # 重绘结果 = 蒙版区填成固定蓝色
 ```
 
-**AI Inpaint 不在 47 个算子里**：它是 Python 插件，不编进 GEGL 模块，也不需要
+**AI Inpaint 不在 54 个算子里**：它是 Python 插件，不编进 GEGL 模块，也不需要
 `./build.sh`。`./install-plugin.sh` 会把 `plugin/ai-inpaint/` 和它依赖的
 `plugin/_shared/` 一起装到 GIMP 用户插件目录。
 
@@ -1962,7 +1967,7 @@ SuperMrWang → Retouch   → 高低频 / 双曲线 / 中性灰磨皮
 SuperMrWang → Observe   → 黑白 / 陡峭曲线 / 波浪曲线 / 饱和度 / 阈值 / 海报化
                           观察层，点了就建（也是 Python 插件）
 SuperMrWang → Luminosity Masks → 生成七条明度通道（亮部/暗部各 3 档 + 中间调）
-                          （以上都是 Python 插件，不在 47 个算子里）
+                          （以上都是 Python 插件，不在 54 个算子里）
 ```
 
 47 个算子按「找算子时的念头」分九组，避免一个子菜单里平铺二十多项：

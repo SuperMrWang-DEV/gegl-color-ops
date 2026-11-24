@@ -49,6 +49,11 @@ ops = [
   ['lch-levels',              'lch-levels',              'lch-levels.c'],
   ['cmyk-levels',             'cmyk-levels',             'cmyk-levels.c'],
   ['hsi-levels',              'hsi-levels',              'hsi-levels.c'],
+  # 曲线家族：四条任意曲线，共用 common/curve.h 的单调三次插值
+  ['lab-curves',              'lab-curves',              'lab-curves.c'],
+  ['lch-curves',              'lch-curves',              'lch-curves.c'],
+  ['hsv-curves',              'hsv-curves',              'hsv-curves.c'],
+  ['cmyk-curves',             'cmyk-curves',             'cmyk-curves.c'],
   ['exposure',                'lb-exposure',             'lb-exposure.c'],
   ['rgb-domain-grayscale',    'rgb-domain-grayscale',    'rgb-domain-grayscale.c'],
   ['vibrance-hyper',          'vibrance-hyper',          'vibrance-hyper.c'],

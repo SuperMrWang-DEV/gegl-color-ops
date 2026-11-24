@@ -2451,3 +2451,71 @@ PLUGIN_EN["ai-upscale"] = dict(
     </div>
   </div>""",
 )
+
+PLUGIN_EN["curves"] = dict(
+    lede="""Levels gives you three points; a curve is any shape you like — which is why the curve
+   is the first thing anyone reaches for. This project already had a <b>levels</b> family across
+   six colour spaces and not a single <b>curve</b>: the most obvious gap in the set. GIMP ships
+   <code>gegl:curves</code>, but it only offers the composite and one channel — no Lab a/b, no
+   LCh chroma or hue. Four spaces here, one kernel.""",
+    body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>One kernel, four spaces</h3><span class="pill">common/curve.h</span></div>
+      <p><code>lb:lab-curves</code>, <code>lch-curves</code>, <code>hsv-curves</code> and
+         <code>cmyk-curves</code> share one kernel: point parsing, monotone cubic interpolation,
+         a 1024-entry LUT, sampling. Each operator only declares its babl format and the range of
+         its components.</p>
+      <p>Ranges follow babl's real internal units, and that cost an afternoon:
+         <code>CIE LCH(ab) float</code> holds physical values (L 0–100, C 0–132, h 0–360) while
+         <code>HSVA</code> and <code>CMYKA</code> are <b>0–1</b> internally. Writing to HSV as if
+         it were 0–360 makes the hue shift do nothing — 18 gets read as eighteen full turns.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Why monotone cubic, not a spline</h3></div>
+      <p>Natural splines and Catmull-Rom <b>overshoot</b> between control points: draw a
+         “steep then flat” curve and the spline bulges above the flat section. On lightness that
+         is a banding step; on a/b it is a ring of colour that was never in the picture.</p>
+      <p>Fritsch–Carlson keeps each tangent pair inside a circle of radius 3·|secant|, so the
+         interpolant cannot leave the box between neighbouring points. One group in
+         <code>check_curves.py</code> is exactly that curve.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Hue is an offset curve, not a curve</h3><span class="pill">0.5 = no shift</span></div>
+      <p>Hue is circular, and both obvious approaches fail: a diagonal curve maps 0 and 1 to
+         different heights and leaves a hard seam where 0° meets 360°; forcing the ends together
+         kills whole-ring rotation, which is the main thing you want from a hue curve.</p>
+      <p>So the hue component of LCh and HSV uses an <b>offset curve</b>: x is the input hue,
+         0.5 means no shift. <b>A flat line at another height</b> rotates the whole ring (±180°);
+         <b>a bent line</b> moves only some bands. Both stay continuous by construction. The shift
+         is clamped to ±0.5 — beyond that it is just turning the other way.</p>
+      <p>Zero-chroma pixels are skipped: grey has no hue, and inventing an angle for it only adds
+         noise.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>What the dialog draws is what the operator computes</h3></div>
+      <p>The editor is drawn in Python; every pixel is computed in the GEGL operation. So that the
+         two cannot drift, <code>_shared/curve_math.py</code> mirrors
+         <code>common/curve.h</code> function by function, and the regression feeds the same
+         control points to both and compares them point by point (64-step grey ramp, max
+         difference ≤ 2 codes).</p>
+      <p>Change either side and you have to change the other, or that check goes red.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>How the preview works</h3></div>
+      <p>A GEGL filter is a <b>display layer</b>: reading a drawable gives you the pixels without
+         it. The preview therefore copies the layer, attaches the filter,
+         <code>merge_filter</code>s it, reads the pixels and deletes the copy — all with undo
+         disabled, because a temporary layer has no business in the user's history. Dragging is
+         debounced at 70 ms, not to save CPU but to keep dozens of layer copies per second from
+         stalling the UI.</p>
+    </div>
+  </div>
+  <p class="note">The result is a <b>live filter</b> on the layer: pixels stay untouched and
+     re-running the dialog reads the curves back. “Bake into this layer” writes them into the
+     pixels instead. Regression: <code>check_curves.py</code>, 26 checks (identity, semantics,
+     no overshoot, alpha, tolerance, C–Python parity). The operators also run from the command
+     line: <code>gegl in.png -o out.png -- lb:lab-curves curves="L 0,0 0.5,0.7 1,1"</code>.</p>""",
+)

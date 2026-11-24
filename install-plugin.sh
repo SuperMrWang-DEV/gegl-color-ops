@@ -70,6 +70,7 @@ echo "    SuperMrWang → Convert    图层 → 选区 / 通道 / 一次拆出 R
 echo "                             Channel / Selection / Mask / Path 十二向互转（零参数，点一下直接跑）"
 echo "    SuperMrWang → Mask       Alpha Curves（通道 → Alpha + alpha 曲线）/ Color Range（色彩范围）"
 echo "                             Channel to Mask（通道 → 图层蒙版）"
+echo "    SuperMrWang → Curves     LAB / LCh / HSV / CMYK Curves（自绘曲线编辑器，拖动即预览）"
 echo "                             最大值 / 最小值（膨胀 / 腐蚀，半径 1–100，蒙版扩边收边）"
 echo "                             抠图 / 移除背景（本地：四边泛洪；AI：ComfyUI 的 RMBG-2.0）"
 echo "                             选择并遮住（精修边缘：吸附/平滑/羽化/对比度/移动边缘/去色边）"

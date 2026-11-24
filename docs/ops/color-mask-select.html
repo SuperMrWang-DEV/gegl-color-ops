@@ -146,7 +146,7 @@ d = \min\!\left(\frac{\Delta E}{100},\ 1\right)$$</div>
     <p>Windows 模块 <code>color-mask-select.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>；Linux 模块 <code>color-mask-select.so</code>，放进 <code>~/.local/share/gegl-0.4/plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/color-mask-select.dll">下载 color-mask-select.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/color-mask-select.so">下载 color-mask-select.so<span class="size">Linux x86_64</span></a></div>
-</div><nav class="pager"><a class="prev" href="color-lookup.html"><span>上一个</span>Color Lookup</a><a class="next" href="channel-range-to-alpha.html"><span>下一个</span>Range → Alpha</a></nav><details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
+</div><nav class="pager"><a class="prev" href="lch-curves.html"><span>上一个</span>LCh Curves</a><a class="next" href="channel-range-to-alpha.html"><span>下一个</span>Range → Alpha</a></nav><details class="legacy-intro"><summary>原始介绍<span class="muted">（这个滤镜作为独立插件时的旧文档：编译命令按旧目录结构书写，菜单路径也已改名；算法说明以本页上方为准）</span></summary><h3 id="1-编译与安装命令">1. 编译与安装命令</h3>
 <h4 id="linux-原生版系统包安装的gimp">Linux 原生版（系统包安装的GIMP）</h4>
 <pre><code class="language-bash">sh build_linux.sh
 cp build/gegl-*.so ~/.local/share/gegl-0.4/plug-ins</code></pre>
@@ -225,7 +225,7 @@ invert / colors(highlights|midtones|shadows|outOfGamut|skinTone)</code></pre>
     <p>Windows module <code>color-mask-select.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>; Linux module <code>color-mask-select.so</code>, drop it into <code>~/.local/share/gegl-0.4/plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
   </div>
   <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/color-mask-select.dll">Download color-mask-select.dll<span class="size">Windows x64</span></a><a class="btn ghost" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/linux-x64/color-mask-select.so">Download color-mask-select.so<span class="size">Linux x86_64</span></a></div>
-</div><nav class="pager"><a class="prev" href="color-lookup.html"><span>Previous</span>Color Lookup</a><a class="next" href="channel-range-to-alpha.html"><span>Next</span>Range → Alpha</a></nav><details class="legacy-intro"><summary>Original plugin docs<span class="muted"> — written when this was a standalone plug-in: the build commands assume the old directory layout and the menu paths have changed. The algorithm notes above supersede it.</span></summary><h1>GEGL_GIMP_PLUGIN_color-mask-select</h1>
+</div><nav class="pager"><a class="prev" href="lch-curves.html"><span>Previous</span>LCh Curves</a><a class="next" href="channel-range-to-alpha.html"><span>Next</span>Range → Alpha</a></nav><details class="legacy-intro"><summary>Original plugin docs<span class="muted"> — written when this was a standalone plug-in: the build commands assume the old directory layout and the menu paths have changed. The algorithm notes above supersede it.</span></summary><h1>GEGL_GIMP_PLUGIN_color-mask-select</h1>
 <p><img src="../assets/ops/color-mask-select/colormaskselect.png" alt="colormaskselect" title="colormaskselect"></p>
 <h3 id="1-compile-install-commands">1. Compile &amp; Install Commands</h3>
 <h4 id="native-linux-system-installed-gimp">Native Linux (System installed GIMP)</h4>
@@ -265,7 +265,7 @@ cp build/gegl-*.so ~/.var/app/org.gimp.GIMP/data/gegl-0.4/plug-ins/</code></pre>
     <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">a330c75</span>
+    <span class="muted">63fef29</span>
   </div>
 </footer>
 <script>

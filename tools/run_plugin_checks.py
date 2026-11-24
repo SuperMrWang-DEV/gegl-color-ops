@@ -41,6 +41,7 @@ SUITES = [
     ("check_mesh_warp", "python"),
     ("check_layer_style", "python"),
     ("check_perspective", "python"),
+    ("check_curves", "python"),
     ("check_scene3d", "python"),
     ("check_retouch_ai", "python"),
     ("check_plugin_dialogs", "gimp"),
