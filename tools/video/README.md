@@ -8,6 +8,7 @@ python tools/video/shoot.py     # 1. 截站点高清图（2x DPR → tools/video
 python tools/video/render.py    # 2. 按分镜渲染 3840×2160 画布（frames/）
 python tools/video/build.py     # 3. 配音 + 字幕 + 编码 + 拼接（outputs/video/*.mp4）
 python tools/video/cover.py     # 4. 封面（outputs/video/cover.png）
+python tools/video/build_media.py   # 5. 各平台发布素材（outputs/media/）
 ```
 
 `build.py plan` 只跑配音并打印时长表，不编码 —— 改文案时先看这个，
@@ -25,6 +26,7 @@ python tools/video/cover.py     # 4. 封面（outputs/video/cover.png）
 | `audition.py` | 试音：几个音色念同样的句子，拼成一条连听挑选 |
 | `cover.py` | 4K 封面（16:9，视频首帧） |
 | `cover_bili.py` | B 站投稿封面（16:10，1146×717 + 2292×1434，带仓库链接条） |
+| `build_media.py` | 按平台整理发布素材到 `outputs/media/`：B 站 / 知乎 / 公众号 / 小红书（3:4 竖版卡）/ YouTube / 微博，每个目录一份可直接复制的文案 |
 | `shoot.py` | Chrome 2× DPR 截站点页面 |
 
 画面类型：`hero` 开场、`shot` 整页截图卡片、`grid` 一类算子的缩略图矩阵、
