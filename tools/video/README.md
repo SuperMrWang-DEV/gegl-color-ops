@@ -23,7 +23,8 @@ python tools/video/cover.py     # 4. 封面（outputs/video/cover.png）
 | `pron.py` | 配音专用改写：`narr`（字幕）→ `spoken`（喂 TTS）。**念错清单的落点** |
 | `asr_check.py` | 配音回听：逐句转文字比对，找出真念错的地方 |
 | `audition.py` | 试音：几个音色念同样的句子，拼成一条连听挑选 |
-| `cover.py` | 4K 封面 |
+| `cover.py` | 4K 封面（16:9，视频首帧） |
+| `cover_bili.py` | B 站投稿封面（16:10，1146×717 + 2292×1434，带仓库链接条） |
 | `shoot.py` | Chrome 2× DPR 截站点页面 |
 
 画面类型：`hero` 开场、`shot` 整页截图卡片、`grid` 一类算子的缩略图矩阵、
