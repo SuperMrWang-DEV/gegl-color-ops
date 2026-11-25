@@ -23,6 +23,7 @@ INK = (240, 244, 252)
 INK2 = (154, 166, 188)
 INK3 = (110, 122, 145)
 ACCENT = (111, 116, 255)
+ACCENT2 = (176, 180, 255)
 CYAN = (34, 211, 238)
 LINE = (40, 48, 64)
 
@@ -420,18 +421,23 @@ def render_duo(im, d, sc):
 
 
 def render_hero(im, d, sc):
-    f = font(F_BOLD, 148)
-    sub = font(F_REG, 44)
-    tw = d.textlength(sc["title"], font=f)
-    d.text(((W - tw) / 2, 830), sc["title"], font=f, fill=INK)
-    # 强调线
-    d.rounded_rectangle([(W - 260) / 2, 1050, (W + 260) / 2, 1056], 3, fill=ACCENT)
-    st = sc["sub"]
-    d.text(((W - d.textlength(st, font=sub)) / 2, 1120), st, font=sub, fill=INK2)
+    # GIMP 3 单独一行放大：片子讲的是给 GIMP 补工具，缩略图里第一眼要看到它
+    tag = "GEGL 算子库 · 免费开源 · GPL-3.0"
+    tf = font(F_BOLD, 44)
+    d.text(((W - d.textlength(tag, font=tf)) / 2, 756), tag, font=tf, fill=ACCENT2)
 
-    tag = "GEGL 色彩算子 · Python 插件"
-    tf = font(F_BOLD, 34)
-    d.text(((W - d.textlength(tag, font=tf)) / 2, 660), tag, font=tf, fill=ACCENT)
+    gf = font(F_BOLD, 200)
+    d.text(((W - d.textlength("GIMP 3", font=gf)) / 2, 820), "GIMP 3",
+           font=gf, fill=INK)
+
+    f = font(F_BOLD, 118)
+    tw = d.textlength(sc["title"], font=f)
+    d.text(((W - tw) / 2, 1120), sc["title"], font=f, fill=INK)
+    # 强调线
+    d.rounded_rectangle([(W - 260) / 2, 1276, (W + 260) / 2, 1282], 3, fill=ACCENT)
+    sub = font(F_REG, 44)
+    st = sc["sub"]
+    d.text(((W - d.textlength(st, font=sub)) / 2, 1340), st, font=sub, fill=INK2)
     return im
 
 

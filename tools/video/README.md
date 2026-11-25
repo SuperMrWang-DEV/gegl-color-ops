@@ -27,6 +27,7 @@ python tools/video/build_media.py   # 5. 各平台发布素材（outputs/media/�
 | `cover.py` | 4K 封面（16:9，视频首帧） |
 | `cover_bili.py` | B 站投稿封面（16:10，1146×717 + 2292×1434，带仓库链接条） |
 | `build_media.py` | 按平台整理发布素材到 `outputs/media/`：B 站 / 知乎 / 公众号 / 小红书（3:4 竖版卡）/ YouTube / 微博，每个目录一份可直接复制的文案 |
+| `cover_pop.py` | 各平台爆款样式封面：B 站黄黑撞色、小红书奶油底 + 马克笔、YouTube 深色 + 红箭头、公众号 2.35:1 头图 |
 | `shoot.py` | Chrome 2× DPR 截站点页面 |
 
 画面类型：`hero` 开场、`shot` 整页截图卡片、`grid` 一类算子的缩略图矩阵、

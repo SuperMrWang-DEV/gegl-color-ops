@@ -13,7 +13,7 @@ A, C, G, O = (111, 116, 255), (34, 211, 238), (126, 231, 168), (255, 176, 108)
 SCENES = [
     dict(key="00-hero", chapter="", kind="hero",
          title="54 个算子，一条配色链",
-         sub="gegl-color-ops · GIMP 3 · GEGL 0.4 · GPL-3.0",
+         sub="gegl-color-ops · GEGL 0.4 · GPL-3.0 · 中英文档",
          narr="给 GIMP 3 写的一整套色彩算子：五十四算子，三十一个插件，一条配色链。"),
 
     # ---------- 01 这是什么 ----------

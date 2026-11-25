@@ -14,6 +14,7 @@
 """
 import os
 import shutil
+import sys
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
@@ -140,14 +141,14 @@ def xhs_card(idx, total, kicker, title_lines, shot=None, cap="", big=None,
     d.text((x + 28, 84), kicker, font=f(BOLD, 38), fill=ACCENT2)
 
     if big:                               # 封面：只排大字
-        y = 300
+        y = 232
         for line, size, col in big:
             d.text((x - 4, y), line, font=f(BOLD, size), fill=col)
             y += int(size * 1.28)
         if shot:
-            im2 = crop_fill(shot, (CW - 2 * x, 560), 0.16)
-            paste_round(im, im2, (x, CH - 560 - 210))
-        d.text((x, CH - 132), "开源 · GPL-3.0 · 免费", font=f(REG, 36), fill=INK3)
+            im2 = crop_fill(shot, (CW - 2 * x, 470), 0.16)
+            paste_round(im, im2, (x, CH - 470 - 196), radius=20)
+        d.text((x, CH - 128), "开源 · GPL-3.0 · 免费", font=f(REG, 36), fill=INK3)
     else:
         y = 190
         for line in title_lines:
@@ -174,11 +175,12 @@ def build_xhs(dst):
     os.makedirs(dst, exist_ok=True)
     total = 6
     cards = [
-        xhs_card(1, total, "GIMP 3 · 免费开源", [], cap="",
+        xhs_card(1, total, "免费开源 · GPL-3.0", [], cap="",
                  shot=os.path.join(SHOTS, "op-lab-curves.png"),
-                 big=[("GIMP 免费修图", 104, INK),
-                      ("缺的那套调色工具", 104, INK),
-                      ("我补了 54 个", 132, ACCENT2)]),
+                 big=[("GIMP 3", 200, ACCENT2),
+                      ("免费修图", 100, INK),
+                      ("缺的那套调色工具", 96, INK),
+                      ("我补了 54 个", 116, INK)]),
         xhs_card(2, total, "01 · 色阶", ["同一个色阶", "七个色彩空间"],
                  os.path.join(SHOTS, "op-levels.png"),
                  "RGB / HSB / HSL / HSI / Lab / LCh / CMYK 各有各的量程"),
@@ -228,7 +230,7 @@ def build_article_shots(dst):
 
 # ---------------------------------------------------------------- 文案
 
-BILI_TITLE = "54 个滤镜 + 31 个插件：我把 GIMP 3 缺的那套调色工具补齐了"
+BILI_TITLE = "GIMP 3 缺的那套调色工具，我用 GEGL 补了 54 个 + 31 个插件"
 
 BILI_DESC = """GIMP 3 的滤镜内核叫 GEGL，一个滤镜就是一个算子。这套 gegl-color-ops 给它补了 54 个色彩算子：
 色阶、曲线、色彩平衡、通道混合、蒙版、抠图、木偶变形、自由变形……
@@ -336,11 +338,11 @@ README = """# 发布素材总目录
 | 目录 | 内容 | 干什么用 |
 |---|---|---|
 | `00-视频/` | 成片（4K / 8:16 / 155MB）、16:9 封面、旁白稿 | 所有视频平台共用这一份 mp4 |
-| `01-bilibili/` | 16:10 封面（1146×717 已可直接上传）、发布文案 | B 站主发 |
+| `01-bilibili/` | 黄黑大字封面（1146×717 可直接上传）、发布文案 | B 站主发 |
 | `02-zhihu/` | 长文 markdown、8 张配图 | 知乎文章 |
-| `03-公众号/` | 长文（标题按公众号风格改过）、摘要、8 张配图 | 公众号 |
-| `04-小红书/` | 6 张 3:4 竖版卡（1242×1656）、短文案 | 图文笔记 |
-| `05-youtube/` | 中英标题 / 描述 / 标签 | 海外同步 |
+| `03-公众号/` | 长文（标题按公众号风格改过）、摘要、8 张配图、2350×1000 头图 | 公众号 |
+| `04-小红书/` | 6 张奶油底竖版卡（1242×1656，马克笔高亮 + 红笔圈注）、短文案 | 图文笔记 |
+| `05-youtube/` | 1280×720 缩略图、中英标题 / 描述 / 标签 | 海外同步 |
 | `06-微博/` | 短文案 | 带视频或配图转发 |
 
 ## 建议顺序
@@ -360,6 +362,8 @@ README = """# 发布素材总目录
 - 公众号正文里的外链点了不能跳，仓库地址建议放在「阅读原文」里。
 - 小红书简介放外链会限流，文案里已经改成「主页链接在评论区」。
 - 视频 155MB，B 站上传没问题；YouTube 建议直接传这个 4K 版，别压。
+- 所有封面 / 卡片都由 `tools/video/cover_pop.py` 生成，改字改那里再跑 build_media，
+  别手改 jpg——下次重建会被覆盖。
 
 ## 一句话卖点（各平台都写了，需要临时改口时用）
 
@@ -392,18 +396,12 @@ def main():
             shutil.copy2(s, os.path.join(d, dst))
             print("  copy", dst, os.path.getsize(os.path.join(d, dst)) // 1024 // 1024, "MB")
 
-    # 01 B 站
+    # 01 B 站（封面由 cover_pop.py 生成，这里只建目录）
     d = os.path.join(MEDIA, "01-bilibili")
     os.makedirs(d, exist_ok=True)
-    for src, dst in (("cover-bilibili-1146.jpg", "封面-1146x717.jpg"),
-                     ("cover-bilibili.png", "封面-高清.png")):
-        s = os.path.join(VID, src)
-        if os.path.exists(s):
-            shutil.copy2(s, os.path.join(d, dst))
-            print("  copy", dst)
     w(os.path.join(d, "发布文案.txt"),
       "【标题】（上限 80 字）\n%s\n\n"
-      "【封面】封面-1146x717.jpg（16:10，直接上传，不要裁）\n\n"
+      "【封面】封面-1146x717.jpg（16:10，黄黑大字版，直接上传不要裁）\n\n"
       "【分区】科技 → 软件应用\n"
       "【时长】8:16   【分辨率】3840×2160\n\n"
       "【标签】（复制进去，空格分隔）\n%s\n\n"
@@ -443,7 +441,7 @@ def main():
       "【正文】见 文章.md\n\n"
       "【注意】文中的仓库链接在公众号里点不动，放到「阅读原文」；\n"
       "正文链接处改成「见文末阅读原文」即可。\n\n"
-      "【封面】用 00-视频/封面-16x9-4K.png（会按 2.35:1 裁，居中不丢字）\n"
+      "【封面】头图-2350x1000.png（已是 2.35:1，黄黑大字版，直接上传）\n"
       % (GZH_TITLE, GZH_SUMMARY))
 
     # 小红书
@@ -462,7 +460,7 @@ def main():
     os.makedirs(d, exist_ok=True)
     w(os.path.join(d, "发布文案.txt"),
       "【Title】\n%s\n\n【Description】\n%s\n\n【Tags】（逗号分隔）\n%s\n\n"
-      "【Thumbnail】用 00-视频/封面-16x9-4K.png，YouTube 会裁成 16:9，已居中\n"
+      "【Thumbnail】缩略图-1280x720.jpg（黄黑撞色 + 红箭头，已是 16:9）\n"
       "【Category】Science & Technology\n【Language】Chinese (video), English (title/desc)\n"
       % (YT_TITLE, YT_DESC, YT_TAGS))
 
@@ -473,6 +471,12 @@ def main():
       "【正文】\n%s\n\n【配图】01-bilibili/封面-1146x717.jpg 或直接带 B 站视频卡片\n" % WB_TEXT)
 
     w(os.path.join(MEDIA, "README.md"), README)
+
+    # 封面 / 图例统一由 cover_pop.py 出：B 站黄黑、小红书奶油、YouTube 深色
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import cover_pop
+    cover_pop.main("all")
+
     total = sum(os.path.getsize(os.path.join(r, x))
                 for r, _, fs in os.walk(MEDIA) for x in fs)
     print("\nDONE", MEDIA, "%.1f MB" % (total / 1024 / 1024))

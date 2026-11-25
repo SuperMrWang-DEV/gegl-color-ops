@@ -45,28 +45,30 @@ def main():
     d = ImageDraw.Draw(im)
     x = 230
 
-    tag = "GEGL 色彩算子 · GIMP 3 · 8 分钟"
-    tf = f(BOLD, 36)
-    d.text((x, 620), tag, font=tf, fill=ACCENT)
+    tag = "GEGL 算子库 · 免费开源 · GPL-3.0"
+    tf = f(BOLD, 44)
+    d.text((x, 696), tag, font=tf, fill=(176, 180, 255))
 
-    big = f(BOLD, 168)
-    d.text((x, 720), "54 个算子", font=big, fill=INK)
-    d.text((x, 920), "一条配色链", font=big, fill=INK)
-    d.rounded_rectangle([x, 1150, x + 300, 1158], 4, fill=ACCENT)
+    d.text((x - 10, 764), "GIMP 3", font=f(BOLD, 268), fill=INK)
+
+    mid = f(BOLD, 134)
+    d.text((x - 6, 1142), "少了 54 个", font=mid, fill=INK)
+    d.text((x - 6, 1290), "调色算子", font=mid, fill=(176, 180, 255))
+    d.rounded_rectangle([x, 1482, x + 300, 1490], 4, fill=ACCENT)
 
     sub = f(REG, 44)
     for i, line in enumerate([
-            "色阶 · 色彩平衡 · 通道混合 · 蒙版",
+            "色阶 · 色彩平衡 · 通道混合 · 蒙版 · 抠图",
             "31 个 Python 插件把它串成流程"]):
-        d.text((x, 1210 + i * 66), line, font=sub, fill=INK2)
+        d.text((x, 1542 + i * 66), line, font=sub, fill=INK2)
 
     # 右侧：一张真实对比图
     src = os.path.join(ROOT, "tools", "video", "shots", "op-lab-curves.png")
     shot = Image.open(src).convert("RGB")
     shot = shot.crop((360, 660, 2226, 1310))         # 页面里的 Original/Result 对比条
-    tw, th = 1760, 613
+    tw, th = 2000, 697
     shot = shot.resize((tw, th), Image.LANCZOS)
-    bx, by = W - tw - 210, 700
+    bx, by = W - tw - 200, 820
     mask = Image.new("L", (tw, th), 0)
     ImageDraw.Draw(mask).rounded_rectangle([0, 0, tw - 1, th - 1], 26, fill=255)
     sh = Image.new("L", (W, H), 0)
