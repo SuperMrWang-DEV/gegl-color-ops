@@ -51,7 +51,7 @@ def main():
 
     big = f(BOLD, 168)
     d.text((x, 720), "54 个算子", font=big, fill=INK)
-    d.text((x, 920), "一条调色链", font=big, fill=INK)
+    d.text((x, 920), "一条配色链", font=big, fill=INK)
     d.rounded_rectangle([x, 1150, x + 300, 1158], 4, fill=ACCENT)
 
     sub = f(REG, 44)

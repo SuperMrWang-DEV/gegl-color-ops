@@ -12,9 +12,9 @@ A, C, G, O = (111, 116, 255), (34, 211, 238), (126, 231, 168), (255, 176, 108)
 # kind: hero | shot | grid | usage | tree | stat | code | steps | duo | outro
 SCENES = [
     dict(key="00-hero", chapter="", kind="hero",
-         title="54 个算子，一条调色链",
+         title="54 个算子，一条配色链",
          sub="gegl-color-ops · GIMP 3 · GEGL 0.4 · GPL-3.0",
-         narr="给 GIMP 3 写的一整套色彩算子：五十四算子，三十一个插件，一条调色链。"),
+         narr="给 GIMP 3 写的一整套色彩算子：五十四算子，三十一个插件，一条配色链。"),
 
     # ---------- 01 这是什么 ----------
     dict(key="01-what", chapter="01 · 这是什么", kind="shot", img="home",
@@ -115,7 +115,7 @@ SCENES = [
     dict(key="15-component", chapter="04 · 五十四算子", kind="grid", group="Component",
          title="分量：拆开调，再合回去",
          sub="dual 是拆分，compose 是合并，gray-to-component 把灰度铺进某个分量",
-         narr="第二组是分量：把图拆成通道，调完再合回去。dual 负责拆，compose 负责合，"
+         narr="第二组是分量：把图拆成通道，调完再合回去。拆分算子负责拆，合并算子负责合，"
               "拆出来的是数据层。"),
 
     dict(key="16-dual", chapter="04 · 五十四算子", kind="shot", img="op-dual",
@@ -125,8 +125,8 @@ SCENES = [
 
     dict(key="17-tone", chapter="04 · 五十四算子", kind="grid", group="Tone",
          title="明暗：曝光、对比、阴影高光",
-         sub="还有一条只改明度、完全不动颜色的灰度路径",
-         narr="第三组是明暗：曝光、亮度对比度、阴影高光，还有一条只改明度、"
+         sub="还有一条仅改明度、完全不动颜色的灰度路径",
+         narr="第三组是明暗：曝光、亮度对比度、阴影高光，还有一条仅改明度、"
               "完全不动颜色的灰度路径。"),
 
     dict(key="18-blend", chapter="04 · 五十四算子", kind="grid", group="Blend",
@@ -139,7 +139,7 @@ SCENES = [
          title="颜色：饱和度、平衡、白平衡",
          sub="色相带选择 · 自然饱和度 · 色温色调",
          narr="第五组是颜色：色相饱和度、色彩平衡、白平衡、自然饱和度，"
-              "还有按色相带只动某一段的。"),
+              "还有按色相带仅动某一段的。"),
 
     dict(key="20-hue", chapter="04 · 五十四算子", kind="shot", img="op-hue-saturation",
          title="色相带：只动你想动的那一段",
@@ -167,8 +167,8 @@ SCENES = [
 
     dict(key="24-unsharp", chapter="04 · 五十四算子", kind="shot", img="op-unsharp",
          title="细节类算子得看原始尺寸",
-         sub="四像素栅格按 1:1 裁出来，边缘怎么过渡一目了然",
-         narr="锐化这类算子看整图没意义，页面上给的是四像素栅格的原始尺寸局部，"
+         sub="四像素网格按 1:1 裁出来，边缘怎么过渡一目了然",
+         narr="锐化这类算子看整图没意义，页面上给的是四像素网格的原始尺寸局部，"
               "边缘怎么过渡一目了然。"),
 
     dict(key="25-distort", chapter="04 · 五十四算子", kind="grid", group="Distort",
@@ -271,10 +271,10 @@ SCENES = [
     # ---------- 06 工程 ----------
     dict(key="43-perf", chapter="06 · 工程", kind="stat",
          title="重采样只算脏区",
-         sub="栅格解场 + 行级脏段扫描，圈外像素整行复制",
+         sub="网格解场 + 行级脏段扫描，圈外像素整条复制",
          items=[("0.15s", "768 × 1024 变形", A), ("0.7s", "1600 × 2400 变形", C),
                 ("140ms", "曲线预览", G)],
-         narr="重采样只算脏区：先栅格解场，再按行扫脏段，圈外整行复制，全高清图不到一秒。"),
+         narr="重采样只算脏区：先网格解场，再按行扫脏段，圈外整条复制，全高清图不到一秒。"),
 
     dict(key="44-comfy", chapter="06 · 工程", kind="steps",
          title="ComfyUI 接进来只要三步",

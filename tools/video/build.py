@@ -20,13 +20,14 @@ PRE = os.path.join(VDIR, "pre")
 # 成片不进仓库（4K 五分钟 160MB+，GitHub 单文件上限 100MB）
 OUT = os.path.join(os.path.dirname(ROOT), "outputs", "video")
 
-VOICE = "zh-CN-YunxiNeural"
+VOICE = "zh-CN-YunjianNeural"   # 云健：低沉浑厚，技术解说压得住
 RATE = "-2%"
 W, H, FPS = 3840, 2160, 30
 LEAD, TAIL, MIN_HOLD = 0.38, 0.72, 4.2
 
 sys.path.insert(0, VDIR)
 from script import SCENES  # noqa: E402
+from pron import spoken    # noqa: E402
 
 
 def sh(cmd, **kw):
@@ -45,15 +46,28 @@ def dur_of(p):
 # ---------- 1. 配音 ----------
 
 async def tts_all():
+    """配音带清单缓存：spoken 文本或音色一变，对应的 mp3 就自动重合成。
+
+    以前只判"文件存在"，改了稿子还得手动删 audio/，很容易出"画面新、声音旧"。
+    """
+    import hashlib
     import edge_tts
     os.makedirs(AUD, exist_ok=True)
+    mpath = os.path.join(AUD, "_manifest.json")
+    manifest = {}
+    if os.path.exists(mpath):
+        manifest = json.load(open(mpath, encoding="utf-8"))
     for sc in SCENES:
+        say = spoken(sc["narr"])
+        tag = hashlib.md5(("%s|%s|%s" % (say, VOICE, RATE)).encode("utf-8")).hexdigest()[:10]
         mp3 = os.path.join(AUD, sc["key"] + ".mp3")
-        if os.path.exists(mp3) and os.path.getsize(mp3) > 2000:
+        if manifest.get(sc["key"]) == tag and os.path.exists(mp3) and os.path.getsize(mp3) > 2000:
             continue
-        c = edge_tts.Communicate(sc["narr"], VOICE, rate=RATE)
+        c = edge_tts.Communicate(say, VOICE, rate=RATE)
         await c.save(mp3)
+        manifest[sc["key"]] = tag
         print("TTS", sc["key"], round(dur_of(mp3), 2), "s")
+    json.dump(manifest, open(mpath, "w", encoding="utf-8"), indent=1)
 
 
 # ---------- 2. 字幕 ----------
