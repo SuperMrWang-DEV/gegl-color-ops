@@ -14,7 +14,9 @@ OUT = os.path.join(ROOT, "tools", "video", "frames")
 SHOTS = os.path.join(ROOT, "tools", "video", "shots")
 
 W, H = 3840, 2160
-M = 200                     # 左右安全边
+# 左右安全边距：成片是在放大到 4240 的图上横向滑 400px 再 crop 回 4K，
+# 内容必须让出这块，否则滑到极限时标题会被裁掉。别调小。
+M = 400
 
 BG = (8, 11, 17)
 INK = (240, 244, 252)
@@ -160,7 +162,7 @@ def render_shot(im, d, sc):
     src = os.path.join(SHOTS, sc["img"] + ".png")
     if not os.path.exists(src):
         return im
-    x0, x1 = 400, W - 400
+    x0, x1 = M, W - M
     card_h = min(int((x1 - x0) * 0.505), H - top - 200)
     card(im, src, (x0, top, x1, top + card_h))
     return im
@@ -182,8 +184,8 @@ def render_grid(im, d, sc, groups):
     n = len(members)
     cols = 2 if n <= 2 else 3 if n <= 3 else 4 if n <= 8 else 6
     gap = 40
-    avail_w = W - 2 * 260
-    cw = min(1000, (avail_w - (cols - 1) * gap) // cols)
+    avail_w = W - 2 * M
+    cw = min(700, (avail_w - (cols - 1) * gap) // cols)
     ch = int(cw / 1.471)
     rows = (n + cols - 1) // cols
     blk = rows * (ch + 34 + 56) + (rows - 1) * 46
@@ -235,7 +237,7 @@ def render_usage(im, d, sc):
              ("ComfyUI 节点", "lb:lab-curves",
               "接进 AI 工作流，出图前先校色")]
     top = int(max(y + 50, 470) + max(0, (H - 250 - max(y + 50, 470) - 880) / 2))
-    cw, gap = 1040, 60
+    cw, gap = 950, 50
     x0 = (W - (3 * cw + 2 * gap)) // 2
     for i, (t, code, desc) in enumerate(items):
         bx = x0 + i * (cw + gap)
@@ -291,11 +293,11 @@ def render_tree(im, d, sc):
     for i, (p, note) in enumerate(rows):
         main = (126, 231, 168) if i == 0 else (222, 230, 244)
         d.text((M, y2), p, font=font(F_MONOB, 42) if i == 0 else fm, fill=main)
-        d.text((M + 720, y2 + 6), note, font=font(F_REG, 31), fill=INK2)
+        d.text((M + 690, y2 + 6), note, font=font(F_REG, 31), fill=INK2)
         y2 += 128
 
     # 右侧补一块统计，否则右边三分之一全是空的
-    bx = 2560
+    bx = 3040
     stats = [("54", "个算子", ACCENT), ("31", "个插件", CYAN), ("10", "个分组", (126, 231, 168))]
     sy = top + 10
     d.line([(bx - 90, sy - 20), (bx - 90, sy + 470)], fill=(44, 52, 70), width=2)
@@ -303,6 +305,117 @@ def render_tree(im, d, sc):
         d.text((bx, sy), num, font=font(F_BOLD, 128), fill=col)
         d.text((bx + 6, sy + 158), label, font=font(F_REG, 36), fill=INK2)
         sy += 220
+    return im
+
+
+def vcenter(y, block_h, bottom=290):
+    """在标题下方与字幕上方之间把内容块垂直居中。"""
+    top = y + 40
+    bot = H - bottom
+    return int(top + max(0, (bot - top - block_h) // 2))
+
+
+def render_stat(im, d, sc):
+    """几个大数字：适合报规模、性能、断言数。"""
+    y = head(im, d, sc["chapter"], sc["title"], sc["sub"], title_size=96)
+    items = sc["items"]
+    n = len(items)
+    gap = 100
+    cw = (W - 2 * M - (n - 1) * gap) // n
+    x0 = M
+    top = vcenter(y, 470)
+    for i, (num, label, col) in enumerate(items):
+        bx = x0 + i * (cw + gap)
+        small = len(num) > 3
+        f = font(F_BOLD, 210 if small else 300)
+        d.text((bx + cw / 2, top), num, font=f, fill=col, anchor="ma")
+        cy = top + (238 if small else 340)
+        d.rounded_rectangle([bx + cw / 2 - 48, cy, bx + cw / 2 + 48, cy + 7], 3,
+                            fill=(62, 70, 94))
+        lf = font(F_REG, 38)
+        yy = cy + 52
+        for ln in wrap(d, label, lf, cw - 20):
+            d.text((bx + cw / 2, yy), ln, font=lf, fill=INK2, anchor="ma")
+            yy += 58
+    return im
+
+
+def render_code(im, d, sc):
+    """终端块：命令 + 输出。"""
+    y = head(im, d, sc["chapter"], sc["title"], sc["sub"], title_size=96)
+    lines = sc["lines"]
+    lh = 82
+    bh = len(lines) * lh + 132
+    top = vcenter(y, bh)
+    x0, x1 = M, W - M
+    panel = Image.new("RGBA", (x1 - x0, bh), (0, 0, 0, 0))
+    pd = ImageDraw.Draw(panel)
+    pd.rounded_rectangle([0, 0, x1 - x0 - 1, bh - 1], 22,
+                         fill=(10, 14, 21, 255), outline=(46, 54, 74, 255), width=2)
+    for k, c in enumerate([(255, 95, 86), (255, 189, 46), (39, 201, 63)]):
+        pd.ellipse([26 + k * 34, 24, 44 + k * 34, 42], fill=c)
+    im.paste(panel, (x0, top), panel)
+    fm = font(F_MONO, 40)
+    yy = top + 88
+    tone = {"cmd": (126, 231, 168), "out": (176, 188, 210),
+            "dim": (108, 120, 145), "key": CYAN}
+    for txt, style in lines:
+        d.text((x0 + 54, yy), txt, font=fm, fill=tone.get(style, (176, 188, 210)))
+        yy += lh
+    return im
+
+
+def render_steps(im, d, sc):
+    """横向编号步骤。"""
+    y = head(im, d, sc["chapter"], sc["title"], sc["sub"], title_size=96)
+    items = sc["items"]
+    n = len(items)
+    gap = 54
+    cw = (W - 2 * M - (n - 1) * gap) // n
+    chh = 470
+    top = vcenter(y, chh)
+    for i, (no, title, desc) in enumerate(items):
+        bx = M + i * (cw + gap)
+        panel = Image.new("RGBA", (cw, chh), (0, 0, 0, 0))
+        pd = ImageDraw.Draw(panel)
+        pd.rounded_rectangle([0, 0, cw - 1, chh - 1], 22,
+                             fill=(20, 25, 36, 255), outline=(52, 60, 82, 255), width=2)
+        im.paste(panel, (bx, top), panel)
+        dls = wrap(d, desc, font(F_REG, 34), cw - 104)
+        inner = 88 + 40 + 58 + 32 + len(dls) * 52
+        iy = top + (chh - inner) // 2
+        d.ellipse([bx + 52, iy, bx + 52 + 88, iy + 88], fill=ACCENT)
+        nf = font(F_BOLD, 46)
+        d.text((bx + 96, iy + 44), no, font=nf, fill=(255, 255, 255), anchor="mm")
+        d.text((bx + 52, iy + 128), title, font=font(F_BOLD, 46), fill=INK)
+        yy = iy + 128 + 58 + 32
+        for ln in dls:
+            d.text((bx + 52, yy), ln, font=font(F_REG, 34), fill=INK2)
+            yy += 52
+        if i < n - 1:
+            ax = bx + cw + 8
+            d.line([(ax, top + chh / 2 - 2), (ax + gap - 16, top + chh / 2 - 2)],
+                   fill=(64, 72, 96), width=3)
+            d.polygon([(ax + gap - 16, top + chh / 2 - 12),
+                       (ax + gap - 2, top + chh / 2 - 2),
+                       (ax + gap - 16, top + chh / 2 + 8)], fill=(64, 72, 96))
+    return im
+
+
+def render_duo(im, d, sc):
+    """左右两卡对比（输入 → 输出）。"""
+    y = head(im, d, sc["chapter"], sc["title"], sc["sub"], title_size=96)
+    gap = 64
+    cw = (W - 2 * M - gap) // 2
+    ch = int(cw * 0.58)
+    top = vcenter(y, ch + 60)
+    for i, (slug, label) in enumerate(sc["imgs"]):
+        bx = M + i * (cw + gap)
+        d.text((bx + 4, top - 52), label, font=font(F_BOLD, 32),
+               fill=ACCENT if i else INK3)
+        src = os.path.join(SHOTS, slug + ".png")
+        if os.path.exists(src):
+            card(im, src, (bx, top, bx + cw, top + ch))
     return im
 
 
@@ -368,6 +481,14 @@ def main():
             render_tree(im, d, sc)
         elif k == "outro":
             render_outro(im, d, sc)
+        elif k == "stat":
+            render_stat(im, d, sc)
+        elif k == "code":
+            render_code(im, d, sc)
+        elif k == "steps":
+            render_steps(im, d, sc)
+        elif k == "duo":
+            render_duo(im, d, sc)
         p = os.path.join(OUT, sc["key"] + ".png")
         im.save(p)
         print("OK", os.path.basename(p), os.path.getsize(p) // 1024, "KB")

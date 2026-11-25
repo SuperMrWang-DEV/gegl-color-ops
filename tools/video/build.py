@@ -16,11 +16,12 @@ AUD = os.path.join(VDIR, "audio")
 CLIPS = os.path.join(VDIR, "clips")
 FRAMES = os.path.join(VDIR, "frames")
 BUILD = os.path.join(VDIR, "build")
+PRE = os.path.join(VDIR, "pre")
 # 成片不进仓库（4K 五分钟 160MB+，GitHub 单文件上限 100MB）
 OUT = os.path.join(os.path.dirname(ROOT), "outputs", "video")
 
 VOICE = "zh-CN-YunxiNeural"
-RATE = "-4%"
+RATE = "-2%"
 W, H, FPS = 3840, 2160, 30
 LEAD, TAIL, MIN_HOLD = 0.38, 0.72, 4.2
 
@@ -130,8 +131,27 @@ def ts(t):
 
 # ---------- 3. 单镜编码 ----------
 
+# 预放大尺寸：crop 只能在整数像素上取，所以留出 400x160 的可滑动余量。
+# 画面左右安全边距（render.M=400）就是给这块让的，别把 M 调小。
+# 关键：每帧位移必须严格等量（1 或 2 px），速度恒定的整数平移是平滑的；
+# zoompan 那种整数缩放会让位移在 -2..+2 之间来回跳，那就是抖动。
+PW, PH = 4240, 2320
+XSPAN = PW - W
+
+
+def prep(sc):
+    """把画面预放大一次，后面每帧只做无损 crop。"""
+    src = os.path.join(FRAMES, sc["key"] + ".png")
+    dst = os.path.join(PRE, sc["key"] + ".png")
+    os.makedirs(PRE, exist_ok=True)
+    if not os.path.exists(dst) or os.path.getmtime(dst) < os.path.getmtime(src):
+        sh(["ffmpeg", "-y", "-loglevel", "error", "-i", src,
+            "-vf", "scale=%d:%d:flags=lanczos" % (PW, PH), dst])
+    return dst
+
+
 def make_clip(sc, voice, hold, idx, fade_in, fade_out):
-    png = os.path.join(FRAMES, sc["key"] + ".png")
+    png = prep(sc)
     mp4 = os.path.join(CLIPS, "%02d.mp4" % idx)
     wav = os.path.join(CLIPS, "%02d.wav" % idx)
     ass = os.path.join(BUILD, "%02d.ass" % idx)
@@ -140,20 +160,21 @@ def make_clip(sc, voice, hold, idx, fade_in, fade_out):
     open(ass, "w", encoding="utf-8").write(ass_for(sc, voice, hold))
 
     n = int(round(hold * FPS))
-    # 推近：1.00 → 1.045，靠方向给一点差异，避免每条都一模一样
-    z0, z1 = 1.0, 1.045
-    if idx % 3 == 1:
-        z0, z1 = 1.045, 1.0
+    # 严格 1px/帧：速度恒定，人眼看到的是平滑横移
+    dpx = 1
+    x0 = max(0, XSPAN - n * dpx)
+    if idx % 2:
+        xexpr = "%d+(%d-n)*%d" % (x0, n - 1, dpx)   # 从右往左
+    else:
+        xexpr = "%d+n*%d" % (x0, dpx)               # 从左往右
     vf = (
-        "scale=%d:%d:flags=lanczos,"
-        "zoompan=z='%.4f+(%.4f-%.4f)*on/%d'"
-        ":x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
-        ":d=1:s=%dx%d:fps=%d,"
+        # exact=1 必须加：默认 crop 会把 x 舍入到偶数，2px 位移就变成
+        # 「+2 / 0」交替 —— 平均速度对但节奏不均，肉眼就是抖。
+        "crop=%d:%d:x='%s':y=%d:exact=1,"
         "ass=%s,"
         "fade=t=in:st=0:d=%.2f,fade=t=out:st=%.2f:d=%.2f,"
         "format=yuv420p"
-    ) % (int(W * 1.06) // 2 * 2, int(H * 1.06) // 2 * 2, z0, z1, z0, n - 1,
-         W, H, FPS, os.path.basename(ass),
+    ) % (W, H, xexpr, (PH - H) // 2, os.path.basename(ass),
          fade_in, hold - fade_out, fade_out)
     sh(["ffmpeg", "-y", "-loglevel", "error", "-loop", "1", "-framerate", str(FPS),
         "-t", "%.2f" % hold, "-i", png,

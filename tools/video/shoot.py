@@ -17,16 +17,30 @@ PAGES = [
     ("ops", "ops.html", 1400),
     ("plugins", "plugins.html", 1400),
     ("guide", "guide.html", 1000),
+    # 算子详情页
     ("op-levels", "ops/levels.html", 1400),
     ("op-lab-curves", "ops/lab-curves.html", 1400),
-    ("op-puppet-warp", "ops/puppet-warp.html", 1500),
+    ("op-hue-saturation", "ops/hue-saturation.html", 1400),
+    ("op-channel-range", "ops/channel-range-to-alpha.html", 1400),
+    ("op-unsharp", "ops/unsharp-mask.html", 1400),
+    ("op-dual", "ops/hsi-dual.html", 1400),
     ("op-layer-style", "ops/layer-style.html", 1400),
+    ("op-puppet-warp", "ops/puppet-warp.html", 1500),
+    ("op-mesh-warp", "ops/mesh-warp.html", 1500),
+    ("op-exposure", "ops/exposure.html", 1400),
+    # 插件页
     ("plug-curves", "plugins/curves.html", 1400),
+    ("plug-split", "plugins/lab-split-curves.html", 1300),
+    ("plug-cutout", "plugins/cutout.html", 1300),
     ("plug-refine", "plugins/refine.html", 1400),
-    ("plug-warp", "plugins/puppet-warp.html", 1400),
+    ("plug-warp", "plugins/warp.html", 1400),
     ("plug-mesh", "plugins/mesh-warp.html", 1400),
     ("plug-vanishing", "plugins/vanishing-point.html", 1400),
+    ("plug-freq", "plugins/frequency-separation.html", 1300),
+    ("plug-dodge", "plugins/dodge-burn.html", 1300),
     ("plug-ai-inpaint", "plugins/ai-inpaint.html", 1300),
+    ("plug-ai-upscale", "plugins/ai-upscale.html", 1300),
+    ("plug-selection", "plugins/layer-to-selection.html", 1300),
 ]
 
 

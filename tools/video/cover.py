@@ -45,7 +45,7 @@ def main():
     d = ImageDraw.Draw(im)
     x = 230
 
-    tag = "GEGL 色彩算子 · GIMP 3 · 5 分钟"
+    tag = "GEGL 色彩算子 · GIMP 3 · 8 分钟"
     tf = f(BOLD, 36)
     d.text((x, 620), tag, font=tf, fill=ACCENT)
 
