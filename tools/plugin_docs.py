@@ -2385,6 +2385,96 @@ PAGES.append(dict(
   </div>""",
 ))
 
+PAGES.append(dict(
+    key='export-lut',
+    slug='export-lut',
+    title='导出 3D LUT',
+    tag=('调色', 't-color'),
+    count='17³ / 33³ / 65³',
+    menu='SuperMrWang → Export → 3D LUT…',
+    menus=['SuperMrWang → Export → 3D LUT…',
+           '图层右键 → SuperMrWang → Export → 3D LUT…'],
+    pdb='lb-plugin-export-lut(image, drawables)',
+    lede="""<code>lb:color-lookup</code> 是「读 .cube」，这一支是反过来：把当前图层挂着的
+   非破坏滤镜栈，整个烘成一个 <code>.cube</code>。调好的色就能脱离这个工程单独走——
+   给视频、给另一张图、给另一个软件，甚至给手机上的调色 App。""",
+    body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>怎么用</h3><span class="pill">三次点击</span></div>
+      <p>先在图层上用非破坏滤镜把色调到满意（菜单 <b>Colors</b> / <b>Filters</b> 里的
+         算子会以滤镜形式挂上去），再选 <b>SuperMrWang → Export → 3D LUT…</b>。
+         对话框里只问三件事：<b>尺寸</b>（17³ / 33³ / 65³）、<b>输出路径</b>，
+         以及确认一下顶部列出的算子清单。</p>
+      <p>尺寸越大越准、文件越大：17³ 是 4913 条，适合预览；33³ 是 35937 条，
+         一兆出头，绝大多数场合够用；65³ 是 274625 条，靠近黑场的折点才不失真，
+         文件约 8 MB。三者都是边长立方的整数格，不是随便切的采样。</p>
+      <p><b>没有滤镜的图层会被拦下来</b>，并告诉你先去挂一个——空栈烘出来就是恒等
+         LUT，没有意义。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>它烘的是什么</h3><span class="pill">整条栈，不是一个算子</span></div>
+      <p>复制一份图像 → 只留目标层 → 在上面铺一张<b>单位图</b> → 按滤镜栈从底到顶
+         逐条 merge → 读回像素。所以曲线 + 色阶 + 色相偏移这样叠了四五层的一串调整，
+         出来仍然只有<b>一个</b> LUT。原图一个字节都不动。</p>
+      <p>单位图的排法是公开实现的通行做法：宽 <code>size²</code>、高 <code>size</code>，
+         像素 <code>(x = g·size + r, y = b)</code> 里存 <code>(r,g,b)/(size−1)</code>，
+         红变化最快。参考的是 RawTherapee 的 <code>CubeLUT</code>（PR #7676，
+         HALD / .cube 导出）与 OpenColorIO 的
+         <code>FileFormatIridasCube::bake()</code>——表头 <code>LUT_3D_SIZE</code>、
+         六位小数、R 最快 B 最慢，都按它们的写法。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>两个坑，都写进回归了</h3><span class="pill">0.8 个色阶</span></div>
+      <p><b>① merge 顺序反了。</b><code>get_filters()</code> 是从<b>栈顶</b>往下给，
+         而 GIMP 实际先算<b>栈底</b>。照列表顺序 merge，等于把整条链倒着跑一遍——
+         实测差 <b>0.8 个色阶</b>，肉眼不一定看得出，但和屏幕上看到的就是两张图。
+         必须 <code>reversed()</code>。</p>
+      <p><b>② 精度不能中途改。</b>为了躲 8bit 量化，曾把副本转成浮点再烘——结果
+         管线语义变了：8bit 每一级都 clamp 到 0…1，浮点不 clamp，负的 a/b 会一路
+         带到下一级。同一份栈照样差 0.8。<b>原图层什么精度就按什么精度烘。</b></p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>哪些算子烘得准，哪些只是近似</h3></div>
+      <p>LUT 是「像素值 → 像素值」的查表，所以<b>逐像素算子</b>能完整表示：
+         曲线、色阶、色相 / 饱和度、色彩平衡、通道混合、曝光、白平衡这一类，
+         烘出来和原栈逐格对得上。</p>
+      <p><b>看邻居像素的算子</b>（高斯模糊、降噪、USM、置换、木偶 / 自由变形、
+         图层样式、最大最小值）以及<b>多输入算子</b>，LUT 只能拿一个像素去查，
+         几何和邻域信息根本不在表里。这些会在对话框里被标成<b>「近似」</b>并点名，
+         不会被悄悄咽下去。</p>
+      <p>图层带蒙版时会先在副本上把蒙版<b>摘掉</b>——蒙版让滤镜只作用在一部分像素上，
+         那种「同一输入两种输出」的东西本来就不是函数，烘出来没有意义。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>烘完怎么验</h3><span class="pill">贴回去比</span></div>
+      <p>最直接的一条：把 <code>.cube</code> 丢给 <code>lb:color-lookup</code>，挂在原图上，
+         和原来那条滤镜栈逐像素比。33³ 三线性的<b>格间</b>误差实测最大
+         <b>0.040</b>（出现在近黑的折点处），<b>格点位置</b>差 <b>≤ 1.5 码</b>——
+         曲线在暗部拐得越急，格与格之间那点线性插值的缺口越明显，这就是加尺寸的
+         理由。</p>
+      <p>回归 <code>check_export_lut_gimp.py</code> 33 项：单位图布局（红最快）、
+         恒等栈必须出恒等表、单滤镜逐格对账、三滤镜串联 vs 直接过栈、.cube 文本格式
+         （表头 / 行数 / 小数位 / 顺序）、空栈报错、原图逐字节未改、8bit 与浮点
+         各自对账。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>非交互</h3></div>
+      <p>这个命令<b>必须开界面</b>：尺寸和路径都要选，没有对应的过程参数。批量烘
+         （一条 LUT 给一组图）请在 GIMP 的 Python-Fu 里循环调用本模块的
+         <code>lut_bake.bake()</code> 与 <code>write_cube()</code>，那两件事与对话框
+         无关，可以直接用。</p>
+      <p class="muted small">依赖：只需要 GIMP 自己的图层滤镜 API，
+         不需要任何自研算子模块，装了插件就能用。</p>
+    </div>
+  </div>""",
+))
+
 BY_KEY = {p["key"]: p for p in PAGES}
 
 # 英文正文单独一个模块（大段 HTML，混在这里不好读）
@@ -2435,6 +2525,8 @@ BRIEF = {
     "max-min": "形态学的最大值（膨胀）与最小值（腐蚀）：扩边、收边、去亮点暗点，"
                "半径 1–100、方形或圆盘可选。",
     "layer-style": "十个 PS 图层样式效果，结果是一组可编辑图层：投影在外、内阴影在内。",
+    "export-lut": "把图层上挂着的一串非破坏滤镜整个烘成一个 .cube：给视频、给别的图、"
+                  "给别的软件，17³ / 33³ / 65³ 三档精度。",
     "convert": "通道、选区、蒙版、路径四者两两互转，十二个方向各一个菜单项、点一下"
                "就完事，不弹参数框；另加一条路径 / 矢量图层转位图。",
 }
@@ -2468,6 +2560,7 @@ TITLE_EN = {
     "max-min": "Max / Min",
     "convert": "Convert",
     "layer-style": "Layer Style",
+    "export-lut": "Export 3D LUT",
 }
 
 BRIEF_EN = {
@@ -2527,6 +2620,8 @@ BRIEF_EN = {
                "mask, kill specks, radius 1–100, square or disc.",
     "layer-style": "Ten Photoshop layer effects, delivered as a group of editable layers: shadows below, "
                    "inner effects above.",
+    "export-lut": "Bakes the layer's whole non-destructive filter stack into one .cube — "
+                  "for video, for other images, for other software.",
     "convert": "Channels, selections, layer masks and paths, all twelve directions as one-click "
                 "menu items with no dialog.",
 }
@@ -2571,6 +2666,11 @@ DEPS_NOTE_EN = {
     "max-min": "Uses this project's own lb:max-min operator, because GIMP 3 no "
                "longer ships dilate / erode. The module is inside the plug-in "
                "zip — drop it into the GEGL module folder.",
+    "export-lut": "No operator modules and nothing to compile: it only drives GIMP's "
+                  "own layer-filter API (duplicate the image, merge each filter, read "
+                  "the pixels) and writes the .cube text format itself. Installing the "
+                  "plug-in is enough; <code>lb:color-lookup</code> is only needed if "
+                  "you want to load the result back to compare.",
 }
 
 AREA = {"selection": "图层转换", "channel": "图层转换", "split": "图层转换",
@@ -2586,7 +2686,8 @@ AREA = {"selection": "图层转换", "channel": "图层转换", "split": "图层
         "vanishing-point": "Distort",
         "alpha-curves": "Mask", "color-range": "Mask",
         "channel-to-mask": "Mask", "max-min": "Mask",
-        "curves": "Color"}
+        "curves": "Color",
+        "export-lut": "Color"}
 
 DEPS = {
     "ai-inpaint": [],
@@ -2620,6 +2721,7 @@ DEPS = {
                "lb:cmyk-curves"],
     "convert": [],
     "layer-style": [],
+    "export-lut": [],
     "split": [],
 }
 
@@ -2661,6 +2763,9 @@ DEPS_NOTE = {
                "<code>retouch_math.py</code>——下载包里已经带上了。",
     "max-min": "用本项目自己的算子 lb:max-min（GIMP 3 已不带 dilate / erode）。"
                "插件包里已附带这个模块，按 readme 放进 GEGL 模块目录即可。",
+    "export-lut": "不依赖任何自研算子，也不用编译：只调 GIMP 自己的图层滤镜 API"
+                  "（复制图像、merge 滤镜、读像素），再按 .cube 的文本格式写文件。"
+                  "装了插件就能用；读回来验证时才需要 <code>lb:color-lookup</code>。",
 }
 
 PAGES.append(dict(

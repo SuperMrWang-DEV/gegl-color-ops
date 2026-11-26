@@ -36,6 +36,15 @@
        Lab 的 a/b 轴，也给不了 LCh 的彩度与色相。这里补齐四个空间，一条内核。</summary>
   </entry>
   <entry>
+    <title>插件 · 导出 3D LUT</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/export-lut.html"/>
+    <id>tag:github.com,2026:plugin-export-lut</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>lb:color-lookup 是「读 .cube」，这一支是反过来：把当前图层挂着的
+   非破坏滤镜栈，整个烘成一个 .cube。调好的色就能脱离这个工程单独走——
+   给视频、给另一张图、给另一个软件，甚至给手机上的调色 App。</summary>
+  </entry>
+  <entry>
     <title>插件 · 图层样式</title>
     <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/layer-style.html"/>
     <id>tag:github.com,2026:plugin-layer-style</id>

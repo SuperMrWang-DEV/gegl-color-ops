@@ -2519,3 +2519,97 @@ PLUGIN_EN["curves"] = dict(
      no overshoot, alpha, tolerance, C–Python parity). The operators also run from the command
      line: <code>gegl in.png -o out.png -- lb:lab-curves curves="L 0,0 0.5,0.7 1,1"</code>.</p>""",
 )
+
+PLUGIN_EN["export-lut"] = dict(
+    lede="""<code>lb:color-lookup</code> reads a .cube; this one does the opposite. Whatever
+   non-destructive filter stack the layer is carrying gets baked into a single
+   <code>.cube</code>, so the grade can leave the project — to video, to another image, to
+   another piece of software, even to a phone app.""",
+    body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Three clicks</h3><span class="pill">17³ / 33³ / 65³</span></div>
+      <p>Grade the layer with non-destructive filters first (operators from the
+         <b>Colors</b> / <b>Filters</b> menus attach themselves as filters), then pick
+         <b>SuperMrWang → Export → 3D LUT…</b>. The dialog asks for two things —
+         <b>size</b> and <b>output path</b> — and lists the operators it found in the stack
+         so you can confirm before writing.</p>
+      <p>Bigger is more accurate and bigger on disk: 17³ is 4,913 entries, fine for a
+         preview; 33³ is 35,937, about a megabyte, and enough almost everywhere; 65³ is
+         274,625, roughly 8 MB, for grades that fold hard near black. All three are exact
+         cubes — an integer grid per axis, not an arbitrary sample.</p>
+      <p><b>A layer with no filters is refused</b>, with a message telling you to attach one
+         first: an empty stack bakes an identity LUT, which is pointless.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>What it actually bakes</h3><span class="pill">the whole stack</span></div>
+      <p>Duplicate the image → keep only the target layer → lay an <b>identity image</b> on it
+         → <code>merge</code> every filter from the bottom of the stack to the top → read the
+         pixels back. So curves plus levels plus a hue shift — four or five layers of
+         adjustment — still come out as <b>one</b> LUT. Not one pixel of the original is
+         touched.</p>
+      <p>The identity image uses the layout both public implementations agree on: width
+         <code>size²</code>, height <code>size</code>, and pixel
+         <code>(x = g·size + r, y = b)</code> holding <code>(r,g,b)/(size−1)</code>, red
+         varying fastest. The references are RawTherapee's <code>CubeLUT</code> (PR #7676,
+         HALD / .cube export) and OpenColorIO's
+         <code>FileFormatIridasCube::bake()</code> — <code>LUT_3D_SIZE</code> header, six
+         decimals, R fastest and B slowest, all in their format.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Two traps, both in the regression</h3><span class="pill">0.8 of a level</span></div>
+      <p><b>① Merging in the wrong order.</b> <code>get_filters()</code> hands you the
+         <b>top</b> of the stack first, while GIMP evaluates the <b>bottom</b> first. Merging
+         in list order runs the whole chain backwards — measured at <b>0.8 of a level</b>.
+         Subtle, but it is still not the picture you saw on screen. It needs
+         <code>reversed()</code>.</p>
+      <p><b>② Changing precision halfway.</b> To dodge 8-bit quantisation the copy was once
+         converted to float before baking — which changes what the pipeline means: 8-bit
+         clamps at every step to 0…1, float does not, so a negative a/b carries into the next
+         filter. Still 0.8 apart. <b>Bake at the layer's own precision.</b></p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Exact, or only approximate</h3></div>
+      <p>A LUT is a pixel-in / pixel-out table, so <b>per-pixel operators</b> survive intact:
+         curves, levels, hue / saturation, colour balance, channel mixer, exposure, white
+         balance — the baked table matches the live stack grid point for grid point.</p>
+      <p><b>Neighbourhood operators</b> (Gaussian blur, denoise, unsharp mask, displace,
+         puppet / mesh warp, layer styles, max / min) and <b>multi-input operators</b> cannot
+         be represented: a LUT looks up one pixel and has no geometry or neighbourhood in the
+         table. The dialog labels these <b>“approximate”</b> and names them, rather than
+         swallowing the discrepancy.</p>
+      <p>If the layer carries a mask, the mask is <b>dropped</b> on the copy first: a mask
+         makes the filter apply to only some pixels, so the same input has two outputs —
+         not a function, and not something a LUT can hold.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Checking the result</h3><span class="pill">load it back</span></div>
+      <p>The direct test: hand the <code>.cube</code> to <code>lb:color-lookup</code>, put it
+         on the same image and compare pixel by pixel. With 33³ and trilinear lookup the
+         worst <b>between-grid</b> error measures <b>0.040</b> (near a hard fold in the
+         shadows) while the <b>grid points themselves</b> land within <b>1.5 codes</b>. The
+         sharper the curve bends in the dark end, the more that gap between neighbouring
+         entries shows — which is the reason to go up a size.</p>
+      <p>Regression <code>check_export_lut_gimp.py</code>, 33 checks: identity-image layout
+         (red fastest), an identity stack must bake an identity table, per-filter grid
+         reconciliation, three filters in series versus running the stack directly, .cube
+         text format (header / row count / decimals / order), the empty-stack error, the
+         original image byte-for-byte unchanged, and 8-bit and float each reconciled
+         separately.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Not scriptable as a procedure</h3></div>
+      <p>This command <b>needs the dialog</b>: size and path both have to be chosen, and there
+         are no procedure arguments for them. To bake in bulk (one LUT applied to a folder),
+         call <code>lut_bake.bake()</code> and <code>write_cube()</code> from Python-Fu in a
+         loop — neither has anything to do with the dialog.</p>
+      <p class="muted small">Dependencies: GIMP's own layer-filter API only. No operator
+         modules from this project are needed — installing the plug-in is enough.</p>
+    </div>
+  </div>""",
+)

@@ -91,6 +91,13 @@
   "w": 528,
   "zh": "强度、是否收进图层组；两条曲线在生成的两层上改"
  },
+ "export-lut": {
+  "en": "pick the LUT size and output path; the stack's operators are listed above",
+  "h": 238,
+  "title": "导出 3D LUT",
+  "w": 560,
+  "zh": "选尺寸、填路径，顶部列出栈里的算子"
+ },
  "frequency-separation": {
   "en": "split radius and grouping; the curves are edited on the two generated layers",
   "h": 255,

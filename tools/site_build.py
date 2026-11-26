@@ -2665,6 +2665,17 @@ PLUGIN_SPECS = [
                   "半径 1–100、方形或圆盘可选，alpha 默认不动。图层上是非破坏滤镜，"
                   "蒙版和通道直接写像素。",
              pdb="lb-plugin-max-min(image, drawables, mode, radius, shape, affect-alpha)"),
+        dict(key="export-lut", ops=[],
+             name="gegl-color-ops-plugin-export-lut.zip",
+             src_dir=os.path.join(ROOT, "plugin", "export-lut"),
+             py="export-lut.py", menu="Export 3D LUT",
+             menus="    SuperMrWang → Export → 3D LUT…\n"
+                   "    图层右键 → SuperMrWang → Export → 3D LUT…",
+             desc="导出 3D LUT：把当前图层挂着的一串非破坏滤镜整个烘成一个 .cube"
+                  "（17³ / 33³ / 65³），账面上就是「一整条调色链 → 一张表」。"
+                  "逐像素算子烘得准，看邻居像素的算子（模糊 / 置换 / 变形 / 图层样式）"
+                  "会标成近似，图层蒙版在副本上摘掉。原图一个字节不动。",
+             pdb="lb-plugin-export-lut(image, drawables)"),
 ]
 
 
@@ -2986,6 +2997,7 @@ def build_plugins(version, stats=None):
     convert = [p for p in PD.PAGES if p["area"] == "图层转换"]
     mask = [p for p in PD.PAGES if p["area"] == "Mask"]
     distort = [p for p in PD.PAGES if p["area"] == "Distort"]
+    color = [p for p in PD.PAGES if p["area"] == "Color"]
 
     n_plug = len(PD.PAGES)
 
@@ -3019,6 +3031,7 @@ def build_plugins(version, stats=None):
 {convert}
 {mask}
 {distort}
+{color}
   <p class="note">{note}</p>
 </div>""".format(
         home=t("首页", "Home"), plugs=t("Python 插件", "Python plug-ins"),
@@ -3068,7 +3081,14 @@ def build_plugins(version, stats=None):
                    tag_en="Mask",
                    desc_en="Alpha as a curve: generate coverage per channel, then "
                            "shape it freely.")
-        if mask else "")
+        if mask else "",
+        color=group("color", "Color", "t-color",
+                    "把调好的颜色带出这个工程：四个空间的任意曲线，以及把整条滤镜栈"
+                    "烘成一张 .cube 的那一步。", color,
+                    tag_en="Color",
+                    desc_en="Take the grade out of the project: arbitrary curves in four "
+                            "spaces, and the step that bakes a whole filter stack into "
+                            "one .cube."))
 
     return page("Python 插件 · gegl-color-ops", body,
                 desc="GIMP 3 Python 插件：图层转选区 / Alpha 通道，"
@@ -3336,6 +3356,15 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
 
         body_txt = (p.get("body_en") or p["body"]) if en_ else p["body"]
 
+        # 大多数插件的过程参数就是它的全部输入；导出 LUT 反过来，输入在界面上。
+        pdb_note = ("A standard PDB procedure; leave an argument empty to take its default."
+                    if en_ else "标准 PDB 过程，参数留空走默认值。")
+        if p["key"] == "export-lut":
+            pdb_note = ("Needs the dialog: the LUT size and the output path are chosen "
+                        "there — there are no procedure arguments for them." if en_ else
+                        "这个命令必须开界面：LUT 尺寸与输出路径都在对话框里选，没有对应的"
+                        "过程参数；批量烘请直接调 <code>lut_bake.py</code>。")
+
         spec = """<dl class="spec" id="%s-overview">
   <dt>%s</dt>
   <dd><ul class="menu-list">%s</ul><p>%s</p></dd>
@@ -3346,9 +3375,7 @@ def build_plugin_article(p, version, stats=None, prev=None, nxt=None):
 </dl>""" % (lang,
            "Menu location" if en_ else "菜单位置", menu_html,
            layer_note,
-           "Scripting" if en_ else "脚本调用", p["pdb"],
-           "A standard PDB procedure; leave an argument empty to take its default."
-           if en_ else "标准 PDB 过程，参数留空走默认值。",
+           "Scripting" if en_ else "脚本调用", p["pdb"], pdb_note,
            "Dependencies" if en_ else "依赖", dep_html)
 
         arts, secs = _mark_plugin_sections(

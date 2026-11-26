@@ -57,6 +57,7 @@ SUITES = [
     ("check_layer_style_gegl", "gimp"),
     ("check_perspective_gimp", "gimp"),
     ("check_convert", "gimp"),
+    ("check_export_lut_gimp", "gimp"),
     ("check_ai_inpaint_gimp", "gimp"),
     ("check_retouch_ai_gimp", "gimp"),
 ]
@@ -69,6 +70,7 @@ COUNT_RE = [
     (re.compile(r"（(\d+)\s*条断言）"), "one"),              # check_plugin_dialogs
     (re.compile(r"：(\d+)\s*条断言"), "one"),                # check_retouch_ai
     (re.compile(r"全部通过：(\d+)\s*项检查"), "one"),         # check_retouch
+    (re.compile(r"PASS\s+(\d+)\s+FAIL\s+(\d+)"), "pass/fail"),  # check_export_lut_gimp
 ]
 
 

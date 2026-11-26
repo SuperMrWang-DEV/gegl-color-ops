@@ -122,7 +122,7 @@ class ExportLutPlugin(Gimp.PlugIn):
                 Gimp.PDBStatusType.CALLING_ERROR,
                 GLib.Error(_("这个命令需要交互界面（要选尺寸和路径）")))
 
-        size, path = _ask(image, layer, rows)
+        size, path = show_dialog(image, layer, rows)
         if not path:
             return procedure.new_return_values(
                 Gimp.PDBStatusType.CANCEL, None)
@@ -151,8 +151,8 @@ class ExportLutPlugin(Gimp.PlugIn):
 
 # ------------------------------------------------------------------- 对话框
 
-def _ask(image, layer, rows):
-    """选尺寸 + 输出路径。返回 (size, path)；取消时 path 为 None。"""
+def show_dialog(image, layer, rows):
+    """把 build_dialog() 搭好的框跑起来。返回 (size, path)；取消时 path 为 None。"""
     dlg, combo, entry = build_dialog(image, layer, rows)
     path = None
     if dlg.run() == Gtk.ResponseType.OK:
