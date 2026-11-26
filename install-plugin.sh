@@ -81,6 +81,7 @@ echo "    SuperMrWang → Layer      图层样式（投影/内阴影/外发光/�
 echo "    SuperMrWang → Distort    Displace（按位移图重采样）/ 木偶变形（放钉子拖动，MLS 网格变形）
                              自由变形（贝塞尔网格 + 把手：拖交点改形状，拖把手弯网格线，Alt+点击加分割线）
                              消失点（拖四边形标出透视平面：贴图进去 / 拉正成矩形 / 折成台阶）"
+echo "    SuperMrWang → Export     3D LUT…（把当前图层的滤镜栈烘成 .cube，可给视频 / 别的图用）"
 echo "    SuperMrWang → AI         AI Inpaint（选区 + 提示词 → 本机 ComfyUI 重绘，需要 ComfyUI 在跑）"
 echo "                             AI Inpaint (Advanced)（全参数，含底模下拉）"
 echo "                             AI Expand（扩画布，扩出来的那圈让 AI 画满）"

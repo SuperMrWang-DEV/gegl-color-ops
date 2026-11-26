@@ -484,6 +484,45 @@ alpha 都有回滚。与算子版本的区别是**一次性应用**——想随�
 切模式不串值、合并后不留滤镜、RGB 零改动、高光/阴影两端方向、无 alpha 自动补、
 图层组被拒）。
 
+### Python 插件：plugin/export-lut（把滤镜栈烘成 3D LUT）
+
+`lb:color-lookup` 是「读 .cube」，这一支是反过来：把当前图层挂着的非破坏
+滤镜栈，烘成一个 .cube。调好的色就能脱离工程单独走——给视频、给别的图、
+给别的软件。
+
+位置：**SuperMrWang → Export → 3D LUT…**，或图层右键。
+参数三项：LUT 尺寸（17³ / 33³ / 65³）、输出路径；对话框顶部把栈里的算子
+列出来，看邻居像素的那几个标成「近似」。
+
+做法与两份公开实现一致：
+
+| 参考 | 拿它的什么 |
+|---|---|
+| RawTherapee `CubeLUT`（PR #7676「Add .cube LUT support and HALD/.cube LUT export」） | 单位图布局：宽 size²、高 size，像素 `(x=g·size+r, y=b)` 编码 `(r,g,b)/(size-1)`；整条管线过一遍后按红变化最快吐出 |
+| OpenColorIO `FileFormatIridasCube::bake()` | `.cube` 表头与条目顺序（`LUT_3D_SIZE`、6 位小数、R 最快 B 最慢） |
+
+管线换成 GIMP 的图层滤镜栈：复制一份图像 → 只留目标层 → 铺上单位图 →
+按栈底到栈顶 merge 掉每个 `DrawableFilter` → 读回像素。原图一个字节都不动。
+
+两个坑（都写进了回归，别再踩）：
+
+1. **merge 顺序**。`get_filters()` 从栈顶往下给，而 GIMP 先算栈底；照列表
+   顺序 merge 等于把整条链倒着跑，实测差 0.8 个色阶。必须 `reversed()`。
+2. **精度不能动**。曾经为了躲 8bit 量化把副本转成浮点，结果管线语义变了：
+   8bit 每一级都 clamp 到 0…1，浮点不会，负的 a/b 会一路带到下一级，同一份
+   栈能差出 0.8。原图层什么精度就按什么精度烘。
+
+限制：只有逐像素算子能被 LUT 完整表示。模糊、降噪、USM、置换、
+木偶/自由变形、图层样式、最大最小值、多输入算子会变成近似（界面会标）。
+33³ 三线性的格间误差实测最大 0.040（近黑折点处），格点位置 ≤ 1.5 码。
+图层有蒙版时会先在副本上摘掉——蒙版会让滤镜只作用在一部分像素上，
+那样烘出来没有意义。
+
+回归 `tools/check_export_lut_gimp.py`（33 项：单位图布局、恒等栈、单滤镜
+逐格对账、三滤镜串联 vs 直接过栈、.cube 格式、空间算子识别、空栈报错、
+原图不被改、8bit/浮点各自对账、用 `lb:color-lookup` 贴回后差几个码）。
+对话框截图 `tools/shot_export_lut.py` → `tools/site/plugin-shots/export-lut/`。
+
 ### Python 插件：plugin/sky-replace（暂不发布）
 
 > 源码保留在仓库里，目录带 `.disabled` 标记，install-plugin.sh 不会安装；
@@ -1967,6 +2006,7 @@ SuperMrWang → Retouch   → 高低频 / 双曲线 / 中性灰磨皮
 SuperMrWang → Observe   → 黑白 / 陡峭曲线 / 波浪曲线 / 饱和度 / 阈值 / 海报化
                           观察层，点了就建（也是 Python 插件）
 SuperMrWang → Luminosity Masks → 生成七条明度通道（亮部/暗部各 3 档 + 中间调）
+SuperMrWang → Export    → 3D LUT…（把当前图层的滤镜栈烘成 .cube）
                           （以上都是 Python 插件，不在 54 个算子里）
 ```
 
@@ -2038,6 +2078,7 @@ python tools/normalize_headers.py           # 预览文件头/命名重排，加
 python tools/set_menu_group.py --check      # 核对菜分组映射表与 ops 目录是否一一对应
 python tools/check_menu.py                  # 每个算子都有 id / menu-path / menu-label，且路径与分组表一致
 python tools/check_ai_inpaint.py            # AI 重绘的 HTTP/PNG 链路（对着 mock ComfyUI，不需要显卡）
+python tools/check_export_lut_gimp.py       # 滤镜栈 → .cube：布局 / 恒等 / 插值误差 / 格式（gimp-console 跑，33 项）
 python tools/check_setup_comfy.py           # AI 依赖安装器：台账 / 档位 / 找 ComfyUI / 断点续传 / 体检（53 条）
 python tools/check_comfy_launcher.py        # ComfyUI 目录探测、自动启动、真起进程（54 条）
 # 下面三条要在真 GIMP 里跑（插件已装好）；用 gimp-console，不用开界面
