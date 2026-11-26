@@ -4,6 +4,7 @@ windows-x64,apply-image.dll,lb:apply-image,Apply Image,121502,743760920a58950f60
 windows-x64,calculations.dll,lb:calculations,Calculations,113472,d1a50b177fb3110958f1438b2f835be8cabfe3ff1a522731688138e6b8bc3ff6
 windows-x64,channel-mixer-plus.dll,lb:channel-mixer-plus,Channel Mixer Plus,110265,2d13cb2cd4843574355a1cf75727b8d194142938fc76ef86123646b82cd6feae
 windows-x64,channel-range-to-alpha.dll,lb:channel-range-to-alpha,Channel Range to Alpha,132045,96c4db132d487ff962bce20f6507e3bbcb26389ff79e45b85a5f483aa2149136
+windows-x64,clarity-dehaze.dll,lb:clarity-dehaze,Clarity & Dehaze,115225,8811669ab943dcab9e917bc4f277dc5595bc7ba0b489c3ac28a99ad416aa4c44
 windows-x64,cmyk-curves.dll,lb:cmyk-curves,CMYK Curves,110773,3d0c0846c63282086159d45f751ab3f8af299dab0758339bd226e24d51dcd081
 windows-x64,cmyk-levels.dll,lb:cmyk-levels,CMYK Levels,134934,c760fe3d0e205bc9fcedbeb19849b1eb8cd9a0866cb82a6a2194bdc9c52872e0
 windows-x64,cmyk-primary-correction.dll,lb:cmyk-primary-correction,CMYK Primary Correction,117655,f95ec78376a273efafbc09f2b6ff01ff7a99811ff6c25f3a26380c154399b4c8

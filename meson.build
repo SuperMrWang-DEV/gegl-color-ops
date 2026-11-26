@@ -90,6 +90,8 @@ ops = [
   ['displace',                'displace',                'displace.c'],
   # 镜头校正：畸变 / 暗角 / 横向色差，一次重采样，自动缩放兜住四角
   ['lens-correction',         'lens-correction',         'lens-correction.c'],
+  # 清晰度 / 去朦胧：中频局部对比 + 暗通道先验，Camera Raw 的两个滑块
+  ['clarity-dehaze',          'clarity-dehaze',          'clarity-dehaze.c'],
   # 锐化与杂色：PS「锐化 → USM」与「杂色」四个滤镜的等价物
   ['unsharp-mask',            'unsharp-mask',            'unsharp-mask.c'],
   ['add-noise',               'add-noise',               'add-noise.c'],

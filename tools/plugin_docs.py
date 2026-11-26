@@ -1569,6 +1569,121 @@ python tools/setup_comfy.py --tier full # 再加 Flux.1 Fill（12 GB）</code></
   </div>""",
     ),
     dict(
+        key='clarity-dehaze',
+        slug='clarity-dehaze',
+        title='清晰度 / 去朦胧',
+        tag=('影调', 't-tone'),
+        count='两个滑块一个算子',
+        menu='SuperMrWang → Color → 清晰度 / 去朦胧…',
+        menus=['SuperMrWang → Color → 清晰度 / 去朦胧…',
+               '图层右键 → SuperMrWang → Color → 清晰度 / 去朦胧…'],
+        pdb='lb-plugin-clarity-dehaze(image, drawables, settings, output)',
+        lede="""Camera Raw「基本」面板上最常拖的两个滑块：<b>清晰度</b>（中频局部
+   对比，不是锐化）与<b>去朦胧</b>（暗通道先验反解大气散射）。两组参数落在
+   同一个算子里，先去雾再清晰度，一次算出。""",
+        body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>清晰度不是锐化</h3><span class="pill">中频，几十像素</span></div>
+      <p>锐化（USM）动的是<b>高频</b>：像素级的边缘，效果是「更脆」，噪点也跟着脆。
+         清晰度动的是<b>中频</b>：几十像素尺度上的明暗过渡——树叶的层次、云里的
+         体积、皮肤上的大结构。所以它能把一张「平」的照片打开，却不放大噪点。</p>
+      <p>做法是把亮度减去一个大半径低通，得到中频层 <code>d = Y − low</code>，
+         再按比例加回去：<code>gain = 1 + 强度 · w · d′ / max(low, 0.08)</code>。</p>
+      <p>两个细节决定了它「像 PS」而不是「像 USM」：
+         <b>①</b> 增益是<b>相对</b>量（除以 low），暗部不会因为 low 很小被放大成噪点，
+         亮部也不会一推就溢出。
+         <b>②</b> 中频层先过一道 <code>h·tanh(d/h)</code>：幅度远大于 h 的地方
+         （硬边缘两侧的过冲）被压到 ±h，边缘不会长出亮边 / 黑边；幅度在 h 以内的
+         纹理几乎原样通过。这个 h 就是滑杆上的「边缘保护」。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>中间调权重</h3><span class="pill">护住黑白两端</span></div>
+      <p>增益还乘一个 <code>w = 1 − |2Y − 1|²</code>：中间调满权，越接近纯黑纯白
+         越不增强。这不是保守，是必要的——暗部本来就没多少可分配的空间，硬推就是
+         噪点；亮部硬推就是死白。</p>
+      <p>半径默认 40 px，这是「中频」的边界：再小会滑向锐化（纹理变脆），再大会滑向
+         全局对比（等于拉曲线）。1920 宽的照片上 40 px 大约相当于画面宽度的 2%。</p>
+      <p>强度为负时可以当「去清晰度」用：柔化中频但保留细节，比高斯模糊体面得多，
+         适合人像的皮肤。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>去朦胧：雾是一道方程</h3><span class="pill">I = J·t + A(1−t)</span></div>
+      <p>远处的山发灰，是空气把大气光 <code>A</code> 按比例混进了景物 <code>J</code>：
+         透射率 <code>t</code> 越远越小。He、Sun &amp; Tang 2009 的暗通道先验给了
+         一个便宜的反解：</p>
+      <p><b>①</b> 暗通道 <code>dark(p) = min over window(min(R,G,B))</code>；
+         <b>②</b> 大气光 <code>A</code> 取暗通道最亮的 0.1% 像素的原图均值；
+         <b>③</b> <code>t = 1 − ω·dark/lum(A)</code>，夹在 <code>[0.12, 1]</code>；
+         <b>④</b> <code>J = (I − A)/t + A</code>。</p>
+      <p><code>ω</code> 就是滑杆上的<b>保留雾量</b>，默认 0.95：全解（1.0）看着假，
+         留一点空气感反而像照片。窗口默认 15 px，要<b>比雾里最亮的物体大</b>，
+         否则透射率会跟着物体轮廓走，而不是跟着远近走——那种图去完雾像贴了一层灰
+         补丁。</p>
+      <p><code>t</code> 的下限 0.12 是硬约束：再低，1/t 的放大倍数会把噪声乘成十几倍，
+         暗部直接变彩色斑块。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>什么时候不管用</h3></div>
+      <p><b>暗通道先验假设「无雾画面里总有一个通道很暗」</b>。天空占满画面、或者
+         大面积白色主体（雪、白墙）时这个假设不成立，<code>A</code> 会被估到主体上，
+         去完雾天空发灰、白墙出暗角状色块。这时候把强度降到 30 以下，或者干脆
+         只用清晰度。</p>
+      <p>彩色雾（沙尘暴的黄、水雾的青）也不适用：先验假设雾是灰的。PS 的 Dehaze
+         同样会偏色，只是它有额外一层色温补偿。</p>
+      <p>负强度等于<b>加雾</b>，偶尔有用：给前景补一点空气透视做纵深。</p>
+      <p><b>饱和补偿</b>：去雾会按 1/t 提亮，颜色被拉向大气光的灰白，所以默认
+         建议给 10–20 的补偿；它只围绕亮度放大色度，色相不动。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>两个坑，都在代码里</h3><span class="pill">预览与成品</span></div>
+      <p><b>① 半径要按预览缩放比缩回去。</b>半径是像素单位，预览缩到 560 长边之后，
+         40 px 的低通相当于原图的 160 px，预览看起来会比成品糊得多，滑杆就没法调。
+         所以两个半径都乘「预览宽 / 原宽」，并不小于 2。</p>
+      <p><b>② 去雾之后必须重算亮度。</b>清晰度用的是亮度 Y，而去雾改过 RGB。
+         如果沿用去雾前的 Y，低频层和新像素对不上，暗部会出现一圈奇怪的晕。
+         算子里 dehaze 在前、clarity 在后各自算一遍 Y，就是这个原因。</p>
+      <p><b>③ 大气光要看整幅。</b>所以这个算子把整个输入都标成「必需」
+         （<code>get_required_for_output</code> 返回全图），否则预览和导出会
+         用两个不同的 A，观感会跳一下。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>实测</h3><span class="pill">1600×2400</span></div>
+      <p>清晰度 <b>2.03 s</b>、去朦胧 <b>1.21 s</b>、两个都开 <b>3.59 s</b>。
+         两项都为 0 时走真正的恒等快路径（<code>gegl_buffer_copy</code>），
+         0.20 s 里几乎全是图层复制的开销。</p>
+      <p>清晰度的成本主要是三遍盒式模糊（近似高斯，六个方向 pass）；去朦胧是
+         单调队列求窗口最小值 + 暗通道直方图，都是 O(N)，窗口再大也不变慢。
+         预览 560 长边上一次 60–90 ms，拖滑杆跟得上手。</p>
+      <p class="muted small">回归 <code>check_clarity_dehaze_gimp.py</code> 24 项：
+         恒等逐字节、纯色不动、条纹对比升降、硬边相对过冲有界、保护越强过冲越小、
+         中间调增益大于暗部、合成雾图反解（MAE 40 → 14）、纯雾不爆、负强度加雾、
+         饱和补偿、极端参数、性能。</p>
+    </div>
+  </div>
+
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>脚本怎么调</h3><span class="pill">settings = 一份 JSON</span></div>
+    <p>键名与算子属性同名（连字符写法）：</p>
+    <p><code>lb-plugin-clarity-dehaze 图层 settings="{\\"clarity\\": 40, \\"dehaze\\": 35,
+       \\"dehaze-saturation\\": 15}" output=replace</code></p>
+    <p>全部键：<code>clarity</code>、<code>clarity-radius</code>、
+       <code>clarity-protect</code>、<code>dehaze</code>、<code>dehaze-radius</code>、
+       <code>dehaze-keep</code>、<code>dehaze-saturation</code>。
+       <code>output</code> 三档：<code>filter</code> / <code>replace</code> /
+       <code>new</code>。</p>
+    <p><b>没有做的：</b>局部去雾（用深度图或亮度分区只处理天空）、多尺度清晰度
+       （当前是单一半径）、以及 PS 那种「自动」按钮。前两个都是加参数的问题，
+       第三个是估参数的问题。</p>
+  </div>""",
+    ),
+
+    dict(
         key='lens-correction',
         slug='lens-correction',
         title='镜头校正',
@@ -2615,6 +2730,8 @@ BRIEF = {
     "mesh-warp": "盖一张贝塞尔网格：拖交点改形状，选中交点拖把手把网格线弯成曲线。",
     "lens-correction": "畸变 / 暗角 / 色差三项一个对话框：k1 去桶形、暗角压边、"
                        "红蓝各挪几个像素修紫边，一次重采样。",
+    "clarity-dehaze": "清晰度推中频局部对比、去朦胧用暗通道先验反解大气散射，"
+                      "两组参数一个算子。",
     "alpha-curves": "把颜色通道写进 alpha，再接一条三个控制点的平滑曲线："
                     "挂上去先拉满，往下拖即成形状。",
     "color-range": "色彩范围的定制对话框：选什么颜色，下面就只显示那种颜色的参数，"
@@ -2633,7 +2750,8 @@ BRIEF = {
 TAG_EN = {"曲线": "Curves", "调色": "Color", "磨皮": "Retouching",
           "选区": "Selection",
           "通道": "Channels", "蒙版": "Mask", "转换": "Convert", "AI": "AI",
-          "观察": "Inspect", "变形": "Distort", "图层": "Layer"}
+          "观察": "Inspect", "变形": "Distort", "图层": "Layer",
+          "影调": "Tone"}
 
 TITLE_EN = {
     "curves": "Curves",
@@ -2652,6 +2770,7 @@ TITLE_EN = {
     "warp": "Puppet Warp",
     "mesh-warp": "Free Transform (Mesh)",
     "lens-correction": "Lens Correction",
+    "clarity-dehaze": "Clarity & Dehaze",
     "vanishing-point": "Vanishing Point",
     "luminosity": "Luminosity Masks",
     "alpha-curves": "Alpha Curves",
@@ -2701,6 +2820,8 @@ BRIEF_EN = {
     "lens-correction": "Distortion, vignetting and lateral CA in one dialog: k1 "
                        "removes barrel, the vignette darkens the border, and red / "
                        "blue shift a few pixels to kill fringes — one resample.",
+    "clarity-dehaze": "Mid-frequency local contrast and dark-channel dehazing: the "
+                      "two Camera Raw sliders that fix flat, hazy pictures.",
     "vanishing-point": "Mark a perspective plane on the picture: the grid "
                      "converges to the vanishing points, and you can paste "
                      "into it or rectify it flat.",
@@ -2766,6 +2887,12 @@ DEPS_NOTE_EN = {
     "split": "No dependency on this project's operators: the layer is read "
              "once and sliced per component; only GIMP's own channel PDB is "
              "used.",
+    "clarity-dehaze": "Uses this project's own <code>lb:clarity-dehaze</code> "
+                      "operator (GIMP 3 ships nothing equivalent — "
+                      "<code>gegl:unsharp-mask</code> is high-frequency "
+                      "sharpening, not mid-frequency contrast). The module is "
+                      "inside the plug-in zip — drop it into the GEGL module "
+                      "folder.",
     "lens-correction": "Uses this project's own <code>lb:lens-correction</code> "
                        "operator (GIMP 3 only ships <code>gegl:lens-distortion</code>, "
                        "which has no vignette and no CA). The module is inside the "
@@ -2791,6 +2918,7 @@ AREA = {"selection": "图层转换", "channel": "图层转换", "split": "图层
         "warp": "Distort",
         "mesh-warp": "Distort",
         "lens-correction": "Distort",
+        "clarity-dehaze": "Color",
         "vanishing-point": "Distort",
         "alpha-curves": "Mask", "color-range": "Mask",
         "channel-to-mask": "Mask", "max-min": "Mask",
@@ -2806,6 +2934,7 @@ DEPS = {
     "warp": [],
     "mesh-warp": [],
     "lens-correction": ["lb:lens-correction"],
+    "clarity-dehaze": ["lb:clarity-dehaze"],
     "vanishing-point": [],
     "hsv": ["lb:hsv-dual", "lb:hsv-compose", "gimp:curves"],
     "lch": ["lb:lch-dual", "lb:lch-compose", "gimp:curves"],
@@ -2870,6 +2999,10 @@ DEPS_NOTE = {
     "ai-grey": "不依赖任何算子模块：只往缓冲区写像素，用 GIMP 自己的柔光模式。"
                "但要 <code>plugin/_shared/retouch_prep.py</code> 与 "
                "<code>retouch_math.py</code>——下载包里已经带上了。",
+    "clarity-dehaze": "用本项目自己的算子 <code>lb:clarity-dehaze</code>"
+                      "（GIMP 3 没有清晰度 / 去朦胧的等价物；"
+                      "<code>gegl:unsharp-mask</code> 是高频锐化，不是中频对比）。"
+                      "插件包里已附带这个模块，按 readme 放进 GEGL 模块目录即可。",
     "lens-correction": "用本项目自己的算子 <code>lb:lens-correction</code>（GIMP 3 只带"
                       " <code>gegl:lens-distortion</code>，只管畸变、没有暗角与色差）。"
                       "插件包里已附带这个模块，按 readme 放进 GEGL 模块目录即可。",

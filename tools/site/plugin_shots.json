@@ -55,6 +55,13 @@
   "w": 528,
   "zh": "通道名与是否反相"
  },
+ "clarity-dehaze": {
+  "en": "two groups, one operator: clarity radius and haze window are both in pixels",
+  "h": 535,
+  "title": "清晰度 / 去朦胧",
+  "w": 1048,
+  "zh": "两组参数一个算子；半径与窗口都按像素给"
+ },
  "color-range": {
   "en": "sample colours to build a selection, with a red overlay preview",
   "h": 362,

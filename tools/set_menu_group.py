@@ -42,7 +42,7 @@ GROUPS = {
     "Color": ["hue-saturation", "hue-saturation-basic", "hsl-bands", "color-balance",
               "color-grading", "color-temperature-tint", "vibrance",
               "vibrance-hyper", "cmyk-primary-correction", "colorize-hsl",
-              "hue-range-basic", "match-color"],
+              "hue-range-basic", "match-color", "clarity-dehaze"],
     "Blend": ["apply-image", "calculations", "channel-mixer-plus",
               "xyz-multiply", "color-lookup"],
     "Mask":  ["color-mask-select", "channel-range-to-alpha", "max-min"],

@@ -153,6 +153,15 @@
    一次采样全解决，参数挂在图层滤镜栈上，原像素一个字节不动。</summary>
   </entry>
   <entry>
+    <title>插件 · 清晰度 / 去朦胧</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/clarity-dehaze.html"/>
+    <id>tag:github.com,2026:plugin-clarity-dehaze</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>Camera Raw「基本」面板上最常拖的两个滑块：清晰度（中频局部
+   对比，不是锐化）与去朦胧（暗通道先验反解大气散射）。两组参数落在
+   同一个算子里，先去雾再清晰度，一次算出。</summary>
+  </entry>
+  <entry>
     <title>插件 · 自由变形</title>
     <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/mesh-warp.html"/>
     <id>tag:github.com,2026:plugin-mesh-warp</id>
@@ -472,6 +481,13 @@
     <id>tag:github.com,2026:lb:apply-image</id>
     <updated>2026-11-15T00:00:00Z</updated>
     <summary>经典图像编辑器 应用图像：把 aux 输入当成源，按混合模式、不透明度与遮罩压到主输入上，可选只作用于某一个通道</summary>
+  </entry>
+  <entry>
+    <title>Clarity &amp; Dehaze（SuperMrWang → Color）</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/clarity-dehaze/README.md"/>
+    <id>tag:github.com,2026:lb:clarity-dehaze</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>Camera Raw「基本」面板上最常拖的两个滑块，一个算子装下：- 清晰度 Clarity：中频局部对比度，不是锐化（锐化是小半径高频）- 去朦胧 Dehaze：暗通道先验反解大气散射，把远山从灰雾里拉回来</summary>
   </entry>
   <entry>
     <title>Match Color</title>

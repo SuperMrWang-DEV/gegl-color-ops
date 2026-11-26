@@ -2687,6 +2687,17 @@ PLUGIN_SPECS = [
                   "红蓝通道各按像素挪一点修横向色差——一次重采样全解决，"
                   "参数挂在图层滤镜栈上，原像素一个字节不动。",
              pdb="lb-plugin-lens-correction(image, drawables, settings, output)"),
+        dict(key="clarity-dehaze", ops=["clarity-dehaze"],
+             name="gegl-color-ops-plugin-clarity-dehaze.zip",
+             src_dir=os.path.join(ROOT, "plugin", "clarity-dehaze"),
+             py="clarity-dehaze.py", menu="清晰度 / 去朦胧（Clarity & Dehaze）",
+             menus="    SuperMrWang → Color → 清晰度 / 去朦胧…\n"
+                   "    图层右键 → SuperMrWang → Color → 清晰度 / 去朦胧…",
+             desc="清晰度推中频局部对比（不是锐化：不动像素级细节，边缘用 tanh "
+                  "压住过冲），去朦胧用暗通道先验反解大气散射（估透射率与大气光，"
+                  "再解回无雾画面）。两组参数落在同一个算子里，先去雾再清晰度，"
+                  "预览与成品是同一段代码。",
+             pdb="lb-plugin-clarity-dehaze(image, drawables, settings, output)"),
 ]
 
 
@@ -3094,11 +3105,13 @@ def build_plugins(version, stats=None):
                            "shape it freely.")
         if mask else "",
         color=group("color", "Color", "t-color",
-                    "把调好的颜色带出这个工程：四个空间的任意曲线，以及把整条滤镜栈"
-                    "烘成一张 .cube 的那一步。", color,
+                    "把调好的颜色做出来、再带出这个工程：四个空间的任意曲线，"
+                    "清晰度 / 去朦胧这两个中频与去雾滑块，以及把整条滤镜栈烘成"
+                    "一张 .cube 的那一步。", color,
                     tag_en="Color",
-                    desc_en="Take the grade out of the project: arbitrary curves in four "
-                            "spaces, and the step that bakes a whole filter stack into "
+                    desc_en="Build the grade, then take it out of the project: arbitrary "
+                            "curves in four spaces, the clarity and dehaze sliders, and "
+                            "the step that bakes a whole filter stack into "
                             "one .cube."))
 
     return page("Python 插件 · gegl-color-ops", body,

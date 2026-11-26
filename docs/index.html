@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>gegl-color-ops · GIMP 3 的 GEGL 算子与插件</title>
-<meta name="description" content="GIMP 3 的 55 个 GEGL 色彩算子 + 33 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-zh="GIMP 3 的 55 个 GEGL 色彩算子 + 33 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-en="GIMP 3 的 55 个 GEGL 色彩算子 + 33 个 Python 插件，Windows / Linux / macOS 整包直接下载。">
+<meta name="description" content="GIMP 3 的 56 个 GEGL 色彩算子 + 34 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-zh="GIMP 3 的 56 个 GEGL 色彩算子 + 34 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-en="GIMP 3 的 56 个 GEGL 色彩算子 + 34 个 Python 插件，Windows / Linux / macOS 整包直接下载。">
 <meta property="og:title" content="gegl-color-ops · GIMP 3 的 GEGL 算子与插件" data-title-zh="gegl-color-ops · GIMP 3 的 GEGL 算子与插件" data-title-en="gegl-color-ops · GEGL operators and plug-ins for GIMP 3">
-<meta property="og:description" content="GIMP 3 的 55 个 GEGL 色彩算子 + 33 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-zh="GIMP 3 的 55 个 GEGL 色彩算子 + 33 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-en="GIMP 3 的 55 个 GEGL 色彩算子 + 33 个 Python 插件，Windows / Linux / macOS 整包直接下载。">
+<meta property="og:description" content="GIMP 3 的 56 个 GEGL 色彩算子 + 34 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-zh="GIMP 3 的 56 个 GEGL 色彩算子 + 34 个 Python 插件，Windows / Linux / macOS 整包直接下载。" data-desc-en="GIMP 3 的 56 个 GEGL 色彩算子 + 34 个 Python 插件，Windows / Linux / macOS 整包直接下载。">
 <link rel="stylesheet" href="assets/style.css?v=00b514e0ae">
 <link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="feed.xml">
 <script>
@@ -45,15 +45,15 @@
   <div class="home-glow" aria-hidden="true"></div>
   <p class="eyebrow">GIMP 3.x · GEGL 0.4 · GPL-3.0</p>
   <h1><span class="l-zh">GIMP 3 的 <span class="grad">GEGL 插件</span><br>两个包，一整套调色链</span><span class="l-en">The <span class="grad">GEGL plug-in set</span><br>for GIMP 3</span></h1>
-  <p class="lede"><span class="l-zh">55 个 <code>lb:</code> 算子管算法，33 个 Python 插件管流程：
+  <p class="lede"><span class="l-zh">56 个 <code>lb:</code> 算子管算法，34 个 Python 插件管流程：
      把分量拆成层、把 alpha 画成曲线、把磨皮拆成高低频、把通道与蒙版互相倒。装完即用，
-     全部能当非破坏滤镜挂在图层上，改参数不落像素。</span><span class="l-en">Two archives, the whole colour chain: 55 <code>lb:</code>
-     GEGL operators for the maths, 33 Python plug-ins for the workflow: split a component into layers,
+     全部能当非破坏滤镜挂在图层上，改参数不落像素。</span><span class="l-en">Two archives, the whole colour chain: 56 <code>lb:</code>
+     GEGL operators for the maths, 34 Python plug-ins for the workflow: split a component into layers,
      draw alpha as a curve, separate skin into high and low frequency, flip channels and masks
      back and forth. Ready to use, all of it mounts as non-destructive filters.</span></p>
   <ul class="facts">
-    <li><b>55</b> <span class="l-zh">个算子</span><span class="l-en">operators</span></li>
-    <li><b>33</b> <span class="l-zh">个插件</span><span class="l-en">plug-ins</span></li>
+    <li><b>56</b> <span class="l-zh">个算子</span><span class="l-en">operators</span></li>
+    <li><b>34</b> <span class="l-zh">个插件</span><span class="l-en">plug-ins</span></li>
     <li><b>10</b> <span class="l-zh">个分组</span><span class="l-en">groups</span></li>
     <li><b>0</b> <span class="l-zh">依赖 · 免编译</span><span class="l-en">deps · prebuilt</span></li>
   </ul>
@@ -62,22 +62,22 @@
   <article class="door door-ops" id="ops">
     <p class="door-kicker">01 · OPERATORS</p>
     <h2><span class="l-zh">GEGL 算子</span><span class="l-en">GEGL operators</span></h2>
-    <p class="door-lead"><span class="l-zh">55 个单文件 C 模块，一个模块一个滤镜。
+    <p class="door-lead"><span class="l-zh">56 个单文件 C 模块，一个模块一个滤镜。
      色阶、色彩平衡、自然饱和度、白平衡、通道混合、蒙版生成都在里面，按
-     <b>Levels / Component / Tone / Color / Blend / Mask / Sharpen / Noise / Distort</b> 九组排在顶层菜单下。</span><span class="l-en">55 single-file C modules, one filter each. Levels, colour balance,
+     <b>Levels / Component / Tone / Color / Blend / Mask / Sharpen / Noise / Distort</b> 九组排在顶层菜单下。</span><span class="l-en">56 single-file C modules, one filter each. Levels, colour balance,
      vibrance, white balance, channel mixing, mask building, sharpening, noise and
      displacement, arranged in nine groups —
      <b>Levels / Component / Tone / Color / Blend / Mask / Sharpen / Noise / Distort</b> —
      under one top-level menu.</span></p>
     <div class="door-meta">
-      <span><b>55</b> <span class="l-zh">个 Windows 模块</span><span class="l-en">Windows modules</span></span>
+      <span><b>56</b> <span class="l-zh">个 Windows 模块</span><span class="l-en">Windows modules</span></span>
       <span><b>47</b> <span class="l-zh">个 Linux 模块</span><span class="l-en">Linux modules</span></span>
       <span><b>0</b> <span class="l-zh">个 macOS 模块</span><span class="l-en">macOS modules</span></span>
       <span><b>10</b> <span class="l-zh">个分组</span><span class="l-en">groups</span></span>
     </div>
     <div class="door-dl"><a class="dl-link" href="download/gegl-color-ops-windows-x64.zip">
         <span class="os"><span class="l-zh">Windows x64</span><span class="l-en">Windows x64</span></span>
-        <span class="meta"><span class="l-zh">55 个 .dll · 2.4 MB</span><span class="l-en">55 .dll · 2.4 MB</span></span>
+        <span class="meta"><span class="l-zh">56 个 .dll · 2.4 MB</span><span class="l-en">56 .dll · 2.4 MB</span></span>
         <span class="arrow" aria-hidden="true">↓</span>
       </a><a class="dl-link is-missing" href="download/gegl-color-ops-linux-x64.zip">
         <span class="os"><span class="l-zh">Linux x86_64</span><span class="l-en">Linux x86_64</span></span>
@@ -88,13 +88,13 @@
         <span class="meta"><span class="l-zh">待合并 · 可从 Actions 下载</span><span class="l-en">pending — grab it from Actions</span></span>
         <span class="arrow" aria-hidden="true">↓</span>
       </a></div>
-    <p class="door-note"><span class="l-zh">Linux 端少 8 个分量模块（各空间的
+    <p class="door-note"><span class="l-zh">Linux 端少 9 个分量模块（各空间的
       dual / compose 与 gray-to-component），要用就 <code>./build.sh</code> 自编；
-      Windows 端 55 个齐全。</span><span class="l-en">The Linux bundle is missing 8
+      Windows 端 56 个齐全。</span><span class="l-en">The Linux bundle is missing 9
       component modules (dual / compose for each space, plus gray-to-component) — build
-      them with <code>./build.sh</code>. The Windows bundle has all 55.</span></p>
+      them with <code>./build.sh</code>. The Windows bundle has all 56.</span></p>
     <div class="door-foot">
-      <a href="ops.html"><span class="l-zh">看全部 55 个算子</span><span class="l-en">Browse all 55</span> <span aria-hidden="true">→</span></a>
+      <a href="ops.html"><span class="l-zh">看全部 56 个算子</span><span class="l-en">Browse all 56</span> <span aria-hidden="true">→</span></a>
       <a class="sub" href="overview.html#download"><span class="l-zh">单个模块</span><span class="l-en">One module at a time</span></a>
     </div>
   </article>
@@ -102,37 +102,37 @@
   <article class="door door-plug" id="plugins">
     <p class="door-kicker">02 · PLUG-INS</p>
     <h2><span class="l-zh">Python 插件</span><span class="l-en">Python plug-ins</span></h2>
-    <p class="door-lead"><span class="l-zh">33 个 Python 插件，负责把算子串成流程：五个色彩空间的分量
+    <p class="door-lead"><span class="l-zh">34 个 Python 插件，负责把算子串成流程：五个色彩空间的分量
      拆层加三条曲线、Alpha 曲线、高低频 / 双曲线 / 中性灰磨皮、图层转选区与转通道，
-     还有通道 / 选区 / 蒙版 / 路径十二个方向的互转。每个插件内部要用的算子模块已经打在包里。</span><span class="l-en">33 Python plug-ins that string the operators into a workflow: component
+     还有通道 / 选区 / 蒙版 / 路径十二个方向的互转。每个插件内部要用的算子模块已经打在包里。</span><span class="l-en">34 Python plug-ins that string the operators into a workflow: component
      split-and-curve in five colour spaces, alpha curves, frequency-separation / dodge &amp;
      burn / neutral-grey retouching, layer-to-selection and layer-to-channel, plus the
      twelve-way channel / selection / mask / path conversion. The operator modules each one
      needs are already inside.</span></p>
     <div class="door-meta">
-      <span><b>33</b> <span class="l-zh">个 .py</span><span class="l-en">scripts</span></span>
+      <span><b>34</b> <span class="l-zh">个 .py</span><span class="l-en">scripts</span></span>
       <span><b>3</b> <span class="l-zh">组磨皮</span><span class="l-en">retouching sets</span></span>
       <span><b>2</b> <span class="l-zh">处入口</span><span class="l-en">menu entries</span></span>
     </div>
     <div class="door-dl"><a class="dl-link" href="download/gegl-color-ops-plugins-windows-x64.zip">
         <span class="os"><span class="l-zh">Windows x64</span><span class="l-en">Windows x64</span></span>
-        <span class="meta"><span class="l-zh">33 个 .py · 18 个模块 · 1.1 MB</span><span class="l-en">33 .py · 18 modules · 1.1 MB</span></span>
+        <span class="meta"><span class="l-zh">34 个 .py · 19 个模块 · 1.2 MB</span><span class="l-en">34 .py · 19 modules · 1.2 MB</span></span>
         <span class="arrow" aria-hidden="true">↓</span>
       </a><a class="dl-link is-missing" href="download/gegl-color-ops-plugins-linux-x64.zip">
         <span class="os"><span class="l-zh">Linux x86_64</span><span class="l-en">Linux x86_64</span></span>
-        <span class="meta"><span class="l-zh">33 个 .py · 13 个模块 · 0.6 MB</span><span class="l-en">33 .py · 13 modules · 0.6 MB</span></span>
+        <span class="meta"><span class="l-zh">34 个 .py · 13 个模块 · 0.6 MB</span><span class="l-en">34 .py · 13 modules · 0.6 MB</span></span>
         <span class="arrow" aria-hidden="true">↓</span>
       </a><a class="dl-link" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/actions/workflows/build.yml">
         <span class="os"><span class="l-zh">macOS arm64</span><span class="l-en">macOS arm64</span></span>
         <span class="meta"><span class="l-zh">.py 跨平台，模块等 Mac 产物</span><span class="l-en">portable .py — modules pending</span></span>
         <span class="arrow" aria-hidden="true">↓</span>
       </a></div>
-    <p class="door-note"><span class="l-zh">Linux 整包里没有那 5 个分量模块，
-      所以五个 <b>Split (Curves)</b> 插件要先自编再用；其余插件在 Linux 上装完即用。</span><span class="l-en">The Linux bundle leaves out those 5 component
+    <p class="door-note"><span class="l-zh">Linux 整包里没有那 6 个分量模块，
+      所以五个 <b>Split (Curves)</b> 插件要先自编再用；其余插件在 Linux 上装完即用。</span><span class="l-en">The Linux bundle leaves out those 6 component
       modules, so the five <b>Split (Curves)</b> plug-ins need a local build first; every
       other plug-in works out of the box on Linux.</span></p>
     <div class="door-foot">
-      <a href="plugins.html"><span class="l-zh">看全部 33 个插件</span><span class="l-en">Browse all 33</span> <span aria-hidden="true">→</span></a>
+      <a href="plugins.html"><span class="l-zh">看全部 34 个插件</span><span class="l-en">Browse all 34</span> <span aria-hidden="true">→</span></a>
       <a class="sub" href="guide.html"><span class="l-zh">怎么装</span><span class="l-en">How to install</span></a>
     </div>
   </article>
@@ -234,7 +234,7 @@ macOS    ~/Library/Application Support/GIMP/3.x/plug-ins</code></pre>
     <a href="guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
     <a href="overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
     <a href="overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
-    <span class="muted">e45e4e7</span>
+    <span class="muted">7caddfc</span>
   </div>
 </footer>
 <script>

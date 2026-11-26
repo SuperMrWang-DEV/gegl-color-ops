@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-title-zh="清晰度 / 去朦胧 · Python 插件 · gegl-color-ops" data-title-en="清晰度 / 去朦胧 · Python plug-ins · gegl-color-ops">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>清晰度 / 去朦胧 · Python 插件 · gegl-color-ops</title>
+<meta name="description" content="Camera Raw「基本」面板上最常拖的两个滑块：清晰度（中频局部
+   对比，不是锐化）与去朦胧（暗通道先验反解大气散射）。两组参数落在
+   同一个算子里，先去雾再清晰度，一次算出。" data-desc-zh="Camera Raw「基本」面板上最常拖的两个滑块：清晰度（中频局部
+   对比，不是锐化）与去朦胧（暗通道先验反解大气散射）。两组参数落在
+   同一个算子里，先去雾再清晰度，一次算出。" data-desc-en="The two sliders most people touch first in Camera Raw: Clarity
+   — mid-frequency local contrast, not sharpening — and D">
+<meta property="og:title" content="清晰度 / 去朦胧 · Python 插件 · gegl-color-ops" data-title-zh="清晰度 / 去朦胧 · Python 插件 · gegl-color-ops" data-title-en="清晰度 / 去朦胧 · Python plug-ins · gegl-color-ops">
+<meta property="og:description" content="Camera Raw「基本」面板上最常拖的两个滑块：清晰度（中频局部
+   对比，不是锐化）与去朦胧（暗通道先验反解大气散射）。两组参数落在
+   同一个算子里，先去雾再清晰度，一次算出。" data-desc-zh="Camera Raw「基本」面板上最常拖的两个滑块：清晰度（中频局部
+   对比，不是锐化）与去朦胧（暗通道先验反解大气散射）。两组参数落在
+   同一个算子里，先去雾再清晰度，一次算出。" data-desc-en="The two sliders most people touch first in Camera Raw: Clarity
+   — mid-frequency local contrast, not sharpening — and D">
+<link rel="stylesheet" href="../assets/style.css?v=00b514e0ae">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body>
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+<main id="main">
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> /
+    <a href="../plugins.html">插件</a> / Color</p>
+  <h1>清晰度 / 去朦胧</h1>
+  <div class="meta">
+    <code>plugin/clarity-dehaze</code>
+    <span class="tag t-tone">影调</span>
+    <span>Color</span>
+  </div>
+  <p class="lede">Camera Raw「基本」面板上最常拖的两个滑块：<b>清晰度</b>（中频局部
+   对比，不是锐化）与<b>去朦胧</b>（暗通道先验反解大气散射）。两组参数落在
+   同一个算子里，先去雾再清晰度，一次算出。</p>
+</section>
+<figure class="shot plugin-shot">
+  <img src="../assets/plugins/clarity-dehaze/dialog.png" width="1048" height="535"
+       loading="lazy" alt="对话框截图 / dialog screenshot">
+  <figcaption>插件真实的参数对话框 —— 两组参数一个算子；半径与窗口都按像素给。</figcaption>
+</figure>
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="zh-overview">
+  <dt>菜单位置</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → Color → 清晰度 / 去朦胧…</li><li>图层右键 → SuperMrWang → Color → 清晰度 / 去朦胧…</li></ul><p>这几条是同一个动作，处理的是<b>当前选中的那一个图层</b>。图层组不行——组没有自己的像素，会直接报错并提示先合并。</p></dd>
+  <dt>脚本调用</dt>
+  <dd><code class="pdb">lb-plugin-clarity-dehaze(image, drawables, settings, output)</code><p>标准 PDB 过程，参数留空走默认值。</p></dd>
+  <dt>依赖</dt>
+  <dd><p>用本项目自己的算子 <code>lb:clarity-dehaze</code>（GIMP 3 没有清晰度 / 去朦胧的等价物；<code>gegl:unsharp-mask</code> 是高频锐化，不是中频对比）。插件包里已附带这个模块，按 readme 放进 GEGL 模块目录即可。</p>
+      <ul class="deps"><li><code>lb:clarity-dehaze</code></li></ul></dd>
+</dl>
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-1">
+      <div class="dl-head"><h3>清晰度不是锐化</h3><span class="pill">中频，几十像素</span></div>
+      <p>锐化（USM）动的是<b>高频</b>：像素级的边缘，效果是「更脆」，噪点也跟着脆。
+         清晰度动的是<b>中频</b>：几十像素尺度上的明暗过渡——树叶的层次、云里的
+         体积、皮肤上的大结构。所以它能把一张「平」的照片打开，却不放大噪点。</p>
+      <p>做法是把亮度减去一个大半径低通，得到中频层 <code>d = Y − low</code>，
+         再按比例加回去：<code>gain = 1 + 强度 · w · d′ / max(low, 0.08)</code>。</p>
+      <p>两个细节决定了它「像 PS」而不是「像 USM」：
+         <b>①</b> 增益是<b>相对</b>量（除以 low），暗部不会因为 low 很小被放大成噪点，
+         亮部也不会一推就溢出。
+         <b>②</b> 中频层先过一道 <code>h·tanh(d/h)</code>：幅度远大于 h 的地方
+         （硬边缘两侧的过冲）被压到 ±h，边缘不会长出亮边 / 黑边；幅度在 h 以内的
+         纹理几乎原样通过。这个 h 就是滑杆上的「边缘保护」。</p>
+    </div>
+    <div class="dl" id="zh-sec-2">
+      <div class="dl-head"><h3>中间调权重</h3><span class="pill">护住黑白两端</span></div>
+      <p>增益还乘一个 <code>w = 1 − |2Y − 1|²</code>：中间调满权，越接近纯黑纯白
+         越不增强。这不是保守，是必要的——暗部本来就没多少可分配的空间，硬推就是
+         噪点；亮部硬推就是死白。</p>
+      <p>半径默认 40 px，这是「中频」的边界：再小会滑向锐化（纹理变脆），再大会滑向
+         全局对比（等于拉曲线）。1920 宽的照片上 40 px 大约相当于画面宽度的 2%。</p>
+      <p>强度为负时可以当「去清晰度」用：柔化中频但保留细节，比高斯模糊体面得多，
+         适合人像的皮肤。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-3">
+      <div class="dl-head"><h3>去朦胧：雾是一道方程</h3><span class="pill">I = J·t + A(1−t)</span></div>
+      <p>远处的山发灰，是空气把大气光 <code>A</code> 按比例混进了景物 <code>J</code>：
+         透射率 <code>t</code> 越远越小。He、Sun &amp; Tang 2009 的暗通道先验给了
+         一个便宜的反解：</p>
+      <p><b>①</b> 暗通道 <code>dark(p) = min over window(min(R,G,B))</code>；
+         <b>②</b> 大气光 <code>A</code> 取暗通道最亮的 0.1% 像素的原图均值；
+         <b>③</b> <code>t = 1 − ω·dark/lum(A)</code>，夹在 <code>[0.12, 1]</code>；
+         <b>④</b> <code>J = (I − A)/t + A</code>。</p>
+      <p><code>ω</code> 就是滑杆上的<b>保留雾量</b>，默认 0.95：全解（1.0）看着假，
+         留一点空气感反而像照片。窗口默认 15 px，要<b>比雾里最亮的物体大</b>，
+         否则透射率会跟着物体轮廓走，而不是跟着远近走——那种图去完雾像贴了一层灰
+         补丁。</p>
+      <p><code>t</code> 的下限 0.12 是硬约束：再低，1/t 的放大倍数会把噪声乘成十几倍，
+         暗部直接变彩色斑块。</p>
+    </div>
+    <div class="dl" id="zh-sec-4">
+      <div class="dl-head"><h3>什么时候不管用</h3></div>
+      <p><b>暗通道先验假设「无雾画面里总有一个通道很暗」</b>。天空占满画面、或者
+         大面积白色主体（雪、白墙）时这个假设不成立，<code>A</code> 会被估到主体上，
+         去完雾天空发灰、白墙出暗角状色块。这时候把强度降到 30 以下，或者干脆
+         只用清晰度。</p>
+      <p>彩色雾（沙尘暴的黄、水雾的青）也不适用：先验假设雾是灰的。PS 的 Dehaze
+         同样会偏色，只是它有额外一层色温补偿。</p>
+      <p>负强度等于<b>加雾</b>，偶尔有用：给前景补一点空气透视做纵深。</p>
+      <p><b>饱和补偿</b>：去雾会按 1/t 提亮，颜色被拉向大气光的灰白，所以默认
+         建议给 10–20 的补偿；它只围绕亮度放大色度，色相不动。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="zh-sec-5">
+      <div class="dl-head"><h3>两个坑，都在代码里</h3><span class="pill">预览与成品</span></div>
+      <p><b>① 半径要按预览缩放比缩回去。</b>半径是像素单位，预览缩到 560 长边之后，
+         40 px 的低通相当于原图的 160 px，预览看起来会比成品糊得多，滑杆就没法调。
+         所以两个半径都乘「预览宽 / 原宽」，并不小于 2。</p>
+      <p><b>② 去雾之后必须重算亮度。</b>清晰度用的是亮度 Y，而去雾改过 RGB。
+         如果沿用去雾前的 Y，低频层和新像素对不上，暗部会出现一圈奇怪的晕。
+         算子里 dehaze 在前、clarity 在后各自算一遍 Y，就是这个原因。</p>
+      <p><b>③ 大气光要看整幅。</b>所以这个算子把整个输入都标成「必需」
+         （<code>get_required_for_output</code> 返回全图），否则预览和导出会
+         用两个不同的 A，观感会跳一下。</p>
+    </div>
+    <div class="dl" id="zh-sec-6">
+      <div class="dl-head"><h3>实测</h3><span class="pill">1600×2400</span></div>
+      <p>清晰度 <b>2.03 s</b>、去朦胧 <b>1.21 s</b>、两个都开 <b>3.59 s</b>。
+         两项都为 0 时走真正的恒等快路径（<code>gegl_buffer_copy</code>），
+         0.20 s 里几乎全是图层复制的开销。</p>
+      <p>清晰度的成本主要是三遍盒式模糊（近似高斯，六个方向 pass）；去朦胧是
+         单调队列求窗口最小值 + 暗通道直方图，都是 O(N)，窗口再大也不变慢。
+         预览 560 长边上一次 60–90 ms，拖滑杆跟得上手。</p>
+      <p class="muted small">回归 <code>check_clarity_dehaze_gimp.py</code> 24 项：
+         恒等逐字节、纯色不动、条纹对比升降、硬边相对过冲有界、保护越强过冲越小、
+         中间调增益大于暗部、合成雾图反解（MAE 40 → 14）、纯雾不爆、负强度加雾、
+         饱和补偿、极端参数、性能。</p>
+    </div>
+  </div>
+
+  <div class="dl" id="zh-sec-7">
+    <div class="dl-head"><h3>脚本怎么调</h3><span class="pill">settings = 一份 JSON</span></div>
+    <p>键名与算子属性同名（连字符写法）：</p>
+    <p><code>lb-plugin-clarity-dehaze 图层 settings="{\"clarity\": 40, \"dehaze\": 35,
+       \"dehaze-saturation\": 15}" output=replace</code></p>
+    <p>全部键：<code>clarity</code>、<code>clarity-radius</code>、
+       <code>clarity-protect</code>、<code>dehaze</code>、<code>dehaze-radius</code>、
+       <code>dehaze-keep</code>、<code>dehaze-saturation</code>。
+       <code>output</code> 三档：<code>filter</code> / <code>replace</code> /
+       <code>new</code>。</p>
+    <p><b>没有做的：</b>局部去雾（用深度图或亮度分区只处理天空）、多尺度清晰度
+       （当前是单一半径）、以及 PS 那种「自动」按钮。前两个都是加参数的问题，
+       第三个是估参数的问题。</p>
+  </div>
+
+<section class="download" id="zh-download">
+  <h2>下载这一个</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>清晰度 / 去朦胧…</h3><span class="pill">含 1 个模块 · 免编译</span></div>
+    <p>包里有一个 <code>.py</code>、1 个算子模块和一份安装说明，外加 <code>_shared/</code> 与 <code>locale/</code>。<b>算子依赖已经附在里面，不用另外去下。</b><code>.py</code> 进 GIMP 的 <code>plug-ins</code>，模块进 GEGL 的 <code>gegl-0.4/plug-ins</code>——两个目录不一样，包内说明分步写了。<code>_shared/</code> 和 <code>locale/</code> 要跟 <code>.py</code> 放同一处，否则菜单文案只能是英文。 Linux 端的 clarity-dehaze.so 还没进预编译包，要用 Linux 就 <code>./build.sh</code> 自己编一份（Windows 端齐全）。</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-clarity-dehaze.zip">下载 清晰度 / 去朦胧…</a>
+    <p class="muted small">88.6 KB · 校验：<code>SHA256 65234e0d7dba513ccaeb0f8977b1206b…</code></p>
+  </div>
+</section>
+
+<p class="note">文中「码」指 8 位图上的一个台阶：0–255 共 256 级，
+   相邻两级的差就是 1 码，等于 1/255 ≈ 0.392%%（也就是 RGB 128 与 129 之间的差）。
+   各数量级的含义与「码为什么不是感知量」的说明见
+   <a href="../guide.html#code">安装指南 · 精度里的「码」</a>。</p>
+  </article>
+  <aside class="toc">
+    <p class="toc-title">本页目录</p>
+    <ul>
+      <li><a href="#zh-overview">概览</a></li>
+<li><a href="#zh-sec-1">清晰度不是锐化</a></li><li><a href="#zh-sec-2">中间调权重</a></li><li><a href="#zh-sec-3">去朦胧：雾是一道方程</a></li><li><a href="#zh-sec-4">什么时候不管用</a></li><li><a href="#zh-sec-5">两个坑，都在代码里</a></li><li><a href="#zh-sec-6">实测</a></li><li><a href="#zh-sec-7">脚本怎么调</a></li>
+      <li><a href="#zh-download">下载</a></li>
+    </ul>
+  </aside>
+</div>
+<nav class="pager">
+  <a href="../plugins.html"><span>回到</span>Python 插件总览</a>
+  <a class="prev" href="mesh-warp.html"><span>上一篇</span>自由变形</a><a class="next" href="lens-correction.html"><span>下一篇</span>镜头校正</a>
+</nav></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> /
+    <a href="../plugins.html">Plug-ins</a> / Color</p>
+  <h1>Clarity &amp; Dehaze</h1>
+  <div class="meta">
+    <code>plugin/clarity-dehaze</code>
+    <span class="tag t-tone">Tone</span>
+    <span>Color</span>
+  </div>
+  <p class="lede">The two sliders most people touch first in Camera Raw: <b>Clarity</b>
+   — mid-frequency local contrast, not sharpening — and <b>Dehaze</b>, which
+   inverts atmospheric scattering with the dark channel prior. Both live in one
+   operator: haze first, then clarity, in a single pass.</p>
+</section>
+<figure class="shot plugin-shot">
+  <img src="../assets/plugins/clarity-dehaze/dialog.png" width="1048" height="535"
+       loading="lazy" alt="对话框截图 / dialog screenshot">
+  <figcaption>The real parameter dialog — two groups, one operator: clarity radius and haze window are both in pixels.</figcaption>
+</figure>
+<div class="article-layout">
+  <article class="prose">
+<dl class="spec" id="en-overview">
+  <dt>Menu location</dt>
+  <dd><ul class="menu-list"><li>SuperMrWang → Color → Clarity & Dehaze…</li><li>Layer right-click → SuperMrWang → Color → Clarity & Dehaze…</li></ul><p>These are all the same action, applied to <b>the one layer you have selected</b>. Layer groups do not work — a group has no pixels of its own, so the plug-in stops with an explicit error and asks you to merge first.</p></dd>
+  <dt>Scripting</dt>
+  <dd><code class="pdb">lb-plugin-clarity-dehaze(image, drawables, settings, output)</code><p>A standard PDB procedure; leave an argument empty to take its default.</p></dd>
+  <dt>Dependencies</dt>
+  <dd><p>Uses this project's own <code>lb:clarity-dehaze</code> operator (GIMP 3 ships nothing equivalent — <code>gegl:unsharp-mask</code> is high-frequency sharpening, not mid-frequency contrast). The module is inside the plug-in zip — drop it into the GEGL module folder.</p>
+      <ul class="deps"><li><code>lb:clarity-dehaze</code></li></ul></dd>
+</dl>
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-1">
+      <div class="dl-head"><h3>Clarity is not sharpening</h3><span class="pill">mid frequency</span></div>
+      <p>Unsharp mask works on <b>high</b> frequency — pixel-scale edges — so the
+         picture gets crisper and the noise gets crisper with it. Clarity works on
+         <b>mid</b> frequency: the tens-of-pixels scale where foliage layers,
+         cloud volume and skin structure live. It opens up a flat photograph
+         without amplifying grain.</p>
+      <p>Mechanically: subtract a large-radius low pass from luma to get a mid
+         band <code>d = Y − low</code>, then add it back as a ratio:
+         <code>gain = 1 + amount · w · d′ / max(low, 0.08)</code>.</p>
+      <p>Two details are what make it feel like Photoshop rather than USM.
+         <b>①</b> The gain is <b>relative</b> (divided by low), so shadows are not
+         blown up into noise just because their local average is small, and
+         highlights do not clip the moment you push the slider.
+         <b>②</b> The mid band goes through <code>h·tanh(d/h)</code> first:
+         wherever the amplitude is far above h — the overshoot on either side of a
+         hard edge — it is squeezed to ±h, so edges grow no bright or dark halo,
+         while texture within h passes through almost untouched. That h is the
+         <b>edge protection</b> slider.</p>
+    </div>
+    <div class="dl" id="en-sec-2">
+      <div class="dl-head"><h3>Midtone weighting</h3><span class="pill">both ends protected</span></div>
+      <p>The gain is also multiplied by <code>w = 1 − |2Y − 1|²</code>: full weight
+         in the midtones, tapering to nothing at pure black and pure white. That is
+         not caution, it is necessary — shadows have no room to give, so pushing
+         them is just noise, and highlights just go dead white.</p>
+      <p>The default radius of 40 px is where "mid" ends: smaller slides toward
+         sharpening (texture turns brittle), larger slides toward global contrast
+         (that is a curve, not clarity). On a 1920-wide photo, 40 px is about 2%
+         of the frame width.</p>
+      <p>Negative amounts are a useful "de-clarity": mid frequencies soften while
+         detail survives — far more presentable than a Gaussian blur, and the usual
+         choice for skin.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-3">
+      <div class="dl-head"><h3>Dehaze: fog is an equation</h3><span class="pill">I = J·t + A(1−t)</span></div>
+      <p>Distant hills look grey because air mixes atmospheric light <code>A</code>
+         into the scene <code>J</code> in proportion to distance, with transmission
+         <code>t</code> falling off further away. He, Sun &amp; Tang (2009) give a
+         cheap inversion via the dark channel prior:</p>
+      <p><b>①</b> dark channel <code>dark(p) = min over window(min(R,G,B))</code>;
+         <b>②</b> airlight <code>A</code> is the mean of the original pixels at the
+         brightest 0.1% of the dark channel; <b>③</b>
+         <code>t = 1 − ω·dark/lum(A)</code>, clamped to <code>[0.12, 1]</code>;
+         <b>④</b> <code>J = (I − A)/t + A</code>.</p>
+      <p><code>ω</code> is the <b>haze kept</b> slider, 0.95 by default: a full
+         solve (1.0) looks fake, and a little atmosphere left in reads as a
+         photograph. The window defaults to 15 px and must be <b>larger than the
+         brightest object inside the haze</b>, otherwise the transmission map
+         follows object outlines instead of depth — those results look like grey
+         patches pasted over the picture.</p>
+      <p>The 0.12 floor on <code>t</code> is a hard constraint: below it the 1/t
+         amplification multiplies noise tenfold and the shadows turn into coloured
+         blotches.</p>
+    </div>
+    <div class="dl" id="en-sec-4">
+      <div class="dl-head"><h3>When it does not work</h3></div>
+      <p><b>The prior assumes every hazy-free scene has one very dark channel.</b>
+         A frame filled with sky, or a large white subject (snow, a white wall),
+         breaks that assumption: <code>A</code> lands on the subject itself and the
+         result is a grey sky and vignette-shaped blotches on the white wall. Keep
+         the amount under 30, or use clarity alone.</p>
+      <p>Coloured haze — yellow dust, cyan spray — does not fit either, since the
+         prior assumes grey fog. Photoshop's Dehaze drifts the same way; it just
+         compensates with an extra temperature pass.</p>
+      <p>Negative amounts <b>add</b> haze, which is occasionally the point: a bit of
+         aerial perspective gives the foreground depth.</p>
+      <p><b>Dehaze saturation</b>: dehazing multiplies by 1/t, pulling colour toward
+         the grey airlight, so 10–20 of compensation usually looks right. It scales
+         chroma around luma, leaving hue alone.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl" id="en-sec-5">
+      <div class="dl-head"><h3>Three traps, all in the code</h3><span class="pill">preview vs result</span></div>
+      <p><b>① Radii must be scaled by the preview ratio.</b> A radius is in pixels;
+         once the preview is reduced to a 560 px edge, a 40 px low pass is worth
+         160 px on the original and the preview looks far softer than the result —
+         the slider becomes impossible to judge. Both radii are multiplied by
+         preview width / original width and floored at 2.</p>
+      <p><b>② Luma has to be recomputed after dehazing.</b> Clarity works on luma,
+         and dehazing has already changed RGB. Reusing the pre-dehaze luma puts the
+         low pass out of step with the new pixels and leaves a halo in the shadows.
+         The operator does dehaze first, then rebuilds Y for clarity — that is why.</p>
+      <p><b>③ The airlight needs the whole frame.</b> So this operator marks its
+         entire input as required (<code>get_required_for_output</code> returns the
+         full extent); otherwise the preview and the export would use two different
+         values of A and the look would jump.</p>
+    </div>
+    <div class="dl" id="en-sec-6">
+      <div class="dl-head"><h3>Measured</h3><span class="pill">1600×2400</span></div>
+      <p>Clarity <b>2.03 s</b>, dehaze <b>1.21 s</b>, both <b>3.59 s</b>. With both
+         amounts at zero it takes a true identity path
+         (<code>gegl_buffer_copy</code>) — the 0.20 s there is almost entirely the
+         layer copy.</p>
+      <p>Clarity costs three box passes (a Gaussian approximation, six directional
+         passes); dehaze is a monotone deque for the window minimum plus a histogram
+         for the airlight, both O(N), so a larger window costs nothing. A preview at
+         a 560 px edge takes 60–90 ms per update, which keeps dragging responsive.</p>
+      <p class="muted small">Regression <code>check_clarity_dehaze_gimp.py</code>,
+         24 checks: byte-for-byte identity, flat colour untouched, wave contrast up
+         and down, bounded relative overshoot at a hard edge, stronger protection
+         giving less overshoot, midtone gain above shadow gain, synthetic haze
+         inversion (MAE 40 → 14), uniform fog not exploding, negative amount adding
+         haze, saturation compensation, extreme parameters, timing.</p>
+    </div>
+  </div>
+
+  <div class="dl" id="en-sec-7">
+    <div class="dl-head"><h3>Scripting</h3><span class="pill">settings is one JSON string</span></div>
+    <p>Keys are the operator's own property names, hyphenated:</p>
+    <p><code>lb-plugin-clarity-dehaze 图层 settings="{\\"clarity\\": 40,
+       \\"dehaze\\": 35, \\"dehaze-saturation\\": 15}" output=replace</code></p>
+    <p>Full set: <code>clarity</code>, <code>clarity-radius</code>,
+       <code>clarity-protect</code>, <code>dehaze</code>,
+       <code>dehaze-radius</code>, <code>dehaze-keep</code>,
+       <code>dehaze-saturation</code>. <code>output</code> takes
+       <code>filter</code> / <code>replace</code> / <code>new</code>.</p>
+    <p><b>Not implemented:</b> local dehazing (depth- or luma-masked, sky only),
+       multi-scale clarity (the radius is single), and a Photoshop-style "Auto".
+       The first two are a matter of more parameters; the third is a matter of
+       estimating them.</p>
+  </div>
+
+<section class="download" id="en-download">
+  <h2>Download this one</h2>
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>Clarity & Dehaze</h3><span class="pill">1 modules included · no compile</span></div>
+    <p>The archive holds one <code>.py</code>, 1 operator modules, an install note, plus <code>_shared/</code> and <code>locale/</code>. <b>The operator dependencies are already inside, nothing else to download.</b> The <code>.py</code> goes into GIMP's <code>plug-ins</code>, the modules into GEGL's <code>gegl-0.4/plug-ins</code> — two different directories, and the note inside walks through both. Keep <code>_shared/</code> and <code>locale/</code> next to the <code>.py</code> or the menu labels stay English. The Linux side of clarity-dehaze.so is not in the prebuilt bundle yet; if you need Linux, build it with <code>./build.sh</code> (Windows is complete).</p>
+    <a class="btn primary" href="../download/gegl-color-ops-plugin-clarity-dehaze.zip">Download Clarity & Dehaze</a>
+    <p class="muted small">88.6 KB · checksum: <code>SHA256 65234e0d7dba513ccaeb0f8977b1206b…</code></p>
+  </div>
+</section>
+
+<p class="note">In this article a "code" means one step on an 8-bit
+   image: 0–255 is 256 levels, so the gap between neighbours is 1 code, or
+   1/255 ≈ 0.392%% (the difference between RGB 128 and 129). For the order of magnitude
+   of each figure, and why a code is not a perceptual quantity, see
+   <a href="../guide.html#code">Install guide · what a code is</a>.</p>
+  </article>
+  <aside class="toc">
+    <p class="toc-title">On this page</p>
+    <ul>
+      <li><a href="#en-overview">Overview</a></li>
+<li><a href="#en-sec-1">Clarity is not sharpening</a></li><li><a href="#en-sec-2">Midtone weighting</a></li><li><a href="#en-sec-3">Dehaze: fog is an equation</a></li><li><a href="#en-sec-4">When it does not work</a></li><li><a href="#en-sec-5">Three traps, all in the code</a></li><li><a href="#en-sec-6">Measured</a></li><li><a href="#en-sec-7">Scripting</a></li>
+      <li><a href="#en-download">Download</a></li>
+    </ul>
+  </aside>
+</div>
+<nav class="pager">
+  <a href="../plugins.html"><span>Back to</span>All plug-ins</a>
+  <a class="prev" href="mesh-warp.html"><span>Previous</span>Free Transform (Mesh)</a><a class="next" href="lens-correction.html"><span>Next</span>Lens Correction</a>
+</nav></div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
+    <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
+    <span class="muted">7caddfc</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
+</body>
+</html>

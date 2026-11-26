@@ -3,9 +3,9 @@
 [![GIMP 3](https://img.shields.io/badge/GIMP-3.x-5C5543?logo=gimp&logoColor=white)](https://www.gimp.org/)
 [![GEGL 0.4](https://img.shields.io/badge/GEGL-0.4-2C4C6B)](https://gegl.org/)
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
-[![Operations](https://img.shields.io/badge/operations-55-brightgreen)](#算子清单)
+[![Operations](https://img.shields.io/badge/operations-56-brightgreen)](#算子清单)
 
-一组自研的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **55 个**，统一 `lb:` 命名空间，
+一组自研的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **56 个**，统一 `lb:` 命名空间，
 在 GIMP 里收在菜单栏顶层的 **SuperMrWang** 菜单下（和「颜色」「图层」平级）。算法按公开公式与可观察的行为实现，
 不含任何商业软件的代码或素材；文中出现的产品名仅用于说明某个算子参照了哪种行为，
 与各厂商无隶属关系（详见文末「版权与商标」）。
@@ -52,15 +52,17 @@ gegl-color-ops/
 ├── plugin/ai-dodge-burn/     # Python 插件：双曲线磨皮（AI 预修，蒙版已预涂）
 ├── plugin/ai-neutral-grey/   # Python 插件：中性灰磨皮（AI 预修，灰层已反解）
 ├── plugin/alpha-curves/      # Python 插件：通道 → Alpha + 一条可编辑的 alpha 曲线（菜单 Mask）
+├── plugin/lens-correction/   # Python 插件：镜头校正（畸变 k1/k2 + 暗角 + 横向色差，一次重采样）
+├── plugin/clarity-dehaze/    # Python 插件：清晰度 / 去朦胧（中频对比 + 暗通道先验，一个算子两个滑块）
 ├── plugin/sky-replace/       # Python 插件：一键换天（源码保留，.disabled 暂不安装）
 ├── dist/                 # 编好的模块，给不想编译的人直接下载（windows-x64 / linux-x64）
 ├── tools/                # 测试图生成、逐算子冒烟、对照表、文件头重排、注释双语化
 ├── tools/site/           # 站点样式源（生成时拷进 docs/assets/）
 │   ├── blog/             #   博客长文正文（中文），英文在 en/blog/
 │   └── en/               #   算子文章与博客的英文正文
-├── tools/plugin_docs.py  # 十九个插件页的正文与卡片文案（plugins/<slug> 文章页用）
+├── tools/plugin_docs.py  # 三十四个插件页的正文与卡片文案（plugins/<slug> 文章页用）
 ├── docs/                 #  GitHub Pages 站点（tools/site_build.py 生成，别手改）
-│   ├── plugins/          #  十九个插件各一篇（菜单结构、原理、用法、实测）
+│   ├── plugins/          #  三十四个插件各一篇（菜单结构、原理、用法、实测）
 │   └── blog/             #  博客长文（中英双版、带目录）
 ├── build/                # 编译产物（build.sh 生成，可随时删）
 └── LICENSE               # GPL-3.0
@@ -147,6 +149,7 @@ Python 插件走另一条线，两种取法都行：
 | `lb:lch-compose` | LCh Compose | LCh Compose | Component | Point | LCh 分量曲线的合成器：把（R = L、G = C、B = h）的数据图乘回物理量再转 RGB，与 `lb:lch-levels` 同一套 Lab 口径，浮点往返 0.0005 码 |
 | `lb:hsi-dual` | HSI Dual Extract | HSI Dual Extract | Component | Point | HSI 分量曲线的提取器：R = 饱和度、G = 强度、B = 色相/360。色相用 HSI 自己的余弦角（与 HSV 的参数角最多差 1.117°）；`HSI Split (Curves)` 的唯一一道提取器 |
 | `lb:hsi-compose` | HSI Compose | HSI Compose | Component | Point | HSI 分量曲线的合成器：把（R = S、G = I、B = H/360）的数据图按余弦式逆变换还原成真实色，与 `lb:hsi-levels` 共用 common/color-levels.h 里那份 HSI |
+| `lb:clarity-dehaze` | Clarity & Dehaze | Clarity & Dehaze | Color | Filter | 中频局部对比（相对增益 + tanh 压过冲 + 中间调权重）与暗通道去雾（窗口 min filter、直方图估大气光、t 夹 [0.12,1]、可选饱和补偿）。先去雾再清晰度；两个强度都 0 时走恒等快路径 |
 | `lb:lens-correction` | Lens Correction | Lens Correction | Distort | Filter | 镜头校正三项：Brown–Conrady 径向畸变（k1·r² + k2·r⁴，半对角线归一化、四角 r=1）、径向暗角（强度/中点/羽化）、横向色差（红蓝各按角落像素偏移，绿不动）。一次重采样；自动缩放按 1/(1+k1+k2) 兜住四角；几何全关时走拷贝快路径（1600×2400 纯暗角 0.05 s） |
 | `lb:displace` | Displace | Displace | Distort | Composer | 按位移图重采样：一张 RGBA 图同时给 X/Y（R/G），位移图不乘 alpha，覆盖不到的像素原样输出，单位可按长边百分比，五种越界策略，默认 nohalo 不振铃 |
 | `lb:unsharp-mask` | Unsharp Mask | Unsharp Mask | Sharpen | Area | PS「USM 锐化 / 智能锐化」等价：σ ≤ 4 用真高斯、更大退化为三次盒式（O(n)）；数量/半径/阈值齐备，外加把结果夹到原图 3×3 极值的光晕抑制 |
@@ -789,6 +792,36 @@ PS 的「木偶变形」在这里是：**在图层上点几个钉子、拖住钉
 `tools/check_warp_gimp.py`（65 条，真 GIMP：过程注册与参数表、像素真的搬走、圈外
 逐像素字节相等、alpha、无 alpha 图层的写回格式、新图层输出、四种守卫、对话框与
 预览、**ARAP 档真的改像素且不碰远处、切档时滑杆联动**、768×1024 全流程）。
+
+### Python 插件：plugin/clarity-dehaze（清晰度 / 去朦胧）
+
+Camera Raw 里最常拖的两个滑块，GIMP 3 一个都没有（`gegl:unsharp-mask` 是高频
+锐化，与清晰度不是一回事）。
+
+1. **清晰度**：`d = Y − 高斯(Y)` 得到中频层，再按**相对**量加回去
+   `gain = 1 + 强度·w·d′/max(low, 0.08)`。三个关键设计：
+   - 除以 `low` 而不是加绝对差值：暗部 `low` 只有 0.03，绝对差值加回去就是噪点；
+   - `d′ = h·tanh(d/h)` 压住硬边缘两侧的过冲（`h` 由「边缘保护」控制），
+     这就是清晰度与 USM 的分界——中频纹理通过，边缘不出亮边黑边；
+   - `w = 1 − |2Y−1|²` 中间调权重，纯黑纯白不硬推。
+2. **去朦胧**：暗通道先验。`dark = min over window(min(R,G,B))`、
+   `A` = 暗通道最亮 0.1% 像素的原图均值（直方图找阈值，不排序）、
+   `t = 1 − ω·dark/lum(A)` 夹在 `[0.12, 1]`、`J = (I−A)/t + A`。
+   `ω` 是「保留雾量」默认 0.95；窗口要比雾里最亮的物体大；`t` 下限 0.12
+   否则 1/t 把噪声乘十几倍。负强度等于加雾。
+
+先去雾再清晰度，中间重算一遍亮度（去雾改过 RGB，沿用旧 Y 会让低频层和新像素
+对不上，暗部出一圈晕）。`get_required_for_output` 返回整幅，因为大气光需要全图
+统计——只给 roi 的话预览和导出会算出两个不同的 A。
+
+性能 1600×2400：清晰度 2.03 s、去朦胧 1.21 s、两者 3.59 s；两个强度都是 0 时走
+`gegl_buffer_copy` 恒等快路径 0.20 s（几乎全是图层复制）。清晰度是三遍盒式模糊，
+去朦胧是单调队列 min filter，都是 O(N)，窗口变大不变慢。
+
+回归 `tools/check_clarity_dehaze_gimp.py` 24 项（恒等逐字节、纯色不动、条纹对比
+升降、硬边相对过冲、中间调增益 > 暗部、合成雾图反解 MAE 40 → 14、纯雾不爆、
+负强度加雾、饱和补偿、极端参数、性能）。对话框截图 `tools/shot_clarity_dehaze.py`
+→ `tools/site/plugin-shots/clarity-dehaze/`。
 
 ### Python 插件：plugin/lens-correction（镜头校正 / 畸变 + 暗角 + 色差）
 
@@ -1628,7 +1661,7 @@ python tools/check_ai_inpaint.py
 python tools/mock_comfy.py --port 8188        # 重绘结果 = 蒙版区填成固定蓝色
 ```
 
-**AI Inpaint 不在 55 个算子里**：它是 Python 插件，不编进 GEGL 模块，也不需要
+**AI Inpaint 不在 56 个算子里**：它是 Python 插件，不编进 GEGL 模块，也不需要
 `./build.sh`。`./install-plugin.sh` 会把 `plugin/ai-inpaint/` 和它依赖的
 `plugin/_shared/` 一起装到 GIMP 用户插件目录。
 
@@ -2033,7 +2066,7 @@ SuperMrWang → Observe   → 黑白 / 陡峭曲线 / 波浪曲线 / 饱和度 /
                           观察层，点了就建（也是 Python 插件）
 SuperMrWang → Luminosity Masks → 生成七条明度通道（亮部/暗部各 3 档 + 中间调）
 SuperMrWang → Export    → 3D LUT…（把当前图层的滤镜栈烘成 .cube）
-                          （以上都是 Python 插件，不在 55 个算子里）
+                          （以上都是 Python 插件，不在 56 个算子里）
 ```
 
 47 个算子按「找算子时的念头」分九组，避免一个子菜单里平铺二十多项：

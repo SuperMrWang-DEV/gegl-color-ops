@@ -2733,3 +2733,138 @@ PLUGIN_EN["lens-correction"] = dict(
        they are about where the numbers come from.</p>
   </div>""",
 )
+
+PLUGIN_EN["clarity-dehaze"] = dict(
+    lede="""The two sliders most people touch first in Camera Raw: <b>Clarity</b>
+   — mid-frequency local contrast, not sharpening — and <b>Dehaze</b>, which
+   inverts atmospheric scattering with the dark channel prior. Both live in one
+   operator: haze first, then clarity, in a single pass.""",
+    body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Clarity is not sharpening</h3><span class="pill">mid frequency</span></div>
+      <p>Unsharp mask works on <b>high</b> frequency — pixel-scale edges — so the
+         picture gets crisper and the noise gets crisper with it. Clarity works on
+         <b>mid</b> frequency: the tens-of-pixels scale where foliage layers,
+         cloud volume and skin structure live. It opens up a flat photograph
+         without amplifying grain.</p>
+      <p>Mechanically: subtract a large-radius low pass from luma to get a mid
+         band <code>d = Y − low</code>, then add it back as a ratio:
+         <code>gain = 1 + amount · w · d′ / max(low, 0.08)</code>.</p>
+      <p>Two details are what make it feel like Photoshop rather than USM.
+         <b>①</b> The gain is <b>relative</b> (divided by low), so shadows are not
+         blown up into noise just because their local average is small, and
+         highlights do not clip the moment you push the slider.
+         <b>②</b> The mid band goes through <code>h·tanh(d/h)</code> first:
+         wherever the amplitude is far above h — the overshoot on either side of a
+         hard edge — it is squeezed to ±h, so edges grow no bright or dark halo,
+         while texture within h passes through almost untouched. That h is the
+         <b>edge protection</b> slider.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Midtone weighting</h3><span class="pill">both ends protected</span></div>
+      <p>The gain is also multiplied by <code>w = 1 − |2Y − 1|²</code>: full weight
+         in the midtones, tapering to nothing at pure black and pure white. That is
+         not caution, it is necessary — shadows have no room to give, so pushing
+         them is just noise, and highlights just go dead white.</p>
+      <p>The default radius of 40 px is where "mid" ends: smaller slides toward
+         sharpening (texture turns brittle), larger slides toward global contrast
+         (that is a curve, not clarity). On a 1920-wide photo, 40 px is about 2%
+         of the frame width.</p>
+      <p>Negative amounts are a useful "de-clarity": mid frequencies soften while
+         detail survives — far more presentable than a Gaussian blur, and the usual
+         choice for skin.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Dehaze: fog is an equation</h3><span class="pill">I = J·t + A(1−t)</span></div>
+      <p>Distant hills look grey because air mixes atmospheric light <code>A</code>
+         into the scene <code>J</code> in proportion to distance, with transmission
+         <code>t</code> falling off further away. He, Sun &amp; Tang (2009) give a
+         cheap inversion via the dark channel prior:</p>
+      <p><b>①</b> dark channel <code>dark(p) = min over window(min(R,G,B))</code>;
+         <b>②</b> airlight <code>A</code> is the mean of the original pixels at the
+         brightest 0.1% of the dark channel; <b>③</b>
+         <code>t = 1 − ω·dark/lum(A)</code>, clamped to <code>[0.12, 1]</code>;
+         <b>④</b> <code>J = (I − A)/t + A</code>.</p>
+      <p><code>ω</code> is the <b>haze kept</b> slider, 0.95 by default: a full
+         solve (1.0) looks fake, and a little atmosphere left in reads as a
+         photograph. The window defaults to 15 px and must be <b>larger than the
+         brightest object inside the haze</b>, otherwise the transmission map
+         follows object outlines instead of depth — those results look like grey
+         patches pasted over the picture.</p>
+      <p>The 0.12 floor on <code>t</code> is a hard constraint: below it the 1/t
+         amplification multiplies noise tenfold and the shadows turn into coloured
+         blotches.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>When it does not work</h3></div>
+      <p><b>The prior assumes every hazy-free scene has one very dark channel.</b>
+         A frame filled with sky, or a large white subject (snow, a white wall),
+         breaks that assumption: <code>A</code> lands on the subject itself and the
+         result is a grey sky and vignette-shaped blotches on the white wall. Keep
+         the amount under 30, or use clarity alone.</p>
+      <p>Coloured haze — yellow dust, cyan spray — does not fit either, since the
+         prior assumes grey fog. Photoshop's Dehaze drifts the same way; it just
+         compensates with an extra temperature pass.</p>
+      <p>Negative amounts <b>add</b> haze, which is occasionally the point: a bit of
+         aerial perspective gives the foreground depth.</p>
+      <p><b>Dehaze saturation</b>: dehazing multiplies by 1/t, pulling colour toward
+         the grey airlight, so 10–20 of compensation usually looks right. It scales
+         chroma around luma, leaving hue alone.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Three traps, all in the code</h3><span class="pill">preview vs result</span></div>
+      <p><b>① Radii must be scaled by the preview ratio.</b> A radius is in pixels;
+         once the preview is reduced to a 560 px edge, a 40 px low pass is worth
+         160 px on the original and the preview looks far softer than the result —
+         the slider becomes impossible to judge. Both radii are multiplied by
+         preview width / original width and floored at 2.</p>
+      <p><b>② Luma has to be recomputed after dehazing.</b> Clarity works on luma,
+         and dehazing has already changed RGB. Reusing the pre-dehaze luma puts the
+         low pass out of step with the new pixels and leaves a halo in the shadows.
+         The operator does dehaze first, then rebuilds Y for clarity — that is why.</p>
+      <p><b>③ The airlight needs the whole frame.</b> So this operator marks its
+         entire input as required (<code>get_required_for_output</code> returns the
+         full extent); otherwise the preview and the export would use two different
+         values of A and the look would jump.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Measured</h3><span class="pill">1600×2400</span></div>
+      <p>Clarity <b>2.03 s</b>, dehaze <b>1.21 s</b>, both <b>3.59 s</b>. With both
+         amounts at zero it takes a true identity path
+         (<code>gegl_buffer_copy</code>) — the 0.20 s there is almost entirely the
+         layer copy.</p>
+      <p>Clarity costs three box passes (a Gaussian approximation, six directional
+         passes); dehaze is a monotone deque for the window minimum plus a histogram
+         for the airlight, both O(N), so a larger window costs nothing. A preview at
+         a 560 px edge takes 60–90 ms per update, which keeps dragging responsive.</p>
+      <p class="muted small">Regression <code>check_clarity_dehaze_gimp.py</code>,
+         24 checks: byte-for-byte identity, flat colour untouched, wave contrast up
+         and down, bounded relative overshoot at a hard edge, stronger protection
+         giving less overshoot, midtone gain above shadow gain, synthetic haze
+         inversion (MAE 40 → 14), uniform fog not exploding, negative amount adding
+         haze, saturation compensation, extreme parameters, timing.</p>
+    </div>
+  </div>
+
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>Scripting</h3><span class="pill">settings is one JSON string</span></div>
+    <p>Keys are the operator's own property names, hyphenated:</p>
+    <p><code>lb-plugin-clarity-dehaze 图层 settings="{\\\\"clarity\\\\": 40,
+       \\\\"dehaze\\\\": 35, \\\\"dehaze-saturation\\\\": 15}" output=replace</code></p>
+    <p>Full set: <code>clarity</code>, <code>clarity-radius</code>,
+       <code>clarity-protect</code>, <code>dehaze</code>,
+       <code>dehaze-radius</code>, <code>dehaze-keep</code>,
+       <code>dehaze-saturation</code>. <code>output</code> takes
+       <code>filter</code> / <code>replace</code> / <code>new</code>.</p>
+    <p><b>Not implemented:</b> local dehazing (depth- or luma-masked, sky only),
+       multi-scale clarity (the radius is single), and a Photoshop-style "Auto".
+       The first two are a matter of more parameters; the third is a matter of
+       estimating them.</p>
+  </div>""",
+)
