@@ -50,7 +50,7 @@ GROUPS = {
     # 从 PS 迁过来的人按原路径找得到。
     "Sharpen": ["unsharp-mask"],
     "Noise":   ["add-noise", "reduce-noise", "dust-scratches"],
-    "Distort": ["displace", "puppet-warp", "mesh-warp"],
+    "Distort": ["displace", "lens-correction", "puppet-warp", "mesh-warp"],
     # 图层样式（GEGL 版）：与 Python 版同在 SuperMrWang → Layer 下，一个「图层
     # 样式…」是烤图层的，一个「Layer Style (live)…」是挂滤镜的。
     "Layer": ["layer-style"],

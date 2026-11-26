@@ -78,7 +78,8 @@ echo "    SuperMrWang → Blend      应用图像 / 计算"
 echo "    SuperMrWang → Layer      图层样式（投影/内阴影/外发光/内发光/斜面浮雕/光泽/三种叠加/描边，
                              结果是一组可编辑图层，投影在外、内阴影在内；
                              对话框底部「Style code」可复制/粘贴整份样式到别的图层）"
-echo "    SuperMrWang → Distort    Displace（按位移图重采样）/ 木偶变形（放钉子拖动，MLS 网格变形）
+echo "    SuperMrWang → Distort    镜头校正（畸变 k1/k2 + 暗角 + 横向色差，一次重采样，四角自动兜住）
+                              Displace（按位移图重采样）/ 木偶变形（放钉子拖动，MLS 网格变形）
                              自由变形（贝塞尔网格 + 把手：拖交点改形状，拖把手弯网格线，Alt+点击加分割线）
                              消失点（拖四边形标出透视平面：贴图进去 / 拉正成矩形 / 折成台阶）"
 echo "    SuperMrWang → Export     3D LUT…（把当前图层的滤镜栈烘成 .cube，可给视频 / 别的图用）"

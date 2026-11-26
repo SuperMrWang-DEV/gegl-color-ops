@@ -161,6 +161,13 @@
   "w": 528,
   "zh": "对话框只有一个选项：结果是否收进图层组；曲线本身在生成的那几层上用 GIMP 的曲线改"
  },
+ "lens-correction": {
+  "en": "three tabs, live preview; distortion is the one shown",
+  "h": 480,
+  "title": "镜头校正",
+  "w": 1052,
+  "zh": "三个页签 + 实时预览，图示为畸变页"
+ },
  "luminosity": {
   "en": "eight luminance masks in one go; Lights 1 is shown here",
   "h": 323,

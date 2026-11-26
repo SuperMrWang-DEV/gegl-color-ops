@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-title-zh="Lens Correction（SuperMrWang → Distort） · gegl-color-ops" data-title-en="Lens Correction · gegl-color-ops">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens Correction（SuperMrWang → Distort） · gegl-color-ops</title>
+<meta name="description" content="PS「滤镜 → 镜头校正」里最常动的三项：桶形 / 枕形畸变、暗角、横向色差。一个算子一次重采样全解决，参数挂在图层滤镜栈上，原像素一个字节不动。" data-desc-zh="PS「滤镜 → 镜头校正」里最常动的三项：桶形 / 枕形畸变、暗角、横向色差。一个算子一次重采样全解决，参数挂在图层滤镜栈上，原像素一个字节不动。" data-desc-en="PS「滤镜 → 镜头校正」里最常动的三项：桶形 / 枕形畸变、暗角、横向色差。一个算子一次重采样全解决，参数挂在图层滤镜栈上，原像素一个字节不动。">
+<meta property="og:title" content="Lens Correction（SuperMrWang → Distort） · gegl-color-ops" data-title-zh="Lens Correction（SuperMrWang → Distort） · gegl-color-ops" data-title-en="Lens Correction · gegl-color-ops">
+<meta property="og:description" content="PS「滤镜 → 镜头校正」里最常动的三项：桶形 / 枕形畸变、暗角、横向色差。一个算子一次重采样全解决，参数挂在图层滤镜栈上，原像素一个字节不动。" data-desc-zh="PS「滤镜 → 镜头校正」里最常动的三项：桶形 / 枕形畸变、暗角、横向色差。一个算子一次重采样全解决，参数挂在图层滤镜栈上，原像素一个字节不动。" data-desc-en="PS「滤镜 → 镜头校正」里最常动的三项：桶形 / 枕形畸变、暗角、横向色差。一个算子一次重采样全解决，参数挂在图层滤镜栈上，原像素一个字节不动。">
+<link rel="stylesheet" href="../assets/style.css?v=00b514e0ae">
+<link rel="alternate" type="application/atom+xml" title="算子更新 / Operator feed" href="../feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script>
+window.addEventListener("DOMContentLoaded", function () {
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ],
+      ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+    });
+  }
+  if (window.mermaid) {
+    var dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "neutral",
+      themeVariables: { fontSize: "13.5px" },
+      flowchart: { curve: "basis", padding: 10, nodeSpacing: 28, rankSpacing: 38 }
+    });
+    var timer = null;
+    function paint() {
+      var nodes = [].filter.call(document.querySelectorAll("pre.mermaid"), function (n) {
+        return !n.dataset.processed && n.offsetParent !== null;
+      });
+      if (nodes.length) mermaid.run({ nodes: nodes });
+    }
+    paint();
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-set-lang]")) {
+        clearTimeout(timer); timer = setTimeout(paint, 60);
+      }
+    });
+  }
+});
+</script><script>
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get("lang");
+    var l = q || localStorage.getItem("gco-lang");
+    if (l === "en") {
+      document.documentElement.setAttribute("data-lang", "en");
+      document.documentElement.lang = "en";
+    }
+  } catch (e) {}
+})();
+</script>
+</head>
+<body class="article">
+<a class="skip" href="#main"><span class="l-zh">跳到正文</span><span class="l-en">Skip to content</span></a>
+<header class="site-head">
+  <a class="brand" href="../index.html"><span class="dot"></span>gegl-color-ops</a>
+  <nav>
+    <a href="../ops.html"><span class="l-zh">算子</span><span class="l-en">Operators</span></a>
+    <a href="../plugins.html"><span class="l-zh">插件</span><span class="l-en">Plug-ins</span></a>
+    <a href="../blog.html"><span class="l-zh">博客</span><span class="l-en">Blog</span></a>
+    <a href="../guide.html"><span class="l-zh">安装</span><span class="l-en">Install</span></a>
+    <a href="../index.html#download"><span class="l-zh">下载</span><span class="l-en">Download</span></a>
+    <a class="ext" href="https://github.com/SuperMrWang-DEV/gegl-color-ops">GitHub</a>
+  </nav>
+  <div class="lang-sw" role="group" aria-label="语言 / Language">
+    <button type="button" data-set-lang="zh" aria-pressed="true">中文</button>
+    <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
+  </div>
+</header>
+<main id="main">
+<div class="l-zh"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">首页</a> / <a href="../ops.html">算子</a> / 扭曲</p>
+  <h1>Lens Correction（SuperMrWang → Distort）</h1>
+  <div class="meta">
+    <code>lb:lens-correction</code>
+    <span class="tag t-distort">扭曲</span>
+    <span>Custom</span>
+  </div>
+  <p class="lede">PS「滤镜 → 镜头校正」里最常动的三项：桶形 / 枕形畸变、暗角、横向色差。一个算子一次重采样全解决，参数挂在图层滤镜栈上，原像素一个字节不动。</p>
+</section><div class="article-layout">
+  <article class="prose">
+<blockquote><p><code>lb:lens-correction</code> · 菜单 <strong>SuperMrWang → Distort → 镜头校正…</strong> · 单输入</p></blockquote>
+<p>PS「滤镜 → 镜头校正」里真正会动的三项——桶形 / 枕形畸变、暗角、横向色差——一个算子一次重采样全解决。GIMP 自带的 <code>gegl:lens-distortion</code> 只有畸变，没有暗角和色差；把三项分开挂三条滤镜，就得重采样三遍、画质掉三轮。</p>
+<h2 id="归一化半径为什么是半对角线">归一化半径：为什么是半对角线</h2>
+<p>所有半径都按<strong>画面半对角线</strong>归一化，四角恰好落在 <code>r = 1</code>：</p>
+<pre><code>r = |p − c| / (0.5 · √(w² + h²))</code></pre>
+<p>用短边归一化的话，同一组 k1 在 4:3 和 3:2 上看到的角落形变不一样——角落是畸变最明显的地方，那里不一致，参数就没有可移植性。用对角的另一半同理，只是把 1 挪到了别处。半对角线让「r = 1」和「画面四角」是同一件事。</p>
+<h2 id="畸变-distortion">畸变 / Distortion</h2>
+<p>Brown–Conrady 的径向项，只取前两阶：</p>
+<pre><code>s(r) = 1 + k1·r² + k2·r⁴
+src  = c + (p − c) · s(r) · zoom</code></pre>
+<ul><li><code>k1 &gt; 0</code>：从更外面取样 → 画面<strong>收缩</strong> → 去桶形畸变（DxO / Lightroom 里 「桶形」滑杆往正方向拉）。</li><li><code>k1 &lt; 0</code>：画面<strong>膨胀</strong>，加桶形 / 鱼眼味道。</li><li><code>k2</code> 是 r⁴ 项，只在角落附近咬得住：k1 修不干净的「角落还差一点」，用它补。 常见量级在 0.01–0.05，给到 ±0.5 是为了极端鱼眼。</li></ul>
+<p><code>r → s(r)</code> 必须单调递增，否则同一块画面会被折回去两次，边缘出现镜像重影。 <code>k1 = -0.5</code> 已经接近边界（<code>s'(1) = 1 + 3k1 + 5k2 ≈ -0.5</code>），量程就夹在 ±0.5，再大不是「更强的效果」而是碎图。</p>
+<h3 id="自动缩放-auto-scale">自动缩放 / Auto scale</h3>
+<p><code>s(1) = 1 + k1 + k2</code> 就是角落的采样倍率。自动缩放直接除以它：</p>
+<pre><code>zoom = 1 / (1 + k1 + k2)</code></pre>
+<p>于是角落映射回角落，画面只是被压进中心一点，不会在四个角留下透明缺口。关掉它（<code>auto-zoom = off</code>）就能看到那四个缺口——这也是为什么它默认开。 <code>zoom</code> 是在自动缩放之上再乘一个手调系数，PS 的「缩放」滑杆是同一件事。</p>
+<h2 id="暗角-vignette">暗角 / Vignette</h2>
+<pre><code>t    = smoothstep(mid, mid + feather, r)
+gain = 1 + vignette/100 · t</code></pre>
+<ul><li>负值压暗、正值提亮，<code>-100</code> 就是角落全黑。</li><li><code>midpoint</code>（默认 0.55）是开始衰减的半径，<code>feather</code>（默认 0.45）是过渡宽度。 feather 太小会看到一圈硬边同心环，这是暗角最容易做丑的地方。</li><li>暗角按<strong>输出半径</strong>算，不按畸变后的源半径：它描述的是成像面上的照度衰减， 与几何校正无关。所以畸形调完再压暗角，位置不会跟着跑。</li></ul>
+<h2 id="横向色差-lateral-ca">横向色差 / Lateral CA</h2>
+<pre><code>r_red  = r · (1 + ca_red  / halfdiag · r²)
+r_blue = r · (1 + ca_blue / halfdiag · r²)</code></pre>
+<ul><li>位移按<strong>角落处的像素</strong>给：<code>ca_red = 2</code> 表示红通道在四角向外偏 2 px，中心 不动（r² 让它在中心附近几乎为零）。24 MP 的机器上常见量级是 ±1–3 px。</li><li><strong>绿通道不参与</strong>。横向色差是镜头色散让三个颜色的成像尺寸略有不同，绿通常 落在中间、也是合焦参考，修它等于把整幅往外拉。</li><li>红蓝一般反号：一边大一边小，紫边就是这么来的。</li></ul>
+<h2 id="参数-parameters">参数 / Parameters</h2>
+<div class="table-wrap"><table><thead><tr><th>参数</th><th>默认</th><th>说明</th></tr></thead><tbody><tr><td><code>k1</code></td><td>0</td><td>畸变 r² 项；正 = 去桶形（画面收缩），负 = 加桶形</td></tr><tr><td><code>k2</code></td><td>0</td><td>畸变 r⁴ 项，只修角落残余</td></tr><tr><td><code>auto-zoom</code></td><td>on</td><td>除以 <code>1 + k1 + k2</code>，四角兜回画面</td></tr><tr><td><code>zoom</code></td><td>1.0</td><td>在自动缩放之上再乘的手调比例</td></tr><tr><td><code>vignette</code></td><td>0</td><td>暗角强度 %，负压暗、正提亮</td></tr><tr><td><code>vignette-midpoint</code></td><td>0.55</td><td>开始衰减的半径（四角 = 1）</td></tr><tr><td><code>vignette-feather</code></td><td>0.45</td><td>过渡宽度</td></tr><tr><td><code>ca-red</code></td><td>0</td><td>红通道在角落的径向偏移（px）</td></tr><tr><td><code>ca-blue</code></td><td>0</td><td>蓝通道在角落的径向偏移（px）</td></tr><tr><td><code>abyss</code></td><td>clamp</td><td>越界：clamp / transparent / loop / black</td></tr><tr><td><code>resampling</code></td><td>nohalo</td><td>nearest / bilinear / cubic / nohalo / lohalo</td></tr></tbody></table></div>
+<h2 id="快路径">快路径</h2>
+<p>几何三项全关时不做逐像素采样：</p>
+<div class="table-wrap"><table><thead><tr><th>情形</th><th>做法</th><th>1600×2400 实测</th></tr></thead><tbody><tr><td>全默认</td><td><code>gegl_buffer_copy</code> 直接拷</td><td>0.09 s</td></tr><tr><td>只有暗角</td><td>整块读入 → 乘增益 → 写回</td><td>0.05 s</td></tr><tr><td>只调畸变（无 CA）</td><td>nohalo 采样一次</td><td>1.10 s</td></tr><tr><td>畸变 + 色差</td><td>红 / 绿 / 蓝各采样一次</td><td>2.69 s</td></tr><tr><td>畸变 + 色差，双线性</td><td>同上但线性采样</td><td>0.92 s</td></tr></tbody></table></div>
+<p>色差让采样次数从 1 变 3，这是它贵的原因；不需要色差时别让它在栈上留一个非零值。<code>768×1024</code> 上分别是 0.07 / 0.05 / 0.22 / 0.56 s。插件的实时预览是缩到 560 长边再挂滤镜，一次 30 ms 上下，拖滑杆跟手。</p>
+<h2 id="和-ps-差在哪">和 PS 差在哪</h2>
+<p><strong>有</strong>：三项一个对话框、非破坏滤镜、11 个参数全可脚本化、四档越界、五档重采样、自动缩放、暗角 / 色差各自独立（PS 也是）。</p>
+<p><strong>没有</strong>：镜头配置文件（<code>.lcp</code> / lensfun 数据库）自动匹配——那要一份镜头数据库和一个按 EXIF 查表的入口；几何校正（梯形 / 旋转 / 横向偏移）；用边缘检测自动估 k1 的那个「自动」按钮。三者都不是重采样本身的问题，是「找参数」的问题。手上有 EXIF 的人可以自己算，没有的人照 PS 的习惯拖滑杆就行。</p>
+<h2 id="回归">回归</h2>
+<p><code>tools/check_lens_correction_gimp.py</code>，28 项：算子能否挂成图层滤镜、参数回读、恒等参数下逐字节不动、挂滤镜后原像素不变、k1 正负两个方向的取样半径（用 <code>R = 255·r</code> 的径向渐变当标尺，实测 135 / 122 对 135 / 123）、自动缩放兜住四角、transparent / clamp 两档越界、暗角中心 / 中间 / 角落三点、正值提亮、色差只挪红蓝且方向相反、极端参数不炸、240×240 全参数 0.077 s。</p><div class="op-dl">
+  <div>
+    <h3>只要这一个</h3>
+    <p>Windows 模块 <code>lens-correction.dll</code>，放进 <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>，然后重启 GIMP。这里的每个模块都是独立的 GEGL 模块，只链接 GIMP 自带的 GEGL 与 babl，不依赖本项目里的其它模块——下这一个就够用，不会缺东西。要一次装齐，用<a href="../index.html#download">整包</a>。</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lens-correction.dll">下载 lens-correction.dll<span class="size">Windows x64</span></a></div>
+</div><nav class="pager"><a class="prev" href="displace.html"><span>上一个</span>Displace</a><a class="next" href="puppet-warp.html"><span>下一个</span>Puppet Warp (live)</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">本页目录</p>
+  <ul><li class="l2"><a href="#归一化半径为什么是半对角线">归一化半径：为什么是半对角线</a></li>
+<li class="l2"><a href="#畸变-distortion">畸变 / Distortion</a></li>
+<li class="l3"><a href="#自动缩放-auto-scale">自动缩放 / Auto scale</a></li>
+<li class="l2"><a href="#暗角-vignette">暗角 / Vignette</a></li>
+<li class="l2"><a href="#横向色差-lateral-ca">横向色差 / Lateral CA</a></li>
+<li class="l2"><a href="#参数-parameters">参数 / Parameters</a></li>
+<li class="l2"><a href="#快路径">快路径</a></li>
+<li class="l2"><a href="#和-ps-差在哪">和 PS 差在哪</a></li>
+<li class="l2"><a href="#回归">回归</a></li></ul>
+</aside>
+</div></div>
+<div class="l-en"><section class="page-head">
+  <p class="eyebrow"><a href="../index.html">Home</a> / <a href="../ops.html">Operators</a> / Distort</p>
+  <h1>Lens Correction</h1>
+  <div class="meta">
+    <code>lb:lens-correction</code>
+    <span class="tag t-distort">Distort</span>
+    <span>Custom</span>
+  </div>
+  <p class="lede">Distortion, vignetting and lateral CA in one resample, with an auto scale that keeps the corners in frame.</p>
+</section><div class="article-layout">
+  <article class="prose">
+<p><code>lb:lens-correction</code> · menu <strong>SuperMrWang → Distort → Lens Correction…</strong> · single input</p>
+<p>The three Lens Correction controls people actually turn: barrel / pincushion distortion, vignetting and lateral chromatic aberration. One operator, one resample. GIMP's own <code>gegl:lens-distortion</code> handles distortion only; stacking the three as separate filters would resample the picture three times and lose sharpness at each pass.</p>
+<h2 id="normalised-radius">Normalised radius</h2>
+<p>Every radius is measured against the <strong>half diagonal</strong>, so the four corners sit exactly at <code>r = 1</code>:</p>
+<pre><code>r = |p − c| / (0.5 · √(w² + h²))</code></pre>
+<p>Normalising to the short edge would make one k1 pair produce different corner shapes on 4:3 and 3:2 — and the corners are where distortion is most visible, so that is the one place the numbers must mean the same thing.</p>
+<h2 id="distortion">Distortion</h2>
+<p>The first two terms of the Brown–Conrady radial series:</p>
+<pre><code>s(r) = 1 + k1·r² + k2·r⁴
+src  = c + (p − c) · s(r) · zoom</code></pre>
+<ul><li><code>k1 &gt; 0</code> samples from further out, shrinking the picture — this <strong>removes barrel distortion</strong> and is the direction Lightroom's "barrel" slider moves.</li><li><code>k1 &lt; 0</code> inflates it, adding barrel / fisheye character.</li><li><code>k2</code> is the r⁴ term and only bites near the corners: it cleans up what k1 leaves behind. Typical values are 0.01–0.05; the ±0.5 range exists for extreme fisheye work.</li></ul>
+<p><code>r → s(r)</code> has to stay monotonic. Once it folds back, one slice of the picture gets sampled twice and the border mirrors. <code>k1 = -0.5</code> is already near that cliff, which is why the range stops there — past it you get a broken image, not a stronger effect.</p>
+<h3 id="auto-scale">Auto scale</h3>
+<p><code>s(1) = 1 + k1 + k2</code> is the corner sampling ratio, so auto scale simply divides by it: <code>zoom = 1 / (1 + k1 + k2)</code>. The corners land back on the frame and the picture is only pulled slightly inward — no transparent notches. Turn it off to see those notches; that is why it is on by default. The manual <code>zoom</code> multiplies on top, the same thing Photoshop's "Scale" slider does.</p>
+<h2 id="vignette">Vignette</h2>
+<pre><code>t    = smoothstep(mid, mid + feather, r)
+gain = 1 + vignette/100 · t</code></pre>
+<p>Negative darkens, positive lightens (<code>-100</code> is a black corner). <code>midpoint</code> (default 0.55) is where the falloff starts, <code>feather</code> (0.45) its width; too small a feather and you see a hard concentric ring, which is the easiest way to make a vignette look cheap.</p>
+<p>The vignette is computed from the <strong>output</strong> radius, not the distorted source radius: it describes illumination falloff on the sensor and should not move when the geometry changes.</p>
+<h2 id="lateral-ca">Lateral CA</h2>
+<pre><code>r_red  = r · (1 + ca_red  / halfdiag · r²)
+r_blue = r · (1 + ca_blue / halfdiag · r²)</code></pre>
+<p>The shift is given <strong>in pixels at the corners</strong>: <code>ca_red = 2</code> moves the red channel 2 px outward at the corners while the centre stays put (the r² makes it vanish near the middle). On a 24 MP frame the usual amount is ±1–3 px.</p>
+<p><strong>Green does not participate.</strong> Lateral CA means the three colours image at slightly different scales; green is both the middle one and the focus reference, so shifting it would drag the whole picture outward. Red and blue normally take opposite signs — that mismatch is what a purple fringe is.</p>
+<h2 id="parameters">Parameters</h2>
+<div class="table-wrap"><table><thead><tr><th>Property</th><th>Default</th><th>Meaning</th></tr></thead><tbody><tr><td><code>k1</code></td><td>0</td><td>radial r² term; positive removes barrel (shrinks), negative adds it</td></tr><tr><td><code>k2</code></td><td>0</td><td>radial r⁴ term, corner residual</td></tr><tr><td><code>auto-zoom</code></td><td>on</td><td>divide by <code>1 + k1 + k2</code> so the corners stay in frame</td></tr><tr><td><code>zoom</code></td><td>1.0</td><td>manual scale on top of auto</td></tr><tr><td><code>vignette</code></td><td>0</td><td>percent; negative darkens, positive lightens</td></tr><tr><td><code>vignette-midpoint</code></td><td>0.55</td><td>radius where the falloff starts (corners = 1)</td></tr><tr><td><code>vignette-feather</code></td><td>0.45</td><td>width of the transition</td></tr><tr><td><code>ca-red</code></td><td>0</td><td>red channel radial shift at the corners, px</td></tr><tr><td><code>ca-blue</code></td><td>0</td><td>blue channel radial shift at the corners, px</td></tr><tr><td><code>abyss</code></td><td>clamp</td><td>clamp / transparent / loop / black</td></tr><tr><td><code>resampling</code></td><td>nohalo</td><td>nearest / bilinear / cubic / nohalo / lohalo</td></tr></tbody></table></div>
+<h2 id="fast-paths">Fast paths</h2>
+<p>With all three geometric controls at zero the operator does not sample at all:</p>
+<div class="table-wrap"><table><thead><tr><th>Case</th><th>What happens</th><th>1600×2400</th></tr></thead><tbody><tr><td>Everything default</td><td><code>gegl_buffer_copy</code></td><td>0.09 s</td></tr><tr><td>Vignette only</td><td>read band, multiply, write back</td><td>0.05 s</td></tr><tr><td>Distortion, no CA</td><td>one nohalo sample per pixel</td><td>1.10 s</td></tr><tr><td>Distortion + CA</td><td>three samples (R, G, B)</td><td>2.69 s</td></tr><tr><td>Distortion + CA, bilinear</td><td>three linear samples</td><td>0.92 s</td></tr></tbody></table></div>
+<p>CA triples the sampler cost. Leave it at zero when you do not need it. On 768×1024 the same rows read 0.07 / 0.05 / 0.22 / 0.56 s. The plug-in previews on a 560 px copy, about 30 ms per update, so the sliders track the hand.</p>
+<h2 id="compared-with-photoshop">Compared with Photoshop</h2>
+<p><strong>Has:</strong> all three in one dialog, a live (non-destructive) filter, eleven scriptable properties, four edge policies, five resamplers, auto scale, and independent vignette / CA controls.</p>
+<p><strong>Missing:</strong> lens profile lookup (<code>.lcp</code> / lensfun from EXIF), geometric correction (perspective / rotate / shift), and the "Auto" button that estimates k1 from edge detection. None of those are resampling problems — they are about finding the numbers. With EXIF in hand you can compute them; without it, drag the sliders the way you would in Photoshop.</p>
+<h2 id="regression">Regression</h2>
+<p><code>tools/check_lens_correction_gimp.py</code>, 28 checks: the operator attaches as a layer filter, properties read back, identity parameters are byte-for-byte identical, the source pixels survive <code>append_filter</code>, sample radius in both directions of k1 (the test image encodes its own radius as <code>R = 255·r</code>, so the expected values are read off the pixels), auto scale keeps the corners opaque, transparent vs clamp edge policy, three vignette sample points, positive vignette lightening, CA moving only red and blue in opposite directions, extreme parameters not exploding, and 0.077 s for a fully loaded 240×240 pass.</p><div class="op-dl">
+  <div>
+    <h3>Just this one</h3>
+    <p>Windows module <code>lens-correction.dll</code>, drop it into <code>%LOCALAPPDATA%\gegl-0.4\plug-ins</code>, then restart GIMP. Every module here is a standalone GEGL module: it links only against the GEGL and babl that ship with GIMP, never against another module of this project, so one download is all it needs. The full bundle is on the <a href="../index.html#download">download page</a>.</p>
+  </div>
+  <div class="btns"><a class="btn" href="https://github.com/SuperMrWang-DEV/gegl-color-ops/raw/main/dist/windows-x64/lens-correction.dll">Download lens-correction.dll<span class="size">Windows x64</span></a></div>
+</div><nav class="pager"><a class="prev" href="displace.html"><span>Previous</span>Displace</a><a class="next" href="puppet-warp.html"><span>Next</span>Puppet Warp (live)</a></nav>
+  </article>
+  <aside class="toc">
+  <p class="toc-title">On this page</p>
+  <ul><li class="l2"><a href="#normalised-radius">Normalised radius</a></li>
+<li class="l2"><a href="#distortion">Distortion</a></li>
+<li class="l3"><a href="#auto-scale">Auto scale</a></li>
+<li class="l2"><a href="#vignette">Vignette</a></li>
+<li class="l2"><a href="#lateral-ca">Lateral CA</a></li>
+<li class="l2"><a href="#parameters">Parameters</a></li>
+<li class="l2"><a href="#fast-paths">Fast paths</a></li>
+<li class="l2"><a href="#compared-with-photoshop">Compared with Photoshop</a></li>
+<li class="l2"><a href="#regression">Regression</a></li></ul>
+</aside>
+</div></div>
+</main>
+<footer class="site-foot">
+  <div>
+    <p><strong>gegl-color-ops</strong> · <span class="l-zh">GIMP 3 的 GEGL 色彩算子集</span><span class="l-en">a GEGL colour operator set for GIMP 3</span></p>
+    <p class="muted"><span class="l-zh">源码与文档同仓库，GPL-3.0-or-later。算法按公开公式与可观察行为自行实现，非官方移植；与各商业软件厂商及 GIMP 官方均无隶属关系。</span><span class="l-en">Source and docs live in one repository, GPL-3.0-or-later. Most algorithms were matched to observed behaviour rather than ported from source; this project is not affiliated with any vendor or the GIMP team.</span></p>
+  </div>
+  <div class="foot-links">
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops"><span class="l-zh">仓库</span><span class="l-en">Repository</span></a>
+    <a href="https://github.com/SuperMrWang-DEV/gegl-color-ops/issues"><span class="l-zh">问题反馈</span><span class="l-en">Issues</span></a>
+    <a href="../guide.html"><span class="l-zh">安装指南</span><span class="l-en">Install guide</span></a>
+    <a href="../overview.html"><span class="l-zh">总览</span><span class="l-en">Overview</span></a>
+    <a href="../overview.html#legal"><span class="l-zh">来源与版权</span><span class="l-en">Provenance</span></a>
+    <span class="muted">e45e4e7</span>
+  </div>
+</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var btns = document.querySelectorAll("[data-set-lang]");
+  function apply(l) {
+    if (l === "en") {
+      root.setAttribute("data-lang", "en");
+      root.lang = "en";
+    } else {
+      root.removeAttribute("data-lang");
+      root.lang = "zh-CN";
+    }
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute("aria-pressed",
+        btns[i].getAttribute("data-set-lang") === l ? "true" : "false");
+    }
+    if (root.dataset.titleZh && root.dataset.titleEn) {
+      document.title = l === "en" ? root.dataset.titleEn : root.dataset.titleZh;
+    }
+    // description / og 也跟着换：搜索结果、分享卡片用的是这一份
+    var metas = document.querySelectorAll("meta[data-desc-zh]");
+    for (var j = 0; j < metas.length; j++) {
+      metas[j].setAttribute("content",
+        l === "en" ? metas[j].getAttribute("data-desc-en")
+                   : metas[j].getAttribute("data-desc-zh"));
+    }
+  }
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].addEventListener("click", function () {
+      var l = this.getAttribute("data-set-lang");
+      try { localStorage.setItem("gco-lang", l); } catch (e) {}
+      apply(l);
+      try {
+        var u = new URL(location.href);
+        if (l === "en") u.searchParams.set("lang", "en");
+        else u.searchParams.delete("lang");
+        history.replaceState(null, "", u);
+      } catch (e) {}
+    });
+  }
+  apply(root.getAttribute("data-lang") === "en" ? "en" : "zh");
+})();
+</script>
+</body>
+</html>

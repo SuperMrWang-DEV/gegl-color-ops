@@ -3,9 +3,9 @@
 [![GIMP 3](https://img.shields.io/badge/GIMP-3.x-5C5543?logo=gimp&logoColor=white)](https://www.gimp.org/)
 [![GEGL 0.4](https://img.shields.io/badge/GEGL-0.4-2C4C6B)](https://gegl.org/)
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
-[![Operations](https://img.shields.io/badge/operations-54-brightgreen)](#算子清单)
+[![Operations](https://img.shields.io/badge/operations-55-brightgreen)](#算子清单)
 
-一组自研的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **54 个**，统一 `lb:` 命名空间，
+一组自研的 GEGL 颜色算子（GIMP 3 的滤镜内核），共 **55 个**，统一 `lb:` 命名空间，
 在 GIMP 里收在菜单栏顶层的 **SuperMrWang** 菜单下（和「颜色」「图层」平级）。算法按公开公式与可观察的行为实现，
 不含任何商业软件的代码或素材；文中出现的产品名仅用于说明某个算子参照了哪种行为，
 与各厂商无隶属关系（详见文末「版权与商标」）。
@@ -147,6 +147,7 @@ Python 插件走另一条线，两种取法都行：
 | `lb:lch-compose` | LCh Compose | LCh Compose | Component | Point | LCh 分量曲线的合成器：把（R = L、G = C、B = h）的数据图乘回物理量再转 RGB，与 `lb:lch-levels` 同一套 Lab 口径，浮点往返 0.0005 码 |
 | `lb:hsi-dual` | HSI Dual Extract | HSI Dual Extract | Component | Point | HSI 分量曲线的提取器：R = 饱和度、G = 强度、B = 色相/360。色相用 HSI 自己的余弦角（与 HSV 的参数角最多差 1.117°）；`HSI Split (Curves)` 的唯一一道提取器 |
 | `lb:hsi-compose` | HSI Compose | HSI Compose | Component | Point | HSI 分量曲线的合成器：把（R = S、G = I、B = H/360）的数据图按余弦式逆变换还原成真实色，与 `lb:hsi-levels` 共用 common/color-levels.h 里那份 HSI |
+| `lb:lens-correction` | Lens Correction | Lens Correction | Distort | Filter | 镜头校正三项：Brown–Conrady 径向畸变（k1·r² + k2·r⁴，半对角线归一化、四角 r=1）、径向暗角（强度/中点/羽化）、横向色差（红蓝各按角落像素偏移，绿不动）。一次重采样；自动缩放按 1/(1+k1+k2) 兜住四角；几何全关时走拷贝快路径（1600×2400 纯暗角 0.05 s） |
 | `lb:displace` | Displace | Displace | Distort | Composer | 按位移图重采样：一张 RGBA 图同时给 X/Y（R/G），位移图不乘 alpha，覆盖不到的像素原样输出，单位可按长边百分比，五种越界策略，默认 nohalo 不振铃 |
 | `lb:unsharp-mask` | Unsharp Mask | Unsharp Mask | Sharpen | Area | PS「USM 锐化 / 智能锐化」等价：σ ≤ 4 用真高斯、更大退化为三次盒式（O(n)）；数量/半径/阈值齐备，外加把结果夹到原图 3×3 极值的光晕抑制 |
 | `lb:add-noise` | Add Noise | Add Noise | Noise | Filter | PS「添加杂色」等价：高斯 / 均匀、可单色、按行播种所以分带不影响结果，同种子逐位可复现 |
@@ -788,6 +789,31 @@ PS 的「木偶变形」在这里是：**在图层上点几个钉子、拖住钉
 `tools/check_warp_gimp.py`（65 条，真 GIMP：过程注册与参数表、像素真的搬走、圈外
 逐像素字节相等、alpha、无 alpha 图层的写回格式、新图层输出、四种守卫、对话框与
 预览、**ARAP 档真的改像素且不碰远处、切档时滑杆联动**、768×1024 全流程）。
+
+### Python 插件：plugin/lens-correction（镜头校正 / 畸变 + 暗角 + 色差）
+
+PS「滤镜 → 镜头校正」里最常动的三项，一个对话框三个页签：
+
+1. **畸变**：`s(r) = 1 + k1·r² + k2·r⁴`，半径按**半对角线**归一化（四角恰为 1），
+   所以同一组参数在 4:3 和 3:2 上角落形变一致。k1 为正从更外取样、画面收缩
+   （去桶形），为负画面膨胀（加鱼眼）。自动缩放 `zoom = 1/(1+k1+k2)` 把四角
+   兜回画面，不然会露出四个透明缺口。量程夹在 ±0.5 是因为再大 `r → s(r)`
+   不再单调，画面会折出镜像重影。
+2. **暗角**：`gain = 1 + 强度/100 · smoothstep(中点, 中点+羽化, r)`，按**输出**
+   半径算（成像面照度，与畸变无关）。羽化太小会看到硬边同心环。
+3. **横向色差**：红蓝各按 `r·(1 + ca/半对角线·r²)` 缩放，位移按**角落像素**给；
+   绿通道不动——它是合焦参考，挪它只会更糊。
+
+三页共用一次重采样，所以预览和成品是同一段代码。几何三项全关时走拷贝快路径
+（纯暗角 1600×2400 = 0.05 s，全默认 0.09 s）；开畸变无 CA 1.10 s、带 CA 2.69 s
+（三通道各采一次）、换双线性 0.92 s。预览缩到 560 长边再挂滤镜，一次 30 ms。
+
+非破坏：参数写在 `lb:lens-correction` 滤镜上，重开对话框会读回上次的值。
+
+回归 `tools/check_lens_correction_gimp.py`（28 项：挂滤镜、参数回读、恒等逐字节、
+原像素不变、k1 两个方向的取样半径、自动缩放兜角、两档越界、暗角三点、色差只动
+红蓝、极端参数、性能）。对话框截图 `tools/shot_lens_correction.py` →
+`tools/site/plugin-shots/lens-correction/`。
 
 ### Python 插件：plugin/mesh-warp（自由变形 / 网格 + 把手）
 
@@ -1602,7 +1628,7 @@ python tools/check_ai_inpaint.py
 python tools/mock_comfy.py --port 8188        # 重绘结果 = 蒙版区填成固定蓝色
 ```
 
-**AI Inpaint 不在 54 个算子里**：它是 Python 插件，不编进 GEGL 模块，也不需要
+**AI Inpaint 不在 55 个算子里**：它是 Python 插件，不编进 GEGL 模块，也不需要
 `./build.sh`。`./install-plugin.sh` 会把 `plugin/ai-inpaint/` 和它依赖的
 `plugin/_shared/` 一起装到 GIMP 用户插件目录。
 
@@ -2007,7 +2033,7 @@ SuperMrWang → Observe   → 黑白 / 陡峭曲线 / 波浪曲线 / 饱和度 /
                           观察层，点了就建（也是 Python 插件）
 SuperMrWang → Luminosity Masks → 生成七条明度通道（亮部/暗部各 3 档 + 中间调）
 SuperMrWang → Export    → 3D LUT…（把当前图层的滤镜栈烘成 .cube）
-                          （以上都是 Python 插件，不在 54 个算子里）
+                          （以上都是 Python 插件，不在 55 个算子里）
 ```
 
 47 个算子按「找算子时的念头」分九组，避免一个子菜单里平铺二十多项：

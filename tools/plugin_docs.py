@@ -1569,6 +1569,103 @@ python tools/setup_comfy.py --tier full # 再加 Flux.1 Fill（12 GB）</code></
   </div>""",
     ),
     dict(
+        key='lens-correction',
+        slug='lens-correction',
+        title='镜头校正',
+        tag=('变形', 't-distort'),
+        count='三项一次重采样',
+        menu='SuperMrWang → Distort → 镜头校正…',
+        menus=['SuperMrWang → Distort → 镜头校正…',
+               '图层右键 → SuperMrWang → Distort → 镜头校正…'],
+        pdb='lb-plugin-lens-correction(image, drawables, settings, output)',
+        lede="""PS「滤镜 → 镜头校正」里真正会动的三项：<b>桶形 / 枕形畸变</b>、
+   <b>暗角</b>、<b>横向色差</b>。分开做要重采样三遍、画质掉三轮；这里一个算子
+   一次采样全解决，参数挂在图层滤镜栈上，原像素一个字节不动。""",
+        body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>三个页签，一个画面</h3><span class="pill">拖哪页看哪页</span></div>
+      <p>对话框左边是三个页签，右边是实时预览——<b>每动一下滑杆，预览立刻跟着变</b>，
+         三页共用同一次重采样，所以畸变、暗角、色差叠在一起的效果就是成品的样子。</p>
+      <p><b>畸变</b>：两个系数 k1、k2，外加「自动缩放」和「额外缩放」。<br>
+         <b>暗角</b>：强度、起始半径、羽化宽度。<br>
+         <b>色差</b>：红通道与蓝通道各自的径向偏移（像素）。</p>
+      <p>左下角两个下拉管全局：<b>重采样</b>（默认 Nohalo，无振铃）与
+         <b>越界</b>（默认拉边）。输出三档：非破坏滤镜（默认）、覆盖当前图层、
+         复制到新图层。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>半径怎么量</h3><span class="pill">四角 = 1</span></div>
+      <p>所有半径都按<b>画面半对角线</b>归一化，所以四个角恰好落在 <code>r = 1</code>。
+         用短边归一化的话，同一组 k1 在 4:3 和 3:2 上看到的角落形变不一样——而角落
+         正是畸变最明显的地方，那里不一致，参数就没法挪到别的图上用。</p>
+      <p>暗角按<b>输出</b>半径算，不按畸变后的源半径：它描述的是成像面上的照度衰减，
+         跟几何校正无关。所以先调畸变再压暗角，暗角的位置不会跟着跑。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>畸变：k1 往哪边拖</h3><span class="pill">正 = 收缩</span></div>
+      <p><code>s(r) = 1 + k1·r² + k2·r⁴</code>，源坐标是 <code>c + (p−c)·s(r)</code>。
+         <b>k1 为正</b>：从更外面取样，画面收缩——这就是<b>去桶形</b>（广角镜头的
+         直线被拉弯，校正后恢复笔直）。<b>k1 为负</b>：画面膨胀，加桶形 / 鱼眼味道。</p>
+      <p><b>k2</b> 是 r⁴ 项，只在角落附近咬得住：k1 修不干净的「角落还差一点」用它补，
+         常见量级 0.01–0.05。两个滑杆的量程都停在 ±0.5，因为再大
+         <code>r → s(r)</code> 就不再单调——同一块画面会被折回去两次，边缘出现镜像
+         重影，那不是「更强的效果」，是碎图。</p>
+      <p><b>自动缩放</b>默认开着：<code>zoom = 1/(1 + k1 + k2)</code>，把四角兜回
+         画面里，不会留下四个透明缺口。关掉就能看见那些缺口——这也是它为什么默认开。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>暗角：别用硬边</h3></div>
+      <p>增益是 <code>1 + 强度/100 · smoothstep(起点, 起点+羽化, r)</code>：负值压暗、
+         正值提亮，−100 就是角落全黑。起始半径默认 0.55、羽化 0.45。</p>
+      <p><b>羽化太小会看到一圈硬边同心环</b>——这是暗角最容易做丑的地方，
+         也是这里坚持用 smoothstep 而不是线性斜坡的原因。想让暗角更"自然"，
+         把起点往外推（0.7 以上）、羽化拉到 0.5，效果集中到最后 30% 的画面边缘。</p>
+      <p>提亮方向也有用：镜头全开时的边缘失光，用正值往回补，比手动画径向渐变准。</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>色差：绿通道不动</h3><span class="pill">按角落像素给</span></div>
+      <p>红、蓝两个通道各自沿半径缩放：<code>r·(1 + ca/半对角线·r²)</code>。
+         位移按<b>角落处的像素</b>给——<code>ca-red = 2</code> 表示红通道在四角向外
+         偏 2 px，中心几乎不动。24 MP 的机器上常见量级是 ±1–3 px。</p>
+      <p><b>绿通道不参与。</b>横向色差是镜头色散让三个颜色的成像尺寸略有不同，
+         绿通常落在中间、也是合焦参考；挪它等于把整幅画面往外拉，只会更糊。
+         红蓝一般反号（一边大一边小），紫边就是这么来的。</p>
+      <p>预览是缩到 560 长边再挂滤镜的，色差按像素给会跟着缩没——所以预览时按
+         「原宽 / 预览宽」放大回去，否则你在预览里根本看不见那 1 px 的紫边。</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>实测</h3><span class="pill">1600×2400</span></div>
+      <p>纯暗角 <b>0.05 s</b>、全默认 <b>0.09 s</b>（这两档走快路径，不采样）；
+         只调畸变 <b>1.10 s</b>、畸变 + 色差 <b>2.69 s</b>、换成双线性 <b>0.92 s</b>。
+         768×1024 上是 0.05 / 0.07 / 0.22 / 0.56 s。</p>
+      <p>色差让采样从 1 次变 3 次，这就是它贵的原因——不需要时把它留成 0。
+         预览在 560 长边上一次约 30 ms，拖滑杆不掉帧。</p>
+      <p class="muted small">回归 <code>check_lens_correction_gimp.py</code> 28 项：
+         恒等逐字节、k1 两个方向的取样半径、自动缩放兜角、两档越界、暗角三点、
+         色差只动红蓝、极端参数不炸。</p>
+    </div>
+  </div>
+
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>脚本怎么调</h3><span class="pill">settings = 一份 JSON</span></div>
+    <p>交互对话框写的就是一个 JSON 串，键名与算子属性同名（连字符写法）：</p>
+    <p><code>lb-plugin-lens-correction 图层 settings="{\\"k1\\": 0.08, \\"vignette\\": -28,
+       \\"ca-red\\": 1.2, \\"ca-blue\\": -1.2}" output=replace</code></p>
+    <p><code>output</code> 三档：<code>filter</code> 只写参数（能再改）、
+       <code>replace</code> 烤进当前层、<code>new</code> 复制一层再烤。漏写的键
+       取默认值，认不出来的键忽略——所以同一份串可以跨版本用。</p>
+    <p><b>没有做的：</b>镜头配置文件（.lcp / lensfun）按 EXIF 自动匹配、几何校正
+       （梯形 / 旋转）、以及用边缘检测自动估 k1 的「自动」按钮。这三件事都不是
+       重采样的问题，是「参数从哪来」的问题。</p>
+  </div>""",
+    ),
+    dict(
         key='vanishing-point',
         slug='vanishing-point',
         title='消失点',
@@ -2516,6 +2613,8 @@ BRIEF = {
     "warp": "点几个钉子拖住画面走：钉子之间平滑过渡，圈外一个字节都不动。",
     "vanishing-point": "拖一个四边形标出透视平面：网格朝消失点收敛，能把图贴上去、也能拉正。",
     "mesh-warp": "盖一张贝塞尔网格：拖交点改形状，选中交点拖把手把网格线弯成曲线。",
+    "lens-correction": "畸变 / 暗角 / 色差三项一个对话框：k1 去桶形、暗角压边、"
+                       "红蓝各挪几个像素修紫边，一次重采样。",
     "alpha-curves": "把颜色通道写进 alpha，再接一条三个控制点的平滑曲线："
                     "挂上去先拉满，往下拖即成形状。",
     "color-range": "色彩范围的定制对话框：选什么颜色，下面就只显示那种颜色的参数，"
@@ -2552,6 +2651,7 @@ TITLE_EN = {
     "refine": "Select and Mask",
     "warp": "Puppet Warp",
     "mesh-warp": "Free Transform (Mesh)",
+    "lens-correction": "Lens Correction",
     "vanishing-point": "Vanishing Point",
     "luminosity": "Luminosity Masks",
     "alpha-curves": "Alpha Curves",
@@ -2598,6 +2698,9 @@ BRIEF_EN = {
             "and byte-for-byte untouched outside the falloff.",
     "mesh-warp": "Lay a Bezier grid on the layer: drag the points to reshape it, "
                  "select a point and drag its handles to bend the grid lines.",
+    "lens-correction": "Distortion, vignetting and lateral CA in one dialog: k1 "
+                       "removes barrel, the vignette darkens the border, and red / "
+                       "blue shift a few pixels to kill fringes — one resample.",
     "vanishing-point": "Mark a perspective plane on the picture: the grid "
                      "converges to the vanishing points, and you can paste "
                      "into it or rectify it flat.",
@@ -2663,6 +2766,10 @@ DEPS_NOTE_EN = {
     "split": "No dependency on this project's operators: the layer is read "
              "once and sliced per component; only GIMP's own channel PDB is "
              "used.",
+    "lens-correction": "Uses this project's own <code>lb:lens-correction</code> "
+                       "operator (GIMP 3 only ships <code>gegl:lens-distortion</code>, "
+                       "which has no vignette and no CA). The module is inside the "
+                       "plug-in zip — drop it into the GEGL module folder.",
     "max-min": "Uses this project's own lb:max-min operator, because GIMP 3 no "
                "longer ships dilate / erode. The module is inside the plug-in "
                "zip — drop it into the GEGL module folder.",
@@ -2683,6 +2790,7 @@ AREA = {"selection": "图层转换", "channel": "图层转换", "split": "图层
         "refine": "Mask",
         "warp": "Distort",
         "mesh-warp": "Distort",
+        "lens-correction": "Distort",
         "vanishing-point": "Distort",
         "alpha-curves": "Mask", "color-range": "Mask",
         "channel-to-mask": "Mask", "max-min": "Mask",
@@ -2697,6 +2805,7 @@ DEPS = {
     "refine": [],
     "warp": [],
     "mesh-warp": [],
+    "lens-correction": ["lb:lens-correction"],
     "vanishing-point": [],
     "hsv": ["lb:hsv-dual", "lb:hsv-compose", "gimp:curves"],
     "lch": ["lb:lch-dual", "lb:lch-compose", "gimp:curves"],
@@ -2761,6 +2870,9 @@ DEPS_NOTE = {
     "ai-grey": "不依赖任何算子模块：只往缓冲区写像素，用 GIMP 自己的柔光模式。"
                "但要 <code>plugin/_shared/retouch_prep.py</code> 与 "
                "<code>retouch_math.py</code>——下载包里已经带上了。",
+    "lens-correction": "用本项目自己的算子 <code>lb:lens-correction</code>（GIMP 3 只带"
+                      " <code>gegl:lens-distortion</code>，只管畸变、没有暗角与色差）。"
+                      "插件包里已附带这个模块，按 readme 放进 GEGL 模块目录即可。",
     "max-min": "用本项目自己的算子 lb:max-min（GIMP 3 已不带 dilate / erode）。"
                "插件包里已附带这个模块，按 readme 放进 GEGL 模块目录即可。",
     "export-lut": "不依赖任何自研算子，也不用编译：只调 GIMP 自己的图层滤镜 API"

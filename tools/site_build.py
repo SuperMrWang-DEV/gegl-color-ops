@@ -2676,6 +2676,17 @@ PLUGIN_SPECS = [
                   "逐像素算子烘得准，看邻居像素的算子（模糊 / 置换 / 变形 / 图层样式）"
                   "会标成近似，图层蒙版在副本上摘掉。原图一个字节不动。",
              pdb="lb-plugin-export-lut(image, drawables)"),
+        dict(key="lens-correction", ops=["lens-correction"],
+             name="gegl-color-ops-plugin-lens-correction.zip",
+             src_dir=os.path.join(ROOT, "plugin", "lens-correction"),
+             py="lens-correction.py", menu="镜头校正（Lens Correction）",
+             menus="    SuperMrWang → Distort → 镜头校正…\n"
+                   "    图层右键 → SuperMrWang → Distort → 镜头校正…",
+             desc="镜头校正：PS「滤镜 → 镜头校正」里最常动的三项。k1 / k2 两个"
+                  "径向系数修桶形 / 枕形畸变，暗角按强度 / 起始半径 / 羽化压边，"
+                  "红蓝通道各按像素挪一点修横向色差——一次重采样全解决，"
+                  "参数挂在图层滤镜栈上，原像素一个字节不动。",
+             pdb="lb-plugin-lens-correction(image, drawables, settings, output)"),
 ]
 
 

@@ -2613,3 +2613,123 @@ PLUGIN_EN["export-lut"] = dict(
     </div>
   </div>""",
 )
+
+PLUGIN_EN["lens-correction"] = dict(
+    lede="""The three Lens Correction controls people actually turn: <b>barrel /
+   pincushion distortion</b>, <b>vignetting</b> and <b>lateral chromatic
+   aberration</b>. Done separately that is three resamples and three rounds of
+   softness; here it is one operator, one sample, live on the filter stack with
+   the original pixels untouched.""",
+    body="""  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Three tabs, one picture</h3><span class="pill">drag and watch</span></div>
+      <p>The dialog puts three tabs on the left and a live preview on the right:
+         <b>every slider moves the picture immediately</b>, and because all three
+         share a single resample, what you see is the combined result — not three
+         filters previewed in isolation.</p>
+      <p><b>Distortion</b>: two coefficients, k1 and k2, plus auto scale and an
+         extra scale.<br><b>Vignette</b>: amount, midpoint, feather.<br>
+         <b>Chromatic aberration</b>: separate radial shifts for red and blue,
+         in pixels.</p>
+      <p>Two dropdowns at the bottom are global: <b>resampling</b> (Nohalo by
+         default, no ringing) and <b>out of bounds</b> (clamp by default). Output
+         goes three ways: live filter (default), bake into this layer, duplicate
+         to a new layer.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>How the radius is measured</h3><span class="pill">corners = 1</span></div>
+      <p>Every radius is normalised to the <b>half diagonal</b>, so the four
+         corners land exactly at <code>r = 1</code>. Normalising to the short edge
+         would make one k1 pair produce different corner shapes on 4:3 and 3:2 —
+         and the corners are where distortion shows most, so that is the one
+         place the numbers must be portable between images.</p>
+      <p>The vignette is computed from the <b>output</b> radius, not the distorted
+         source radius: it describes illumination falloff on the sensor and has
+         nothing to do with the geometry. Correct the distortion first and the
+         vignette stays where it was.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>Which way to drag k1</h3><span class="pill">positive shrinks</span></div>
+      <p><code>s(r) = 1 + k1·r² + k2·r⁴</code>, and the source coordinate is
+         <code>c + (p−c)·s(r)</code>. <b>Positive k1</b> samples from further out
+         and shrinks the picture — that is <b>removing barrel distortion</b>, which
+         straightens the bowed lines of a wide lens. <b>Negative k1</b> inflates
+         it: barrel / fisheye character.</p>
+      <p><b>k2</b> is the r⁴ term and only bites near the corners: it finishes
+         what k1 leaves behind, typically 0.01–0.05. Both sliders stop at ±0.5
+         because beyond that <code>r → s(r)</code> stops being monotonic — one
+         slice of the picture gets sampled twice and the border mirrors. That is
+         not a stronger effect, it is a broken image.</p>
+      <p><b>Auto scale</b> is on by default: <code>zoom = 1/(1 + k1 + k2)</code>
+         pulls the corners back into the frame so there are no transparent
+         notches. Turn it off to see them — which is exactly why it is on.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Vignette: avoid the hard ring</h3></div>
+      <p>The gain is <code>1 + amount/100 · smoothstep(mid, mid+feather, r)</code>:
+         negative darkens, positive lightens, −100 is a black corner. Defaults are
+         midpoint 0.55 and feather 0.45.</p>
+      <p><b>A feather that is too small leaves a visible concentric ring</b> — the
+         easiest way to make a vignette look cheap, and the reason this uses
+         smoothstep rather than a linear ramp. For something more natural, push
+         the midpoint past 0.7 and the feather to 0.5, so the effect lives in the
+         last 30% of the frame.</p>
+      <p>Lightening is useful too: open a fast lens wide and the corners fall off;
+         a positive amount puts the brightness back more accurately than painting
+         a radial gradient by hand.</p>
+    </div>
+  </div>
+
+  <div class="dl-grid">
+    <div class="dl primary-dl">
+      <div class="dl-head"><h3>CA: green stays put</h3><span class="pill">pixels at the corners</span></div>
+      <p>Red and blue are each scaled along the radius:
+         <code>r·(1 + ca/halfdiag·r²)</code>. The shift is given <b>in pixels at
+         the corners</b> — <code>ca-red = 2</code> moves red 2 px outward at the
+         corners while the centre barely moves. On a 24 MP frame the usual amount
+         is ±1–3 px.</p>
+      <p><b>Green is not involved.</b> Lateral CA means the three colours image at
+         slightly different scales; green sits in the middle and is the focus
+         reference, so shifting it would drag the whole picture outward and only
+         make it softer. Red and blue normally take opposite signs — that mismatch
+         is what a purple fringe is.</p>
+      <p>The preview runs on a 560 px copy, where a pixel-denominated shift would
+         shrink to nothing — so it is scaled back by original width / preview
+         width, or you would never see the fringe you are fixing.</p>
+    </div>
+    <div class="dl">
+      <div class="dl-head"><h3>Measured</h3><span class="pill">1600×2400</span></div>
+      <p>Vignette only <b>0.05 s</b>, everything default <b>0.09 s</b> (both take
+         the copy fast path and never sample); distortion alone <b>1.10 s</b>,
+         distortion + CA <b>2.69 s</b>, with bilinear instead <b>0.92 s</b>. On
+         768×1024: 0.05 / 0.07 / 0.22 / 0.56 s.</p>
+      <p>CA triples the sampler cost (1 sample becomes 3) — leave it at zero when
+         you do not need it. The preview costs about 30 ms per update at 560 px,
+         so dragging stays responsive.</p>
+      <p class="muted small">Regression <code>check_lens_correction_gimp.py</code>,
+         28 checks: identity is byte-for-byte, sample radius in both k1
+         directions, auto scale keeping the corners opaque, two edge policies,
+         three vignette points, CA moving only red and blue, extreme parameters
+         not exploding.</p>
+    </div>
+  </div>
+
+  <div class="dl primary-dl">
+    <div class="dl-head"><h3>Scripting</h3><span class="pill">settings is one JSON string</span></div>
+    <p>The dialog writes exactly one JSON string, keyed by the operator's own
+       property names (hyphenated form):</p>
+    <p><code>lb-plugin-lens-correction 图层 settings="{\\"k1\\": 0.08, \\"vignette\\": -28,
+       \\"ca-red\\": 1.2, \\"ca-blue\\": -1.2}" output=replace</code></p>
+    <p><code>output</code> takes <code>filter</code> (parameters only, re-editable),
+       <code>replace</code> (bake into this layer) or <code>new</code> (duplicate
+       then bake). Missing keys fall back to defaults and unknown keys are
+       ignored, so one string survives across versions.</p>
+    <p><b>Not implemented:</b> lens profile lookup (.lcp / lensfun from EXIF),
+       geometric correction (perspective / rotate), and the "Auto" button that
+       estimates k1 from edge detection. None of those are resampling problems —
+       they are about where the numbers come from.</p>
+  </div>""",
+)

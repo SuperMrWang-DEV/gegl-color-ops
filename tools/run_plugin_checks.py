@@ -58,6 +58,7 @@ SUITES = [
     ("check_perspective_gimp", "gimp"),
     ("check_convert", "gimp"),
     ("check_export_lut_gimp", "gimp"),
+    ("check_lens_correction_gimp", "gimp"),
     ("check_ai_inpaint_gimp", "gimp"),
     ("check_retouch_ai_gimp", "gimp"),
 ]

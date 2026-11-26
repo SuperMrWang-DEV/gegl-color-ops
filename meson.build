@@ -88,6 +88,8 @@ ops = [
   ['max-min',                 'max-min',                 'max-min.c'],
   # 置换：单张矢量场 + 可调黑白场/中点，修掉 gegl:displace 的几处硬限制
   ['displace',                'displace',                'displace.c'],
+  # 镜头校正：畸变 / 暗角 / 横向色差，一次重采样，自动缩放兜住四角
+  ['lens-correction',         'lens-correction',         'lens-correction.c'],
   # 锐化与杂色：PS「锐化 → USM」与「杂色」四个滤镜的等价物
   ['unsharp-mask',            'unsharp-mask',            'unsharp-mask.c'],
   ['add-noise',               'add-noise',               'add-noise.c'],

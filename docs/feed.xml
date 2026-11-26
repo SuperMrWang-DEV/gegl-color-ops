@@ -144,6 +144,15 @@
    平面**折成一级级台阶**，同一张图沿台阶连续铺上去。</summary>
   </entry>
   <entry>
+    <title>插件 · 镜头校正</title>
+    <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/lens-correction.html"/>
+    <id>tag:github.com,2026:plugin-lens-correction</id>
+    <updated>2026-11-17T00:00:00Z</updated>
+    <summary>PS「滤镜 → 镜头校正」里真正会动的三项：桶形 / 枕形畸变、
+   暗角、横向色差。分开做要重采样三遍、画质掉三轮；这里一个算子
+   一次采样全解决，参数挂在图层滤镜栈上，原像素一个字节不动。</summary>
+  </entry>
+  <entry>
     <title>插件 · 自由变形</title>
     <link href="https://superMrwang-dev.github.io/gegl-color-ops/plugins/mesh-warp.html"/>
     <id>tag:github.com,2026:plugin-mesh-warp</id>
@@ -337,6 +346,13 @@
     <id>tag:github.com,2026:lb:puppet-warp</id>
     <updated>2026-11-15T00:00:00Z</updated>
     <summary>木偶变形的非破坏版本：把钉子串挂在滤镜栈上，改参数只是让这条滤镜重算，原像素不动。对话框（Python 插件）拖完钉子点应用时写的也是这里的 pins 串，重跑对话框会从滤镜里把钉子读回来。</summary>
+  </entry>
+  <entry>
+    <title>Lens Correction（SuperMrWang → Distort）</title>
+    <link href="https://github.com/SuperMrWang-DEV/gegl-color-ops/blob/main/ops/lens-correction/README.md"/>
+    <id>tag:github.com,2026:lb:lens-correction</id>
+    <updated>2026-11-15T00:00:00Z</updated>
+    <summary>PS「滤镜 → 镜头校正」里最常动的三项：桶形 / 枕形畸变、暗角、横向色差。一个算子一次重采样全解决，参数挂在图层滤镜栈上，原像素一个字节不动。</summary>
   </entry>
   <entry>
     <title>Displace</title>
